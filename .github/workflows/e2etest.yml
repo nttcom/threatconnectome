@@ -27,6 +27,11 @@ jobs:
           envsubst < ./key/.subst > ./key/firebase_credentials.json
         env:
           FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
+      - name: Extract firebaserc
+        run: |
+          envsubst < ../firebase/.subst > ../firebase/.firebaserc
+        env:
+          FIREBASERC: ${{ secrets.FIREBASERC }}
       - name: react build
         run: npm ci && npm run build
         working-directory: ./web
