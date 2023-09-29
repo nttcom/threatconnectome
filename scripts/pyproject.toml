@@ -1,0 +1,18 @@
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+select = [
+  "E",  # pycodestyle error
+  "F",  # pyflakes
+  "I",  # isort
+  "W",  # pycodestyle warning
+]
+
+# `E741` Do not use variables named 'I', 'O', or 'l' https://www.flake8rules.com/rules/E741.html
+ignore = ["E741"]
+
+[tool.black]
+line-length = 100
+

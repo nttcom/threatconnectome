@@ -1,0 +1,35 @@
+extends:
+  - eslint:recommended
+  - plugin:import/recommended
+  - plugin:jsx-a11y/recommended
+  - plugin:react-hooks/recommended
+  - plugin:react/recommended
+  - react-app
+  - prettier
+rules:
+  import/order:
+    - error
+    - alphabetize:
+        order: asc
+      groups:
+        - builtin
+        - external
+        - parent
+        - sibling
+        - index
+        - object
+        - type
+      pathGroups:
+        - group: parent
+          pattern: "@alias/**"
+          position: "before"
+      newlines-between: always
+  quotes:
+    - error
+    - double
+settings:
+  import/resolver:
+    node:
+      extensions:
+        - .js
+        - .jsx

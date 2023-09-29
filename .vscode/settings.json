@@ -1,0 +1,36 @@
+{
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": false
+        }
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.python",
+        "editor.codeActionsOnSave": {
+            "source.fixAll": true,
+            // disable isort because it conflicts with ruff
+            "source.organizeImports": false
+        }
+    },
+    "python.languageServer": "Pylance",
+    "python.linting.lintOnSave": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.mypyEnabled": true,
+    "python.formatting.provider": "black",
+    "python.formatting.blackPath": "black",
+    "python.formatting.blackArgs": [
+        "--config",
+        "api/pyproject.toml",
+    ],
+    "ruff.args": [
+        "--config",
+        "api/pyproject.toml",
+    ],
+    //"ruff.fixAll": true,
+    "files.insertFinalNewline": true,
+    "editor.formatOnSave": true
+}

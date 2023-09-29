@@ -1,0 +1,34 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+alembic = "*"
+fastapi = "*"
+firebase-admin = "*"
+passlib = {extras = ["bcrypt"], version = "*"}
+psycopg2 = "*"
+protobuf = "<4.0"
+pydantic = "*"
+python-jose = {extras = ["cryptography"], version = "*"}
+python-multipart = "*"
+requests = "*"
+slack-sdk = "*"
+uvicorn = "*"
+sqlalchemy = "*"
+
+[dev-packages]
+mypy = "*"
+mypy-extensions = "*"
+pytest = "*"
+pytest-cov = "*"
+types-requests = "*"
+httpx = "*"
+ruff = "*"
+black = "*"
+httpretty = "*"
+pytest-mock = "*"
+
+[requires]
+python_version = "3.10"
