@@ -74,8 +74,16 @@ vi .env  # change default values
 >
 > ```bash
 > cd ./web
-> cp .env.production .env.production.local
+> cp .env.example.production .env.production.local
 > vi .env.production.local  # set values
+> ```
+
+> When using environment variables for the development environment
+>
+> ```bash
+> cd ./web
+> cp .env.example.development .env.development.local
+> vi .env.development.local  # set values
 > ```
 
 :warning: **Values that need to be changed**
@@ -85,7 +93,7 @@ vi .env  # change default values
 - Values can be referred from firebase project setting page
 
   - `REACT_APP_FIREBASE_API_KEY`
-    - The same with `FIREBASE_API_KEY` in .env
+    - The same with `FIREBASE_API_KEY` in ../.env
   - `REACT_APP_FIREBASE_APP_ID`
     - App ID
   - Values can be referred from `firebaseConfig` on the page
@@ -228,15 +236,15 @@ Docker containers in docker-compose-local.yml
 
 ## Top directory structure
 
-| Name           |  Description              |   Docker container to mount |
-| -------------- | ------------------------- | ------------------------------------------ |
-| .github        | workflow file for github actions, template file for pull request |　- |
-| .vscode        | vscode settings(format specification、extended functions)|  -  |
-| api            | api server created with fastapi          |  api            |
-| e2etests       | e2e test                                 |  e2etests       |
-| firebase       | emulator of firebase authentication      |  firebase       |
-| key            | credential key to use in the API         |  api            |
-| nginx          | nginx configuration directory            |  web            |
-| scripts        | storing scripts that run outside of the server  | - |
-| traefik        | reverse proxy                            |     traefik        |
-| web            | front end created with React.js |  web  (only web/bulid directory)|
+| Name     | Description                                                      | Docker container to mount      |
+| -------- | ---------------------------------------------------------------- | ------------------------------ |
+| .github  | workflow file for github actions, template file for pull request | 　-                            |
+| .vscode  | vscode settings(format specification、extended functions)        | -                              |
+| api      | api server created with fastapi                                  | api                            |
+| e2etests | e2e test                                                         | e2etests                       |
+| firebase | emulator of firebase authentication                              | firebase                       |
+| key      | credential key to use in the API                                 | api                            |
+| nginx    | nginx configuration directory                                    | web                            |
+| scripts  | storing scripts that run outside of the server                   | -                              |
+| traefik  | reverse proxy                                                    | traefik                        |
+| web      | front end created with React.js                                  | web (only web/bulid directory) |
