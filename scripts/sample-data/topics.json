@@ -51,7 +51,7 @@
         "ext": {
           "tags": ["pygments:pypi:"],
           "vulnerable_versions": {
-            "websocket-extensions:npm:": [">=0", "<2.15.0"]
+            "pygments:pypi:": [">=0", "<2.15.0"]
           }
         },
         "action_id": "4ee11b03-83b3-4a52-9bed-19ffc9b301e1"
@@ -63,7 +63,7 @@
         "ext": {
           "tags": ["pygments:pypi:"],
           "vulnerable_versions": {
-            "websocket-extensions:npm:": [">=0", "<2.15.1"]
+            "pygments:pypi:": [">=0", "<2.15.1"]
           }
         },
         "action_id": "22167963-417b-4f68-9b04-39d7a6b12cc6"
