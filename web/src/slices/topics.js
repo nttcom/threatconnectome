@@ -10,12 +10,6 @@ export const getTopic = createAsyncThunk(
 const topicsSlice = createSlice({
   name: "topics",
   initialState: {},
-  reducers: {
-    ungetTopic: (state, action) => ({
-      ...state,
-      [action.payload]: undefined,
-    }),
-  },
   extraReducers: (builder) => {
     builder.addCase(getTopic.fulfilled, (state, action) => ({
       ...state,
@@ -26,8 +20,6 @@ const topicsSlice = createSlice({
   },
 });
 
-const { actions, reducer } = topicsSlice;
-
-export const { ungetTopic } = actions;
+const { reducer } = topicsSlice;
 
 export default reducer;

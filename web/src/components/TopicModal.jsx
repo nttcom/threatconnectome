@@ -31,7 +31,6 @@ import {
   getPTeamTagsSummary,
   getPTeamTopicActions,
   getPTeamUnsolvedTaggedTopicIds,
-  unget,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import {
@@ -170,7 +169,6 @@ export default function TopicModal(props) {
         dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
       ]);
     }
-    dispatch(unget("topicsSummary"));
   };
 
   const handleCreateTopic = async () => {

@@ -179,17 +179,6 @@ const pteamSlice = createSlice({
       ...(action.payload && state.pteamId === action.payload ? state : _initialState),
       pteamId: action.payload,
     }),
-    unget: (state, action) => ({
-      ...state,
-      [action.payload]: undefined,
-    }),
-    ungetTopicStatus: (state, action) => ({
-      ...state,
-      topicStatus: {
-        ...state.topicStatus,
-        [action.payload]: undefined,
-      },
-    }),
   },
   extraReducers: (builder) => {
     builder
@@ -270,6 +259,6 @@ const pteamSlice = createSlice({
 
 const { actions, reducer } = pteamSlice;
 
-export const { clearPTeam, setPTeamId, unget, ungetTopicStatus } = actions;
+export const { clearPTeam, setPTeamId } = actions;
 
 export default reducer;
