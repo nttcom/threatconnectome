@@ -1,0 +1,56 @@
+name: lint e2etest directory
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  pull_request:
+    branches:
+      - main
+    paths:
+      - e2etests/**
+  push:
+    branches:
+      - main
+    paths:
+      - e2etests/**
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+
+env:
+  DEFAULT_PYTHON: "3.10"
+  PYTHON_ROOT_DIRS: ./
+  E2ETEST_DIRS: ./e2etests
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.E2ETEST_DIRS }}
+    steps:
+      - name: Check out code from GitHub
+        uses: actions/checkout@v3
+      - name: Set up Python ${{ env.DEFAULT_PYTHON }}
+        id: python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+      - name: Setup pipenv
+        run: |
+          pip install --user pipenv
+      - name: Create Python virtual environment
+        run: |
+          pipenv --python ${{ env.DEFAULT_PYTHON }}
+          sudo apt update
+          sudo apt install -y build-essential python3-dev libpq-dev
+          pipenv run python -m pip install -U pip
+          pipenv sync --dev
+        # Runs a linter for python
+      - name: Run formatting check
+        run: |
+          pipenv run black --check --diff ${{ env.PYTHON_ROOT_DIRS }}
+          pipenv run ruff check ${{ env.PYTHON_ROOT_DIRS }}
+          pipenv run mypy ${{ env.PYTHON_ROOT_DIRS }} --show-error-codes --no-error-summary  
+    

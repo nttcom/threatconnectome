@@ -1,0 +1,56 @@
+name: e2etest
+
+on:
+  schedule:
+    - cron: "30 14 * * 1-5" # weekday
+  workflow_dispatch:
+
+env:
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_HOST: db
+  TESTDB_HOST: testdb
+  DB_PORT: 5432
+  DB_SCHEMA: postgres
+  FLASHSENSE_API_URL: http://flashsense.api.url.example/api
+  FIREBASE_CRED: /key/firebase_credentials.json
+  FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+jobs:
+  e2etest:
+    name: Run e2etests
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - uses: actions/checkout@v3
+      - name: Extract service account credentials
+        run: |
+          envsubst < ./key/.subst > ./key/firebase_credentials.json
+        env:
+          FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
+      - name: Extract firebaserc
+        run: |
+          envsubst < ./firebase/.subst > ./firebase/.firebaserc
+        env:
+          FIREBASERC: ${{ secrets.FIREBASERC }}
+      - name: react build
+        run: npm ci && npm run build
+        working-directory: ./web
+        env:
+          REACT_APP_API_BASE_URL: "http://traefik/api"
+          REACT_APP_FIREBASE_API_KEY: ${{ secrets.REACT_APP_FIREBASE_API_KEY }}
+          REACT_APP_FIREBASE_APP_ID: ${{ secrets.REACT_APP_FIREBASE_APP_ID }}
+          REACT_APP_FIREBASE_AUTH_DOMAIN: ${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}
+          REACT_APP_FIREBASE_MEASUREMENT_ID: ${{ secrets.REACT_APP_FIREBASE_MEASUREMENT_ID }}
+          REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
+          REACT_APP_FIREBASE_PROJECT_ID: ${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}
+          REACT_APP_FIREBASE_STORAGE_BUCKET: ${{ secrets.REACT_APP_FIREBASE_STORAGE_BUCKET }}
+          REACT_APP_FIREBASE_AUTH_EMULATOR_URL: "http://testfirebase:9099"
+          REACT_APP_METEMCYBER_AUTH_URL: "http://testfirebase:9099"
+      - name: docker compose build
+        run: docker compose -f docker-compose-e2e.yml build
+      - name: migrate db
+        run: docker compose -f docker-compose-e2e.yml run api sh -c "cd app && alembic upgrade head"
+      - name: e2etest
+        run: docker compose -f docker-compose-e2e.yml run --rm e2eclient pytest -s e2etests/test_e2e.py
+      - name: docker compose down
+        run: docker compose -f docker-compose-e2e.yml down -v
