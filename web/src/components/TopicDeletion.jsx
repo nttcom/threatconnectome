@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { getPTeamTagsSummary, unget } from "../slices/pteam";
+import { getPTeamTagsSummary } from "../slices/pteam";
 import { deleteTopic } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle, sxModal } from "../utils/const";
 
@@ -30,7 +30,6 @@ export default function TopicDeletion(props) {
       .then(async () => {
         await Promise.all([
           dispatch(getPTeamTagsSummary(pteamId)),
-          dispatch(unget("topicsSummary")),
           onDelete && onDelete(),
           enqueueSnackbar("delete topic succeeded", { variant: "success" }),
         ]);
