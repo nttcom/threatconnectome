@@ -1,8 +1,18 @@
-import { Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
 import {
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+} from "@mui/icons-material";
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Badge,
   Box,
   Button,
   Chip,
+  Collapse,
   IconButton,
   Link,
   Paper,
@@ -17,13 +27,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
+import { grey, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import ActionItem from "../components/ActionItem";
+import AnalysisActionTypeIcon from "../components/AnalysisActionTypeIcon";
 import CommentDeleteModal from "../components/CommentDeleteModal";
 import TabPanel from "../components/TabPanel";
 import ThreatImpactChip from "../components/ThreatImpactChip";
@@ -51,11 +61,79 @@ export default function AnalysisTopic(props) {
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [listHeight, setListHeight] = useState(0);
   const [groupsDict, setGroupsDict] = useState({});
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [actionExpanded, setActionExpanded] = useState(false);
 
   const topics = useSelector((state) => state.topics);
 
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
+
+  // sample data
+  const action_sample = [
+    {
+      action: "Update test to version 0.7.19",
+      actionId: "98097879-985a- 44ad - 9443 - 5d465a068c94",
+      actionType: "elimination",
+      author: "tanaka taro",
+      createDate: "2023/8/10",
+      recommended: true,
+      different: true,
+      zones: ["zone1", "zone2", "zone3"],
+      ext: {
+        tags: ["mlflow:pypi:"],
+        vulnerable_versions: {},
+      },
+      focusTags: null,
+    },
+    {
+      action: "Update 8.10",
+      actionId: "98097879-985a- 44ad - 9443 - 5d465a068c95",
+      actionType: "detection",
+      author: "tanaka taro",
+      createDate: "2023/8/10",
+      recommended: true,
+      different: false,
+      zones: ["zone4", "zone5", "zone6"],
+      ext: {
+        tags: ["mlflow:pypi:"],
+        vulnerable_versions: {},
+      },
+      focusTags: null,
+    },
+    {
+      action: "Update test0727 to version 111",
+      actionId: "2fb5c256-6ff1-4382-8928-1e67751a03c3",
+      actionType: "acceptance",
+      author: "tanaka taro",
+      createDate: "2023/8/10",
+      recommended: false,
+      different: true,
+      zones: [],
+      ext: {
+        tags: [],
+        vulnerable_versions: {},
+      },
+      focusTags: null,
+    },
+  ];
+
+  const zone_sample = [
+    {
+      zoneId: 1,
+      zoneName: "zone1",
+    },
+    {
+      zoneId: 2,
+      zoneName: "zone2",
+    },
+  ];
+
+  const box_sx = { mt: 3 };
+
+  const actionhandleChange = (panel) => (event, isExpanded) => {
+    setActionExpanded(isExpanded ? panel : false);
+  };
 
   useEffect(() => {
     reloadComments(targetTopic.topic_id);
@@ -158,6 +236,7 @@ export default function AnalysisTopic(props) {
     return `${rootPrefix}/tags/${tag.tag_id}?` + tmpParams.toString();
   };
   const topicDetail = topics?.[targetTopic.topic_id];
+  const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
   /* block rendering until data ready */
   if (!ateam.ateam_id || !topicDetail) return <>Loading...</>;
@@ -185,6 +264,10 @@ export default function AnalysisTopic(props) {
             <Typography variant="h6" fontWeight={900} mr={1}>
               {topicDetail.title}
             </Typography>
+            <Box flexGrow={1} />
+            <IconButton onClick={() => setTopicModalOpen(true)}>
+              <EditIcon />
+            </IconButton>
           </Box>
           <UUIDTypography sx={{ marginLeft: "95px" }}>{topicDetail.topic_id}</UUIDTypography>
         </Box>
@@ -364,65 +447,11 @@ export default function AnalysisTopic(props) {
           <Box display="flex" justifyContent="space-between" alignItems="flex-start">
             <Box display="flex" flexDirection="column">
               <Box>
-                {topicDetail.actions?.filter((action) => action.recommended).length > 0 && (
-                  <Box mb={3}>
-                    <Box alignItems="baseline" display="flex" flexDirection="columns" mb={2}>
-                      <Typography mr={2} fontWeight={900}>
-                        Recommended actions
-                      </Typography>
-                      <Chip
-                        size="small"
-                        label={topicDetail.actions.filter((action) => action.recommended).length}
-                        sx={{ marginLeft: "5px", backgroundColor: "#ffef62", fontWeight: 900 }}
-                      ></Chip>
-                    </Box>
-                    {topicDetail.actions
-                      .filter((action) => action.recommended)
-                      .map((action) => (
-                        <ActionItem
-                          key={action.action_id}
-                          action={action.action}
-                          actionId={action.action_id}
-                          actionType={action.action_type}
-                          recommended={action.recommended}
-                          zones={action.zones}
-                        />
-                      ))}
-                  </Box>
-                )}
-              </Box>
-              {topicDetail.actions?.filter((action) => !action.recommended).length > 0 && (
-                <Box mb={3}>
-                  <Box alignItems="baseline" display="flex" flexDirection="columns" mb={2}>
-                    <Typography mr={2} fontWeight={900}>
-                      Other actions
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label={topicDetail.actions.filter((action) => !action.recommended).length}
-                      sx={{ marginLeft: "5px", backgroundColor: "#ffef62", fontWeight: 900 }}
-                    ></Chip>
-                  </Box>
-                  {topicDetail.actions
-                    .filter((action) => !action.recommended)
-                    .map((action) => (
-                      <ActionItem
-                        key={action.action_id}
-                        action={action.action}
-                        actionId={action.action_id}
-                        actionType={action.action_type}
-                        recommended={action.recommended}
-                        zones={action.zones}
-                      />
-                    ))}
-                </Box>
-              )}
-              {topicDetail.tags.length > 0 && (
-                <Box>
-                  <Typography fontWeight={900} mt={3} mb={2}>
-                    Tags
-                  </Typography>
-                  <Box mb={5}>
+                <Typography mb={0.5} fontWeight={900}>
+                  Tags
+                </Typography>
+                {topicDetail.tags.length > 0 ? (
+                  <Box ml={1}>
                     {topicDetail.tags.map((tag) => (
                       <Chip
                         key={tag.tag_id}
@@ -432,38 +461,262 @@ export default function AnalysisTopic(props) {
                       />
                     ))}
                   </Box>
-                </Box>
-              )}
-              {topicDetail.misp_tags.length > 0 && (
+                ) : (
+                  <Typography sx={{ color: grey[500] }} ml={1}>
+                    No Data
+                  </Typography>
+                )}
+              </Box>
+              <Box sx={box_sx}>
+                <Typography fontWeight={900}>Zone</Typography>
                 <Box>
-                  <Typography fontWeight={900} mt={3} mb={2}>
-                    MISP tags
-                  </Typography>
-                  <Box mb={5}>
-                    {topicDetail.misp_tags.map((mispTag) => (
-                      <Chip
-                        key={mispTag.tag_id}
-                        label={mispTag.tag_name}
-                        sx={{ mr: 1, borderRadius: "3px" }}
-                        size="small"
-                      />
-                    ))}
-                  </Box>
+                  {zone_sample.length > 0 ? (
+                    <>
+                      {zone_sample.map((zone) => (
+                        <Box key={zone.zoneId} ml={1}>
+                          <Typography variant="body">{zone.zoneName}</Typography>
+                        </Box>
+                      ))}
+                    </>
+                  ) : (
+                    <Typography sx={{ color: grey[500] }} ml={1}>
+                      No Data
+                    </Typography>
+                  )}
                 </Box>
-              )}
-              {topicDetail.abstract && (
-                <>
-                  <Typography fontWeight={900} mb={2}>
-                    Detail
+              </Box>
+              <Box sx={box_sx}>
+                <Box display="flex" flexDirection="columns" justifyContent="space-between">
+                  <Typography mb={0.5} fontWeight={900}>
+                    MISP Tags
                   </Typography>
-                  <Typography variant="body">{topicDetail.abstract}</Typography>
-                </>
-              )}
+                </Box>
+                <Box ml={1}>
+                  {topicDetail.misp_tags.length > 0 ? (
+                    <>
+                      {topicDetail.misp_tags.map((mispTag) => (
+                        <Chip
+                          key={mispTag.tag_id}
+                          label={mispTag.tag_name}
+                          sx={{ mr: 1, borderRadius: "3px" }}
+                          size="small"
+                        />
+                      ))}
+                    </>
+                  ) : (
+                    <Typography sx={{ color: grey[500] }}>No Data</Typography>
+                  )}
+                </Box>
+              </Box>
+              <Box sx={box_sx}>
+                <Box display="flex" flexDirection="columns" mb={1}>
+                  <Typography mr={0.5} mt={0.5} fontWeight={900}>
+                    Details
+                  </Typography>
+                  {topicDetail.abstract && (
+                    <IconButton onClick={handleDetailOpen} size="small">
+                      {detailOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    </IconButton>
+                  )}
+                </Box>
+                <Collapse in={detailOpen}>
+                  <Box ml={1}>
+                    <Typography variant="body">{topicDetail.abstract}</Typography>
+                  </Box>
+                </Collapse>
+                <Box ml={1}>
+                  {!topicDetail.abstract && (
+                    <Typography variant="body" sx={{ color: grey[500] }}>
+                      No Data
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+              <Box sx={box_sx}>
+                <Box display="flex" flexDirection="columns">
+                  <Typography mr={2} fontWeight={900}>
+                    Recommended actions
+                  </Typography>
+                  {action_sample.filter((action) => action.recommended).length > 0 && (
+                    <Chip
+                      size="small"
+                      label={action_sample.filter((action) => action.recommended).length}
+                      sx={{ marginLeft: "5px", backgroundColor: "#ffef62", fontWeight: 900 }}
+                    />
+                  )}
+                </Box>
+                {action_sample.filter((action) => action.recommended).length > 0 ? (
+                  <Box mt={1} sx={{ width: "650px" }}>
+                    {action_sample
+                      .filter((action) => action.recommended)
+                      .map((action, index) => (
+                        <Box key={index}>
+                          <Accordion
+                            expanded={actionExpanded === action.action}
+                            onChange={actionhandleChange(action.action)}
+                            square={true}
+                          >
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon />}
+                              aria-controls="panel1bh-content"
+                              id="panel1bh-header"
+                            >
+                              <Box display="flex" flexDirection="columns">
+                                {action.different ? (
+                                  <Badge
+                                    color="error"
+                                    variant="dot"
+                                    badgeContent=" "
+                                    sx={{ marginRight: "10px" }}
+                                  >
+                                    <AnalysisActionTypeIcon actionType={action.actionType} />
+                                  </Badge>
+                                ) : (
+                                  <AnalysisActionTypeIcon actionType={action.actionType} />
+                                )}
+                                {action.action}
+                              </Box>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ backgroundColor: grey[50] }}>
+                              {action.different && (
+                                <Box display="flex" flexDirection="columns">
+                                  <Typography fontWeight={800} sx={{ color: red[500] }}>
+                                    The destination does not match the topic.
+                                  </Typography>
+                                </Box>
+                              )}
+                              <Box display="flex" flexDirection="columns">
+                                <Typography fontWeight={300}>ID: </Typography>
+                                <Typography>{action.actionId}</Typography>
+                              </Box>
+                              <Box display="flex" flexDirection="columns">
+                                <Typography fontWeight={300}>Type: </Typography>
+                                <Chip
+                                  size="small"
+                                  label={action.actionType}
+                                  sx={{
+                                    marginLeft: "5px",
+                                    backgroundColor: grey[600],
+                                    color: "#ffffff",
+                                  }}
+                                />
+                              </Box>
+                              <Box display="flex" flexDirection="columns">
+                                <Typography fontWeight={300}>Zone: </Typography>
+                                <Typography>{action.zones}</Typography>
+                              </Box>
+                              <Box display="flex" flexDirection="columns">
+                                <Typography fontWeight={300}>Author: </Typography>
+                                <Typography>{action.author}</Typography>
+                              </Box>
+                              <Box display="flex" flexDirection="columns">
+                                <Typography fontWeight={300}>Creation date: </Typography>
+                                <Typography>{action.createDate}</Typography>
+                              </Box>
+                            </AccordionDetails>
+                          </Accordion>
+                        </Box>
+                      ))}
+                  </Box>
+                ) : (
+                  <Typography variant="body" ml={1} sx={{ color: grey[500] }}>
+                    No Data
+                  </Typography>
+                )}
+              </Box>
+              <Box sx={box_sx}>
+                <Box display="flex" flexDirection="columns">
+                  <Typography mr={2} fontWeight={900}>
+                    Other actions
+                  </Typography>
+                  {action_sample.filter((action) => !action.recommended).length > 0 && (
+                    <Chip
+                      size="small"
+                      label={action_sample.filter((action) => !action.recommended).length}
+                      sx={{ marginLeft: "5px", backgroundColor: "#ffef62", fontWeight: 900 }}
+                    />
+                  )}
+                </Box>
+                {action_sample.filter((action) => !action.recommended).length > 0 ? (
+                  <Box mt={1} sx={{ width: "650px" }}>
+                    {action_sample
+                      .filter((action) => !action.recommended)
+                      .map((action, index) => (
+                        <Box key={index}>
+                          <Accordion
+                            expanded={actionExpanded === action.action}
+                            onChange={actionhandleChange(action.action)}
+                            square={true}
+                          >
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon />}
+                              aria-controls="panel1bh-content"
+                              id="panel1bh-header"
+                            >
+                              <Box display="flex" flexDirection="columns">
+                                {action.different ? (
+                                  <Badge
+                                    color="error"
+                                    variant="dot"
+                                    badgeContent=" "
+                                    sx={{ marginRight: "10px" }}
+                                  >
+                                    <AnalysisActionTypeIcon actionType={action.actionType} />
+                                  </Badge>
+                                ) : (
+                                  <AnalysisActionTypeIcon actionType={action.actionType} />
+                                )}
+                                {action.action}
+                              </Box>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ backgroundColor: grey[50] }}>
+                              {action.different && (
+                                <Box display="flex" flexDirection="columns">
+                                  <Typography fontWeight={800} sx={{ color: red[500] }}>
+                                    The destination does not match the topic.
+                                  </Typography>
+                                </Box>
+                              )}
+                              <Box display="flex" flexDirection="columns">
+                                <Typography fontWeight={300}>ID: </Typography>
+                                <Typography>{action.actionId}</Typography>
+                              </Box>
+                              <Box display="flex" flexDirection="columns">
+                                <Typography fontWeight={300}>Type: </Typography>
+                                <Chip
+                                  size="small"
+                                  label={action.actionType}
+                                  sx={{
+                                    marginLeft: "5px",
+                                    backgroundColor: grey[600],
+                                    color: "#ffffff",
+                                  }}
+                                />
+                              </Box>
+                              <Box display="flex" flexDirection="columns">
+                                <Typography fontWeight={300}>Zone: </Typography>
+                                <Typography>{action.zones}</Typography>
+                              </Box>
+                              <Box display="flex" flexDirection="columns">
+                                <Typography fontWeight={300}>Author: </Typography>
+                                <Typography>{action.author}</Typography>
+                              </Box>
+                              <Box display="flex" flexDirection="columns">
+                                <Typography fontWeight={300}>Creation date: </Typography>
+                                <Typography>{action.createDate}</Typography>
+                              </Box>
+                            </AccordionDetails>
+                          </Accordion>
+                        </Box>
+                      ))}
+                  </Box>
+                ) : (
+                  <Typography variant="body" ml={1} sx={{ color: grey[500] }}>
+                    No Data
+                  </Typography>
+                )}
+              </Box>
             </Box>
-            <IconButton onClick={() => setTopicModalOpen(true)}>
-              <EditIcon />
-            </IconButton>
-            {/*TODO: fix bug in TopicModal*/}
             <TopicModal
               open={topicModalOpen}
               setOpen={setTopicModalOpen}
