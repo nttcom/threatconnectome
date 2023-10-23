@@ -26,8 +26,8 @@ import {
   getPTeamSolvedTaggedTopicIds,
   getPTeamTagsSummary,
   getPTeamTopicActions,
+  getPTeamTopicStatusesSummary,
   getPTeamUnsolvedTaggedTopicIds,
-  unget,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { updateTopic, createAction, updateAction, deleteAction } from "../utils/api";
@@ -196,7 +196,11 @@ export default function PTeamEditAction(props) {
         ) {
           switch (system.teamMode) {
             case "pteam":
-              await dispatch(unget("topicsSummary"));
+              if (presetTagId) {
+                await dispatch(
+                  getPTeamTopicStatusesSummary({ pteamId: pteamId, tagId: presetTagId })
+                );
+              }
               break;
             case "ateam":
               await dispatch(getATeamTopics(ateamId));
