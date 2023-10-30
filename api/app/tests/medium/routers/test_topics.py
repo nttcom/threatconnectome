@@ -1019,7 +1019,7 @@ class TestGetUserTopicActions:
             # pteam1 have zone1 only
             self.set_topic1_zones([self.zone2])  # set zone2 instead of zone1
 
-            with pytest.raises(HTTPError, match=r"404: Not Found: You do not have related zone"):
+            with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
                 assert_200(
                     client.get(
                         f"/topics/{self.topic1.topic_id}/actions/user/me", headers=headers(USER2)
