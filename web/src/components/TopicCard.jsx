@@ -52,7 +52,6 @@ import WarningTooltip from "./WarningTooltip";
 export default function TopicCard(props) {
   const { pteamId, topicId, currentTagId, pteamtag } = props;
 
-  const [setActionMenuAnchor] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [actionModalOpen, setActionModalOpen] = useState(false);
@@ -110,7 +109,7 @@ export default function TopicCard(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleActionMenuClose = () => setActionMenuAnchor(null);
+  const handleActionMenuClose = () => {};
 
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
