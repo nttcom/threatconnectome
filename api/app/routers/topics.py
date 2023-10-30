@@ -463,9 +463,12 @@ def get_user_topic_actions(
     """
     Get actions list of the topic for current user.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
+    topic = validate_topic(db, topic_id)
+    if not topic or not check_zone_accessible(db, current_user.user_id, topic.zones):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No such topic",
+        )
 
     pteam_zones = (
         db.query(models.PTeamZone.zone_name)
