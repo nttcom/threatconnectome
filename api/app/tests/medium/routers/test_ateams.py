@@ -187,6 +187,18 @@ def test_update_ateam():
     assert data["zones"] == []
 
 
+def test_update_validate_slack_webhook_url():
+    create_user(USER1)
+    ateam1 = create_ateam(USER1, ATEAM1)
+
+    json = {
+        "slack_webhook_url": "test",
+    }
+
+    with pytest.raises(HTTPError, match=r"400: Bad Request: Invalid slack webhook url"):
+        assert_200(client.put(f"/ateams/{ateam1.ateam_id}", headers=headers(USER1), json=json))
+
+
 def test_update_ateam__by_member():
     create_user(USER1)
     create_user(USER2)
