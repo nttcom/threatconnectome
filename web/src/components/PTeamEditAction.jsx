@@ -32,12 +32,22 @@ import {
 import { getTopic } from "../slices/topics";
 import { updateTopic, createAction, updateAction, deleteAction } from "../utils/api";
 import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import { parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import ActionGenerator from "./ActionGenerator";
 import ActionItem from "./ActionItem";
 
 export default function PTeamEditAction(props) {
-  const { open, setOpen, presetTopicId, presetTagId, presetParentTagId, presetActions } = props;
+  const {
+    open,
+    setOpen,
+    presetTopicId,
+    presetTagId,
+    presetParentTagId,
+    presetActions,
+    currentTagDict,
+    pteamtag,
+  } = props;
 
   const [errors, setErrors] = useState([]);
 
@@ -62,6 +72,7 @@ export default function PTeamEditAction(props) {
   const [actions, setActions] = useState([]);
   const [editActionOpen, setEditActionOpen] = useState(false);
   const [editActionTarget, setEditActionTarget] = useState({});
+  const [actionFilter, setActionFilter] = useState(true);
 
   const dispatch = useDispatch();
 
@@ -242,6 +253,35 @@ export default function PTeamEditAction(props) {
     );
   }
 
+  // TODO: make common function around action filter
+  const isRelatedAction = (action, tagName) =>
+    (!action.ext?.tags?.length > 0 || action.ext.tags.includes(tagName)) &&
+    (!action.ext?.vulnerable_versions?.[tagName]?.length > 0 ||
+      parseVulnerableVersions(action.ext.vulnerable_versions[tagName]).some(
+        (actionVersion) =>
+          !pteamtag.references?.length > 0 ||
+          pteamtag.references?.some((ref) =>
+            versionMatch(
+              ref.version,
+              actionVersion.ge,
+              actionVersion.gt,
+              actionVersion.le,
+              actionVersion.lt,
+              actionVersion.eq,
+              true
+            )
+          )
+      ));
+
+  // TODO: make common function around action filter
+  const topicActions = actionFilter
+    ? actions?.filter(
+        (action) =>
+          isRelatedAction(action, currentTagDict.tag_name) ||
+          isRelatedAction(action, currentTagDict.parent_name)
+      )
+    : actions ?? [];
+
   return (
     <>
       <Dialog open={open === true} fullWidth>
@@ -266,15 +306,15 @@ export default function PTeamEditAction(props) {
                     <ActionGeneratorModal />
                     <Box sx={{ flex: "2 1 auto" }} />
                     <Switch
-                      checked={true}
-                      // onChange={() => setActionFilter(!actionFilter)}
+                      checked={actionFilter}
+                      onChange={() => setActionFilter(!actionFilter)}
                       size="small"
                       color="success"
                       sx={{ marginLeft: 28 }}
                     />
                     <Typography>Action filter</Typography>
                   </Box>
-                  {actions?.length > 0 || (
+                  {topicActions?.length > 0 || (
                     <Box
                       display="flex"
                       flexDirection="row"
@@ -285,34 +325,43 @@ export default function PTeamEditAction(props) {
                       <Typography variant="body2">Please add action</Typography>
                     </Box>
                   )}
-                  {actions
-                    .slice()
-                    .sort(
-                      (a, b) =>
-                        actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
-                    )
-                    .map((action, idx) => (
-                      <Box key={idx} display="flex" flexDirection="row" alignItems="center" mt={1}>
-                        <ActionItem
+                  {topicActions &&
+                    topicActions
+                      .slice()
+                      .sort(
+                        (a, b) =>
+                          actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
+                      )
+                      .map((action, idx) => (
+                        <Box
                           key={idx}
-                          action={action.action}
-                          actionId={action.action_id}
-                          actionType={action.action_type}
-                          recommended={action.recommended}
-                          zones={action.zones}
-                          ext={action.ext}
-                          onChangeRecommended={() =>
-                            setActions(
-                              actions.map((item) =>
-                                item !== action ? item : { ...item, recommended: !item.recommended }
+                          display="flex"
+                          flexDirection="row"
+                          alignItems="center"
+                          mt={1}
+                        >
+                          <ActionItem
+                            key={idx}
+                            action={action.action}
+                            actionId={action.action_id}
+                            actionType={action.action_type}
+                            recommended={action.recommended}
+                            zones={action.zones}
+                            ext={action.ext}
+                            onChangeRecommended={() =>
+                              setActions(
+                                actions.map((item) =>
+                                  item !== action
+                                    ? item
+                                    : { ...item, recommended: !item.recommended }
+                                )
                               )
-                            )
-                          }
-                          onDelete={() => setActions(actions.filter((item) => item !== action))}
-                          sx={{ flexGrow: 1 }}
-                        />
-                      </Box>
-                    ))}
+                            }
+                            onDelete={() => setActions(actions.filter((item) => item !== action))}
+                            sx={{ flexGrow: 1 }}
+                          />
+                        </Box>
+                      ))}
                 </Box>
               </Box>
             </Box>
@@ -371,4 +420,6 @@ PTeamEditAction.propTypes = {
       }),
     })
   ),
+  currentTagDict: PropTypes.object.isRequired,
+  pteamtag: PropTypes.object.isRequired,
 };

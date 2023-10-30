@@ -491,6 +491,8 @@ export default function TopicCard(props) {
             presetTagId={currentTagId}
             presetParentTagId={currentTagDict.parent_id}
             presetActions={pteamTopicActions[topicId]}
+            currentTagDict={currentTagDict}
+            pteamtag={pteamtag}
           />
         </Box>
         <Divider flexItem={true} orientation="vertical" />
