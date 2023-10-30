@@ -40,9 +40,9 @@ import { dateTimeFormat } from "../utils/func";
 import { isComparable, parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import ActionItem from "./ActionItem";
-import AddOtherAction from "./AddOtherAction";
 import AssigneesSelector from "./AssigneesSelector";
 import PTeamEditAction from "./PTeamEditAction";
+import ReportCompletedActions from "./ReportCompletedActions";
 import ThreatImpactChip from "./ThreatImpactChip";
 import TopicModal from "./TopicModal";
 import TopicStatusSelector from "./TopicStatusSelector";
@@ -477,7 +477,7 @@ export default function TopicCard(props) {
               </>
             )}
           </CardActions>
-          <AddOtherAction
+          <ReportCompletedActions
             handleConfirm={handleActionMenuClose}
             setShow={setActionModalOpen}
             show={actionModalOpen}

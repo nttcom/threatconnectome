@@ -33,7 +33,7 @@ import ActionTypeIcon from "./ActionTypeIcon";
 import RecommendedStar from "./RecommendedStar";
 import UUIDTypography from "./UUIDTypography";
 
-export default function AddOtherAction(props) {
+export default function ReportCompletedActions(props) {
   const { handleConfirm, setShow, show, topicId, topicActions } = props;
 
   const [note, setNote] = useState("");
@@ -244,7 +244,7 @@ export default function AddOtherAction(props) {
   );
 }
 
-AddOtherAction.propTypes = {
+ReportCompletedActions.propTypes = {
   handleConfirm: PropTypes.func.isRequired,
   setShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
