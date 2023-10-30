@@ -21,12 +21,10 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { getATeamTopics } from "../slices/ateam";
 import {
   getPTeamSolvedTaggedTopicIds,
   getPTeamTagsSummary,
   getPTeamTopicActions,
-  getPTeamTopicStatusesSummary,
   getPTeamUnsolvedTaggedTopicIds,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
@@ -53,9 +51,7 @@ export default function PTeamEditAction(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const system = useSelector((state) => state.system);
   const user = useSelector((state) => state.user.user);
-  const ateamId = useSelector((state) => state.ateam.ateamId);
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const topics = useSelector((state) => state.topics);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
@@ -136,12 +132,23 @@ export default function PTeamEditAction(props) {
     return true;
   };
 
-  const handleUpdateTopic = async () => {
-    if (src.created_by !== user.user_id) {
-      enqueueSnackbar("You are not topic creator", { variant: "error" });
-      return;
+  const reloadTopicAfterAPI = async () => {
+    // fix topic state
+    await Promise.all([
+      dispatch(getTopic(topicId)),
+      dispatch(getPTeamTagsSummary(pteamId)),
+      dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
+    ]);
+    // update only if needed
+    if (pteamId && presetTagId) {
+      await Promise.all([
+        dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
+        dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
+      ]);
     }
+  };
 
+  const handleUpdateTopic = async () => {
     if (!validateActionTags()) return;
 
     const presetActionIds = new Set(presetActions.map((a) => a.action_id));
@@ -166,6 +173,16 @@ export default function PTeamEditAction(props) {
       deleteAction(actionId).catch((error) => operationError(error));
     });
 
+    if (src.created_by !== user.user_id) {
+      enqueueSnackbar(
+        "Only actions have been changed, not topics. You can't update topic, because you are not topic creator.",
+        { variant: "warning" }
+      );
+      reloadTopicAfterAPI();
+      setOpen(false);
+      return;
+    }
+
     const data = {
       title: title,
       abstract: abst,
@@ -175,51 +192,9 @@ export default function PTeamEditAction(props) {
       misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
     };
     await updateTopic(topicId, data)
-      .then(async (response) => {
-        // fix topic state
-        await Promise.all([
-          dispatch(getTopic(topicId)),
-          enqueueSnackbar("Update topic succeeded", { variant: "success" }),
-        ]);
-        // update each time
-        switch (system.teamMode) {
-          case "pteam":
-            await Promise.all([
-              dispatch(getPTeamTagsSummary(pteamId)),
-              dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
-            ]);
-            break;
-          case "ateam":
-            break;
-          default:
-            throw new Error(`Invalid team mode: ${system.teamMode}`);
-        }
-        // update only if needed
-        if (system.teamMode === "pteam" && pteamId && presetTagId) {
-          await Promise.all([
-            dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
-            dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
-          ]);
-        }
-        if (
-          topics[presetTopicId].threat_impact !== data.threat_impact ||
-          !data.tags.includes(presetParentTagId)
-        ) {
-          switch (system.teamMode) {
-            case "pteam":
-              if (presetTagId) {
-                await dispatch(
-                  getPTeamTopicStatusesSummary({ pteamId: pteamId, tagId: presetTagId })
-                );
-              }
-              break;
-            case "ateam":
-              await dispatch(getATeamTopics(ateamId));
-              break;
-            default:
-              throw new Error(`Invalid team mode: ${system.teamMode}`);
-          }
-        }
+      .then(async () => {
+        enqueueSnackbar("Update topic succeeded", { variant: "success" });
+        reloadTopicAfterAPI();
         setOpen(false);
       })
       .catch((error) => operationError(error));
