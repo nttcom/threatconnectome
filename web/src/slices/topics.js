@@ -12,7 +12,11 @@ export const getTopic = createAsyncThunk(
 
 export const getActions = createAsyncThunk(
   "topics/getActions",
-  async (topicId) => await apiGetUserTopicActions(topicId).then((response) => response.data)
+  async (topicId) =>
+    await apiGetUserTopicActions(topicId).then((response) => ({
+      data: response.data,
+      topicId: topicId,
+    }))
 );
 
 const _initialState = {
@@ -35,18 +39,14 @@ const topicsSlice = createSlice({
         ...state,
         topics: {
           ...state.topics,
-          [action.payload.topic_id]: {
-            ...action.payload,
-          },
+          [action.payload.topic_id]: action.payload,
         },
       }))
       .addCase(getActions.fulfilled, (state, action) => ({
         ...state,
         actions: {
           ...state.actions,
-          [action.payload.topic_id]: {
-            ...action.payload,
-          },
+          [action.payload.topicId]: action.payload.data,
         },
       }));
   },
