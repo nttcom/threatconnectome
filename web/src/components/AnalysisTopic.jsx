@@ -184,7 +184,9 @@ export default function AnalysisTopic(props) {
   if (!ateam.ateam_id || !topicDetail) return <>Loading...</>;
 
   const topicTagNames = topicDetail.tags.map((tag) => tag.tag_name);
-  const recommendedActions = actions?.[targetTopic.topic_id]?.filter((action) => action.recommended);
+  const recommendedActions = actions?.[targetTopic.topic_id]?.filter(
+    (action) => action.recommended
+  );
   const otherActions = actions?.[targetTopic.topic_id]?.filter((action) => !action.recommended);
 
   const pteamContactInfoDict = ateam.pteams.reduce(
@@ -494,75 +496,75 @@ export default function AnalysisTopic(props) {
                 {recommendedActions?.length > 0 ? (
                   <Box mt={1} sx={{ width: "650px" }}>
                     {recommendedActions?.map((action, index) => (
-                        <Box key={index}>
-                          <Accordion
-                            expanded={actionExpanded === action.action}
-                            onChange={actionhandleChange(action.action)}
-                            square={true}
+                      <Box key={index}>
+                        <Accordion
+                          expanded={actionExpanded === action.action}
+                          onChange={actionhandleChange(action.action)}
+                          square={true}
+                        >
+                          <AccordionSummary
+                            expandIcon={<ExpandMoreIcon />}
+                            aria-controls="panel1bh-content"
+                            id="panel1bh-header"
                           >
-                            <AccordionSummary
-                              expandIcon={<ExpandMoreIcon />}
-                              aria-controls="panel1bh-content"
-                              id="panel1bh-header"
-                            >
-                              <Box display="flex" flexDirection="columns">
-                                {tagsMatched(topicTagNames, action.ext?.tags ?? []) ? (
+                            <Box display="flex" flexDirection="columns">
+                              {tagsMatched(topicTagNames, action.ext?.tags ?? []) ? (
+                                <AnalysisActionTypeIcon actionType={action.action_type} />
+                              ) : (
+                                <Badge
+                                  color="error"
+                                  variant="dot"
+                                  badgeContent=" "
+                                  sx={{ marginRight: "10px" }}
+                                >
                                   <AnalysisActionTypeIcon actionType={action.action_type} />
-                                ) : (
-                                  <Badge
-                                    color="error"
-                                    variant="dot"
-                                    badgeContent=" "
-                                    sx={{ marginRight: "10px" }}
-                                  >
-                                    <AnalysisActionTypeIcon actionType={action.action_type} />
-                                  </Badge>
-                                )}
-                                {action.action}
-                              </Box>
-                            </AccordionSummary>
-                            <AccordionDetails sx={{ backgroundColor: grey[50] }}>
-                              {tagsMatched(topicTagNames, action.ext?.tags ?? []) || (
-                                <Box display="flex" flexDirection="columns">
-                                  <Typography fontWeight={800} sx={{ color: red[500] }}>
-                                    The destination does not match the topic.
-                                  </Typography>
-                                </Box>
+                                </Badge>
                               )}
+                              {action.action}
+                            </Box>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ backgroundColor: grey[50] }}>
+                            {tagsMatched(topicTagNames, action.ext?.tags ?? []) || (
                               <Box display="flex" flexDirection="columns">
-                                <Typography fontWeight={300}>ID: </Typography>
-                                <Typography>{action.action_id}</Typography>
+                                <Typography fontWeight={800} sx={{ color: red[500] }}>
+                                  The destination does not match the topic.
+                                </Typography>
                               </Box>
-                              <Box display="flex" flexDirection="columns">
-                                <Typography fontWeight={300}>Type: </Typography>
-                                <Chip
-                                  size="small"
-                                  label={action.action_type}
-                                  sx={{
-                                    marginLeft: "5px",
-                                    backgroundColor: grey[600],
-                                    color: "#ffffff",
-                                  }}
-                                />
-                              </Box>
-                              <Box display="flex" flexDirection="columns">
-                                <Typography fontWeight={300}>Zone: </Typography>
-                                {action.zones.map((zone, index) => (
-                                  <Typography key={index}>{zone.zone_name}</Typography>
-                                ))}
-                              </Box>
-                              <Box display="flex" flexDirection="columns">
-                                <Typography fontWeight={300}>Author: </Typography>
-                                <Typography>{action.created_by}</Typography>
-                              </Box>
-                              <Box display="flex" flexDirection="columns">
-                                <Typography fontWeight={300}>Creation date: </Typography>
-                                <Typography>{action.created_at}</Typography>
-                              </Box>
-                            </AccordionDetails>
-                          </Accordion>
-                        </Box>
-                      ))}
+                            )}
+                            <Box display="flex" flexDirection="columns">
+                              <Typography fontWeight={300}>ID: </Typography>
+                              <Typography>{action.action_id}</Typography>
+                            </Box>
+                            <Box display="flex" flexDirection="columns">
+                              <Typography fontWeight={300}>Type: </Typography>
+                              <Chip
+                                size="small"
+                                label={action.action_type}
+                                sx={{
+                                  marginLeft: "5px",
+                                  backgroundColor: grey[600],
+                                  color: "#ffffff",
+                                }}
+                              />
+                            </Box>
+                            <Box display="flex" flexDirection="columns">
+                              <Typography fontWeight={300}>Zone: </Typography>
+                              {action.zones.map((zone, index) => (
+                                <Typography key={index}>{zone.zone_name}</Typography>
+                              ))}
+                            </Box>
+                            <Box display="flex" flexDirection="columns">
+                              <Typography fontWeight={300}>Author: </Typography>
+                              <Typography>{action.created_by}</Typography>
+                            </Box>
+                            <Box display="flex" flexDirection="columns">
+                              <Typography fontWeight={300}>Creation date: </Typography>
+                              <Typography>{action.created_at}</Typography>
+                            </Box>
+                          </AccordionDetails>
+                        </Accordion>
+                      </Box>
+                    ))}
                   </Box>
                 ) : (
                   <Typography variant="body" ml={1} sx={{ color: grey[500] }}>
@@ -586,75 +588,75 @@ export default function AnalysisTopic(props) {
                 {otherActions?.length > 0 ? (
                   <Box mt={1} sx={{ width: "650px" }}>
                     {otherActions.map((action, index) => (
-                        <Box key={index}>
-                          <Accordion
-                            expanded={actionExpanded === action.action}
-                            onChange={actionhandleChange(action.action)}
-                            square={true}
+                      <Box key={index}>
+                        <Accordion
+                          expanded={actionExpanded === action.action}
+                          onChange={actionhandleChange(action.action)}
+                          square={true}
+                        >
+                          <AccordionSummary
+                            expandIcon={<ExpandMoreIcon />}
+                            aria-controls="panel1bh-content"
+                            id="panel1bh-header"
                           >
-                            <AccordionSummary
-                              expandIcon={<ExpandMoreIcon />}
-                              aria-controls="panel1bh-content"
-                              id="panel1bh-header"
-                            >
-                              <Box display="flex" flexDirection="columns">
-                                {tagsMatched(topicTagNames, action.ext?.tags ?? []) ? (
+                            <Box display="flex" flexDirection="columns">
+                              {tagsMatched(topicTagNames, action.ext?.tags ?? []) ? (
+                                <AnalysisActionTypeIcon actionType={action.action_type} />
+                              ) : (
+                                <Badge
+                                  color="error"
+                                  variant="dot"
+                                  badgeContent=" "
+                                  sx={{ marginRight: "10px" }}
+                                >
                                   <AnalysisActionTypeIcon actionType={action.action_type} />
-                                ) : (
-                                  <Badge
-                                    color="error"
-                                    variant="dot"
-                                    badgeContent=" "
-                                    sx={{ marginRight: "10px" }}
-                                  >
-                                    <AnalysisActionTypeIcon actionType={action.action_type} />
-                                  </Badge>
-                                )}
-                                {action.action}
-                              </Box>
-                            </AccordionSummary>
-                            <AccordionDetails sx={{ backgroundColor: grey[50] }}>
-                              {tagsMatched(topicTagNames, action.ext?.tags ?? []) || (
-                                <Box display="flex" flexDirection="columns">
-                                  <Typography fontWeight={800} sx={{ color: red[500] }}>
-                                    The destination does not match the topic.
-                                  </Typography>
-                                </Box>
+                                </Badge>
                               )}
+                              {action.action}
+                            </Box>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ backgroundColor: grey[50] }}>
+                            {tagsMatched(topicTagNames, action.ext?.tags ?? []) || (
                               <Box display="flex" flexDirection="columns">
-                                <Typography fontWeight={300}>ID: </Typography>
-                                <Typography>{action.action_id}</Typography>
+                                <Typography fontWeight={800} sx={{ color: red[500] }}>
+                                  The destination does not match the topic.
+                                </Typography>
                               </Box>
-                              <Box display="flex" flexDirection="columns">
-                                <Typography fontWeight={300}>Type: </Typography>
-                                <Chip
-                                  size="small"
-                                  label={action.action_type}
-                                  sx={{
-                                    marginLeft: "5px",
-                                    backgroundColor: grey[600],
-                                    color: "#ffffff",
-                                  }}
-                                />
-                              </Box>
-                              <Box display="flex" flexDirection="columns">
-                                <Typography fontWeight={300}>Zone: </Typography>
-                                {action.zones.map((zone, index) => (
-                                  <Typography key={index}>{zone.zone_name}</Typography>
-                                ))}
-                              </Box>
-                              <Box display="flex" flexDirection="columns">
-                                <Typography fontWeight={300}>Author: </Typography>
-                                <Typography>{action.created_by}</Typography>
-                              </Box>
-                              <Box display="flex" flexDirection="columns">
-                                <Typography fontWeight={300}>Creation date: </Typography>
-                                <Typography>{action.created_at}</Typography>
-                              </Box>
-                            </AccordionDetails>
-                          </Accordion>
-                        </Box>
-                      ))}
+                            )}
+                            <Box display="flex" flexDirection="columns">
+                              <Typography fontWeight={300}>ID: </Typography>
+                              <Typography>{action.action_id}</Typography>
+                            </Box>
+                            <Box display="flex" flexDirection="columns">
+                              <Typography fontWeight={300}>Type: </Typography>
+                              <Chip
+                                size="small"
+                                label={action.action_type}
+                                sx={{
+                                  marginLeft: "5px",
+                                  backgroundColor: grey[600],
+                                  color: "#ffffff",
+                                }}
+                              />
+                            </Box>
+                            <Box display="flex" flexDirection="columns">
+                              <Typography fontWeight={300}>Zone: </Typography>
+                              {action.zones.map((zone, index) => (
+                                <Typography key={index}>{zone.zone_name}</Typography>
+                              ))}
+                            </Box>
+                            <Box display="flex" flexDirection="columns">
+                              <Typography fontWeight={300}>Author: </Typography>
+                              <Typography>{action.created_by}</Typography>
+                            </Box>
+                            <Box display="flex" flexDirection="columns">
+                              <Typography fontWeight={300}>Creation date: </Typography>
+                              <Typography>{action.created_at}</Typography>
+                            </Box>
+                          </AccordionDetails>
+                        </Accordion>
+                      </Box>
+                    ))}
                   </Box>
                 ) : (
                   <Typography variant="body" ml={1} sx={{ color: grey[500] }}>
