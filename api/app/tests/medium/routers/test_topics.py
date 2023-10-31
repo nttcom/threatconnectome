@@ -841,6 +841,14 @@ class TestGetUserTopicActions:
                     "actions": [self.action_req1, self.action_req2, self.action_req3],
                 },
             )
+            create_topic(  # noise
+                USER1,
+                {
+                    **self.topic_base1,
+                    "topic_id": uuid4(),
+                    "actions": [self.action_req1, self.action_req2, self.action_req3],
+                },
+            )
 
         @staticmethod
         def find_action(
