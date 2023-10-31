@@ -501,16 +501,20 @@ def get_user_topic_actions(
             models.GTeamAccount.gteam_id == models.Zone.gteam_id,
         ),
     )
+    related_action_ids = (
+        db.query(
+            models.TopicAction.action_id,
+        )
+        .filter(
+            models.TopicAction.topic_id == str(topic_id),
+        )
+        .subquery()
+    )
 
     actions = (
         db.query(models.TopicAction)
-        .outerjoin(
-            models.ActionZone,
-            and_(
-                models.TopicAction.topic_id == str(topic_id),
-                models.ActionZone.action_id == models.TopicAction.action_id,
-            ),
-        )
+        .join(related_action_ids, related_action_ids.c.action_id == models.TopicAction.action_id)
+        .outerjoin(models.ActionZone)
         .filter(
             or_(
                 models.ActionZone.zone_name.is_(None),  # public
