@@ -40,7 +40,7 @@ export default function ActionConfirmModal(props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const topics = useSelector((state) => state.topics); // dispatched by parent
+  const topics = useSelector((state) => state.topics.topics); // dispatched by parent
   const user = useSelector((state) => state.user.user);
 
   const dispatch = useDispatch();

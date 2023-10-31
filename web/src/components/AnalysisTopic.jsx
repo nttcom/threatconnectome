@@ -64,7 +64,7 @@ export default function AnalysisTopic(props) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionExpanded, setActionExpanded] = useState(false);
 
-  const topics = useSelector((state) => state.topics);
+  const topics = useSelector((state) => state.topics.topics);
 
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
