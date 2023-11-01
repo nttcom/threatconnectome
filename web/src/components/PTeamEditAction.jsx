@@ -53,7 +53,7 @@ export default function PTeamEditAction(props) {
 
   const user = useSelector((state) => state.user.user);
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const topics = useSelector((state) => state.topics);
+  const topics = useSelector((state) => state.topics.topics);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
   const src = topics[presetTopicId];
