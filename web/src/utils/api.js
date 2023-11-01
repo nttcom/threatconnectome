@@ -209,6 +209,9 @@ export const updateTopic = async (topicId, data) => axios.put(`/topics/${topicId
 
 export const deleteTopic = async (topicId) => axios.delete(`/topics/${topicId}`);
 
+export const getUserTopicActions = async (topicId) =>
+  axios.get(`/topics/${topicId}/actions/user/me`);
+
 export const fetchFlashsense = async (topicId) => axios.get(`/topics/fetch_fs/${topicId}`);
 
 // actions

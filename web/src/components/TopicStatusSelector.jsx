@@ -47,7 +47,7 @@ export default function TopicStatusSelector(props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const topicStatus = useSelector((state) => state.pteam.topicStatus); // dispatched by parent
-  const topics = useSelector((state) => state.topics); // dispatched by parent
+  const topics = useSelector((state) => state.topics.topics); // dispatched by parent
 
   const dispatch = useDispatch();
 

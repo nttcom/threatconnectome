@@ -69,7 +69,7 @@ export default function TopicCard(props) {
   const members = useSelector((state) => state.pteam.members); // dispatched by Tag.jsx
   const topicStatus = useSelector((state) => state.pteam.topicStatus);
   const pteamTopicActions = useSelector((state) => state.pteam.topicActions);
-  const topics = useSelector((state) => state.topics);
+  const topics = useSelector((state) => state.topics.topics);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
   const dispatch = useDispatch();
