@@ -164,6 +164,11 @@ export default function Drawer() {
           </StyledListItemIcon>
           <ListItemText>Account</ListItemText>
         </StyledListItemButton>
+
+        {/* Temporary storage */}
+        <StyledListItemButton onClick={() => navigate("/topicmanagement")}>
+          <ListItemText>Topic Management</ListItemText>
+        </StyledListItemButton>
       </List>
     </MuiDrawer>
   );

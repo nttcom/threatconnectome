@@ -12,6 +12,7 @@ import PTeam from "./PTeam";
 import ResetPassword from "./ResetPassword";
 import Status from "./Status";
 import Tag from "./Tag";
+import TopicManagement from "./TopicManagement";
 import Zone from "./Zone";
 import ZoneEdit from "./ZoneEdit";
 
@@ -30,6 +31,7 @@ export {
   ResetPassword,
   Status,
   Tag,
+  TopicManagement,
   Zone,
   ZoneEdit,
 };
