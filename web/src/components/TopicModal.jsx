@@ -42,6 +42,7 @@ import {
   deleteAction,
 } from "../utils/api";
 import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import { validateNotEmpty, validateUUID } from "../utils/func";
 
 import ActionGenerator from "./ActionGenerator";
 import ActionItem from "./ActionItem";
@@ -378,10 +379,6 @@ export default function TopicModal(props) {
       </>
     );
   }
-
-  const validateUUID = (str) =>
-    str?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
-  const validateNotEmpty = (str) => str?.length > 0;
 
   const updateErrors = (key, value, validator) => {
     if (validator(value)) setErrors(errors.filter((error) => error !== key));
