@@ -17,6 +17,7 @@ requests = "*"
 slack-sdk = "*"
 uvicorn = "*"
 sqlalchemy = "*"
+univers = "*"
 
 [dev-packages]
 mypy = "*"
