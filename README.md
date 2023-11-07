@@ -6,6 +6,34 @@ Security Action Management Portal
 
 A web interface for security posture management
 
+## Demo environment
+
+Users can freely touch Threatconnectome and register data
+
+:warning: Data is reset periodically
+
+- URL
+  - https://demo.threatconnectome.metemcyber.ntt.com/
+- Email Address
+  - `user1@demo.test`
+- Password
+  - `gisoi3qy`
+
+### Demo data
+
+- Pteam
+  - Metemcyber 開発チーム 東京
+  - Metemcyber Dev Team US
+- Artifact tag
+
+  - Libraries used in django docker image as of 11/6/2023 are registered as artifact tags
+  - Git clone [awesome-compose](https://github.com/docker/awesome-compose/tree/master/django) and build a docker image of django.The django image is scanned with trivy and converted to tag information with [trivy_tags.py](scripts/trivy_tags.py).
+
+- Topic
+  - The following buckets in trivy-db as of 11/7/2023 are registered as topic.
+    - alpine 3.18
+    - pip::GitHub Security Advisory pip
+
 ## :bangbang: Requirements
 
 - `OS`
