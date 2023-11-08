@@ -8,29 +8,27 @@ A web interface for security posture management
 
 ## Demo environment
 
-Users can freely touch Threatconnectome and register data
+:warning: Do not input personal information.
 
-:warning: Data is reset periodically
+https://demo.threatconnectome.metemcyber.ntt.com/
 
-- URL
-  - https://demo.threatconnectome.metemcyber.ntt.com/
-- Email Address
-  - `user1@demo.test`
-- Password
-  - `gisoi3qy`
+Please login using the following accounts:
 
-### Demo data
+- `user1@demo.test`: `gisoi3qy`
+- `user2@demo.test`: `gisoi3qy`
 
-- Pteam
-  - Metemcyber 開発チーム 東京
-  - Metemcyber Dev Team US
-- Artifact tag
-  - Libraries used in django docker image as of 11/6/2023 are registered as artifact tags
-  - Git clone [awesome-compose](https://github.com/docker/awesome-compose/tree/master/django) and build a docker image of django.The django image is scanned with trivy and converted to tag information with [trivy_tags.py](scripts/trivy_tags.py).
-- Topic
-  - The following vulnerability as registere as topic.
-    - alpine OS
-    - Python package (pypi) vulnerability
+Teams registerd in demo environment as following:
+| Product Dev Team | Services |
+| --- | --- |
+| Metemcyber 開発チーム 東京 | Web Service (Django) |
+| Metemcyber Dev Team US | Web Service (Django) |
+
+### Demo Limitation
+
+- Data is reset every 1 hour.
+- Do not input personal information in demo environment.
+- Only python and alpine vulnerability information are saved in demo environment.
+- Because of demo instance, not all actual vulnerability information is registered.
 
 ## :bangbang: Requirements
 
