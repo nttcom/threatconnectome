@@ -25,14 +25,12 @@ Users can freely touch Threatconnectome and register data
   - Metemcyber 開発チーム 東京
   - Metemcyber Dev Team US
 - Artifact tag
-
   - Libraries used in django docker image as of 11/6/2023 are registered as artifact tags
   - Git clone [awesome-compose](https://github.com/docker/awesome-compose/tree/master/django) and build a docker image of django.The django image is scanned with trivy and converted to tag information with [trivy_tags.py](scripts/trivy_tags.py).
-
 - Topic
-  - The following buckets in trivy-db as of 11/7/2023 are registered as topic.
-    - alpine 3.18
-    - pip::GitHub Security Advisory pip
+  - The following vulnerability as registere as topic.
+    - alpine OS
+    - Python package (pypi) vulnerability
 
 ## :bangbang: Requirements
 
