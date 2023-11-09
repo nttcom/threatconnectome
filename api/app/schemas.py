@@ -254,7 +254,6 @@ class TopicActionsResponse(ORMModel):
     actions: List[ActionResponse]
 
 
-
 class ActionCreateRequest(ORMModel):
     topic_id: Optional[UUID] = None  # can be None if using in create_topic()
     action_id: Optional[UUID] = None  # can specify action_id by client
