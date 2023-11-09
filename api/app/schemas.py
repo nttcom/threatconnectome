@@ -69,10 +69,6 @@ class User(ORMModel):
     email: str
 
 
-class TokenData(ORMModel):
-    email: str = ""
-
-
 class PTeamEntry(ORMModel):
     pteam_id: UUID
     pteam_name: str
@@ -209,11 +205,6 @@ class PTeamtagExtResponse(PTeamtagResponse):
     last_updated_at: Optional[datetime] = None
 
 
-class TagRegistrationResponse(ORMModel):
-    newly_registered_tags: List[ExtTagResponse]
-    already_existed_tags: Optional[List[ExtTagRequest]] = None
-
-
 class MispTagRequest(ORMModel):
     tag_name: str
 
@@ -262,20 +253,6 @@ class TopicActionsResponse(ORMModel):
     pteam_id: UUID
     actions: List[ActionResponse]
 
-
-class TaggedTopic(Topic):
-    latest_status: TopicStatusType
-
-
-class TaggedTopicsResponse(ORMModel):
-    tag_id: UUID
-    tag_name: str
-    text: Optional[str] = None
-    threat_impact: int
-    updated_at: datetime
-    topics: List[TaggedTopic]
-
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
 
 class ActionCreateRequest(ORMModel):
