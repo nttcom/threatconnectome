@@ -30,6 +30,7 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
+import PTeamGroupList from "../components/PTeamGroupList";
 import PTeamLabel from "../components/PTeamLabel";
 import PTeamStatusCard from "../components/PTeamStatusCard";
 import {
@@ -281,6 +282,7 @@ export default function PTeamStatus() {
         <PTeamLabel defaultTabIndex={1} />
         <Box flexGrow={1} />
       </Box>
+      <PTeamGroupList />
       {summary.tags.length === 0 ? (
         <Box display="flex">
           {notRegistered}
