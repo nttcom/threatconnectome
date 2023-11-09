@@ -713,25 +713,3 @@ class ZonedTeamsResponse(ORMModel):
     gteam: GTeamEntry
     ateams: List[ATeamEntry]
     pteams: List[PTeamEntry]
-
-
-class ZonedTopicsResponse(ORMModel):
-    zone: ZoneEntry
-    gteam: GTeamEntry
-    topics: List[TopicEntry]
-
-
-class ActionResponseWithTopicTitle(ActionResponse):
-    topic_title: str
-
-
-class ZonedActionsResponse(ORMModel):
-    zone: ZoneEntry
-    gteam: GTeamEntry
-    actions: List[ActionResponseWithTopicTitle]
-
-
-class ZonedLatestTopicResponse(ORMModel):
-    zone: ZoneEntry
-    gteam: GTeamEntry
-    latest_topic: Optional[Topic] = None
