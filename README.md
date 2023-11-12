@@ -6,6 +6,30 @@ Security Action Management Portal
 
 A web interface for security posture management
 
+## Demo environment
+
+:warning: Do not input personal information.
+
+https://demo.threatconnectome.metemcyber.ntt.com/
+
+Please login using the following accounts:
+
+- `user1@demo.test`: `gisoi3qy`
+- `user2@demo.test`: `gisoi3qy`
+
+Teams registerd in demo environment as following:
+| Product Dev Team | Services |
+| --- | --- |
+| Metemcyber 開発チーム 東京 | Web Service (Django) |
+| Metemcyber Dev Team US | Web Service (Django) |
+
+### Demo Limitation
+
+- Data is reset every 1 hour.
+- Do not input personal information in demo environment.
+- Only python and alpine vulnerability information are saved in demo environment.
+- Because of demo instance, not all actual vulnerability information is registered.
+
 ## :bangbang: Requirements
 
 - `OS`
