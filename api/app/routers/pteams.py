@@ -157,6 +157,27 @@ def get_pteam(
     return _extend_pteam_tags(pteam)
 
 
+@router.get("/{pteam_id}/groups",response_model=schemas.PTeamGroupResponse)
+def get_pteam_groups(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get groups of the pteam.
+    """
+    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
+    assert pteam
+    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    set_groups=set()
+    for pteamtag in pteam.pteamtags:
+        for reference in pteamtag.references:
+            group = reference.get("group", None)
+            if group is not None:
+                set_groups.add(reference["group"])
+
+    return schemas.PTeamGroupResponse(groups=list(set_groups))
+
 @router.get("/{pteam_id}/tags", response_model=List[schemas.ExtTagResponse])
 def get_pteam_tags(
     pteam_id: UUID,
