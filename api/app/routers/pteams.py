@@ -157,7 +157,7 @@ def get_pteam(
     return _extend_pteam_tags(pteam)
 
 
-@router.get("/{pteam_id}/groups",response_model=schemas.PTeamGroupResponse)
+@router.get("/{pteam_id}/groups", response_model=schemas.PTeamGroupResponse)
 def get_pteam_groups(
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -169,7 +169,7 @@ def get_pteam_groups(
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    set_groups=set()
+    set_groups = set()
     for pteamtag in pteam.pteamtags:
         for reference in pteamtag.references:
             group = reference.get("group", None)
@@ -177,6 +177,7 @@ def get_pteam_groups(
                 set_groups.add(reference["group"])
 
     return schemas.PTeamGroupResponse(groups=list(set_groups))
+
 
 @router.get("/{pteam_id}/tags", response_model=List[schemas.ExtTagResponse])
 def get_pteam_tags(
@@ -1276,7 +1277,10 @@ def get_pteam_achievements(
             (
                 true()
                 if check_pteam_auth(
-                    db, pteam_id, MEMBER_UUID, required_auth  # all members are allowed
+                    db,
+                    pteam_id,
+                    MEMBER_UUID,
+                    required_auth,  # all members are allowed
                 )
                 else models.SecBadge.user_id.in_(
                     db.query(models.PTeamAuthority.user_id).filter(  # individually allowed users
