@@ -346,13 +346,14 @@ def test_get_pteam_groups():
     response_groups = response.json()
     response_groups_set = set(list(response_groups.values())[0])
 
-    pteam2_groups=set()
+    pteam2_groups = set()
     pteam2_references = [x["references"] for x in PTEAM2["tags"]]
     for reference in pteam2_references:
         for group in reference:
             pteam2_groups.add(group["group"])
 
     assert response_groups_set == pteam2_groups
+
 
 def test_get_pteam_not_groups():
     create_user(USER1)
@@ -366,6 +367,7 @@ def test_get_pteam_not_groups():
     response = client.get(f"/pteams/{pteam1.pteam_id}/groups", headers=headers(USER1))
     assert response.status_code == 200
     assert response.json()["groups"] == []
+
 
 def test_get_pteam_tags():
     create_user(USER1)
