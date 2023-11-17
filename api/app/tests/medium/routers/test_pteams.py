@@ -6901,7 +6901,7 @@ class TestAutoClose:
 
                 # new action created with uncomparable version
                 action1_dict = self.util.gen_action_dict(
-                    ext=self.util.gen_simple_ext(TAG1, [">=v1.0 <v2.0"])
+                    ext=self.util.gen_simple_ext(TAG1, [">=alpha <charlie"])
                 )
                 action1 = create_action(USER1, action1_dict, self.topic1.topic_id)
 
