@@ -18,8 +18,6 @@ export const updateUser = async (userId, data) => axios.put(`/users/${userId}`, 
 export const deleteUser = async () => axios.delete("/users");
 
 // pteams
-export const getPTeams = async () => axios.get("/pteams");
-
 export const createPTeam = async (data) => axios.post("/pteams", data);
 
 export const getPTeam = async (pteamId) => axios.get(`/pteams/${pteamId}`);
@@ -76,9 +74,6 @@ export const createTopicStatus = async (pteamId, topicId, tagId, data) => {
 export const getPTeamTopicStatus = async (pteamId, topicId, tagId) =>
   axios.get(`/pteams/${pteamId}/topicstatus/${topicId}/${tagId}`);
 
-export const getPTeamTopicStatusAll = async (pteamId) =>
-  axios.get(`/pteams/${pteamId}/topicstatus`);
-
 export const getPTeamTopicStatusesSummary = async (pteamId, tagId) =>
   axios.get(`/pteams/${pteamId}/topicstatusessummary/${tagId}`);
 
@@ -91,8 +86,6 @@ export const removeWatcherATeam = async (pteamId, ateamId) =>
   axios.delete(`/pteams/${pteamId}/watchers/${ateamId}`);
 
 // ateams
-export const getATeams = async () => axios.get("/ateams");
-
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);
 
 export const createATeam = async (data) => axios.post("/ateams", data);
@@ -149,8 +142,6 @@ export const deleteATeamTopicComment = async (ateamId, topicId, commentId) =>
   axios.delete(`/ateams/${ateamId}/topiccomment/${topicId}/${commentId}`);
 
 // gteams
-export const getGTeams = async () => axios.get("/gteams");
-
 export const updateGTeam = async (gteamId, data) => axios.put(`/gteams/${gteamId}`, data);
 
 export const createGTeam = async (data) => axios.post("/gteams", data);
@@ -231,8 +222,6 @@ export const createActionLog = async (data) => axios.post("/actionlogs", data);
 
 // achievements
 export const getAchievements = async (userId) => axios.get(`/achievements/${userId}`);
-
-export const validateMetadata = async (metadata) => axios.post("/achievements/metadata", metadata);
 
 // external
 export const checkSlack = async (data) => axios.post("/external/slack/check", data);
