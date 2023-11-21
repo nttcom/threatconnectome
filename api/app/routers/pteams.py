@@ -169,7 +169,10 @@ def get_pteam_groups(
     validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
     unique_groups = set()
-    pteam = db.query(models.PTeam).options(joinedload(models.PTeam.pteamtags)).get(str(pteam_id))
+    pteam = ( db.query(models.PTeam).options(joinedload(models.PTeam.pteamtags))
+             .filter(models.PTeam.pteam_id == str(pteam_id))
+             .one_or_none()
+    )
     assert pteam
     for pteamtag in pteam.pteamtags:
         for reference in pteamtag.references:
