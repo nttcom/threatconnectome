@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
 from sqlalchemy import and_, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql.expression import func, true
 
 from app import models, schemas
@@ -166,17 +166,18 @@ def get_pteam_groups(
     """
     Get groups of the pteam.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
+    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    set_groups = set()
+    unique_groups = set()
+    pteam = db.query(models.PTeam).options(joinedload(models.PTeam.pteamtags)).get(str(pteam_id))
+    assert pteam
     for pteamtag in pteam.pteamtags:
         for reference in pteamtag.references:
             group = reference.get("group", None)
             if group is not None:
-                set_groups.add(reference["group"])
+                unique_groups.add(reference["group"])
 
-    return schemas.PTeamGroupResponse(groups=list(set_groups))
+    return schemas.PTeamGroupResponse(groups=list(unique_groups))
 
 
 @router.get("/{pteam_id}/tags", response_model=List[schemas.ExtTagResponse])
