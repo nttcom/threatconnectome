@@ -180,3 +180,10 @@ Use `--force-update` option to update existing topics.
 python3 trivydb2tc.py -d ~/.cache/trivy/db/trivy.db --force-update "http://localhost/api"
 
 ```
+
+Run the following commands to update trivy.db
+
+```bash
+trivy image --download-db-only
+
+```
