@@ -1764,7 +1764,7 @@ class PackageFamily(Enum):
     @classmethod
     def from_registry(cls, registry: str) -> "PackageFamily":
         fixed_registry = registry.lower()
-        if re.match(r"^(alpine|debian|ubuntu)", fixed_registry):  # TODO: need maintenance
+        if re.match(r"^(debian|ubuntu)", fixed_registry):  # TODO: need maintenance
             return cls.DEBIAN
         return cls.UNKNOWN
 
