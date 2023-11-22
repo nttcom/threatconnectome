@@ -1,3 +1,4 @@
+import copy
 import json
 import tempfile
 from datetime import datetime, timedelta
@@ -334,6 +335,38 @@ def test_update_pteam__by_not_admin():
     response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2), json=request)
     assert response.status_code == 403
     assert response.reason_phrase == "Forbidden"
+
+
+def test_get_pteam_groups():
+    create_user(USER1)
+    pteam2 = create_pteam(USER1, PTEAM2)
+
+    response = client.get(f"/pteams/{pteam2.pteam_id}/groups", headers=headers(USER1))
+    assert response.status_code == 200
+    response_groups = response.json()
+    response_groups_set = set(list(response_groups.values())[0])
+
+    pteam2_groups = set()
+    pteam2_references = [x["references"] for x in PTEAM2["tags"]]
+    for reference in pteam2_references:
+        for group in reference:
+            pteam2_groups.add(group["group"])
+
+    assert response_groups_set == pteam2_groups
+
+
+def test_get_pteam_not_groups():
+    create_user(USER1)
+
+    pteam1_not_group = copy.deepcopy(PTEAM1)
+    for pteam1_tags in pteam1_not_group["tags"]:
+        for pteam1_references in pteam1_tags["references"]:
+            del pteam1_references["group"]
+
+    pteam1 = create_pteam(USER1, pteam1_not_group)
+    response = client.get(f"/pteams/{pteam1.pteam_id}/groups", headers=headers(USER1))
+    assert response.status_code == 200
+    assert response.json()["groups"] == []
 
 
 def test_get_pteam_tags():
