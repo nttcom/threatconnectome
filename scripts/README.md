@@ -160,6 +160,13 @@ pip install boltdb requests
 
 ## :triangular_flag_on_post: Usage
 
+Run the following commands to update trivy.db
+
+```bash
+trivy image --download-db-only
+
+```
+
 The default path of `trivy.db` is as follows:
 
 - Linux: `~/.cache/trivy/db/trivy.db`
