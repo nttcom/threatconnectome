@@ -2,6 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
+from firebase_admin import auth
 from sqlalchemy.orm import Session, selectinload
 
 from app import models, schemas
@@ -32,9 +33,11 @@ def create_user(
     Create a user.
     """
     verify_id_token(token)
+    decoded_token = auth.verify_id_token(token.credentials)
+    uid = decoded_token['uid']
     if db.query(models.Account).filter(models.Account.email == data.email).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used")
-    user = models.Account(**data.model_dump())
+    user = models.Account(uid = uid, **data.model_dump())
     db.add(user)
     db.commit()
     db.refresh(user)
