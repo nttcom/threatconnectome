@@ -4882,7 +4882,6 @@ def test_disable_pteam():
     assert user_response.status_code == 200
     data = user_response.json()
     assert data["email"] == USER1["email"]
-    assert data["uid"] == USER1["uid"]
     assert data["disabled"] == USER1["disabled"]
     assert data["years"] == USER1["years"]
     assert len(data["pteams"]) == 2

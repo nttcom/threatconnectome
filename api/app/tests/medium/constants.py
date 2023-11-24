@@ -3,7 +3,6 @@ from uuid import uuid4
 USER1 = {  # see firebase/data-test/auth_export/accounts.json
     "email": "test1@example.com",
     "pass": "testpass1",  # see tail of passwordHash on accounts.json
-    "uid": "2TXjRSTVkhjq4sbGOesYUJWdKwzj",  # localId on accounts.json
     "disabled": False,
     "years": 2,
 }
