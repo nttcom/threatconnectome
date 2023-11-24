@@ -12,7 +12,7 @@ import { avatarGroupStyle, experienceColors, difficulty, noPTeamMessage } from "
 import { a11yProps } from "../utils/func.js";
 
 export default function PTeam() {
-  const [filterMode, setFilterMode] = useState("pteam");
+  const [filterMode, setFilterMode] = useState("PTeam");
   const [tabValue, setTabValue] = useState(0);
 
   const user = useSelector((state) => state.user.user);
@@ -35,13 +35,13 @@ export default function PTeam() {
     return (authorities?.find((x) => x.user_id === userId)?.authorities ?? []).includes("admin");
   };
 
-  const filterModes = ["all", "pteam"];
+  const filterModes = ["All", "PTeam"];
 
   const handleFilter = (achievement) => {
     switch (filterMode) {
-      case "pteam":
+      case "PTeam":
         return achievement.pteam_id === pteamId;
-      case "all":
+      case "All":
       default:
         return true;
     }

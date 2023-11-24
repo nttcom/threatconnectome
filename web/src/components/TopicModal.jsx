@@ -446,172 +446,169 @@ export default function TopicModal(props) {
               </Box>
             )}
             {activeStep === 1 && (
-              <Box display="flex" flexDirection="row" m={1}>
-                <Box display="flex" flexDirection="column" m={1}>
-                  <Box display="flex" flexDirection="row" mb={1}>
-                    <Box mr={2}>
-                      <Typography sx={{ fontWeight: 900 }} mb={1}>
-                        Title
-                      </Typography>
-                      <TextField
-                        size="small"
-                        required
-                        variant="outlined"
-                        value={title}
-                        onChange={(event) => {
-                          setTitle(event.target.value);
-                          updateErrors("title", event.target.value, validateNotEmpty);
-                        }}
-                        error={!validateNotEmpty(title)}
-                        sx={{ minWidth: "360px" }}
-                      />
-                    </Box>
-                    <Box>
-                      <Typography sx={{ fontWeight: 900 }} mb={2}>
-                        Topic ID(UUID)
-                      </Typography>
-                      <Typography>{topicId}</Typography>
-                    </Box>
-                  </Box>
-                  <Box mb={1}>
+              <Box display="flex" flexDirection="column" m={1}>
+                {/* <Box display="flex" flexDirection="column" m={1}> */}
+                <Box display="flex" flexDirection="row" mb={1}>
+                  <Box mr={2} sx={{ width: "50%" }}>
                     <Typography sx={{ fontWeight: 900 }} mb={1}>
-                      Abstract
+                      Title
                     </Typography>
                     <TextField
                       size="small"
-                      multiline
+                      required
                       variant="outlined"
-                      value={abst}
+                      value={title}
                       onChange={(event) => {
-                        setAbst(event.target.value);
+                        setTitle(event.target.value);
+                        updateErrors("title", event.target.value, validateNotEmpty);
                       }}
-                      sx={{ minWidth: "480px" }}
+                      error={!validateNotEmpty(title)}
+                      // sx={{ minWidth: "450px" }}
+                      sx={{ width: "100%" }}
+                    />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 900 }} mb={2}>
+                      Topic ID(UUID)
+                    </Typography>
+                    <Typography>{topicId}</Typography>
+                  </Box>
+                </Box>
+                <Box mb={1}>
+                  <Typography sx={{ fontWeight: 900 }} mb={1}>
+                    Abstract
+                  </Typography>
+                  <TextField
+                    size="small"
+                    multiline
+                    variant="outlined"
+                    value={abst}
+                    onChange={(event) => {
+                      setAbst(event.target.value);
+                    }}
+                    // sx={{ minWidth: "830px" }}
+                    sx={{ width: "99%" }}
+                  />
+                </Box>
+                <Box mb={1}>
+                  <Typography sx={{ fontWeight: 900 }} mb={1}>
+                    Threat impact
+                  </Typography>
+                  <ButtonGroup variant="outlined">
+                    {[1, 2, 3, 4].map((impact) => (
+                      <Button key={impact} variant="text" onClick={() => setThreatImpact(impact)}>
+                        <ThreatImpactChip
+                          threatImpact={impact}
+                          reverse={parseInt(threatImpact) !== impact}
+                          sx={{ cursor: "pointer" }}
+                        />
+                      </Button>
+                    ))}
+                  </ButtonGroup>
+                </Box>
+                <Box mb={1}>
+                  <Box display="flex" flexDirection="row" alignItems="center" mb={1}>
+                    <Typography sx={{ fontWeight: 900 }}>Actions</Typography>
+                    <ActionGeneratorModal />
+                  </Box>
+                  {actions?.length > 0 || (
+                    <Box
+                      display="flex"
+                      flexDirection="row"
+                      alignItems="center"
+                      sx={{ color: grey[500] }}
+                    >
+                      <ContentPasteIcon fontSize="small" sx={{ mr: 0.5 }} />
+                      <Typography variant="body2">Please add action</Typography>
+                    </Box>
+                  )}
+                  {actions
+                    .slice()
+                    .sort(
+                      (a, b) =>
+                        actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
+                    )
+                    .map((action, idx) => (
+                      <Box key={idx} display="flex" flexDirection="row" alignItems="center" mb={1}>
+                        <ActionItem
+                          key={idx}
+                          action={action.action}
+                          actionId={action.action_id}
+                          actionType={action.action_type}
+                          recommended={action.recommended}
+                          zones={action.zones}
+                          ext={action.ext}
+                          onChangeRecommended={() =>
+                            setActions(
+                              actions.map((item) =>
+                                item !== action ? item : { ...item, recommended: !item.recommended }
+                              )
+                            )
+                          }
+                          onDelete={() => setActions(actions.filter((item) => item !== action))}
+                          sx={{ flexGrow: 1 }}
+                        />
+                        <IconButton
+                          onClick={() => {
+                            setEditActionTarget(action);
+                            setEditActionOpen(true);
+                          }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Box>
+                    ))}
+                </Box>
+                <Box mb={1}>
+                  <Box mb={1}>
+                    <Box display="flex" flexDirection="row" alignItems="center">
+                      <Typography sx={{ fontWeight: 900 }}>Artifact Tags</Typography>
+                      <TopicTagSelectorModal />
+                    </Box>
+                    <TextField
+                      size="small"
+                      variant="outlined"
+                      value={allTags
+                        .filter((tag) => tagIds.includes(tag.tag_id))
+                        .map((tag) => tag.tag_name)
+                        .join(", ")}
+                      // sx={{ minWidth: "830px" }}
+                      sx={{ width: "99%" }}
+                      inputProps={{ readOnly: true }}
                     />
                   </Box>
                   <Box mb={1}>
-                    <Typography sx={{ fontWeight: 900 }} mb={1}>
-                      Threat impact
+                    <Box display="flex" flexDirection="row" alignItems="center">
+                      <Typography sx={{ fontWeight: 900 }}>Zones</Typography>
+                      <ZoneSelectorModal
+                        currentZoneNames={zoneNames}
+                        onApply={(ary) => setZoneNames(ary)}
+                      />
+                    </Box>
+                    <TextField
+                      size="small"
+                      variant="outlined"
+                      value={zoneNames.slice().sort().join(", ")}
+                      // sx={{ minWidth: "830px" }}
+                      sx={{ width: "99%" }}
+                      inputProps={{ readOnly: true }}
+                    />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 900, mt: "7px", mb: 1.7 }}>
+                      Misp Tags (CSV)
                     </Typography>
-                    <ButtonGroup variant="outlined">
-                      {[1, 2, 3, 4].map((impact) => (
-                        <Button key={impact} variant="text" onClick={() => setThreatImpact(impact)}>
-                          <ThreatImpactChip
-                            threatImpact={impact}
-                            reverse={parseInt(threatImpact) !== impact}
-                            sx={{ cursor: "pointer" }}
-                          />
-                        </Button>
-                      ))}
-                    </ButtonGroup>
-                  </Box>
-                  <Box mb={1}>
-                    <Box display="flex" flexDirection="row" alignItems="center" mb={1}>
-                      <Typography sx={{ fontWeight: 900 }}>Actions</Typography>
-                      <ActionGeneratorModal />
-                    </Box>
-                    {actions?.length > 0 || (
-                      <Box
-                        display="flex"
-                        flexDirection="row"
-                        alignItems="center"
-                        sx={{ color: grey[500] }}
-                      >
-                        <ContentPasteIcon fontSize="small" sx={{ mr: 0.5 }} />
-                        <Typography variant="body2">Please add action</Typography>
-                      </Box>
-                    )}
-                    {actions
-                      .slice()
-                      .sort(
-                        (a, b) =>
-                          actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
-                      )
-                      .map((action, idx) => (
-                        <Box
-                          key={idx}
-                          display="flex"
-                          flexDirection="row"
-                          alignItems="center"
-                          mb={1}
-                        >
-                          <ActionItem
-                            key={idx}
-                            action={action.action}
-                            actionId={action.action_id}
-                            actionType={action.action_type}
-                            recommended={action.recommended}
-                            zones={action.zones}
-                            ext={action.ext}
-                            onChangeRecommended={() =>
-                              setActions(
-                                actions.map((item) =>
-                                  item !== action
-                                    ? item
-                                    : { ...item, recommended: !item.recommended }
-                                )
-                              )
-                            }
-                            onDelete={() => setActions(actions.filter((item) => item !== action))}
-                            sx={{ flexGrow: 1 }}
-                          />
-                          <IconButton
-                            onClick={() => {
-                              setEditActionTarget(action);
-                              setEditActionOpen(true);
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Box>
-                      ))}
-                  </Box>
-                  <Box mb={1}>
-                    <Box mr={2} mb={1}>
-                      <Box display="flex" flexDirection="row" alignItems="center">
-                        <Typography sx={{ fontWeight: 900 }}>Artifact Tags</Typography>
-                        <TopicTagSelectorModal />
-                      </Box>
-                      <TextField
-                        size="small"
-                        variant="outlined"
-                        value={allTags
-                          .filter((tag) => tagIds.includes(tag.tag_id))
-                          .map((tag) => tag.tag_name)
-                          .join(", ")}
-                        sx={{ minWidth: "720px" }}
-                        inputProps={{ readOnly: true }}
-                      />
-                    </Box>
-                    <Box mr={2} mb={1}>
-                      <Box display="flex" flexDirection="row" alignItems="center">
-                        <Typography sx={{ fontWeight: 900 }}>Zones</Typography>
-                        <ZoneSelectorModal
-                          currentZoneNames={zoneNames}
-                          onApply={(ary) => setZoneNames(ary)}
-                        />
-                      </Box>
-                      <TextField
-                        size="small"
-                        variant="outlined"
-                        value={zoneNames.slice().sort().join(", ")}
-                        sx={{ minWidth: "720px" }}
-                        inputProps={{ readOnly: true }}
-                      />
-                    </Box>
-                    <Box>
-                      <Typography sx={{ fontWeight: 900, mt: "7px", mb: 1.7 }}>
-                        Misp Tags (CSV)
-                      </Typography>
-                      <TextField
-                        size="small"
-                        variant="outlined"
-                        value={mispTags}
-                        onChange={(event) => setMispTags(event.target.value)}
-                        sx={{ minWidth: "720px" }}
-                      />
-                    </Box>
+                    <TextField
+                      size="small"
+                      variant="outlined"
+                      value={mispTags}
+                      onChange={(event) => setMispTags(event.target.value)}
+                      // sx={{ minWidth: "720px" }}
+                      sx={{ width: "99%" }}
+                    />
                   </Box>
                 </Box>
+                {/* </Box> */}
               </Box>
             )}
             <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>

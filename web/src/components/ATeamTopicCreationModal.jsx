@@ -292,7 +292,8 @@ export function ATeamTopicCreationModal(props) {
                   error={!validateNotEmpty(title)}
                   onChange={(event) => setTitle(event.target.value)}
                   mb={4}
-                  sx={{ minWidth: "400px" }}
+                  // sx={{ minWidth: "400px" }}
+                  sx={{ width: "100%" }}
                 />
                 <Typography variant="body2" sx={{ fontWeight: 600, mt: 2 }}>
                   Topic ID(UUID)
@@ -332,7 +333,8 @@ export function ATeamTopicCreationModal(props) {
                     multiline
                     rows={3}
                     variant="outlined"
-                    sx={{ minWidth: "480px" }}
+                    // sx={{ minWidth: "480px" }}
+                    sx={{ width: "100%" }}
                   />
                   {abst === "" ? (
                     <SentimentVeryDissatisfiedIcon sx={{ color: red[600], mt: 9, ml: 1 }} />
@@ -357,7 +359,8 @@ export function ATeamTopicCreationModal(props) {
                     .filter((tag) => tagIds.includes(tag.tag_id))
                     .map((tag) => tag.tag_name)
                     .join(", ")}
-                  sx={{ minWidth: "720px" }}
+                  // sx={{ minWidth: "720px" }}
+                  sx={{ width: "100%" }}
                   inputProps={{ readOnly: true }}
                 />
                 <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
@@ -382,7 +385,8 @@ export function ATeamTopicCreationModal(props) {
                     (zonesRelatedTeams === undefined ||
                       Object.values(zonesRelatedTeams.pteams).length === 0)
                   }
-                  sx={{ minWidth: "720px" }}
+                  // sx={{ minWidth: "720px" }}
+                  sx={{ width: "100%" }}
                   inputProps={{ readOnly: true }}
                 />
                 <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
