@@ -19,6 +19,7 @@ import {
   GTeam,
   Login,
   ResetPassword,
+  SetupTotp,
   Status,
   Tag,
   PTeam,
@@ -46,6 +47,7 @@ root.render(
               <Routes>
                 <Route exact path="/login" element={<Login />} />
                 <Route path="/reset_password" element={<ResetPassword />} />
+                <Route path="/setup_totp" element={<SetupTotp />} />
                 <Route path="/" element={<App />}>
                   <Route index element={<Status />} />
                   <Route path="account">

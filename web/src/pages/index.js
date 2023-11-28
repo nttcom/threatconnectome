@@ -10,6 +10,7 @@ import GTeam from "./GTeam";
 import Login from "./Login";
 import PTeam from "./PTeam";
 import ResetPassword from "./ResetPassword";
+import SetupTotp from "./SetupTotp";
 import Status from "./Status";
 import Tag from "./Tag";
 import Zone from "./Zone";
@@ -28,6 +29,7 @@ export {
   Login,
   PTeam,
   ResetPassword,
+  SetupTotp,
   Status,
   Tag,
   Zone,
