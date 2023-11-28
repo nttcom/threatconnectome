@@ -1,5 +1,7 @@
 import moment from "moment";
 
+import { getZonedTeams } from "./api";
+
 export const a11yProps = (index) => ({
   id: `tab-${index}`,
   "aria-controls": `tabpanel-${index}`,
@@ -51,6 +53,18 @@ export const errorToString = (error) =>
   typeof error.response?.data?.detail === "string"
     ? error.response.data.detail
     : `${error.response?.status}: ${error.response?.statusText}`; // maybe 422 by Pydantic
+
+export const tagsMatched = (allowedTags, actualTags) => {
+  if (allowedTags.length === 0 && actualTags.length === 0) return true;
+  const actualTagsWithParents = new Set(
+    actualTags.reduce((ret, tag) => {
+      const parentTag = pickParentTagName(tag);
+      if (parentTag === null || parentTag === tag) return [...ret, tag];
+      return [...ret, tag, parentTag];
+    }, [])
+  );
+  return [...actualTagsWithParents].some((item) => allowedTags.includes(item));
+};
 
 export const setEquals = (set1, set2) =>
   set1.size === set2.size && Array.from(set1).every((val) => set2.has(val));

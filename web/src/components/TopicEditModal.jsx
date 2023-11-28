@@ -25,116 +25,186 @@ import {
   ListItemText,
 } from "@mui/material";
 import { blue, grey, green, red } from "@mui/material/colors";
+import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
-import uuid from "react-native-uuid";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import TabPanel from "../components/TabPanel";
+import { getActions, getTopic } from "../slices/topics";
+import { getAuthorizedZones } from "../slices/user";
+import { createAction, deleteAction, updateTopic } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
-import { validateNotEmpty, a11yProps } from "../utils/func";
+import {
+  a11yProps,
+  collectZonesRelatedTeams,
+  errorToString,
+  setEquals,
+  validateNotEmpty,
+} from "../utils/func";
 
-import ActionGenerator from "./ActionGenerator";
 import ActionTypeIcon from "./ActionTypeIcon";
+import { AnalysisActionGenerator } from "./AnalysisActionGenerator";
 import ThreatImpactChip from "./ThreatImpactChip";
 import TopicTagSelector from "./TopicTagSelector";
 import { ZoneSelectorModal } from "./ZoneSelectorModal";
 
-// sample data
-const sample_tag = [
-  {
-    name: "../../../../pkg:golang:",
-  },
-  {
-    name: "../../:golang",
-  },
-  {
-    name: "mlflow:pypi:",
-  },
-];
+export function TopicEditModal(props) {
+  const { open, setOpen, currentTopic, currentActions } = props;
 
-const sample_zone = [
-  {
-    name: "testzone1",
-  },
-  {
-    name: "testzone2",
-  },
-  {
-    name: "testzone3",
-  },
-];
-
-const sample_action = [
-  {
-    action: "Update test to version 0.7.19",
-    actionId: "98097879-985a- 44ad - 9443 - 5d465a068c94",
-    actionType: "elimination",
-    author: "tanaka taro",
-    createDate: "2023/8/10",
-    recommended: true,
-    different: true,
-    zones: ["zone1", "zone2", "zone3"],
-    ext: {
-      tags: ["mlflow:pypi:"],
-      vulnerable_versions: {},
-    },
-    focusTags: null,
-  },
-  {
-    action: "Update 8.10",
-    actionId: "98097879-985a- 44ad - 9443 - 5d465a068c95",
-    actionType: "detection",
-    author: "tanaka taro",
-    createDate: "2023/8/10",
-    recommended: true,
-    different: false,
-    zones: ["zone4", "zone5", "zone6"],
-    ext: {
-      tags: ["mlflow:pypi:"],
-      vulnerable_versions: {},
-    },
-    focusTags: null,
-  },
-  {
-    action: "Update test0727 to version 111",
-    actionId: "2fb5c256-6ff1-4382-8928-1e67751a03c3",
-    actionType: "acceptance",
-    author: "tanaka taro",
-    createDate: "2023/8/10",
-    recommended: false,
-    different: true,
-    zones: [],
-    ext: {
-      tags: [],
-      vulnerable_versions: {},
-    },
-    focusTags: null,
-  },
-];
-
-export default function TopicEditModal(props) {
-  const { open, setOpen } = props;
+  const [topicId, setTopicId] = useState("");
   const [title, setTitle] = useState("");
-  const [topicId] = useState(uuid.v4());
   const [threatImpact, setThreatImpact] = useState(1);
   const [abst, setAbst] = useState("");
   const [actions, setActions] = useState([]);
   const [zoneNames, setZoneNames] = useState([]);
-  const [zonesRelatedTeams] = useState({ ateams: {}, pteams: {} });
+  const [zonesRelatedTeams, setZonesRelatedTeams] = useState(undefined);
   const [actionTagOptions, setActionTagOptions] = useState([]);
+
   const [tagIds, setTagIds] = useState([]);
   const [tab, setTab] = useState(0);
+  const [updating, setUpdating] = useState(false);
+
+  const allTags = useSelector((state) => state.tags.allTags);
+  const myZones = useSelector((state) => state.user.zones);
+  const userMe = useSelector((state) => state.user.user);
+
+  const { enqueueSnackbar } = useSnackbar();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (myZones === undefined) dispatch(getAuthorizedZones());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    if (topicId === currentTopic.topic_id) return;
+    resetParams();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const createActionTagOptions = (tagIdList) => {
+    if (!allTags) return [];
+    return allTags
+      .filter((tag) => tagIdList.includes(tag.tag_id) || tagIdList.includes(tag.parent_id))
+      .map((tag) => tag.tag_id);
+  };
+
+  const resetParams = async () => {
+    // reset with currentTopic
+    setTab(0);
+    setTopicId(currentTopic.topic_id);
+    setTitle(currentTopic.title);
+    setThreatImpact(currentTopic.threat_impact);
+    setAbst(currentTopic.abstract);
+    const newTagIds = currentTopic.tags.map((tag) => tag.tag_id);
+    setTagIds(newTagIds);
+    setActionTagOptions(createActionTagOptions(newTagIds));
+    setActions(currentActions);
+    setZoneNames(currentTopic.zones.map((zone) => zone.zone_name));
+    setZonesRelatedTeams(
+      await tryCollectZonesRelatedTeams(currentTopic.zones.map((zone) => zone.zone_name))
+    );
+  };
+
+  const operationError = (error) => {
+    const resp = error.response ?? { status: "???", statusText: error.toString() };
+    enqueueSnackbar(`Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`, {
+      variant: "error",
+    });
+  };
+
+  const tryCollectZonesRelatedTeams = async (newZoneNames) => {
+    try {
+      return await collectZonesRelatedTeams(newZoneNames);
+    } catch (error) {
+      operationError(error);
+    }
+  };
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleClose = () => setOpen(false);
+
+  const handleUpdate = async () => {
+    setUpdating(true);
+    try {
+      const topicData = {
+        title: title === currentTopic.title ? null : title,
+        abstract: abst === currentTopic.abstract ? null : abst,
+        threat_impact: threatImpact === currentTopic.threat_impact ? null : threatImpact,
+        tags: setEquals(new Set(tagIds), new Set(currentTopic.tags.map((tag) => tag.tag_id)))
+          ? null
+          : allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
+        zone_names: setEquals(
+          new Set(zoneNames),
+          new Set(currentTopic.zones.map((zone) => zone.zone_name))
+        )
+          ? null
+          : zoneNames,
+      };
+      if (currentTopic.created_by === userMe.user_id) {
+        enqueueSnackbar("Updating topic.", { variant: "info" });
+        await updateTopic(topicId, topicData).then(async (response) => {
+          await Promise.all([
+            enqueueSnackbar("Updating topic succeeded", { variant: "success" }),
+            dispatch(getTopic(topicId)),
+          ]);
+        });
+      } else if (Object.values(topicData).filter((item) => item !== null).length > 0) {
+        // something modified but not the topic creator
+        enqueueSnackbar("Skip updating topic params (Not a topic creator)", { variant: "warning" });
+      }
+      // fix actions
+      const newActions = actions.filter((action) => action.action_id === null);
+      const keptActionIds = actions
+        .map((action) => action.action_id)
+        .filter((actionId) => actionId !== null);
+      const removedActionIds = currentActions
+        .map((action) => action.action_id)
+        .filter((actionId) => !keptActionIds.includes(actionId));
+      if (newActions.length > 0) {
+        enqueueSnackbar("Adding actions", { variant: "info" });
+        for (const action of newActions) {
+          await createAction({ ...action, "topic_id": currentTopic.topic_id });
+        }
+        enqueueSnackbar("Adding actions succeeded", { variant: "success" });
+      }
+      if (removedActionIds.length > 0) {
+        enqueueSnackbar("Removing actions", { variant: "info" });
+        for (const actionId of removedActionIds) {
+          await deleteAction(actionId);
+        }
+        enqueueSnackbar("Remofing actions succeeded", { variant: "success" });
+      }
+      if (newActions.length + removedActionIds.length > 0) {
+        await dispatch(getActions(currentTopic.topic_id));
+      }
+      setTopicId(""); // mark reset at next open, only if succeeded
+    } catch (error) {
+      enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
+      // Note: params are kept on failed values
+    } finally {
+      setUpdating(false);
+      setOpen(false);
+    }
   };
 
-  const createActionTagOptions = (tagIdList) => {
-    // TODO
-    return [];
-  };
+  const readyForUpdate = () =>
+    !updating &&
+    validateNotEmpty(title) &&
+    (title !== currentTopic.title ||
+      threatImpact !== currentTopic.threat_impact ||
+      abst !== currentTopic.abstract ||
+      !setEquals(new Set(tagIds), new Set(currentTopic.tags.map((tag) => tag.tag_id))) ||
+      !setEquals(new Set(zoneNames), new Set(currentTopic.zones.map((zone) => zone.zone_name))) ||
+      JSON.stringify(actions) !== JSON.stringify(currentActions)) &&
+    !(
+      zoneNames.length > 0 &&
+      Object.values(zonesRelatedTeams?.pteams ?? []).length === 0 &&
+      zonesRelatedTeams?.unvisibleExists !== true
+    );
 
   function TopicTagSelectorModal() {
     const [tagOpen, setTagOpen] = useState(false);
@@ -148,9 +218,9 @@ export default function TopicEditModal(props) {
             <TopicTagSelector
               currentSelectedIds={tagIds}
               onCancel={() => setTagOpen(false)}
-              onApply={(ary) => {
-                setTagIds(ary);
-                setActionTagOptions(createActionTagOptions(ary));
+              onApply={(newTagIds) => {
+                setTagIds(newTagIds);
+                setActionTagOptions(createActionTagOptions(newTagIds));
                 setTagOpen(false);
               }}
             />
@@ -160,7 +230,7 @@ export default function TopicEditModal(props) {
     );
   }
 
-  function ActionGeneratorModal() {
+  function AnalysisActionGeneratorModal() {
     const [generatorOpen, setGeneratorOpen] = useState(false);
     return (
       <>
@@ -169,9 +239,10 @@ export default function TopicEditModal(props) {
         </IconButton>
         <Dialog open={generatorOpen} onClose={() => setGeneratorOpen(false)}>
           <DialogContent>
-            <ActionGenerator
+            <AnalysisActionGenerator
               text="Add action"
               tagIds={actionTagOptions}
+              myZones={myZones ?? []}
               onGenerate={(ret) => {
                 setActions([...actions, ret]);
                 setGeneratorOpen(false);
@@ -183,6 +254,8 @@ export default function TopicEditModal(props) {
       </>
     );
   }
+
+  if (!allTags || !myZones) return <>Now loading...</>;
 
   return (
     <Dialog open={open === true} maxWidth="md" fullWidth sx={{ maxHeight: "100vh" }}>
@@ -270,31 +343,41 @@ export default function TopicEditModal(props) {
                 <TopicTagSelectorModal />
               </Box>
               <List sx={{ ml: 1 }}>
-                {sample_tag.map((tag) => (
-                  <Box key={tag.name}>
-                    <ListItem
-                      key={tag.name}
-                      disablePadding
-                      secondaryAction={
-                        <IconButton edge="end" aria-label="delete">
-                          <DeleteIcon />
-                        </IconButton>
-                      }
-                    >
-                      <ListItemText
-                        primary={tag.name}
-                        primaryTypographyProps={{
-                          style: {
-                            whiteSpace: "nowrap",
-                            overflow: "auto",
-                            textOverflow: "ellipsis",
-                          },
-                        }}
-                      />
-                    </ListItem>
-                    <Divider />
-                  </Box>
-                ))}
+                {allTags
+                  .filter((tag) => tagIds.includes(tag.tag_id))
+                  .map((tag) => (
+                    <Box key={tag.tag_name}>
+                      <ListItem
+                        key={tag.tag_name}
+                        disablePadding
+                        secondaryAction={
+                          <IconButton
+                            edge="end"
+                            aria-label="delete"
+                            onClick={() => {
+                              const newTagIds = tagIds.filter((tagId) => tagId !== tag.tag_id);
+                              setTagIds(newTagIds);
+                              setActionTagOptions(createActionTagOptions(newTagIds));
+                            }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        }
+                      >
+                        <ListItemText
+                          primary={tag.tag_name}
+                          primaryTypographyProps={{
+                            style: {
+                              whiteSpace: "nowrap",
+                              overflow: "auto",
+                              textOverflow: "ellipsis",
+                            },
+                          }}
+                        />
+                      </ListItem>
+                      <Divider />
+                    </Box>
+                  ))}
               </List>
             </Box>
             <Box display="flex" flexDirection="column" mt={2}>
@@ -306,38 +389,63 @@ export default function TopicEditModal(props) {
                   currentZoneNames={zoneNames}
                   onApply={async (newZoneNames) => {
                     if (newZoneNames.sort().toString() === zoneNames.toString()) return;
-                    // setZonesRelatedTeams(await collectZonesRelatedTeams(newZoneNames));
+                    setZonesRelatedTeams(await tryCollectZonesRelatedTeams(newZoneNames));
                     setZoneNames(newZoneNames.sort());
                   }}
                 />
               </Box>
               <List sx={{ ml: 1 }}>
-                {sample_zone.map((tag) => (
-                  <Box key={tag.name}>
-                    <ListItem
-                      key={tag.name}
-                      disablePadding
-                      secondaryAction={
-                        <IconButton edge="end" aria-label="delete">
-                          <DeleteIcon />
-                        </IconButton>
-                      }
-                    >
-                      <ListItemText
-                        key={tag.name}
-                        primary={tag.name}
-                        primaryTypographyProps={{
-                          style: {
-                            whiteSpace: "nowrap",
-                            overflow: "auto",
-                            textOverflow: "ellipsis",
-                          },
-                        }}
-                      />
-                    </ListItem>
-                    <Divider key={tag.name} />
-                  </Box>
-                ))}
+                {zoneNames.map((zoneName, index) =>
+                  myZones?.apply?.map((zone) => zone.zone_name).includes(zoneName) ? (
+                    <Box key={index}>
+                      <ListItem
+                        disablePadding
+                        secondaryAction={
+                          <IconButton
+                            edge="end"
+                            aria-label="delete"
+                            onClick={async () => {
+                              const newZoneNames = zoneNames.filter((name) => name !== zoneName);
+                              setZonesRelatedTeams(await tryCollectZonesRelatedTeams(newZoneNames));
+                              setZoneNames(newZoneNames);
+                            }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        }
+                      >
+                        <ListItemText
+                          primary={zoneName}
+                          primaryTypographyProps={{
+                            style: {
+                              whiteSpace: "nowrap",
+                              overflow: "auto",
+                              textOverflow: "ellipsis",
+                            },
+                          }}
+                        />
+                      </ListItem>
+                      <Divider />
+                    </Box>
+                  ) : (
+                    <Box key={index}>
+                      <ListItem disablePadding>
+                        <ListItemText
+                          primary={zoneName}
+                          primaryTypographyProps={{
+                            style: {
+                              color: "grey",
+                              whiteSpace: "nowrap",
+                              overflow: "auto",
+                              textOverflow: "ellipsis",
+                            },
+                          }}
+                        />
+                      </ListItem>
+                      <Divider />
+                    </Box>
+                  )
+                )}
               </List>
             </Box>
             <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
@@ -348,9 +456,10 @@ export default function TopicEditModal(props) {
             <List sx={{ ml: 1 }}>
               {zoneNames.length === 0 ? (
                 <>All of PTeams</>
-              ) : zonesRelatedTeams === undefined ? (
+              ) : zonesRelatedTeams?.pteams === undefined ? (
                 <Typography sx={{ color: "red" }}>Something went wrong</Typography>
-              ) : Object.values(zonesRelatedTeams.pteams).length > 0 ? (
+              ) : Object.values(zonesRelatedTeams.pteams).length > 0 ||
+                zonesRelatedTeams.unvisibleExists === true ? (
                 <>
                   {Object.values(zonesRelatedTeams.pteams).map((pteam) => (
                     <ListItem key={pteam.pteam_id} disablePadding>
@@ -367,6 +476,22 @@ export default function TopicEditModal(props) {
                       />
                     </ListItem>
                   ))}
+                  {zonesRelatedTeams.unvisibleExists && (
+                    <ListItem disablePadding>
+                      <FiberManualRecordIcon sx={{ m: 1, color: red[500], fontSize: "small" }} />
+                      <ListItemText
+                        primary={"(some teams you cannot access to)"}
+                        primaryTypographyProps={{
+                          style: {
+                            color: "orange",
+                            whiteSpace: "nowrap",
+                            overflow: "auto",
+                            textOverflow: "ellipsis",
+                          },
+                        }}
+                      />
+                    </ListItem>
+                  )}
                 </>
               ) : (
                 <Typography sx={{ color: "red" }}>No PTeams</Typography>
@@ -380,16 +505,20 @@ export default function TopicEditModal(props) {
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 Action
               </Typography>
-              <ActionGeneratorModal />
+              <AnalysisActionGeneratorModal />
             </Box>
             <List sx={{ ml: 1 }}>
-              {sample_action.map((action) => (
+              {actions.map((action) => (
                 <Box key={action.action}>
                   <ListItem
                     key={action.action}
                     disablePadding
                     secondaryAction={
-                      <IconButton edge="end" aria-label="delete">
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={() => setActions(actions.filter((item) => item !== action))}
+                      >
                         <DeleteIcon />
                       </IconButton>
                     }
@@ -421,7 +550,9 @@ export default function TopicEditModal(props) {
       <DialogActions>
         <Box sx={{ display: "flex", flexDirection: "row", mr: 1, mb: 1 }}>
           <Box sx={{ flex: "1 1 auto" }} />
-          <Button sx={modalCommonButtonStyle}>Update</Button>
+          <Button disabled={!readyForUpdate()} sx={modalCommonButtonStyle} onClick={handleUpdate}>
+            Update
+          </Button>
         </Box>
       </DialogActions>
     </Dialog>
@@ -431,4 +562,6 @@ export default function TopicEditModal(props) {
 TopicEditModal.propTypes = {
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
+  currentTopic: PropTypes.object.isRequired,
+  currentActions: PropTypes.array.isRequired,
 };
