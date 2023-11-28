@@ -30,6 +30,11 @@ def create_action(
     """
     Create a topic action.
     """
+    if not data.topic_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing topic_id",
+        )
     if data.action_id and validate_action(db, data.action_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
