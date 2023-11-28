@@ -167,7 +167,7 @@ export function TopicEditModal(props) {
       if (newActions.length > 0) {
         enqueueSnackbar("Adding actions", { variant: "info" });
         for (const action of newActions) {
-          await createAction({ ...action, "topic_id": currentTopic.topic_id });
+          await createAction({ ...action, topic_id: currentTopic.topic_id });
         }
         enqueueSnackbar("Adding actions succeeded", { variant: "success" });
       }
