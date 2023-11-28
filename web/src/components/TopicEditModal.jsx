@@ -144,17 +144,21 @@ export function TopicEditModal(props) {
           ? null
           : zoneNames,
       };
-      if (currentTopic.created_by === userMe.user_id) {
-        enqueueSnackbar("Updating topic.", { variant: "info" });
-        await updateTopic(topicId, topicData).then(async (response) => {
-          await Promise.all([
-            enqueueSnackbar("Updating topic succeeded", { variant: "success" }),
-            dispatch(getTopic(topicId)),
-          ]);
-        });
-      } else if (Object.values(topicData).filter((item) => item !== null).length > 0) {
-        // something modified but not the topic creator
-        enqueueSnackbar("Skip updating topic params (Not a topic creator)", { variant: "warning" });
+      if (Object.values(topicData).filter((item) => item !== null).length > 0) {
+        // something modified
+        if (currentTopic.created_by === userMe.user_id) {
+          enqueueSnackbar("Updating topic.", { variant: "info" });
+          await updateTopic(topicId, topicData).then(async (response) => {
+            await Promise.all([
+              enqueueSnackbar("Updating topic succeeded", { variant: "success" }),
+              dispatch(getTopic(topicId)),
+            ]);
+          });
+        } else {
+          enqueueSnackbar("Skip updating topic params (Not a topic creator)", {
+            variant: "warning",
+          });
+        }
       }
       // fix actions
       const newActions = actions.filter((action) => action.action_id === null);
