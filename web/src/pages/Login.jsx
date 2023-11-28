@@ -23,6 +23,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { clearATeam } from "../slices/ateam";
 import { clearGTeam } from "../slices/gteam";
 import { clearPTeam } from "../slices/pteam";
+import { clearTopics } from "../slices/topics";
 import { clearUser } from "../slices/user";
 import { createUser, getMyUserInfo, removeToken, setToken } from "../utils/api";
 import { auth } from "../utils/firebase";
@@ -48,6 +49,7 @@ export default function Login() {
     dispatch(clearPTeam());
     dispatch(clearATeam());
     dispatch(clearGTeam());
+    dispatch(clearTopics());
     removeCookie(authCookieName, cookiesOptions);
     removeToken();
     setMessage(location.state?.message);

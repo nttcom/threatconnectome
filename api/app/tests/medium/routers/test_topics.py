@@ -14,6 +14,7 @@ from app.tests.medium.constants import (
     ACTION2,
     ACTION3,
     ATEAM1,
+    ATEAM2,
     GTEAM1,
     GTEAM2,
     MISPTAG1,
@@ -36,6 +37,7 @@ from app.tests.medium.constants import (
 )
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
+    accept_ateam_invitation,
     accept_gteam_invitation,
     accept_pteam_invitation,
     accept_watching_request,
@@ -52,6 +54,7 @@ from app.tests.medium.utils import (
     create_watching_request,
     create_zone,
     headers,
+    invite_to_ateam,
     invite_to_gteam,
     invite_to_pteam,
     random_string,
@@ -664,7 +667,7 @@ def test_cannot_access_topic_without_related_zone():
         assert_200(client.delete(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1)))
 
 
-def test_get_topic_actions():
+def test_get_pteam_topic_actions():
     create_user(USER1)
     gteam1 = create_gteam(USER1, GTEAM1)
     create_zone(USER1, gteam1.gteam_id, ZONE1)
@@ -757,7 +760,7 @@ def test_get_topic_actions():
     )
 
 
-def test_get_topic_actions__errors():
+def test_get_pteam_topic_actions__errors():
     create_user(USER1)
     create_user(USER2)
     gteam1 = create_gteam(USER1, GTEAM1)
@@ -800,6 +803,236 @@ def test_get_topic_actions__errors():
                 f"/topics/{topic1.topic_id}/actions/pteam/{topic1.topic_id}", headers=headers(USER2)
             )
         )
+
+
+class TestGetUserTopicActions:
+    class _Common:
+        tag1: schemas.TagResponse
+        pteam1: schemas.PTeamInfo
+        pteam2: schemas.PTeamInfo
+        ateam1: schemas.ATeamInfo
+        ateam2: schemas.ATeamInfo
+        gteam1: schemas.GTeamInfo
+        gteam2: schemas.GTeamInfo
+        zone1: schemas.ZoneInfo
+        zone2: schemas.ZoneInfo
+        action_req1: dict = {**ACTION1, "zone_names": [ZONE1["zone_name"]]}
+        action_req2: dict = {**ACTION2, "zone_names": [ZONE2["zone_name"]]}
+        action_req3: dict = {**ACTION3, "zone_names": []}
+        topic_base1: dict = {**TOPIC1, "tags": [TAG1], "zone_names": []}
+        topic1: schemas.TopicResponse
+
+        def _common_setup(self):
+            create_user(USER1)  # super user
+            create_user(USER2)  # account for test
+            self.tag1 = create_tag(USER1, TAG1)
+            self.pteam1 = create_pteam(USER1, PTEAM1)
+            self.pteam2 = create_pteam(USER1, PTEAM2)
+            self.ateam1 = create_ateam(USER1, ATEAM1)
+            self.ateam2 = create_ateam(USER1, ATEAM2)
+            self.gteam1 = create_gteam(USER1, GTEAM1)
+            self.gteam2 = create_gteam(USER1, GTEAM1)
+            self.zone1 = create_zone(USER1, self.gteam1.gteam_id, ZONE1)
+            self.zone2 = create_zone(USER1, self.gteam2.gteam_id, ZONE2)
+            self.topic1 = create_topic(
+                USER1,
+                {
+                    **self.topic_base1,
+                    "actions": [self.action_req1, self.action_req2, self.action_req3],
+                },
+            )
+            create_topic(  # noise
+                USER1,
+                {
+                    **self.topic_base1,
+                    "topic_id": uuid4(),
+                    "actions": [self.action_req1, self.action_req2, self.action_req3],
+                },
+            )
+
+        @staticmethod
+        def find_action(
+            actions: List[schemas.ActionResponse],
+            target: dict,
+        ):
+            return next(filter(lambda x: x.action == target["action"], actions), None)
+
+        def get_topic1_actions(self) -> List[schemas.ActionResponse]:
+            data = assert_200(
+                client.get(
+                    f"/topics/{self.topic1.topic_id}/actions/user/me", headers=headers(USER2)
+                )
+            )
+            return [schemas.ActionResponse(**action) for action in data]
+
+        def set_pteam_zones(self, pteam: schemas.PTeamInfo, zones: List[schemas.ZoneInfo]):
+            request = {"zone_names": [zone.zone_name for zone in zones]}
+            assert_200(
+                client.put(f"/pteams/{pteam.pteam_id}", headers=headers(USER1), json=request)
+            )
+
+    class TestWithoutTeams(_Common):
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self):
+            self._common_setup()
+
+        def test_without_teams(self):
+            actions = self.get_topic1_actions()
+            assert len(actions) == 1
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+    class TestWithPTeam(_Common):
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self):
+            self._common_setup()
+            invitation1 = invite_to_pteam(USER1, self.pteam1.pteam_id)
+            accept_pteam_invitation(USER2, invitation1.invitation_id)
+            # USER2 is a member of pteam1
+
+        def test_without_pteam_zone(self):
+            actions = self.get_topic1_actions()
+            assert len(actions) == 1
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+        def test_with_pteam_zone(self):
+            self.set_pteam_zones(self.pteam1, [self.zone1])
+            self.set_pteam_zones(self.pteam2, [self.zone2])  # noise
+
+            actions = self.get_topic1_actions()
+            assert len(actions) == 2
+            assert self.find_action(actions, self.action_req1)  # zone1 via pteam1
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+        def test_with_multiple_pteam_zones(self):
+            self.set_pteam_zones(self.pteam1, [self.zone1])
+            self.set_pteam_zones(self.pteam2, [self.zone2])
+            invitation2 = invite_to_pteam(USER1, self.pteam2.pteam_id)
+            accept_pteam_invitation(USER2, invitation2.invitation_id)
+
+            actions = self.get_topic1_actions()
+            assert len(actions) == 3
+            assert self.find_action(actions, self.action_req1)  # zone1 via pteam1
+            assert self.find_action(actions, self.action_req2)  # zone2 via pteam2
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+    class TestWithATeam(_Common):
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self):
+            self._common_setup()
+            invitation1 = invite_to_ateam(USER1, self.ateam1.ateam_id)
+            accept_ateam_invitation(USER2, invitation1.invitation_id)
+            # USER2 is a member of ateam1
+
+        def test_without_pteam(self):
+            actions = self.get_topic1_actions()
+            assert len(actions) == 1
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+        def test_with_pteam_without_zone(self):
+            watching_request = create_watching_request(USER1, self.ateam1.ateam_id)
+            accept_watching_request(USER1, watching_request.request_id, self.pteam1.pteam_id)
+
+            actions = self.get_topic1_actions()
+            assert len(actions) == 1
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+        def test_with_zoned_pteam(self):
+            watching_request = create_watching_request(USER1, self.ateam1.ateam_id)
+            accept_watching_request(USER1, watching_request.request_id, self.pteam1.pteam_id)
+            self.set_pteam_zones(self.pteam1, [self.zone1])
+            self.set_pteam_zones(self.pteam2, [self.zone2])  # noise
+
+            actions = self.get_topic1_actions()
+            assert len(actions) == 2
+            assert self.find_action(actions, self.action_req1)  # action1 via pteam1 via ateam1
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+        def test_with_multiple_zoned_pteams(self):
+            watching_request1 = create_watching_request(USER1, self.ateam1.ateam_id)
+            accept_watching_request(USER1, watching_request1.request_id, self.pteam1.pteam_id)
+            watching_request2 = create_watching_request(USER1, self.ateam1.ateam_id)
+            accept_watching_request(USER1, watching_request2.request_id, self.pteam2.pteam_id)
+            self.set_pteam_zones(self.pteam1, [self.zone1])
+            self.set_pteam_zones(self.pteam2, [self.zone2])
+
+            actions = self.get_topic1_actions()
+            assert len(actions) == 3
+            assert self.find_action(actions, self.action_req1)  # action1 via pteam1 via ateam1
+            assert self.find_action(actions, self.action_req2)  # action2 via pteam1 via ateam1
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+        def test_with_multiple_ateams(self):
+            watching_request1 = create_watching_request(USER1, self.ateam1.ateam_id)
+            accept_watching_request(USER1, watching_request1.request_id, self.pteam1.pteam_id)
+            watching_request2 = create_watching_request(USER1, self.ateam2.ateam_id)
+            accept_watching_request(USER1, watching_request2.request_id, self.pteam2.pteam_id)
+            self.set_pteam_zones(self.pteam1, [self.zone1])
+            self.set_pteam_zones(self.pteam2, [self.zone2])
+            invitation2 = invite_to_ateam(USER1, self.ateam2.ateam_id)
+            accept_ateam_invitation(USER2, invitation2.invitation_id)
+
+            actions = self.get_topic1_actions()
+            assert len(actions) == 3
+            assert self.find_action(actions, self.action_req1)  # action1 via pteam1 via ateam1
+            assert self.find_action(actions, self.action_req2)  # action2 via pteam2 via ateam2
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+    class TestWithGTeam(_Common):
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self):
+            self._common_setup()
+            invitation1 = invite_to_gteam(USER1, self.gteam1.gteam_id)
+            accept_gteam_invitation(USER2, invitation1.invitation_id)
+            # USER2 is a member of gteam1
+
+        def test_with_gteam(self):
+            actions = self.get_topic1_actions()
+            assert len(actions) == 2
+            assert self.find_action(actions, self.action_req1)  # action1 via gteam1
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+        def test_with_multiple_gteams(self):
+            invitation2 = invite_to_gteam(USER1, self.gteam2.gteam_id)
+            accept_gteam_invitation(USER2, invitation2.invitation_id)
+
+            actions = self.get_topic1_actions()
+            assert len(actions) == 3
+            assert self.find_action(actions, self.action_req1)  # action1 via gteam1
+            assert self.find_action(actions, self.action_req2)  # action2 via gteam2
+            assert self.find_action(actions, self.action_req3)  # action3 is public
+
+    class TestErrors(_Common):
+        random_uuid: UUID
+
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self):
+            self._common_setup()
+            self.random_uuid = uuid4()
+
+        def set_topic1_zones(self, zones: List[schemas.ZoneInfo]):
+            request = {"zone_names": [zone.zone_name for zone in zones]}
+            assert_200(
+                client.put(f"/topics/{self.topic1.topic_id}", headers=headers(USER1), json=request)
+            )
+
+        def test_wrong_topic_id(self):
+            with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
+                assert_200(
+                    client.get(
+                        f"/topics/{self.random_uuid}/actions/user/me", headers=headers(USER2)
+                    )
+                )
+
+        def test_not_visible_topic(self):
+            # pteam1 have zone1 only
+            self.set_topic1_zones([self.zone2])  # set zone2 instead of zone1
+
+            with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
+                assert_200(
+                    client.get(
+                        f"/topics/{self.topic1.topic_id}/actions/user/me", headers=headers(USER2)
+                    )
+                )
 
 
 def test_create_topic_actions():

@@ -51,3 +51,15 @@ export const errorToString = (error) =>
   typeof error.response?.data?.detail === "string"
     ? error.response.data.detail
     : `${error.response?.status}: ${error.response?.statusText}`; // maybe 422 by Pydantic
+
+export const tagsMatched = (allowedTags, actualTags) => {
+  if (allowedTags.length === 0 && actualTags.length === 0) return true;
+  const actualTagsWithParents = new Set(
+    actualTags.reduce((ret, tag) => {
+      const parentTag = pickParentTagName(tag);
+      if (parentTag === null || parentTag === tag) return [...ret, tag];
+      return [...ret, tag, parentTag];
+    }, [])
+  );
+  return [...actualTagsWithParents].some((item) => allowedTags.includes(item));
+};

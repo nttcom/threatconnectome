@@ -390,7 +390,7 @@ def delete_topic(
 
 
 @router.get("/{topic_id}/actions/pteam/{pteam_id}", response_model=schemas.TopicActionsResponse)
-def get_topic_actions(
+def get_pteam_topic_actions(
     topic_id: UUID,
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -452,3 +452,76 @@ def get_topic_actions(
         "pteam_id": pteam_id,
         "actions": actions_accessible_from_pteam,
     }
+
+
+@router.get("/{topic_id}/actions/user/me", response_model=List[schemas.ActionResponse])
+def get_user_topic_actions(
+    topic_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get actions list of the topic for current user.
+    """
+    topic = validate_topic(db, topic_id)
+    if not topic or not check_zone_accessible(db, current_user.user_id, topic.zones):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No such topic",
+        )
+
+    pteam_zones = (
+        db.query(models.PTeamZone.zone_name)
+        .filter(
+            or_(
+                models.PTeamZone.pteam_id.in_(
+                    # joined pteams
+                    db.query(models.PTeamAccount.pteam_id).filter(
+                        models.PTeamAccount.user_id == current_user.user_id
+                    )
+                ),
+                models.PTeamZone.pteam_id.in_(
+                    # pteams via joined ateams
+                    db.query(models.ATeamPTeam.pteam_id).join(
+                        models.ATeamAccount,
+                        and_(
+                            models.ATeamAccount.user_id == current_user.user_id,
+                            models.ATeamAccount.ateam_id == models.ATeamPTeam.ateam_id,
+                        ),
+                    ),
+                ),
+            )
+        )
+        .distinct()
+    )
+    gteam_zones = db.query(models.Zone.zone_name).join(
+        models.GTeamAccount,
+        and_(
+            models.GTeamAccount.user_id == current_user.user_id,
+            models.GTeamAccount.gteam_id == models.Zone.gteam_id,
+        ),
+    )
+    related_action_ids = (
+        db.query(
+            models.TopicAction.action_id,
+        )
+        .filter(
+            models.TopicAction.topic_id == str(topic_id),
+        )
+        .subquery()
+    )
+
+    actions = (
+        db.query(models.TopicAction)
+        .join(related_action_ids, related_action_ids.c.action_id == models.TopicAction.action_id)
+        .outerjoin(models.ActionZone)
+        .filter(
+            or_(
+                models.ActionZone.zone_name.is_(None),  # public
+                models.ActionZone.zone_name.in_(pteam_zones),
+                models.ActionZone.zone_name.in_(gteam_zones),
+            ),
+        )
+    ).all()
+
+    return actions
