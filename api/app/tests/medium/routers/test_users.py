@@ -32,10 +32,7 @@ def test_duplicate_user():
 
 
 def test_create_user_without_auth():
-    request = {
-        "email": USER1["email"],
-    }
-    response = client.post("/users", json=request)  # no headers
+    response = client.post("/users", json={})  # no headers
     assert response.status_code == 401
     assert response.reason_phrase == "Unauthorized"
 
