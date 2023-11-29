@@ -59,15 +59,15 @@ export function AnalysisActionGenerator(props) {
         )
       : {}
   );
-  const defaultZones =
+  const defaultZoneNames =
     action?.zones?.length > 0
       ? typeof action.zones[0] === "string"
         ? action.zones
-        : action.zones.map((zone) => zone.zone_name).join(", ")
+        : action.zones.map((zone) => zone.zone_name)
       : [];
-  const [zoneNames, setZoneNames] = useState(defaultZones);
+  const [zoneNames, setZoneNames] = useState(defaultZoneNames);
   const [zonesRelatedTeams, setZonesRelatedTeams] = useState(
-    collectZonesRelatedTeams(defaultZones)
+    collectZonesRelatedTeams(defaultZoneNames)
   );
 
   const tryCollectZonesRelatedTeams = async (newZoneNames) => {
@@ -184,14 +184,17 @@ export function AnalysisActionGenerator(props) {
 
   const buttonDisabled = () => {
     if (onGenerate) {
-      if (!actionType) return true;
       const createText = actionTemplates?.[actionTemplate]?.["createText"];
-      if (!createText) return true;
-      const actionText = createText();
-      if (!actionText) return true;
-      return false;
+      return (
+        !actionType ||
+        !createText ||
+        !createText() ||
+        (zoneNames.length > 0 &&
+          Object.values(zonesRelatedTeams?.pteams ?? []).length === 0 &&
+          zonesRelatedTeams?.unvisibleExists !== true) // given zones include no teams
+      );
     }
-    return false; // FIXME
+    return false;
   };
 
   const tagsEditor = tagIds ? (
