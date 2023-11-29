@@ -50,6 +50,7 @@ def random_string(number: int) -> str:
 
 def create_user(user: dict) -> schemas.UserResponse:
     request = {**user}
+    del request["email"]
     del request["pass"]
 
     response = client.post("/users", headers=headers(user), json=request)

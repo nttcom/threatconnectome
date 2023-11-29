@@ -139,7 +139,6 @@ class UserResponse(ORMModel):
 
 
 class UserCreateRequest(ORMModel):
-    email: str
     years: int = 0
 
 
