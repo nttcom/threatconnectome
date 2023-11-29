@@ -14,7 +14,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { sendEmailVerification, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  sendEmailVerification,
+  signInWithEmailAndPassword,
+  getMultiFactorResolver,
+  TotpMultiFactorGenerator,
+} from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch } from "react-redux";
@@ -34,6 +39,7 @@ export const cookiesOptions = { path: process.env.PUBLIC_URL || "/" };
 export default function Login() {
   const [message, setMessage] = useState(null);
   const [visible, setVisible] = useState(false);
+  const [oneTimePassword, setOneTimePassword] = useState("");
 
   const dispatch = useDispatch();
   const location = useLocation();
@@ -60,6 +66,23 @@ export default function Login() {
       return await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       switch (error.code) {
+        case "auth/multi-factor-auth-required": {
+          const mfaResolver = getMultiFactorResolver(auth, error);
+          // const otpFromAuthenticator = "218919"; // OTP typed by the user.
+          console.log(oneTimePassword);
+          const multiFactorAssertion = TotpMultiFactorGenerator.assertionForSignIn(
+            mfaResolver.hints[0].uid, // TOTP   TODO
+            oneTimePassword,
+          );
+          try {
+            const userCredential = await mfaResolver.resolveSignIn(multiFactorAssertion);
+            return userCredential;
+            // Successfully signed in!
+          } catch (error) {
+            // Invalid or expired OTP.
+          }
+          break;
+        }
         case "auth/invalid-email":
           setMessage("Invalid email format.");
           break;
@@ -88,10 +111,10 @@ export default function Login() {
     const data = new FormData(event.currentTarget);
     const userCredential = await callSignInWithEmailAndPassword(
       data.get("email"),
-      data.get("password")
+      data.get("password"),
     );
     if (userCredential === undefined) return;
-    const { accessToken, email } = userCredential.user;
+    const { accessToken, email, uid } = userCredential.user;
     setToken(accessToken);
     setCookie(authCookieName, accessToken, cookiesOptions);
     try {
@@ -108,12 +131,12 @@ export default function Login() {
           };
           await sendEmailVerification(userCredential.user, actionCodeSettings);
           setMessage(
-            "Your email address is not verified. An email for verification was sent to your address."
+            "Your email address is not verified. An email for verification was sent to your address.",
           );
           break;
         }
         case "No such user":
-          await createUser({ email }); // other values are default
+          await createUser({ email, uid }); // other values are default
           // TODO: navigate to the first time login page, or say hello on snackbar.
           navigate("/account", {
             state: {
@@ -193,6 +216,14 @@ export default function Login() {
           Log In
         </Button>
       </Box>
+      <TextField
+        value={oneTimePassword}
+        onChange={(event) => setOneTimePassword(event.target.value)}
+        fullWidth
+        label="one time password"
+        margin="normal"
+        name="code"
+      />
       <Divider />
       <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
         <Typography mr={1}>No metemcyber account?</Typography>
