@@ -20,6 +20,7 @@ export default function SetupTotp() {
   const [message, setMessage] = useState(null);
   const [qrcodeUrl, setQrcodeUrl] = useState(null);
   const [verificationCode, setVerificationCode] = useState("");
+  const [totpSecret, setTotpSecret] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -39,15 +40,16 @@ export default function SetupTotp() {
     setMessage("Processing...");
 
     if (auth.currentUser === null) return;
-
     const multiFactorSession = await multiFactor(auth.currentUser).getSession();
-    const totpSecret = await TotpMultiFactorGenerator.generateSecret(multiFactorSession);
+    const totpSecret1 = await TotpMultiFactorGenerator.generateSecret(multiFactorSession);
+
+    setTotpSecret(totpSecret1);
 
     // Display this URL as a QR code.
     const appName = "metemcyber";
 
     try {
-      const url = totpSecret.generateQrCodeUrl(auth.currentUser.uid, appName);
+      const url = totpSecret1.generateQrCodeUrl(auth.currentUser.email, appName);
       setQrcodeUrl(url);
     } catch (error) {
       setDisabled(false);
@@ -57,18 +59,13 @@ export default function SetupTotp() {
   };
 
   const handleSetupTotp = async (event) => {
-    const multiFactorSession = await multiFactor(auth.currentUser).getSession();
-
-    const totpSecret = await TotpMultiFactorGenerator.generateSecret(multiFactorSession);
-
-    // const verificationCode = "";
-    console.log(verificationCode);
-    const multiFactorAssertion = TotpMultiFactorGenerator.assertionForEnrollment(
-      totpSecret,
-      verificationCode
-    );
-
     try {
+      console.log(totpSecret);
+      const multiFactorAssertion = TotpMultiFactorGenerator.assertionForEnrollment(
+        totpSecret,
+        verificationCode,
+      );
+      console.log(multiFactorAssertion);
       // Finalize the enrollment.
       multiFactor(auth.currentUser).enroll(multiFactorAssertion, "totp");
     } catch (error) {
@@ -78,6 +75,24 @@ export default function SetupTotp() {
       return;
     }
     setMessage("setup success");
+  };
+
+  const handleDisableTotp = async (event) => {
+    try {
+      // Unenroll from TOTP MFA.
+      await multiFactor(auth.currentUser).unenroll(TotpMultiFactorGenerator.FACTOR_ID);
+    } catch (error) {
+      if (error.code === "auth/user-token-expired") {
+        // If the user was signed out, re-authenticate them.
+
+        // For example, if they signed in with a password, prompt them to
+        // provide it again, then call `reauthenticateWithCredential()` as shown
+        // below.
+        console.log(error);
+        // const credential = EmailAuthProvider.credential("kazushi.kojima.ue@hitachi-solutions.com", "520fine3");
+        // await reauthenticateWithCredential(currentUser, credential);
+      }
+    }
   };
 
   return (
@@ -134,7 +149,18 @@ export default function SetupTotp() {
         variant="contained"
         sx={{ mt: 3, mb: 2 }}
       >
-        Setup TOTP
+        Enable TOTP
+      </Button>
+      <Button
+        color="warning"
+        onClick={handleDisableTotp}
+        disabled={disabled}
+        fullWidth
+        type="submit"
+        variant="contained"
+        sx={{ mt: 3, mb: 2 }}
+      >
+        Disable TOTP
       </Button>
       <Divider />
       <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
