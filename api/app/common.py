@@ -1783,27 +1783,24 @@ class ExtDebianVersion(DebianVersion):
                 f"'{operator}' not supported between instances of '{self.__class__}' "
                 f"and '{other.__class__}'"
             )
-        if self.epoch != other.epoch:
-            # deb-version man page says that epochs should be compared at first.
-            # but in Threatconnectome, we abort comparing in this case because we are
-            # not sure the comparison result with different epochs is as expected.
-            raise ValueError(f"Cannot compare with different epochs: {self}, {other}")
+
+    # ignore epoch & revision to compare.
 
     def __lt__(self, other):
         self._check_comparable(other, "<")
-        return super().__lt__(other)
+        return DebianVersion.from_string(self.upstream) < DebianVersion.from_string(other.upstream)
 
     def __gt__(self, other):
         self._check_comparable(other, ">")
-        return super().__gt__(other)
+        return DebianVersion.from_string(self.upstream) > DebianVersion.from_string(other.upstream)
 
     def __le__(self, other):
         self._check_comparable(other, "<=")
-        return super().__le__(other)
+        return DebianVersion.from_string(self.upstream) <= DebianVersion.from_string(other.upstream)
 
     def __ge__(self, other):
         self._check_comparable(other, ">=")
-        return super().__ge__(other)
+        return DebianVersion.from_string(self.upstream) >= DebianVersion.from_string(other.upstream)
 
 
 # supported version classes:
