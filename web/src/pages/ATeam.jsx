@@ -12,7 +12,7 @@ import { avatarGroupStyle, difficulty, noATeamMessage, experienceColors } from "
 import { a11yProps } from "../utils/func.js";
 
 export default function ATeam() {
-  const [filterMode, setFilterMode] = useState("ateam");
+  const [filterMode, setFilterMode] = useState("ATeam");
   const [tabValue, setTabValue] = useState(0);
 
   const user = useSelector((state) => state.user.user);
@@ -24,7 +24,7 @@ export default function ATeam() {
 
   const dispatch = useDispatch();
 
-  const filterModes = ["all", "ateam"];
+  const filterModes = ["All", "ATeam"];
 
   useEffect(() => {
     if (!ateamId) return;
@@ -36,9 +36,9 @@ export default function ATeam() {
 
   const handleFilter = (achievement) => {
     switch (filterMode) {
-      case "ateam":
+      case "ATeam":
         return achievement.ateam_id === ateamId;
-      case "all":
+      case "All":
       default:
         return true;
     }

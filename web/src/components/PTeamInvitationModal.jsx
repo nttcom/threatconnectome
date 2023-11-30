@@ -77,7 +77,7 @@ export default function PTeamInvitationModal(props) {
       <Button onClick={handleOpen} sx={commonButtonStyle}>
         {text}
       </Button>
-      <Dialog open={open} PaperProps={{ sx: { minWidth: "600px", maxWidth: "95%" } }}>
+      <Dialog open={open} fullWidth>
         <DialogTitle>
           <Typography variant="inherit">Create New Invitation Link</Typography>
         </DialogTitle>
@@ -97,7 +97,7 @@ export default function PTeamInvitationModal(props) {
               </Box>
             ) : (
               <Grid container alignItems="center">
-                <Grid item p={1} xs={12} sm={6}>
+                <Grid item p={1} xs={6} sm={6}>
                   <DateTimePicker
                     inputFormat="YYYY/MM/DD HH:mm"
                     label="Expiration Date (future date)"
@@ -112,7 +112,7 @@ export default function PTeamInvitationModal(props) {
                     value={data.expiration}
                   />
                 </Grid>
-                <Grid item p={1} xs={12} sm={6}>
+                <Grid item p={1} xs={6} sm={6}>
                   <Box display="flex" flexDirection="column" justifyContent="center">
                     <Typography>Max uses: {data.max_uses || "unlimited"}</Typography>
                     <Box mx={1}>
@@ -126,6 +126,7 @@ export default function PTeamInvitationModal(props) {
                         min={0}
                         onChange={(_, value) => setData({ ...data, max_uses: value })}
                         value={data.max_uses}
+                        sx={{ width: "100%" }}
                       />
                     </Box>
                   </Box>
