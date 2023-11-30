@@ -110,18 +110,43 @@ class TestComparableVersion:
                 ("1.3", "1.2.3", ">", True),
                 ("1.3", "1.2.3", "<=", False),
                 ("1.3", "1.2.3", "<", False),
-                ("1:1.2", "1.2.0", "==", "Cannot compare with different epochs"),
-                ("1:1.2", "1.2.0", "<", "Cannot compare with different epochs"),
-                ("1:1.2", "1.2.0", "<=", "Cannot compare with different epochs"),
-                ("1:1.2", "1.2.0", ">", "Cannot compare with different epochs"),
-                ("1:1.2", "1.2.0", ">=", "Cannot compare with different epochs"),
-                ("1.2", "1:1.2.0", "==", "Cannot compare with different epochs"),
-                ("1.2", "1:1.2.0", "<", "Cannot compare with different epochs"),
-                ("1.2", "1:1.2.0", "<=", "Cannot compare with different epochs"),
-                ("1.2", "1:1.2.0", ">", "Cannot compare with different epochs"),
-                ("1.2", "1:1.2.0", ">=", "Cannot compare with different epochs"),
+                ("1:1.2", "1.2", "==", True),  # epoch should be ignored
+                ("1:1.2", "1.2.0", "==", False),  # epoch should be ignored
+                ("1:1.2", "1.2.0", "<", True),  # epoch should be ignored
+                ("1:1.2", "1.2.0", "<=", True),  # epoch should be ignored
+                ("1:1.2", "1.2.0", ">", False),  # epoch should be ignored
+                ("1:1.2", "1.2.0", ">=", False),  # epoch should be ignored
+                ("1.2", "1:1.2", "==", True),  # epoch should be ignored
+                ("1.2", "1:1.2.0", "==", False),  # epoch should be ignored
+                ("1.2", "1:1.2.0", "<", True),  # epoch should be ignored
+                ("1.2", "1:1.2.0", "<=", True),  # epoch should be ignored
+                ("1.2", "1:1.2.0", ">", False),  # epoch should be ignored
+                ("1.2", "1:1.2.0", ">=", False),  # epoch should be ignored
                 ("0:2.3", "2.3", "==", True),
                 ("2.3", "0:2.3", "==", True),
+                ("1.2-5ubuntu4.6", "1.2", "==", True),  # revision should be ignored
+                ("1.2-5ubuntu4.6", "1.2", "<", False),  # revision should be ignored
+                ("1.2-5ubuntu4.6", "1.2", "<=", True),  # revision should be ignored
+                ("1.2-5ubuntu4.6", "1.2", ">", False),  # revision should be ignored
+                ("1.2-5ubuntu4.6", "1.2", ">=", True),  # revision should be ignored
+                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", "==", True),  # revision should be ignored
+                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", "<", False),  # revision should be ignored
+                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", "<=", True),  # revision should be ignored
+                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", ">", False),  # revision should be ignored
+                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", ">=", True),  # revision should be ignored
+                ("1.2-6", "1.2-5ubuntu4.6", "==", True),  # revision should be ignored
+                ("1.2-6", "1.2-5ubuntu4.6", "<", False),  # revision should be ignored
+                ("1.2-6", "1.2-5ubuntu4.6", "<=", True),  # revision should be ignored
+                ("1.2-6", "1.2-5ubuntu4.6", ">", False),  # revision should be ignored
+                ("1.2-6", "1.2-5ubuntu4.6", ">=", True),  # revision should be ignored
+                ("3:1.2-6", "4:1.2-5", "==", True),  # epoch & revision should be ignored
+                ("3:1.2-6", "4:1.2-5", "<", False),  # epoch & revision should be ignored
+                ("3:1.2-6", "4:1.2-5", "<=", True),  # epoch & revision should be ignored
+                ("3:1.2-6", "4:1.2-5", ">", False),  # epoch & revision should be ignored
+                ("3:1.2-6", "4:1.2-5", ">=", True),  # epoch & revision should be ignored
+                ("1.2-3-4", "1.2-3", "==", False),
+                ("1.2-3-4", "1.2-3-", "==", True),
+                ("1.2-3-4", "1.2-3-5", "==", True),
             ],
         )
         def test_compare(self, left, right, operator, expected):
