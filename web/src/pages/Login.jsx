@@ -91,7 +91,7 @@ export default function Login() {
       data.get("password")
     );
     if (userCredential === undefined) return;
-    const { accessToken, email } = userCredential.user;
+    const { accessToken } = userCredential.user;
     setToken(accessToken);
     setCookie(authCookieName, accessToken, cookiesOptions);
     try {
@@ -113,7 +113,7 @@ export default function Login() {
           break;
         }
         case "No such user":
-          await createUser({ email }); // other values are default
+          await createUser({}); // other values are default
           // TODO: navigate to the first time login page, or say hello on snackbar.
           navigate("/account", {
             state: {
