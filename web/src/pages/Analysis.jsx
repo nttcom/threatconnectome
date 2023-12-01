@@ -35,7 +35,7 @@ import { useLocation, useNavigate } from "react-router";
 import ATeamLabel from "../components/ATeamLabel";
 import { ATeamTopicMenu } from "../components/ATeamTopicMenu";
 import AnalysisNoThreatsMsg from "../components/AnalysisNoThreatsMsg";
-import AnalysisTopic from "../components/AnalysisTopic";
+import { AnalysisTopic } from "../components/AnalysisTopic";
 import { getATeam, getATeamAuth } from "../slices/ateam";
 import { getATeamTopics } from "../utils/api";
 import { difficulty, difficultyColors, noATeamMessage } from "../utils/const";

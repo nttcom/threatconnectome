@@ -1,5 +1,7 @@
 import moment from "moment";
 
+import { getZonedTeams } from "./api";
+
 export const a11yProps = (index) => ({
   id: `tab-${index}`,
   "aria-controls": `tabpanel-${index}`,
@@ -62,4 +64,49 @@ export const tagsMatched = (allowedTags, actualTags) => {
     }, [])
   );
   return [...actualTagsWithParents].some((item) => allowedTags.includes(item));
+};
+
+export const setEquals = (set1, set2) =>
+  set1.size === set2.size && Array.from(set1).every((val) => set2.has(val));
+
+export const collectZonesRelatedTeams = async (zoneNames) => {
+  if (!zoneNames.length > 0) return { ateams: {}, pteams: {}, unvisibleExists: false };
+
+  const results = await Promise.allSettled(zoneNames.map((zoneName) => getZonedTeams(zoneName)));
+  const fails = results.filter((result) => result.status !== "fulfilled");
+  if (fails.length > 0) {
+    const unexpectedErrors = fails.filter((fail) => fail.reason?.response?.status !== 403);
+    if (unexpectedErrors.length > 0) throw unexpectedErrors[0].reason ?? new Error("Unknown Error");
+  }
+  const emptyResult = { ateams: {}, pteams: {}, unvisibleExists: fails.length > 0 };
+
+  return results
+    .filter((result) => result.status === "fulfilled")
+    .map((solved) => solved.value.data)
+    .reduce(
+      (ret, teamData) => ({
+        ...ret,
+        ateams: {
+          ...ret.ateams,
+          ...teamData.ateams.reduce(
+            (newATeams, ateam) => ({
+              ...newATeams,
+              [ateam.ateam_id]: ateam,
+            }),
+            {}
+          ),
+        },
+        pteams: {
+          ...ret.pteams,
+          ...teamData.pteams.reduce(
+            (newPTeams, pteam) => ({
+              ...newPTeams,
+              [pteam.pteam_id]: pteam,
+            }),
+            {}
+          ),
+        },
+      }),
+      emptyResult
+    );
 };

@@ -37,7 +37,7 @@ import AnalysisActionTypeIcon from "../components/AnalysisActionTypeIcon";
 import CommentDeleteModal from "../components/CommentDeleteModal";
 import TabPanel from "../components/TabPanel";
 import ThreatImpactChip from "../components/ThreatImpactChip";
-import TopicModal from "../components/TopicModal";
+import { TopicEditModal } from "../components/TopicEditModal";
 import UUIDTypography from "../components/UUIDTypography";
 import WarningTooltip from "../components/WarningTooltip";
 import { getActions, getTopic } from "../slices/topics";
@@ -50,7 +50,7 @@ import {
 import { commonButtonStyle, rootPrefix, threatImpactName } from "../utils/const";
 import { a11yProps, dateTimeFormat, tagsMatched } from "../utils/func.js";
 
-export default function AnalysisTopic(props) {
+export function AnalysisTopic(props) {
   const { user, ateam, targetTopic, isAdmin } = props;
   const [editable, setEditable] = useState(null);
   const [newComment, setNewComment] = useState("");
@@ -178,10 +178,11 @@ export default function AnalysisTopic(props) {
     return `${rootPrefix}/tags/${tag.tag_id}?` + tmpParams.toString();
   };
   const topicDetail = topics?.[targetTopic.topic_id];
+  const topicActions = actions?.[targetTopic.topic_id];
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
   /* block rendering until data ready */
-  if (!ateam.ateam_id || !topicDetail) return <>Loading...</>;
+  if (!ateam.ateam_id || !topicDetail || !topicActions) return <>Loading...</>;
 
   const topicTagNames = topicDetail.tags.map((tag) => tag.tag_name);
   const recommendedActions = actions?.[targetTopic.topic_id]?.filter(
@@ -665,13 +666,14 @@ export default function AnalysisTopic(props) {
                 )}
               </Box>
             </Box>
-            <TopicModal
-              open={topicModalOpen}
-              setOpen={setTopicModalOpen}
-              presetTopicId={targetTopic.topic_id}
-            />
           </Box>
         </TabPanel>
+        <TopicEditModal
+          open={topicModalOpen}
+          setOpen={setTopicModalOpen}
+          currentTopic={topicDetail}
+          currentActions={topicActions}
+        />
       </Box>
       <CommentDeleteModal
         comment={deleteComment}

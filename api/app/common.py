@@ -607,13 +607,17 @@ def create_action_internal(
     current_user: models.Account,
     action: schemas.ActionCreateRequest,
 ) -> models.TopicAction:
-    if action.topic_id:
-        topic = validate_topic(
-            db,
-            action.topic_id,
-            on_error=status.HTTP_400_BAD_REQUEST,
-            ignore_disabled=True,
+    if not action.topic_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing topic_id",
         )
+    topic = validate_topic(
+        db,
+        action.topic_id,
+        on_error=status.HTTP_400_BAD_REQUEST,
+        ignore_disabled=True,
+    )
     assert topic
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_403_FORBIDDEN)
     check_topic_action_tags_integrity(
