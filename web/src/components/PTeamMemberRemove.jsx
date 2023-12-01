@@ -36,7 +36,7 @@ export default function PTeamMemberRemove(props) {
   return (
     <>
       <Typography variant="h5">Confirm</Typography>
-      <Box display="flex" alignItems="baseline" sx={{ my: 2 }}>
+      <Box display="flex" flexWrap="wrap" alignItems="baseline" sx={{ my: 2 }}>
         <Typography>Are you sure you want to remove </Typography>
         <Typography
           variant="h6"

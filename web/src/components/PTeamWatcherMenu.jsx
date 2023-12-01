@@ -1,12 +1,11 @@
 import { DoDisturbAlt as DoDisturbAltIcon, MoreVert as MoreVertIcon } from "@mui/icons-material";
-import { Box, Button, Menu, MenuItem, Modal } from "@mui/material";
+import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 
 import PTeamWatcherRemove from "../components/PTeamWatcherRemove";
 import { getPTeam } from "../slices/pteam";
-import { sxModal } from "../utils/const";
 
 export default function PTeamWatcherMenu(props) {
   const { pteam, watcherAteamId, watcherAteamName, isAdmin } = props;
@@ -56,8 +55,8 @@ export default function PTeamWatcherMenu(props) {
       ) : (
         <></>
       )}
-      <Modal open={openRemove}>
-        <Box sx={sxModal}>
+      <Dialog open={openRemove}>
+        <DialogContent>
           <PTeamWatcherRemove
             watcherAteamId={watcherAteamId}
             watcherAteamName={watcherAteamName}
@@ -68,8 +67,8 @@ export default function PTeamWatcherMenu(props) {
               setOpenRemove(false);
             }}
           />
-        </Box>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
