@@ -2,10 +2,9 @@ import os
 import re
 from urllib.parse import urlencode, urljoin
 
-from playwright.sync_api import Page, expect
-
 from api_utils import create_pteam, create_topic
 from constants import ACTION1, ACTION2, PTEAM1, TAG1, TOPIC1, TOPIC2, USER1
+from playwright.sync_api import Page, expect
 
 base_url = os.getenv("BASE_URL", "http://localhost")
 
@@ -31,7 +30,7 @@ def login(page: Page, user: dict):
     # Login
     page.get_by_label("Email Address").fill(user["email"])
     page.get_by_label("Password").fill(user["pass"])
-    page.get_by_role("button", name="Log In").click()
+    page.get_by_role("button", name="Log In with Email").click()
 
     # Wait login process finish and print logout button
     # https://playwright.dev/python/docs/api/class-locator#locator-wait-for
