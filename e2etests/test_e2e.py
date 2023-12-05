@@ -2,9 +2,10 @@ import os
 import re
 from urllib.parse import urlencode, urljoin
 
+from playwright.sync_api import Page, expect
+
 from api_utils import create_pteam, create_topic
 from constants import ACTION1, ACTION2, PTEAM1, TAG1, TOPIC1, TOPIC2, USER1
-from playwright.sync_api import Page, expect
 
 base_url = os.getenv("BASE_URL", "http://localhost")
 
