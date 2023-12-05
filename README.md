@@ -120,6 +120,8 @@ To change this so that builds also link to the development environment API, the 
     - `REACT_APP_FIREBASE_PROJECT_ID`
     - `REACT_APP_FIREBASE_STORAGE_BUCKET`
 
+  - `REACT_APP_FIREBASE_AUTH_SAML_PROVIDER_ID`
+    - Set your saml provider id if needed.
   - `REACT_APP_FIREBASE_AUTH_EMULATOR_URL`
     - Set it to `http://localhost:<your_port_for_firebase>`
 
