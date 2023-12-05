@@ -100,7 +100,7 @@ export default function Login() {
           };
           await sendEmailVerification(userCredential.user, actionCodeSettings);
           setMessage(
-            "Your email address is not verified. An email for verification was sent to your address.",
+            "Your email address is not verified. An email for verification was sent to your address."
           );
           break;
         }
@@ -127,7 +127,7 @@ export default function Login() {
     const data = new FormData(event.currentTarget);
     const userCredential = await callSignInWithEmailAndPassword(
       data.get("email"),
-      data.get("password"),
+      data.get("password")
     );
     if (userCredential === undefined) return;
     navigateInternalPage(userCredential);
