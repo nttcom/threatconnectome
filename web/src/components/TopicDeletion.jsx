@@ -1,4 +1,4 @@
-import { Button, Box, Modal, Typography } from "@mui/material";
+import { Button, Box, Dialog, DialogContent, Typography } from "@mui/material";
 import { red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { getPTeamTagsSummary } from "../slices/pteam";
 import { deleteTopic } from "../utils/api";
-import { commonButtonStyle, modalCommonButtonStyle, sxModal } from "../utils/const";
+import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
 export default function TopicDeletion(props) {
   const { topicId, setOpenTopicModal, onDelete } = props;
@@ -38,11 +38,6 @@ export default function TopicDeletion(props) {
     setOpenTopicModal(false);
   }
 
-  const style = {
-    ...sxModal,
-    maxWidth: "80%",
-  };
-
   return (
     <>
       <Button
@@ -58,13 +53,12 @@ export default function TopicDeletion(props) {
       >
         Delete Topic
       </Button>
-      <Modal hideBackdrop open={open} onClose={() => setOpen(false)}>
+      <Dialog hideBackdrop open={open} onClose={() => setOpen(false)}>
         <>
-          <Box sx={{ ...style }}>
+          <DialogContent>
             <Typography variant="h5">Confirm</Typography>
             <Typography>Are you sure you want to delete this topic?</Typography>
             <Typography>This deletion affects other pteams.</Typography>
-
             <Box display="flex">
               <Box flexGrow={1} />
               <Button onClick={() => setOpen(false)} sx={{ ...modalCommonButtonStyle, mt: 1 }}>
@@ -82,9 +76,9 @@ export default function TopicDeletion(props) {
                 Delete
               </Button>
             </Box>
-          </Box>
+          </DialogContent>
         </>
-      </Modal>
+      </Dialog>
     </>
   );
 }
