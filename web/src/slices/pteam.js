@@ -14,6 +14,7 @@ import {
   getPTeamTopicStatus as apiGetPTeamTopicStatus,
   getPTeamTopicStatusesSummary as apiGetPTeamTopicStatusesSummary,
   getPTeamWatcher as apiGetPTeamWatcher,
+  getPTeamGroups as apiGetPTeamGroups,
 } from "../utils/api";
 
 export const getPTeam = createAsyncThunk(
@@ -150,6 +151,15 @@ export const getPTeamWatcher = createAsyncThunk(
     }))
 );
 
+export const getPTeamGroups = createAsyncThunk(
+  "pteam/getPTeamGroups",
+  async (pteamId) =>
+    await apiGetPTeamGroups(pteamId).then((response) => ({
+      data: response.data,
+      pteamId: pteamId,
+    }))
+);
+
 const _initialState = {
   pteamId: undefined,
   pteam: undefined,
@@ -163,6 +173,7 @@ const _initialState = {
   taggedTopics: {},
   topicStatus: {},
   topicActions: {},
+  groups: undefined,
 };
 
 const pteamSlice = createSlice({
@@ -253,6 +264,10 @@ const pteamSlice = createSlice({
           ...state.topicActions,
           [action.payload.topicId]: action.payload.actions,
         },
+      }))
+      .addCase(getPTeamGroups.fulfilled, (state, action) => ({
+        ...state,
+        groups: action.payload.data.groups,
       }));
   },
 });

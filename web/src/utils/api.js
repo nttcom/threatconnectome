@@ -85,6 +85,8 @@ export const getPTeamWatcher = async (pteamId) => axios.get(`/pteams/${pteamId}/
 export const removeWatcherATeam = async (pteamId, ateamId) =>
   axios.delete(`/pteams/${pteamId}/watchers/${ateamId}`);
 
+export const getPTeamGroups = async (pteamId) => axios.get(`/pteams/${pteamId}/groups`);
+
 // ateams
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);
 
