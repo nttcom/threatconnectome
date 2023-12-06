@@ -31,7 +31,7 @@ def login(page: Page, user: dict):
     # Login
     page.get_by_label("Email Address").fill(user["email"])
     page.get_by_label("Password").fill(user["pass"])
-    page.get_by_role("button", name="Log In").click()
+    page.get_by_role("button", name="Log In with Email").click()
 
     # Wait login process finish and print logout button
     # https://playwright.dev/python/docs/api/class-locator#locator-wait-for
