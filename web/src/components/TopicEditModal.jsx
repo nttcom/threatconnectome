@@ -33,7 +33,7 @@ import { useDispatch, useSelector } from "react-redux";
 import TabPanel from "../components/TabPanel";
 import { getActions, getTopic } from "../slices/topics";
 import { getAuthorizedZones } from "../slices/user";
-import { createAction, deleteAction, updateTopic } from "../utils/api";
+import { createAction, deleteAction, updateAction, updateTopic } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 import {
   a11yProps,
@@ -161,10 +161,20 @@ export function TopicEditModal(props) {
         }
       }
       // fix actions
-      const newActions = actions.filter((action) => action.action_id === null);
-      const keptActionIds = actions
-        .map((action) => action.action_id)
-        .filter((actionId) => actionId !== null);
+      let newActions = [];
+      let updatedActions = [];
+      let keptActionIds = [];
+      for (const action of actions) {
+        if (action.action_id === null) {
+          newActions.push(action);
+        } else {
+          keptActionIds.push(action.action_id);
+          const orig = currentActions.find((item) => item.action_id === action.action_id);
+          if (orig?.recommended !== action.recommended) {
+            updatedActions.push(action);
+          }
+        }
+      }
       const removedActionIds = currentActions
         .map((action) => action.action_id)
         .filter((actionId) => !keptActionIds.includes(actionId));
@@ -175,6 +185,13 @@ export function TopicEditModal(props) {
         }
         enqueueSnackbar("Adding actions succeeded", { variant: "success" });
       }
+      if (updatedActions.length > 0) {
+        enqueueSnackbar("Updating actions", { variant: "info" });
+        for (const action of updatedActions) {
+          await updateAction(action.action_id, { recommended: action.recommended });
+        }
+        enqueueSnackbar("Updating actions succeeded", { variant: "success" });
+      }
       if (removedActionIds.length > 0) {
         enqueueSnackbar("Removing actions", { variant: "info" });
         for (const actionId of removedActionIds) {
@@ -182,7 +199,7 @@ export function TopicEditModal(props) {
         }
         enqueueSnackbar("Remofing actions succeeded", { variant: "success" });
       }
-      if (newActions.length + removedActionIds.length > 0) {
+      if (newActions.length + updatedActions.length + removedActionIds.length > 0) {
         await dispatch(getActions(currentTopic.topic_id));
       }
       setTopicId(""); // mark reset at next open, only if succeeded
@@ -527,10 +544,19 @@ export function TopicEditModal(props) {
                       </IconButton>
                     }
                   >
-                    <IconButton sx={{ pb: 0.5 }}>
+                    <IconButton
+                      onClick={() =>
+                        setActions(
+                          actions.map((item) =>
+                            item !== action ? item : { ...action, recommended: !action.recommended }
+                          )
+                        )
+                      }
+                      sx={{ pb: 0.5 }}
+                    >
                       <ActionTypeIcon
                         disabled={!action.recommended}
-                        actionType={action.actionType}
+                        actionType={action.action_type}
                       />
                     </IconButton>
                     <ListItemText
