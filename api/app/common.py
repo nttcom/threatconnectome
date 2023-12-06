@@ -1,10 +1,7 @@
 import json
-import re
-from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
 from hashlib import md5
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TypeAlias, Union, cast
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union, cast
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -13,11 +10,15 @@ from sqlalchemy import and_, delete, exists, func, literal, literal_column, or_,
 from sqlalchemy.dialects.postgresql import insert as psql_insert
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import true
-from univers.debian import Version as DebianVersion
-from univers.versions import InvalidVersion, SemverVersion
+from univers.versions import InvalidVersion
 
 from app import models, schemas
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
+from app.version import (
+    PackageFamily,
+    VulnerableRange,
+    gen_version_instance,
+)
 
 
 def get_system_account(db: Session) -> models.Account:
@@ -1759,157 +1760,6 @@ def _pick_actions_related_to_pteamtag_from_topic(
 
     actions = db.scalars(select_actions_stmt).all()
     return actions
-
-
-class PackageFamily(Enum):
-    UNKNOWN = 0
-    DEBIAN = 1
-
-    @classmethod
-    def from_registry(cls, registry: str) -> "PackageFamily":
-        fixed_registry = registry.lower()
-        if re.match(r"^(debian|ubuntu)", fixed_registry):  # TODO: need maintenance
-            return cls.DEBIAN
-        return cls.UNKNOWN
-
-    @classmethod
-    def from_tag_name(cls, tag_name: str) -> "PackageFamily":
-        if len(tag_name.split(":", 2)) < 3:
-            return cls.UNKNOWN
-        registry = tag_name.split(":", 1)[1].rsplit(":", 1)[0]  # trim left most & right most
-        return cls.from_registry(registry)
-
-
-class ExtDebianVersion(DebianVersion):
-    def _check_comparable(self, other: Any, operator: str):
-        if not isinstance(other, self.__class__):
-            raise ValueError(
-                f"'{operator}' not supported between instances of '{self.__class__}' "
-                f"and '{other.__class__}'"
-            )
-
-    # ignore epoch & revision to compare.
-
-    def __lt__(self, other):
-        self._check_comparable(other, "<")
-        return DebianVersion.from_string(self.upstream) < DebianVersion.from_string(other.upstream)
-
-    def __gt__(self, other):
-        self._check_comparable(other, ">")
-        return DebianVersion.from_string(self.upstream) > DebianVersion.from_string(other.upstream)
-
-    def __le__(self, other):
-        self._check_comparable(other, "<=")
-        return DebianVersion.from_string(self.upstream) <= DebianVersion.from_string(other.upstream)
-
-    def __ge__(self, other):
-        self._check_comparable(other, ">=")
-        return DebianVersion.from_string(self.upstream) >= DebianVersion.from_string(other.upstream)
-
-
-# supported version classes:
-#   - should be hashable.
-#   - required implemented __gt__, __ge__, __lt__, __le__.
-#     Note: __eq__ cannot be used to compare versions. use >= and <= instead.
-#   - should raise InvalidVersion or ValueError on errors.
-ComparableVersion: TypeAlias = Union[ExtDebianVersion, SemverVersion]
-
-
-def gen_version_instance(
-    package_family: PackageFamily,
-    version_string: str,
-) -> ComparableVersion:
-    try:
-        if package_family == PackageFamily.DEBIAN:
-            return ExtDebianVersion.from_string(version_string)
-        return SemverVersion(version_string)
-    except InvalidVersion as err:  # univers.versions.Version raises
-        raise err
-    except ValueError as err:  # univers.debian.Version raises
-        raise InvalidVersion(err)
-
-
-@dataclass(frozen=True, kw_only=True)
-class VulnerableRange:
-    eq: Optional[ComparableVersion] = None
-    ge: Optional[ComparableVersion] = None
-    gt: Optional[ComparableVersion] = None
-    le: Optional[ComparableVersion] = None
-    lt: Optional[ComparableVersion] = None
-
-    def __post_init__(self):
-        classes = {attr.__class__ for attr in [self.eq, self.ge, self.gt, self.le, self.lt] if attr}
-        if (
-            len(classes) != 1
-            or not any([self.eq, self.ge, self.gt, self.le, self.lt])
-            or (self.ge and self.gt)
-            or (self.le and self.lt)
-            or (self.eq and any([self.ge, self.gt, self.le, self.lt]))
-        ):
-            raise ValueError(f"Ambiguous {self}")
-
-    @classmethod
-    def from_string(
-        cls,
-        package_family: PackageFamily,
-        vulnerable_string: str,
-    ) -> "VulnerableRange":
-        def _pick_heading_version(string: str) -> str:
-            found_string = re.split(r"[<>= ,]", string, maxsplit=1)[0].strip()
-            if not found_string:
-                raise ValueError("Invalid version string: (empty)")
-            return found_string
-
-        kwargs: Dict[str, ComparableVersion] = {}
-        if len(tmp := re.split(r">= *", vulnerable_string, maxsplit=1)) > 1:
-            kwargs["ge"] = gen_version_instance(package_family, _pick_heading_version(tmp[1]))
-        if len(tmp := re.split(r">(?![=]) *", vulnerable_string, maxsplit=1)) > 1:
-            kwargs["gt"] = gen_version_instance(package_family, _pick_heading_version(tmp[1]))
-        if len(tmp := re.split(r"<= *", vulnerable_string, maxsplit=1)) > 1:
-            kwargs["le"] = gen_version_instance(package_family, _pick_heading_version(tmp[1]))
-        if len(tmp := re.split(r"<(?![=]) *", vulnerable_string, maxsplit=1)) > 1:
-            kwargs["lt"] = gen_version_instance(package_family, _pick_heading_version(tmp[1]))
-        if len(tmp := re.split(r"(?<![<>])= *", vulnerable_string, maxsplit=1)) > 1:
-            kwargs["eq"] = gen_version_instance(package_family, _pick_heading_version(tmp[1]))
-        return VulnerableRange(**kwargs)
-
-    def detect_matched(self, references: Set[ComparableVersion]) -> bool:
-        """
-        returns True if at least 1 reference matched with me, False otherwise.
-        ValueError will be raised when failed to compare.
-        """
-        if self.eq:
-            ret = False
-            for reference in references:
-                if self.eq.__class__ != reference.__class__:
-                    # oops, __eq__ in univers does not raise TypeError even if classes mismatched
-                    raise ValueError(
-                        f"'==' not supported between instances of '{self.eq.__class__}' "
-                        f"and '{reference.__class__}'"
-                    )
-                # Note:
-                #   operator '==' is not reliable to compare versions.
-                #   e.g.) SemverVersion.__eq__ returns False if .build are different.
-                if self.eq >= reference and self.eq <= reference:
-                    ret = True  # found result, but keep on checking to detect ValueError
-            return ret
-
-        def _detect_outrange(other) -> bool:
-            try:
-                return any(
-                    [  # Note: TypeError may be raised if classes mismatched
-                        (self.lt and self.lt <= other),
-                        (self.le and self.le < other),
-                        (self.gt and self.gt >= other),
-                        (self.ge and self.ge > other),
-                    ]
-                )
-            except TypeError as err:
-                raise ValueError(err)
-
-        if all(_detect_outrange(reference) for reference in references):
-            return False  # each reference has at least 1 outranged
-        return True
 
 
 def _pick_vulnerable_version_strings_from_actions(
