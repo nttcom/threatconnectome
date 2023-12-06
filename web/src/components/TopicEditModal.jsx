@@ -548,7 +548,7 @@ export function TopicEditModal(props) {
                       onClick={() =>
                         setActions(
                           actions.map((item) =>
-                            item !== action ? item : { ...action, recommended: !action.recommended }
+                            item === action ? { ...action, recommended: !action.recommended } : item
                           )
                         )
                       }
