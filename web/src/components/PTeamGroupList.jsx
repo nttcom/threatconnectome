@@ -2,12 +2,11 @@ import { Box, Chip } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router";
 
 import { getPTeamGroups } from "../slices/pteam";
 
 export default function PTeamGroupList() {
-  const [selectedGroup, setSelectedGroup] = useState("");
-
   const dispatch = useDispatch();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
@@ -20,12 +19,19 @@ export default function PTeamGroupList() {
     }
   }, [pteamId, groups, dispatch]);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = new URLSearchParams(location.search);
+  const selectedGroup = params.get("group") ?? "";
+
   const handleSelectGroup = (group) => {
-    if (selectedGroup === group) {
-      setSelectedGroup("");
+    if (group === selectedGroup) {
+      params.delete("group");
     } else {
-      setSelectedGroup(group);
+      params.set("group", group);
+      params.set("page", 1); // reset page
     }
+    navigate(location.pathname + "?" + params.toString());
   };
 
   return (
