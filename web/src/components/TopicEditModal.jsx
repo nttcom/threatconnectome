@@ -130,6 +130,7 @@ export function TopicEditModal(props) {
   const handleUpdate = async () => {
     setUpdating(true);
     try {
+      // update topic if updated
       const topicData = {
         title: title === currentTopic.title ? null : title,
         abstract: abst === currentTopic.abstract ? null : abst,
@@ -161,23 +162,17 @@ export function TopicEditModal(props) {
         }
       }
       // fix actions
-      let newActions = [];
-      let updatedActions = [];
-      let keptActionIds = [];
-      for (const action of actions) {
-        if (action.action_id === null) {
-          newActions.push(action);
-        } else {
-          keptActionIds.push(action.action_id);
-          const orig = currentActions.find((item) => item.action_id === action.action_id);
-          if (orig?.recommended !== action.recommended) {
-            updatedActions.push(action);
-          }
-        }
-      }
+      const newActions = actions.filter((action) => action.action_id === null);
+      const keptActions = actions.filter((action) => action.action_id !== null);
+      const updatedActions = keptActions.filter((action) => {
+        const originalAction = currentActions.find((item) => item.action_id === action.action_id);
+        return originalAction?.recommended !== action.recommended;
+      });
+      const keptActionIds = keptActions.map((action) => action.action_id);
       const removedActionIds = currentActions
         .map((action) => action.action_id)
         .filter((actionId) => !keptActionIds.includes(actionId));
+      // call api to create,update,remove actions
       if (newActions.length > 0) {
         enqueueSnackbar("Adding actions", { variant: "info" });
         for (const action of newActions) {
