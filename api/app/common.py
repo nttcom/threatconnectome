@@ -10,7 +10,6 @@ from sqlalchemy import and_, delete, exists, func, literal, literal_column, or_,
 from sqlalchemy.dialects.postgresql import insert as psql_insert
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import true
-from univers.versions import InvalidVersion
 
 from app import models, schemas
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
@@ -1851,7 +1850,7 @@ def pteamtag_try_auto_close_topic(db: Session, pteamtag: models.PTeamTag, topic:
         # detect vulnerable
         if any(vulnerable.detect_matched(references) for vulnerable in vulnerables):
             return  # found at least 1 vulnerable
-    except (InvalidVersion, ValueError):  # found invalid, ambiguous or uncomparable
+    except ValueError:  # found invalid, ambiguous or uncomparable
         return  # human check required
 
     # This topic has actionable actions, but no actions left to carry out for this pteamtag.

@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any, Dict, Optional, Set, TypeAlias, Union
 
 from univers.debian import Version as DebianVersion
-from univers.versions import InvalidVersion, SemverVersion
+from univers.versions import SemverVersion
 
 
 class PackageFamily(Enum):
@@ -57,7 +57,7 @@ class ExtDebianVersion(DebianVersion):
 #   - should be hashable.
 #   - required implemented __gt__, __ge__, __lt__, __le__.
 #     Note: __eq__ cannot be used to compare versions. use >= and <= instead.
-#   - should raise InvalidVersion or ValueError on errors.
+#   - may raise ValueError on errors.
 ComparableVersion: TypeAlias = Union[ExtDebianVersion, SemverVersion]
 
 
@@ -65,14 +65,9 @@ def gen_version_instance(
     package_family: PackageFamily,
     version_string: str,
 ) -> ComparableVersion:
-    try:
-        if package_family == PackageFamily.DEBIAN:
-            return ExtDebianVersion.from_string(version_string)
-        return SemverVersion(version_string)
-    except InvalidVersion as err:  # univers.versions.Version raises
-        raise err
-    except ValueError as err:  # univers.debian.Version raises
-        raise InvalidVersion(err)
+    if package_family == PackageFamily.DEBIAN:
+        return ExtDebianVersion.from_string(version_string)
+    return SemverVersion(version_string)
 
 
 @dataclass(frozen=True, kw_only=True)

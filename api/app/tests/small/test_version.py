@@ -4,7 +4,6 @@ import pytest
 
 from app.version import (
     ExtDebianVersion,
-    InvalidVersion,  # from univers
     PackageFamily,
     SemverVersion,  # from univers
     VulnerableRange,
@@ -49,7 +48,7 @@ class TestComparableVersion:
         )
         def test_gen_instance(self, version_string, expected):
             if isinstance(expected, str):
-                with pytest.raises(InvalidVersion, match=expected):
+                with pytest.raises(ValueError, match=expected):
                     gen_version_instance(PackageFamily.DEBIAN, version_string)
                 return
             version_obj = gen_version_instance(PackageFamily.DEBIAN, version_string)
@@ -172,7 +171,7 @@ class TestComparableVersion:
         )
         def test_gen_instance(self, version_string, expected):
             if isinstance(expected, str):
-                with pytest.raises(InvalidVersion, match=expected):
+                with pytest.raises(ValueError, match=expected):
                     gen_version_instance(PackageFamily.UNKNOWN, version_string)
                 return
             sem_obj = gen_version_instance(PackageFamily.UNKNOWN, version_string)
