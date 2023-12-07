@@ -1,6 +1,6 @@
 import { Box, Chip } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
