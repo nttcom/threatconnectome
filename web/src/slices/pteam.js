@@ -155,7 +155,7 @@ export const getPTeamGroups = createAsyncThunk(
   "pteam/getPTeamGroups",
   async (pteamId) =>
     await apiGetPTeamGroups(pteamId).then((response) => ({
-      data: response.data,
+      groups: response.data.groups,
       pteamId: pteamId,
     }))
 );
@@ -267,7 +267,7 @@ const pteamSlice = createSlice({
       }))
       .addCase(getPTeamGroups.fulfilled, (state, action) => ({
         ...state,
-        groups: action.payload.data.groups,
+        groups: action.payload.groups,
       }));
   },
 });
