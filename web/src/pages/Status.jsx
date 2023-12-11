@@ -84,7 +84,7 @@ SearchField.propTypes = {
   onApply: PropTypes.func.isRequired,
 };
 
-export function PTeamStatus() {
+export function Status() {
   const location = useLocation();
   const navigate = useNavigate();
 

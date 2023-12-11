@@ -10,7 +10,7 @@ import { GTeam } from "./GTeam";
 import { Login } from "./Login";
 import { PTeam } from "./PTeam";
 import { ResetPassword } from "./ResetPassword";
-import { PTeamStatus } from "./Status";
+import { Status } from "./Status";
 import { Tag } from "./Tag";
 import { Zone } from "./Zone";
 import { ZoneEdit } from "./ZoneEdit";
@@ -28,7 +28,7 @@ export {
   Login,
   PTeam,
   ResetPassword,
-  PTeamStatus,
+  Status,
   Tag,
   Zone,
   ZoneEdit,
