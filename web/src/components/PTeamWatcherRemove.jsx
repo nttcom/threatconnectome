@@ -8,7 +8,7 @@ import { getPTeamWatcher } from "../slices/pteam";
 import { removeWatcherATeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function PTeamWatcherRemove(props) {
+export function PTeamWatcherRemove(props) {
   const { watcherAteamId, watcherAteamName, pteamId, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();

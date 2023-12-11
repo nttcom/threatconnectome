@@ -25,7 +25,7 @@ import { getPTeamTagsSummary } from "../slices/pteam";
 import { getTags } from "../slices/tags";
 import { createTag, addPTeamTag, removePTeamTag } from "../utils/api";
 
-export default function TagMonitoring(props) {
+export function TagMonitoring(props) {
   const dispatch = useDispatch();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);

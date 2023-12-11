@@ -19,7 +19,7 @@ import {
   GTeam,
   Login,
   ResetPassword,
-  Status,
+  PTeamStatus,
   Tag,
   PTeam,
   Zone,
@@ -47,7 +47,7 @@ root.render(
                 <Route exact path="/login" element={<Login />} />
                 <Route path="/reset_password" element={<ResetPassword />} />
                 <Route path="/" element={<App />}>
-                  <Route index element={<Status />} />
+                  <Route index element={<PTeamStatus />} />
                   <Route path="account">
                     <Route index element={<Account />} />
                   </Route>

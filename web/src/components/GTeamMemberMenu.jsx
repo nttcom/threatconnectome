@@ -8,11 +8,11 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import GTeamAuthEditor from "../components/GTeamAuthEditor";
-import GTeamMemberRemove from "../components/GTeamMemberRemove";
+import { GTeamAuthEditor } from "../components/GTeamAuthEditor";
+import { GTeamMemberRemove } from "../components/GTeamMemberRemove";
 import { getUser } from "../slices/user";
 
-export default function GTeamMemberMenu(props) {
+export function GTeamMemberMenu(props) {
   const { userId, userEmail, isAdmin } = props;
 
   const [openAuth, setOpenAuth] = useState(false);

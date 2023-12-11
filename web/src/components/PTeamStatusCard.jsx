@@ -13,7 +13,7 @@ import { useLocation, useNavigate } from "react-router";
 import { topicStatusProps } from "../utils/const";
 import { calcTimestampDiff } from "../utils/func";
 
-import ThreatImpactStatusChip from "./ThreatImpactStatusChip";
+import { ThreatImpactStatusChip } from "./ThreatImpactStatusChip";
 
 function LineWithTooltip(props) {
   const { topicStatus, ratio, num } = props;
@@ -167,7 +167,7 @@ GroupChips.propTypes = {
   ).isRequired,
 };
 
-export default function PTeamStatusCard(props) {
+export function PTeamStatusCard(props) {
   const { handleClick, tag } = props;
 
   const CommentTooltip = styled(({ className, ...props }) => (

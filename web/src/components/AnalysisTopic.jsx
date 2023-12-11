@@ -33,13 +33,13 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import AnalysisActionTypeIcon from "../components/AnalysisActionTypeIcon";
-import CommentDeleteModal from "../components/CommentDeleteModal";
-import TabPanel from "../components/TabPanel";
-import ThreatImpactChip from "../components/ThreatImpactChip";
+import { AnalysisActionTypeIcon } from "../components/AnalysisActionTypeIcon";
+import { CommentDeleteModal } from "../components/CommentDeleteModal";
+import { TabPanel } from "../components/TabPanel";
+import { ThreatImpactChip } from "../components/ThreatImpactChip";
 import { TopicEditModal } from "../components/TopicEditModal";
-import UUIDTypography from "../components/UUIDTypography";
-import WarningTooltip from "../components/WarningTooltip";
+import { UUIDTypography } from "../components/UUIDTypography";
+import { WarningTooltip } from "../components/WarningTooltip";
 import { getActions, getTopic } from "../slices/topics";
 import {
   createATeamTopicComment as apiCreateATeamTopicComment,

@@ -30,9 +30,9 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
-import PTeamGroupList from "../components/PTeamGroupList";
-import PTeamLabel from "../components/PTeamLabel";
-import PTeamStatusCard from "../components/PTeamStatusCard";
+import { PTeamGroupList } from "../components/PTeamGroupList";
+import { PTeamLabel } from "../components/PTeamLabel";
+import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import {
   commonButtonStyle,
   noPTeamMessage,
@@ -84,7 +84,7 @@ SearchField.propTypes = {
   onApply: PropTypes.func.isRequired,
 };
 
-export default function PTeamStatus() {
+export function PTeamStatus() {
   const location = useLocation();
   const navigate = useNavigate();
 

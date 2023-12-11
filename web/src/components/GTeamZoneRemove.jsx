@@ -8,7 +8,7 @@ import { getGTeamZonesSummary } from "../slices/gteam";
 import { deleteGTeamZone } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function GTeamZoneRemove(props) {
+export function GTeamZoneRemove(props) {
   const { gteamId, zoneName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();

@@ -13,13 +13,13 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import TabPanel from "../components/TabPanel";
+import { TabPanel } from "../components/TabPanel";
 import { a11yProps } from "../utils/func.js";
 
-import ATeamAuthEditor from "./ATeamAuthEditor";
-import ATeamGeneralSetting from "./ATeamGeneralSetting";
+import { ATeamAuthEditor } from "./ATeamAuthEditor";
+import { ATeamGeneralSetting } from "./ATeamGeneralSetting";
 
-export default function ATeamSettingsModal(props) {
+export function ATeamSettingsModal(props) {
   const { setShow, show, defaultTabIndex } = props;
   const [tab, setTab] = useState(defaultTabIndex ?? 0);
 

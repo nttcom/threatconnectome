@@ -6,10 +6,10 @@ import React from "react";
 
 import { dateTimeFormat } from "../utils/func";
 
-import ActionTypeIcon from "./ActionTypeIcon";
-import UUIDTypography from "./UUIDTypography";
+import { ActionTypeIcon } from "./ActionTypeIcon";
+import { UUIDTypography } from "./UUIDTypography";
 
-export default function ActionItem(props) {
+export function ActionItem(props) {
   const {
     action,
     actionId,

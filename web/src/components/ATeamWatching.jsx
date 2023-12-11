@@ -11,10 +11,10 @@ import {
 import PropTypes from "prop-types";
 import React from "react";
 
-import ATeamRequestModal from "./ATeamRequestModal";
-import ATeamWatchingMenu from "./ATeamWatchingMenu";
+import { ATeamRequestModal } from "./ATeamRequestModal";
+import { ATeamWatchingMenu } from "./ATeamWatchingMenu";
 
-export default function ATeamWatching(props) {
+export function ATeamWatching(props) {
   const { ateam, isAdmin } = props;
 
   if (!ateam) return <></>;

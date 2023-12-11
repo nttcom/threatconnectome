@@ -4,7 +4,7 @@ import React from "react";
 
 import { actionTypeChipColors, actionTypeChipWidth } from "../utils/const";
 
-export default function ActionTypeChip(props) {
+export function ActionTypeChip(props) {
   const { actionType, sx } = props;
   return (
     <Chip

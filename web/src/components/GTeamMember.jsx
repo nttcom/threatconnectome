@@ -19,11 +19,11 @@ import React from "react";
 
 import { avatarGroupStyle, difficulty, difficultyColors, experienceColors } from "../utils/const";
 
-import GTeamInvitationModal from "./GTeamInvitationModal";
-import GTeamMemberMenu from "./GTeamMemberMenu";
-import UUIDTypography from "./UUIDTypography";
+import { GTeamInvitationModal } from "./GTeamInvitationModal";
+import { GTeamMemberMenu } from "./GTeamMemberMenu";
+import { UUIDTypography } from "./UUIDTypography";
 
-export default function GTeamMember(props) {
+export function GTeamMember(props) {
   const { gteamId, members, achievements, authorities, isAdmin } = props;
 
   const checkAdmin = (userId) => {

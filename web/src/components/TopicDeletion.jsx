@@ -9,7 +9,7 @@ import { getPTeamTagsSummary } from "../slices/pteam";
 import { deleteTopic } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-export default function TopicDeletion(props) {
+export function TopicDeletion(props) {
   const { topicId, setOpenTopicModal, onDelete } = props;
   const [open, setOpen] = useState(false);
 

@@ -20,7 +20,7 @@ import { getUser } from "../slices/user";
 import { createPTeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function PTeamCreationModal(props) {
+export function PTeamCreationModal(props) {
   const { open, setOpen, closeTeamSelector } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();

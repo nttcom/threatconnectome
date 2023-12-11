@@ -32,10 +32,10 @@ import { updateTopic, createAction, updateAction, deleteAction } from "../utils/
 import { actionTypes, modalCommonButtonStyle } from "../utils/const";
 import { parseVulnerableVersions, versionMatch } from "../utils/versions";
 
-import ActionGenerator from "./ActionGenerator";
-import ActionItem from "./ActionItem";
+import { ActionGenerator } from "./ActionGenerator";
+import { ActionItem } from "./ActionItem";
 
-export default function PTeamEditAction(props) {
+export function PTeamEditAction(props) {
   const {
     open,
     setOpen,

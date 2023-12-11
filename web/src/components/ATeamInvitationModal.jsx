@@ -24,7 +24,7 @@ import { useSelector } from "react-redux";
 import { createATeamInvitation } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-export default function ATeamInvitationModal(props) {
+export function ATeamInvitationModal(props) {
   const { text } = props;
 
   const ateamId = useSelector((state) => state.ateam.ateamId);

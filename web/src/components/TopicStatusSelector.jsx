@@ -34,7 +34,7 @@ import { createTopicStatus } from "../utils/api";
 import { topicStatusProps } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
-export default function TopicStatusSelector(props) {
+export function TopicStatusSelector(props) {
   const { pteamId, topicId } = props;
 
   const [open, setOpen] = useState(false);

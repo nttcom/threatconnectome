@@ -3,10 +3,10 @@ import { Box, IconButton, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import GTeamSettingsModal from "./GTeamSettingsModal";
-import UUIDTypography from "./UUIDTypography";
+import { GTeamSettingsModal } from "./GTeamSettingsModal";
+import { UUIDTypography } from "./UUIDTypography";
 
-export default function GTeamLabel(props) {
+export function GTeamLabel(props) {
   const { gteam } = props;
 
   const [gteamSettingsModalOpen, setGTeamSettingsModalOpen] = useState(false);

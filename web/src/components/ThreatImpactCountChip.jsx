@@ -6,7 +6,7 @@ import { threatImpactName, threatImpactProps } from "../utils/const";
 
 const countMax = 99;
 
-export default function ThreatImpactCountChip(props) {
+export function ThreatImpactCountChip(props) {
   const { count, threatImpact, reverse, sx, outerSx } = props;
 
   const impactName = Object.keys(threatImpactProps).includes(threatImpact)

@@ -13,14 +13,14 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import TabPanel from "../components/TabPanel";
+import { TabPanel } from "../components/TabPanel";
 import { a11yProps } from "../utils/func.js";
 
-import PTeamAuthEditor from "./PTeamAuthEditor";
-import PTeamGeneralSetting from "./PTeamGeneralSetting";
-import TagMonitoring from "./TagMonitoring";
+import { PTeamAuthEditor } from "./PTeamAuthEditor";
+import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
+import { TagMonitoring } from "./TagMonitoring";
 
-export default function PTeamSettingsModal(props) {
+export function PTeamSettingsModal(props) {
   const { setShow, show, defaultTabIndex } = props;
   const [tab, setTab] = useState(defaultTabIndex ?? 0);
 

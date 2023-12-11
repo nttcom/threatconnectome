@@ -19,7 +19,7 @@ import { getAuthorizedZones } from "../slices/user";
 import { deleteGTeamZone } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function ZoneDeletion(props) {
+export function ZoneDeletion(props) {
   const { zone } = props;
   const [openZonedel, setOpenZonedel] = useState(false);
   const dispatch = useDispatch();

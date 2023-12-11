@@ -14,7 +14,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { auth } from "../utils/firebase";
 
-export default function ResetPassword() {
+export function ResetPassword() {
   const [disabled, setDisabled] = useState(false);
   const [message, setMessage] = useState(null);
 

@@ -2,7 +2,7 @@ import { Button, CircularProgress } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
-export default function CheckButton(props) {
+export function CheckButton(props) {
   const { handleClick, isLoading } = props;
 
   return (

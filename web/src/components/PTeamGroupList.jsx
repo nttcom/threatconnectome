@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from "react-router";
 
 import { getPTeamGroups } from "../slices/pteam";
 
-export default function PTeamGroupList() {
+export function PTeamGroupList() {
   const dispatch = useDispatch();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);

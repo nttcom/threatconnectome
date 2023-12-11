@@ -8,11 +8,11 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import ATeamAuthEditor from "../components/ATeamAuthEditor";
-import ATeamMemberRemove from "../components/ATeamMemberRemove";
+import { ATeamAuthEditor } from "../components/ATeamAuthEditor";
+import { ATeamMemberRemove } from "../components/ATeamMemberRemove";
 import { getUser } from "../slices/user";
 
-export default function ATeamMemberMenu(props) {
+export function ATeamMemberMenu(props) {
   const { userId, userEmail, isAdmin } = props;
 
   const [openAuth, setOpenAuth] = useState(false);

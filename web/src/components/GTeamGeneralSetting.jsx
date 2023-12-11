@@ -11,9 +11,9 @@ import { getUser } from "../slices/user";
 import { updateGTeam, checkFs as postCheckFs, getFsInfo } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-import CheckButton from "./CheckButton";
+import { CheckButton } from "./CheckButton";
 
-export default function GTeamGeneralSetting(props) {
+export function GTeamGeneralSetting(props) {
   const { show } = props;
   const [gteamName, setGTeamName] = useState("");
   const [contactInfo, setContactInfo] = useState("");

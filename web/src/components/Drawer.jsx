@@ -28,7 +28,7 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   ...theme.mixins.toolbar,
 }));
 
-export default function Drawer() {
+export function Drawer() {
   const location = useLocation();
   const navigate = useNavigate();
 

@@ -4,10 +4,10 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 
-import PTeamWatcherRemove from "../components/PTeamWatcherRemove";
+import { PTeamWatcherRemove } from "../components/PTeamWatcherRemove";
 import { getPTeam } from "../slices/pteam";
 
-export default function PTeamWatcherMenu(props) {
+export function PTeamWatcherMenu(props) {
   const { pteam, watcherAteamId, watcherAteamName, isAdmin } = props;
 
   const [openRemove, setOpenRemove] = useState(false);

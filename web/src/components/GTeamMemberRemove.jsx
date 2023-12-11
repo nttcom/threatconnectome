@@ -8,7 +8,7 @@ import { getGTeamAuth, getGTeamMembers } from "../slices/gteam";
 import { deleteGTeamMember } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function GTeamMemberRemove(props) {
+export function GTeamMemberRemove(props) {
   const { userId, userName, gteamId, gteamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
