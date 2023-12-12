@@ -30,7 +30,7 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import TabPanel from "../components/TabPanel";
+import { TabPanel } from "../components/TabPanel";
 import { getActions, getTopic } from "../slices/topics";
 import { getAuthorizedZones } from "../slices/user";
 import { createAction, deleteAction, updateAction, updateTopic } from "../utils/api";
@@ -43,10 +43,10 @@ import {
   validateNotEmpty,
 } from "../utils/func";
 
-import ActionTypeIcon from "./ActionTypeIcon";
+import { ActionTypeIcon } from "./ActionTypeIcon";
 import { AnalysisActionGenerator } from "./AnalysisActionGenerator";
-import ThreatImpactChip from "./ThreatImpactChip";
-import TopicTagSelector from "./TopicTagSelector";
+import { ThreatImpactChip } from "./ThreatImpactChip";
+import { TopicTagSelector } from "./TopicTagSelector";
 import { ZoneSelectorModal } from "./ZoneSelectorModal";
 
 export function TopicEditModal(props) {

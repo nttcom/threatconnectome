@@ -11,9 +11,9 @@ import { clearPTeam } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
 import { teamColor } from "../utils/const";
 
-import ATeamCreationModal from "./ATeamCreationModal";
-import GTeamCreationModal from "./GTeamCreationModal";
-import PTeamCreationModal from "./PTeamCreationModal";
+import { ATeamCreationModal } from "./ATeamCreationModal";
+import { GTeamCreationModal } from "./GTeamCreationModal";
+import { PTeamCreationModal } from "./PTeamCreationModal";
 
 function textTrim(selector) {
   const maxWordCount = 13;
@@ -24,7 +24,7 @@ function textTrim(selector) {
   return selector;
 }
 
-export default function TeamSelector() {
+export function TeamSelector() {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();

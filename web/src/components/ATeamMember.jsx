@@ -19,11 +19,11 @@ import React from "react";
 
 import { avatarGroupStyle, difficulty, difficultyColors, experienceColors } from "../utils/const";
 
-import ATeamInvitationModal from "./ATeamInvitationModal";
-import ATeamMemberMenu from "./ATeamMemberMenu";
-import UUIDTypography from "./UUIDTypography";
+import { ATeamInvitationModal } from "./ATeamInvitationModal";
+import { ATeamMemberMenu } from "./ATeamMemberMenu";
+import { UUIDTypography } from "./UUIDTypography";
 
-export default function ATeamMember(props) {
+export function ATeamMember(props) {
   const { ateamId, members, achievements, authorities, isAdmin } = props;
 
   const checkAdmin = (userId) => {

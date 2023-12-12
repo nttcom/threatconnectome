@@ -22,11 +22,11 @@ import { grey } from "@mui/material/colors";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import UUIDTypography from "../components/UUIDTypography";
+import { UUIDTypography } from "../components/UUIDTypography";
 import { getAchievements, updateUser } from "../slices/user";
 import { difficultyColors } from "../utils/const";
 
-export default function Account() {
+export function Account() {
   const [editInfo, setEditInfo] = useState({
     years: 0,
   });

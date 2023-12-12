@@ -13,7 +13,7 @@ import { green, grey } from "@mui/material/colors";
 import { PropTypes } from "prop-types";
 import React from "react";
 
-export default function AnalysisNoThreatsMsg(props) {
+export function AnalysisNoThreatsMsg(props) {
   const { ateam } = props;
 
   return (

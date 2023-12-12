@@ -8,11 +8,11 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import PTeamAuthEditor from "../components/PTeamAuthEditor";
-import PTeamMemberRemove from "../components/PTeamMemberRemove";
+import { PTeamAuthEditor } from "../components/PTeamAuthEditor";
+import { PTeamMemberRemove } from "../components/PTeamMemberRemove";
 import { getUser } from "../slices/user";
 
-export default function PTeamMemberMenu(props) {
+export function PTeamMemberMenu(props) {
   const { userId, userEmail, isAdmin } = props;
 
   const [openAuth, setOpenAuth] = useState(false);

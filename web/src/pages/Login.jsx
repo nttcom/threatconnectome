@@ -31,7 +31,7 @@ import { auth, samlProvider } from "../utils/firebase";
 export const authCookieName = "Authorization";
 export const cookiesOptions = { path: process.env.PUBLIC_URL || "/" };
 
-export default function Login() {
+export function Login() {
   const [message, setMessage] = useState(null);
   const [visible, setVisible] = useState(false);
 

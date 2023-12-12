@@ -4,10 +4,10 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
-import PTeamSettingsModal from "./PTeamSettingsModal";
-import UUIDTypography from "./UUIDTypography";
+import { PTeamSettingsModal } from "./PTeamSettingsModal";
+import { UUIDTypography } from "./UUIDTypography";
 
-export default function PTeamLabel(props) {
+export function PTeamLabel(props) {
   const { defaultTabIndex } = props;
 
   const [pteamSettingsModalOpen, setPTeamSettingsModalOpen] = useState(false);

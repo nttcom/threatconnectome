@@ -20,7 +20,7 @@ import { getUser } from "../slices/user";
 import { createGTeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function GTeamCreationModal(props) {
+export function GTeamCreationModal(props) {
   const { open, setOpen, closeTeamSelector } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();

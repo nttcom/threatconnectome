@@ -26,7 +26,7 @@ function textTrim(selector) {
   return selector;
 }
 
-export default function GTeamZoneCard(props) {
+export function GTeamZoneCard(props) {
   const { zones, archived } = props;
   const location = useLocation();
   const navigate = useNavigate();

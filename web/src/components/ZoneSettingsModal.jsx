@@ -17,7 +17,7 @@ import { getAuthorizedZones } from "../slices/user";
 import { updateZone } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function ZoneSettingModal(props) {
+export function ZoneSettingsModal(props) {
   const { setShow, show, gteamId, zoneName, currentZoneInfo } = props;
 
   const [zoneInfo, setZoneInfo] = useState(currentZoneInfo);
@@ -99,7 +99,7 @@ export default function ZoneSettingModal(props) {
     </Dialog>
   );
 }
-ZoneSettingModal.propTypes = {
+ZoneSettingsModal.propTypes = {
   setShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
   gteamId: PropTypes.string.isRequired,

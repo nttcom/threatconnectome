@@ -4,10 +4,10 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 
-import ATeamWatchingStop from "../components/ATeamWatchingStop";
+import { ATeamWatchingStop } from "../components/ATeamWatchingStop";
 import { getATeam } from "../slices/ateam";
 
-export default function ATeamWatchingMenu(props) {
+export function ATeamWatchingMenu(props) {
   const { ateam, watchingPteamId, watchingPteamName, isAdmin } = props;
 
   const [openRemove, setOpenRemove] = useState(false);

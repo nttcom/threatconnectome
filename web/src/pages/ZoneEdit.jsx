@@ -16,14 +16,14 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import ZoneDeletion from "../components/ZoneDeletion";
-import ZoneMarkItemTab from "../components/ZoneMarkItemTab";
-import ZoneSettingsModal from "../components/ZoneSettingsModal";
+import { ZoneDeletion } from "../components/ZoneDeletion";
+import { ZoneMarkItemTab } from "../components/ZoneMarkItemTab";
+import { ZoneSettingsModal } from "../components/ZoneSettingsModal";
 import { getGTeamZonesSummary } from "../slices/gteam";
 import { getAuthorizedZones } from "../slices/user";
 import { updateZoneArchived } from "../utils/api";
 
-export default function ZoneEdit() {
+export function ZoneEdit() {
   const { zoneName } = useParams();
   const [zoneSettingsModalOpen, setZoneSettingsModalOpen] = useState(false);
 

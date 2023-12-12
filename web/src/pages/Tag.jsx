@@ -4,11 +4,11 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
-import PTeamTaggedTopics from "../components/PTeamTaggedTopics";
-import TabPanel from "../components/TabPanel";
-import TagReferences from "../components/TagReferences";
-import TagText from "../components/TagText";
-import UUIDTypography from "../components/UUIDTypography";
+import { PTeamTaggedTopics } from "../components/PTeamTaggedTopics";
+import { TabPanel } from "../components/TabPanel";
+import { TagReferences } from "../components/TagReferences";
+import { TagText } from "../components/TagText";
+import { UUIDTypography } from "../components/UUIDTypography";
 import {
   getPTeamMembers,
   getPTeamTag,
@@ -17,7 +17,7 @@ import {
 } from "../slices/pteam";
 import { a11yProps, calcTimestampDiff } from "../utils/func.js";
 
-export default function Tag() {
+export function Tag() {
   const [tabValue, setTabValue] = useState(0);
   const [loadMembers, setLoadMembers] = useState(false);
   const [loadPTeamTag, setLoadPTeamTag] = useState(false);

@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getPTeamTag, getPTeamTagsSummary } from "../slices/pteam";
 import { updatePTeamTag } from "../utils/api";
 
-export default function TagText(props) {
+export function TagText(props) {
   const { pteamId, tagId } = props;
 
   const [editMode, setEditMode] = useState(false);

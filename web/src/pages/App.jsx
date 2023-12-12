@@ -5,9 +5,9 @@ import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
-import AppBar from "../components/AppBar";
-import Drawer from "../components/Drawer";
-import Main from "../components/Main";
+import { AppBar } from "../components/AppBar";
+import { Drawer } from "../components/Drawer";
+import { Main } from "../components/Main";
 import { setATeamId } from "../slices/ateam";
 import { setGTeamId } from "../slices/gteam";
 import { getPTeamTagsSummary, setPTeamId } from "../slices/pteam";
@@ -19,7 +19,7 @@ import { mainMaxWidth, threatImpactName, threatImpactProps } from "../utils/cons
 
 import { authCookieName } from "./Login";
 
-export default function App() {
+export function App() {
   /* eslint-disable-next-line no-unused-vars */
   const [cookies, _setCookie, _removeCookie] = useCookies([authCookieName]);
 

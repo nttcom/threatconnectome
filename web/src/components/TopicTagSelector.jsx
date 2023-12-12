@@ -20,7 +20,7 @@ import { getTags } from "../slices/tags";
 import { createTag } from "../utils/api";
 import { modalCommonButtonStyle, commonButtonStyle } from "../utils/const";
 
-export default function TopicTagSelector(props) {
+export function TopicTagSelector(props) {
   const { currentSelectedIds, onCancel, onApply, sx } = props;
 
   const [filteredTags, setFilteredTags] = useState([]);

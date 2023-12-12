@@ -44,16 +44,16 @@ import {
 import { actionTypes, modalCommonButtonStyle } from "../utils/const";
 import { validateNotEmpty, validateUUID } from "../utils/func";
 
-import ActionGenerator from "./ActionGenerator";
-import ActionItem from "./ActionItem";
-import ThreatImpactChip from "./ThreatImpactChip";
-import TopicDeletion from "./TopicDeletion";
-import TopicTagSelector from "./TopicTagSelector";
+import { ActionGenerator } from "./ActionGenerator";
+import { ActionItem } from "./ActionItem";
+import { ThreatImpactChip } from "./ThreatImpactChip";
+import { TopicDeletion } from "./TopicDeletion";
+import { TopicTagSelector } from "./TopicTagSelector";
 import { ZoneSelectorModal } from "./ZoneSelectorModal";
 
 const steps = ["Import Flashsense", "Create topic"];
 
-export default function TopicModal(props) {
+export function TopicModal(props) {
   const { open, setOpen, presetTopicId, presetTagId, presetParentTagId, presetActions } = props;
 
   const [errors, setErrors] = useState([]);

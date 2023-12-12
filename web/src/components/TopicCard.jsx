@@ -39,17 +39,17 @@ import { systemAccount } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 import { isComparable, parseVulnerableVersions, versionMatch } from "../utils/versions";
 
-import ActionItem from "./ActionItem";
-import AssigneesSelector from "./AssigneesSelector";
-import PTeamEditAction from "./PTeamEditAction";
-import ReportCompletedActions from "./ReportCompletedActions";
-import ThreatImpactChip from "./ThreatImpactChip";
-import TopicModal from "./TopicModal";
-import TopicStatusSelector from "./TopicStatusSelector";
-import UUIDTypography from "./UUIDTypography";
-import WarningTooltip from "./WarningTooltip";
+import { ActionItem } from "./ActionItem";
+import { AssigneesSelector } from "./AssigneesSelector";
+import { PTeamEditAction } from "./PTeamEditAction";
+import { ReportCompletedActions } from "./ReportCompletedActions";
+import { ThreatImpactChip } from "./ThreatImpactChip";
+import { TopicModal } from "./TopicModal";
+import { TopicStatusSelector } from "./TopicStatusSelector";
+import { UUIDTypography } from "./UUIDTypography";
+import { WarningTooltip } from "./WarningTooltip";
 
-export default function TopicCard(props) {
+export function TopicCard(props) {
   const { pteamId, topicId, currentTagId, pteamtag } = props;
 
   const [detailOpen, setDetailOpen] = useState(false);

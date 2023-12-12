@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { setDrawerOpen } from "../slices/system";
 import { drawerWidth } from "../utils/const";
 
-import TeamSelector from "./TeamSelector";
+import { TeamSelector } from "./TeamSelector";
 
 const StyledAppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
@@ -31,7 +31,7 @@ const StyledAppBar = styled(MuiAppBar, {
   borderBottom: "1px solid #E0E0E0",
 }));
 
-export default function AppBar() {
+export function AppBar() {
   const dispatch = useDispatch();
   const system = useSelector((state) => state.system);
 

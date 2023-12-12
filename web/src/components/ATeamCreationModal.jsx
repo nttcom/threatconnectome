@@ -20,7 +20,7 @@ import { getUser } from "../slices/user";
 import { createATeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function ATeamCreationModal(props) {
+export function ATeamCreationModal(props) {
   const { open, setOpen, closeTeamSelector } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();

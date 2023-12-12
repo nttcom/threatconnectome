@@ -8,7 +8,7 @@ import { getUser } from "../slices/user";
 import { getGTeamInvited, applyGTeamInvitation } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
 
-export default function AcceptGTeamInvitation() {
+export function AcceptGTeamInvitation() {
   const [detail, setDetail] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
 

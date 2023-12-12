@@ -8,7 +8,7 @@ import { useParams } from "react-router-dom";
 import { getPTeamTagsSummary, getPTeamTopicStatus } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
 
-export default function AssigneesSelector(props) {
+export function AssigneesSelector(props) {
   const { pteamId, topicId } = props;
 
   const { tagId } = useParams();

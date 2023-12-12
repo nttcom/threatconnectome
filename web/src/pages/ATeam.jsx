@@ -3,15 +3,15 @@ import { Avatar, AvatarGroup, Box, MenuItem, Tab, Tabs, TextField, Tooltip } fro
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import ATeamLabel from "../components/ATeamLabel";
-import ATeamMember from "../components/ATeamMember";
-import ATeamWatching from "../components/ATeamWatching";
-import TabPanel from "../components/TabPanel";
+import { ATeamLabel } from "../components/ATeamLabel";
+import { ATeamMember } from "../components/ATeamMember";
+import { ATeamWatching } from "../components/ATeamWatching";
+import { TabPanel } from "../components/TabPanel";
 import { getATeam, getATeamAuth, getATeamMembers } from "../slices/ateam";
 import { avatarGroupStyle, difficulty, noATeamMessage, experienceColors } from "../utils/const";
 import { a11yProps } from "../utils/func.js";
 
-export default function ATeam() {
+export function ATeam() {
   const [filterMode, setFilterMode] = useState("ATeam");
   const [tabValue, setTabValue] = useState(0);
 

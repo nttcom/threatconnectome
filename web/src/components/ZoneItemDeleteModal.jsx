@@ -15,7 +15,7 @@ import {
 } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function ZoneItemDeleteModal(props) {
+export function ZoneItemDeleteModal(props) {
   const { setShow, show, zone, itemType, itemId } = props;
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();

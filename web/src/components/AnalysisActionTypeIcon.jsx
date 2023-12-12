@@ -16,7 +16,7 @@ export const actionTypeChipColors = {
   rejection: <MdDoNotTouch />,
 };
 
-export default function AnalysisActionTypeIcon(props) {
+export function AnalysisActionTypeIcon(props) {
   const { actionType } = props;
 
   return (

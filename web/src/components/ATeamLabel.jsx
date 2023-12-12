@@ -3,10 +3,10 @@ import { Box, IconButton, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import ATeamSettingsModal from "./ATeamSettingsModal";
-import UUIDTypography from "./UUIDTypography";
+import { ATeamSettingsModal } from "./ATeamSettingsModal";
+import { UUIDTypography } from "./UUIDTypography";
 
-export default function ATeamLabel(props) {
+export function ATeamLabel(props) {
   const { ateam } = props;
 
   const [ateamSettingsModalOpen, setATeamSettingsModalOpen] = useState(false);

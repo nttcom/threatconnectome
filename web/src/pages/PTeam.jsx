@@ -3,15 +3,15 @@ import { Avatar, AvatarGroup, Box, MenuItem, Tab, Tabs, TextField, Tooltip } fro
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import PTeamLabel from "../components/PTeamLabel";
-import PTeamMember from "../components/PTeamMember";
-import PTeamWatcher from "../components/PTeamWatcher";
-import TabPanel from "../components/TabPanel";
+import { PTeamLabel } from "../components/PTeamLabel";
+import { PTeamMember } from "../components/PTeamMember";
+import { PTeamWatcher } from "../components/PTeamWatcher";
+import { TabPanel } from "../components/TabPanel";
 import { getPTeam, getPTeamAuth, getPTeamMembers, getPTeamAchievements } from "../slices/pteam";
 import { avatarGroupStyle, experienceColors, difficulty, noPTeamMessage } from "../utils/const";
 import { a11yProps } from "../utils/func.js";
 
-export default function PTeam() {
+export function PTeam() {
   const [filterMode, setFilterMode] = useState("PTeam");
   const [tabValue, setTabValue] = useState(0);
 

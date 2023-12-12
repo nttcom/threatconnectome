@@ -3,7 +3,7 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React from "react";
 
-export default function UUIDTypography(props) {
+export function UUIDTypography(props) {
   const { children, ...others } = props;
 
   return (

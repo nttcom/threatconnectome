@@ -24,7 +24,7 @@ import { useSelector } from "react-redux";
 import { createGTeamInvitation } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-export default function GTeamInvitationModal(props) {
+export function GTeamInvitationModal(props) {
   const { text } = props;
 
   const gteamId = useSelector((state) => state.gteam.gteamId);

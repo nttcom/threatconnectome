@@ -20,4 +20,4 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
   })
 );
 
-export default Main;
+export { Main };

@@ -8,7 +8,7 @@ import { getPTeamAchievements, getPTeamAuth, getPTeamMembers } from "../slices/p
 import { deletePTeamMember } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function PTeamMemberRemove(props) {
+export function PTeamMemberRemove(props) {
   const { userId, userName, pteamId, pteamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();

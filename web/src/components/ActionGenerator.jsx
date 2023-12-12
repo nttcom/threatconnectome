@@ -17,7 +17,7 @@ import { useSelector } from "react-redux";
 
 import { actionTypes, modalCommonButtonStyle } from "../utils/const";
 
-export default function ActionGenerator(props) {
+export function ActionGenerator(props) {
   const { text, tagIds, action, onGenerate, onEdit, onCancel } = props;
 
   if (Boolean(onGenerate) === Boolean(onEdit)) {

@@ -36,10 +36,10 @@ import { createTopic, getZonedTeams } from "../utils/api";
 import { actionTypes, modalCommonButtonStyle } from "../utils/const";
 import { pickMismatchedTopicActionTags, validateNotEmpty, validateUUID } from "../utils/func";
 
-import ActionGenerator from "./ActionGenerator";
-import ActionItem from "./ActionItem";
-import ThreatImpactChip from "./ThreatImpactChip";
-import TopicTagSelector from "./TopicTagSelector";
+import { ActionGenerator } from "./ActionGenerator";
+import { ActionItem } from "./ActionItem";
+import { ThreatImpactChip } from "./ThreatImpactChip";
+import { TopicTagSelector } from "./TopicTagSelector";
 import { ZoneSelectorModal } from "./ZoneSelectorModal";
 
 const steps = ["Threat, Vulnerability, and Risk", "Dissemination", "Response planning"];

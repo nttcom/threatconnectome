@@ -8,7 +8,7 @@ import { getWatchingPTeams } from "../slices/ateam";
 import { removeWatchingPTeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function ATeamWatchingStop(props) {
+export function ATeamWatchingStop(props) {
   const { watchingPteamId, watchingPteamName, ateamId, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();

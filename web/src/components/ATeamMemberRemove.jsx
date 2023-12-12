@@ -8,7 +8,7 @@ import { /*getATeamAchievements,*/ getATeamAuth, getATeamMembers } from "../slic
 import { deleteATeamMember } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function ATeamMemberRemove(props) {
+export function ATeamMemberRemove(props) {
   const { userId, userName, ateamId, ateamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();

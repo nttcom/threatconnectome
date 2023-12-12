@@ -24,7 +24,7 @@ import { getATeamAuth, getATeamAuthInfo } from "../slices/ateam";
 import { updateATeamAuth } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function ATeamAuthEditor(props) {
+export function ATeamAuthEditor(props) {
   const { userId, userEmail, onClose } = props;
 
   const [newAuth, setNewAuth] = useState({ user: [], member: [], others: [] });

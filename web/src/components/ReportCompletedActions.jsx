@@ -28,12 +28,12 @@ import {
 import { createActionLog, createTopicStatus } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-import ActionTypeChip from "./ActionTypeChip";
-import ActionTypeIcon from "./ActionTypeIcon";
-import RecommendedStar from "./RecommendedStar";
-import UUIDTypography from "./UUIDTypography";
+import { ActionTypeChip } from "./ActionTypeChip";
+import { ActionTypeIcon } from "./ActionTypeIcon";
+import { RecommendedStar } from "./RecommendedStar";
+import { UUIDTypography } from "./UUIDTypography";
 
-export default function ReportCompletedActions(props) {
+export function ReportCompletedActions(props) {
   const { handleConfirm, setShow, show, topicId, topicActions } = props;
 
   const [note, setNote] = useState("");
