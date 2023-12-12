@@ -65,7 +65,8 @@ class ExtPypiVersion(PypiVersion):
                 f"and '{other.__class__}'"
             )
 
-    def _remove_epoch(self, version_str: str):
+    @staticmethod
+    def _remove_epoch(version_str: str):
         return re.sub("[0-9]+!", "", version_str)
 
     # ignore epoch & local to compare.
