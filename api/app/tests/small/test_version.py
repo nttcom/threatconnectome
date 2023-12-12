@@ -146,9 +146,9 @@ class TestComparableVersion:
         @pytest.mark.parametrize(
             "version_string, expected",
             # expected: Union[Tuple[int, int, int, tuple], str]
-            #           -- (epoch,release,pre,dev,local) or exception
+            #           -- (epoch,release,pre,post,dev,local) or exception
             [
-                # might be tested in package version.
+                # might be tested in packaging version.
                 ("", "Invalid version: "),
                 ("a", "Invalid version: "),
                 ("a.1", "Invalid version: "),
