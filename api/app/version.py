@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, Optional, Set, TypeAlias, Union
 
+from packaging.version import Version as PypiVersion
 from univers.debian import Version as DebianVersion
 from univers.versions import SemverVersion
 
@@ -10,12 +11,15 @@ from univers.versions import SemverVersion
 class PackageFamily(Enum):
     UNKNOWN = 0
     DEBIAN = 1
+    PYPI = 2
 
     @classmethod
     def from_registry(cls, registry: str) -> "PackageFamily":
         fixed_registry = registry.lower()
         if re.match(r"^(debian|ubuntu)", fixed_registry):  # TODO: need maintenance
             return cls.DEBIAN
+        if re.match(r"^(pypi)", fixed_registry):
+            return cls.PYPI
         return cls.UNKNOWN
 
     @classmethod
@@ -53,12 +57,52 @@ class ExtDebianVersion(DebianVersion):
         return DebianVersion.from_string(self.upstream) >= DebianVersion.from_string(other.upstream)
 
 
+class ExtPypiVersion(PypiVersion):
+    def _check_comparable(self, other: Any, operator: str):
+        if not isinstance(other, self.__class__):
+            raise ValueError(
+                f"'{operator}' not supported between instances of '{self.__class__}' "
+                f"and '{other.__class__}'"
+            )
+
+    @staticmethod
+    def _remove_epoch(version_str: str):
+        return re.sub("[0-9]+!", "", version_str)
+
+    # ignore epoch & local to compare.
+    # PypiVersion.public is version string without `local`
+
+    def __lt__(self, other):
+        self._check_comparable(other, "<")
+        return PypiVersion(self._remove_epoch(self.public)) < PypiVersion(
+            self._remove_epoch(other.public)
+        )
+
+    def __gt__(self, other):
+        self._check_comparable(other, ">")
+        return PypiVersion(self._remove_epoch(self.public)) > PypiVersion(
+            self._remove_epoch(other.public)
+        )
+
+    def __le__(self, other):
+        self._check_comparable(other, "<=")
+        return PypiVersion(self._remove_epoch(self.public)) <= PypiVersion(
+            self._remove_epoch(other.public)
+        )
+
+    def __ge__(self, other):
+        self._check_comparable(other, ">=")
+        return PypiVersion(self._remove_epoch(self.public)) >= PypiVersion(
+            self._remove_epoch(other.public)
+        )
+
+
 # supported version classes:
 #   - should be hashable.
 #   - required implemented __gt__, __ge__, __lt__, __le__.
 #     Note: __eq__ cannot be used to compare versions. use >= and <= instead.
 #   - may raise ValueError on errors.
-ComparableVersion: TypeAlias = Union[ExtDebianVersion, SemverVersion]
+ComparableVersion: TypeAlias = Union[ExtDebianVersion, ExtPypiVersion, SemverVersion]
 
 
 def gen_version_instance(
@@ -67,6 +111,8 @@ def gen_version_instance(
 ) -> ComparableVersion:
     if package_family == PackageFamily.DEBIAN:
         return ExtDebianVersion.from_string(version_string)
+    if package_family == PackageFamily.PYPI:
+        return ExtPypiVersion(version_string)
     return SemverVersion(version_string)
 
 
