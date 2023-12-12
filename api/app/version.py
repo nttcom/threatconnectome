@@ -69,6 +69,7 @@ class ExtPypiVersion(PypiVersion):
         return re.sub("[0-9]+!", "", version_str)
 
     # ignore epoch & local to compare.
+    # PypiVersion.public is version string without `local`
 
     def __lt__(self, other):
         self._check_comparable(other, "<")
