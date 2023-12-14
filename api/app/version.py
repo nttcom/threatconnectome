@@ -12,6 +12,7 @@ class PackageFamily(Enum):
     UNKNOWN = 0
     DEBIAN = 1
     PYPI = 2
+    NPM = 3
 
     @classmethod
     def from_registry(cls, registry: str) -> "PackageFamily":
@@ -20,6 +21,8 @@ class PackageFamily(Enum):
             return cls.DEBIAN
         if re.match(r"^(pypi)", fixed_registry):
             return cls.PYPI
+        if re.match(r"^(npm)", fixed_registry):
+            return cls.NPM
         return cls.UNKNOWN
 
     @classmethod
@@ -113,6 +116,8 @@ def gen_version_instance(
         return ExtDebianVersion.from_string(version_string)
     if package_family == PackageFamily.PYPI:
         return ExtPypiVersion(version_string)
+    if package_family == PackageFamily.NPM:
+        return SemverVersion(version_string)
     return SemverVersion(version_string)
 
 
