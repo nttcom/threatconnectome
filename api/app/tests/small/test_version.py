@@ -341,7 +341,6 @@ class TestComparableVersion:
                 return
             assert (semver_obj >= target_obj and semver_obj <= target_obj) == expected
 
-
     class TestNpmVersion(_TestVersion):
         @pytest.mark.parametrize(
             "version_string, expected",
@@ -351,8 +350,8 @@ class TestComparableVersion:
                 # other cases are tested in TestSemverVersion
                 ("1.2.3", (1, 2, 3, ())),
                 ("1.2.x", (1, 2, 0, ())),
-                ("99.999.99999", (99,999,99999, ())),
-                ("2.1.0-M1", (2,1,0, ("M1"))),
+                ("99.999.99999", (99, 999, 99999, ())),
+                ("2.1.0-M1", (2, 1, 0, ("M1"))),
             ],
         )
         def test_gen_instance(self, version_string, expected):
