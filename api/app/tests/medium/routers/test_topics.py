@@ -1,4 +1,3 @@
-import re
 from datetime import datetime
 from typing import List, Optional, Set, Union
 from uuid import UUID, uuid4
@@ -19,6 +18,7 @@ from app.tests.medium.constants import (
     GTEAM2,
     MISPTAG1,
     MISPTAG2,
+    MISPTAG3,
     PTEAM1,
     PTEAM2,
     SAMPLE_SLACK_WEBHOOK_URL,
@@ -31,6 +31,7 @@ from app.tests.medium.constants import (
     TOPIC4,
     USER1,
     USER2,
+    USER3,
     ZONE1,
     ZONE2,
     ZONE3,
@@ -58,6 +59,8 @@ from app.tests.medium.utils import (
     invite_to_gteam,
     invite_to_pteam,
     random_string,
+    search_topics,
+    update_topic,
 )
 
 client = TestClient(app)
@@ -298,144 +301,6 @@ def test_get_all_topics():
     assert responsed_topics[1]["topic_id"] == str(TOPIC1["topic_id"])
     assert responsed_topics[2]["topic_id"] == str(TOPIC4["topic_id"])
     assert responsed_topics[3]["topic_id"] == str(TOPIC2["topic_id"])
-
-
-def test_search_topic():
-    create_user(USER1)
-    create_pteam(USER1, PTEAM1)  # PTEAM1 has ZONE1
-    create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
-    create_topic(USER1, TOPIC2, actions=[ACTION3])
-    params = {
-        "title_words": ["one", "zero"],
-        "abstract_words": ["one", "abstract", "zero"],
-        "threat_impacts": [1, 2],
-    }
-    response = client.get("/topics/search", headers=headers(USER1), params=params)
-    assert response.status_code == 200
-    responsed_topics = response.json()
-    assert len(responsed_topics) == 1
-    assert responsed_topics[0]["topic_id"] == str(TOPIC1["topic_id"])
-    assert re.search("|".join(params["title_words"]), responsed_topics[0]["title"])
-
-
-def test_search_topic_by_misptag():
-    create_user(USER1)
-    misptag1 = create_misp_tag(USER1, MISPTAG1)
-    create_topic(USER1, TOPIC1)
-    create_topic(USER1, TOPIC2)
-    params = {"misp_tag_ids": [misptag1.tag_id]}
-    response = client.get("/topics/search", headers=headers(USER1), params=params)
-    assert response.status_code == 200
-    responsed_topics = response.json()
-    assert len(responsed_topics) == 1
-    assert responsed_topics[0]["topic_id"] == str(TOPIC1["topic_id"])
-
-
-def test_search_topic_by_tag():
-    create_user(USER1)
-    tag1 = create_tag(USER1, TAG1)
-    create_topic(USER1, TOPIC1)
-    create_topic(USER1, TOPIC4)
-    params = {"tag_ids": [tag1.tag_id]}
-    response = client.get("/topics/search", headers=headers(USER1), params=params)
-    assert response.status_code == 200
-    responsed_topics = response.json()
-    assert len(responsed_topics) == 1
-    assert responsed_topics[0]["topic_id"] == str(TOPIC1["topic_id"])
-
-
-def test_search_topics__with_zones():
-    create_user(USER1)
-    create_user(USER2)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    gteam2 = create_gteam(USER1, GTEAM2)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam2.gteam_id, ZONE2)
-
-    create_topic(USER1, TOPIC1, zone_names=[zone1.zone_name])
-    create_topic(USER1, TOPIC2, zone_names=[zone2.zone_name])
-    create_topic(USER1, TOPIC3, zone_names=[zone1.zone_name, zone2.zone_name])
-    create_topic(USER1, TOPIC4, zone_names=[])
-
-    def _pick_topic(topics_: List[dict], target_: dict) -> dict:
-        return next(filter(lambda x: x["title"] == target_["title"], topics_), {})
-
-    # USER1 has zone1 & zone2
-    data = assert_200(client.get("/topics/search", headers=headers(USER1)))
-    assert len(data) == 4
-    assert _pick_topic(data, TOPIC1)
-    assert _pick_topic(data, TOPIC2)
-    assert _pick_topic(data, TOPIC3)
-    assert _pick_topic(data, TOPIC4)
-
-    # USER2 has no zones
-    data = assert_200(client.get("/topics/search", headers=headers(USER2)))
-    assert len(data) == 1
-    assert _pick_topic(data, TOPIC4)
-
-    # pteam1 with zone1
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})
-    p_invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, p_invitation.invitation_id)
-
-    # now USER2 has zone1 via pteam1
-    data = assert_200(client.get("/topics/search", headers=headers(USER2)))
-    assert len(data) == 3
-    assert _pick_topic(data, TOPIC1)
-    assert _pick_topic(data, TOPIC3)
-    assert _pick_topic(data, TOPIC4)
-
-    # remove zone1 from pteam1
-    assert_200(
-        client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json={"zone_names": []})
-    )
-
-    # now USER2 has no zones
-    data = assert_200(client.get("/topics/search", headers=headers(USER2)))
-    assert len(data) == 1
-    assert _pick_topic(data, TOPIC4)
-
-    # ateam1 and pteam2 with zone2
-    pteam2 = create_pteam(USER1, {**PTEAM2, "zone_names": [zone2.zone_name]})
-    ateam1 = create_ateam(USER2, ATEAM1)
-
-    data = assert_200(client.get("/topics/search", headers=headers(USER2)))
-    assert len(data) == 1
-    assert _pick_topic(data, TOPIC4)
-
-    # ateam1 watch pteam2(zone2)
-    watching_request = create_watching_request(USER2, ateam1.ateam_id)
-    accept_watching_request(USER1, watching_request.request_id, pteam2.pteam_id)
-
-    # now USER2 has zone2 via pteam2 via ateam1
-    data = assert_200(client.get("/topics/search", headers=headers(USER2)))
-    assert len(data) == 3
-    assert _pick_topic(data, TOPIC2)
-    assert _pick_topic(data, TOPIC3)
-    assert _pick_topic(data, TOPIC4)
-
-    # ateam1 stop watching pteam2
-    assert_204(
-        client.delete(
-            f"/ateams/{ateam1.ateam_id}/watching_pteams/{pteam2.pteam_id}", headers=headers(USER2)
-        )
-    )
-
-    # now USER2 has no zones
-    data = assert_200(client.get("/topics/search", headers=headers(USER2)))
-    assert len(data) == 1
-    assert _pick_topic(data, TOPIC4)
-
-    # USER2 join to gteam1
-    g_invitation = invite_to_gteam(USER1, gteam1.gteam_id)
-    accept_gteam_invitation(USER2, g_invitation.invitation_id)
-
-    # now USER2 has zone1 via gteam1
-    data = assert_200(client.get("/topics/search", headers=headers(USER2)))
-    assert len(data) == 3
-    assert _pick_topic(data, TOPIC1)
-    assert _pick_topic(data, TOPIC3)
-    assert _pick_topic(data, TOPIC4)
 
 
 def test_update_topic():
@@ -1318,3 +1183,554 @@ class TestTopicContentFingerprint:
 @pytest.mark.skip(reason="TODO: should be tested with flashsense")  # TODO
 def test_fetch_data_from_flashsense():
     pass
+
+
+class TestSearchTopics:
+    class Common_:
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self):
+            self.user1 = create_user(USER1)
+            self.user2 = create_user(USER2)
+            self.user3 = create_user(USER3)
+            self.tag1 = create_tag(USER1, TAG1)
+            self.tag2 = create_tag(USER1, TAG2)
+            self.tag3 = create_tag(USER1, TAG3)
+            self.misp_tag1 = create_misp_tag(USER1, MISPTAG1)
+            self.misp_tag2 = create_misp_tag(USER1, MISPTAG2)
+            self.misp_tag3 = create_misp_tag(USER1, MISPTAG3)
+            self.gteam1 = create_gteam(USER1, GTEAM1)
+            self.gteam2 = create_gteam(USER2, GTEAM2)
+            self.zone1 = create_zone(USER1, self.gteam1.gteam_id, ZONE1)
+            self.zone2 = create_zone(USER2, self.gteam2.gteam_id, ZONE2)
+            self.zone3 = create_zone(USER1, self.gteam1.gteam_id, ZONE3)
+
+        @staticmethod
+        def create_minimal_topic(user: dict, params: dict) -> schemas.TopicCreateResponse:
+            minimal_topic = {
+                "topic_id": uuid4(),
+                "title": "",
+                "abstract": "",
+                "threat_impact": 1,
+                **params,
+            }
+            return create_topic(user, minimal_topic)
+
+        @staticmethod
+        def try_search_topics(user, topics_dict, search_params, expected):
+            if isinstance(expected, str):
+                with pytest.raises(HTTPError, match=expected):
+                    search_topics(user, search_params)
+                return
+            result = search_topics(user, search_params)
+            assert {topic.topic_id for topic in result.topics} == {
+                topics_dict[idx].topic_id for idx in expected
+            }
+
+    class TestSearchByThreatImpact(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_threat_impact(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"threat_impact": 1})
+            self.topic2 = self.create_minimal_topic(USER1, {"threat_impact": 2})
+            self.topic3 = self.create_minimal_topic(USER1, {"threat_impact": 3})
+            self.topic4 = self.create_minimal_topic(USER1, {"threat_impact": 4})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+                4: self.topic4,
+            }
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                ("", {1, 2, 3, 4}),
+                ("0", set()),
+                ("1", {1}),
+                ("2", {2}),
+                ("3", {3}),
+                ("4", {4}),
+                ("5", set()),
+                ("x", set()),
+                ("1|2", {1, 2}),
+                ("1|x", {1}),  # wrong params are just ignored
+            ],
+        )
+        def test_search_by_threat_impact(self, search_words, expected):
+            search_params = {"threat_impacts": search_words}
+            self.try_search_topics(USER1, self.topics, search_params, expected)
+
+    class TestSearchByTitle(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_title(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"title": "topic one"})
+            self.topic2 = self.create_minimal_topic(USER1, {"title": "TOPIC TWO"})
+            self.topic3 = self.create_minimal_topic(USER1, {"title": "topic three"})
+            self.topic4 = self.create_minimal_topic(USER1, {"title": "Topic Four"})
+            self.topic5 = self.create_minimal_topic(USER1, {"title": ""})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+                4: self.topic4,
+                5: self.topic5,
+            }
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                ("", {1, 2, 3, 4, 5}),
+                ("one", {1}),
+                ("topic", {1, 2, 3, 4}),  # case-insensitive
+                (" t", {2, 3}),  # spaces also considered
+                ("x", set()),
+                ("   ", {5}),  # "   " is the reserved keyword means empty
+                ("   |w", {2, 5}),
+            ],
+        )
+        def test_search_by_title(self, search_words, expected):
+            search_params = {"title_words": search_words}
+            self.try_search_topics(USER1, self.topics, search_params, expected)
+
+    class TestSearchByAbstract(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_abstract(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"abstract": "abstract one"})
+            self.topic2 = self.create_minimal_topic(USER1, {"abstract": "Abstract TWO"})
+            self.topic3 = self.create_minimal_topic(USER1, {"abstract": "abstract three"})
+            self.topic4 = self.create_minimal_topic(USER1, {"abstract": "Abstract Four"})
+            self.topic5 = self.create_minimal_topic(USER1, {"abstract": ""})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+                4: self.topic4,
+                5: self.topic5,
+            }
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                ("", {1, 2, 3, 4, 5}),
+                ("one", {1}),
+                ("abstract", {1, 2, 3, 4}),  # case-insensitive
+                (" t", {2, 3}),  # spaces also considered
+                ("x", set()),
+                ("   ", {5}),  # "   " is the reserved keyword means empty
+                ("   |w", {2, 5}),
+            ],
+        )
+        def test_search_by_abstract(self, search_words, expected):
+            search_params = {"abstract_words": search_words}
+            self.try_search_topics(USER1, self.topics, search_params, expected)
+
+    class TestSearchByTag(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_tag(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"tags": [TAG1]})
+            self.topic2 = self.create_minimal_topic(USER1, {"tags": [TAG2]})
+            self.topic3 = self.create_minimal_topic(USER1, {"tags": [TAG1, TAG2]})
+            self.topic4 = self.create_minimal_topic(USER1, {"tags": []})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+                4: self.topic4,
+            }
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                ("", {1, 2, 3, 4}),
+                (TAG1, {1, 3}),
+                (TAG2, {2, 3}),
+                (TAG3, set()),  # unused tag
+                ("xxx", set()),  # not existed tag
+                ("   ", {4}),  # "   " is the reserved keyword means empty
+                (f"   |{TAG1}", {1, 3, 4}),
+            ],
+        )
+        def test_search_by_tag(self, search_words, expected):
+            search_params = {"tag_names": search_words}
+            self.try_search_topics(USER1, self.topics, search_params, expected)
+
+        def test_search_by_parent_tag(self):
+            assert self.tag1.parent_name
+            assert self.tag1.parent_name != self.tag1.tag_name  # TAG1 is a child tag
+            search_params = {"tag_names": self.tag1.parent_name}
+            # currently searching by parent does not return matched with child
+            self.try_search_topics(USER1, self.topics, search_params, set())
+
+    class TestSearchByMispTag(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_misp_tag(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"misp_tags": [MISPTAG1]})
+            self.topic2 = self.create_minimal_topic(USER1, {"misp_tags": [MISPTAG2]})
+            self.topic3 = self.create_minimal_topic(USER1, {"misp_tags": [MISPTAG1, MISPTAG2]})
+            self.topic4 = self.create_minimal_topic(USER1, {"misp_tags": []})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+                4: self.topic4,
+            }
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                ("", {1, 2, 3, 4}),
+                (MISPTAG1, {1, 3}),
+                (MISPTAG2, {2, 3}),
+                (MISPTAG3, set()),  # unused misp_tag
+                ("xxx", set()),  # not existed misp_tag
+                ("   ", {4}),  # "   " is the reserved keyword means empty
+                (f"   |{MISPTAG1}", {1, 3, 4}),
+            ],
+        )
+        def test_search_by_misp_tag(self, search_words, expected):
+            search_params = {"misp_tag_names": search_words}
+            self.try_search_topics(USER1, self.topics, search_params, expected)
+
+    class TestSearchByZone(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_zone(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"zone_names": [ZONE1["zone_name"]]})
+            self.topic2 = self.create_minimal_topic(USER2, {"zone_names": [ZONE2["zone_name"]]})
+            self.topic3 = self.create_minimal_topic(
+                USER1, {"zone_names": [ZONE1["zone_name"], ZONE3["zone_name"]]}
+            )
+            self.topic4 = self.create_minimal_topic(USER1, {"zone_names": []})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+                4: self.topic4,
+            }
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                ("", {1, 3, 4}),  # USER1 cannot access to ZONE2(topic2)
+                (ZONE1["zone_name"], {1, 3}),
+                (ZONE2["zone_name"], "403: Forbidden: You do not have related zone"),
+                ("xxx", set()),  # not existed zone_name
+                ("   ", {4}),  # "   " is the reserved keyword means empty|public
+                (f"   |{ZONE3['zone_name']}", {3, 4}),
+            ],
+        )
+        def test_search_by_zone(self, search_words, expected):
+            search_params = {"zone_names": search_words}
+            self.try_search_topics(USER1, self.topics, search_params, expected)
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                ("", {2, 4}),  # USER2 cannot access to ZONE1, ZONE3
+                (ZONE1["zone_name"], "403: Forbidden: You do not have related zone"),
+                (ZONE2["zone_name"], {2}),
+                ("xxx", set()),  # not existed zone_name
+                ("   ", {4}),  # "   " is the reserved keyword means empty|public
+                (f"   |{ZONE3['zone_name']}", "403: Forbidden: You do not have related zone"),
+            ],
+        )
+        def test_search_by_zone_by_another(self, search_words, expected):
+            search_params = {"zone_names": search_words}
+            self.try_search_topics(USER2, self.topics, search_params, expected)  # by USER2
+
+        @pytest.fixture(scope="function", autouse=False)
+        def setup_for_complexed_topic5(self):
+            # user1 join to gteam2
+            g_invitation = invite_to_gteam(USER2, self.gteam2.gteam_id)
+            accept_gteam_invitation(USER1, g_invitation.invitation_id)
+            self.topic5 = self.create_minimal_topic(
+                USER1, {"zone_names": [ZONE1["zone_name"], ZONE2["zone_name"]]}
+            )
+            self.topics[5] = self.topic5
+            # user1 leave gteam2
+            assert_204(
+                client.delete(
+                    f"/gteams/{self.gteam2.gteam_id}/members/{self.user1.user_id}",
+                    headers=headers(USER1),
+                )
+            )
+            # now topic5 has accessible ZONE1 and inaccessible ZONE2 (from USER1)
+
+        @pytest.mark.parametrize(
+            "search_words, user1_expected, user2_expected",
+            [
+                ("", {1, 3, 4, 5}, {2, 4, 5}),
+                (ZONE1["zone_name"], {1, 3, 5}, "403: Forbidden: You do not have related zone"),
+                (ZONE2["zone_name"], "403: Forbidden: You do not have related zone", {2, 5}),
+                ("xxx", set(), set()),
+                ("   ", {4}, {4}),
+                (f"   |{ZONE3['zone_name']}", {3, 4}, "403: Forbidden: You do not have"),
+            ],
+        )
+        def test_search_by_zone_complex(
+            self,
+            setup_for_complexed_topic5,
+            search_words,
+            user1_expected,
+            user2_expected,
+        ):
+            search_params = {"zone_names": search_words}
+            self.try_search_topics(USER1, self.topics, search_params, user1_expected)
+            self.try_search_topics(USER2, self.topics, search_params, user2_expected)
+
+    class TestSearchByCreator(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_creator(self):
+            self.topic1 = self.create_minimal_topic(USER1, {})
+            self.topic2 = self.create_minimal_topic(USER2, {})
+            self.topic3 = self.create_minimal_topic(USER3, {})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+            }
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                ("", {1, 2, 3}),
+                ("USER1", {1}),  # oops, cannot use self in parametrize...
+                ("USER1|USER2", {1, 2}),
+                ("x", set()),  # wrong uuid
+                (str(uuid4()), set()),  # uuid4 but not a valid user_id
+                ("   ", set()),  # reserved keyword for empty does not make sense
+                ("   |USER1", {1}),
+            ],
+        )
+        def test_search_by_creator(self, search_words, expected):
+            fixed_search_words = search_words.replace("USER1", str(self.user1.user_id)).replace(
+                "USER2", str(self.user2.user_id)
+            )
+            search_params = {"creator_ids": fixed_search_words}
+            self.try_search_topics(USER1, self.topics, search_params, expected)
+
+    class TestSearchByCreatedTime(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_createdtime(self):
+            self.timestamp0 = datetime.now()
+            self.topic1 = self.create_minimal_topic(USER1, {})
+            self.timestamp1 = datetime.now()
+            self.topic2 = self.create_minimal_topic(USER1, {})
+            self.timestamp2 = datetime.now()
+            self.topic3 = self.create_minimal_topic(USER1, {})
+            self.timestamp3 = datetime.now()
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+            }
+            self.timestamps = {
+                "TS0": self.timestamp0,
+                "TS1": self.timestamp1,
+                "TS2": self.timestamp2,
+                "TS3": self.timestamp3,
+            }
+
+        @pytest.mark.parametrize(
+            "after, before, expected",
+            [
+                (None, None, {1, 2, 3}),
+                ("   ", None, "422: Unprocessable Entity:"),  # reserved keyword does not make sense
+                (None, "   ", "422: Unprocessable Entity:"),  # reserved keyword does not make sense
+                ("TS0", None, {1, 2, 3}),
+                ("TS1", None, {2, 3}),
+                ("TS3", None, set()),
+                (None, "TS0", set()),
+                (None, "TS1", {1}),
+                (None, "TS2", {1, 2}),
+                ("TS0", "TS3", {1, 2, 3}),
+                ("TS1", "TS3", {2, 3}),
+                ("TS1", "TS2", {2}),
+                ("TS2", "TS2", set()),
+                ("TS2", "TS1", set()),  # ambiguous (after > before) does not cause error
+            ],
+        )
+        def test_search_by_createdtime(self, after, before, expected):
+            fixed_after = self.timestamps.get(after, after)
+            fixed_before = self.timestamps.get(before, before)
+            search_params = {}
+            if fixed_after:
+                search_params["created_after"] = fixed_after
+            if fixed_before:
+                search_params["created_before"] = fixed_before
+            self.try_search_topics(USER1, self.topics, search_params, expected)
+
+    class TestSearchByUpdatedTime(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_updatedtime(self):
+            self.topic1 = self.create_minimal_topic(USER1, {})
+            self.topic2 = self.create_minimal_topic(USER1, {})
+            self.timestamp0 = datetime.now()
+            self.topic3 = self.create_minimal_topic(USER1, {})
+            self.timestamp1 = datetime.now()
+            update_topic(USER1, self.topic2, {"threat_impact": 3})
+            self.timestamp2 = datetime.now()
+            update_topic(USER1, self.topic1, {"threat_impact": 2})
+            self.timestamp3 = datetime.now()
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+            }
+            self.timestamps = {
+                "TS0": self.timestamp0,
+                # topic3 created
+                "TS1": self.timestamp1,
+                # topic2 updated
+                "TS2": self.timestamp2,
+                # topic1 updated
+                "TS3": self.timestamp3,
+            }
+
+        @pytest.mark.parametrize(
+            "after, before, expected",
+            [
+                (None, None, {1, 2, 3}),
+                ("   ", None, "422: Unprocessable Entity:"),  # reserved keyword does not make sense
+                (None, "   ", "422: Unprocessable Entity:"),  # reserved keyword does not make sense
+                ("TS0", None, {1, 2, 3}),
+                ("TS1", None, {1, 2}),
+                ("TS3", None, set()),
+                (None, "TS0", set()),
+                (None, "TS1", {3}),
+                (None, "TS2", {2, 3}),
+                ("TS0", "TS3", {1, 2, 3}),
+                ("TS1", "TS3", {1, 2}),
+                ("TS1", "TS2", {2}),
+                ("TS2", "TS2", set()),
+                ("TS2", "TS1", set()),  # ambiguous (after > before) does not cause error
+            ],
+        )
+        def test_search_by_updatedtime(self, after, before, expected):
+            fixed_after = self.timestamps.get(after, after)
+            fixed_before = self.timestamps.get(before, before)
+            search_params = {}
+            if fixed_after:
+                search_params["updated_after"] = fixed_after
+            if fixed_before:
+                search_params["updated_before"] = fixed_before
+            self.try_search_topics(USER1, self.topics, search_params, expected)
+
+    class ExtCommonForResultSlice_(Common_):
+        @staticmethod
+        def try_search_topics(user, topics_dict, search_params, expected):
+            # expected: ([ordered topics], num_topics, offset, limit, sortkey) or str
+            if isinstance(expected, str):
+                with pytest.raises(HTTPError, match=expected):
+                    search_topics(user, search_params)
+                return
+            [
+                expected_topics,
+                expected_num_topics,
+                expected_offset,
+                expected_limit,
+                expected_sort_key,
+            ] = expected
+            result = search_topics(user, search_params)
+            assert result.num_topics == expected_num_topics
+            assert result.offset == expected_offset
+            assert result.limit == expected_limit
+            assert result.sort_key == expected_sort_key
+            assert [topic.topic_id for topic in result.topics] == [
+                topics_dict[idx].topic_id for idx in expected_topics
+            ]
+
+    class TestSearchResultSlice(ExtCommonForResultSlice_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_result_slice(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"threat_impact": 1})
+            self.topic2 = self.create_minimal_topic(USER1, {"threat_impact": 2})
+            self.topic3 = self.create_minimal_topic(USER1, {"threat_impact": 3})
+            self.topic4 = self.create_minimal_topic(USER1, {"threat_impact": 4})
+            self.topic5 = self.create_minimal_topic(USER1, {"threat_impact": 1})
+            self.topic6 = self.create_minimal_topic(USER1, {"threat_impact": 2})
+            self.topic7 = self.create_minimal_topic(USER1, {"threat_impact": 3})
+            update_topic(USER1, self.topic5, {"threat_impact": 2})
+            update_topic(USER1, self.topic2, {"threat_impact": 1})
+            update_topic(USER1, self.topic6, {"threat_impact": 3})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+                4: self.topic4,
+                5: self.topic5,
+                6: self.topic6,
+                7: self.topic7,
+            }
+            # Memo:
+            # created asc order: [1, 2, 3, 4, 5, 6, 7]
+            # updated asc order: [1, 3, 4, 7, 5, 2, 6]
+            # threat impact: {1: (1, 2), 2: (5), 3: (3, 6, 7), 4: (4)}
+
+        @pytest.mark.parametrize(
+            "search_params, expected",
+            # search_params: (offset, limit, sort_key)
+            # expected: ([ordered topics], num_topics, offset, limit, sortkey) or str of exception
+            [
+                # sort_key
+                (
+                    (None, None, None),  # check defaults
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                ),
+                ((None, None, "my_sort_key"), "422: Unprocessable Entity: "),
+                (
+                    (None, None, "threat_impact"),  # implicit 2nd key is updated_at_desc
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                ),
+                (
+                    (None, None, "threat_impact_desc"),  # implicit 2nd key is updated_at_desc
+                    ([4, 6, 7, 3, 5, 2, 1], 7, 0, 10, "threat_impact_desc"),
+                ),
+                (
+                    (None, None, "updated_at"),  # implicit 2nd key is threat_impact
+                    ([1, 3, 4, 7, 5, 2, 6], 7, 0, 10, "updated_at"),
+                ),
+                (
+                    (None, None, "updated_at_desc"),  # implicit 2nd key is threat_impact
+                    ([6, 2, 5, 7, 4, 3, 1], 7, 0, 10, "updated_at_desc"),
+                ),
+                # offset
+                (
+                    (0, None, None),
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                ),
+                (("x", None, None), "422: Unprocessable Entity: "),
+                ((-1, None, None), "422: Unprocessable Entity: "),  # offset should be >=0
+                (
+                    (5, None, None),
+                    ([3, 4], 7, 5, 10, "threat_impact"),
+                ),
+                (
+                    (10, None, None),
+                    ([], 7, 10, 10, "threat_impact"),
+                ),
+                # limit
+                (
+                    (None, 10, None),
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                ),
+                ((None, "x", None), "422: Unprocessable Entity: "),
+                ((None, 0, None), "422: Unprocessable Entity: "),  # limit should be >= 1
+                ((None, 101, None), "422: Unprocessable Entity: "),  # limit should be <= 100
+                (
+                    (None, 5, None),
+                    ([2, 1, 5, 6, 7], 7, 0, 5, "threat_impact"),
+                ),
+                # complex
+                (
+                    (2, 3, "updated_at_desc"),
+                    ([5, 7, 4], 7, 2, 3, "updated_at_desc"),
+                ),
+            ],
+        )
+        def test_search_result_slice(self, search_params, expected):
+            [offset, limit, sort_key] = search_params
+            fixed_search_params = {
+                **({} if offset is None else {"offset": offset}),
+                **({} if limit is None else {"limit": limit}),
+                **({} if sort_key is None else {"sort_key": sort_key}),
+            }
+            self.try_search_topics(USER1, self.topics, fixed_search_params, expected)
