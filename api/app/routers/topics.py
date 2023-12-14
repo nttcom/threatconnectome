@@ -63,14 +63,14 @@ def search_topics(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),  # 10 is default in web/src/pages/TopicManagement.jsx
     sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.THREAT_IMPACT),
-    threat_impacts: str = Query(""),
-    topic_ids: str = Query(""),
-    title_words: str = Query(""),
-    abstract_words: str = Query(""),
-    tag_names: str = Query(""),
-    misp_tag_names: str = Query(""),
-    zone_names: str = Query(""),
-    creator_ids: str = Query(""),
+    threat_impacts: str = Query(None),
+    topic_ids: str = Query(None),
+    title_words: str = Query(None),
+    abstract_words: str = Query(None),
+    tag_names: str = Query(None),
+    misp_tag_names: str = Query(None),
+    zone_names: str = Query(None),
+    creator_ids: str = Query(None),
     created_after: Optional[datetime] = Query(None),
     created_before: Optional[datetime] = Query(None),
     updated_after: Optional[datetime] = Query(None),
@@ -101,19 +101,21 @@ def search_topics(
     you can specify multiple OR conditions by separating them with vertical bar("|").
     Wrong names of tag, misp_tag, zone_name do not cause error, are just ignored.
     The words search is case-insensitive.
-    3 spaces ("   ") is a special keyword for empty or public for zone_names.
+    Empty string ("") is a special keyword for empty or public for zone_names.
+
+    Caution: If you do not want to filter by something, DO NOT give the param.
 
     examples:
-      {"tag_names": "   "} -> having no tags
-      {"misp_tag_names": ""} -> do not filter by misp_tag
-      {"zone_names": "zone1|   "} -> zone1 or public
-      {"title_words": "a|   |B"} -> title includes [aAbB] or empty
-      {"abstract_words": "    "} -> abstract includes "    "
+      "...?tag_names=" -> search topics which have no tags
+      (query does not include misp_tag_words) -> do not filter by misp_tag
+      "...?zone_names=zone1|" -> zone1 or public
+      "...?title_words": "a| |B" -> title includes [aAbB ]
+      "...?title_words": "a||B" -> title includes [aAbB] or empty
     """
-    keyword_for_empty = "   "  # FIXME: should define the special keyword for empty
+    keyword_for_empty = ""
     keyword_delimiter = "|"
     fixed_zone_names: Set[Optional[str]] = set()
-    if zone_names:
+    if zone_names is not None:
         for zone_name in zone_names.split(keyword_delimiter):
             if zone_name == keyword_for_empty:
                 fixed_zone_names.add(None)
@@ -128,7 +130,7 @@ def search_topics(
             fixed_zone_names.add(zone_name)
 
     fixed_tag_ids: Set[Optional[str]] = set()
-    if tag_names:
+    if tag_names is not None:
         for tag_name in tag_names.split(keyword_delimiter):
             if tag_name == keyword_for_empty:
                 fixed_tag_ids.add(None)
@@ -138,7 +140,7 @@ def search_topics(
             fixed_tag_ids.add(tag.tag_id)
 
     fixed_misp_tag_ids: Set[Optional[str]] = set()
-    if misp_tag_names:
+    if misp_tag_names is not None:
         for misp_tag_name in misp_tag_names.split(keyword_delimiter):
             if misp_tag_name == keyword_for_empty:
                 fixed_misp_tag_ids.add(None)
@@ -148,7 +150,7 @@ def search_topics(
             fixed_misp_tag_ids.add(misp_tag.tag_id)
 
     fixed_topic_ids = set()
-    if topic_ids:
+    if topic_ids is not None:
         for topic_id in topic_ids.split(keyword_delimiter):
             try:
                 UUID(topic_id)
@@ -157,7 +159,7 @@ def search_topics(
                 pass
 
     fixed_creator_ids = set()
-    if creator_ids:
+    if creator_ids is not None:
         for creator_id in creator_ids.split(keyword_delimiter):
             try:
                 UUID(creator_id)
@@ -166,27 +168,23 @@ def search_topics(
                 pass
 
     fixed_title_words: Set[Optional[str]] = set()
-    if title_words:
+    if title_words is not None:
         for title_word in title_words.split(keyword_delimiter):
-            if not title_word:  # ignore empty string
-                continue
             if title_word == keyword_for_empty:
                 fixed_title_words.add(None)
                 continue
             fixed_title_words.add(title_word)
 
     fixed_abstract_words: Set[Optional[str]] = set()
-    if abstract_words:
+    if abstract_words is not None:
         for abstract_word in abstract_words.split(keyword_delimiter):
-            if not abstract_word:  # ignore empty string
-                continue
             if abstract_word == keyword_for_empty:
                 fixed_abstract_words.add(None)
                 continue
             fixed_abstract_words.add(abstract_word)
 
     fixed_threat_impacts: Set[int] = set()
-    if threat_impacts:
+    if threat_impacts is not None:
         for threat_impact in threat_impacts.split(keyword_delimiter):
             try:
                 int_val = int(threat_impact)
@@ -201,14 +199,14 @@ def search_topics(
         offset=offset,
         limit=limit,
         sort_key=sort_key,
-        threat_impacts=list(fixed_threat_impacts) if threat_impacts else None,
-        title_words=list(fixed_title_words) if title_words else None,
-        abstract_words=list(fixed_abstract_words) if abstract_words else None,
-        tag_ids=list(fixed_tag_ids) if tag_names else None,
-        misp_tag_ids=list(fixed_misp_tag_ids) if misp_tag_names else None,
-        zone_names=list(fixed_zone_names) if zone_names else None,
-        topic_ids=list(fixed_topic_ids) if topic_ids else None,
-        creator_ids=list(fixed_creator_ids) if creator_ids else None,
+        threat_impacts=None if threat_impacts is None else list(fixed_threat_impacts),
+        title_words=None if title_words is None else list(fixed_title_words),
+        abstract_words=None if abstract_words is None else list(fixed_abstract_words),
+        tag_ids=None if tag_names is None else list(fixed_tag_ids),
+        misp_tag_ids=None if misp_tag_names is None else list(fixed_misp_tag_ids),
+        zone_names=None if zone_names is None else list(fixed_zone_names),
+        topic_ids=None if topic_ids is None else list(fixed_topic_ids),
+        creator_ids=None if creator_ids is None else list(fixed_creator_ids),
         created_after=created_after,
         created_before=created_before,
         updated_after=updated_after,
