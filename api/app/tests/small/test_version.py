@@ -351,7 +351,7 @@ class TestComparableVersion:
                 ("1.2.3", (1, 2, 3, ())),
                 ("1.2.x", (1, 2, 0, ())),
                 ("99.999.99999", (99, 999, 99999, ())),
-                ("2.1.0-M1", (2, 1, 0, ("M1"))),
+                ("2.1.0-M1", (2, 1, 0, ("M1",))),
             ],
         )
         def test_gen_instance(self, version_string, expected):
