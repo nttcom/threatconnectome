@@ -1476,6 +1476,37 @@ class TestSearchTopics:
             self.try_search_topics(USER1, self.topics, search_params, user1_expected)
             self.try_search_topics(USER2, self.topics, search_params, user2_expected)
 
+    class TestSearchByTopicId(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_topic_id(self):
+            self.topic1 = self.create_minimal_topic(USER1, {})
+            self.topic2 = self.create_minimal_topic(USER1, {})
+            self.topic3 = self.create_minimal_topic(USER1, {})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+            }
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                ("", {1, 2, 3}),
+                ("TOPIC1", {1}),
+                ("TOPIC1|TOPIC2", {1, 2}),
+                ("x", set()),  # wrong uuid
+                (str(uuid4()), set()),  # uuid4 but not a valid topic_id
+                ("   ", set()),  # reserved keyword for empty does not make sense
+                ("   |TOPIC1", {1}),
+            ],
+        )
+        def test_search_by_creator(self, search_words, expected):
+            fixed_search_words = search_words.replace("TOPIC1", str(self.topic1.topic_id)).replace(
+                "TOPIC2", str(self.topic2.topic_id)
+            )
+            search_params = {"topic_ids": fixed_search_words}
+            self.try_search_topics(USER1, self.topics, search_params, expected)
+
     class TestSearchByCreator(Common_):
         @pytest.fixture(scope="function", autouse=True)
         def setup_for_creator(self):
@@ -1492,7 +1523,7 @@ class TestSearchTopics:
             "search_words, expected",
             [
                 ("", {1, 2, 3}),
-                ("USER1", {1}),  # oops, cannot use self in parametrize...
+                ("USER1", {1}),
                 ("USER1|USER2", {1, 2}),
                 ("x", set()),  # wrong uuid
                 (str(uuid4()), set()),  # uuid4 but not a valid user_id
