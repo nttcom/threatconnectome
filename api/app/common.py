@@ -566,6 +566,7 @@ def search_topics_internal(
     tag_ids: Optional[List[Optional[str]]] = None,
     misp_tag_ids: Optional[List[Optional[str]]] = None,
     zone_names: Optional[List[Optional[str]]] = None,
+    topic_ids: Optional[List[str]] = None,
     creator_ids: Optional[List[str]] = None,
     created_after: Optional[datetime] = None,
     created_before: Optional[datetime] = None,
@@ -651,6 +652,11 @@ def search_topics_internal(
             ],
         )
     )
+    search_by_topic_ids_stmt = (
+        true()
+        if topic_ids is None  # do not filter by topic_id
+        else models.Topic.topic_id.in_(topic_ids)
+    )
     search_by_creator_ids_stmt = (
         true()
         if creator_ids is None  # do not filter by created_by
@@ -708,6 +714,7 @@ def search_topics_internal(
         search_by_zone_names_stmt,
         search_by_tag_ids_stmt,
         search_by_misp_tag_ids_stmt,
+        search_by_topic_ids_stmt,
         search_by_creator_ids_stmt,
         search_by_title_words_stmt,
         search_by_abstract_words_stmt,

@@ -64,6 +64,7 @@ def search_topics(
     limit: int = Query(10, ge=1, le=100),  # 10 is default in web/src/pages/TopicManagement.jsx
     sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.THREAT_IMPACT),
     threat_impacts: str = Query(""),
+    topic_ids: str = Query(""),
     title_words: str = Query(""),
     abstract_words: str = Query(""),
     tag_names: str = Query(""),
@@ -90,6 +91,7 @@ def search_topics(
     - created_before
     - updated_after
     - updated_before
+    - topic_ids
     - creator_ids
 
     Zoned topics you cannot access to will not appear in the result.
@@ -145,6 +147,15 @@ def search_topics(
                 continue  # ignore wrong misp_tag_name
             fixed_misp_tag_ids.add(misp_tag.tag_id)
 
+    fixed_topic_ids = set()
+    if topic_ids:
+        for topic_id in topic_ids.split(keyword_delimiter):
+            try:
+                UUID(topic_id)
+                fixed_topic_ids.add(topic_id)
+            except ValueError:
+                pass
+
     fixed_creator_ids = set()
     if creator_ids:
         for creator_id in creator_ids.split(keyword_delimiter):
@@ -196,6 +207,7 @@ def search_topics(
         tag_ids=list(fixed_tag_ids) if tag_names else None,
         misp_tag_ids=list(fixed_misp_tag_ids) if misp_tag_names else None,
         zone_names=list(fixed_zone_names) if zone_names else None,
+        topic_ids=list(fixed_topic_ids) if topic_ids else None,
         creator_ids=list(fixed_creator_ids) if creator_ids else None,
         created_after=created_after,
         created_before=created_before,
