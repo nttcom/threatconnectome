@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 from uuid import UUID
 
 import requests
@@ -22,9 +22,11 @@ from app.common import (
     fix_current_status_by_deleted_topic,
     fix_current_status_by_topic,
     get_misp_tag,
-    search_topics,
+    get_topics_internal,
+    search_topics_internal,
     update_zones,
     validate_action,
+    validate_misp_tag,
     validate_pteam,
     validate_tag,
     validate_topic,
@@ -53,42 +55,152 @@ def get_topics(
         }
         return hashlib.md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
     """
-    return search_topics(db, current_user.user_id)
+    return get_topics_internal(db, current_user.user_id)
 
 
-# TODO: This endpoint should be merged into get_topics after implementing pagination
-@router.get("/search", response_model=List[schemas.TopicEntry])
-def search_topics_(
-    title_words: Optional[List[str]] = Query(None),
-    abstract_words: Optional[List[str]] = Query(None),
-    threat_impacts: Optional[List[int]] = Query(None),
-    misp_tag_ids: Optional[List[UUID]] = Query(None),
-    tag_ids: Optional[List[UUID]] = Query(None),
+@router.get("/search", response_model=schemas.SearchTopicsResponse)
+def search_topics(
+    offset: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),  # 10 is default in web/src/pages/TopicManagement.jsx
+    sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.THREAT_IMPACT),
+    threat_impacts: str = Query(""),
+    title_words: str = Query(""),
+    abstract_words: str = Query(""),
+    tag_names: str = Query(""),
+    misp_tag_names: str = Query(""),
+    zone_names: str = Query(""),
+    creator_ids: str = Query(""),
+    created_after: Optional[datetime] = Query(None),
+    created_before: Optional[datetime] = Query(None),
+    updated_after: Optional[datetime] = Query(None),
+    updated_before: Optional[datetime] = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> List[models.Topic]:
+):
     """
-    Search topics with following parameters.
+    Search topics by following parameters with sort and pagination.
 
+    - threat_impacts
     - title_words
     - abstract_words
-    - threat_impacts
-    - misp_tag_ids
-    - tag_ids
+    - tag_names
+    - misp_tag_names
+    - zone_names
+    - created_after
+    - created_before
+    - updated_after
+    - updated_before
+    - creator_ids
 
+    Zoned topics you cannot access to will not appear in the result.
+    Defaults are "" for strings, None for datetimes, both means skip filtering.
     Different parameters are AND conditions.
-    Within the same parameter,
-    you can specify multiple OR conditions by separating them with commas.
-    The string search is based on the standard PostgreSQL search.
+    Within the same parameter except created- and updated-,
+    you can specify multiple OR conditions by separating them with vertical bar("|").
+    Wrong names of tag, misp_tag, zone_name do not cause error, are just ignored.
+    The words search is case-insensitive.
+    3 spaces ("   ") is a special keyword for empty or public for zone_names.
+
+    examples:
+      {"tag_names": "   "} -> having no tags
+      {"misp_tag_names": ""} -> do not filter by misp_tag
+      {"zone_names": "zone1|   "} -> zone1 or public
+      {"title_words": "a|   |B"} -> title includes [aAbB] or empty
+      {"abstract_words": "    "} -> abstract includes "    "
     """
-    return search_topics(
+    keyword_for_empty = "   "  # FIXME: should define the special keyword for empty
+    keyword_delimiter = "|"
+    fixed_zone_names: Set[Optional[str]] = set()
+    if zone_names:
+        for zone_name in zone_names.split(keyword_delimiter):
+            if zone_name == keyword_for_empty:
+                fixed_zone_names.add(None)
+                continue
+            if not validate_zone(db, current_user.user_id, zone_name):
+                continue  # ignore wrong zone_name
+            if not check_zone_accessible(db, current_user.user_id, [zone_name]):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have related zone",  # FIXME: fix message with others
+                )
+            fixed_zone_names.add(zone_name)
+
+    fixed_tag_ids: Set[Optional[str]] = set()
+    if tag_names:
+        for tag_name in tag_names.split(keyword_delimiter):
+            if tag_name == keyword_for_empty:
+                fixed_tag_ids.add(None)
+                continue
+            if (tag := validate_tag(db, tag_name=tag_name)) is None:
+                continue  # ignore wrong tag_name
+            fixed_tag_ids.add(tag.tag_id)
+
+    fixed_misp_tag_ids: Set[Optional[str]] = set()
+    if misp_tag_names:
+        for misp_tag_name in misp_tag_names.split(keyword_delimiter):
+            if misp_tag_name == keyword_for_empty:
+                fixed_misp_tag_ids.add(None)
+                continue
+            if (misp_tag := validate_misp_tag(db, tag_name=misp_tag_name)) is None:
+                continue  # ignore wrong misp_tag_name
+            fixed_misp_tag_ids.add(misp_tag.tag_id)
+
+    fixed_creator_ids = set()
+    if creator_ids:
+        for creator_id in creator_ids.split(keyword_delimiter):
+            try:
+                UUID(creator_id)
+                fixed_creator_ids.add(creator_id)
+            except ValueError:
+                pass
+
+    fixed_title_words: Set[Optional[str]] = set()
+    if title_words:
+        for title_word in title_words.split(keyword_delimiter):
+            if not title_word:  # ignore empty string
+                continue
+            if title_word == keyword_for_empty:
+                fixed_title_words.add(None)
+                continue
+            fixed_title_words.add(title_word)
+
+    fixed_abstract_words: Set[Optional[str]] = set()
+    if abstract_words:
+        for abstract_word in abstract_words.split(keyword_delimiter):
+            if not abstract_word:  # ignore empty string
+                continue
+            if abstract_word == keyword_for_empty:
+                fixed_abstract_words.add(None)
+                continue
+            fixed_abstract_words.add(abstract_word)
+
+    fixed_threat_impacts: Set[int] = set()
+    if threat_impacts:
+        for threat_impact in threat_impacts.split(keyword_delimiter):
+            try:
+                int_val = int(threat_impact)
+                if int_val in {1, 2, 3, 4}:
+                    fixed_threat_impacts.add(int_val)
+            except ValueError:
+                pass
+
+    return search_topics_internal(
         db,
-        current_user.user_id,
-        title_words=title_words,
-        abstract_words=abstract_words,
-        threat_impacts=threat_impacts,
-        misp_tag_ids=misp_tag_ids,
-        tag_ids=tag_ids,
+        current_user,
+        offset=offset,
+        limit=limit,
+        sort_key=sort_key,
+        threat_impacts=list(fixed_threat_impacts) if threat_impacts else None,
+        title_words=list(fixed_title_words) if title_words else None,
+        abstract_words=list(fixed_abstract_words) if abstract_words else None,
+        tag_ids=list(fixed_tag_ids) if tag_names else None,
+        misp_tag_ids=list(fixed_misp_tag_ids) if misp_tag_names else None,
+        zone_names=list(fixed_zone_names) if zone_names else None,
+        creator_ids=list(fixed_creator_ids) if creator_ids else None,
+        created_after=created_after,
+        created_before=created_before,
+        updated_after=updated_after,
+        updated_before=updated_before,
     )
 
 

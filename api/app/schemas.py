@@ -250,6 +250,14 @@ class TopicCreateResponse(TopicResponse):
     actions: List[ActionResponse]
 
 
+class SearchTopicsResponse(ORMModel):
+    num_topics: int
+    offset: Optional[int] = None
+    limit: Optional[int] = None
+    sort_key: TopicSortKey
+    topics: List[TopicEntry]
+
+
 class TopicActionsResponse(ORMModel):
     topic_id: UUID
     pteam_id: UUID
