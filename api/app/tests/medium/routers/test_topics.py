@@ -1243,7 +1243,7 @@ class TestSearchTopics:
         @pytest.mark.parametrize(
             "search_words, expected",
             [
-                ("", {1, 2, 3, 4}),
+                (None, {1, 2, 3, 4}),
                 ("0", set()),
                 ("1", {1}),
                 ("2", {2}),
@@ -1252,11 +1252,12 @@ class TestSearchTopics:
                 ("5", set()),
                 ("x", set()),
                 ("1|2", {1, 2}),
+                ("", set()),  # reserved keyword for empty does not make sense
                 ("1|x", {1}),  # wrong params are just ignored
             ],
         )
         def test_search_by_threat_impact(self, search_words, expected):
-            search_params = {"threat_impacts": search_words}
+            search_params = {} if search_words is None else {"threat_impacts": search_words}
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
     class TestSearchByTitle(Common_):
@@ -1278,17 +1279,17 @@ class TestSearchTopics:
         @pytest.mark.parametrize(
             "search_words, expected",
             [
-                ("", {1, 2, 3, 4, 5}),
+                (None, {1, 2, 3, 4, 5}),
                 ("one", {1}),
                 ("topic", {1, 2, 3, 4}),  # case-insensitive
                 (" t", {2, 3}),  # spaces also considered
                 ("x", set()),
-                ("   ", {5}),  # "   " is the reserved keyword means empty
-                ("   |w", {2, 5}),
+                ("", {5}),  # "" is the reserved keyword means empty
+                ("|w", {2, 5}),
             ],
         )
         def test_search_by_title(self, search_words, expected):
-            search_params = {"title_words": search_words}
+            search_params = {} if search_words is None else {"title_words": search_words}
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
     class TestSearchByAbstract(Common_):
@@ -1310,17 +1311,17 @@ class TestSearchTopics:
         @pytest.mark.parametrize(
             "search_words, expected",
             [
-                ("", {1, 2, 3, 4, 5}),
+                (None, {1, 2, 3, 4, 5}),
                 ("one", {1}),
                 ("abstract", {1, 2, 3, 4}),  # case-insensitive
                 (" t", {2, 3}),  # spaces also considered
                 ("x", set()),
-                ("   ", {5}),  # "   " is the reserved keyword means empty
-                ("   |w", {2, 5}),
+                ("", {5}),  # "" is the reserved keyword means empty
+                ("|w", {2, 5}),
             ],
         )
         def test_search_by_abstract(self, search_words, expected):
-            search_params = {"abstract_words": search_words}
+            search_params = {} if search_words is None else {"abstract_words": search_words}
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
     class TestSearchByTag(Common_):
@@ -1340,17 +1341,17 @@ class TestSearchTopics:
         @pytest.mark.parametrize(
             "search_words, expected",
             [
-                ("", {1, 2, 3, 4}),
+                (None, {1, 2, 3, 4}),
                 (TAG1, {1, 3}),
                 (TAG2, {2, 3}),
                 (TAG3, set()),  # unused tag
                 ("xxx", set()),  # not existed tag
-                ("   ", {4}),  # "   " is the reserved keyword means empty
-                (f"   |{TAG1}", {1, 3, 4}),
+                ("", {4}),  # "" is the reserved keyword means empty
+                (f"|{TAG1}", {1, 3, 4}),
             ],
         )
         def test_search_by_tag(self, search_words, expected):
-            search_params = {"tag_names": search_words}
+            search_params = {} if search_words is None else {"tag_names": search_words}
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
         def test_search_by_parent_tag(self):
@@ -1377,17 +1378,17 @@ class TestSearchTopics:
         @pytest.mark.parametrize(
             "search_words, expected",
             [
-                ("", {1, 2, 3, 4}),
+                (None, {1, 2, 3, 4}),
                 (MISPTAG1, {1, 3}),
                 (MISPTAG2, {2, 3}),
                 (MISPTAG3, set()),  # unused misp_tag
                 ("xxx", set()),  # not existed misp_tag
-                ("   ", {4}),  # "   " is the reserved keyword means empty
-                (f"   |{MISPTAG1}", {1, 3, 4}),
+                ("", {4}),  # "" is the reserved keyword means empty
+                (f"|{MISPTAG1}", {1, 3, 4}),
             ],
         )
         def test_search_by_misp_tag(self, search_words, expected):
-            search_params = {"misp_tag_names": search_words}
+            search_params = {} if search_words is None else {"misp_tag_names": search_words}
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
     class TestSearchByZone(Common_):
@@ -1409,31 +1410,31 @@ class TestSearchTopics:
         @pytest.mark.parametrize(
             "search_words, expected",
             [
-                ("", {1, 3, 4}),  # USER1 cannot access to ZONE2(topic2)
+                (None, {1, 3, 4}),  # USER1 cannot access to ZONE2(topic2)
                 (ZONE1["zone_name"], {1, 3}),
                 (ZONE2["zone_name"], "403: Forbidden: You do not have related zone"),
                 ("xxx", set()),  # not existed zone_name
-                ("   ", {4}),  # "   " is the reserved keyword means empty|public
-                (f"   |{ZONE3['zone_name']}", {3, 4}),
+                ("", {4}),  # "" is the reserved keyword means empty|public
+                (f"|{ZONE3['zone_name']}", {3, 4}),
             ],
         )
         def test_search_by_zone(self, search_words, expected):
-            search_params = {"zone_names": search_words}
+            search_params = {} if search_words is None else {"zone_names": search_words}
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
         @pytest.mark.parametrize(
             "search_words, expected",
             [
-                ("", {2, 4}),  # USER2 cannot access to ZONE1, ZONE3
+                (None, {2, 4}),  # USER2 cannot access to ZONE1, ZONE3
                 (ZONE1["zone_name"], "403: Forbidden: You do not have related zone"),
                 (ZONE2["zone_name"], {2}),
                 ("xxx", set()),  # not existed zone_name
-                ("   ", {4}),  # "   " is the reserved keyword means empty|public
-                (f"   |{ZONE3['zone_name']}", "403: Forbidden: You do not have related zone"),
+                ("", {4}),  # "" is the reserved keyword means empty|public
+                (f"|{ZONE3['zone_name']}", "403: Forbidden: You do not have related zone"),
             ],
         )
         def test_search_by_zone_by_another(self, search_words, expected):
-            search_params = {"zone_names": search_words}
+            search_params = {} if search_words is None else {"zone_names": search_words}
             self.try_search_topics(USER2, self.topics, search_params, expected)  # by USER2
 
         @pytest.fixture(scope="function", autouse=False)
@@ -1457,12 +1458,12 @@ class TestSearchTopics:
         @pytest.mark.parametrize(
             "search_words, user1_expected, user2_expected",
             [
-                ("", {1, 3, 4, 5}, {2, 4, 5}),
+                (None, {1, 3, 4, 5}, {2, 4, 5}),
                 (ZONE1["zone_name"], {1, 3, 5}, "403: Forbidden: You do not have related zone"),
                 (ZONE2["zone_name"], "403: Forbidden: You do not have related zone", {2, 5}),
                 ("xxx", set(), set()),
-                ("   ", {4}, {4}),
-                (f"   |{ZONE3['zone_name']}", {3, 4}, "403: Forbidden: You do not have"),
+                ("", {4}, {4}),
+                (f"|{ZONE3['zone_name']}", {3, 4}, "403: Forbidden: You do not have"),
             ],
         )
         def test_search_by_zone_complex(
@@ -1472,7 +1473,7 @@ class TestSearchTopics:
             user1_expected,
             user2_expected,
         ):
-            search_params = {"zone_names": search_words}
+            search_params = {} if search_words is None else {"zone_names": search_words}
             self.try_search_topics(USER1, self.topics, search_params, user1_expected)
             self.try_search_topics(USER2, self.topics, search_params, user2_expected)
 
@@ -1491,20 +1492,25 @@ class TestSearchTopics:
         @pytest.mark.parametrize(
             "search_words, expected",
             [
-                ("", {1, 2, 3}),
+                (None, {1, 2, 3}),
                 ("TOPIC1", {1}),
                 ("TOPIC1|TOPIC2", {1, 2}),
                 ("x", set()),  # wrong uuid
                 (str(uuid4()), set()),  # uuid4 but not a valid topic_id
-                ("   ", set()),  # reserved keyword for empty does not make sense
-                ("   |TOPIC1", {1}),
+                ("", set()),  # reserved keyword for empty does not make sense
+                ("|TOPIC1", {1}),
             ],
         )
-        def test_search_by_creator(self, search_words, expected):
-            fixed_search_words = search_words.replace("TOPIC1", str(self.topic1.topic_id)).replace(
-                "TOPIC2", str(self.topic2.topic_id)
+        def test_search_by_topic_id(self, search_words, expected):
+            search_params = (
+                {}
+                if search_words is None
+                else {
+                    "topic_ids": search_words.replace("TOPIC1", str(self.topic1.topic_id)).replace(
+                        "TOPIC2", str(self.topic2.topic_id)
+                    )
+                }
             )
-            search_params = {"topic_ids": fixed_search_words}
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
     class TestSearchByCreator(Common_):
@@ -1522,20 +1528,25 @@ class TestSearchTopics:
         @pytest.mark.parametrize(
             "search_words, expected",
             [
-                ("", {1, 2, 3}),
+                (None, {1, 2, 3}),
                 ("USER1", {1}),
                 ("USER1|USER2", {1, 2}),
                 ("x", set()),  # wrong uuid
                 (str(uuid4()), set()),  # uuid4 but not a valid user_id
-                ("   ", set()),  # reserved keyword for empty does not make sense
-                ("   |USER1", {1}),
+                ("", set()),  # reserved keyword for empty does not make sense
+                ("|USER1", {1}),
             ],
         )
         def test_search_by_creator(self, search_words, expected):
-            fixed_search_words = search_words.replace("USER1", str(self.user1.user_id)).replace(
-                "USER2", str(self.user2.user_id)
+            search_params = (
+                {}
+                if search_words is None
+                else {
+                    "creator_ids": search_words.replace("USER1", str(self.user1.user_id)).replace(
+                        "USER2", str(self.user2.user_id)
+                    )
+                }
             )
-            search_params = {"creator_ids": fixed_search_words}
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
     class TestSearchByCreatedTime(Common_):
@@ -1564,8 +1575,10 @@ class TestSearchTopics:
             "after, before, expected",
             [
                 (None, None, {1, 2, 3}),
-                ("   ", None, "422: Unprocessable Entity:"),  # reserved keyword does not make sense
-                (None, "   ", "422: Unprocessable Entity:"),  # reserved keyword does not make sense
+                ("xxx", None, "422: Unprocessable Entity:"),  # wrong datetime string
+                (None, "xxx", "422: Unprocessable Entity:"),  # wrong datetime string
+                ("", None, {1, 2, 3}),  # reserved keyword does not make sense
+                (None, "", {1, 2, 3}),  # reserved keyword does not make sense
                 ("TS0", None, {1, 2, 3}),
                 ("TS1", None, {2, 3}),
                 ("TS3", None, set()),
@@ -1620,8 +1633,10 @@ class TestSearchTopics:
             "after, before, expected",
             [
                 (None, None, {1, 2, 3}),
-                ("   ", None, "422: Unprocessable Entity:"),  # reserved keyword does not make sense
-                (None, "   ", "422: Unprocessable Entity:"),  # reserved keyword does not make sense
+                ("xxx", None, "422: Unprocessable Entity:"),  # wrong datetime string
+                (None, "xxx", "422: Unprocessable Entity:"),  # wrong datetime string
+                ("", None, {1, 2, 3}),  # reserved keyword does not make sense
+                (None, "", {1, 2, 3}),  # reserved keyword does not make sense
                 ("TS0", None, {1, 2, 3}),
                 ("TS1", None, {1, 2}),
                 ("TS3", None, set()),
