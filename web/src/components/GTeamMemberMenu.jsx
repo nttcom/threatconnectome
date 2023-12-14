@@ -3,17 +3,16 @@ import {
   MoreVert as MoreVertIcon,
   PersonOff as PersonOffIcon,
 } from "@mui/icons-material";
-import { Box, Button, Menu, MenuItem, Modal } from "@mui/material";
+import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import GTeamAuthEditor from "../components/GTeamAuthEditor";
-import GTeamMemberRemove from "../components/GTeamMemberRemove";
+import { GTeamAuthEditor } from "../components/GTeamAuthEditor";
+import { GTeamMemberRemove } from "../components/GTeamMemberRemove";
 import { getUser } from "../slices/user";
-import { sxModal } from "../utils/const";
 
-export default function GTeamMemberMenu(props) {
+export function GTeamMemberMenu(props) {
   const { userId, userEmail, isAdmin } = props;
 
   const [openAuth, setOpenAuth] = useState(false);
@@ -37,14 +36,6 @@ export default function GTeamMemberMenu(props) {
   const handleRemoveMember = () => {
     handleClose();
     setOpenRemove(true);
-  };
-
-  const sxAuthModal = {
-    ...sxModal,
-    minWidth: "800px",
-  };
-  const sxRemoveModal = {
-    ...sxModal,
   };
 
   if (!userMe || !gteamId || !gteam || !authorities) return <></>;
@@ -76,21 +67,21 @@ export default function GTeamMemberMenu(props) {
         {(isAdmin || userId === userMe.user_id) && (
           <MenuItem onClick={handleRemoveMember}>
             <PersonOffIcon sx={{ mr: 1 }} />
-            Remove from gteam
+            Remove from GTeam
           </MenuItem>
         )}
       </Menu>
-      <Modal open={openAuth}>
-        <Box sx={sxAuthModal}>
+      <Dialog open={openAuth}>
+        <DialogContent>
           <GTeamAuthEditor
             userId={userId}
             userEmail={userEmail}
             onClose={() => setOpenAuth(false)}
           />
-        </Box>
-      </Modal>
-      <Modal open={openRemove}>
-        <Box sx={sxRemoveModal}>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={openRemove}>
+        <DialogContent>
           <GTeamMemberRemove
             userId={userId}
             userName={userEmail}
@@ -101,8 +92,8 @@ export default function GTeamMemberMenu(props) {
               setOpenRemove(false);
             }}
           />
-        </Box>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

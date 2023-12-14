@@ -8,7 +8,7 @@ import { getUser } from "../slices/user";
 import { getPTeamInvited, applyPTeamInvitation } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
 
-export default function AcceptPTeamInvitation() {
+export function AcceptPTeamInvitation() {
   const [detail, setDetail] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
 

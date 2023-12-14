@@ -3,17 +3,16 @@ import {
   MoreVert as MoreVertIcon,
   PersonOff as PersonOffIcon,
 } from "@mui/icons-material";
-import { Box, Button, Menu, MenuItem, Modal } from "@mui/material";
+import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import ATeamAuthEditor from "../components/ATeamAuthEditor";
-import ATeamMemberRemove from "../components/ATeamMemberRemove";
+import { ATeamAuthEditor } from "../components/ATeamAuthEditor";
+import { ATeamMemberRemove } from "../components/ATeamMemberRemove";
 import { getUser } from "../slices/user";
-import { sxModal } from "../utils/const";
 
-export default function ATeamMemberMenu(props) {
+export function ATeamMemberMenu(props) {
   const { userId, userEmail, isAdmin } = props;
 
   const [openAuth, setOpenAuth] = useState(false);
@@ -37,14 +36,6 @@ export default function ATeamMemberMenu(props) {
   const handleRemoveMember = () => {
     handleClose();
     setOpenRemove(true);
-  };
-
-  const sxAuthModal = {
-    ...sxModal,
-    minWidth: "800px",
-  };
-  const sxRemoveModal = {
-    ...sxModal,
   };
 
   if (!userMe || !ateamId || !ateam || !authorities) return <></>;
@@ -76,21 +67,21 @@ export default function ATeamMemberMenu(props) {
         {(isAdmin || userId === userMe.user_id) && (
           <MenuItem onClick={handleRemoveMember}>
             <PersonOffIcon sx={{ mr: 1 }} />
-            Remove from ateam
+            Remove from ATeam
           </MenuItem>
         )}
       </Menu>
-      <Modal open={openAuth}>
-        <Box sx={sxAuthModal}>
+      <Dialog open={openAuth}>
+        <DialogContent>
           <ATeamAuthEditor
             userId={userId}
             userEmail={userEmail}
             onClose={() => setOpenAuth(false)}
           />
-        </Box>
-      </Modal>
-      <Modal open={openRemove}>
-        <Box sx={sxRemoveModal}>
+        </DialogContent>
+      </Dialog>
+      <Dialog fullWidth open={openRemove}>
+        <DialogContent>
           <ATeamMemberRemove
             userId={userId}
             userName={userEmail}
@@ -101,8 +92,8 @@ export default function ATeamMemberMenu(props) {
               setOpenRemove(false);
             }}
           />
-        </Box>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

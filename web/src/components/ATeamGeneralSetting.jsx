@@ -30,9 +30,9 @@ import {
 } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-import CheckButton from "./CheckButton";
+import { CheckButton } from "./CheckButton";
 
-export default function ATeamGeneralSetting(props) {
+export function ATeamGeneralSetting(props) {
   const { show } = props;
   const [ateamName, setATeamName] = useState("");
   const [contactInfo, setContactInfo] = useState("");

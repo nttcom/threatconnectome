@@ -1,15 +1,15 @@
-import { Button, Box, Modal, Typography } from "@mui/material";
+import { Button, Box, Dialog, DialogContent, Typography } from "@mui/material";
 import { red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { getPTeamTagsSummary, unget } from "../slices/pteam";
+import { getPTeamTagsSummary } from "../slices/pteam";
 import { deleteTopic } from "../utils/api";
-import { commonButtonStyle, modalCommonButtonStyle, sxModal } from "../utils/const";
+import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-export default function TopicDeletion(props) {
+export function TopicDeletion(props) {
   const { topicId, setOpenTopicModal, onDelete } = props;
   const [open, setOpen] = useState(false);
 
@@ -30,7 +30,6 @@ export default function TopicDeletion(props) {
       .then(async () => {
         await Promise.all([
           dispatch(getPTeamTagsSummary(pteamId)),
-          dispatch(unget("topicsSummary")),
           onDelete && onDelete(),
           enqueueSnackbar("delete topic succeeded", { variant: "success" }),
         ]);
@@ -38,11 +37,6 @@ export default function TopicDeletion(props) {
       .catch((error) => operationError(error));
     setOpenTopicModal(false);
   }
-
-  const style = {
-    ...sxModal,
-    maxWidth: "80%",
-  };
 
   return (
     <>
@@ -59,13 +53,12 @@ export default function TopicDeletion(props) {
       >
         Delete Topic
       </Button>
-      <Modal hideBackdrop open={open} onClose={() => setOpen(false)}>
+      <Dialog hideBackdrop open={open} onClose={() => setOpen(false)}>
         <>
-          <Box sx={{ ...style }}>
+          <DialogContent>
             <Typography variant="h5">Confirm</Typography>
             <Typography>Are you sure you want to delete this topic?</Typography>
             <Typography>This deletion affects other pteams.</Typography>
-
             <Box display="flex">
               <Box flexGrow={1} />
               <Button onClick={() => setOpen(false)} sx={{ ...modalCommonButtonStyle, mt: 1 }}>
@@ -83,9 +76,9 @@ export default function TopicDeletion(props) {
                 Delete
               </Button>
             </Box>
-          </Box>
+          </DialogContent>
         </>
-      </Modal>
+      </Dialog>
     </>
   );
 }

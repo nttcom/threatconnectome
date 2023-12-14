@@ -31,10 +31,12 @@ def create_user(
     """
     Create a user.
     """
-    verify_id_token(token)
-    if db.query(models.Account).filter(models.Account.email == data.email).first():
+    decoded_token = verify_id_token(token)
+    uid = decoded_token["uid"]
+    email = decoded_token["email"]
+    if db.query(models.Account).filter(models.Account.email == email).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used")
-    user = models.Account(**data.model_dump())
+    user = models.Account(uid=uid, email=email, **data.model_dump())
     db.add(user)
     db.commit()
     db.refresh(user)

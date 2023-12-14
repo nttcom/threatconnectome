@@ -17,7 +17,7 @@ import { getAuthorizedZones } from "../slices/user";
 import { createGTeamZone } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-export default function ZoneCreationModal(props) {
+export function ZoneCreationModal(props) {
   const { gteamId } = props;
   const [open, setOpen] = useState(false);
   const [zoneName, setZoneName] = useState(null);

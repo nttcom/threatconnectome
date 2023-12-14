@@ -6,6 +6,7 @@ import {
   Typography,
   IconButton,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogTitle,
 } from "@mui/material";
@@ -17,8 +18,9 @@ import { useNavigate } from "react-router-dom";
 
 import { getUser } from "../slices/user";
 import { createATeam } from "../utils/api";
+import { modalCommonButtonStyle } from "../utils/const";
 
-export default function ATeamCreationModal(props) {
+export function ATeamCreationModal(props) {
   const { open, setOpen, closeTeamSelector } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -84,16 +86,13 @@ export default function ATeamCreationModal(props) {
               onChange={(event) => setContactInfo(event.target.value)}
               margin="dense"
             ></TextField>
-            <Button
-              onClick={handleCreate}
-              color="success"
-              variant="contained"
-              disabled={!ateamName}
-            >
-              Create
-            </Button>
           </Box>
         </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCreate} disabled={!ateamName} sx={modalCommonButtonStyle}>
+            Create
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   );

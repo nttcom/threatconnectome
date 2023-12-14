@@ -19,11 +19,11 @@ import React from "react";
 
 import { avatarGroupStyle, difficulty, difficultyColors, experienceColors } from "../utils/const";
 
-import PTeamInvitationModal from "./PTeamInvitationModal";
-import PTeamMemberMenu from "./PTeamMemberMenu";
-import UUIDTypography from "./UUIDTypography";
+import { PTeamInvitationModal } from "./PTeamInvitationModal";
+import { PTeamMemberMenu } from "./PTeamMemberMenu";
+import { UUIDTypography } from "./UUIDTypography";
 
-export default function PTeamMember(props) {
+export function PTeamMember(props) {
   const { pteamId, members, achievements, authorities, isAdmin } = props;
 
   const checkAdmin = (userId) => {

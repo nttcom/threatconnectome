@@ -5,10 +5,10 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
-import GTeamLabel from "../components/GTeamLabel";
-import GTeamZoneCard from "../components/GTeamZoneCard";
-import TabPanel from "../components/TabPanel";
-import ZoneCreationModal from "../components/ZoneCreationModal";
+import { GTeamLabel } from "../components/GTeamLabel";
+import { GTeamZoneCard } from "../components/GTeamZoneCard";
+import { TabPanel } from "../components/TabPanel";
+import { ZoneCreationModal } from "../components/ZoneCreationModal";
 import { getGTeam, getGTeamZonesSummary } from "../slices/gteam";
 import { noGTeamMessage } from "../utils/const";
 
@@ -62,7 +62,7 @@ function a11yProps(index) {
   };
 }
 
-export default function Zone() {
+export function Zone() {
   const [value, setValue] = useState(0);
   const gteamId = useSelector((state) => state.gteam.gteamId);
   const gteam = useSelector((state) => state.gteam.gteam);

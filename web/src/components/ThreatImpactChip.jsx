@@ -4,7 +4,7 @@ import React from "react";
 
 import { threatImpactName, threatImpactProps } from "../utils/const";
 
-export default function ThreatImpactChip(props) {
+export function ThreatImpactChip(props) {
   const { threatImpact, reverse, sx } = props;
 
   const impactName = Object.keys(threatImpactProps).includes(threatImpact)

@@ -1,14 +1,13 @@
 import { DoDisturbAlt as DoDisturbAltIcon, MoreVert as MoreVertIcon } from "@mui/icons-material";
-import { Box, Button, Menu, MenuItem, Modal } from "@mui/material";
+import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 
-import ATeamWatchingStop from "../components/ATeamWatchingStop";
+import { ATeamWatchingStop } from "../components/ATeamWatchingStop";
 import { getATeam } from "../slices/ateam";
-import { sxModal } from "../utils/const";
 
-export default function ATeamWatchingMenu(props) {
+export function ATeamWatchingMenu(props) {
   const { ateam, watchingPteamId, watchingPteamName, isAdmin } = props;
 
   const [openRemove, setOpenRemove] = useState(false);
@@ -56,8 +55,8 @@ export default function ATeamWatchingMenu(props) {
       ) : (
         <></>
       )}
-      <Modal open={openRemove}>
-        <Box sx={sxModal}>
+      <Dialog open={openRemove}>
+        <DialogContent>
           <ATeamWatchingStop
             watchingPteamId={watchingPteamId}
             watchingPteamName={watchingPteamName}
@@ -68,8 +67,8 @@ export default function ATeamWatchingMenu(props) {
               setOpenRemove(false);
             }}
           />
-        </Box>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

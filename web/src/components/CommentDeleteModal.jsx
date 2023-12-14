@@ -19,7 +19,7 @@ import { deleteATeamTopicComment as apiDeleteATeamTopicComment } from "../utils/
 import { commonButtonStyle } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
-export default function CommentDeleteModal(props) {
+export function CommentDeleteModal(props) {
   const { comment, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();

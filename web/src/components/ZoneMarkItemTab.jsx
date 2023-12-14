@@ -12,10 +12,10 @@ import {
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import ActionTypeIcon from "../components/ActionTypeIcon";
-import TabPanel from "../components/TabPanel";
-import ThreatImpactStatusChip from "../components/ThreatImpactStatusChip";
-import ZoneItemDeleteModal from "../components/ZoneItemDeleteModal";
+import { ActionTypeIcon } from "../components/ActionTypeIcon";
+import { TabPanel } from "../components/TabPanel";
+import { ThreatImpactStatusChip } from "../components/ThreatImpactStatusChip";
+import { ZoneItemDeleteModal } from "../components/ZoneItemDeleteModal";
 
 function a11yProps(index) {
   return {
@@ -24,7 +24,7 @@ function a11yProps(index) {
   };
 }
 
-export default function ZoneMarkItemTab(props) {
+export function ZoneMarkItemTab(props) {
   const { zone } = props;
   const [value, setValue] = React.useState(0);
   const [itemDeleteOpen, setItemDeleteOpen] = useState(false);

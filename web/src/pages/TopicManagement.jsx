@@ -56,7 +56,7 @@ const testTopics = [
   },
 ];
 
-export default function TopicManagement() {
+export function TopicManagement() {
   const [searchMenuOpen, setSearchMenuOpen] = React.useState(false);
 
   const filterRow = (

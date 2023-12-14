@@ -33,9 +33,9 @@ import {
 } from "../utils/api";
 import { threatImpactName, threatImpactProps, modalCommonButtonStyle } from "../utils/const";
 
-import CheckButton from "./CheckButton";
+import { CheckButton } from "./CheckButton";
 
-export default function PTeamGeneralSetting(props) {
+export function PTeamGeneralSetting(props) {
   const { show } = props;
   const [pteamName, setPTeamName] = useState("");
   const [contactInfo, setContactInfo] = useState("");

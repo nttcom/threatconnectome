@@ -2,12 +2,12 @@ import { Box } from "@mui/material";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import GTeamLabel from "../components/GTeamLabel";
-import GTeamMember from "../components/GTeamMember";
+import { GTeamLabel } from "../components/GTeamLabel";
+import { GTeamMember } from "../components/GTeamMember";
 import { getGTeam, getGTeamAuth, getGTeamMembers } from "../slices/gteam";
 import { noGTeamMessage } from "../utils/const";
 
-export default function GTeam() {
+export function GTeam() {
   const user = useSelector((state) => state.user.user);
   const gteamId = useSelector((state) => state.gteam.gteamId);
   const gteam = useSelector((state) => state.gteam.gteam);

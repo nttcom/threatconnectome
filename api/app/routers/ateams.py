@@ -256,6 +256,9 @@ def update_ateam(
     """
     Update an ateam.
     """
+    if data.slack_webhook_url:
+        validate_slack_webhook_url(data.slack_webhook_url)
+
     ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert ateam
     check_ateam_auth(

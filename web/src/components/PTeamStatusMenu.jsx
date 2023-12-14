@@ -6,9 +6,9 @@ import React, { useState } from "react";
 import { IconContext } from "react-icons";
 import { MdOutlineTopic } from "react-icons/md";
 
-import TopicModal from "../components/TopicModal";
+import { TopicModal } from "../components/TopicModal";
 
-export default function PTeamStatusMenu(props) {
+export function PTeamStatusMenu(props) {
   const { presetTagId, presetParentTagId } = props;
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);

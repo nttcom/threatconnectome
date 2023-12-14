@@ -24,7 +24,7 @@ import { useSelector } from "react-redux";
 import { createATeamWatchingRequest } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-export default function ATeamRequestModal(props) {
+export function ATeamRequestModal(props) {
   const { text } = props;
 
   const ateamId = useSelector((state) => state.ateam.ateamId);

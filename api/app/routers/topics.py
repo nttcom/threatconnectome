@@ -295,51 +295,56 @@ def update_topic(
             ),
         )
 
-    fixed_title = None if data.title is None else data.title.strip()
-    fixed_abstract = None if data.abstract is None else data.abstract.strip()
-
-    need_update_content_fingerprint = False
-    if (
-        fixed_title not in {None, topic.title}
-        or fixed_abstract not in {None, topic.abstract}
-        or data.threat_impact not in {None, topic.threat_impact}
-        or (data.tags is not None and set(data.tags) != {tag.tag_name for tag in topic.tags})
-    ):
-        need_update_content_fingerprint = True
-
-    need_auto_close = (data.disabled is False and topic.disabled is True) or (
-        data.zone_names and set(data.zone_names) - {z.zone_name for z in topic.zones}
-    )
-
-    # Update topic attributes
-
+    new_title = None if data.title is None else data.title.strip()
+    new_abstract = None if data.abstract is None else data.abstract.strip()
+    new_tags: Optional[List[Optional[models.Tag]]] = None
     if data.tags is not None:
-        tags_dict: Dict[str, Optional[models.Tag]] = {
-            tag_name: validate_tag(db, tag_name=tag_name) for tag_name in set(data.tags)
+        tags_dict = {
+            tag_name: validate_tag(db, tag_name=tag_name) for tag_name in set(data.tags or [])
         }
         if not_exist_tag_names := [tag_name for tag_name, tag in tags_dict.items() if tag is None]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"No such tags: {', '.join(sorted(not_exist_tag_names))}",
             )
-        topic.tags = list(tags_dict.values())
-
-    if data.misp_tags is not None:
-        topic.misp_tags = [get_misp_tag(db, tag) for tag in data.misp_tags]
-
-    if data.zone_names is not None:
-        topic.zones = update_zones(
+        new_tags = list(tags_dict.values())
+    new_zones = (
+        None
+        if data.zone_names is None
+        else update_zones(
             db,
             current_user.user_id,
             False,
             topic.zones,
             data.zone_names,
         )
-    # Other fields are not needed to be adjusted
-    if fixed_title is not None:
-        topic.title = fixed_title
-    if fixed_abstract is not None:
-        topic.abstract = fixed_abstract
+    )
+    tags_updated = new_tags is not None and set(new_tags) != set(topic.tags)
+    zones_updated = new_zones is not None and set(new_zones) != set(topic.zones)
+
+    need_update_content_fingerprint = (
+        new_title not in {None, topic.title}
+        or new_abstract not in {None, topic.abstract}
+        or data.threat_impact not in {None, topic.threat_impact}
+        or tags_updated
+    )
+    need_auto_close = (
+        (data.disabled is False and topic.disabled is True)
+        or tags_updated  # Note: since the causes which prevent auto-close can be removed,
+        or zones_updated  #      not only adding but also deleting should trigger auto-close
+    )
+
+    # Update topic attributes
+    if new_tags is not None:
+        topic.tags = new_tags
+    if data.misp_tags is not None:
+        topic.misp_tags = [get_misp_tag(db, tag) for tag in data.misp_tags]
+    if new_zones is not None:
+        topic.zones = new_zones
+    if new_title is not None:
+        topic.title = new_title
+    if new_abstract is not None:
+        topic.abstract = new_abstract
     if data.threat_impact is not None:
         topic.threat_impact = data.threat_impact
     if data.disabled is not None:
@@ -390,7 +395,7 @@ def delete_topic(
 
 
 @router.get("/{topic_id}/actions/pteam/{pteam_id}", response_model=schemas.TopicActionsResponse)
-def get_topic_actions(
+def get_pteam_topic_actions(
     topic_id: UUID,
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -452,3 +457,76 @@ def get_topic_actions(
         "pteam_id": pteam_id,
         "actions": actions_accessible_from_pteam,
     }
+
+
+@router.get("/{topic_id}/actions/user/me", response_model=List[schemas.ActionResponse])
+def get_user_topic_actions(
+    topic_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get actions list of the topic for current user.
+    """
+    topic = validate_topic(db, topic_id)
+    if not topic or not check_zone_accessible(db, current_user.user_id, topic.zones):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No such topic",
+        )
+
+    pteam_zones = (
+        db.query(models.PTeamZone.zone_name)
+        .filter(
+            or_(
+                models.PTeamZone.pteam_id.in_(
+                    # joined pteams
+                    db.query(models.PTeamAccount.pteam_id).filter(
+                        models.PTeamAccount.user_id == current_user.user_id
+                    )
+                ),
+                models.PTeamZone.pteam_id.in_(
+                    # pteams via joined ateams
+                    db.query(models.ATeamPTeam.pteam_id).join(
+                        models.ATeamAccount,
+                        and_(
+                            models.ATeamAccount.user_id == current_user.user_id,
+                            models.ATeamAccount.ateam_id == models.ATeamPTeam.ateam_id,
+                        ),
+                    ),
+                ),
+            )
+        )
+        .distinct()
+    )
+    gteam_zones = db.query(models.Zone.zone_name).join(
+        models.GTeamAccount,
+        and_(
+            models.GTeamAccount.user_id == current_user.user_id,
+            models.GTeamAccount.gteam_id == models.Zone.gteam_id,
+        ),
+    )
+    related_action_ids = (
+        db.query(
+            models.TopicAction.action_id,
+        )
+        .filter(
+            models.TopicAction.topic_id == str(topic_id),
+        )
+        .subquery()
+    )
+
+    actions = (
+        db.query(models.TopicAction)
+        .join(related_action_ids, related_action_ids.c.action_id == models.TopicAction.action_id)
+        .outerjoin(models.ActionZone)
+        .filter(
+            or_(
+                models.ActionZone.zone_name.is_(None),  # public
+                models.ActionZone.zone_name.in_(pteam_zones),
+                models.ActionZone.zone_name.in_(gteam_zones),
+            ),
+        )
+    ).all()
+
+    return actions

@@ -3,12 +3,12 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
-import PTeamStatusMenu from "../components/PTeamStatusMenu";
+import { PTeamStatusMenu } from "../components/PTeamStatusMenu";
 
-import ThreatImpactCountChip from "./ThreatImpactCountChip";
-import TopicCard from "./TopicCard";
+import { ThreatImpactCountChip } from "./ThreatImpactCountChip";
+import { TopicCard } from "./TopicCard";
 
-export default function PTeamTaggedTopics(props) {
+export function PTeamTaggedTopics(props) {
   const { pteamId, tagId, isSolved, pteamtag } = props;
 
   const [page, setPage] = useState(1);

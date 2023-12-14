@@ -20,7 +20,6 @@ client = TestClient(app)
 def test_create_user():
     user1 = create_user(USER1)
     assert user1.email == USER1["email"]
-    assert user1.uid == USER1["uid"]
     assert user1.years == USER1["years"]
     assert user1.user_id != ZERO_FILLED_UUID
     assert user1.favorite_badge is None
@@ -33,11 +32,7 @@ def test_duplicate_user():
 
 
 def test_create_user_without_auth():
-    request = {
-        "email": USER1["email"],
-        "uid": USER1["uid"],
-    }
-    response = client.post("/users", json=request)  # no headers
+    response = client.post("/users", json={})  # no headers
     assert response.status_code == 401
     assert response.reason_phrase == "Unauthorized"
 
@@ -66,14 +61,14 @@ def test_delete_user():
 
 
 def test_get_my_user_with_refresh():
-    create_user(USER1)
+    user1 = create_user(USER1)
     old = get_access_token(USER1["email"], USER1["pass"])
     _headers = refresh_headers(old["refresh_token"])
     response = client.get("/users/me", headers=_headers)
     assert response.status_code == 200
     user = response.json()
     assert user["email"] == USER1["email"]
-    assert user["uid"] == USER1["uid"]
+    assert user["uid"] == user1.uid
     assert user["disabled"] == USER1["disabled"]
     assert user["years"] == USER1["years"]
 

@@ -16,7 +16,7 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React from "react";
 
-export default function TagReferences(props) {
+export function TagReferences(props) {
   const { references } = props;
 
   return (

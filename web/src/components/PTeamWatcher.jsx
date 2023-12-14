@@ -11,9 +11,9 @@ import {
 import PropTypes from "prop-types";
 import React from "react";
 
-import PTeamWatcherMenu from "./PTeamWatcherMenu";
+import { PTeamWatcherMenu } from "./PTeamWatcherMenu";
 
-export default function PTeamWatcher(props) {
+export function PTeamWatcher(props) {
   const { pteam, isAdmin } = props;
 
   if (!pteam) return <></>;

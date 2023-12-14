@@ -8,7 +8,7 @@ import { getPTeam } from "../slices/pteam";
 import { getATeamRequested, applyATeamWatchingRequest } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
 
-export default function AcceptATeamWatchingRequest() {
+export function AcceptATeamWatchingRequest() {
   const [detail, setDetail] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
 

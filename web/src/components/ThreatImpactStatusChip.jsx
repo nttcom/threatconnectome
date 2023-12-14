@@ -5,7 +5,7 @@ import React from "react";
 
 import { threatImpactName, threatImpactProps } from "../utils/const";
 
-export default function ThreatImpactStatusChip(props) {
+export function ThreatImpactStatusChip(props) {
   const { statusCounts, threatImpact } = props;
   const impactName =
     threatImpact === 4 && statusCounts["completed"] > 0 ? "safe" : threatImpactName[threatImpact];

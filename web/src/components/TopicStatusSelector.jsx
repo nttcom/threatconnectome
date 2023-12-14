@@ -34,7 +34,7 @@ import { createTopicStatus } from "../utils/api";
 import { topicStatusProps } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
-export default function TopicStatusSelector(props) {
+export function TopicStatusSelector(props) {
   const { pteamId, topicId } = props;
 
   const [open, setOpen] = useState(false);
@@ -47,7 +47,7 @@ export default function TopicStatusSelector(props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const topicStatus = useSelector((state) => state.pteam.topicStatus); // dispatched by parent
-  const topics = useSelector((state) => state.topics); // dispatched by parent
+  const topics = useSelector((state) => state.topics.topics); // dispatched by parent
 
   const dispatch = useDispatch();
 

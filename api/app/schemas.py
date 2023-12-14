@@ -69,10 +69,6 @@ class User(ORMModel):
     email: str
 
 
-class TokenData(ORMModel):
-    email: str = ""
-
-
 class PTeamEntry(ORMModel):
     pteam_id: UUID
     pteam_name: str
@@ -143,8 +139,6 @@ class UserResponse(ORMModel):
 
 
 class UserCreateRequest(ORMModel):
-    email: str
-    uid: str
     years: int = 0
 
 
@@ -193,6 +187,10 @@ class ExtTagResponse(TagResponse):
     text: Optional[str] = None
 
 
+class PTeamGroupResponse(ORMModel):
+    groups: List[str] = []
+
+
 class PTeamtagRequest(ORMModel):
     references: Optional[List[dict]] = None
     text: Optional[str] = None
@@ -207,11 +205,6 @@ class PTeamtagResponse(ORMModel):
 
 class PTeamtagExtResponse(PTeamtagResponse):
     last_updated_at: Optional[datetime] = None
-
-
-class TagRegistrationResponse(ORMModel):
-    newly_registered_tags: List[ExtTagResponse]
-    already_existed_tags: Optional[List[ExtTagRequest]] = None
 
 
 class MispTagRequest(ORMModel):
@@ -261,21 +254,6 @@ class TopicActionsResponse(ORMModel):
     topic_id: UUID
     pteam_id: UUID
     actions: List[ActionResponse]
-
-
-class TaggedTopic(Topic):
-    latest_status: TopicStatusType
-
-
-class TaggedTopicsResponse(ORMModel):
-    tag_id: UUID
-    tag_name: str
-    text: Optional[str] = None
-    threat_impact: int
-    updated_at: datetime
-    topics: List[TaggedTopic]
-
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
 
 class ActionCreateRequest(ORMModel):
@@ -713,25 +691,3 @@ class ZonedTeamsResponse(ORMModel):
     gteam: GTeamEntry
     ateams: List[ATeamEntry]
     pteams: List[PTeamEntry]
-
-
-class ZonedTopicsResponse(ORMModel):
-    zone: ZoneEntry
-    gteam: GTeamEntry
-    topics: List[TopicEntry]
-
-
-class ActionResponseWithTopicTitle(ActionResponse):
-    topic_title: str
-
-
-class ZonedActionsResponse(ORMModel):
-    zone: ZoneEntry
-    gteam: GTeamEntry
-    actions: List[ActionResponseWithTopicTitle]
-
-
-class ZonedLatestTopicResponse(ORMModel):
-    zone: ZoneEntry
-    gteam: GTeamEntry
-    latest_topic: Optional[Topic] = None

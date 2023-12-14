@@ -8,7 +8,7 @@ import { getPTeamAchievements, getPTeamAuth, getPTeamMembers } from "../slices/p
 import { deletePTeamMember } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function PTeamMemberRemove(props) {
+export function PTeamMemberRemove(props) {
   const { userId, userName, pteamId, pteamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
@@ -36,7 +36,7 @@ export default function PTeamMemberRemove(props) {
   return (
     <>
       <Typography variant="h5">Confirm</Typography>
-      <Box display="flex" alignItems="baseline" sx={{ my: 2 }}>
+      <Box display="flex" flexWrap="wrap" alignItems="baseline" sx={{ my: 2 }}>
         <Typography>Are you sure you want to remove </Typography>
         <Typography
           variant="h6"

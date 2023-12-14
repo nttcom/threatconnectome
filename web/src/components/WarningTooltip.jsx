@@ -3,7 +3,7 @@ import { IconButton, Tooltip } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
-export default function WarningTooltip(props) {
+export function WarningTooltip(props) {
   const { message } = props;
 
   return (

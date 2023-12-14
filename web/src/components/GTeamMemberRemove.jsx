@@ -8,7 +8,7 @@ import { getGTeamAuth, getGTeamMembers } from "../slices/gteam";
 import { deleteGTeamMember } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function GTeamMemberRemove(props) {
+export function GTeamMemberRemove(props) {
   const { userId, userName, gteamId, gteamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
@@ -35,7 +35,7 @@ export default function GTeamMemberRemove(props) {
   return (
     <>
       <Typography variant="h5">Confirm</Typography>
-      <Box display="flex" alignItems="baseline" sx={{ my: 2 }}>
+      <Box display="flex" flexWrap="wrap" alignItems="baseline" sx={{ my: 2 }}>
         <Typography>Are you sure you want to remove </Typography>
         <Typography
           variant="h6"

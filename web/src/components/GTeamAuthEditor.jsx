@@ -24,7 +24,7 @@ import { getGTeamAuth, getGTeamAuthInfo } from "../slices/gteam";
 import { updateGTeamAuth } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export default function GTeamAuthEditor(props) {
+export function GTeamAuthEditor(props) {
   const { userId, userEmail, onClose } = props;
 
   const [newAuth, setNewAuth] = useState({ user: [], member: [], others: [] });

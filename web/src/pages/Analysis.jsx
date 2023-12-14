@@ -32,16 +32,16 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
-import ATeamLabel from "../components/ATeamLabel";
+import { ATeamLabel } from "../components/ATeamLabel";
 import { ATeamTopicMenu } from "../components/ATeamTopicMenu";
-import AnalysisNoThreatsMsg from "../components/AnalysisNoThreatsMsg";
-import AnalysisTopic from "../components/AnalysisTopic";
+import { AnalysisNoThreatsMsg } from "../components/AnalysisNoThreatsMsg";
+import { AnalysisTopic } from "../components/AnalysisTopic";
 import { getATeam, getATeamAuth } from "../slices/ateam";
 import { getATeamTopics } from "../utils/api";
 import { difficulty, difficultyColors, noATeamMessage } from "../utils/const";
 import { calcTimestampDiff, errorToString } from "../utils/func";
 
-export default function Analysis() {
+export function Analysis() {
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
   const navigate = useNavigate();

@@ -14,7 +14,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { sendEmailVerification, signInWithEmailAndPassword } from "firebase/auth";
+import { sendEmailVerification, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch } from "react-redux";
@@ -23,14 +23,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { clearATeam } from "../slices/ateam";
 import { clearGTeam } from "../slices/gteam";
 import { clearPTeam } from "../slices/pteam";
+import { clearTopics } from "../slices/topics";
 import { clearUser } from "../slices/user";
 import { createUser, getMyUserInfo, removeToken, setToken } from "../utils/api";
-import { auth } from "../utils/firebase";
+import { auth, samlProvider } from "../utils/firebase";
 
 export const authCookieName = "Authorization";
 export const cookiesOptions = { path: process.env.PUBLIC_URL || "/" };
 
-export default function Login() {
+export function Login() {
   const [message, setMessage] = useState(null);
   const [visible, setVisible] = useState(false);
 
@@ -48,6 +49,7 @@ export default function Login() {
     dispatch(clearPTeam());
     dispatch(clearATeam());
     dispatch(clearGTeam());
+    dispatch(clearTopics());
     removeCookie(authCookieName, cookiesOptions);
     removeToken();
     setMessage(location.state?.message);
@@ -80,16 +82,8 @@ export default function Login() {
     }
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setMessage("Logging in...");
-    const data = new FormData(event.currentTarget);
-    const userCredential = await callSignInWithEmailAndPassword(
-      data.get("email"),
-      data.get("password")
-    );
-    if (userCredential === undefined) return;
-    const { accessToken, email, uid } = userCredential.user;
+  const navigateInternalPage = async (userCredential) => {
+    const accessToken = userCredential.user.accessToken;
     setToken(accessToken);
     setCookie(authCookieName, accessToken, cookiesOptions);
     try {
@@ -101,7 +95,7 @@ export default function Login() {
     } catch (error) {
       switch (error.response?.data?.detail) {
         case "Email is not verified. Try logging in on UI and verify email.": {
-          let actionCodeSettings = {
+          const actionCodeSettings = {
             url: `${window.location.origin}${process.env.PUBLIC_URL}/login`,
           };
           await sendEmailVerification(userCredential.user, actionCodeSettings);
@@ -111,7 +105,7 @@ export default function Login() {
           break;
         }
         case "No such user":
-          await createUser({ email, uid }); // other values are default
+          await createUser({}); // other values are default
           // TODO: navigate to the first time login page, or say hello on snackbar.
           navigate("/account", {
             state: {
@@ -125,6 +119,29 @@ export default function Login() {
           console.error(error);
       }
     }
+  };
+
+  const handleLoginWithEmail = async (event) => {
+    event.preventDefault();
+    setMessage("Logging in...");
+    const data = new FormData(event.currentTarget);
+    const userCredential = await callSignInWithEmailAndPassword(
+      data.get("email"),
+      data.get("password")
+    );
+    if (userCredential === undefined) return;
+    navigateInternalPage(userCredential);
+  };
+
+  const handleLoginWithSaml = () => {
+    signInWithPopup(auth, samlProvider)
+      .then(async (userCredential) => {
+        navigateInternalPage(userCredential);
+      })
+      .catch((error) => {
+        setMessage("Something went wrong.");
+        console.error(error);
+      });
   };
 
   const handleResetPassword = (event) => {
@@ -151,7 +168,7 @@ export default function Login() {
         display="flex"
         flexDirection="column"
         mt={1}
-        onSubmit={handleSubmit}
+        onSubmit={handleLoginWithEmail}
       >
         <Typography component="h1" mb={1} variant="h5">
           Threatconnectome
@@ -187,10 +204,29 @@ export default function Login() {
         <Link component="button" type="button" onClick={handleResetPassword}>
           Forgot password?
         </Link>
-        <Button fullWidth type="submit" variant="contained" sx={{ mb: 2, mt: 3 }}>
-          Log In
+        <Button
+          fullWidth
+          type="submit"
+          variant="contained"
+          sx={{ textTransform: "none", mb: 2, mt: 3 }}
+        >
+          Log In with Email
         </Button>
       </Box>
+      {/* show saml login button if samlProviderId is set as env */}
+      {samlProvider && (
+        <>
+          <Divider />
+          <Button
+            fullWidth
+            onClick={handleLoginWithSaml}
+            variant="contained"
+            sx={{ textTransform: "none", mb: 2, mt: 2 }}
+          >
+            Log In with SAML
+          </Button>
+        </>
+      )}
       <Divider />
       <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
         <Typography mr={1}>No metemcyber account?</Typography>

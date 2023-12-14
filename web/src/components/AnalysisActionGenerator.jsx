@@ -1,7 +1,13 @@
 import {
+  Delete as DeleteIcon,
+  FiberManualRecord as FiberManualRecordIcon,
+} from "@mui/icons-material";
+import {
   Box,
   Button,
   Checkbox,
+  Divider,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -11,14 +17,19 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { grey, red } from "@mui/material/colors";
+import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
 import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import { collectZonesRelatedTeams, errorToString } from "../utils/func";
 
-export function ActionGenerator(props) {
-  const { text, tagIds, action, onGenerate, onEdit, onCancel } = props;
+import { ZoneSelectorModal } from "./ZoneSelectorModal";
+
+export function AnalysisActionGenerator(props) {
+  const { text, tagIds, action, myZones, onGenerate, onEdit, onCancel } = props;
 
   if (Boolean(onGenerate) === Boolean(onEdit)) {
     throw new Error("Internal Error: Ambiguous mode");
@@ -26,13 +37,14 @@ export function ActionGenerator(props) {
 
   const allTags = useSelector((state) => state.tags.allTags);
 
+  const { enqueueSnackbar } = useSnackbar();
+
   const [actionType, setActionType] = useState(action?.action_type ?? null);
   const [actionTemplate, setActionTemplate] = useState(null);
 
   const [productName, setProductName] = useState(null);
   const [productVersion, setProductVersion] = useState(null);
   const [description, setDescription] = useState(action?.action ?? null);
-
   const [actionTagIds, setActionTagIds] = useState(
     allTags.filter((tag) => action?.ext?.tags?.includes(tag.tag_name)).map((tag) => tag.tag_id)
   );
@@ -47,13 +59,24 @@ export function ActionGenerator(props) {
         )
       : {}
   );
-  const [actionZones, setActionZones] = useState(
+  const defaultZoneNames =
     action?.zones?.length > 0
       ? typeof action.zones[0] === "string"
-        ? action.zones.join(", ")
-        : action.zones.map((zone) => zone.zone_name).join(", ")
-      : ""
+        ? action.zones
+        : action.zones.map((zone) => zone.zone_name)
+      : [];
+  const [zoneNames, setZoneNames] = useState(defaultZoneNames);
+  const [zonesRelatedTeams, setZonesRelatedTeams] = useState(
+    collectZonesRelatedTeams(defaultZoneNames)
   );
+
+  const tryCollectZonesRelatedTeams = async (newZoneNames) => {
+    try {
+      return await collectZonesRelatedTeams(newZoneNames);
+    } catch (error) {
+      enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
+    }
+  };
 
   const cancelButton = onCancel ? (
     <Button onClick={onCancel} sx={{ ...modalCommonButtonStyle }}>
@@ -159,25 +182,19 @@ export function ActionGenerator(props) {
     };
   };
 
-  const genZonesArray = () =>
-    actionZones.trim().length > 0
-      ? actionZones.split(",").map((zoneName) => {
-          return {
-            zone_name: zoneName.trim(),
-          };
-        })
-      : [];
-
   const buttonDisabled = () => {
     if (onGenerate) {
-      if (!actionType) return true;
       const createText = actionTemplates?.[actionTemplate]?.["createText"];
-      if (!createText) return true;
-      const actionText = createText();
-      if (!actionText) return true;
-      return false;
+      return (
+        !actionType ||
+        !createText ||
+        !createText() ||
+        (zoneNames.length > 0 &&
+          Object.values(zonesRelatedTeams?.pteams ?? []).length === 0 &&
+          zonesRelatedTeams?.unvisibleExists !== true) // given zones include no teams
+      );
     }
-    return false; // FIXME
+    return false;
   };
 
   const tagsEditor = tagIds ? (
@@ -313,17 +330,123 @@ export function ActionGenerator(props) {
           {"Select artifact tags to which this action should be applied."}
         </Typography>
         {tagsEditor}
-        <Box display="flex" flexDirection="row" sx={{ mt: 1 }}>
-          <Typography>Action Zones:</Typography>
-          <TextField
-            size="small"
-            sx={{ width: 512 }}
-            value={actionZones}
-            onChange={(event) => {
-              setActionZones(event.target.value);
-            }}
-          />
+        <Box display="flex" flexDirection="column" mt={2}>
+          <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              Zone
+            </Typography>
+            <ZoneSelectorModal
+              currentZoneNames={zoneNames}
+              onApply={async (newZoneNames) => {
+                if (newZoneNames.sort().toString() === zoneNames.toString()) return;
+                setZonesRelatedTeams(await tryCollectZonesRelatedTeams(newZoneNames));
+                setZoneNames(newZoneNames.sort());
+              }}
+            />
+          </Box>
+          <List sx={{ ml: 1 }}>
+            {zoneNames.map((zoneName) =>
+              myZones?.apply?.map((zone) => zone.zone_name).includes(zoneName) ? (
+                <Box key={zoneName}>
+                  <ListItem
+                    disablePadding
+                    secondaryAction={
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={async () => {
+                          const newZoneNames = zoneNames.filter((name) => name !== zoneName);
+                          setZonesRelatedTeams(await tryCollectZonesRelatedTeams(newZoneNames));
+                          setZoneNames(newZoneNames);
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    }
+                  >
+                    <ListItemText
+                      primary={zoneName}
+                      primaryTypographyProps={{
+                        style: {
+                          whiteSpace: "nowrap",
+                          overflow: "auto",
+                          textOverflow: "ellipsis",
+                        },
+                      }}
+                    />
+                  </ListItem>
+                  <Divider />
+                </Box>
+              ) : (
+                <Box key={zoneName}>
+                  <ListItem disablePadding>
+                    <ListItemText
+                      primary={zoneName}
+                      primaryTypographyProps={{
+                        style: {
+                          color: "grey",
+                          whiteSpace: "nowrap",
+                          overflow: "auto",
+                          textOverflow: "ellipsis",
+                        },
+                      }}
+                    />
+                  </ListItem>
+                  <Divider />
+                </Box>
+              )
+            )}
+          </List>
         </Box>
+        <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            PTeams which this action reaches
+          </Typography>
+        </Box>
+        <List sx={{ ml: 1 }}>
+          {zoneNames.length === 0 ? (
+            <>All of PTeams</>
+          ) : zonesRelatedTeams?.pteams === undefined ? (
+            <Typography sx={{ color: "red" }}>Something went wrong</Typography>
+          ) : Object.values(zonesRelatedTeams.pteams).length > 0 ||
+            zonesRelatedTeams.unvisibleExists === true ? (
+            <>
+              {Object.values(zonesRelatedTeams.pteams).map((pteam) => (
+                <ListItem key={pteam.pteam_id} disablePadding>
+                  <FiberManualRecordIcon sx={{ m: 1, color: grey[500], fontSize: "small" }} />
+                  <ListItemText
+                    primary={pteam.pteam_name}
+                    primaryTypographyProps={{
+                      style: {
+                        whiteSpace: "nowrap",
+                        overflow: "auto",
+                        textOverflow: "ellipsis",
+                      },
+                    }}
+                  />
+                </ListItem>
+              ))}
+              {zonesRelatedTeams.unvisibleExists && (
+                <ListItem disablePadding>
+                  <FiberManualRecordIcon sx={{ m: 1, color: red[500], fontSize: "small" }} />
+                  <ListItemText
+                    primary={"(some teams you cannot access to)"}
+                    primaryTypographyProps={{
+                      style: {
+                        color: "orange",
+                        whiteSpace: "nowrap",
+                        overflow: "auto",
+                        textOverflow: "ellipsis",
+                      },
+                    }}
+                  />
+                </ListItem>
+              )}
+            </>
+          ) : (
+            <Typography sx={{ color: "red" }}>No PTeams</Typography>
+          )}
+        </List>
         <Box display="flex" flexDirection="row" sx={{ mt: 1 }}>
           <Box flexGrow={1} />
           {cancelButton}
@@ -336,7 +459,7 @@ export function ActionGenerator(props) {
                   action_type: actionType,
                   action: actionTemplates[actionTemplate]["createText"](),
                   ext: createExt(),
-                  zones: genZonesArray(),
+                  zones: zoneNames,
                   recommended: false,
                 });
               } else {
@@ -345,7 +468,7 @@ export function ActionGenerator(props) {
                   action_type: actionType,
                   action: description,
                   ext: createExt(),
-                  zones: genZonesArray(),
+                  zones: zoneNames,
                   recommended: action.recommended,
                 });
               }
@@ -360,7 +483,7 @@ export function ActionGenerator(props) {
   );
 }
 
-ActionGenerator.propTypes = {
+AnalysisActionGenerator.propTypes = {
   text: PropTypes.string.isRequired,
   tagIds: PropTypes.array.isRequired,
   action: PropTypes.shape({
@@ -378,6 +501,7 @@ ActionGenerator.propTypes = {
       vulnerable_versions: PropTypes.object,
     }),
   }),
+  myZones: PropTypes.array.isRequired,
   onGenerate: PropTypes.func,
   onEdit: PropTypes.func,
   onCancel: PropTypes.func,
