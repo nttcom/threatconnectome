@@ -19,7 +19,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
+import { blue, grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
@@ -336,9 +336,9 @@ export function TopicModal(props) {
     const [generatorOpen, setGeneratorOpen] = useState(false);
     return (
       <>
-        <Button onClick={() => setGeneratorOpen(true)}>
+        <IconButton onClick={() => setGeneratorOpen(true)} sx={{ color: blue[700] }}>
           <AddBoxIcon />
-        </Button>
+        </IconButton>
         <Dialog open={generatorOpen} onClose={() => setGeneratorOpen(false)}>
           <DialogContent>
             <ActionGenerator
@@ -360,9 +360,9 @@ export function TopicModal(props) {
     const [tagOpen, setTagOpen] = useState(false);
     return (
       <>
-        <Button onClick={() => setTagOpen(true)}>
+        <IconButton onClick={() => setTagOpen(true)} sx={{ color: blue[700] }}>
           <AddBoxIcon />
-        </Button>
+        </IconButton>
         <Dialog open={tagOpen} onClose={() => setTagOpen(false)}>
           <DialogContent>
             <TopicTagSelector

@@ -1,4 +1,3 @@
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import {
   Box,
   Button,
@@ -7,7 +6,6 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
-  IconButton,
   Link,
   Slider,
   TextField,
@@ -23,6 +21,8 @@ import { useSelector } from "react-redux";
 
 import { createATeamInvitation } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
+
+import CopiedIcon from "./CopiedIcon";
 
 export function ATeamInvitationModal(props) {
   const { text } = props;
@@ -89,12 +89,10 @@ export function ATeamInvitationModal(props) {
               <Box display="flex" flexDirection="column">
                 <Typography>Please share the invitation link below:</Typography>
                 <Box display="flex" justifyContent="center" alignItems="center">
-                  <Link href={invitationLink} sx={{ overflow: "auto", whiteSpace: "nowrap" }}>
+                  <Link href={invitationLink} sx={{ overflow: "auto" }}>
                     {invitationLink}
                   </Link>
-                  <IconButton onClick={() => navigator.clipboard.writeText(invitationLink)}>
-                    <ContentCopyIcon />
-                  </IconButton>
+                  <CopiedIcon invitationLink={invitationLink} />
                 </Box>
               </Box>
             ) : (
