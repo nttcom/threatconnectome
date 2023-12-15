@@ -341,6 +341,28 @@ class TestComparableVersion:
                 return
             assert (semver_obj >= target_obj and semver_obj <= target_obj) == expected
 
+    class TestNpmVersion(_TestVersion):
+        @pytest.mark.parametrize(
+            "version_string, expected",
+            # expected: Union[Tuple[int, int, int, tuple], str]
+            #           -- (major, minor, patch, prerelease) or exception
+            [
+                # other cases are tested in TestSemverVersion
+                ("1.2.3", (1, 2, 3, ())),
+                ("1.2.x", (1, 2, 0, ())),
+                ("99.999.99999", (99, 999, 99999, ())),
+                ("2.1.0-M1", (2, 1, 0, ("M1",))),
+            ],
+        )
+        def test_gen_instance(self, version_string, expected):
+            if isinstance(expected, str):
+                with pytest.raises(ValueError, match=expected):
+                    gen_version_instance(PackageFamily.NPM, version_string)
+                return
+            sem_obj = gen_version_instance(PackageFamily.NPM, version_string)
+            assert isinstance(sem_obj, SemverVersion)
+            assert (sem_obj.major, sem_obj.minor, sem_obj.patch, sem_obj.prerelease) == expected
+
 
 class TestVulnerableRange:
     @pytest.fixture(scope="function", name="gen_preset_versions")
