@@ -19,15 +19,15 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
-import { createGTeamInvitation } from "../utils/api";
+import { createPTeamInvitation } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-import CopiedIcon from "./CopiedIcon";
+import { CopiedIcon } from "./CopiedIcon";
 
-export function GTeamInvitationModal(props) {
+export function PTeamInviteModal(props) {
   const { text } = props;
 
-  const gteamId = useSelector((state) => state.gteam.gteamId);
+  const pteamId = useSelector((state) => state.pteam.pteamId);
 
   const [open, setOpen] = useState(false);
   const [data, setData] = useState({});
@@ -36,7 +36,7 @@ export function GTeamInvitationModal(props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const tokenToLink = (token) =>
-    `${window.location.origin}${process.env.PUBLIC_URL}/gteam/join?token=${token}`;
+    `${window.location.origin}${process.env.PUBLIC_URL}/pteam/join?token=${token}`;
   const handleReset = () => {
     setInvitationLink(null);
     setData({
@@ -65,14 +65,12 @@ export function GTeamInvitationModal(props) {
       expiration: data.expiration.toISOString(),
       max_uses: data.max_uses || null,
     };
-    await createGTeamInvitation(gteamId, query)
+    await createPTeamInvitation(pteamId, query)
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
 
   const now = moment();
-
-  if (!gteamId) return <></>;
 
   return (
     <>
@@ -154,6 +152,6 @@ export function GTeamInvitationModal(props) {
   );
 }
 
-GTeamInvitationModal.propTypes = {
+PTeamInviteModal.propTypes = {
   text: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
 };

@@ -19,7 +19,7 @@ import React from "react";
 
 import { avatarGroupStyle, difficulty, difficultyColors, experienceColors } from "../utils/const";
 
-import { GTeamInvitationModal } from "./GTeamInvitationModal";
+import { GTeamInviteModal } from "./GTeamInviteModal";
 import { GTeamMemberMenu } from "./GTeamMemberMenu";
 import { UUIDTypography } from "./UUIDTypography";
 
@@ -34,7 +34,7 @@ export function GTeamMember(props) {
     <>
       <Box sx={{ width: "100%" }}>
         <Box display="flex" justifyContent="flex-end" mb={2}>
-          {gteamId && <GTeamInvitationModal text="Add member" />}
+          {gteamId && <GTeamInviteModal text="Add member" />}
         </Box>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="memberTable">

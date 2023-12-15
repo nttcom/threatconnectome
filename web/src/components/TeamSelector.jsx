@@ -11,9 +11,9 @@ import { clearPTeam } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
 import { teamColor } from "../utils/const";
 
-import { ATeamCreationModal } from "./ATeamCreationModal";
-import { GTeamCreationModal } from "./GTeamCreationModal";
-import { PTeamCreationModal } from "./PTeamCreationModal";
+import { ATeamCreateModal } from "./ATeamCreateModal";
+import { GTeamCreateModal } from "./GTeamCreateModal";
+import { PTeamCreateModal } from "./PTeamCreateModal";
 
 function textTrim(selector) {
   const maxWordCount = 13;
@@ -195,17 +195,17 @@ export function TeamSelector() {
             Create GTeam
           </MenuItem>
         </Menu>
-        <PTeamCreationModal
+        <PTeamCreateModal
           open={openPTeamCreationModal}
           setOpen={setOpenPTeamCreationModal}
           closeTeamSelector={handleClose}
         />
-        <ATeamCreationModal
+        <ATeamCreateModal
           open={openATeamCreationModal}
           setOpen={setOpenATeamCreationModal}
           closeTeamSelector={handleClose}
         />
-        <GTeamCreationModal
+        <GTeamCreateModal
           open={openGTeamCreationModal}
           setOpen={setOpenGTeamCreationModal}
           closeTeamSelector={handleClose}

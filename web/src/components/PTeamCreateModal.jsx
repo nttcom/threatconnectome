@@ -20,7 +20,7 @@ import { getUser } from "../slices/user";
 import { createPTeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export function PTeamCreationModal(props) {
+export function PTeamCreateModal(props) {
   const { open, setOpen, closeTeamSelector } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -106,7 +106,7 @@ export function PTeamCreationModal(props) {
   );
 }
 
-PTeamCreationModal.propTypes = {
+PTeamCreateModal.propTypes = {
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
   closeTeamSelector: PropTypes.func.isRequired,

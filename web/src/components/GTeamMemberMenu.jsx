@@ -9,7 +9,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { GTeamAuthEditor } from "../components/GTeamAuthEditor";
-import { GTeamMemberRemove } from "../components/GTeamMemberRemove";
+import { GTeamMemberRemoveModal } from "../components/GTeamMemberRemoveModal";
 import { getUser } from "../slices/user";
 
 export function GTeamMemberMenu(props) {
@@ -82,7 +82,7 @@ export function GTeamMemberMenu(props) {
       </Dialog>
       <Dialog open={openRemove}>
         <DialogContent>
-          <GTeamMemberRemove
+          <GTeamMemberRemoveModal
             userId={userId}
             userName={userEmail}
             gteamId={gteamId}

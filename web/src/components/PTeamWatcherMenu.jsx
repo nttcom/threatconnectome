@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 
-import { PTeamWatcherRemove } from "../components/PTeamWatcherRemove";
+import { PTeamWatcherRemoveModal } from "../components/PTeamWatcherRemoveModal";
 import { getPTeam } from "../slices/pteam";
 
 export function PTeamWatcherMenu(props) {
@@ -57,7 +57,7 @@ export function PTeamWatcherMenu(props) {
       )}
       <Dialog open={openRemove}>
         <DialogContent>
-          <PTeamWatcherRemove
+          <PTeamWatcherRemoveModal
             watcherAteamId={watcherAteamId}
             watcherAteamName={watcherAteamName}
             pteamId={pteam.pteam_id}

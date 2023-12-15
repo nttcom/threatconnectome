@@ -4,12 +4,12 @@ import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { getPTeamWatcher } from "../slices/pteam";
-import { removeWatcherATeam } from "../utils/api";
+import { /*getATeamAchievements,*/ getATeamAuth, getATeamMembers } from "../slices/ateam";
+import { deleteATeamMember } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export function PTeamWatcherRemove(props) {
-  const { watcherAteamId, watcherAteamName, pteamId, onClose } = props;
+export function ATeamMemberRemoveModal(props) {
+  const { userId, userName, ateamId, ateamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -17,18 +17,18 @@ export function PTeamWatcherRemove(props) {
 
   const handleRemove = async () => {
     function onSuccess(success) {
-      dispatch(getPTeamWatcher(pteamId));
-      enqueueSnackbar(`Remove watcher ${watcherAteamName} succeeded`, {
-        variant: "success",
-      });
+      //dispatch(getATeamAchievements(ateamId)); // TODO: not yet implemented for ateam
+      dispatch(getATeamAuth(ateamId));
+      dispatch(getATeamMembers(ateamId));
+      enqueueSnackbar(`Remove ${userName} from ${ateamName} succeeded`, { variant: "success" });
       if (onClose) onClose();
     }
     function onError(error) {
-      enqueueSnackbar(`Remove watcher failed: ${error.response?.data?.detail}`, {
+      enqueueSnackbar(`Remove member failed: ${error.response?.data?.detail}`, {
         variant: "error",
       });
     }
-    await removeWatcherATeam(pteamId, watcherAteamId)
+    await deleteATeamMember(ateamId, userId)
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
@@ -36,14 +36,18 @@ export function PTeamWatcherRemove(props) {
   return (
     <>
       <Typography variant="h5">Confirm</Typography>
-      <Box display="flex" alignItems="baseline" sx={{ my: 2 }}>
-        <Typography>Are you sure you want to remove watcher </Typography>
+      <Box display="flex" flexWrap="wrap" alignItems="baseline" sx={{ my: 2 }}>
+        <Typography>Are you sure you want to remove </Typography>
         <Typography
           variant="h6"
           noWrap
           sx={{ fontWeight: "bold", textDecoration: "underline", mx: 1 }}
         >
-          {watcherAteamName}
+          {userName}
+        </Typography>
+        <Typography>from the ateam </Typography>
+        <Typography noWrap sx={{ fontWeight: "bold", ml: 1 }}>
+          {ateamName}
         </Typography>
         <Typography>?</Typography>
       </Box>
@@ -62,10 +66,10 @@ export function PTeamWatcherRemove(props) {
   );
 }
 
-PTeamWatcherRemove.propTypes = {
-  watcherAteamId: PropTypes.string.isRequired,
-  watcherAteamName: PropTypes.string.isRequired,
-  pteamId: PropTypes.string.isRequired,
-  pteamName: PropTypes.string.isRequired,
+ATeamMemberRemoveModal.propTypes = {
+  userId: PropTypes.string.isRequired,
+  userName: PropTypes.string.isRequired,
+  ateamId: PropTypes.string.isRequired,
+  ateamName: PropTypes.string.isRequired,
   onClose: PropTypes.func,
 };

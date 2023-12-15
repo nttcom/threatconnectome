@@ -8,7 +8,7 @@ import { useLocation, useNavigate } from "react-router";
 import { GTeamLabel } from "../components/GTeamLabel";
 import { GTeamZoneCard } from "../components/GTeamZoneCard";
 import { TabPanel } from "../components/TabPanel";
-import { ZoneCreationModal } from "../components/ZoneCreationModal";
+import { ZoneCreateModal } from "../components/ZoneCreateModal";
 import { getGTeam, getGTeamZonesSummary } from "../slices/gteam";
 import { noGTeamMessage } from "../utils/const";
 
@@ -112,7 +112,7 @@ export function Zone() {
           <SearchField word={searchWord} onApply={handleSearchWord} />
         </Box>
         <Box display="flex" justifyContent="flex-end" sx={{ mt: 1, mb: 2 }}>
-          <ZoneCreationModal gteamId={gteamId} />
+          <ZoneCreateModal gteamId={gteamId} />
         </Box>
       </Box>
       <Box sx={{ width: "100%" }}>

@@ -8,7 +8,7 @@ import { getPTeamAchievements, getPTeamAuth, getPTeamMembers } from "../slices/p
 import { deletePTeamMember } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export function PTeamMemberRemove(props) {
+export function PTeamMemberRemoveModal(props) {
   const { userId, userName, pteamId, pteamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
@@ -66,7 +66,7 @@ export function PTeamMemberRemove(props) {
   );
 }
 
-PTeamMemberRemove.propTypes = {
+PTeamMemberRemoveModal.propTypes = {
   userId: PropTypes.string.isRequired,
   userName: PropTypes.string.isRequired,
   pteamId: PropTypes.string.isRequired,

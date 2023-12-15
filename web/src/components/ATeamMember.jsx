@@ -19,7 +19,7 @@ import React from "react";
 
 import { avatarGroupStyle, difficulty, difficultyColors, experienceColors } from "../utils/const";
 
-import { ATeamInvitationModal } from "./ATeamInvitationModal";
+import { ATeamInviteModal } from "./ATeamInviteModal";
 import { ATeamMemberMenu } from "./ATeamMemberMenu";
 import { UUIDTypography } from "./UUIDTypography";
 
@@ -34,7 +34,7 @@ export function ATeamMember(props) {
     <>
       <Box sx={{ width: "100%" }}>
         <Box display="flex" justifyContent="flex-end" mb={2}>
-          {ateamId && <ATeamInvitationModal text="Add member" />}
+          {ateamId && <ATeamInviteModal text="Add member" />}
         </Box>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="memberTable">

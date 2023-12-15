@@ -3,7 +3,7 @@ import React, { useState } from "react";
 
 import { commonButtonStyle } from "../utils/const";
 
-import { ATeamTopicCreationModal } from "./ATeamTopicCreationModal";
+import { ATeamTopicCreateModal } from "./ATeamTopicCreateModal";
 
 export function ATeamTopicMenu() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -19,7 +19,7 @@ export function ATeamTopicMenu() {
         >
           New Topic
         </Button>
-        <ATeamTopicCreationModal open={modalOpen} setOpen={setModalOpen} />
+        <ATeamTopicCreateModal open={modalOpen} setOpen={setModalOpen} />
       </Box>
     </>
   );

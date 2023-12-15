@@ -19,7 +19,7 @@ import React from "react";
 
 import { avatarGroupStyle, difficulty, difficultyColors, experienceColors } from "../utils/const";
 
-import { PTeamInvitationModal } from "./PTeamInvitationModal";
+import { PTeamInviteModal } from "./PTeamInviteModal";
 import { PTeamMemberMenu } from "./PTeamMemberMenu";
 import { UUIDTypography } from "./UUIDTypography";
 
@@ -34,7 +34,7 @@ export function PTeamMember(props) {
     <>
       <Box sx={{ width: "100%" }}>
         <Box display="flex" justifyContent="flex-end" mb={2}>
-          {pteamId && <PTeamInvitationModal text="Add member" />}
+          {pteamId && <PTeamInviteModal text="Add member" />}
         </Box>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="memberTable">

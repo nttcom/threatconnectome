@@ -19,15 +19,15 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
-import { createPTeamInvitation } from "../utils/api";
+import { createATeamInvitation } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-import CopiedIcon from "./CopiedIcon";
+import { CopiedIcon } from "./CopiedIcon";
 
-export function PTeamInvitationModal(props) {
+export function ATeamInviteModal(props) {
   const { text } = props;
 
-  const pteamId = useSelector((state) => state.pteam.pteamId);
+  const ateamId = useSelector((state) => state.ateam.ateamId);
 
   const [open, setOpen] = useState(false);
   const [data, setData] = useState({});
@@ -36,7 +36,7 @@ export function PTeamInvitationModal(props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const tokenToLink = (token) =>
-    `${window.location.origin}${process.env.PUBLIC_URL}/pteam/join?token=${token}`;
+    `${window.location.origin}${process.env.PUBLIC_URL}/ateam/join?token=${token}`;
   const handleReset = () => {
     setInvitationLink(null);
     setData({
@@ -65,12 +65,14 @@ export function PTeamInvitationModal(props) {
       expiration: data.expiration.toISOString(),
       max_uses: data.max_uses || null,
     };
-    await createPTeamInvitation(pteamId, query)
+    await createATeamInvitation(ateamId, query)
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
 
   const now = moment();
+
+  if (!ateamId) return <></>;
 
   return (
     <>
@@ -105,7 +107,13 @@ export function PTeamInvitationModal(props) {
                       setData({ ...data, expiration: moment ? moment.toDate() : "" })
                     }
                     renderInput={(params) => (
-                      <TextField fullWidth margin="dense" required {...params} />
+                      <TextField
+                        fullWidth
+                        margin="dense"
+                        required
+                        {...params}
+                        sx={{ width: "100%" }}
+                      />
                     )}
                     value={data.expiration}
                   />
@@ -152,6 +160,6 @@ export function PTeamInvitationModal(props) {
   );
 }
 
-PTeamInvitationModal.propTypes = {
+ATeamInviteModal.propTypes = {
   text: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
 };

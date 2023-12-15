@@ -9,7 +9,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { PTeamAuthEditor } from "../components/PTeamAuthEditor";
-import { PTeamMemberRemove } from "../components/PTeamMemberRemove";
+import { PTeamMemberRemoveModal } from "../components/PTeamMemberRemoveModal";
 import { getUser } from "../slices/user";
 
 export function PTeamMemberMenu(props) {
@@ -82,7 +82,7 @@ export function PTeamMemberMenu(props) {
       </Dialog>
       <Dialog open={openRemove}>
         <DialogContent>
-          <PTeamMemberRemove
+          <PTeamMemberRemoveModal
             userId={userId}
             userName={userEmail}
             pteamId={pteamId}

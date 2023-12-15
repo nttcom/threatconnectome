@@ -3,7 +3,7 @@ import { IconButton, Tooltip } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-export default function CopiedIcon(props) {
+export function CopiedIcon(props) {
   const { invitationLink } = props;
 
   const [tooltipOpen, setTooltipOpen] = useState(false);

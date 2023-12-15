@@ -4,12 +4,12 @@ import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { /*getATeamAchievements,*/ getATeamAuth, getATeamMembers } from "../slices/ateam";
-import { deleteATeamMember } from "../utils/api";
+import { getGTeamAuth, getGTeamMembers } from "../slices/gteam";
+import { deleteGTeamMember } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export function ATeamMemberRemove(props) {
-  const { userId, userName, ateamId, ateamName, onClose } = props;
+export function GTeamMemberRemoveModal(props) {
+  const { userId, userName, gteamId, gteamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -17,10 +17,9 @@ export function ATeamMemberRemove(props) {
 
   const handleRemove = async () => {
     function onSuccess(success) {
-      //dispatch(getATeamAchievements(ateamId)); // TODO: not yet implemented for ateam
-      dispatch(getATeamAuth(ateamId));
-      dispatch(getATeamMembers(ateamId));
-      enqueueSnackbar(`Remove ${userName} from ${ateamName} succeeded`, { variant: "success" });
+      dispatch(getGTeamAuth(gteamId));
+      dispatch(getGTeamMembers(gteamId));
+      enqueueSnackbar(`Remove ${userName} from ${gteamName} succeeded`, { variant: "success" });
       if (onClose) onClose();
     }
     function onError(error) {
@@ -28,7 +27,7 @@ export function ATeamMemberRemove(props) {
         variant: "error",
       });
     }
-    await deleteATeamMember(ateamId, userId)
+    await deleteGTeamMember(gteamId, userId)
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
@@ -45,9 +44,9 @@ export function ATeamMemberRemove(props) {
         >
           {userName}
         </Typography>
-        <Typography>from the ateam </Typography>
+        <Typography>from the gteam </Typography>
         <Typography noWrap sx={{ fontWeight: "bold", ml: 1 }}>
-          {ateamName}
+          {gteamName}
         </Typography>
         <Typography>?</Typography>
       </Box>
@@ -66,10 +65,10 @@ export function ATeamMemberRemove(props) {
   );
 }
 
-ATeamMemberRemove.propTypes = {
+GTeamMemberRemoveModal.propTypes = {
   userId: PropTypes.string.isRequired,
   userName: PropTypes.string.isRequired,
-  ateamId: PropTypes.string.isRequired,
-  ateamName: PropTypes.string.isRequired,
+  gteamId: PropTypes.string.isRequired,
+  gteamName: PropTypes.string.isRequired,
   onClose: PropTypes.func,
 };
