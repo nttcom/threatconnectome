@@ -47,7 +47,7 @@ import { validateNotEmpty, validateUUID } from "../utils/func";
 import { ActionGenerator } from "./ActionGenerator";
 import { ActionItem } from "./ActionItem";
 import { ThreatImpactChip } from "./ThreatImpactChip";
-import { TopicDeletionModal } from "./TopicDeletionModal";
+import { TopicDeleteModal } from "./TopicDeleteModal";
 import { TopicTagSelector } from "./TopicTagSelector";
 import { ZoneSelectorModal } from "./ZoneSelectorModal";
 
@@ -657,7 +657,7 @@ export function TopicModal(props) {
                   <Typography variant="body2" mb={1} mr={2}>
                     Once you delete topic, there is no going back.
                   </Typography>
-                  <TopicDeletionModal
+                  <TopicDeleteModal
                     topicId={presetTopicId}
                     setOpenTopicModal={setOpen}
                     onDelete={onDeleteTopic}

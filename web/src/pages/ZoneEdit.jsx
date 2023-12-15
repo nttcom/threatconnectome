@@ -16,7 +16,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import { ZoneDeletionModal } from "../components/ZoneDeletionModal";
+import { ZoneDeleteModal } from "../components/ZoneDeleteModal";
 import { ZoneMarkItemTab } from "../components/ZoneMarkItemTab";
 import { ZoneSettingsModal } from "../components/ZoneSettingsModal";
 import { getGTeamZonesSummary } from "../slices/gteam";
@@ -141,7 +141,7 @@ export function ZoneEdit() {
         currentZoneInfo={zone.zone_info ?? ""}
       />
       <ZoneMarkItemTab zone={zone} />
-      <ZoneDeletionModal zone={zone} />
+      <ZoneDeleteModal zone={zone} />
     </>
   );
 }
