@@ -63,14 +63,14 @@ def search_topics(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),  # 10 is default in web/src/pages/TopicManagement.jsx
     sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.THREAT_IMPACT),
-    threat_impacts: Optional[str] = Query(None),
-    topic_ids: Optional[str] = Query(None),
-    title_words: Optional[str] = Query(None),
-    abstract_words: Optional[str] = Query(None),
-    tag_names: Optional[str] = Query(None),
-    misp_tag_names: Optional[str] = Query(None),
-    zone_names: Optional[str] = Query(None),
-    creator_ids: Optional[str] = Query(None),
+    threat_impacts: Optional[List[int]] = Query(None),
+    topic_ids: Optional[List[str]] = Query(None),
+    title_words: Optional[List[str]] = Query(None),
+    abstract_words: Optional[List[str]] = Query(None),
+    tag_names: Optional[List[str]] = Query(None),
+    misp_tag_names: Optional[List[str]] = Query(None),
+    zone_names: Optional[List[str]] = Query(None),
+    creator_ids: Optional[List[str]] = Query(None),
     created_after: Optional[datetime] = Query(None),
     created_before: Optional[datetime] = Query(None),
     updated_after: Optional[datetime] = Query(None),
@@ -97,8 +97,6 @@ def search_topics(
     Zoned topics you cannot access to will not appear in the result.
     Defaults are "" for strings, None for datetimes, both means skip filtering.
     Different parameters are AND conditions.
-    Within the same parameter except created- and updated-,
-    you can specify multiple OR conditions by separating them with vertical bar("|").
     Wrong names of tag, misp_tag, zone_name do not cause error, are just ignored.
     The words search is case-insensitive.
     Empty string ("") is a special keyword for empty or public for zone_names.
@@ -108,15 +106,15 @@ def search_topics(
     examples:
       "...?tag_names=" -> search topics which have no tags
       (query does not include misp_tag_words) -> do not filter by misp_tag
-      "...?zone_names=zone1|" -> zone1 or public
-      "...?title_words": "a| |B" -> title includes [aAbB ]
-      "...?title_words": "a||B" -> title includes [aAbB] or empty
+      "...?zone_names=zone1&zone_names=" -> zone1 or public
+      "...?title_words=a&title_words=%20&title_words=B" -> title includes [aAbB ]
+      "...?title_words=a&title_words=&title_words=B" -> title includes [aAbB] or empty
     """
     keyword_for_empty = ""
-    keyword_delimiter = "|"
+
     fixed_zone_names: Set[Optional[str]] = set()
     if zone_names is not None:
-        for zone_name in zone_names.split(keyword_delimiter):
+        for zone_name in zone_names:
             if zone_name == keyword_for_empty:
                 fixed_zone_names.add(None)
                 continue
@@ -131,7 +129,7 @@ def search_topics(
 
     fixed_tag_ids: Set[Optional[str]] = set()
     if tag_names is not None:
-        for tag_name in tag_names.split(keyword_delimiter):
+        for tag_name in tag_names:
             if tag_name == keyword_for_empty:
                 fixed_tag_ids.add(None)
                 continue
@@ -141,7 +139,7 @@ def search_topics(
 
     fixed_misp_tag_ids: Set[Optional[str]] = set()
     if misp_tag_names is not None:
-        for misp_tag_name in misp_tag_names.split(keyword_delimiter):
+        for misp_tag_name in misp_tag_names:
             if misp_tag_name == keyword_for_empty:
                 fixed_misp_tag_ids.add(None)
                 continue
@@ -151,7 +149,7 @@ def search_topics(
 
     fixed_topic_ids = set()
     if topic_ids is not None:
-        for topic_id in topic_ids.split(keyword_delimiter):
+        for topic_id in topic_ids:
             try:
                 UUID(topic_id)
                 fixed_topic_ids.add(topic_id)
@@ -160,7 +158,7 @@ def search_topics(
 
     fixed_creator_ids = set()
     if creator_ids is not None:
-        for creator_id in creator_ids.split(keyword_delimiter):
+        for creator_id in creator_ids:
             try:
                 UUID(creator_id)
                 fixed_creator_ids.add(creator_id)
@@ -169,7 +167,7 @@ def search_topics(
 
     fixed_title_words: Set[Optional[str]] = set()
     if title_words is not None:
-        for title_word in title_words.split(keyword_delimiter):
+        for title_word in title_words:
             if title_word == keyword_for_empty:
                 fixed_title_words.add(None)
                 continue
@@ -177,7 +175,7 @@ def search_topics(
 
     fixed_abstract_words: Set[Optional[str]] = set()
     if abstract_words is not None:
-        for abstract_word in abstract_words.split(keyword_delimiter):
+        for abstract_word in abstract_words:
             if abstract_word == keyword_for_empty:
                 fixed_abstract_words.add(None)
                 continue
@@ -185,7 +183,7 @@ def search_topics(
 
     fixed_threat_impacts: Set[int] = set()
     if threat_impacts is not None:
-        for threat_impact in threat_impacts.split(keyword_delimiter):
+        for threat_impact in threat_impacts:
             try:
                 int_val = int(threat_impact)
                 if int_val in {1, 2, 3, 4}:
