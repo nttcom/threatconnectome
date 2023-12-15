@@ -182,7 +182,7 @@ export function AnalysisTopic(props) {
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
   /* block rendering until data ready */
-  if (!ateam.ateam_id || !topicDetail || !topicActions) return <>Loading...</>;
+  if (!ateam.ateam_id || !topicDetail || !topicActions) return <Box sx={{ m: 2 }}>Loading...</Box>;
 
   const topicTagNames = topicDetail.tags.map((tag) => tag.tag_name);
   const recommendedActions = actions?.[targetTopic.topic_id]?.filter(
@@ -214,9 +214,11 @@ export function AnalysisTopic(props) {
               {topicDetail.title}
             </Typography>
             <Box flexGrow={1} />
-            <IconButton onClick={() => setTopicModalOpen(true)}>
-              <EditIcon />
-            </IconButton>
+            <Box>
+              <IconButton onClick={() => setTopicModalOpen(true)}>
+                <EditIcon />
+              </IconButton>
+            </Box>
           </Box>
           <UUIDTypography sx={{ marginLeft: "95px" }}>{topicDetail.topic_id}</UUIDTypography>
         </Box>

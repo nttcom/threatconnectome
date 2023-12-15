@@ -78,7 +78,7 @@ export function ATeamRequestModal(props) {
       <Button onClick={handleOpen} sx={commonButtonStyle}>
         {text}
       </Button>
-      <Dialog open={open} PaperProps={{ sx: { minWidth: "600px", maxWidth: "95%" } }}>
+      <Dialog open={open} fullWidth>
         <DialogTitle>
           <Typography variant="inherit">Create New Watching Request</Typography>
         </DialogTitle>
@@ -98,7 +98,7 @@ export function ATeamRequestModal(props) {
               </Box>
             ) : (
               <Grid container alignItems="center">
-                <Grid item p={1} xs={12} sm={6}>
+                <Grid item p={1} xs={6} sm={6}>
                   <DateTimePicker
                     inputFormat="YYYY/MM/DD HH:mm"
                     label="Expiration Date (future date)"
@@ -113,7 +113,7 @@ export function ATeamRequestModal(props) {
                     value={data.expiration}
                   />
                 </Grid>
-                <Grid item p={1} xs={12} sm={6}>
+                <Grid item p={1} xs={6} sm={6}>
                   <Box display="flex" flexDirection="column" justifyContent="center">
                     <Typography>Max groups: {data.max_uses || "unlimited"}</Typography>
                     <Box mx={1}>

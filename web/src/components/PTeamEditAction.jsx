@@ -15,7 +15,7 @@ import {
   Typography,
   Switch,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
+import { blue, grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
@@ -208,9 +208,9 @@ export function PTeamEditAction(props) {
     const [generatorOpen, setGeneratorOpen] = useState(false);
     return (
       <>
-        <Button onClick={() => setGeneratorOpen(true)} sx={{ width: "0px" }}>
+        <IconButton onClick={() => setGeneratorOpen(true)} sx={{ color: blue[700] }}>
           <AddBoxIcon />
-        </Button>
+        </IconButton>
         <Dialog open={generatorOpen} onClose={() => setGeneratorOpen(false)}>
           <DialogContent>
             <ActionGenerator

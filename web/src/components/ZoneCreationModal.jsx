@@ -56,11 +56,7 @@ export function ZoneCreationModal(props) {
       <Button onClick={() => setOpen(true)} sx={{ ...commonButtonStyle }}>
         Create Zone
       </Button>
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        PaperProps={{ sx: { minWidth: "600px", maxWidth: "95%" } }}
-      >
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
         <>
           <DialogTitle>
             <Typography variant="inherit">Create Zone</Typography>
