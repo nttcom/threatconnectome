@@ -1244,16 +1244,16 @@ class TestSearchTopics:
             "search_words, expected",
             [
                 (None, {1, 2, 3, 4}),
-                ("0", set()),
-                ("1", {1}),
-                ("2", {2}),
-                ("3", {3}),
-                ("4", {4}),
-                ("5", set()),
-                ("x", set()),
-                ("1|2", {1, 2}),
-                ("", set()),  # reserved keyword for empty does not make sense
-                ("1|x", {1}),  # wrong params are just ignored
+                ([0], set()),  # wrong params are just ignored
+                ([1], {1}),
+                ([2], {2}),
+                ([3], {3}),
+                ([4], {4}),
+                ([5], set()),  # wrong params are just ignored
+                (["xxx"], "422: Unprocessable Entity:"),  # not integer
+                ([1, 2], {1, 2}),
+                ([""], "422: Unprocessable Entity:"),  # reserved keyword does not make sense
+                ([1, 5], {1}),  # wrong params are just ignored
             ],
         )
         def test_search_by_threat_impact(self, search_words, expected):
@@ -1280,12 +1280,12 @@ class TestSearchTopics:
             "search_words, expected",
             [
                 (None, {1, 2, 3, 4, 5}),
-                ("one", {1}),
-                ("topic", {1, 2, 3, 4}),  # case-insensitive
-                (" t", {2, 3}),  # spaces also considered
-                ("x", set()),
-                ("", {5}),  # "" is the reserved keyword means empty
-                ("|w", {2, 5}),
+                (["one"], {1}),
+                (["topic"], {1, 2, 3, 4}),  # case-insensitive
+                ([" t"], {2, 3}),  # spaces also considered
+                (["xxx"], set()),
+                ([""], {5}),  # "" is the reserved keyword means empty
+                (["", "w"], {2, 5}),
             ],
         )
         def test_search_by_title(self, search_words, expected):
@@ -1312,12 +1312,12 @@ class TestSearchTopics:
             "search_words, expected",
             [
                 (None, {1, 2, 3, 4, 5}),
-                ("one", {1}),
-                ("abstract", {1, 2, 3, 4}),  # case-insensitive
-                (" t", {2, 3}),  # spaces also considered
-                ("x", set()),
-                ("", {5}),  # "" is the reserved keyword means empty
-                ("|w", {2, 5}),
+                (["one"], {1}),
+                (["abstract"], {1, 2, 3, 4}),  # case-insensitive
+                ([" t"], {2, 3}),  # spaces also considered
+                (["xxx"], set()),
+                ([""], {5}),  # "" is the reserved keyword means empty
+                (["", "w"], {2, 5}),
             ],
         )
         def test_search_by_abstract(self, search_words, expected):
@@ -1342,12 +1342,12 @@ class TestSearchTopics:
             "search_words, expected",
             [
                 (None, {1, 2, 3, 4}),
-                (TAG1, {1, 3}),
-                (TAG2, {2, 3}),
-                (TAG3, set()),  # unused tag
-                ("xxx", set()),  # not existed tag
-                ("", {4}),  # "" is the reserved keyword means empty
-                (f"|{TAG1}", {1, 3, 4}),
+                ([TAG1], {1, 3}),
+                ([TAG2], {2, 3}),
+                ([TAG3], set()),  # unused tag
+                (["xxx"], set()),  # not existed tag
+                ([""], {4}),  # "" is the reserved keyword means empty
+                (["", TAG1], {1, 3, 4}),
             ],
         )
         def test_search_by_tag(self, search_words, expected):
@@ -1379,12 +1379,12 @@ class TestSearchTopics:
             "search_words, expected",
             [
                 (None, {1, 2, 3, 4}),
-                (MISPTAG1, {1, 3}),
-                (MISPTAG2, {2, 3}),
-                (MISPTAG3, set()),  # unused misp_tag
-                ("xxx", set()),  # not existed misp_tag
-                ("", {4}),  # "" is the reserved keyword means empty
-                (f"|{MISPTAG1}", {1, 3, 4}),
+                ([MISPTAG1], {1, 3}),
+                ([MISPTAG2], {2, 3}),
+                ([MISPTAG3], set()),  # unused misp_tag
+                (["xxx"], set()),  # not existed misp_tag
+                ([""], {4}),  # "" is the reserved keyword means empty
+                (["", MISPTAG1], {1, 3, 4}),
             ],
         )
         def test_search_by_misp_tag(self, search_words, expected):
@@ -1411,11 +1411,11 @@ class TestSearchTopics:
             "search_words, expected",
             [
                 (None, {1, 3, 4}),  # USER1 cannot access to ZONE2(topic2)
-                (ZONE1["zone_name"], {1, 3}),
-                (ZONE2["zone_name"], "403: Forbidden: You do not have related zone"),
-                ("xxx", set()),  # not existed zone_name
-                ("", {4}),  # "" is the reserved keyword means empty|public
-                (f"|{ZONE3['zone_name']}", {3, 4}),
+                ([ZONE1["zone_name"]], {1, 3}),
+                ([ZONE2["zone_name"]], "403: Forbidden: You do not have related zone"),
+                (["xxx"], set()),  # not existed zone_name
+                ([""], {4}),  # "" is the reserved keyword means empty|public
+                (["", ZONE3["zone_name"]], {3, 4}),
             ],
         )
         def test_search_by_zone(self, search_words, expected):
@@ -1426,11 +1426,11 @@ class TestSearchTopics:
             "search_words, expected",
             [
                 (None, {2, 4}),  # USER2 cannot access to ZONE1, ZONE3
-                (ZONE1["zone_name"], "403: Forbidden: You do not have related zone"),
-                (ZONE2["zone_name"], {2}),
-                ("xxx", set()),  # not existed zone_name
-                ("", {4}),  # "" is the reserved keyword means empty|public
-                (f"|{ZONE3['zone_name']}", "403: Forbidden: You do not have related zone"),
+                ([ZONE1["zone_name"]], "403: Forbidden: You do not have related zone"),
+                ([ZONE2["zone_name"]], {2}),
+                (["xxx"], set()),  # not existed zone_name
+                ([""], {4}),  # "" is the reserved keyword means empty|public
+                (["", ZONE3["zone_name"]], "403: Forbidden: You do not have related zone"),
             ],
         )
         def test_search_by_zone_by_another(self, search_words, expected):
@@ -1459,11 +1459,11 @@ class TestSearchTopics:
             "search_words, user1_expected, user2_expected",
             [
                 (None, {1, 3, 4, 5}, {2, 4, 5}),
-                (ZONE1["zone_name"], {1, 3, 5}, "403: Forbidden: You do not have related zone"),
-                (ZONE2["zone_name"], "403: Forbidden: You do not have related zone", {2, 5}),
-                ("xxx", set(), set()),
-                ("", {4}, {4}),
-                (f"|{ZONE3['zone_name']}", {3, 4}, "403: Forbidden: You do not have"),
+                ([ZONE1["zone_name"]], {1, 3, 5}, "403: Forbidden: You do not have related zone"),
+                ([ZONE2["zone_name"]], "403: Forbidden: You do not have related zone", {2, 5}),
+                (["xxx"], set(), set()),
+                ([""], {4}, {4}),
+                (["", ZONE3["zone_name"]], {3, 4}, "403: Forbidden: You do not have"),
             ],
         )
         def test_search_by_zone_complex(
@@ -1488,17 +1488,22 @@ class TestSearchTopics:
                 2: self.topic2,
                 3: self.topic3,
             }
+            self.topic_ids = {
+                "TOPIC1": self.topic1.topic_id,
+                "TOPIC2": self.topic2.topic_id,
+                "TOPIC3": self.topic3.topic_id,
+            }
 
         @pytest.mark.parametrize(
             "search_words, expected",
             [
                 (None, {1, 2, 3}),
-                ("TOPIC1", {1}),
-                ("TOPIC1|TOPIC2", {1, 2}),
-                ("x", set()),  # wrong uuid
-                (str(uuid4()), set()),  # uuid4 but not a valid topic_id
-                ("", set()),  # reserved keyword for empty does not make sense
-                ("|TOPIC1", {1}),
+                (["TOPIC1"], {1}),
+                (["TOPIC1", "TOPIC2"], {1, 2}),
+                (["xxx"], set()),  # wrong uuid
+                ([str(uuid4())], set()),  # uuid4 but not a valid topic_id
+                ([""], set()),  # reserved keyword for empty does not make sense
+                (["", "TOPIC1"], {1}),
             ],
         )
         def test_search_by_topic_id(self, search_words, expected):
@@ -1506,9 +1511,9 @@ class TestSearchTopics:
                 {}
                 if search_words is None
                 else {
-                    "topic_ids": search_words.replace("TOPIC1", str(self.topic1.topic_id)).replace(
-                        "TOPIC2", str(self.topic2.topic_id)
-                    )
+                    "topic_ids": [
+                        self.topic_ids.get(search_word, search_word) for search_word in search_words
+                    ]
                 }
             )
             self.try_search_topics(USER1, self.topics, search_params, expected)
@@ -1524,17 +1529,22 @@ class TestSearchTopics:
                 2: self.topic2,
                 3: self.topic3,
             }
+            self.creator_ids = {
+                "USER1": self.user1.user_id,
+                "USER2": self.user2.user_id,
+                "USER3": self.user3.user_id,
+            }
 
         @pytest.mark.parametrize(
             "search_words, expected",
             [
                 (None, {1, 2, 3}),
-                ("USER1", {1}),
-                ("USER1|USER2", {1, 2}),
-                ("x", set()),  # wrong uuid
-                (str(uuid4()), set()),  # uuid4 but not a valid user_id
-                ("", set()),  # reserved keyword for empty does not make sense
-                ("|USER1", {1}),
+                (["USER1"], {1}),
+                (["USER1", "USER2"], {1, 2}),
+                (["xxx"], set()),  # wrong uuid
+                ([str(uuid4())], set()),  # uuid4 but not a valid user_id
+                ([""], set()),  # reserved keyword for empty does not make sense
+                (["", "USER1"], {1}),
             ],
         )
         def test_search_by_creator(self, search_words, expected):
@@ -1542,9 +1552,10 @@ class TestSearchTopics:
                 {}
                 if search_words is None
                 else {
-                    "creator_ids": search_words.replace("USER1", str(self.user1.user_id)).replace(
-                        "USER2", str(self.user2.user_id)
-                    )
+                    "creator_ids": [
+                        self.creator_ids.get(search_word, search_word)
+                        for search_word in search_words
+                    ]
                 }
             )
             self.try_search_topics(USER1, self.topics, search_params, expected)
@@ -1743,7 +1754,7 @@ class TestSearchTopics:
                     (0, None, None),
                     ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
                 ),
-                (("x", None, None), "422: Unprocessable Entity: "),
+                (("xxx", None, None), "422: Unprocessable Entity: "),
                 ((-1, None, None), "422: Unprocessable Entity: "),  # offset should be >=0
                 (
                     (5, None, None),
@@ -1758,7 +1769,7 @@ class TestSearchTopics:
                     (None, 10, None),
                     ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
                 ),
-                ((None, "x", None), "422: Unprocessable Entity: "),
+                ((None, "xxx", None), "422: Unprocessable Entity: "),
                 ((None, 0, None), "422: Unprocessable Entity: "),  # limit should be >= 1
                 ((None, 101, None), "422: Unprocessable Entity: "),  # limit should be <= 100
                 (
