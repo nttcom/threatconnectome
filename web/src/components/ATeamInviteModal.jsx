@@ -22,13 +22,9 @@ import { useSelector } from "react-redux";
 import { createATeamInvitation } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-<<<<<<< HEAD:web/src/components/ATeamInvitationModal.jsx
-import CopiedIcon from "./CopiedIcon";
+import { CopiedIcon } from "./CopiedIcon";
 
-export function ATeamInvitationModal(props) {
-=======
 export function ATeamInviteModal(props) {
->>>>>>> f5394db (rename files):web/src/components/ATeamInviteModal.jsx
   const { text } = props;
 
   const ateamId = useSelector((state) => state.ateam.ateamId);

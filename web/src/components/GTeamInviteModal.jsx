@@ -22,13 +22,9 @@ import { useSelector } from "react-redux";
 import { createGTeamInvitation } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-<<<<<<< HEAD:web/src/components/GTeamInvitationModal.jsx
-import CopiedIcon from "./CopiedIcon";
+import { CopiedIcon } from "./CopiedIcon";
 
-export function GTeamInvitationModal(props) {
-=======
 export function GTeamInviteModal(props) {
->>>>>>> f5394db (rename files):web/src/components/GTeamInviteModal.jsx
   const { text } = props;
 
   const gteamId = useSelector((state) => state.gteam.gteamId);
