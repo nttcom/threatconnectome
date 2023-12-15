@@ -9,7 +9,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ATeamAuthEditor } from "../components/ATeamAuthEditor";
-import { ATeamMemberRemove } from "../components/ATeamMemberRemove";
+import { ATeamMemberRemoveModal } from "../components/ATeamMemberRemoveModal";
 import { getUser } from "../slices/user";
 
 export function ATeamMemberMenu(props) {
@@ -82,7 +82,7 @@ export function ATeamMemberMenu(props) {
       </Dialog>
       <Dialog fullWidth open={openRemove}>
         <DialogContent>
-          <ATeamMemberRemove
+          <ATeamMemberRemoveModal
             userId={userId}
             userName={userEmail}
             ateamId={ateamId}

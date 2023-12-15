@@ -9,7 +9,7 @@ import { getPTeamTagsSummary } from "../slices/pteam";
 import { deleteTopic } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
-export function TopicDeletion(props) {
+export function TopicDeleteModal(props) {
   const { topicId, setOpenTopicModal, onDelete } = props;
   const [open, setOpen] = useState(false);
 
@@ -83,7 +83,7 @@ export function TopicDeletion(props) {
   );
 }
 
-TopicDeletion.propTypes = {
+TopicDeleteModal.propTypes = {
   topicId: PropTypes.string.isRequired,
   setOpenTopicModal: PropTypes.func.isRequired,
   onDelete: PropTypes.func,

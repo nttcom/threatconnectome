@@ -20,7 +20,7 @@ import { getUser } from "../slices/user";
 import { createGTeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export function GTeamCreationModal(props) {
+export function GTeamCreateModal(props) {
   const { open, setOpen, closeTeamSelector } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -98,7 +98,7 @@ export function GTeamCreationModal(props) {
   );
 }
 
-GTeamCreationModal.propTypes = {
+GTeamCreateModal.propTypes = {
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
   closeTeamSelector: PropTypes.func.isRequired,

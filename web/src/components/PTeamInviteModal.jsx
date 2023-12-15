@@ -22,9 +22,13 @@ import { useSelector } from "react-redux";
 import { createPTeamInvitation } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
+<<<<<<< HEAD:web/src/components/PTeamInvitationModal.jsx
 import CopiedIcon from "./CopiedIcon";
 
 export function PTeamInvitationModal(props) {
+=======
+export function PTeamInviteModal(props) {
+>>>>>>> f5394db (rename files):web/src/components/PTeamInviteModal.jsx
   const { text } = props;
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
@@ -152,6 +156,6 @@ export function PTeamInvitationModal(props) {
   );
 }
 
-PTeamInvitationModal.propTypes = {
+PTeamInviteModal.propTypes = {
   text: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
 };

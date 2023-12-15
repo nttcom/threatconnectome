@@ -44,7 +44,7 @@ import { ZoneSelectorModal } from "./ZoneSelectorModal";
 
 const steps = ["Threat, Vulnerability, and Risk", "Dissemination", "Response planning"];
 
-export function ATeamTopicCreationModal(props) {
+export function ATeamTopicCreateModal(props) {
   const { open, setOpen } = props;
 
   const [activeStep, setActiveStep] = useState(0);
@@ -516,7 +516,7 @@ export function ATeamTopicCreationModal(props) {
   );
 }
 
-ATeamTopicCreationModal.propTypes = {
+ATeamTopicCreateModal.propTypes = {
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
 };

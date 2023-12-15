@@ -19,15 +19,19 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
-import { createGTeamInvitation } from "../utils/api";
+import { createATeamInvitation } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
+<<<<<<< HEAD:web/src/components/ATeamInvitationModal.jsx
 import CopiedIcon from "./CopiedIcon";
 
-export function GTeamInvitationModal(props) {
+export function ATeamInvitationModal(props) {
+=======
+export function ATeamInviteModal(props) {
+>>>>>>> f5394db (rename files):web/src/components/ATeamInviteModal.jsx
   const { text } = props;
 
-  const gteamId = useSelector((state) => state.gteam.gteamId);
+  const ateamId = useSelector((state) => state.ateam.ateamId);
 
   const [open, setOpen] = useState(false);
   const [data, setData] = useState({});
@@ -36,7 +40,7 @@ export function GTeamInvitationModal(props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const tokenToLink = (token) =>
-    `${window.location.origin}${process.env.PUBLIC_URL}/gteam/join?token=${token}`;
+    `${window.location.origin}${process.env.PUBLIC_URL}/ateam/join?token=${token}`;
   const handleReset = () => {
     setInvitationLink(null);
     setData({
@@ -65,14 +69,14 @@ export function GTeamInvitationModal(props) {
       expiration: data.expiration.toISOString(),
       max_uses: data.max_uses || null,
     };
-    await createGTeamInvitation(gteamId, query)
+    await createATeamInvitation(ateamId, query)
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
 
   const now = moment();
 
-  if (!gteamId) return <></>;
+  if (!ateamId) return <></>;
 
   return (
     <>
@@ -107,7 +111,13 @@ export function GTeamInvitationModal(props) {
                       setData({ ...data, expiration: moment ? moment.toDate() : "" })
                     }
                     renderInput={(params) => (
-                      <TextField fullWidth margin="dense" required {...params} />
+                      <TextField
+                        fullWidth
+                        margin="dense"
+                        required
+                        {...params}
+                        sx={{ width: "100%" }}
+                      />
                     )}
                     value={data.expiration}
                   />
@@ -154,6 +164,6 @@ export function GTeamInvitationModal(props) {
   );
 }
 
-GTeamInvitationModal.propTypes = {
+ATeamInviteModal.propTypes = {
   text: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
 };

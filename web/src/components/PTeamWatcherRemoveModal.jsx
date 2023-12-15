@@ -4,12 +4,12 @@ import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { getGTeamZonesSummary } from "../slices/gteam";
-import { deleteGTeamZone } from "../utils/api";
+import { getPTeamWatcher } from "../slices/pteam";
+import { removeWatcherATeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
-export function GTeamZoneRemove(props) {
-  const { gteamId, zoneName, onClose } = props;
+export function PTeamWatcherRemoveModal(props) {
+  const { watcherAteamId, watcherAteamName, pteamId, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -17,16 +17,18 @@ export function GTeamZoneRemove(props) {
 
   const handleRemove = async () => {
     function onSuccess(success) {
-      dispatch(getGTeamZonesSummary(gteamId));
-      enqueueSnackbar("Remove zone succeeded", { variant: "success" });
+      dispatch(getPTeamWatcher(pteamId));
+      enqueueSnackbar(`Remove watcher ${watcherAteamName} succeeded`, {
+        variant: "success",
+      });
       if (onClose) onClose();
     }
     function onError(error) {
-      enqueueSnackbar(`Remove zone failed: ${error.response?.data?.detail}`, {
+      enqueueSnackbar(`Remove watcher failed: ${error.response?.data?.detail}`, {
         variant: "error",
       });
     }
-    await deleteGTeamZone(gteamId, zoneName)
+    await removeWatcherATeam(pteamId, watcherAteamId)
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
@@ -35,7 +37,15 @@ export function GTeamZoneRemove(props) {
     <>
       <Typography variant="h5">Confirm</Typography>
       <Box display="flex" alignItems="baseline" sx={{ my: 2 }}>
-        <Typography>Are you sure you want to remove zone: {zoneName}?</Typography>
+        <Typography>Are you sure you want to remove watcher </Typography>
+        <Typography
+          variant="h6"
+          noWrap
+          sx={{ fontWeight: "bold", textDecoration: "underline", mx: 1 }}
+        >
+          {watcherAteamName}
+        </Typography>
+        <Typography>?</Typography>
       </Box>
       <Box display="flex">
         <Box flexGrow={1} />
@@ -52,8 +62,10 @@ export function GTeamZoneRemove(props) {
   );
 }
 
-GTeamZoneRemove.propTypes = {
-  gteamId: PropTypes.string.isRequired,
-  zoneName: PropTypes.string.isRequired,
+PTeamWatcherRemoveModal.propTypes = {
+  watcherAteamId: PropTypes.string.isRequired,
+  watcherAteamName: PropTypes.string.isRequired,
+  pteamId: PropTypes.string.isRequired,
+  pteamName: PropTypes.string.isRequired,
   onClose: PropTypes.func,
 };
