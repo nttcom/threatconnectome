@@ -143,7 +143,7 @@ export const getPTeamTopicActions = createAsyncThunk(
 );
 
 export const getPTeamWatcher = createAsyncThunk(
-  "pteam/getPteamWatcher",
+  "pteam/getPTeamWatcher",
   async (pteamId) =>
     await apiGetPTeamWatcher(pteamId).then((response) => ({
       data: response.data,
