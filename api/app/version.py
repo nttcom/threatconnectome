@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, Set, TypeAlias, Union
 
 from packaging.version import Version as PypiVersion
 from univers.debian import Version as DebianVersion
-from univers.versions import SemverVersion
+from univers.versions import GolangVersion, SemverVersion
 
 
 class PackageFamily(Enum):
@@ -13,6 +13,7 @@ class PackageFamily(Enum):
     DEBIAN = 1
     PYPI = 2
     NPM = 3
+    GO = 4
 
     @classmethod
     def from_registry(cls, registry: str) -> "PackageFamily":
@@ -23,6 +24,8 @@ class PackageFamily(Enum):
             return cls.PYPI
         if re.match(r"^(npm)", fixed_registry):
             return cls.NPM
+        if re.match(r"^(golang)", fixed_registry):
+            return cls.GO
         return cls.UNKNOWN
 
     @classmethod
@@ -118,6 +121,9 @@ def gen_version_instance(
         return ExtPypiVersion(version_string)
     if package_family == PackageFamily.NPM:
         return SemverVersion(version_string)
+    if package_family == PackageFamily.GO:
+        return GolangVersion(version_string)
+
     return SemverVersion(version_string)
 
 
