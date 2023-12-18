@@ -6,6 +6,7 @@ const DEFAULT_API_CONFIG = {
     "Access-Control-Allow-Origin": "*",
   },
   timeout: 30000,
+  paramsSerializer: { indexes: null },
 };
 
 const instance = axios.create({ ...DEFAULT_API_CONFIG });

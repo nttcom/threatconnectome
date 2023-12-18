@@ -21,6 +21,7 @@ import {
   ResetPassword,
   Status,
   Tag,
+  TopicManagement,
   PTeam,
   Zone,
   ZoneEdit,
@@ -78,6 +79,9 @@ root.render(
                   <Route path="*" element={<Navigate to="/" />} />
                   <Route path="analysis">
                     <Route index element={<Analysis />} />
+                  </Route>
+                  <Route path="topics">
+                    <Route index element={<TopicManagement />} />
                   </Route>
                 </Route>
               </Routes>
