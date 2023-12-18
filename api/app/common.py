@@ -9,7 +9,7 @@ from fastapi.responses import Response
 from sqlalchemy import and_, delete, exists, func, literal, literal_column, or_, select, text
 from sqlalchemy.dialects.postgresql import insert as psql_insert
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import true
+from sqlalchemy.sql.expression import false, true
 
 from app import models, schemas
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
@@ -130,7 +130,7 @@ def validate_zone(
     user_id: Union[UUID, str],
     zone_name: str,
     on_error: Optional[int] = None,
-    auth_mode: str = "apply",  # read | apply | admin
+    auth_mode: Optional[str] = None,  # None | read | apply | admin
     on_auth_error: Optional[int] = None,
     on_archived: Optional[int] = None,
 ) -> Optional[models.Zone]:
@@ -144,14 +144,15 @@ def validate_zone(
         if on_error is None:
             return None
         raise HTTPException(status_code=on_error, detail="No such zone")
-    # FIXME: need update auth check depends on auth_mode
-    if not check_gteam_membership(db, row.gteam_id, user_id):
-        if on_auth_error:
-            raise HTTPException(
-                status_code=on_auth_error,
-                detail="You do not have related zone",  # FIXME: correct message?
-            )
-        return None
+    if auth_mode:
+        # FIXME: need update auth check depends on auth_mode
+        if not check_gteam_membership(db, row.gteam_id, user_id):
+            if on_auth_error:
+                raise HTTPException(
+                    status_code=on_auth_error,
+                    detail="You do not have related zone",  # FIXME: correct message?
+                )
+            return None
     if on_archived and row.archived:
         raise HTTPException(
             status_code=on_archived,
@@ -210,6 +211,23 @@ def validate_tag(
     if row is None and on_error is not None:
         raise HTTPException(status_code=on_error, detail="No such tag")
     return row
+
+
+def validate_misp_tag(
+    db: Session,
+    tag_id: Optional[Union[UUID, str]] = None,
+    tag_name: Optional[str] = None,
+) -> Optional[models.MispTag]:
+    if tag_id is None and tag_name is None:
+        return None
+    return (
+        db.query(models.MispTag)
+        .filter(
+            true() if tag_id is None else models.MispTag.tag_id == str(tag_id),
+            true() if tag_name is None else models.MispTag.tag_name == tag_name,
+        )
+        .one_or_none()
+    )
 
 
 def check_tags_exist(db: Session, tag_names: List[str]):
@@ -516,7 +534,238 @@ def validate_topic(
     return topic
 
 
-def search_topics(
+sortkey2orderby: Dict[schemas.TopicSortKey, list] = {
+    schemas.TopicSortKey.THREAT_IMPACT: [
+        models.Topic.threat_impact,
+        models.Topic.updated_at.desc(),
+    ],
+    schemas.TopicSortKey.THREAT_IMPACT_DESC: [
+        models.Topic.threat_impact.desc(),
+        models.Topic.updated_at.desc(),
+    ],
+    schemas.TopicSortKey.UPDATED_AT: [
+        models.Topic.updated_at,
+        models.Topic.threat_impact,
+    ],
+    schemas.TopicSortKey.UPDATED_AT_DESC: [
+        models.Topic.updated_at.desc(),
+        models.Topic.threat_impact,
+    ],
+}
+
+
+def search_topics_internal(
+    db: Session,
+    current_user: models.Account,
+    offset: int = 0,
+    limit: int = 10,
+    sort_key: schemas.TopicSortKey = schemas.TopicSortKey.THREAT_IMPACT,
+    threat_impacts: Optional[List[int]] = None,
+    title_words: Optional[List[Optional[str]]] = None,
+    abstract_words: Optional[List[Optional[str]]] = None,
+    tag_ids: Optional[List[Optional[str]]] = None,
+    misp_tag_ids: Optional[List[Optional[str]]] = None,
+    zone_names: Optional[List[Optional[str]]] = None,
+    topic_ids: Optional[List[str]] = None,
+    creator_ids: Optional[List[str]] = None,
+    created_after: Optional[datetime] = None,
+    created_before: Optional[datetime] = None,
+    updated_after: Optional[datetime] = None,
+    updated_before: Optional[datetime] = None,
+) -> dict:
+    # current_user accessible topics
+    pteam_ids_stmt = select(models.PTeamAccount.pteam_id).filter(
+        models.PTeamAccount.user_id == current_user.user_id
+    )
+    pteam_ids_via_ateams_stmt = select(models.ATeamPTeam.pteam_id).join(
+        models.ATeamAccount,
+        and_(
+            models.ATeamAccount.user_id == current_user.user_id,
+            models.ATeamAccount.ateam_id == models.ATeamPTeam.ateam_id,
+        ),
+    )
+    zone_names_via_pteams_stmt = (
+        select(models.PTeamZone.zone_name)
+        .filter(
+            or_(
+                models.PTeamZone.pteam_id.in_(pteam_ids_stmt),
+                models.PTeamZone.pteam_id.in_(pteam_ids_via_ateams_stmt),
+            ),
+        )
+        .distinct()
+    )
+    zone_names_via_gteams_stmt = select(models.Zone.zone_name).join(
+        models.GTeamAccount,
+        and_(
+            models.GTeamAccount.user_id == current_user.user_id,
+            models.GTeamAccount.gteam_id == models.Zone.gteam_id,
+        ),
+    )
+    current_user_accessible_stmt = or_(
+        models.TopicZone.zone_name.is_(None),
+        models.TopicZone.zone_name.in_(zone_names_via_pteams_stmt),
+        models.TopicZone.zone_name.in_(zone_names_via_gteams_stmt),
+    )
+
+    # additional search conditions
+    search_by_threat_impacts_stmt = (
+        true()
+        if threat_impacts is None  # do not filter by threat_impact
+        else models.Topic.threat_impact.in_(threat_impacts)
+    )
+    search_by_zone_names_stmt = (
+        true()
+        if zone_names is None  # do not filter by zone
+        else or_(
+            false(),
+            *[
+                models.TopicZone.zone_name.is_(None)  # public
+                if zone_name is None
+                else models.TopicZone.zone_name == zone_name
+                for zone_name in zone_names
+            ],
+        )
+    )
+    search_by_tag_ids_stmt = (
+        true()
+        if tag_ids is None  # do not filter by tag_id
+        else or_(
+            false(),
+            *[
+                models.TopicTag.tag_id.is_(None)  # no tags
+                if tag_id is None
+                else models.TopicTag.tag_id == tag_id
+                for tag_id in tag_ids
+            ],
+        )
+    )
+    search_by_misp_tag_ids_stmt = (
+        true()
+        if misp_tag_ids is None  # do not filter by misp_tag_id
+        else or_(
+            false(),
+            *[
+                models.TopicMispTag.tag_id.is_(None)  # no misp_tags
+                if misp_tag_id is None
+                else models.TopicMispTag.tag_id == misp_tag_id
+                for misp_tag_id in misp_tag_ids
+            ],
+        )
+    )
+    search_by_topic_ids_stmt = (
+        true()
+        if topic_ids is None  # do not filter by topic_id
+        else models.Topic.topic_id.in_(topic_ids)
+    )
+    search_by_creator_ids_stmt = (
+        true()
+        if creator_ids is None  # do not filter by created_by
+        else models.Topic.created_by.in_(creator_ids)
+    )
+    search_by_title_words_stmt = (
+        true()
+        if title_words is None  # do not filter by title
+        else or_(
+            false(),
+            *[
+                models.Topic.title == ""  # empty title
+                if title_word is None
+                else models.Topic.title.icontains(title_word, autoescape=True)
+                for title_word in title_words
+            ],
+        )
+    )
+    search_by_abstract_words_stmt = (
+        true()
+        if abstract_words is None  # do not filter by abstract
+        else or_(
+            false(),
+            *[
+                models.Topic.abstract == ""  # empty abstract
+                if abstract_word is None
+                else models.Topic.abstract.icontains(abstract_word, autoescape=True)
+                for abstract_word in abstract_words
+            ],
+        )
+    )
+    search_by_created_before_stmt = (
+        true()
+        if created_before is None  # do not filter by created_before
+        else models.Topic.created_at <= created_before
+    )
+    search_by_created_after_stmt = (
+        true()
+        if created_after is None  # do not filter by created_after
+        else models.Topic.created_at >= created_after
+    )
+    search_by_updated_before_stmt = (
+        true()
+        if updated_before is None  # do not filter by updated_before
+        else models.Topic.updated_at <= updated_before
+    )
+    search_by_updated_after_stmt = (
+        true()
+        if updated_after is None  # do not filter by updated_after
+        else models.Topic.updated_at >= updated_after
+    )
+
+    search_conditions = [
+        search_by_threat_impacts_stmt,
+        search_by_zone_names_stmt,
+        search_by_tag_ids_stmt,
+        search_by_misp_tag_ids_stmt,
+        search_by_topic_ids_stmt,
+        search_by_creator_ids_stmt,
+        search_by_title_words_stmt,
+        search_by_abstract_words_stmt,
+        search_by_created_before_stmt,
+        search_by_created_after_stmt,
+        search_by_updated_before_stmt,
+        search_by_updated_after_stmt,
+    ]
+    filter_topics_stmt = and_(
+        models.Topic.disabled.is_(False),
+        current_user_accessible_stmt,
+        *search_conditions,
+    )
+
+    # join tables only if required
+    select_topics_stmt = select(models.Topic).outerjoin(models.TopicZone)
+    select_count_stmt = select(func.count(models.Topic.topic_id.distinct())).outerjoin(
+        models.TopicZone
+    )
+    if tag_ids is not None:
+        select_topics_stmt = select_topics_stmt.outerjoin(models.TopicTag)
+        select_count_stmt = select_count_stmt.outerjoin(models.TopicTag)
+    if misp_tag_ids is not None:
+        select_topics_stmt = select_topics_stmt.outerjoin(models.TopicMispTag)
+        select_count_stmt = select_count_stmt.outerjoin(models.TopicMispTag)
+
+    # count total amount of matched topics
+    count_result_stmt = select_count_stmt.where(filter_topics_stmt)
+    num_topics = db.scalars(count_result_stmt).one()
+
+    # search topics
+    search_topics_stmt = (
+        select_topics_stmt.where(filter_topics_stmt)
+        .distinct()
+        .order_by(*sortkey2orderby[sort_key])
+        .offset(offset)
+        .limit(limit)
+    )
+    topics = db.scalars(search_topics_stmt).all()
+
+    result = {
+        "num_topics": num_topics,
+        "sort_key": sort_key,
+        "offset": offset,
+        "limit": limit,
+        "topics": topics,
+    }
+    return result
+
+
+def get_topics_internal(
     db: Session,
     user_id: Union[UUID, str],
     zones: Optional[List[str]] = None,

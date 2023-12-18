@@ -14,6 +14,7 @@ from app.common import (
     check_ateam_auth,
     check_ateam_membership,
     check_pteam_auth,
+    sortkey2orderby,
     validate_ateam,
     validate_pteam,
     validate_topic,
@@ -805,27 +806,7 @@ def get_topic_status(
         .subquery()
     )
 
-    sort_rules = (
-        [
-            models.Topic.threat_impact,
-            models.Topic.updated_at.desc(),
-        ]
-        if sort_key == schemas.TopicSortKey.THREAT_IMPACT
-        else [
-            models.Topic.threat_impact.desc(),
-            models.Topic.updated_at.desc(),
-        ]
-        if sort_key == schemas.TopicSortKey.THREAT_IMPACT_DESC
-        else [
-            models.Topic.updated_at,
-            models.Topic.threat_impact,
-        ]
-        if sort_key == schemas.TopicSortKey.UPDATED_AT
-        else [  # schemas.TopicSortKey.UPDATED_AT_DESC
-            models.Topic.updated_at.desc(),
-            models.Topic.threat_impact,
-        ]
-    ) + [
+    sort_rules = sortkey2orderby[sort_key] + [
         models.TopicTag.topic_id,  # group by topic
         nullsfirst(models.PTeamTopicTagStatus.topic_status),  # worst state on array[0]
         models.PTeamTopicTagStatus.scheduled_at.desc(),  # latest on array[0] if worst is scheduled

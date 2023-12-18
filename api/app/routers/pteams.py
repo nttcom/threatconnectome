@@ -22,8 +22,8 @@ from app.common import (
     get_or_create_topic_tag,
     get_pteam_topic_status_history,
     get_pteamtags_summary,
+    get_topics_internal,
     pteam_topic_tag_status_to_response,
-    search_topics,
     set_pteam_topic_status_internal,
     update_zones,
     validate_pteam,
@@ -383,7 +383,7 @@ def get_pteam_topics(
     # FIXME:
     #   should fix the case current_user has more zones than this pteam.
     #
-    return search_topics(db, current_user.user_id, tag_ids=tag_ids)
+    return get_topics_internal(db, current_user.user_id, tag_ids=tag_ids)
 
 
 def _db_update_pteamtags(

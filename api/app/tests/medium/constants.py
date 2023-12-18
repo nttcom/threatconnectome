@@ -54,6 +54,7 @@ EXT_TAG3 = {
 }
 MISPTAG1 = "tlp:amber"
 MISPTAG2 = "tlp:clear"
+MISPTAG3 = "tlp:red"
 ZONE1 = {
     "zone_name": "metemcyber:org:nttcom",
     "zone_info": "zone info one",

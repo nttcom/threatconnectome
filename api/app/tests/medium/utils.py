@@ -269,6 +269,23 @@ def create_topic(
     return schemas.TopicCreateResponse(**response.json())
 
 
+def update_topic(
+    user: dict,
+    topic: schemas.TopicEntry,
+    params: dict,
+) -> schemas.TopicResponse:
+    data = assert_200(client.put(f"/topics/{topic.topic_id}", headers=headers(user), json=params))
+    return schemas.TopicResponse(**data)
+
+
+def search_topics(
+    user: dict,
+    params: dict,
+) -> schemas.SearchTopicsResponse:
+    data = assert_200(client.get("/topics/search", headers=headers(user), params=params))
+    return schemas.SearchTopicsResponse(**data)
+
+
 def create_action(
     user: dict,
     action: dict,
