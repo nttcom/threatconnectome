@@ -5,6 +5,7 @@ import pytest
 from app.version import (
     ExtDebianVersion,
     ExtPypiVersion,
+    GolangVersion,
     PackageFamily,
     SemverVersion,  # from univers
     VulnerableRange,
@@ -361,6 +362,54 @@ class TestComparableVersion:
                 return
             sem_obj = gen_version_instance(PackageFamily.NPM, version_string)
             assert isinstance(sem_obj, SemverVersion)
+            assert (sem_obj.major, sem_obj.minor, sem_obj.patch, sem_obj.prerelease) == expected
+
+    class TestGoVersion(_TestVersion):
+        @pytest.mark.parametrize(
+            "version_string, expected",
+            [
+                ("1.2.3", (1, 2, 3, ())),
+                ("0.0.0-20180523222229-09b5706aa936", (0, 0, 0, ("20180523222229-09b5706aa936",))),
+                (
+                    "0.15.0-rc.1",
+                    (
+                        0,
+                        15,
+                        0,
+                        (
+                            "rc",
+                            "1",
+                        ),
+                    ),
+                ),
+                (
+                    "0.5.0-alpha.5.0.20190108173120-83c051b701d3",
+                    (
+                        0,
+                        5,
+                        0,
+                        (
+                            "alpha",
+                            "5",
+                            "0",
+                            "20190108173120-83c051b701d3",
+                        ),
+                    ),
+                ),
+                ("0.15.4-beta", (0, 15, 4, ("beta",))),
+                ("0.0.1-alpha-1", (0, 0, 1, ("alpha-1",))),
+                ("2.0.0-dev", (2, 0, 0, ("dev",))),
+                ("1.12.1-stable", (1, 12, 1, ("stable",))),
+                ("4.0.0-preview1", (4, 0, 0, ("preview1",))),
+            ],
+        )
+        def test_gen_instance(self, version_string, expected):
+            if isinstance(expected, str):
+                with pytest.raises(ValueError, match=expected):
+                    gen_version_instance(PackageFamily.GO, version_string)
+                return
+            sem_obj = gen_version_instance(PackageFamily.GO, version_string)
+            assert isinstance(sem_obj, GolangVersion)
             assert (sem_obj.major, sem_obj.minor, sem_obj.patch, sem_obj.prerelease) == expected
 
 
