@@ -24,23 +24,73 @@ import moment from "moment";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-export default function TopicSearchModal(props) {
-  const { setShow, show } = props;
+export function TopicSearchModal(props) {
+  const { show, onSearch, onCancel } = props;
 
-  const [startData, setStartData] = useState({});
-  const [endData, setEndData] = useState({});
+  const [titleWords, setTitleWords] = useState("");
+  const [mispTags, setMispTags] = useState("");
+  const [creatorIds, setCreatorIds] = useState("");
+  const [topicIds, setTopicIds] = useState("");
+  const [updatedAfter, setUpdatedAfter] = useState(null); // moment object
+  const [updatedBefore, setUpdatedBefore] = useState(null); // moment object
   const [adModeChange, setAdModeChange] = useState(false);
-  const [dateFormList, setDateFormList] = useState("none");
+  const [dateFormList, setDateFormList] = useState("");
 
   const advancedChange = (event) => {
     setAdModeChange(event.target.checked);
+    if (!event.target.checked) clearAdvancedParams(); // clear on close
   };
 
-  const searchModalClose = () => setShow(false);
+  const handleCancel = () => {
+    onCancel();
+    clearAllParams();
+  };
 
-  const now = moment();
+  const handleSearch = () => {
+    const params = {
+      titleWords: titleWords,
+      mispTags: mispTags,
+      topicIds: topicIds,
+      creatorIds: creatorIds,
+      updatedAfter: updatedAfter?.utc?.().toDate(),
+      updatedBefore: updatedBefore?.utc?.().toDate(),
+    };
+    onSearch(params);
+    clearAllParams();
+  };
+
+  const clearAdvancedParams = () => {
+    setCreatorIds("");
+    setTopicIds("");
+    setUpdatedAfter(null);
+    setUpdatedBefore(null);
+    setDateFormList("");
+  };
+
+  const clearAllParams = () => {
+    setTitleWords("");
+    setMispTags("");
+    clearAdvancedParams();
+  };
 
   const dateFormChange = (event) => {
+    setUpdatedBefore(null);
+    switch (event.target.value) {
+      case "":
+      case "range":
+      case "since":
+      case "until":
+        setUpdatedAfter(null);
+        break;
+      case "in24hours":
+        setUpdatedAfter(moment().add(-1, "days"));
+        break;
+      case "in7days":
+        setUpdatedAfter(moment().add(-7, "days"));
+        break;
+      default:
+        break;
+    }
     setDateFormList(event.target.value);
   };
 
@@ -83,7 +133,13 @@ export default function TopicSearchModal(props) {
         <Typography sx={{ marginTop: "10px" }}>Title</Typography>
       </Grid>
       <Grid item xs={10} md={10} sx={{ display: "flex" }}>
-        <TextField variant="outlined" size="small" sx={{ width: "95%" }} />
+        <TextField
+          value={titleWords}
+          onChange={(event) => setTitleWords(event.target.value)}
+          variant="outlined"
+          size="small"
+          sx={{ width: "95%" }}
+        />
       </Grid>
     </Grid>
   );
@@ -94,7 +150,13 @@ export default function TopicSearchModal(props) {
         <Typography sx={{ marginTop: "10px" }}>MISP Tag</Typography>
       </Grid>
       <Grid item xs={10} md={10}>
-        <TextField variant="outlined" size="small" sx={{ width: "95%" }} />
+        <TextField
+          value={mispTags}
+          onChange={(event) => setMispTags(event.target.value)}
+          variant="outlined"
+          size="small"
+          sx={{ width: "95%" }}
+        />
       </Grid>
     </Grid>
   );
@@ -108,8 +170,8 @@ export default function TopicSearchModal(props) {
         <FormControl variant="standard" sx={{ m: 1, maxWidth: 200 }}>
           <Select value={dateFormList} onChange={dateFormChange}>
             <MenuItem value="">None</MenuItem>
-            <MenuItem value="today">Last 24h</MenuItem>
-            <MenuItem value="week">Last 7days</MenuItem>
+            <MenuItem value="in24hours">Last 24h</MenuItem>
+            <MenuItem value="in7days">Last 7days</MenuItem>
             <MenuItem value="range">Date Range</MenuItem>
             <MenuItem value="since">Since</MenuItem>
             <MenuItem value="until">Until</MenuItem>
@@ -117,67 +179,57 @@ export default function TopicSearchModal(props) {
         </FormControl>
         {(dateFormList === "since" || dateFormList === "until") && (
           <Grid item xs={5}>
-            <LocalizationProvider dateAdapter={AdapterMoment}>
-              <DateTimePicker
-                inputFormat="YYYY/MM/DD HH:mm"
-                mask="____/__/__ __:__"
-                minDateTime={now}
-                onChange={(moment) =>
-                  setStartData({ ...startData, expiration: moment ? moment.toDate() : "" })
-                }
-                renderInput={(params) => (
-                  <TextField fullWidth margin="dense" required {...params} />
-                )}
-                value={startData.expiration}
-              />
-            </LocalizationProvider>
+            <DateTimePicker
+              inputFormat="YYYY/MM/DD HH:mm"
+              mask="____/__/__ __:__"
+              maxDateTime={moment()}
+              value={dateFormList === "since" ? updatedAfter : updatedBefore}
+              onChange={(moment) =>
+                (dateFormList === "since" ? setUpdatedAfter : setUpdatedBefore)(moment)
+              }
+              renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
+            />
           </Grid>
         )}
-
         {dateFormList === "range" && (
           <Grid item xs={11.4} display="flex">
-            <LocalizationProvider dateAdapter={AdapterMoment}>
-              <DateTimePicker
-                inputFormat="YYYY/MM/DD HH:mm"
-                mask="____/__/__ __:__"
-                minDateTime={now}
-                onChange={(moment) =>
-                  setStartData({ ...startData, expiration: moment ? moment.toDate() : "" })
-                }
-                renderInput={(params) => (
-                  <TextField fullWidth margin="dense" required {...params} />
-                )}
-                value={startData.expiration}
-              />
-            </LocalizationProvider>
+            <DateTimePicker
+              inputFormat="YYYY/MM/DD HH:mm"
+              mask="____/__/__ __:__"
+              maxDateTime={updatedBefore || moment()}
+              value={updatedAfter}
+              onChange={(moment) => setUpdatedAfter(moment)}
+              renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
+            />
             <Typography sx={{ margin: "20px" }}>~</Typography>
-            <LocalizationProvider dateAdapter={AdapterMoment}>
-              <DateTimePicker
-                inputFormat="YYYY/MM/DD HH:mm"
-                mask="____/__/__ __:__"
-                minDateTime={now}
-                onChange={(moment) =>
-                  setEndData({ ...endData, expiration: moment ? moment.toDate() : "" })
-                }
-                renderInput={(params) => (
-                  <TextField fullWidth margin="dense" required {...params} />
-                )}
-                value={endData.expiration}
-              />
-            </LocalizationProvider>
+            <DateTimePicker
+              inputFormat="YYYY/MM/DD HH:mm"
+              mask="____/__/__ __:__"
+              minDateTime={updatedAfter}
+              maxDateTime={moment()}
+              value={updatedBefore}
+              onChange={(moment) => setUpdatedBefore(moment)}
+              renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
+            />
           </Grid>
         )}
       </Grid>
     </Grid>
   );
 
-  const createrForm = (
+  const creatorForm = (
     <Grid container sx={{ margin: 1.5 }}>
       <Grid item xs={2} md={2}>
-        <Typography sx={{ marginTop: "10px" }}>Creater ID</Typography>
+        <Typography sx={{ marginTop: "10px" }}>Creator ID</Typography>
       </Grid>
       <Grid item xs={10} md={10}>
-        <TextField variant="outlined" size="small" sx={{ width: "95%" }} />
+        <TextField
+          value={creatorIds}
+          onChange={(event) => setCreatorIds(event.target.value)}
+          variant="outlined"
+          size="small"
+          sx={{ width: "95%" }}
+        />
       </Grid>
     </Grid>
   );
@@ -185,44 +237,52 @@ export default function TopicSearchModal(props) {
   const uuidForm = (
     <Grid container sx={{ margin: 1.5 }}>
       <Grid item xs={2} md={2}>
-        <Typography sx={{ marginTop: "10px" }}>UUID</Typography>
+        <Typography sx={{ marginTop: "10px" }}>Topic ID</Typography>
       </Grid>
       <Grid item xs={10} md={10}>
-        <TextField variant="outlined" size="small" sx={{ width: "95%" }} />
+        <TextField
+          value={topicIds}
+          onChange={(event) => setTopicIds(event.target.value)}
+          variant="outlined"
+          size="small"
+          sx={{ width: "95%" }}
+        />
       </Grid>
     </Grid>
   );
 
   return (
     <>
-      <Dialog onClose={searchModalClose} open={show} PaperProps={{ sx: { width: 700 } }}>
+      <Dialog onClose={handleCancel} open={show} PaperProps={{ sx: { width: 700 } }}>
         <>
           <DialogTitle>
             <Box alignItems="center" display="flex" flexDirection="row" sx={{ mb: -3 }}>
               <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
                 Topic Search
               </Typography>
-              <IconButton onClick={() => setShow(false)} sx={{ color: grey[500] }}>
+              <IconButton onClick={handleCancel} sx={{ color: grey[500] }}>
                 <CloseIcon />
               </IconButton>
             </Box>
           </DialogTitle>
           <DialogContent>
-            <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-              <FormControlLabel
-                control={<Android12Switch checked={adModeChange} onChange={advancedChange} />}
-                label="Advanced Mode"
-              />
-            </Box>
-            {titleForm}
-            {mispForm}
-            {adModeChange && (
-              <Box>
-                {dateForm}
-                {uuidForm}
-                {createrForm}
+            <LocalizationProvider dateAdapter={AdapterMoment}>
+              <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+                <FormControlLabel
+                  control={<Android12Switch checked={adModeChange} onChange={advancedChange} />}
+                  label="Advanced Mode"
+                />
               </Box>
-            )}
+              {titleForm}
+              {mispForm}
+              {adModeChange && (
+                <Box>
+                  {dateForm}
+                  {uuidForm}
+                  {creatorForm}
+                </Box>
+              )}
+            </LocalizationProvider>
           </DialogContent>
           <DialogActions>
             <Box display="flex">
@@ -230,7 +290,7 @@ export default function TopicSearchModal(props) {
                 variant="contained"
                 color="success"
                 sx={{ margin: 1, textTransform: "none" }}
-                onClick={() => setShow(false)}
+                onClick={handleSearch}
               >
                 Search
               </Button>
@@ -242,6 +302,7 @@ export default function TopicSearchModal(props) {
   );
 }
 TopicSearchModal.propTypes = {
-  setShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
+  onSearch: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
 };

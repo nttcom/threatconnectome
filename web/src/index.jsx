@@ -80,7 +80,7 @@ root.render(
                   <Route path="analysis">
                     <Route index element={<Analysis />} />
                   </Route>
-                  <Route path="topicmanagement">
+                  <Route path="topics">
                     <Route index element={<TopicManagement />} />
                   </Route>
                 </Route>

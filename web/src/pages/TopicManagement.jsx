@@ -21,49 +21,162 @@ import {
   Paper,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import React from "react";
+import { useSnackbar } from "notistack";
+import PropTypes from "prop-types";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import TopicSearchModal from "../components/TopicSearchModal";
+import { TopicSearchModal } from "../components/TopicSearchModal";
+import { getActions, getTopic } from "../slices/topics";
+import { searchTopics } from "../utils/api";
 import { difficulty, difficultyColors } from "../utils/const";
+import { errorToString } from "../utils/func";
 
-const testTopics = [
-  {
-    lastUpdate: "2023/9/15 14:35:10",
-    action: true,
-    title: "An issue was discovered in the Linux kernel before 6.3.4",
-    threatImpact: 1,
-    mispTag: [
-      "CVE-2023-38429",
-      "CVE-2020-7788",
-      "reportlab:pypi:",
-      "python-reportlab:debian-10",
-      "CVE-2020-7788-CVE-2020-7788",
-    ],
-  },
-  {
-    lastUpdate: "2023/9/15 14:35:10",
-    action: false,
-    title: "invalid kfree in fs/ntfs3/inode.c",
-    threatImpact: 2,
-    mispTag: ["CVE-2023-0810", "CVE-2020-8870", "python-reportlab:debian-11", "reportlab:pypi:"],
-  },
-  {
-    lastUpdate: "2023/9/16 14:40:10",
-    action: true,
-    title: "In multiple functions of binder.c, there is a possible memory",
-    threatImpact: 3,
-    mispTag: ["CVE-2023-0227", "CVE-2020-7788", "python-reportlab:debian-10", "reportlab:pypi:"],
-  },
-];
+function TopicManagementTableRow(props) {
+  const { topicId } = props;
+
+  const dispatch = useDispatch();
+
+  const topics = useSelector((state) => state.topics.topics);
+  const actions = useSelector((state) => state.topics.actions);
+
+  useEffect(() => {
+    if (topics?.[topicId] === undefined) dispatch(getTopic(topicId));
+    if (actions?.[topicId] === undefined) dispatch(getActions(topicId));
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, []);
+
+  const topic = topics?.[topicId];
+  const actionList = actions?.[topicId];
+
+  if (!topic) {
+    return (
+      <TableRow>
+        <TableCell>Loading...</TableCell>
+      </TableRow>
+    );
+  }
+
+  return (
+    <TableRow
+      key={topic.topic_id}
+      sx={{
+        height: 80,
+        cursor: "pointer",
+        "&:last-child td, &:last-child th": { border: 0 },
+        "&:hover": { bgcolor: grey[100] },
+        borderLeft: `solid 5px ${difficultyColors[difficulty[topic.threat_impact - 1]]}`,
+      }}
+    >
+      <TableCell>
+        {/* FIXME: should arrange datetime format using moment.js or something else */}
+        <Typography sx={{ overflowWrap: "anywhere" }}>{topic.updated_at}</Typography>
+      </TableCell>
+      <TableCell>
+        {actionList?.length > 0 ? (
+          <CheckCircleOutlineIcon color="success" />
+        ) : (
+          <CheckCircleOutlineIcon sx={{ color: grey[500] }} />
+        )}
+      </TableCell>
+      <TableCell>
+        <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
+          {topic.title}
+        </Typography>
+      </TableCell>
+      <TableCell>
+        {topic.misp_tags.map((misp_tag) => (
+          <Chip
+            key={misp_tag.tag_id}
+            label={misp_tag.tag_name}
+            size="small"
+            sx={{ m: 0.5, borderRadius: 0.5 }}
+          />
+        ))}
+      </TableCell>
+    </TableRow>
+  );
+}
+TopicManagementTableRow.propTypes = {
+  topicId: PropTypes.string.isRequired,
+};
 
 export function TopicManagement() {
-  const [searchMenuOpen, setSearchMenuOpen] = React.useState(false);
+  const perPageItems = [10, 20, 50, 100];
+
+  const [searchMenuOpen, setSearchMenuOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(perPageItems[0]);
+  const [searchConditions, setSearchConditions] = useState({});
+  const [searchResult, setSearchResult] = useState(undefined);
+
+  const { enqueueSnackbar } = useSnackbar();
+  const user = useSelector((state) => state.user.user);
+
+  const pageMax = Math.ceil((searchResult?.num_topics ?? 0) / perPage);
+
+  const evalSearchTopics = async () => {
+    const queryParams = {
+      offset: perPage * (page - 1),
+      limit: perPage,
+      sort_key: "threat_impact",
+      ...searchConditions,
+    };
+    await searchTopics(queryParams)
+      .then((response) => setSearchResult(response.data))
+      .catch((error) =>
+        enqueueSnackbar(`Search topics failed: ${errorToString(error)}`, {
+          variant: "error",
+        })
+      );
+  };
+
+  useEffect(() => {
+    if (!user?.user_id) return;
+    evalSearchTopics();
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [page, perPage, searchConditions, user]);
+
+  const paramsToSearchQuery = (params) => {
+    const delimiter = "|";
+    let query = {};
+    if (params?.titleWords?.length > 0) query.title_words = params.titleWords.split(delimiter);
+    if (params?.mispTags?.length > 0) query.misp_tag_names = params.mispTags.split(delimiter);
+    if (params?.topicIds?.length > 0) query.topic_ids = params.topicIds.split(delimiter);
+    if (params?.creatorIds?.length > 0) query.creator_ids = params.creatorIds.split(delimiter);
+    if (params?.updatedAfter) query.updated_after = params.updatedAfter;
+    if (params?.updatedBefore) query.updated_before = params.updatedBefore;
+    return query;
+  };
+
+  const handleSearch = (params) => {
+    setSearchMenuOpen(false);
+    setPage(1); // reset page for new search result
+    setSearchConditions(paramsToSearchQuery(params));
+  };
+
+  const handleCancel = () => {
+    setSearchMenuOpen(false);
+  };
 
   const filterRow = (
     <Box display="flex" alignItems="center" sx={{ mt: 1 }}>
-      <Pagination shape="rounded" />
-      <Select size="small" variant="standard">
-        {[10, 20, 50, 100].map((num) => (
+      <Pagination
+        shape="rounded"
+        page={page}
+        count={pageMax}
+        onChange={(event, value) => setPage(value)}
+      />
+      <Select
+        size="small"
+        variant="standard"
+        value={perPage}
+        onChange={(event) => {
+          setPage(1); // reset page for new perPage
+          setPerPage(event.target.value);
+        }}
+      >
+        {perPageItems.map((num) => (
           <MenuItem key={num} value={num} sx={{ justifyContent: "space-between" }}>
             <Typography variant="body2" sx={{ mt: 0.3 }}>
               {num} Rows
@@ -74,6 +187,10 @@ export function TopicManagement() {
       <Box flexGrow={1} />
     </Box>
   );
+
+  const topics = searchResult?.topics;
+
+  if (!topics) return <>Loading...</>;
 
   return (
     <>
@@ -118,46 +235,20 @@ export function TopicManagement() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {testTopics.map((testTopic) => (
-              <TableRow
-                key={testTopic.name}
-                sx={{
-                  height: 80,
-                  cursor: "pointer",
-                  "&:last-child td, &:last-child th": { border: 0 },
-                  "&:hover": { bgcolor: grey[100] },
-                  borderLeft: `solid 5px ${
-                    difficultyColors[difficulty[testTopic.threatImpact - 1]]
-                  }`,
-                }}
-              >
-                <TableCell>
-                  <Typography sx={{ overflowWrap: "anywhere" }}>{testTopic.lastUpdate}</Typography>
-                </TableCell>
-                <TableCell>
-                  {testTopic.action ? (
-                    <CheckCircleOutlineIcon color="success" />
-                  ) : (
-                    <CheckCircleOutlineIcon sx={{ color: grey[500] }} />
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
-                    {testTopic.title}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  {testTopic.mispTag.map((misp) => (
-                    <Chip label={misp} key={misp} size="small" sx={{ m: 0.5, borderRadius: 0.5 }} />
-                  ))}
-                </TableCell>
+            {topics?.length > 0 ? (
+              topics.map((topic) => (
+                <TopicManagementTableRow key={topic.topic_id} topicId={topic.topic_id} />
+              ))
+            ) : (
+              <TableRow>
+                <TableCell>No topics</TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
       {filterRow}
-      <TopicSearchModal setShow={setSearchMenuOpen} show={searchMenuOpen} />
+      <TopicSearchModal show={searchMenuOpen} onSearch={handleSearch} onCancel={handleCancel} />
     </>
   );
 }

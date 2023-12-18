@@ -155,6 +155,17 @@ export function Drawer() {
             </StyledListItemButton>
           </>
         )}
+        {/* Topics */}
+        <StyledListItemButton
+          onClick={() => navigate("/topics")}
+          selected={location.pathname === "/topics"}
+        >
+          <StyledListItemIcon>
+            <>{/* FIXME */}</>
+          </StyledListItemIcon>
+          <ListItemText>Topic Management</ListItemText>
+        </StyledListItemButton>
+        {/* Account */}
         <StyledListItemButton
           onClick={() => navigate("/account?" + queryParams)}
           selected={location.pathname === "/account"}
@@ -163,11 +174,6 @@ export function Drawer() {
             <AccountCircleIcon />
           </StyledListItemIcon>
           <ListItemText>Account</ListItemText>
-        </StyledListItemButton>
-
-        {/* Temporary storage */}
-        <StyledListItemButton onClick={() => navigate("/topicmanagement")}>
-          <ListItemText>Topic Management</ListItemText>
         </StyledListItemButton>
       </List>
     </MuiDrawer>
