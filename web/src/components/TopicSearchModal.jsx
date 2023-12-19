@@ -19,8 +19,8 @@ import {
 import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
-import moment from "moment";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { addDays } from "date-fns";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
@@ -31,10 +31,12 @@ export function TopicSearchModal(props) {
   const [mispTags, setMispTags] = useState("");
   const [creatorIds, setCreatorIds] = useState("");
   const [topicIds, setTopicIds] = useState("");
-  const [updatedAfter, setUpdatedAfter] = useState(null); // moment object
-  const [updatedBefore, setUpdatedBefore] = useState(null); // moment object
+  const [updatedAfter, setUpdatedAfter] = useState(null); // Date object
+  const [updatedBefore, setUpdatedBefore] = useState(null); // Date object
   const [adModeChange, setAdModeChange] = useState(false);
   const [dateFormList, setDateFormList] = useState("");
+
+  const now = new Date();
 
   const advancedChange = (event) => {
     setAdModeChange(event.target.checked);
@@ -52,8 +54,8 @@ export function TopicSearchModal(props) {
       mispTags: mispTags,
       topicIds: topicIds,
       creatorIds: creatorIds,
-      updatedAfter: updatedAfter?.utc?.().toDate(),
-      updatedBefore: updatedBefore?.utc?.().toDate(),
+      updatedAfter: updatedAfter?.toISOString(),
+      updatedBefore: updatedBefore?.toISOString(),
     };
     onSearch(params);
     clearAllParams();
@@ -83,10 +85,10 @@ export function TopicSearchModal(props) {
         setUpdatedAfter(null);
         break;
       case "in24hours":
-        setUpdatedAfter(moment().add(-1, "days"));
+        setUpdatedAfter(addDays(now, -1));
         break;
       case "in7days":
-        setUpdatedAfter(moment().add(-7, "days"));
+        setUpdatedAfter(addDays(now, -7));
         break;
       default:
         break;
@@ -180,12 +182,12 @@ export function TopicSearchModal(props) {
         {(dateFormList === "since" || dateFormList === "until") && (
           <Grid item xs={5}>
             <DateTimePicker
-              inputFormat="YYYY/MM/DD HH:mm"
+              inputFormat="yyyy/MM/dd HH:mm"
               mask="____/__/__ __:__"
-              maxDateTime={moment()}
+              maxDateTime={now}
               value={dateFormList === "since" ? updatedAfter : updatedBefore}
-              onChange={(moment) =>
-                (dateFormList === "since" ? setUpdatedAfter : setUpdatedBefore)(moment)
+              onChange={(newDate) =>
+                (dateFormList === "since" ? setUpdatedAfter : setUpdatedBefore)(newDate)
               }
               renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
             />
@@ -194,21 +196,21 @@ export function TopicSearchModal(props) {
         {dateFormList === "range" && (
           <Grid item xs={11.4} display="flex">
             <DateTimePicker
-              inputFormat="YYYY/MM/DD HH:mm"
+              inputFormat="yyyy/MM/dd HH:mm"
               mask="____/__/__ __:__"
-              maxDateTime={updatedBefore || moment()}
+              maxDateTime={updatedBefore || now}
               value={updatedAfter}
-              onChange={(moment) => setUpdatedAfter(moment)}
+              onChange={(newDate) => setUpdatedAfter(newDate)}
               renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
             />
             <Typography sx={{ margin: "20px" }}>~</Typography>
             <DateTimePicker
-              inputFormat="YYYY/MM/DD HH:mm"
+              inputFormat="yyyy/MM/dd HH:mm"
               mask="____/__/__ __:__"
               minDateTime={updatedAfter}
-              maxDateTime={moment()}
+              maxDateTime={now}
               value={updatedBefore}
-              onChange={(moment) => setUpdatedBefore(moment)}
+              onChange={(newDate) => setUpdatedBefore(newDate)}
               renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
             />
           </Grid>
@@ -266,7 +268,7 @@ export function TopicSearchModal(props) {
             </Box>
           </DialogTitle>
           <DialogContent>
-            <LocalizationProvider dateAdapter={AdapterMoment}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
               <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
                 <FormControlLabel
                   control={<Android12Switch checked={adModeChange} onChange={advancedChange} />}

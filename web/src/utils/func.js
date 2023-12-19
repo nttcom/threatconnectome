@@ -1,4 +1,4 @@
-import moment from "moment";
+import { addMinutes, format } from "date-fns";
 
 import { getZonedTeams } from "./api";
 
@@ -21,8 +21,13 @@ export const calcTimestampDiff = (timestamp) => {
   }
 };
 
-export const dateTimeFormat = (timestamp) => {
-  return moment.utc(timestamp).local().format();
+export const utcStringToLocalDate = (utcString) => {
+  const tmpDate = new Date(utcString);
+  return addMinutes(tmpDate, -tmpDate.getTimezoneOffset());
+};
+
+export const dateTimeFormat = (utcString) => {
+  return format(utcStringToLocalDate(utcString), "yyyy-MM-dd'T'HH:mm:ssxxx");
 };
 
 export const pickParentTagName = (tagName) => {

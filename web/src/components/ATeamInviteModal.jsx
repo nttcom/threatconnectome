@@ -12,8 +12,8 @@ import {
   Typography,
 } from "@mui/material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
-import moment from "moment";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { addHours, isBefore } from "date-fns";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
@@ -30,7 +30,8 @@ export function ATeamInviteModal(props) {
   const ateamId = useSelector((state) => state.ateam.ateamId);
 
   const [open, setOpen] = useState(false);
-  const [data, setData] = useState({});
+  const [maxUses, setMaxUses] = useState(0);
+  const [expiration, setExpiration] = useState(addHours(new Date(), 1)); // Date object
   const [invitationLink, setInvitationLink] = useState(null);
 
   const { enqueueSnackbar } = useSnackbar();
@@ -39,10 +40,8 @@ export function ATeamInviteModal(props) {
     `${window.location.origin}${process.env.PUBLIC_URL}/ateam/join?token=${token}`;
   const handleReset = () => {
     setInvitationLink(null);
-    setData({
-      expiration: moment().add(1, "hours").toDate(),
-      max_uses: 0,
-    });
+    setMaxUses(0);
+    setExpiration(addHours(new Date(), 1));
   };
   const handleOpen = () => {
     handleReset();
@@ -62,15 +61,15 @@ export function ATeamInviteModal(props) {
       });
     }
     const query = {
-      expiration: data.expiration.toISOString(),
-      max_uses: data.max_uses || null,
+      expiration: expiration.toISOString(),
+      max_uses: maxUses || null,
     };
     await createATeamInvitation(ateamId, query)
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
 
-  const now = moment();
+  const now = new Date();
 
   if (!ateamId) return <></>;
 
@@ -84,7 +83,7 @@ export function ATeamInviteModal(props) {
           <Typography variant="inherit">Create New Invitation Link</Typography>
         </DialogTitle>
         <DialogContent>
-          <LocalizationProvider dateAdapter={AdapterMoment}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
             {invitationLink ? (
               <Box display="flex" flexDirection="column">
                 <Typography>Please share the invitation link below:</Typography>
@@ -99,13 +98,12 @@ export function ATeamInviteModal(props) {
               <Grid container alignItems="center">
                 <Grid item p={1} xs={6} sm={6}>
                   <DateTimePicker
-                    inputFormat="YYYY/MM/DD HH:mm"
+                    inputFormat="yyyy/MM/dd HH:mm"
                     label="Expiration Date (future date)"
                     mask="____/__/__ __:__"
                     minDateTime={now}
-                    onChange={(moment) =>
-                      setData({ ...data, expiration: moment ? moment.toDate() : "" })
-                    }
+                    value={expiration}
+                    onChange={(newDate) => setExpiration(newDate)}
                     renderInput={(params) => (
                       <TextField
                         fullWidth
@@ -115,12 +113,11 @@ export function ATeamInviteModal(props) {
                         sx={{ width: "100%" }}
                       />
                     )}
-                    value={data.expiration}
                   />
                 </Grid>
                 <Grid item p={1} xs={6} sm={6}>
                   <Box display="flex" flexDirection="column" justifyContent="center">
-                    <Typography>Max uses: {data.max_uses || "unlimited"}</Typography>
+                    <Typography>Max uses: {maxUses || "unlimited"}</Typography>
                     <Box mx={1}>
                       <Slider
                         step={1}
@@ -130,8 +127,8 @@ export function ATeamInviteModal(props) {
                         }))}
                         max={20}
                         min={0}
-                        onChange={(_, value) => setData({ ...data, max_uses: value })}
-                        value={data.max_uses}
+                        value={maxUses}
+                        onChange={(_, value) => setMaxUses(value)}
                         sx={{ width: "100%" }}
                       />
                     </Box>
@@ -148,7 +145,7 @@ export function ATeamInviteModal(props) {
           {!invitationLink && (
             <Button
               onClick={handleCreate}
-              disabled={!now.isBefore(data.expiration)}
+              disabled={!isBefore(now, expiration)}
               sx={modalCommonButtonStyle}
             >
               Create

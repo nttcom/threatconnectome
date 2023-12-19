@@ -26,6 +26,7 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { FormattedDateTimeWithTooltip } from "../components/FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "../components/TopicSearchModal";
 import { getActions, getTopic } from "../slices/topics";
 import { searchTopics } from "../utils/api";
@@ -69,8 +70,7 @@ function TopicManagementTableRow(props) {
       }}
     >
       <TableCell>
-        {/* FIXME: should arrange datetime format using moment.js or something else */}
-        <Typography sx={{ overflowWrap: "anywhere" }}>{topic.updated_at}</Typography>
+        <FormattedDateTimeWithTooltip utcString={topic.updated_at} />
       </TableCell>
       <TableCell>
         {actionList?.length > 0 ? (
