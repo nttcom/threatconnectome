@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { getPTeamWatcher } from "../slices/pteam";
+import { getPTeam } from "../slices/pteam";
 import { removeWatcherATeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
@@ -17,7 +17,7 @@ export function PTeamWatcherRemoveModal(props) {
 
   const handleRemove = async () => {
     function onSuccess(success) {
-      dispatch(getPTeamWatcher(pteamId));
+      dispatch(getPTeam(pteamId));
       enqueueSnackbar(`Remove watcher ${watcherAteamName} succeeded`, {
         variant: "success",
       });

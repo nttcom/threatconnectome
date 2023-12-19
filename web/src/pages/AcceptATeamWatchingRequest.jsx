@@ -42,6 +42,7 @@ export function AcceptATeamWatchingRequest() {
         `Now pteam '${pteam?.pteam_name}' is watched by ateam '${detail.ateam_name}'`,
         { variant: "info" }
       );
+      dispatch(getPTeam(pteamId));
       params.delete("token");
       params.set("pteamId", pteamId);
       navigate("/pteam?" + params.toString());
