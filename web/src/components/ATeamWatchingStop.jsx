@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { getWatchingPTeams } from "../slices/ateam";
+import { getATeam } from "../slices/ateam";
 import { removeWatchingPTeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
@@ -17,7 +17,7 @@ export function ATeamWatchingStop(props) {
 
   const handleRemove = async () => {
     function onSuccess(success) {
-      dispatch(getWatchingPTeams(ateamId));
+      dispatch(getATeam(ateamId));
       enqueueSnackbar(`Stop watching ${watchingPteamName} succeeded`, {
         variant: "success",
       });
