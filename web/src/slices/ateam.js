@@ -6,7 +6,6 @@ import {
   getATeamAuthInfo as apiGetATeamAuthInfo,
   getATeamMembers as apiGetATeamMembers,
   getATeamTopics as apiGetATeamTopics,
-  getWatchingPTeams as apiGetWatchingPTeams,
 } from "../utils/api";
 
 export const getATeam = createAsyncThunk(
@@ -46,15 +45,6 @@ export const getATeamMembers = createAsyncThunk(
         }),
         {}
       ),
-      ateamId: ateamId,
-    }))
-);
-
-export const getWatchingPTeams = createAsyncThunk(
-  "ateam/getWatchingPTeams",
-  async (ateamId) =>
-    await apiGetWatchingPTeams(ateamId).then((response) => ({
-      data: response.data,
       ateamId: ateamId,
     }))
 );

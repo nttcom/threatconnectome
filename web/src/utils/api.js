@@ -80,8 +80,6 @@ export const getPTeamTopicStatusesSummary = async (pteamId, tagId) =>
 export const getPTeamTopicActions = async (pteamId, topicId) =>
   axios.get(`/topics/${topicId}/actions/pteam/${pteamId}`);
 
-export const getPTeamWatcher = async (pteamId) => axios.get(`/pteams/${pteamId}/watchers`);
-
 export const removeWatcherATeam = async (pteamId, ateamId) =>
   axios.delete(`/pteams/${pteamId}/watchers/${ateamId}`);
 
@@ -113,8 +111,6 @@ export const getATeamAuth = async (ateamId) => axios.get(`/ateams/${ateamId}/aut
 
 export const updateATeamAuth = async (ateamId, data) =>
   axios.post(`/ateams/${ateamId}/authority`, data);
-
-export const getWatchingPTeams = async (ateamId) => axios.get(`/ateams/${ateamId}/watching_pteams`);
 
 export const removeWatchingPTeam = async (ateamId, pteamId) =>
   axios.delete(`/ateams/${ateamId}/watching_pteams/${pteamId}`);

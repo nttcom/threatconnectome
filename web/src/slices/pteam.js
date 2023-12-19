@@ -13,7 +13,6 @@ import {
   getPTeamTopicActions as apiGetPTeamTopicActions,
   getPTeamTopicStatus as apiGetPTeamTopicStatus,
   getPTeamTopicStatusesSummary as apiGetPTeamTopicStatusesSummary,
-  getPTeamWatcher as apiGetPTeamWatcher,
   getPTeamGroups as apiGetPTeamGroups,
 } from "../utils/api";
 
@@ -139,15 +138,6 @@ export const getPTeamTopicActions = createAsyncThunk(
       actions: response.data.actions,
       pteamId: data.pteamId,
       topicId: data.topicId,
-    }))
-);
-
-export const getPTeamWatcher = createAsyncThunk(
-  "pteam/getPTeamWatcher",
-  async (pteamId) =>
-    await apiGetPTeamWatcher(pteamId).then((response) => ({
-      data: response.data,
-      pteamId: pteamId,
     }))
 );
 
