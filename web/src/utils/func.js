@@ -22,12 +22,20 @@ export const calcTimestampDiff = (timestamp) => {
 };
 
 export const utcStringToLocalDate = (utcString) => {
-  const tmpDate = new Date(utcString);
-  return addMinutes(tmpDate, -tmpDate.getTimezoneOffset());
+  try {
+    const tmpDate = new Date(utcString);
+    return addMinutes(tmpDate, -tmpDate.getTimezoneOffset());
+  } catch (error) {
+    return null;
+  }
 };
 
 export const dateTimeFormat = (utcString) => {
-  return format(utcStringToLocalDate(utcString), "yyyy-MM-dd'T'HH:mm:ssxxx");
+  try {
+    return format(utcStringToLocalDate(utcString), "yyyy-MM-dd'T'HH:mm:ssxxx");
+  } catch (error) {
+    return " - ";
+  }
 };
 
 export const pickParentTagName = (tagName) => {
