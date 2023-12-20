@@ -119,7 +119,7 @@ export function TopicManagement() {
     const queryParams = {
       offset: perPage * (page - 1),
       limit: perPage,
-      sort_key: "threat_impact",
+      sort_key: "updated_at_desc",
       ...searchConditions,
     };
     await searchTopics(queryParams)
