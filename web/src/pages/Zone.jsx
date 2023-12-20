@@ -106,13 +106,10 @@ export function Zone() {
         <GTeamLabel gteam={gteam} />
         <Box flexGrow={1} />
       </Box>
-      <Box display="flex" sx={{ mr: 2 }}>
+      <Box display="flex" sx={{ mb: -5, mr: 1 }}>
         <Box flexGrow={1} />
         <Box sx={{ mb: 2, mr: 2 }}>
           <SearchField word={searchWord} onApply={handleSearchWord} />
-        </Box>
-        <Box display="flex" justifyContent="flex-end" sx={{ mt: 1, mb: 2 }}>
-          <ZoneCreateModal gteamId={gteamId} />
         </Box>
       </Box>
       <Box sx={{ width: "100%" }}>
@@ -122,7 +119,11 @@ export function Zone() {
             <Tab label="Archived" {...a11yProps(1)} />
           </Tabs>
         </Box>
+
         <TabPanel value={value} index={0}>
+          <Box display="flex" justifyContent="flex-end" sx={{ mb: 2, mr: 1 }}>
+            <ZoneCreateModal gteamId={gteamId} />
+          </Box>
           <GTeamZoneCard zones={filterZones(zonesSummary?.unarchived_zones)} />
         </TabPanel>
         <TabPanel value={value} index={1}>
