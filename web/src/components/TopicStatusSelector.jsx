@@ -16,8 +16,8 @@ import {
   Typography,
 } from "@mui/material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
-import moment from "moment";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { isBefore } from "date-fns";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useRef, useState } from "react";
@@ -41,7 +41,7 @@ export function TopicStatusSelector(props) {
   const [selectableItems, setSelectableItems] = useState([]);
   const anchorRef = useRef(null);
   const [datepickerOpen, setDatepickerOpen] = useState(false);
-  const [schedule, setSchedule] = useState(null); // local time string (or null)
+  const [schedule, setSchedule] = useState(null); // Date object
 
   const { tagId } = useParams();
   const { enqueueSnackbar } = useSnackbar();
@@ -51,7 +51,7 @@ export function TopicStatusSelector(props) {
 
   const dispatch = useDispatch();
 
-  const dateFormat = "YYYY/MM/DD HH:mm";
+  const dateFormat = "yyyy/MM/dd HH:mm";
 
   useEffect(() => {
     if (!pteamId || !topicId) return;
@@ -77,12 +77,7 @@ export function TopicStatusSelector(props) {
       logging_ids: ttStatus.logging_ids ?? [],
       assignees: ttStatus.assignees ?? [],
       note: ttStatus.note,
-      scheduled_at:
-        selectedStatus === "scheduled"
-          ? moment(schedule ?? "", dateFormat)
-              .utc()
-              .toISOString()
-          : null,
+      scheduled_at: selectedStatus === "scheduled" ? schedule.toISOString() : null,
     })
       .then(() => {
         if (selectedStatus !== ttStatus.topicStatus) {
@@ -132,7 +127,7 @@ export function TopicStatusSelector(props) {
       setSchedule(ttStatus.scheduled_at ? dateTimeFormat(ttStatus.scheduled_at) : null);
       setDatepickerOpen(false);
     };
-    const now = moment();
+    const now = new Date();
     return (
       <>
         <Button
@@ -196,17 +191,17 @@ export function TopicStatusSelector(props) {
             </Box>
           </DialogTitle>
           <DialogContent>
-            <LocalizationProvider dateAdapter={AdapterMoment}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DateTimePicker
                 inputFormat={dateFormat}
                 label="Schedule Date (future date)"
                 mask="____/__/__ __:__"
                 minDateTime={now}
-                onChange={(moment) => setSchedule(moment ? moment.toDate() : "")}
+                value={schedule}
+                onChange={(newDate) => setSchedule(newDate)}
                 renderInput={(params) => (
                   <TextField fullWidth margin="dense" required {...params} />
                 )}
-                value={schedule}
               />
             </LocalizationProvider>
           </DialogContent>
@@ -215,7 +210,7 @@ export function TopicStatusSelector(props) {
             <Button
               variant="contained"
               onClick={handleUpdateSchedule}
-              disabled={!now.isBefore(schedule)}
+              disabled={!isBefore(now, schedule)}
             >
               Schedule
             </Button>

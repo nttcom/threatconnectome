@@ -26,7 +26,7 @@ import {
   Typography,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import moment from "moment";
+import { format } from "date-fns";
 import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -39,7 +39,7 @@ import { AnalysisTopic } from "../components/AnalysisTopic";
 import { getATeam, getATeamAuth } from "../slices/ateam";
 import { getATeamTopics } from "../utils/api";
 import { difficulty, difficultyColors, noATeamMessage } from "../utils/const";
-import { calcTimestampDiff, errorToString } from "../utils/func";
+import { calcTimestampDiff, errorToString, utcStringToLocalDate } from "../utils/func";
 
 export function Analysis() {
   const { enqueueSnackbar } = useSnackbar();
@@ -337,10 +337,10 @@ export function Analysis() {
                             <Box display="flex" alignItems="flex-end">
                               <CalendarMonthIcon fontSize="small" sx={{ color: grey[700] }} />
                               <Typography ml={0.5} variant="caption">
-                                {moment
-                                  .utc(topic.pteams[0].statuses[0].scheduled_at)
-                                  .local()
-                                  .format("YYYY/MM/DD")}
+                                {format(
+                                  utcStringToLocalDate(topic.pteams[0].statuses[0].scheduled_at),
+                                  "yyyy/MM/dd"
+                                )}
                               </Typography>
                             </Box>
                           )}
