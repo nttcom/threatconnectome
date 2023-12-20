@@ -1,9 +1,10 @@
 import {
   AccountCircle as AccountCircleIcon,
   Assessment as AssessmentIcon,
-  Square as SquareIcon,
+  Fence as FenceIcon,
   Groups as GroupsIcon,
   Home as HomeIcon,
+  Topic as TopicIcon,
 } from "@mui/icons-material";
 import {
   Drawer as MuiDrawer,
@@ -140,7 +141,7 @@ export function Drawer() {
               selected={location.pathname === "/zone"}
             >
               <StyledListItemIcon>
-                <SquareIcon />
+                <FenceIcon />
               </StyledListItemIcon>
               <ListItemText>Zone</ListItemText>
             </StyledListItemButton>
@@ -161,9 +162,9 @@ export function Drawer() {
           selected={location.pathname === "/topics"}
         >
           <StyledListItemIcon>
-            <>{/* FIXME */}</>
+            <TopicIcon />
           </StyledListItemIcon>
-          <ListItemText>Topic Management</ListItemText>
+          <ListItemText>Topics</ListItemText>
         </StyledListItemButton>
         {/* Account */}
         <StyledListItemButton
