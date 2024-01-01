@@ -37,6 +37,7 @@ from app.constants import (
     NOT_MEMBER_UUID,
 )
 from app.database import get_db
+from app.repository.account import AccountRepository
 from app.slack import validate_slack_webhook_url
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
@@ -509,12 +510,13 @@ def update_pteam_auth(
     )
 
     str_ids = [str(request.user_id) for request in requests]
+    account_repository = AccountRepository(db)
     if len(set(str_ids)) != len(str_ids):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ambiguous request")
     for str_id in str_ids:
         if (
             str_id not in [str(MEMBER_UUID), str(NOT_MEMBER_UUID)]
-            and not db.query(models.Account).filter(models.Account.user_id == str_id).one_or_none()
+            and not account_repository.get_account_by_userid(str_id)
         ):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
 

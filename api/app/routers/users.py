@@ -2,12 +2,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.auth import get_current_user, token_scheme, verify_id_token
 from app.common import validate_secbadge
 from app.database import get_db
+from app.repository.account import AccountRepository
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -34,12 +35,11 @@ def create_user(
     decoded_token = verify_id_token(token)
     uid = decoded_token["uid"]
     email = decoded_token["email"]
-    if db.query(models.Account).filter(models.Account.email == email).first():
+    account_repository = AccountRepository(db)
+    if account_repository.get_account_by_email(email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used")
     user = models.Account(uid=uid, email=email, **data.model_dump())
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    user = account_repository.create_account(user)
     return user
 
 
@@ -104,14 +104,16 @@ def delete_user(
     """
 
     # Use selectinload to load all related objects
-    user = (
-        db.query(models.Account)
-        .options(
-            selectinload(models.Account.action_logs),
-        )
-        .filter(models.Account.user_id == current_user.user_id)
-        .one_or_none()
-    )
+    # user = (
+    #     db.query(models.Account)
+    #     .options(
+    #         selectinload(models.Account.action_logs),
+    #     )
+    #     .filter(models.Account.user_id == current_user.user_id)
+    #     .one_or_none()
+    # )
+    account_repository = AccountRepository(db)
+    user = account_repository.get_account_by_userid(current_user.user_id)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"User {current_user.user_id} not found"
@@ -123,6 +125,9 @@ def delete_user(
     db.query(models.ATeamAuthority).filter(models.ATeamAuthority.user_id == user.user_id).delete()
     db.query(models.GTeamAuthority).filter(models.GTeamAuthority.user_id == user.user_id).delete()
 
+    # actionlog_repository = ActionlogRepository(db)
+    # action_logs = actionlog_repository.get_action_logs_by_user_id(user.user_id)
+    # for log in action_logs:
     for log in user.action_logs:
         # actoin logs shoud not be deleted, but should be anonymized
         log.user_id = None

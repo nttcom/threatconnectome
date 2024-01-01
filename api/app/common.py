@@ -13,6 +13,7 @@ from sqlalchemy.sql.expression import false, true
 
 from app import models, schemas
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
+from app.repository.account import AccountRepository
 from app.version import (
     PackageFamily,
     VulnerableRange,
@@ -21,9 +22,9 @@ from app.version import (
 
 
 def get_system_account(db: Session) -> models.Account:
-    system_account = (
-        db.query(models.Account).filter(models.Account.user_id == str(SYSTEM_UUID)).one_or_none()
-    )
+    account_repository = AccountRepository(db)
+
+    system_account = account_repository.get_account_by_userid(str(SYSTEM_UUID))
     if not system_account:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1629,10 +1630,10 @@ def create_secbadge_internal(
     current_user: models.Account,
     db: Session,
 ) -> models.SecBadge:
-    account = (
-        db.query(models.Account).filter(models.Account.user_id == str(data.recipient)).one_or_none()
-    )
-    if not account:
+    account_repository = AccountRepository(db)
+    badge_receiver_account = account_repository.get_account_by_userid(str(data.recipient))
+
+    if not badge_receiver_account:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid recipient userID"
         )
@@ -1658,7 +1659,7 @@ def create_secbadge_internal(
         badge_name=data.metadata["name"],
         image_url=data.metadata.get("image", ""),
         user_id=data.recipient,
-        email=account.email or "",
+        email=badge_receiver_account.email or "",
         created_by=current_user.user_id,
         obtained_at=datetime.fromtimestamp(obtained_at[0]["value"])
         if obtained_at
@@ -1738,10 +1739,9 @@ def create_actionlog_internal(
     check_pteam_membership(
         db, data.pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN
     )
-    user = (
-        db.query(models.Account).filter(models.Account.user_id == str(data.user_id)).one_or_none()
-    )
-    if not user:
+    account_repository = AccountRepository(db)
+    target_user = account_repository.get_account_by_userid(str(data.user_id))
+    if not target_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
     check_pteam_membership(db, data.pteam_id, data.user_id, on_error=status.HTTP_400_BAD_REQUEST)
     topic = validate_topic(db, data.topic_id, on_error=status.HTTP_400_BAD_REQUEST)
@@ -1793,7 +1793,7 @@ def create_actionlog_internal(
     result["action_type"] = topic_action.action_type
     result["recommended"] = topic_action.recommended
     result["pteam_id"] = data.pteam_id
-    result["email"] = user.email or ""
+    result["email"] = target_user.email or ""
     now = datetime.now()
     result["executed_at"] = data.executed_at or now
     result["created_at"] = now
