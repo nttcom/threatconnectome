@@ -14,6 +14,7 @@ from sqlalchemy.sql.expression import false, true
 from app import models, schemas
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 from app.repository.account import AccountRepository
+from app.repository.actionlog import ActionLogRepository
 from app.version import (
     PackageFamily,
     VulnerableRange,
@@ -44,33 +45,6 @@ def validate_secbadge(
     if secbadge is None and on_error is not None:
         raise HTTPException(status_code=on_error, detail="No such secbadge")
     return secbadge
-
-
-def validate_actionlog(
-    db: Session,
-    logging_id: Optional[Union[UUID, str]] = None,
-    action_id: Optional[Union[UUID, str]] = None,
-    topic_id: Optional[Union[UUID, str]] = None,
-    user_id: Optional[Union[UUID, str]] = None,
-    pteam_id: Optional[Union[UUID, str]] = None,
-    email: Optional[str] = None,
-    on_error: Optional[int] = None,
-) -> Optional[models.ActionLog]:
-    row = (
-        db.query(models.ActionLog)
-        .filter(
-            true() if logging_id is None else models.ActionLog.logging_id == str(logging_id),
-            true() if action_id is None else models.ActionLog.action_id == str(action_id),
-            true() if topic_id is None else models.ActionLog.topic_id == str(topic_id),
-            true() if user_id is None else models.ActionLog.user_id == str(user_id),
-            true() if pteam_id is None else models.ActionLog.pteam_id == str(pteam_id),
-            true() if email is None else models.ActionLog.email == email,
-        )
-        .one_or_none()
-    )
-    if row is None and on_error is not None:
-        raise HTTPException(status_code=on_error, detail="No such actionlog")
-    return row
 
 
 def check_zone_accessible(
@@ -1486,8 +1460,10 @@ def get_pteam_topic_status_history(
 
 
 def get_metadata_internal(logging_id: Union[UUID, str], current_user: models.Account, db: Session):
-    actionlog = validate_actionlog(db, logging_id=logging_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert actionlog
+    actionlog = ActionLogRepository.get_actionlog(db, logging_id)
+    if actionlog is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such actionlog")
+    #assert actionlog
     if current_user.user_id != str(SYSTEM_UUID):
         check_pteam_membership(
             db, actionlog.pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN
@@ -1883,13 +1859,9 @@ def set_pteam_topic_status_internal(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
     check_tag_is_related_to_topic(db, tag_id, topic_id)
     for logging_id_ in data.logging_ids:
-        validate_actionlog(
-            db,
-            logging_id=logging_id_,
-            pteam_id=pteam_id,
-            topic_id=topic_id,
-            on_error=status.HTTP_400_BAD_REQUEST,
-        )
+        action_log = ActionLogRepository.get_action_log_by_id(db, logging_id_)
+        if not action_log or action_log.pteam_id != pteam_id or action_log.topic_id != topic_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     for assignee in data.assignees:
         check_pteam_membership(db, pteam_id, assignee, on_error=status.HTTP_400_BAD_REQUEST)
 
