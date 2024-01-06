@@ -1,6 +1,7 @@
-from uuid from UUID
+from uuid import UUID
 
 from app import models
+
 
 class ActionLogRepository:
     def __init__(self, db):
@@ -14,13 +15,13 @@ class ActionLogRepository:
 
     def get_action_logs_by_account_id(self, account_id):
         return self.db.query(models.ActionLog).filter(models.ActionLog.account_id == account_id).all()
-    
+
     def get_action_logs_by_team_id(self, team_id: str | UUID):
         #pteam = self.db.query(models.PTeam).filter(models.PTeam.team_id == team_id).one_or_none()
         #return self.db.query(models.ActionLog).filter(models.ActionLog.PTeam.team_id == team_id).all()
         pass
 
-     def search_action_logs(self, action_type: str, action_words: str, user_id: str, pteam_id: str, email: str, executed_before: datetime, executed_after: datetime, created_before: datetime, created_after: datetime):
+    def search_action_logs(self, action_type: str, action_words: str, user_id: str, pteam_id: str, email: str, executed_before: datetime, executed_after: datetime, created_before: datetime, created_after: datetime) -> list[models.ActionLog]:
         query = self.db.query(models.ActionLog)
         if action_type:
             query = query.filter(models.ActionLog.action_type == action_type)
@@ -30,9 +31,17 @@ class ActionLogRepository:
 
         return query.all()
 
-    def create_action_log(self, action_log):
+    def create_action_log(self, action_log: models.ActionLog) -> models.ActionLog:
         self.db.add(action_log)
+        #self.db.commit()
+        #self.db.refresh(action_log)
+        return action_log
+
+    def update_action_log(self, action_log: models.ActionLog) -> models.ActionLog:
         self.db.commit()
         self.db.refresh(action_log)
         return action_log
 
+    def delete_action_log(self, action_log: models.ActionLog):
+        self.db.delete(action_log)
+        #self.db.commit()
