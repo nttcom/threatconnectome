@@ -9,8 +9,9 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.auth import get_current_user
-from app.common import get_or_create_topic_tag, validate_tag
+from app.common import get_or_create_topic_tag
 from app.database import get_db
+from app.repository.tag import TagRepository
 
 router = APIRouter(prefix="/tags", tags=["tags"])
 
@@ -51,8 +52,10 @@ def delete_tag(
     """
     Delete a tag.
     """
-    tag = validate_tag(db, tag_id=tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert tag
+    tag_repository = TagRepository(db)
+    tag = tag_repository.get_tag_by_id(tag_id)
+    if tag is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     num_of_child_tags = (
         db.query(models.Tag)

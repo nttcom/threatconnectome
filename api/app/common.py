@@ -169,25 +169,6 @@ def update_zones(
     return list(addings | keeps)
 
 
-def validate_tag(
-    db: Session,
-    tag_id: Optional[Union[UUID, str]] = None,
-    tag_name: Optional[str] = None,
-    on_error: Optional[int] = None,
-) -> Optional[models.Tag]:
-    row = (
-        db.query(models.Tag)
-        .filter(
-            true() if tag_id is None else models.Tag.tag_id == str(tag_id),
-            true() if tag_name is None else models.Tag.tag_name == tag_name,
-        )
-        .one_or_none()
-    )
-    if row is None and on_error is not None:
-        raise HTTPException(status_code=on_error, detail="No such tag")
-    return row
-
-
 def validate_misp_tag(
     db: Session,
     tag_id: Optional[Union[UUID, str]] = None,

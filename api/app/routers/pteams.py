@@ -28,7 +28,6 @@ from app.common import (
     update_zones,
     validate_pteam,
     validate_pteamtag,
-    validate_tag,
     validate_topic,
 )
 from app.constants import (
@@ -38,6 +37,7 @@ from app.constants import (
 )
 from app.database import get_db
 from app.repository.account import AccountRepository
+from app.repository.tag import TagRepository
 from app.slack import validate_slack_webhook_url
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
@@ -278,8 +278,11 @@ def get_pteam_tagged_solved_topic_ids(
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    tag = validate_tag(db, tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert tag
+
+    tag_repository = TagRepository(db)
+    tag = tag_repository.get_tag_by_id(tag_id)
+    if tag is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     requested_pteamtag = (
         db.query(models.PTeamTag)
@@ -317,8 +320,11 @@ def get_pteam_tagged_unsolved_topic_ids(
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    tag = validate_tag(db, tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert tag
+
+    tag_repository = TagRepository(db)
+    tag = tag_repository.get_tag_by_id(tag_id)
+    if tag is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     requested_pteamtag = (
         db.query(models.PTeamTag)
@@ -514,10 +520,10 @@ def update_pteam_auth(
     if len(set(str_ids)) != len(str_ids):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ambiguous request")
     for str_id in str_ids:
-        if (
-            str_id not in [str(MEMBER_UUID), str(NOT_MEMBER_UUID)]
-            and not account_repository.get_account_by_userid(str_id)
-        ):
+        if str_id not in [
+            str(MEMBER_UUID),
+            str(NOT_MEMBER_UUID),
+        ] and not account_repository.get_account_by_userid(str_id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
 
     if len([x for x in requests if "admin" in x.authorities]) == 0:  # no admin in requests
@@ -596,8 +602,12 @@ def get_pteamtag(
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    tag = validate_tag(db, tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert tag
+
+    tag_repository = TagRepository(db)
+    tag = tag_repository.get_tag_by_id(tag_id)
+    if tag is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     pteamtag = (
         db.query(models.PTeamTag)
         .filter(
@@ -637,8 +647,12 @@ def add_pteamtag(
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    tag = validate_tag(db, tag_id=tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert tag
+
+    tag_repository = TagRepository(db)
+    tag = tag_repository.get_tag_by_id(tag_id)
+    if tag is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     if tag.tag_id in [pteamtag.tag.tag_id for pteamtag in pteam.pteamtags]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already exists")
     pteamtag = models.PTeamTag(

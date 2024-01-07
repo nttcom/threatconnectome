@@ -28,11 +28,11 @@ from app.common import (
     validate_action,
     validate_misp_tag,
     validate_pteam,
-    validate_tag,
     validate_topic,
     validate_zone,
 )
 from app.database import get_db
+from app.repository.tag import TagRepository
 from app.slack import alert_new_topic
 
 router = APIRouter(prefix="/topics", tags=["topics"])
@@ -127,13 +127,14 @@ def search_topics(
                 )
             fixed_zone_names.add(zone_name)
 
+    tag_repository = TagRepository(db)
     fixed_tag_ids: Set[Optional[str]] = set()
     if tag_names is not None:
         for tag_name in tag_names:
             if tag_name == keyword_for_empty:
                 fixed_tag_ids.add(None)
                 continue
-            if (tag := validate_tag(db, tag_name=tag_name)) is None:
+            if (tag := tag_repository.get_tag_by_name(tag_name)) is None:
                 continue  # ignore wrong tag_name
             fixed_tag_ids.add(tag.tag_id)
 
@@ -288,9 +289,10 @@ def create_topic(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Topic already exists")
 
     # check tags
+    tag_repository = TagRepository(db)
     action_tag_names = {tag for action in data.actions for tag in action.ext.get("tags", [])}
     requested_tags: Dict[str, Optional[models.Tag]] = {
-        tag_name: validate_tag(db, tag_name=tag_name)
+        tag_name: tag_repository.get_tag_by_name(tag_name)
         for tag_name in set(data.tags) | action_tag_names
     }
     if not_exist_tag_names := [tag_name for tag_name, tag in requested_tags.items() if tag is None]:
@@ -418,9 +420,10 @@ def update_topic(
     new_title = None if data.title is None else data.title.strip()
     new_abstract = None if data.abstract is None else data.abstract.strip()
     new_tags: Optional[List[Optional[models.Tag]]] = None
+    tag_repository = TagRepository(db)
     if data.tags is not None:
         tags_dict = {
-            tag_name: validate_tag(db, tag_name=tag_name) for tag_name in set(data.tags or [])
+            tag_name: tag_repository.get_tag_by_name(tag_name) for tag_name in set(data.tags or [])
         }
         if not_exist_tag_names := [tag_name for tag_name, tag in tags_dict.items() if tag is None]:
             raise HTTPException(
