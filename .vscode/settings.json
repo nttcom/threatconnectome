@@ -9,23 +9,30 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "[python]": {
-        "editor.defaultFormatter": "ms-python.python",
+        "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.codeActionsOnSave": {
             "source.fixAll": "explicit",
             "source.organizeImports": "never"
         }
     },
-    "python.languageServer": "Pylance",
-    "python.linting.lintOnSave": true,
-    "python.linting.pylintEnabled": false,
-    "python.linting.mypyEnabled": true,
-    "python.formatting.provider": "black",
-    "python.formatting.blackPath": "black",
-    "python.formatting.blackArgs": [
+    "black-formatter.args": [
         "--config",
         "api/pyproject.toml",
     ],
-    "ruff.args": [
+    "black-formatter.path": [
+        "black"
+    ],
+    "python.languageServer": "Pylance",
+    // "python.linting.lintOnSave": true,
+    // "python.linting.pylintEnabled": false,
+    // "python.linting.mypyEnabled": true,
+    // "python.formatting.provider": "black",
+    // "python.formatting.blackPath": "black",
+    // "python.formatting.blackArgs": [
+    //     "--config",
+    //     "api/pyproject.toml",
+    // ],
+    "ruff.lint.args": [
         "--config",
         "api/pyproject.toml",
     ],
