@@ -1443,9 +1443,14 @@ def get_pteam_topic_status_history(
         )
         .all()
     )
-    # TODO
-    #
-    # target_actionlogs =
+    # TODO use actionlog and pteamtopictagstatus repository
+    # actionlog_repository = ActionLogRepository(db)
+    # pteamtopictagstatus_repository = PTeamTopicTagStatusRepository(db)
+    # all_statuses = pteamtopictagstatus_repository.search(status_id, pteam_id, topic_id, tag_id, topic_status)
+    # actionlog = actionlog_repository.search(logging_id)
+    # rows = [(status, actionlog) for status in all_statuses if actionlog.logging_id in status.logging_ids]
+
+
 
     ret_dict: Dict[str, schemas.TopicStatusResponse] = {}
     for topictagstatus, actionlog in rows:
@@ -1532,11 +1537,8 @@ def validate_secbadge_metadata_internal(metadata: Dict[str, Any], db: Session):
 
     logging_id = metadata.get("logging_id")
     if logging_id:
-        actionlog = (
-            db.query(models.ActionLog)
-            .filter(models.ActionLog.logging_id == logging_id)
-            .one_or_none()
-        )
+        actionlog_repository = ActionLogRepository(db)
+        actionlog = actionlog_repository.get_action_log_by_id(logging_id)
         if not actionlog or actionlog.logging_id != logging_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Logging_id is wrong"
@@ -1792,14 +1794,10 @@ def pteam_topic_tag_status_to_response(
     db: Session,
     status_row: models.PTeamTopicTagStatus,
 ) -> schemas.TopicStatusResponse:
-    actionlogs = (
-        db.query(models.ActionLog)
-        .filter(
-            func.array_position(status_row.logging_ids, models.ActionLog.logging_id).is_not(None)
-        )
-        .order_by(models.ActionLog.executed_at.desc())
-        .all()
-    )
+    actionlogs_repository = ActionLogRepository(db)
+    target_logs = actionlogs_repository.get_action_logs_by_ids(status_row.logging_ids)
+    ordered_logs = sorted(target_logs, key=lambda x: x.executed_at, reverse=True)
+
     return schemas.TopicStatusResponse(
         status_id=UUID(status_row.status_id),
         topic_id=UUID(status_row.topic_id),
@@ -1811,7 +1809,7 @@ def pteam_topic_tag_status_to_response(
         assignees=list(map(UUID, status_row.assignees)),
         note=status_row.note,
         scheduled_at=status_row.scheduled_at,
-        action_logs=[schemas.ActionLogResponse(**log.__dict__) for log in actionlogs],
+        action_logs=[schemas.ActionLogResponse(**log.__dict__) for log in ordered_logs],
     )
 
 
