@@ -15,6 +15,7 @@ from app import models, schemas
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 from app.repository.account import AccountRepository
 from app.repository.actionlog import ActionLogRepository
+from app.repository.tag import TagRepository
 from app.version import (
     PackageFamily,
     VulnerableRange,
@@ -187,10 +188,9 @@ def validate_misp_tag(
 
 
 def check_tags_exist(db: Session, tag_names: List[str]):
-    _existing_tags = (
-        db.query(models.Tag.tag_name).filter(models.Tag.tag_name.in_(tag_names)).all()
-    )  # [('tag1',), ('tag2',), ('tag3',)]
-    existing_tag_names = set(tag_tuple[0] for tag_tuple in _existing_tags)
+    tag_repository = TagRepository(db)
+    _existing_tags = tag_repository.get_tags_by_names(tag_names)
+    existing_tag_names = set(tag.tag_name for tag in _existing_tags)
     not_existing_tag_names = set(tag_names) - existing_tag_names
     if len(not_existing_tag_names) >= 1:
         # TODO: set max length of not_exist_tag_names
@@ -901,29 +901,24 @@ def _pick_parent_tag(tag_name: str) -> Optional[str]:
 
 
 def get_or_create_topic_tag(db: Session, tag_name: str) -> models.Tag:
-    row = db.query(models.Tag).filter(models.Tag.tag_name == tag_name).one_or_none()
-    if row is not None:
-        return row
+    tag_repository = TagRepository(db)
+    tag = tag_repository.get_tag_by_name(tag_name)
+    if tag is not None:
+        return tag
 
-    row = models.Tag(tag_name=tag_name, parent_id=None, parent_name=None)
-    db.add(row)
+    new_tag = models.Tag(tag_name=tag_name, parent_id=None, parent_name=None)
+
+    parent_name = _pick_parent_tag(tag_name)
+    if parent_name:
+        parent_tag = tag_repository.get_tag_by_name(parent_name)
+        if not parent_tag:
+            parent_tag = models.Tag(tag_name=parent_name, parent_id=None, parent_name=None)
+            parent_tag = tag_repository.create_tag(parent_tag)
+        new_tag.parent_id = parent_tag.tag_id
+        new_tag.parent_name = parent_tag.tag_name
+    new_tag = tag_repository.create_tag(new_tag)
     db.commit()
-    db.refresh(row)
-
-    if parent_name := _pick_parent_tag(tag_name):
-        parent_id = (
-            row.tag_id
-            if parent_name == tag_name
-            else get_or_create_topic_tag(db, parent_name).tag_id
-        )
-
-        row.parent_name = parent_name
-        row.parent_id = parent_id
-        db.add(row)
-        db.commit()
-        db.refresh(row)
-
-    return row
+    return new_tag
 
 
 def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
@@ -1838,6 +1833,7 @@ def set_pteam_topic_status_internal(
         models.TopicStatusType.completed,
     }:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
+    # TODO use topic repository and remove this line
     check_tag_is_related_to_topic(db, tag_id, topic_id)
     for logging_id_ in data.logging_ids:
         actionlog_repository = ActionLogRepository(db)
