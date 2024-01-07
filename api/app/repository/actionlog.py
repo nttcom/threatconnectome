@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from app import models
@@ -12,26 +13,45 @@ class ActionLogRepository:
         return self.db.query(models.ActionLog).all()
 
     def get_action_log_by_id(self, action_log_id: str | UUID):
-        return self.db.query(models.ActionLog).filter(models.ActionLog.id == action_log_id).one_or_none()
+        return (
+            self.db.query(models.ActionLog)
+            .filter(models.ActionLog.id == action_log_id)
+            .one_or_none()
+        )
 
     def get_action_logs_by_ids(self, user_ids: list[str] | list[UUID]):
         return self.db.query(models.ActionLog).filter(models.ActionLog.id.in_(user_ids)).all()
 
     def get_action_logs_by_account_id(self, account_id):
-        return self.db.query(models.ActionLog).filter(models.ActionLog.account_id == account_id).all()
+        return (
+            self.db.query(models.ActionLog).filter(models.ActionLog.account_id == account_id).all()
+        )
 
     def get_action_logs_by_pteam_id(self, pteam_id: str | UUID):
-        #pteam = self.db.query(models.PTeam).filter(models.PTeam.team_id == team_id).one_or_none()
+        # pteam = self.db.query(models.PTeam).filter(models.PTeam.team_id == team_id).one_or_none()
         return self.db.query(models.ActionLog).filter(models.ActionLog.pteam_id == pteam_id).all()
-        pass
 
-    def search_action_logs(self, action_type: str, action_words: list[str] | None, action_types: list[str] | None, user_ids: list[UUID] | None, pteam_ids: list[UUID] | None, emails: list[str], executed_before: datetime, executed_after: datetime, created_before: datetime, created_after: datetime) -> list[models.ActionLog]:
+    def search_action_logs(
+        self,
+        action_type: str,
+        action_words: list[str] | None,
+        action_types: list[str] | None,
+        user_ids: list[UUID] | None,
+        pteam_ids: list[UUID] | None,
+        emails: list[str],
+        executed_before: datetime,
+        executed_after: datetime,
+        created_before: datetime,
+        created_after: datetime,
+    ) -> list[models.ActionLog]:
         query = self.db.query(models.ActionLog)
         if action_type:
             query = query.filter(models.ActionLog.action_type == action_type)
 
         if action_words:
-            query = query.filter(models.ActionLog.action.bool_op("@@")(func.to_tsquery("|".join(action_words))))
+            query = query.filter(
+                models.ActionLog.action.bool_op("@@")(func.to_tsquery("|".join(action_words)))
+            )
 
         if action_types:
             query = query.filter(models.ActionLog.action_type.in_(action_types))
@@ -61,8 +81,8 @@ class ActionLogRepository:
 
     def create_action_log(self, action_log: models.ActionLog) -> models.ActionLog:
         self.db.add(action_log)
-        #self.db.commit()
-        #self.db.refresh(action_log)
+        # self.db.commit()
+        # self.db.refresh(action_log)
         return action_log
 
     def update_action_log(self, action_log: models.ActionLog) -> models.ActionLog:
@@ -72,4 +92,4 @@ class ActionLogRepository:
 
     def delete_action_log(self, action_log: models.ActionLog):
         self.db.delete(action_log)
-        #self.db.commit()
+        # self.db.commit()

@@ -1450,8 +1450,6 @@ def get_pteam_topic_status_history(
     # actionlog = actionlog_repository.search(logging_id)
     # rows = [(status, actionlog) for status in all_statuses if actionlog.logging_id in status.logging_ids]
 
-
-
     ret_dict: Dict[str, schemas.TopicStatusResponse] = {}
     for topictagstatus, actionlog in rows:
         ret = ret_dict.get(
@@ -1472,7 +1470,7 @@ def get_metadata_internal(logging_id: Union[UUID, str], current_user: models.Acc
     actionlog = actionlog_repository.get_actionlog(db, logging_id)
     if actionlog is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such actionlog")
-    #assert actionlog
+    # assert actionlog
     if current_user.user_id != str(SYSTEM_UUID):
         check_pteam_membership(
             db, actionlog.pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN
