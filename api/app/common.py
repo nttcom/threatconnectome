@@ -1443,6 +1443,9 @@ def get_pteam_topic_status_history(
         )
         .all()
     )
+    # TODO
+    #
+    # target_actionlogs =
 
     ret_dict: Dict[str, schemas.TopicStatusResponse] = {}
     for topictagstatus, actionlog in rows:
@@ -1460,7 +1463,8 @@ def get_pteam_topic_status_history(
 
 
 def get_metadata_internal(logging_id: Union[UUID, str], current_user: models.Account, db: Session):
-    actionlog = ActionLogRepository.get_actionlog(db, logging_id)
+    actionlog_repository = ActionLogRepository(db)
+    actionlog = actionlog_repository.get_actionlog(db, logging_id)
     if actionlog is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such actionlog")
     #assert actionlog
@@ -1859,7 +1863,8 @@ def set_pteam_topic_status_internal(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
     check_tag_is_related_to_topic(db, tag_id, topic_id)
     for logging_id_ in data.logging_ids:
-        action_log = ActionLogRepository.get_action_log_by_id(db, logging_id_)
+        actionlog_repository = ActionLogRepository(db)
+        action_log = actionlog_repository.get_action_log_by_id(db, logging_id_)
         if not action_log or action_log.pteam_id != pteam_id or action_log.topic_id != topic_id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     for assignee in data.assignees:
