@@ -10,17 +10,20 @@ class TagRepository:
     def get_all_tags(self):
         return self.db.query(models.Tag).all()
 
-    def get_tag_by_id(self, tag_id: str | UUID):
+    def get_tag_by_id(self, tag_id: str | UUID) -> models.Tag | None:
         return self.db.query(models.Tag).filter(models.Tag.id == tag_id).one_or_none()
 
-    def get_tag_by_name(self, tag_name: str):
+    def get_tag_by_name(self, tag_name: str) -> models.Tag | None:
         return self.db.query(models.Tag).filter(models.Tag.tag_name == tag_name).one_or_none()
+
+    def get_tags_by_names(self, tag_names: list[str]) -> list[models.Tag]:
+        return self.db.query(models.Tag).filter(models.Tag.tag_name.in_(tag_names)).all()
 
     def create_tag(self, tag: models.Tag) -> models.Tag:
         self.db.add(tag)
         return tag
 
-    def delete_tag(self, tag: models.Tag):
+    def delete_tag(self, tag: models.Tag) -> models.Tag:
         self.db.delete(tag)
         return tag
 
