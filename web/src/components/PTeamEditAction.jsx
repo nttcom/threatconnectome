@@ -12,8 +12,9 @@ import {
   DialogActions,
   Divider,
   IconButton,
-  Typography,
+  List,
   Switch,
+  Typography,
 } from "@mui/material";
 import { blue, grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
@@ -273,7 +274,7 @@ export function PTeamEditAction(props) {
         <Divider />
         <DialogContent>
           <>
-            <Box display="flex" flexDirection="row">
+            <Box flexDirection="row">
               <Box display="flex" flexDirection="column">
                 <Box mb={1}>
                   <Box display="flex" flexDirection="row" alignItems="center" mb={1}>
@@ -300,21 +301,22 @@ export function PTeamEditAction(props) {
                       <Typography variant="body2">Please add action</Typography>
                     </Box>
                   )}
-                  {topicActions &&
-                    topicActions
-                      .slice()
-                      .sort(
-                        (a, b) =>
-                          actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
-                      )
-                      .map((action, idx) => (
-                        <Box
-                          key={idx}
-                          display="flex"
-                          flexDirection="row"
-                          alignItems="center"
-                          mt={1}
-                        >
+                  <List
+                    sx={{
+                      width: "100%",
+                      position: "relative",
+                      overflow: "auto",
+                      maxHeight: 150,
+                    }}
+                  >
+                    {topicActions &&
+                      topicActions
+                        .slice()
+                        .sort(
+                          (a, b) =>
+                            actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
+                        )
+                        .map((action, idx) => (
                           <ActionItem
                             key={idx}
                             action={action.action}
@@ -335,8 +337,8 @@ export function PTeamEditAction(props) {
                             onDelete={() => setActions(actions.filter((item) => item !== action))}
                             sx={{ flexGrow: 1 }}
                           />
-                        </Box>
-                      ))}
+                        ))}
+                  </List>
                 </Box>
               </Box>
             </Box>

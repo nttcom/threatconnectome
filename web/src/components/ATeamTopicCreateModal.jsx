@@ -1,7 +1,6 @@
 import {
   AddBox as AddBoxIcon,
   Close as CloseIcon,
-  Edit as EditIcon,
   FiberManualRecord as FiberManualRecordIcon,
   SentimentSatisfiedAlt as SentimentSatisfiedAltIcon,
   SentimentVeryDissatisfied as SentimentVeryDissatisfiedIcon,
@@ -58,7 +57,7 @@ export function ATeamTopicCreateModal(props) {
   const [zonesRelatedTeams, setZonesRelatedTeams] = useState({ ateams: {}, pteams: {} });
   const [actionTagOptions, setActionTagOptions] = useState([]);
   const [editActionOpen, setEditActionOpen] = useState(false);
-  const [editActionTarget, setEditActionTarget] = useState({});
+  const [editActionTarget] = useState({});
 
   const ateamId = useSelector((state) => state.ateam.ateamId); // dispatched by parent
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
@@ -433,42 +432,43 @@ export function ATeamTopicCreateModal(props) {
                   </Typography>
                   <ActionGeneratorModal />
                 </Box>
-                {actions
-                  .slice()
-                  .sort(
-                    (a, b) =>
-                      actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
-                  )
-                  .map((action, idx) => (
-                    <Box key={idx} display="flex" flexDirection="row" alignItems="center" m={1}>
-                      <ActionItem
-                        key={idx}
-                        action={action.action}
-                        actionId={action.action_id}
-                        actionType={action.action_type}
-                        recommended={action.recommended}
-                        zones={action.zones}
-                        ext={action.ext}
-                        onChangeRecommended={() =>
-                          setActions(
-                            actions.map((item) =>
-                              item !== action ? item : { ...item, recommended: !item.recommended }
+                <List
+                  sx={{
+                    width: "100%",
+                    position: "relative",
+                    overflow: "auto",
+                    maxHeight: 150,
+                  }}
+                >
+                  {actions
+                    .slice()
+                    .sort(
+                      (a, b) =>
+                        actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
+                    )
+                    .map((action, idx) => (
+                      <>
+                        <ActionItem
+                          key={idx}
+                          action={action.action}
+                          actionId={action.action_id}
+                          actionType={action.action_type}
+                          recommended={action.recommended}
+                          zones={action.zones}
+                          ext={action.ext}
+                          onChangeRecommended={() =>
+                            setActions(
+                              actions.map((item) =>
+                                item !== action ? item : { ...item, recommended: !item.recommended }
+                              )
                             )
-                          )
-                        }
-                        onDelete={() => setActions(actions.filter((item) => item !== action))}
-                        sx={{ flexGrow: 1 }}
-                      />
-                      <IconButton
-                        onClick={() => {
-                          setEditActionTarget(action);
-                          setEditActionOpen(true);
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Box>
-                  ))}
+                          }
+                          onDelete={() => setActions(actions.filter((item) => item !== action))}
+                          sx={{ flexGrow: 1 }}
+                        />
+                      </>
+                    ))}
+                </List>
               </Box>
             )}
             <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
