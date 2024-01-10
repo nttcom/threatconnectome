@@ -1,5 +1,5 @@
 import { Delete as DeleteIcon } from "@mui/icons-material";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, IconButton, Tooltip, Typography, ListItem, ListItemText } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React from "react";
@@ -21,7 +21,6 @@ export function ActionItem(props) {
     focusTags,
     onChangeRecommended,
     onDelete,
-    sx,
   } = props;
 
   const dustbox = onDelete ? (
@@ -102,19 +101,39 @@ export function ActionItem(props) {
 
   return (
     <>
-      <Box display="flex" flexDirection="row" alignItems="flex-start" sx={{ mb: 1, ...sx }}>
-        {dustbox}
+      <ListItem alignItems="flex-start" disablePadding>
         {decoratedAction}
-        <Box display="flex" flexDirection="column">
-          <Typography>{action}</Typography>
-          {extInfo}
-          {zonesInfo}
-          <UUIDTypography>{actionId}</UUIDTypography>
-          <Typography variant="caption" color={grey[600]}>
-            {dateTimeFormat(createdAt)}
-          </Typography>
-        </Box>
-      </Box>
+        <ListItemText
+          primary={action}
+          primaryTypographyProps={{
+            style: {
+              whiteSpace: "normal",
+              overflow: "auto",
+              width: "92%",
+            },
+          }}
+          secondary={
+            <Box flexDirection="column">
+              <Typography
+                sx={{ display: "inline" }}
+                component="span"
+                variant="body2"
+                color="text.primary"
+              >
+                <Box display="flex" flexDirection="column">
+                  {extInfo}
+                  {zonesInfo}
+                  <UUIDTypography>{actionId}</UUIDTypography>
+                  <Typography color={grey[600]} variant="caption">
+                    {dateTimeFormat(createdAt)}
+                  </Typography>
+                </Box>
+              </Typography>
+            </Box>
+          }
+        />
+        {dustbox}
+      </ListItem>
     </>
   );
 }

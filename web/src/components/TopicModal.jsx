@@ -2,7 +2,6 @@ import {
   AddBox as AddBoxIcon,
   Close as CloseIcon,
   ContentPaste as ContentPasteIcon,
-  Edit as EditIcon,
 } from "@mui/icons-material";
 import {
   Box,
@@ -18,6 +17,7 @@ import {
   StepLabel,
   TextField,
   Typography,
+  List,
 } from "@mui/material";
 import { blue, grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
@@ -522,14 +522,21 @@ export function TopicModal(props) {
                       <Typography variant="body2">Please add action</Typography>
                     </Box>
                   )}
-                  {actions
-                    .slice()
-                    .sort(
-                      (a, b) =>
-                        actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
-                    )
-                    .map((action, idx) => (
-                      <Box key={idx} display="flex" flexDirection="row" alignItems="center" mb={1}>
+                  <List
+                    sx={{
+                      width: "98%",
+                      position: "relative",
+                      overflow: "auto",
+                      maxHeight: 200,
+                    }}
+                  >
+                    {actions
+                      .slice()
+                      .sort(
+                        (a, b) =>
+                          actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
+                      )
+                      .map((action, idx) => (
                         <ActionItem
                           key={idx}
                           action={action.action}
@@ -548,16 +555,8 @@ export function TopicModal(props) {
                           onDelete={() => setActions(actions.filter((item) => item !== action))}
                           sx={{ flexGrow: 1 }}
                         />
-                        <IconButton
-                          onClick={() => {
-                            setEditActionTarget(action);
-                            setEditActionOpen(true);
-                          }}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Box>
-                    ))}
+                      ))}
+                  </List>
                 </Box>
                 <Box mb={1}>
                   <Box mb={1}>

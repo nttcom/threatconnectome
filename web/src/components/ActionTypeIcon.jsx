@@ -20,7 +20,7 @@ export function ActionTypeIcon(props) {
   const { disabled, actionType } = props;
 
   return (
-    <Box sx={{ mr: 0.5 }}>
+    <Box sx={{ mr: 0.5, mt: 0.5 }}>
       {disabled ? (
         <>
           <IconContext.Provider value={{ color: "disabled", size: "25px" }}>

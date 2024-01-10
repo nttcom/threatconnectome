@@ -19,7 +19,6 @@ import {
   Grow,
   IconButton,
   List,
-  ListItem,
   MenuList,
   MenuItem,
   Switch,
@@ -283,25 +282,34 @@ export function TopicCard(props) {
                     />
                     <Typography>Action filter</Typography>
                   </Box>
-                  {topicActions
-                    .filter((action) => action.recommended)
-                    .map((action) => (
-                      <ActionItem
-                        key={action.action_id}
-                        action={action.action}
-                        actionId={action.action_id}
-                        actionType={action.action_type}
-                        createdAt={action.created_at}
-                        recommended={action.recommended}
-                        zones={action.zones}
-                        ext={action.ext}
-                        focusTags={
-                          actionFilter
-                            ? null
-                            : [currentTagDict.tag_name, currentTagDict.parent_name]
-                        }
-                      />
-                    ))}
+                  <List
+                    sx={{
+                      width: "100%",
+                      position: "relative",
+                      overflow: "auto",
+                      maxHeight: 200,
+                    }}
+                  >
+                    {topicActions
+                      .filter((action) => action.recommended)
+                      .map((action) => (
+                        <ActionItem
+                          key={action.action_id}
+                          action={action.action}
+                          actionId={action.action_id}
+                          actionType={action.action_type}
+                          createdAt={action.created_at}
+                          recommended={action.recommended}
+                          zones={action.zones}
+                          ext={action.ext}
+                          focusTags={
+                            actionFilter
+                              ? null
+                              : [currentTagDict.tag_name, currentTagDict.parent_name]
+                          }
+                        />
+                      ))}
+                  </List>
                 </>
               )
             ) : (
@@ -324,15 +332,24 @@ export function TopicCard(props) {
                   />
                   <Typography>Action filter</Typography>
                 </Box>
-                {ttStatus.action_logs.map((log) => (
-                  <ActionItem
-                    key={log.logging_id}
-                    action={log.action}
-                    actionId={log.action_id}
-                    actionType={log.action_type}
-                    recommended={log.recommended}
-                  />
-                ))}
+                <List
+                  sx={{
+                    width: "100%",
+                    position: "relative",
+                    overflow: "auto",
+                    maxHeight: 200,
+                  }}
+                >
+                  {ttStatus.action_logs.map((log) => (
+                    <ActionItem
+                      key={log.logging_id}
+                      action={log.action}
+                      actionId={log.action_id}
+                      actionType={log.action_type}
+                      recommended={log.recommended}
+                    />
+                  ))}
+                </List>
               </>
             )}
             <Collapse in={detailOpen}>
@@ -354,32 +371,30 @@ export function TopicCard(props) {
                         sx={{ backgroundColor: grey[300], fontWeight: 900 }}
                       />
                     </Box>
-                    <List>
+                    <List
+                      sx={{
+                        width: "100%",
+                        position: "relative",
+                        overflow: "auto",
+                        maxHeight: 200,
+                      }}
+                    >
                       {otherActions.map((action) => (
-                        <ListItem
+                        <ActionItem
                           key={action.action_id}
-                          sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            p: 0,
-                          }}
-                        >
-                          <ActionItem
-                            key={action.action_id}
-                            action={action.action}
-                            actionId={action.action_id}
-                            actionType={action.action_type}
-                            createdAt={action.created_at}
-                            recommended={action.recommended}
-                            zones={action.zones}
-                            ext={action.ext}
-                            focusTags={
-                              actionFilter
-                                ? null
-                                : [currentTagDict.tag_name, currentTagDict.parent_name]
-                            }
-                          />
-                        </ListItem>
+                          action={action.action}
+                          actionId={action.action_id}
+                          actionType={action.action_type}
+                          createdAt={action.created_at}
+                          recommended={action.recommended}
+                          zones={action.zones}
+                          ext={action.ext}
+                          focusTags={
+                            actionFilter
+                              ? null
+                              : [currentTagDict.tag_name, currentTagDict.parent_name]
+                          }
+                        />
                       ))}
                     </List>
                   </>
