@@ -26,7 +26,7 @@ from app.version import (
 def get_system_account(db: Session) -> models.Account:
     account_repository = AccountRepository(db)
 
-    system_account = account_repository.get_account_by_userid(str(SYSTEM_UUID))
+    system_account = account_repository.get_by_id(str(SYSTEM_UUID))
     if not system_account:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -189,7 +189,7 @@ def validate_misp_tag(
 
 def check_tags_exist(db: Session, tag_names: List[str]):
     tag_repository = TagRepository(db)
-    _existing_tags = tag_repository.get_tags_by_names(tag_names)
+    _existing_tags = tag_repository.get_by_names(tag_names)
     existing_tag_names = set(tag.tag_name for tag in _existing_tags)
     not_existing_tag_names = set(tag_names) - existing_tag_names
     if len(not_existing_tag_names) >= 1:
@@ -902,7 +902,7 @@ def _pick_parent_tag(tag_name: str) -> Optional[str]:
 
 def get_or_create_topic_tag(db: Session, tag_name: str) -> models.Tag:
     tag_repository = TagRepository(db)
-    tag = tag_repository.get_tag_by_name(tag_name)
+    tag = tag_repository.get_by_name(tag_name)
     if tag is not None:
         return tag
 
@@ -910,13 +910,13 @@ def get_or_create_topic_tag(db: Session, tag_name: str) -> models.Tag:
 
     parent_name = _pick_parent_tag(tag_name)
     if parent_name:
-        parent_tag = tag_repository.get_tag_by_name(parent_name)
+        parent_tag = tag_repository.get_by_name(parent_name)
         if not parent_tag:
             parent_tag = models.Tag(tag_name=parent_name, parent_id=None, parent_name=None)
-            parent_tag = tag_repository.create_tag(parent_tag)
+            parent_tag = tag_repository.add(parent_tag)
         new_tag.parent_id = parent_tag.tag_id
         new_tag.parent_name = parent_tag.tag_name
-    new_tag = tag_repository.create_tag(new_tag)
+    new_tag = tag_repository.add(new_tag)
     db.commit()
     return new_tag
 
@@ -1512,7 +1512,7 @@ def validate_secbadge_metadata_internal(metadata: Dict[str, Any], db: Session):
     logging_id = metadata.get("logging_id")
     if logging_id:
         actionlog_repository = ActionLogRepository(db)
-        actionlog = actionlog_repository.get_action_log_by_id(logging_id)
+        actionlog = actionlog_repository.get_by_id(logging_id)
         if not actionlog or actionlog.logging_id != logging_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Logging_id is wrong"
@@ -1587,7 +1587,7 @@ def create_secbadge_internal(
     db: Session,
 ) -> models.SecBadge:
     account_repository = AccountRepository(db)
-    badge_receiver_account = account_repository.get_account_by_userid(str(data.recipient))
+    badge_receiver_account = account_repository.get_by_id(str(data.recipient))
 
     if not badge_receiver_account:
         raise HTTPException(
@@ -1696,7 +1696,7 @@ def create_actionlog_internal(
         db, data.pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN
     )
     account_repository = AccountRepository(db)
-    target_user = account_repository.get_account_by_userid(str(data.user_id))
+    target_user = account_repository.get_by_id(str(data.user_id))
     if not target_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
     check_pteam_membership(db, data.pteam_id, data.user_id, on_error=status.HTTP_400_BAD_REQUEST)
@@ -1769,7 +1769,7 @@ def pteam_topic_tag_status_to_response(
     status_row: models.PTeamTopicTagStatus,
 ) -> schemas.TopicStatusResponse:
     actionlogs_repository = ActionLogRepository(db)
-    target_logs = actionlogs_repository.get_action_logs_by_ids(status_row.logging_ids)
+    target_logs = actionlogs_repository.get_by_ids(status_row.logging_ids)
     ordered_logs = sorted(target_logs, key=lambda x: x.executed_at, reverse=True)
 
     return schemas.TopicStatusResponse(
@@ -1837,7 +1837,7 @@ def set_pteam_topic_status_internal(
     check_tag_is_related_to_topic(db, tag_id, topic_id)
     for logging_id_ in data.logging_ids:
         actionlog_repository = ActionLogRepository(db)
-        action_log = actionlog_repository.get_action_log_by_id(db, logging_id_)
+        action_log = actionlog_repository.get_by_id(db, logging_id_)
         if not action_log or action_log.pteam_id != pteam_id or action_log.topic_id != topic_id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     for assignee in data.assignees:

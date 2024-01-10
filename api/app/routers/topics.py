@@ -134,7 +134,7 @@ def search_topics(
             if tag_name == keyword_for_empty:
                 fixed_tag_ids.add(None)
                 continue
-            if (tag := tag_repository.get_tag_by_name(tag_name)) is None:
+            if (tag := tag_repository.get_by_name(tag_name)) is None:
                 continue  # ignore wrong tag_name
             fixed_tag_ids.add(tag.tag_id)
 
@@ -292,7 +292,7 @@ def create_topic(
     tag_repository = TagRepository(db)
     action_tag_names = {tag for action in data.actions for tag in action.ext.get("tags", [])}
     requested_tags: Dict[str, Optional[models.Tag]] = {
-        tag_name: tag_repository.get_tag_by_name(tag_name)
+        tag_name: tag_repository.get_by_name(tag_name)
         for tag_name in set(data.tags) | action_tag_names
     }
     if not_exist_tag_names := [tag_name for tag_name, tag in requested_tags.items() if tag is None]:
@@ -423,7 +423,7 @@ def update_topic(
     tag_repository = TagRepository(db)
     if data.tags is not None:
         tags_dict = {
-            tag_name: tag_repository.get_tag_by_name(tag_name) for tag_name in set(data.tags or [])
+            tag_name: tag_repository.get_by_name(tag_name) for tag_name in set(data.tags or [])
         }
         if not_exist_tag_names := [tag_name for tag_name, tag in tags_dict.items() if tag is None]:
             raise HTTPException(

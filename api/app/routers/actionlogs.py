@@ -57,8 +57,8 @@ def get_logs(
     """
     actionlog_repository = ActionlogRepository(db)
     current_user_pteams = [pteam.pteam_id for pteam in current_user.pteams]
-    actionlog_repository.search_action_logs(pteam_ids=current_user_pteams)
-    actionlogs = actionlog_repository.get_all_action_logs().sort(key=lambda x: x.created_at, reverse=True)
+    actionlog_repository.search(pteam_ids=current_user_pteams)
+    actionlogs = actionlog_repository.get_all().sort(key=lambda x: x.created_at, reverse=True)
     result = []
     for log in actionlogs:
         if log.created_at:
@@ -101,8 +101,8 @@ def get_topic_logs(
 
     actionlog_repository = ActionlogRepository(db)
     current_user_pteams = [pteam.pteam_id for pteam in current_user.pteams]
-    actionlog_repository.search_action_logs(current_user_pteams)
-    actionlogs = actionlog_repository.search_action_logs(pteam_ids=current_user_pteams, topic_id=str(topic_id))
+    actionlog_repository.search(current_user_pteams)
+    actionlogs = actionlog_repository.search(pteam_ids=current_user_pteams, topic_id=str(topic_id))
 
     return sorted(actionlogs, key=lambda x: x.executed_at, reverse=True)
 
@@ -133,5 +133,5 @@ def search_logs(
                 db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN
             )
     actionlog_repository = ActionlogRepository(db)
-    actionlogs = actionlog_repository.search_action_logs(topic_ids, action_words, action_types, user_ids, pteam_ids, emails, executed_before, executed_after, created_before, created_after)
+    actionlogs = actionlog_repository.search(topic_ids, action_words, action_types, user_ids, pteam_ids, emails, executed_before, executed_after, created_before, created_after)
     return sorted(actionlogs, key=lambda x: x.executed_at, reverse=True)

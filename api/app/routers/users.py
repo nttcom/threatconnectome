@@ -36,10 +36,10 @@ def create_user(
     uid = decoded_token["uid"]
     email = decoded_token["email"]
     account_repository = AccountRepository(db)
-    if account_repository.get_account_by_email(email):
+    if account_repository.get_by_email(email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used")
     user = models.Account(uid=uid, email=email, **data.model_dump())
-    user = account_repository.create_account(user)
+    user = account_repository.add(user)
     return user
 
 
@@ -113,7 +113,7 @@ def delete_user(
     #     .one_or_none()
     # )
     account_repository = AccountRepository(db)
-    user = account_repository.get_account_by_userid(current_user.user_id)
+    user = account_repository.get_by_id(current_user.user_id)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"User {current_user.user_id} not found"

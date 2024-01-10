@@ -7,23 +7,23 @@ class TagRepository:
     def __init__(self, db):
         self.db = db
 
-    def get_all_tags(self):
+    def get_all(self):
         return self.db.query(models.Tag).all()
 
-    def get_tag_by_id(self, tag_id: str | UUID) -> models.Tag | None:
+    def get_by_id(self, tag_id: str | UUID) -> models.Tag | None:
         return self.db.query(models.Tag).filter(models.Tag.id == tag_id).one_or_none()
 
-    def get_tag_by_name(self, tag_name: str) -> models.Tag | None:
+    def get_by_name(self, tag_name: str) -> models.Tag | None:
         return self.db.query(models.Tag).filter(models.Tag.tag_name == tag_name).one_or_none()
 
-    def get_tags_by_names(self, tag_names: list[str]) -> list[models.Tag]:
+    def get_by_names(self, tag_names: list[str]) -> list[models.Tag]:
         return self.db.query(models.Tag).filter(models.Tag.tag_name.in_(tag_names)).all()
 
-    def create_tag(self, tag: models.Tag) -> models.Tag:
+    def add(self, tag: models.Tag) -> models.Tag:
         self.db.add(tag)
         return tag
 
-    def delete_tag(self, tag: models.Tag) -> models.Tag:
+    def delete(self, tag: models.Tag) -> models.Tag:
         self.db.delete(tag)
         return tag
 
@@ -35,14 +35,14 @@ class TagRepository:
 
     #     return tag
 
-    # def get_action_log_by_id(self, action_log_id: str | UUID):
+    # def get_by_id(self, action_log_id: str | UUID):
     #     return (
     #         self.db.query(models.ActionLog)
     #         .filter(models.ActionLog.id == action_log_id)
     #         .one_or_none()
     #     )
 
-    # def get_action_logs_by_ids(self, user_ids: list[str] | list[UUID]):
+    # def get_by_ids(self, user_ids: list[str] | list[UUID]):
     #     return self.db.query(models.ActionLog).filter(models.ActionLog.id.in_(user_ids)).all()
 
     # def get_action_logs_by_account_id(self, account_id):

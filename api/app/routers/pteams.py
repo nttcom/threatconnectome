@@ -280,7 +280,7 @@ def get_pteam_tagged_solved_topic_ids(
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
     tag_repository = TagRepository(db)
-    tag = tag_repository.get_tag_by_id(tag_id)
+    tag = tag_repository.get_by_id(tag_id)
     if tag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -322,7 +322,7 @@ def get_pteam_tagged_unsolved_topic_ids(
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
     tag_repository = TagRepository(db)
-    tag = tag_repository.get_tag_by_id(tag_id)
+    tag = tag_repository.get_by_id(tag_id)
     if tag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -523,7 +523,7 @@ def update_pteam_auth(
         if str_id not in [
             str(MEMBER_UUID),
             str(NOT_MEMBER_UUID),
-        ] and not account_repository.get_account_by_userid(str_id):
+        ] and not account_repository.get_by_id(str_id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
 
     if len([x for x in requests if "admin" in x.authorities]) == 0:  # no admin in requests
@@ -604,7 +604,7 @@ def get_pteamtag(
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
     tag_repository = TagRepository(db)
-    tag = tag_repository.get_tag_by_id(tag_id)
+    tag = tag_repository.get_by_id(tag_id)
     if tag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -649,7 +649,7 @@ def add_pteamtag(
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
     tag_repository = TagRepository(db)
-    tag = tag_repository.get_tag_by_id(tag_id)
+    tag = tag_repository.get_by_id(tag_id)
     if tag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 

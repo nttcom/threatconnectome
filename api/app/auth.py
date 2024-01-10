@@ -78,7 +78,7 @@ def get_current_user(
     decoded_token: Dict[str, Any] = Depends(verify_id_token), db: Session = Depends(get_db)
 ) -> Account:
     account_repository = AccountRepository(db)
-    user = account_repository.get_account_by_firebase_uid(decoded_token["uid"])
+    user = account_repository.get_by_firebase_uid(decoded_token["uid"])
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

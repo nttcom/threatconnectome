@@ -53,7 +53,7 @@ def delete_tag(
     Delete a tag.
     """
     tag_repository = TagRepository(db)
-    tag = tag_repository.get_tag_by_id(tag_id)
+    tag = tag_repository.get_by_id(tag_id)
     if tag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
