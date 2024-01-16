@@ -34,7 +34,7 @@ export const dateTimeFormat = (utcString) => {
   try {
     return format(utcStringToLocalDate(utcString), "yyyy-MM-dd'T'HH:mm:ssxxx");
   } catch (error) {
-    return " - ";
+    return " ";
   }
 };
 
