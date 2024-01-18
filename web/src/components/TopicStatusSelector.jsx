@@ -31,7 +31,7 @@ import {
   getPTeamUnsolvedTaggedTopicIds,
 } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
-import { topicStatusProps } from "../utils/const";
+import { topicStatusProps, modalCommonButtonStyle } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
 export function TopicStatusSelector(props) {
@@ -182,7 +182,7 @@ export function TopicStatusSelector(props) {
             </Grow>
           )}
         </Popper>
-        <Dialog onClose={handleHideDatepicker} open={datepickerOpen}>
+        <Dialog onClose={handleHideDatepicker} open={datepickerOpen} fullWidth>
           <DialogTitle>
             <Box alignItems="center" display="flex" flexGrow={1}>
               <Typography flexGrow={1} variant="inherit">
@@ -206,11 +206,13 @@ export function TopicStatusSelector(props) {
             </LocalizationProvider>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleHideDatepicker}>Cancel</Button>
+            <Button onClick={handleHideDatepicker} sx={modalCommonButtonStyle}>
+              Cancel
+            </Button>
             <Button
-              variant="contained"
               onClick={handleUpdateSchedule}
               disabled={!isBefore(now, schedule)}
+              sx={modalCommonButtonStyle}
             >
               Schedule
             </Button>
