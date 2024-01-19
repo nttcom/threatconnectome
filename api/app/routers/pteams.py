@@ -24,6 +24,7 @@ from app.common import (
     get_pteamtags_summary,
     get_topics_internal,
     pteam_topic_tag_status_to_response,
+    pteamtag_try_auto_close_topic,
     set_pteam_topic_status_internal,
     update_zones,
     validate_pteam,
@@ -1538,3 +1539,32 @@ def remove_watcher_ateam(
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{pteam_id}/fix_status_mismatch")
+def fix_status_mismatch(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
+    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+
+    pteam_topics = (
+        db.query(models.Topic)
+        .join(
+            models.CurrentPTeamTopicTagStatus,
+            and_(
+                models.Topic.topic_id == models.CurrentPTeamTopicTagStatus.topic_id,
+                models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
+                models.CurrentPTeamTopicTagStatus.topic_status == "alerted",
+            ),
+        )
+        .all()
+    )
+
+    for pteamtag in pteam.pteamtags:
+        for pteam_topic in pteam_topics:
+            pteamtag_try_auto_close_topic(db, pteamtag, pteam_topic)
+
+    return Response(status_code=status.HTTP_200_OK)
