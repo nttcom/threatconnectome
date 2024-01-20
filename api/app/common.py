@@ -910,12 +910,19 @@ def get_or_create_topic_tag(db: Session, tag_name: str) -> models.Tag:
 
     parent_name = _pick_parent_tag(tag_name)
     if parent_name:
-        parent_tag = tag_repository.get_by_name(parent_name)
-        if not parent_tag:
-            parent_tag = models.Tag(tag_name=parent_name, parent_id=None, parent_name=None)
-            parent_tag = tag_repository.add(parent_tag)
-        new_tag.parent_id = parent_tag.tag_id
-        new_tag.parent_name = parent_tag.tag_name
+        if parent_name == tag_name:
+            parent_id = new_tag.tag_id
+            parent_name = new_tag.tag_name
+        else:
+            parent_tag = tag_repository.get_by_name(parent_name)
+            if not parent_tag:
+                parent_tag = models.Tag(tag_name=parent_name, parent_id=None, parent_name=parent_name)
+                parent_tag.parent_id = parent_tag.tag_id
+                parent_tag = tag_repository.add(parent_tag)
+            parent_id = parent_tag.tag_id
+            parent_name = parent_tag.tag_name
+        new_tag.parent_id = parent_id
+        new_tag.parent_name = parent_name
     new_tag = tag_repository.add(new_tag)
     db.commit()
     return new_tag
@@ -1443,7 +1450,7 @@ def get_pteam_topic_status_history(
 
 def get_metadata_internal(logging_id: Union[UUID, str], current_user: models.Account, db: Session):
     actionlog_repository = ActionLogRepository(db)
-    actionlog = actionlog_repository.get_actionlog(db, logging_id)
+    actionlog = actionlog_repository.get_by_id(logging_id)
     if actionlog is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such actionlog")
     # assert actionlog
@@ -1837,8 +1844,8 @@ def set_pteam_topic_status_internal(
     check_tag_is_related_to_topic(db, tag_id, topic_id)
     for logging_id_ in data.logging_ids:
         actionlog_repository = ActionLogRepository(db)
-        action_log = actionlog_repository.get_by_id(db, logging_id_)
-        if not action_log or action_log.pteam_id != pteam_id or action_log.topic_id != topic_id:
+        action_log = actionlog_repository.get_by_id(logging_id_)
+        if not action_log or action_log.pteam_id != str(pteam_id) or action_log.topic_id != str(topic_id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     for assignee in data.assignees:
         check_pteam_membership(db, pteam_id, assignee, on_error=status.HTTP_400_BAD_REQUEST)
