@@ -11,7 +11,7 @@ class TagRepository:
         return self.db.query(models.Tag).all()
 
     def get_by_id(self, tag_id: str | UUID) -> models.Tag | None:
-        return self.db.query(models.Tag).filter(models.Tag.id == tag_id).one_or_none()
+        return self.db.query(models.Tag).filter(models.Tag.tag_id == str(tag_id)).one_or_none()
 
     def get_by_name(self, tag_name: str) -> models.Tag | None:
         return self.db.query(models.Tag).filter(models.Tag.tag_name == tag_name).one_or_none()

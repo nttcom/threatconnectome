@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi import Query as QueryParameter
 from fastapi.responses import Response
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -25,8 +25,9 @@ def get_tags(
     """
     # Get scalar value because converting python object is slow
     # TODO: add pagination
-    select_statement = select(models.Tag).order_by(models.Tag.tag_name)
-    return db.scalars(select_statement).all()
+    tag_repository = TagRepository(db)
+    all_tag = tag_repository.get_all()
+    return sorted(all_tag, key=lambda tag: tag.tag_name)
 
 
 @router.post("", response_model=schemas.TagResponse)
