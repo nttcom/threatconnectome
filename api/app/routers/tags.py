@@ -55,7 +55,7 @@ def delete_tag(
     tag_repository = TagRepository(db)
     tag = tag_repository.get_by_id(tag_id)
     if tag is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
 
     num_of_child_tags = (
         db.query(models.Tag)

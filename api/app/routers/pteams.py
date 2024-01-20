@@ -282,7 +282,7 @@ def get_pteam_tagged_solved_topic_ids(
     tag_repository = TagRepository(db)
     tag = tag_repository.get_by_id(tag_id)
     if tag is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
 
     requested_pteamtag = (
         db.query(models.PTeamTag)
@@ -324,7 +324,7 @@ def get_pteam_tagged_unsolved_topic_ids(
     tag_repository = TagRepository(db)
     tag = tag_repository.get_by_id(tag_id)
     if tag is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
 
     requested_pteamtag = (
         db.query(models.PTeamTag)
@@ -651,7 +651,7 @@ def add_pteamtag(
     tag_repository = TagRepository(db)
     tag = tag_repository.get_by_id(tag_id)
     if tag is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
 
     if tag.tag_id in [pteamtag.tag.tag_id for pteamtag in pteam.pteamtags]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already exists")
