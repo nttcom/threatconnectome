@@ -15,54 +15,56 @@ class ActionLogRepository:
     def get_by_id(self, action_log_id: str | UUID):
         return (
             self.db.query(models.ActionLog)
-            .filter(models.ActionLog.id == action_log_id)
+            .filter(models.ActionLog.logging_id == str(action_log_id))
             .one_or_none()
         )
 
-    def get_by_ids(self, user_ids: list[str] | list[UUID]):
-        return self.db.query(models.ActionLog).filter(models.ActionLog.id.in_(user_ids)).all()
+    def get_by_ids(self, action_log_ids: list[str] | list[UUID]):
+        action_log_ids = list(map(str, action_log_ids))
+        return self.db.query(models.ActionLog).filter(models.ActionLog.logging_id.in_(action_log_ids)).all()
 
-    def get_action_logs_by_account_id(self, account_id):
+    def get_by_account_id(self, account_id):
         return (
             self.db.query(models.ActionLog).filter(models.ActionLog.account_id == account_id).all()
         )
 
-    def get_action_logs_by_pteam_id(self, pteam_id: str | UUID):
+    def get_by_pteam_id(self, pteam_id: str | UUID):
         # pteam = self.db.query(models.PTeam).filter(models.PTeam.team_id == team_id).one_or_none()
         return self.db.query(models.ActionLog).filter(models.ActionLog.pteam_id == pteam_id).all()
 
     def search(
         self,
-        action_type: str,
-        action_words: list[str] | None,
-        action_types: list[str] | None,
-        user_ids: list[UUID] | None,
-        pteam_ids: list[UUID] | None,
-        emails: list[str],
-        executed_before: datetime,
-        executed_after: datetime,
-        created_before: datetime,
-        created_after: datetime,
+        topic_ids: list[UUID] | list[str] | None = None,
+        action_words: list[str] | None = None,
+        action_types: list[str] | None = None,
+        user_ids: list[UUID] | list[str] | None = None,
+        pteam_ids: list[UUID] | list[str] | None = None,
+        emails: list[str] | None = None,
+        executed_before: datetime | None = None,
+        executed_after: datetime | None = None,
+        created_before: datetime | None = None,
+        created_after: datetime | None = None,
     ) -> list[models.ActionLog]:
         query = self.db.query(models.ActionLog)
-        if action_type:
-            query = query.filter(models.ActionLog.action_type == action_type)
 
-        if action_words:
+        if topic_ids is not None:
+            query = query.filter(models.ActionLog.topic_id.in_(list(map(str, topic_ids))))
+
+        if action_words is not None:
             query = query.filter(
                 models.ActionLog.action.bool_op("@@")(func.to_tsquery("|".join(action_words)))
             )
 
-        if action_types:
+        if action_types is not None:
             query = query.filter(models.ActionLog.action_type.in_(action_types))
 
-        if user_ids:
+        if user_ids is not None:
             query = query.filter(models.ActionLog.user_id.in_(list(map(str, user_ids))))
 
-        if pteam_ids:
+        if pteam_ids is not None:
             query = query.filter(models.ActionLog.pteam_id.in_(list(map(str, pteam_ids))))
 
-        if emails:
+        if emails is not None:
             query = query.filter(models.ActionLog.email.in_(emails))
 
         if executed_before:

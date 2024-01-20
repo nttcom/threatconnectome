@@ -17,7 +17,7 @@ from app.common import (
 )
 from app.database import get_db
 from app.models import ActionType
-from app.routers import ActionlogRepository
+from app.repository.actionlog import ActionLogRepository
 
 router = APIRouter(prefix="/actionlogs", tags=["actionlogs"])
 
@@ -55,10 +55,13 @@ def get_logs(
     """
     Get actionlogs of pteams the user belongs to.
     """
-    actionlog_repository = ActionlogRepository(db)
+    actionlog_repository = ActionLogRepository(db)
     current_user_pteams = [pteam.pteam_id for pteam in current_user.pteams]
-    actionlog_repository.search(pteam_ids=current_user_pteams)
-    actionlogs = actionlog_repository.get_all().sort(key=lambda x: x.created_at, reverse=True)
+    actionlogs = sorted(
+        actionlog_repository.search(pteam_ids=current_user_pteams),
+        key=lambda x: x.executed_at,
+        reverse=True
+    )
     result = []
     for log in actionlogs:
         if log.created_at:
@@ -99,11 +102,9 @@ def get_topic_logs(
     assert topic
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
 
-    actionlog_repository = ActionlogRepository(db)
+    actionlog_repository = ActionLogRepository(db)
     current_user_pteams = [pteam.pteam_id for pteam in current_user.pteams]
-    actionlog_repository.search(current_user_pteams)
-    actionlogs = actionlog_repository.search(pteam_ids=current_user_pteams, topic_id=str(topic_id))
-
+    actionlogs = actionlog_repository.search(pteam_ids=current_user_pteams, topic_ids=[str(topic_id)])
     return sorted(actionlogs, key=lambda x: x.executed_at, reverse=True)
 
 
@@ -132,6 +133,16 @@ def search_logs(
             check_pteam_membership(
                 db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN
             )
-    actionlog_repository = ActionlogRepository(db)
-    actionlogs = actionlog_repository.search(topic_ids, action_words, action_types, user_ids, pteam_ids, emails, executed_before, executed_after, created_before, created_after)
+    actionlog_repository = ActionLogRepository(db)
+    actionlogs = actionlog_repository.search(
+        topic_ids=topic_ids,
+        action_words=action_words,
+        action_types=action_types,
+        user_ids=user_ids,
+        pteam_ids=pteam_ids,
+        emails=emails,
+        executed_before=executed_before,
+        executed_after=executed_after,
+        created_before=created_before,
+        created_after=created_after)
     return sorted(actionlogs, key=lambda x: x.executed_at, reverse=True)
