@@ -28,7 +28,6 @@ from app.common import (
     update_zones,
     validate_pteam,
     validate_pteamtag,
-    validate_topic,
 )
 from app.constants import (
     DEFAULT_ALERT_THREAT_IMPACT,
@@ -38,6 +37,7 @@ from app.constants import (
 from app.database import get_db
 from app.repository.account import AccountRepository
 from app.repository.tag import TagRepository
+from app.repository.topic import TopicRepository
 from app.slack import validate_slack_webhook_url
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
@@ -1206,8 +1206,12 @@ def get_pteam_topic_status(
     """
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
+
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
     validate_pteamtag(db, pteam_id, tag_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)

@@ -16,6 +16,7 @@ from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 from app.repository.account import AccountRepository
 from app.repository.actionlog import ActionLogRepository
 from app.repository.tag import TagRepository
+from app.repository.topic import TopicRepository
 from app.version import (
     PackageFamily,
     VulnerableRange,
@@ -471,25 +472,6 @@ def check_gteam_auth(
     raise HTTPException(status_code=on_error, detail="You do not have authority")
 
 
-def validate_topic(
-    db: Session,
-    topic_id: Union[UUID, str],
-    on_error: Optional[int] = None,
-    ignore_disabled: bool = False,
-) -> Optional[models.Topic]:
-    topic = (
-        db.query(models.Topic)
-        .filter(
-            models.Topic.topic_id == str(topic_id),
-            true() if ignore_disabled else models.Topic.disabled.is_(False),
-        )
-        .one_or_none()
-    )
-    if topic is None and on_error is not None:
-        raise HTTPException(status_code=on_error, detail="No such topic")
-    return topic
-
-
 sortkey2orderby: Dict[schemas.TopicSortKey, list] = {
     schemas.TopicSortKey.THREAT_IMPACT: [
         models.Topic.threat_impact,
@@ -817,12 +799,14 @@ def create_action_internal(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Missing topic_id",
         )
-    topic = validate_topic(
-        db,
-        action.topic_id,
-        on_error=status.HTTP_400_BAD_REQUEST,
-        ignore_disabled=True,
-    )
+
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(action.topic_id)
+    if topic is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No such topic",
+        )
     assert topic
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_403_FORBIDDEN)
     check_topic_action_tags_integrity(
@@ -1707,8 +1691,12 @@ def create_actionlog_internal(
     if not target_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
     check_pteam_membership(db, data.pteam_id, data.user_id, on_error=status.HTTP_400_BAD_REQUEST)
-    topic = validate_topic(db, data.topic_id, on_error=status.HTTP_400_BAD_REQUEST)
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(data.topic_id)
+    if topic is None or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid topic id")
     assert topic
+
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
 
     if (
@@ -1825,7 +1813,11 @@ def set_pteam_topic_status_internal(
 ) -> schemas.TopicStatusResponse:
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
+
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid topic id")
     assert topic
     validate_pteamtag(db, pteam_id, tag_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)

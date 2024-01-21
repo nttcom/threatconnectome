@@ -28,11 +28,11 @@ from app.common import (
     validate_action,
     validate_misp_tag,
     validate_pteam,
-    validate_topic,
     validate_zone,
 )
 from app.database import get_db
 from app.repository.tag import TagRepository
+from app.repository.topic import TopicRepository
 from app.slack import alert_new_topic
 
 router = APIRouter(prefix="/topics", tags=["topics"])
@@ -259,8 +259,11 @@ def get_topic(
     """
     Get a topic.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND, ignore_disabled=True)
-    assert topic
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
     return topic
 
@@ -285,7 +288,10 @@ def create_topic(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create default topic"
         )
-    if validate_topic(db, topic_id, ignore_disabled=True) is not None:
+
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is not None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Topic already exists")
 
     # check tags
@@ -391,8 +397,10 @@ def update_topic(
     """
     Update a topic.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND, ignore_disabled=True)
-    assert topic
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
 
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
 
@@ -499,8 +507,11 @@ def delete_topic(
     """
     Delete a topic and related records except actionlog and secbadge.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
 
     if topic.created_by != current_user.user_id:
@@ -527,8 +538,11 @@ def get_pteam_topic_actions(
     """
     Get actions list of the topic for specified pteam.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
@@ -591,8 +605,9 @@ def get_user_topic_actions(
     """
     Get actions list of the topic for current user.
     """
-    topic = validate_topic(db, topic_id)
-    if not topic or not check_zone_accessible(db, current_user.user_id, topic.zones):
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None or topic.disabled or not check_zone_accessible(db, current_user.user_id, topic.zones):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No such topic",

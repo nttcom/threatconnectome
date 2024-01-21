@@ -17,10 +17,10 @@ from app.common import (
     sortkey2orderby,
     validate_ateam,
     validate_pteam,
-    validate_topic,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 from app.database import get_db
+from app.repository.topic import TopicRepository
 from app.slack import validate_slack_webhook_url
 
 router = APIRouter(prefix="/ateams", tags=["ateams"])
@@ -953,7 +953,12 @@ def get_topic_comments(
     Get ateam topic comments.
     """
     validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
+
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
     check_ateam_membership(db, ateam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
     return (
         db.query(
@@ -995,7 +1000,12 @@ def add_topic_comment(
     Add ateam topic comment.
     """
     validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
+
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
     check_ateam_membership(db, ateam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
     comment = models.ATeamTopicComment(
         topic_id=str(topic_id),
@@ -1026,7 +1036,12 @@ def update_topic_comment(
     Update ateam topic comment.
     """
     validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
+
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
     comment = (
         db.query(models.ATeamTopicComment)
         .filter(
@@ -1060,7 +1075,12 @@ def delete_topic_comment(
     Delete ateam topic comment.
     """
     validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
+
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
     comment = (
         db.query(models.ATeamTopicComment)
         .filter(

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -13,11 +13,11 @@ from app.common import (
     create_actionlog_internal,
     create_secbadge_from_actionlog_internal,
     get_metadata_internal,
-    validate_topic,
 )
 from app.database import get_db
 from app.models import ActionType
 from app.repository.actionlog import ActionLogRepository
+from app.repository.topic import TopicRepository
 
 router = APIRouter(prefix="/actionlogs", tags=["actionlogs"])
 
@@ -98,8 +98,11 @@ def get_topic_logs(
     """
     Get actionlogs associated with the specified topic.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
+    topic_repository = TopicRepository(db)
+    topic = topic_repository.get_by_id(topic_id)
+    if topic is None or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
 
     actionlog_repository = ActionLogRepository(db)
