@@ -1547,7 +1547,7 @@ def fix_status_mismatch(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
+    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
     pteam_topics = (
@@ -1557,14 +1557,27 @@ def fix_status_mismatch(
             and_(
                 models.Topic.topic_id == models.CurrentPTeamTopicTagStatus.topic_id,
                 models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
-                models.CurrentPTeamTopicTagStatus.topic_status == "alerted",
+                models.CurrentPTeamTopicTagStatus.topic_status.in_(["alerted","acknowledged"]),
             ),
         )
         .all()
     )
 
-    for pteamtag in pteam.pteamtags:
+    pteam_tags = (
+        db.query(models.PTeamTag)
+        .join(
+            models.CurrentPTeamTopicTagStatus,
+            and_(
+                models.PTeamTag.tag_id == models.CurrentPTeamTopicTagStatus.tag_id,
+                models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
+                models.CurrentPTeamTopicTagStatus.topic_status.in_(["alerted","acknowledged"]),
+            ),
+        )
+        .all()
+    )
+
+    for pteam_tag in pteam_tags:
         for pteam_topic in pteam_topics:
-            pteamtag_try_auto_close_topic(db, pteamtag, pteam_topic)
+            pteamtag_try_auto_close_topic(db, pteam_tag, pteam_topic)
 
     return Response(status_code=status.HTTP_200_OK)
