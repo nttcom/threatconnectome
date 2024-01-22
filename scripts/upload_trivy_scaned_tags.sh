@@ -57,20 +57,21 @@ tags_jsonl=$(tempfile) || (echo >&2 "cannot create tempfile"; exit 255)
 trap "rm -f -- '${trivy_output}' '${tags_jsonl}'" EXIT HUP INT QUIT TERM
 
 script_path=`dirname $0`
-trivy_cmd="${trivy_command_path} fs '${scan_path}' --list-all-pkgs --exit-code 0 --timeout '${trivy_timeout}' -f json -o '${trivy_output}' -q"
-trivy_tags_cmd="python3 ${script_path}/trivy_tags.py -i '${trivy_output}' -o '${tags_jsonl}'"
-upload_tags_cmd="python3 ${script_path}/upload_tags_file.py -e '${api_endpoint}' -r '${refresh_token}' -i '${tags_jsonl}' -g '${gradual}' '${pteam_id}' '${group}'"
 
 echo >&2 "processing trivy."
+trivy_cmd="${trivy_command_path} fs '${scan_path}' --list-all-pkgs --exit-code 0 --timeout '${trivy_timeout}' -f json -o '${trivy_output}' -q"
 echo >&2 "${trivy_cmd}"
 eval "${trivy_cmd}" || giveup "trivy scan failed with ret_code=$?."
 
 echo >&2 "processing trivy_tags."
+trivy_tags_cmd="python3 ${script_path}/trivy_tags.py -i '${trivy_output}' -o '${tags_jsonl}'"
 echo >&2 "${trivy_tags_cmd}"
 eval "${trivy_tags_cmd}" || giveup "trivy_tags failed."
 
 echo >&2 "processing upload_tags_file."
+upload_tags_cmd="python3 ${script_path}/upload_tags_file.py -e '${api_endpoint}' -i '${tags_jsonl}' -g '${gradual}' '${pteam_id}' '${group}'"
+export THREATCONNECTOME_REFRESH_TOKEN="${refresh_token}"  # aboid -r option not to show token on procs
 echo >&2 "${upload_tags_cmd}"
 eval "${upload_tags_cmd}" || giveup "upload_tags_file failed."
 
-echo "succeeded!"
+echo >&2 "succeeded!"
