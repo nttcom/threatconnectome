@@ -6617,6 +6617,157 @@ def test_remove_watcher():
     assert len(data) == 0
 
 
+def test_fix_mismatch(testdb: Session):
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, {**PTEAM1, "tags": []})
+    tag1 = create_tag(USER1, "test:tag:alpha")
+    ext_tag1 = {
+        "tag_name": tag1.tag_name,
+        "references": [
+            {
+                "target": "api/Pipfile.lock",
+                "version": "1.1",  # not vulnerable
+                "group": "Threatconnectome",
+            }
+        ],
+        "text": "alpha",
+    }
+    tag2 = create_tag(USER1, "test:tag:bravo")
+    ext_tag2 = {
+        "tag_name": tag2.tag_name,
+        "references": [
+            {
+                "target": "api/Pipfile.lock",
+                "version": "1.0",  # vulnerable
+                "group": "Threatconnectome",
+            }
+        ],
+        "text": "bravo",
+    }
+    action1 = {
+        "action": "update alpha to version 1.1",
+        "action_type": "elimination",
+        "recommended": True,
+        "ext": {
+            "tags": [tag1.tag_name],
+            "vulnerable_versions": {
+                tag1.tag_name: [">=0 <1.1"],
+            },
+        },
+    }
+    action2 = {
+        "action": "update bravo to version 1.1",
+        "action_type": "elimination",
+        "recommended": True,
+        "ext": {
+            "tags": [tag2.tag_name],
+            "vulnerable_versions": {
+                tag2.tag_name: [">=0 <1.1"],
+            },
+        },
+    }
+    topic1 = create_topic(
+        USER1,
+        {
+            **TOPIC1,
+            "tags": [tag1.tag_name, tag2.tag_name],
+            "actions": [action1, action2],
+        },
+    )
+    params = {"group": "threatconnectome"}
+
+    with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tags_file:
+        tags_file.writelines(json.dumps(ext_tag1) + "\n")  # none -> not vulnerable
+        tags_file.writelines(json.dumps(ext_tag2) + "\n")  # none -> vulnerable
+        tags_file.flush()
+        tags_file.seek(0)
+        with open(tags_file.name, "rb") as tags:
+            response = client.post(
+                f"/pteams/{pteam1.pteam_id}/upload_tags_file",
+                headers=file_upload_headers(USER1),
+                files={"file": tags},
+                params=params,
+            )
+    assert response.status_code == 200
+
+    response = client.get(
+        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
+        headers=headers(USER1),
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["note"] == "auto closed by system"
+    assert data["user_id"] == str(SYSTEM_UUID)
+    assert len(data["action_logs"]) == 1
+    assert data["action_logs"][0]["user_id"] == str(SYSTEM_UUID)
+
+    # delete records of autoclose
+    currentStatus = (
+        testdb.query(models.CurrentPTeamTopicTagStatus)
+        .filter(
+            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam1.pteam_id),
+            models.CurrentPTeamTopicTagStatus.topic_id == str(topic1.topic_id),
+            models.CurrentPTeamTopicTagStatus.tag_id == str(tag1.tag_id),
+        )
+        .one()
+    )
+    testdb.delete(currentStatus)
+
+    ptts = (
+        testdb.query(models.PTeamTopicTagStatus)
+        .filter(
+            models.PTeamTopicTagStatus.status_id == data["status_id"],
+            models.PTeamTopicTagStatus.topic_status == "completed",
+        )
+        .one()
+    )
+    testdb.delete(ptts)
+
+    action_log = (
+        testdb.query(models.ActionLog)
+        .filter(models.ActionLog.logging_id == data["action_logs"][0]["logging_id"])
+        .one()
+    )
+    testdb.delete(action_log)
+    testdb.commit()
+
+    # call fix_status_mimatch API
+    response = client.post(
+        f"/pteams/{pteam1.pteam_id}/fix_status_mismatch",
+        headers=headers(USER1),
+    )
+    assert response.status_code == 200
+
+    currentStatus = (
+        testdb.query(models.CurrentPTeamTopicTagStatus)
+        .filter(
+            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam1.pteam_id),
+            models.CurrentPTeamTopicTagStatus.topic_id == str(topic1.topic_id),
+            models.CurrentPTeamTopicTagStatus.tag_id == str(tag1.tag_id),
+        )
+        .one_or_none()
+    )
+    assert currentStatus is not None
+    ptts = (
+        testdb.query(models.PTeamTopicTagStatus)
+        .filter(
+            models.PTeamTopicTagStatus.status_id == str(currentStatus.status_id),
+            models.PTeamTopicTagStatus.topic_status == "completed",
+            models.PTeamTopicTagStatus.user_id == str(SYSTEM_UUID)
+        )
+        .one_or_none()
+    )
+    assert ptts is not None
+
+    action_log = (
+        testdb.query(models.ActionLog)
+        .filter(models.ActionLog.topic_id == str(currentStatus.topic_id),
+                models.ActionLog.user_id == str(SYSTEM_UUID))
+        .one_or_none()
+    )
+    assert action_log is not None
+
+
 class TestAutoClose:
     class _Util:
         @staticmethod
