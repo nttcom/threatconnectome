@@ -52,8 +52,8 @@ function giveup() {
 [ -n "${group}" ] || giveup "Missing group"
 [ -n "${gradual}" ] || giveup "Missing gradual"
 
-trivy_output=$(mktemp) || (echo >&2 "cannot create tempfile"; exit 255)
-tags_jsonl=$(mktemp) || (echo >&2 "cannot create tempfile"; exit 255)
+trivy_output=$(mktemp) || giveup "cannot create tempfile."
+tags_jsonl=$(mktemp) || giveup "cannot create tempfile."
 # shellcheck disable=SC2064  # Use single quotes, otherwise this expands now rather than when signalled.
 trap "rm -f -- '${trivy_output}' '${tags_jsonl}'" EXIT HUP INT QUIT TERM
 
