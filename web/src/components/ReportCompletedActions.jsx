@@ -84,7 +84,7 @@ export function ReportCompletedActions(props) {
     }
   };
 
-  if (!pteamId || !topicId || !topics[topicId]) return <></>;
+  if (!pteamId || !topicId || !topics[topicId] || !topicActions) return <></>;
 
   const handleClose = () => {
     setShow(false);
