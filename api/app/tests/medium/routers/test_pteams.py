@@ -6712,7 +6712,7 @@ def test_fix_status_mismatch(testdb: Session):
         )
         .one()
     )
-    currentStatus.topic_status = "alerted"
+    currentStatus.topic_status = models.TopicStatusType.alerted
     testdb.add(currentStatus)
 
     ptts = (
@@ -6723,7 +6723,7 @@ def test_fix_status_mismatch(testdb: Session):
         )
         .one()
     )
-    ptts.topic_status = "alerted"
+    ptts.topic_status = models.TopicStatusType.alerted
     testdb.add(ptts)
 
     action_log = (
