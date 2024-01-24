@@ -6755,7 +6755,7 @@ def test_fix_status_mismatch(testdb: Session):
             models.CurrentPTeamTopicTagStatus.tag_id == str(tag1.tag_id),
             models.CurrentPTeamTopicTagStatus.topic_status == "completed",
         )
-        .one_or_none()
+        .one()
     )
     assert currentStatus is not None
     ptts = (
@@ -6765,7 +6765,7 @@ def test_fix_status_mismatch(testdb: Session):
             models.PTeamTopicTagStatus.topic_status == "completed",
             models.PTeamTopicTagStatus.user_id == str(SYSTEM_UUID),
         )
-        .one_or_none()
+        .one()
     )
     assert ptts is not None
 
@@ -6775,7 +6775,7 @@ def test_fix_status_mismatch(testdb: Session):
             models.ActionLog.topic_id == str(currentStatus.topic_id),
             models.ActionLog.user_id == str(SYSTEM_UUID),
         )
-        .one_or_none()
+        .one()
     )
     assert action_log is not None
 
