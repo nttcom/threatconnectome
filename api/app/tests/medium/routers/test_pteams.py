@@ -6696,6 +6696,7 @@ def test_fix_status_mismatch(testdb: Session):
     )
     assert response.status_code == 200
     data = response.json()
+    assert data["topic_status"] == "completed"
     assert data["note"] == "auto closed by system"
     assert data["user_id"] == str(SYSTEM_UUID)
     assert len(data["action_logs"]) == 1
@@ -6711,7 +6712,8 @@ def test_fix_status_mismatch(testdb: Session):
         )
         .one()
     )
-    testdb.delete(currentStatus)
+    currentStatus.topic_status = "alerted"
+    testdb.add(currentStatus)
 
     ptts = (
         testdb.query(models.PTeamTopicTagStatus)
@@ -6721,7 +6723,8 @@ def test_fix_status_mismatch(testdb: Session):
         )
         .one()
     )
-    testdb.delete(ptts)
+    ptts.topic_status = "alerted"
+    testdb.add(ptts)
 
     action_log = (
         testdb.query(models.ActionLog)
@@ -6731,14 +6734,13 @@ def test_fix_status_mismatch(testdb: Session):
     testdb.delete(action_log)
     testdb.commit()
 
-    # set acknowledged topicstatus
-    request = {"topic_status": models.TopicStatusType.acknowledged}
-    response = client.post(
+    response = client.get(
         f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
         headers=headers(USER1),
-        json=request,
     )
     assert response.status_code == 200
+    data = response.json()
+    assert data["topic_status"] == "alerted"
 
     # call fix_status_mimatch API
     response = client.post(
@@ -6747,37 +6749,15 @@ def test_fix_status_mismatch(testdb: Session):
     )
     assert response.status_code == 200
 
-    currentStatus = (
-        testdb.query(models.CurrentPTeamTopicTagStatus)
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam1.pteam_id),
-            models.CurrentPTeamTopicTagStatus.topic_id == str(topic1.topic_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag1.tag_id),
-            models.CurrentPTeamTopicTagStatus.topic_status == "completed",
-        )
-        .one()
+    response = client.get(
+        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
+        headers=headers(USER1),
     )
-    assert currentStatus is not None
-    ptts = (
-        testdb.query(models.PTeamTopicTagStatus)
-        .filter(
-            models.PTeamTopicTagStatus.status_id == str(currentStatus.status_id),
-            models.PTeamTopicTagStatus.topic_status == "completed",
-            models.PTeamTopicTagStatus.user_id == str(SYSTEM_UUID),
-        )
-        .one()
-    )
-    assert ptts is not None
-
-    action_log = (
-        testdb.query(models.ActionLog)
-        .filter(
-            models.ActionLog.topic_id == str(currentStatus.topic_id),
-            models.ActionLog.user_id == str(SYSTEM_UUID),
-        )
-        .one()
-    )
-    assert action_log is not None
+    assert response.status_code == 200
+    data = response.json()
+    assert data["topic_status"] == "completed"
+    assert data["note"] == "auto closed by system"
+    assert data["user_id"] == str(SYSTEM_UUID)
 
 
 class TestAutoClose:
