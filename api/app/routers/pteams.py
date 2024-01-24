@@ -1550,13 +1550,11 @@ def fix_status_mismatch(
     validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
-    pteam_query = (
-        select(models.CurrentPTeamTopicTagStatus).where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
-            models.CurrentPTeamTopicTagStatus.topic_status.in_(
-                [models.TopicStatusType.alerted, models.TopicStatusType.acknowledged]
-            ),
-        )
+    pteam_query = select(models.CurrentPTeamTopicTagStatus).where(
+        models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
+        models.CurrentPTeamTopicTagStatus.topic_status.in_(
+            [models.TopicStatusType.alerted, models.TopicStatusType.acknowledged]
+        ),
     )
 
     rows = db.query(pteam_query.subquery()).all()
