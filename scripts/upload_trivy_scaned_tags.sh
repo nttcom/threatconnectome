@@ -39,7 +39,7 @@ while getopts "hs:r:p:g:G:" OPT; do
         *) usage;;
     esac
 done
-shift $((${OPTIND} - 1))
+shift $((OPTIND - 1))
 
 function giveup() {
     echo >&2 "$*"
@@ -52,11 +52,12 @@ function giveup() {
 [ -n "${group}" ] || giveup "Missing group"
 [ -n "${gradual}" ] || giveup "Missing gradual"
 
-trivy_output=$(tempfile) || (echo >&2 "cannot create tempfile"; exit 255)
-tags_jsonl=$(tempfile) || (echo >&2 "cannot create tempfile"; exit 255)
+trivy_output=$(mktemp) || (echo >&2 "cannot create tempfile"; exit 255)
+tags_jsonl=$(mktemp) || (echo >&2 "cannot create tempfile"; exit 255)
+# shellcheck disable=SC2064  # Use single quotes, otherwise this expands now rather than when signalled.
 trap "rm -f -- '${trivy_output}' '${tags_jsonl}'" EXIT HUP INT QUIT TERM
 
-script_path=`dirname $0`
+script_path=$(dirname "$0")
 
 echo >&2 "processing trivy."
 trivy_cmd="${trivy_command_path} fs '${scan_path}' --list-all-pkgs --exit-code 0 --timeout '${trivy_timeout}' -f json -o '${trivy_output}' -q"
