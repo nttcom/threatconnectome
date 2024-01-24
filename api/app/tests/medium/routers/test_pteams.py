@@ -6753,6 +6753,7 @@ def test_fix_mismatch(testdb: Session):
             models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam1.pteam_id),
             models.CurrentPTeamTopicTagStatus.topic_id == str(topic1.topic_id),
             models.CurrentPTeamTopicTagStatus.tag_id == str(tag1.tag_id),
+            models.CurrentPTeamTopicTagStatus.topic_status == "completed",
         )
         .one_or_none()
     )
@@ -6762,7 +6763,7 @@ def test_fix_mismatch(testdb: Session):
         .filter(
             models.PTeamTopicTagStatus.status_id == str(currentStatus.status_id),
             models.PTeamTopicTagStatus.topic_status == "completed",
-            models.PTeamTopicTagStatus.user_id == str(SYSTEM_UUID)
+            models.PTeamTopicTagStatus.user_id == str(SYSTEM_UUID),
         )
         .one_or_none()
     )
@@ -6770,8 +6771,10 @@ def test_fix_mismatch(testdb: Session):
 
     action_log = (
         testdb.query(models.ActionLog)
-        .filter(models.ActionLog.topic_id == str(currentStatus.topic_id),
-                models.ActionLog.user_id == str(SYSTEM_UUID))
+        .filter(
+            models.ActionLog.topic_id == str(currentStatus.topic_id),
+            models.ActionLog.user_id == str(SYSTEM_UUID),
+        )
         .one_or_none()
     )
     assert action_log is not None
