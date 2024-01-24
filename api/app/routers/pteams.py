@@ -1544,11 +1544,11 @@ def remove_watcher_ateam(
 @router.post("/{pteam_id}/fix_status_mismatch")
 def fix_status_mismatch(
     pteam_id: UUID,
-    # current_user: models.Account = Depends(get_current_user),
+    current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    # check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
     pteam_query = (
         select(models.CurrentPTeamTopicTagStatus).where(
