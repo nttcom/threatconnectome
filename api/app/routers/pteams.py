@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql.expression import func, true
 
@@ -24,6 +24,7 @@ from app.common import (
     get_pteamtags_summary,
     get_topics_internal,
     pteam_topic_tag_status_to_response,
+    pteamtag_try_auto_close_topic,
     set_pteam_topic_status_internal,
     update_zones,
     validate_pteam,
@@ -1538,3 +1539,35 @@ def remove_watcher_ateam(
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{pteam_id}/fix_status_mismatch")
+def fix_status_mismatch(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
+    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+
+    pteam_query = select(models.CurrentPTeamTopicTagStatus).where(
+        models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
+        models.CurrentPTeamTopicTagStatus.topic_status.in_(
+            [models.TopicStatusType.alerted, models.TopicStatusType.acknowledged]
+        ),
+    )
+
+    rows = db.query(pteam_query.subquery()).all()
+
+    for row in rows:
+        pteam_tag = db.scalars(
+            select(models.PTeamTag).where(
+                models.PTeamTag.pteam_id == str(pteam_id), models.PTeamTag.tag_id == row.tag_id
+            )
+        ).one()
+        pteam_topic = db.scalars(
+            select(models.Topic).where(models.Topic.topic_id == row.topic_id)
+        ).one()
+        pteamtag_try_auto_close_topic(db, pteam_tag, pteam_topic)
+
+    return Response(status_code=status.HTTP_200_OK)

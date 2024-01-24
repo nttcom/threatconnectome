@@ -4,3 +4,7 @@
 # The latest version X.X.X of [VULNERABLE_PACKAGE] cannot fix it.
 # - https://[reference_link1]
 # - https://[reference_link2]
+
+# Added 2024-01-24. There is no PoC exploit for this CVE yet.
+# The latest version 0.18.0 of ecdsa cannot fix it.
+CVE-2024-23342
