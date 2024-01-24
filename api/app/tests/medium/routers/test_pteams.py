@@ -6731,6 +6731,15 @@ def test_fix_mismatch(testdb: Session):
     testdb.delete(action_log)
     testdb.commit()
 
+    # set acknowledged topicstatus
+    request = {"topic_status": models.TopicStatusType.acknowledged}
+    response = client.post(
+        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
+        headers=headers(USER1),
+        json=request,
+    )
+    assert response.status_code == 200
+
     # call fix_status_mimatch API
     response = client.post(
         f"/pteams/{pteam1.pteam_id}/fix_status_mismatch",
