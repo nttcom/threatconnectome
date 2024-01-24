@@ -6617,7 +6617,7 @@ def test_remove_watcher():
     assert len(data) == 0
 
 
-def test_fix_mismatch(testdb: Session):
+def test_fix_status_mismatch(testdb: Session):
     create_user(USER1)
     pteam1 = create_pteam(USER1, {**PTEAM1, "tags": []})
     tag1 = create_tag(USER1, "test:tag:alpha")
