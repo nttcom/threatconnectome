@@ -51,6 +51,7 @@ from app.tests.medium.utils import (
     create_pteam,
     create_tag,
     create_topic,
+    create_topicstatus,
     create_user,
     create_watching_request,
     create_zone,
@@ -448,12 +449,7 @@ def test_delete_topic(testdb: Session):
         "assignees": [str(user1.user_id)],
         "scheduled_at": str(datetime(2023, 6, 1)),
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=json_data,
-    )
-    assert response.status_code == 200
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data)
 
     # delete topic
     response = client.delete(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1))
