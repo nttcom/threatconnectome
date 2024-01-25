@@ -128,7 +128,7 @@ class CDXComponents:
                 }
                 for (tag, refs) in self.components.items()
             ],
-            key=lambda x: x["tag"],
+            key=lambda x: x["tag_name"],
         )
 
 
