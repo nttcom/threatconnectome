@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { PTeamTagLabel } from "../components/PTeamTagLabel.jsx";
 import { PTeamTaggedTopics } from "../components/PTeamTaggedTopics";
 import { TabPanel } from "../components/TabPanel";
 import { TagReferences } from "../components/TagReferences";
@@ -104,9 +105,12 @@ export function Tag() {
     <>
       <Box alignItems="center" display="flex" flexDirection="row" mt={3} mb={3}>
         <Box display="flex" flexDirection="column" flexGrow={1}>
-          <Typography variant="h4" sx={{ fontWeight: 900 }}>
-            {tagDict.tag_name}
-          </Typography>
+          <Box display="flex" alignItems="center">
+            <Typography variant="h4" sx={{ fontWeight: 900 }}>
+              {tagDict.tag_name}
+            </Typography>
+            <PTeamTagLabel />
+          </Box>
           <UUIDTypography>{tagId}</UUIDTypography>
           <Typography mt={1} mr={1} mb={1} variant="caption">
             {`Updated ${calcTimestampDiff(pteamtag.last_updated_at)}`}
