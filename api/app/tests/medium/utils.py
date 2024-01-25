@@ -352,6 +352,19 @@ def create_badge(
     return schemas.SecBadgeBody(**response.json())
 
 
+def create_topicstatus(
+    user: dict, pteam_id: UUID, topic_id: UUID, tag_id: UUID, json: dict
+) -> schemas.TopicStatusResponse:
+    response = assert_200(
+        client.post(
+            f"/pteams/{pteam_id}/topicstatus/{topic_id}/{tag_id}",
+            headers=headers(user),
+            json=json,
+        )
+    )
+    return schemas.TopicStatusResponse(**response)
+
+
 def common_put(user: dict, api_path: str, **kwargs) -> dict:
     response = client.put(api_path, headers=headers(user), json=kwargs)
     if response.status_code != 200:
