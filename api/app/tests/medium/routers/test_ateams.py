@@ -40,6 +40,7 @@ from app.tests.medium.utils import (
     create_pteam,
     create_tag,
     create_topic,
+    create_topicstatus,
     create_user,
     create_watching_request,
     create_zone,
@@ -1543,13 +1544,7 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.acknowledged,
     }
-    assert_200(
-        client.post(
-            f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1578,13 +1573,7 @@ def test_get_topic_status():
         "scheduled_at": str(datetime(3000, 1, 1)),
         "assignees": list(map(str, [user1.user_id, user2.user_id])),
     }
-    assert_200(
-        client.post(
-            f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1612,13 +1601,7 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.completed,
     }
-    assert_200(
-        client.post(
-            f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 0
@@ -1695,13 +1678,7 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.completed,
     }
-    assert_200(
-        client.post(
-            f"/pteams/{pteam2.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam2.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1736,13 +1713,7 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.acknowledged,
     }
-    assert_200(
-        client.post(
-            f"/pteams/{pteam2.pteam_id}/topicstatus/{topic2.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam2.pteam_id, topic2.topic_id, tag1.tag_id, request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1780,13 +1751,7 @@ def test_get_topic_status():
         "topic_status": models.TopicStatusType.scheduled,
         "scheduled_at": str(datetime(3000, 1, 1)),
     }
-    assert_200(
-        client.post(
-            f"/pteams/{pteam2.pteam_id}/topicstatus/{topic2.topic_id}/{tag2.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam2.pteam_id, topic2.topic_id, tag2.tag_id, request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1828,13 +1793,7 @@ def test_get_topic_status():
         "topic_status": models.TopicStatusType.scheduled,
         "scheduled_at": str(datetime(3000, 12, 31)),
     }
-    assert_200(
-        client.post(
-            f"/pteams/{pteam1.pteam_id}/topicstatus/{topic2.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic2.topic_id, tag1.tag_id, request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1874,13 +1833,7 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.completed,
     }
-    assert_200(
-        client.post(
-            f"/pteams/{pteam2.pteam_id}/topicstatus/{topic2.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam2.pteam_id, topic2.topic_id, tag1.tag_id, request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1911,13 +1864,7 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.completed,
     }
-    assert_200(
-        client.post(
-            f"/pteams/{pteam2.pteam_id}/topicstatus/{topic2.topic_id}/{tag2.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam2.pteam_id, topic2.topic_id, tag2.tag_id, request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1939,13 +1886,7 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.acknowledged,
     }
-    assert_200(
-        client.post(
-            f"/pteams/{pteam2.pteam_id}/topicstatus/{topic2.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam2.pteam_id, topic2.topic_id, tag1.tag_id, request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1

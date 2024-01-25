@@ -61,6 +61,7 @@ from app.tests.medium.utils import (
     create_pteam,
     create_tag,
     create_topic,
+    create_topicstatus,
     create_user,
     create_watching_request,
     create_zone,
@@ -1734,15 +1735,9 @@ def test_set_pteam_topic_status():
         "assignees": [str(x.user_id) for x in [user1, user2]],
         "scheduled_at": str(datetime(2023, 6, 1)),
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=json_data,
+    responsed_topicstatus = create_topicstatus(
+        USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data
     )
-    assert response.status_code == 200
-    print(response.json())
-    responsed_topicstatus = schemas.TopicStatusResponse(**response.json())
-    print(responsed_topicstatus)
     assert responsed_topicstatus.topic_id == topic1.topic_id
     assert responsed_topicstatus.tag_id == tag1.tag_id
     assert responsed_topicstatus.topic_status == json_data["topic_status"]
@@ -1753,23 +1748,11 @@ def test_set_pteam_topic_status():
 
     # set with mismatched tag
     with pytest.raises(HTTPError, match=r"400: Bad Request: Tag mismatch"):
-        assert_200(
-            client.post(
-                f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag2.tag_id}",
-                headers=headers(USER1),
-                json=json_data,
-            )
-        )
+        create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag2.tag_id, json_data)
 
     # set with not pteam tag
     with pytest.raises(HTTPError, match=r"404: Not Found: No such pteam tag"):
-        assert_200(
-            client.post(
-                f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag3.tag_id}",
-                headers=headers(USER1),
-                json=json_data,
-            )
-        )
+        create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag3.tag_id, json_data)
 
 
 def test_set_pteam_topic_status__without_related_zone():
@@ -1788,13 +1771,7 @@ def test_set_pteam_topic_status__without_related_zone():
     }
     # without related zone (zones mismatch between topic and pteam)
     with pytest.raises(HTTPError, match=r"404: Not Found: You do not have related zone"):
-        assert_200(
-            client.post(
-                f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-                headers=headers(USER1),
-                json=json_data,
-            )
-        )
+        create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data)
 
 
 def test_set_pteam_topic_status__not_specify_assignee():
@@ -1805,15 +1782,9 @@ def test_set_pteam_topic_status__not_specify_assignee():
 
     # set topicstatus
     json_data = {"topic_status": "acknowledged", "note": "acknowledged", "assignees": []}
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=json_data,
+    responsed_topicstatus = create_topicstatus(
+        USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data
     )
-    assert response.status_code == 200
-    print(response.json())
-    responsed_topicstatus = schemas.TopicStatusResponse(**response.json())
-    print(responsed_topicstatus)
     assert responsed_topicstatus.topic_id == topic1.topic_id
     assert responsed_topicstatus.tag_id == tag1.tag_id
     assert responsed_topicstatus.topic_status == json_data["topic_status"]
@@ -1841,14 +1812,9 @@ def test_set_pteam_topic_status__to_complete():
         "note": "",
         "logging_ids": [str(actionlog1.logging_id), str(actionlog2.logging_id)],
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=json_data,
+    responsed_topicstatus = create_topicstatus(
+        USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data
     )
-    assert response.status_code == 200
-    responsed_topicstatus = schemas.TopicStatusResponse(**response.json())
-    print(responsed_topicstatus)
     assert responsed_topicstatus.topic_id == topic1.topic_id
     assert responsed_topicstatus.tag_id == tag1.tag_id
     assert responsed_topicstatus.topic_status == json_data["topic_status"]
@@ -1871,13 +1837,8 @@ def test_set_pteam_topic_status__invalid_actionlog():
         "note": "completed",
         "logging_ids": [str(UUID(int=5))],
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=json_data,
-    )
-    assert response.status_code == 400
-    print(response.json())
+    with pytest.raises(HTTPError, match=r"400: Bad Request"):
+        create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data)
 
 
 def test_set_pteam_topic_status__with_unselectable_status():
@@ -1888,13 +1849,7 @@ def test_set_pteam_topic_status__with_unselectable_status():
 
     json_data = {"topic_status": "alerted", "note": "alerted"}
     with pytest.raises(HTTPError, match=r"400: Bad Request: Wrong topic status"):
-        assert_200(
-            client.post(
-                f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-                headers=headers(USER1),
-                json=json_data,
-            )
-        )
+        create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data)
 
 
 def test_set_pteam_topic_status__as_scheduled():
@@ -1906,12 +1861,7 @@ def test_set_pteam_topic_status__as_scheduled():
     request = {
         "topic_status": "scheduled",
     }
-    response1 = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    data1 = schemas.TopicStatusResponse(**response1.json())
+    data1 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     response2 = client.get(f"/achievements/{user1.user_id}", headers=headers(USER1))
     assert response2.status_code == 200
@@ -1934,12 +1884,7 @@ def test_set_pteam_topic_status__as_completed():
     request = {
         "topic_status": "completed",
     }
-    response1 = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    data1 = schemas.TopicStatusResponse(**response1.json())
+    data1 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     response2 = client.get(f"/achievements/{user1.user_id}", headers=headers(USER1))
     assert response2.status_code == 200
@@ -1963,11 +1908,7 @@ def test_set_pteam_topic_status__not_scheduled_or_completed():
     request = {
         "topic_status": "acknowledged",
     }
-    client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     response = client.get(f"/achievements/{user1.user_id}", headers=headers(USER1))
     assert response.status_code == 200
@@ -1982,14 +1923,7 @@ def test_set_pteam_topic_status__as_completed_within_1h(testdb: Session):
     topic1 = create_topic(USER1, TOPIC1)
 
     request = {"topic_status": "acknowledged"}
-    response1 = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response1.status_code == 200
-
-    data1 = schemas.TopicStatusResponse(**response1.json())
+    data1 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
     db_status1 = (
         testdb.query(models.PTeamTopicTagStatus)
         .filter(models.PTeamTopicTagStatus.status_id == str(data1.status_id))
@@ -2000,13 +1934,7 @@ def test_set_pteam_topic_status__as_completed_within_1h(testdb: Session):
     testdb.commit()
 
     request = {"topic_status": "completed"}
-    response2 = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response1.status_code == 200
-    data2 = schemas.TopicStatusResponse(**response2.json())
+    data2 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
     assert data2.user_id == user1.user_id
     assert data2.pteam_id == pteam1.pteam_id
 
@@ -2033,15 +1961,8 @@ def test_set_pteam_topic_status__as_completed_for_over_1h(testdb: Session):
     topic1 = create_topic(USER1, TOPIC1)
 
     request = {"topic_status": "acknowledged"}
-    response1 = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response1.status_code == 200
-
     now = datetime.now()
-    data1 = schemas.TopicStatusResponse(**response1.json())
+    data1 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
     db_status1 = (
         testdb.query(models.PTeamTopicTagStatus)
         .filter(models.PTeamTopicTagStatus.status_id == str(data1.status_id))
@@ -2052,13 +1973,7 @@ def test_set_pteam_topic_status__as_completed_for_over_1h(testdb: Session):
     testdb.commit()
 
     request = {"topic_status": "completed"}
-    response2 = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response1.status_code == 200
-    data2 = schemas.TopicStatusResponse(**response2.json())
+    data2 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
     assert data2.user_id == user1.user_id
     assert data2.pteam_id == pteam1.pteam_id
 
@@ -2380,12 +2295,7 @@ def test_get_pteam_topic_status():
         "note": f"acknowledged by {USER1['email']}",
         "scheduled_at": None,
     }
-    set_response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=set_request,
-    )
-    assert set_response.status_code == 200
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, set_request)
 
     # get topicstatuses
     response = client.get(
@@ -2505,12 +2415,7 @@ def test_get_pteam_topic_status_list():
         "note": f"acknowledged by {USER1['email']}",
         "scheduled_at": None,
     }
-    set_response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=set_request,
-    )
-    assert set_response.status_code == 200
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, set_request)
 
     # get topicstatus list
     response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER1))
@@ -2588,13 +2493,7 @@ def test_get_pteam_topic_status_list__actionlogs():
         "topic_status": models.TopicStatusType.completed,
         "logging_ids": [str(x.logging_id) for x in [actionlog1a1, actionlog1a2]],
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic_a.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response.status_code == 200
-    data = schemas.TopicStatusResponse(**response.json())
+    data = create_topicstatus(USER1, pteam1.pteam_id, topic_a.topic_id, tag1.tag_id, request)
     assert _compare_action_logs(data.action_logs, [actionlog1a2, actionlog1a1])
 
     response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER1))
@@ -2608,13 +2507,7 @@ def test_get_pteam_topic_status_list__actionlogs():
         "topic_status": models.TopicStatusType.completed,
         "logging_ids": [str(x.logging_id) for x in []],
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic_a.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response.status_code == 200
-    data = schemas.TopicStatusResponse(**response.json())
+    data = create_topicstatus(USER1, pteam1.pteam_id, topic_a.topic_id, tag1.tag_id, request)
     assert _compare_action_logs(data.action_logs, [])
 
     response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER1))
@@ -2629,13 +2522,7 @@ def test_get_pteam_topic_status_list__actionlogs():
         "topic_status": models.TopicStatusType.completed,
         "logging_ids": [str(x.logging_id) for x in [actionlog3a1]],
     }
-    response = client.post(
-        f"/pteams/{pteam3.pteam_id}/topicstatus/{topic_a.topic_id}/{tag1.tag_id}",
-        headers=headers(USER3),
-        json=request,
-    )
-    assert response.status_code == 200
-    data = schemas.TopicStatusResponse(**response.json())
+    data = create_topicstatus(USER3, pteam3.pteam_id, topic_a.topic_id, tag1.tag_id, request)
     assert _compare_action_logs(data.action_logs, [actionlog3a1])
 
     # no change for pteam1
@@ -2651,13 +2538,7 @@ def test_get_pteam_topic_status_list__actionlogs():
         "topic_status": models.TopicStatusType.completed,
         "logging_ids": [str(x.logging_id) for x in [actionlog1b1, actionlog1b1]],  # duplicated
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic_b.topic_id}/{tag1.tag_id}",
-        headers=headers(USER2),
-        json=request,
-    )
-    assert response.status_code == 200
-    data = schemas.TopicStatusResponse(**response.json())
+    data = create_topicstatus(USER2, pteam1.pteam_id, topic_b.topic_id, tag1.tag_id, request)
     assert _compare_action_logs(data.action_logs, [actionlog1b1])
 
     response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER2))
@@ -2707,11 +2588,8 @@ def test_get_pteam_topic_statuses_summary():
         "topic_status": models.TopicStatusType.acknowledged,
     }
     now = datetime.now().timestamp()
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic2.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic2.topic_id, tag1.tag_id, request)
+
     assert response.status_code == 200
 
     response = client.get(
@@ -2735,12 +2613,7 @@ def test_get_pteam_topic_statuses_summary():
         "topic_status": models.TopicStatusType.completed,
     }
     now = datetime.now().timestamp()
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic2.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response.status_code == 200
+    create_topicstatus(USER1, pteam1.pteam_id, topic2.topic_id, tag1.tag_id, request)
 
     response = client.get(
         f"/pteams/{pteam1.pteam_id}/topicstatusessummary/{tag1.tag_id}", headers=headers(USER1)
@@ -2789,11 +2662,7 @@ def test_get_pteam_topic_statuses_summary():
         "topic_status": models.TopicStatusType.scheduled,
     }
     now = datetime.now().timestamp()
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
     assert response.status_code == 200
 
     response = client.get(
@@ -2824,12 +2693,7 @@ def test_get_pteam_topic_statuses_summary():
         "topic_status": models.TopicStatusType.completed,
     }
     now = datetime.now().timestamp()
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response.status_code == 200
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     response = client.get(
         f"/pteams/{pteam1.pteam_id}/topicstatusessummary/{tag1.tag_id}", headers=headers(USER1)
@@ -2915,13 +2779,7 @@ def test_get_pteam_topic_statuses_summary__parent():
         "topic_status": models.TopicStatusType.acknowledged,
     }
     now = datetime.now().timestamp()
-    assert_200(
-        client.post(
-            f"/pteams/{pteam1.pteam_id}/topicstatus/{topic2.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic2.topic_id, tag1.tag_id, request)
 
     data = assert_200(
         client.get(
@@ -2944,13 +2802,7 @@ def test_get_pteam_topic_statuses_summary__parent():
         "topic_status": models.TopicStatusType.completed,
     }
     now = datetime.now().timestamp()
-    assert_200(
-        client.post(
-            f"/pteams/{pteam1.pteam_id}/topicstatus/{topic2.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic2.topic_id, tag1.tag_id, request)
 
     data = assert_200(
         client.get(
@@ -2999,13 +2851,7 @@ def test_get_pteam_topic_statuses_summary__parent():
         "topic_status": models.TopicStatusType.scheduled,
     }
     now = datetime.now().timestamp()
-    assert_200(
-        client.post(
-            f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     data = assert_200(
         client.get(
@@ -3035,13 +2881,7 @@ def test_get_pteam_topic_statuses_summary__parent():
         "topic_status": models.TopicStatusType.completed,
     }
     now = datetime.now().timestamp()
-    assert_200(
-        client.post(
-            f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json=request,
-        )
-    )
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     data = assert_200(
         client.get(
@@ -3907,12 +3747,7 @@ def test_update_pteam_tags_summary__update_topic_status():
     request = {
         "topic_status": "acknowledged",
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic2.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response.status_code == 200
+    create_topicstatus(USER1, pteam1.pteam_id, topic2.topic_id, tag1.tag_id, request)
 
     response = client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
     assert response.status_code == 200
@@ -3934,12 +3769,7 @@ def test_update_pteam_tags_summary__update_topic_status():
     request = {
         "topic_status": "completed",
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic2.topic_id}/{tag2.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response.status_code == 200
+    create_topicstatus(USER1, pteam1.pteam_id, topic2.topic_id, tag2.tag_id, request)
 
     response = client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
     assert response.status_code == 200
@@ -3969,12 +3799,7 @@ def test_update_pteam_tags_summary__update_topic_status():
     request = {
         "topic_status": "completed",
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic2.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response.status_code == 200
+    create_topicstatus(USER1, pteam1.pteam_id, topic2.topic_id, tag1.tag_id, request)
 
     response = client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
     assert response.status_code == 200
@@ -3996,12 +3821,7 @@ def test_update_pteam_tags_summary__update_topic_status():
     request = {
         "topic_status": "completed",
     }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
-        headers=headers(USER1),
-        json=request,
-    )
-    assert response.status_code == 200
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
 
     response = client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
     assert response.status_code == 200
@@ -4813,13 +4633,14 @@ def test_get_pteam_tagged_topic_ids():
     assert unsolved2.threat_impact_count == {"1": 1, "2": 1, "3": 0, "4": 0}
 
     # complete topic3 tag1
-    assert_200(
-        client.post(
-            f"/pteams/{pteam1.pteam_id}/topicstatus/{topic3.topic_id}/{tag1.tag_id}",
-            headers=headers(USER1),
-            json={"topic_status": models.TopicStatusType.completed},
-        )
+    create_topicstatus(
+        USER1,
+        pteam1.pteam_id,
+        topic3.topic_id,
+        tag1.tag_id,
+        {"topic_status": models.TopicStatusType.completed},
     )
+
     solved = _get_topics(USER2, pteam1, tag1, True)
     assert solved.topic_ids == [topic3.topic_id]
     assert solved.threat_impact_count == {"1": 1, "2": 0, "3": 0, "4": 0}

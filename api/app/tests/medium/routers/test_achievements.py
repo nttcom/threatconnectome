@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 from fastapi.testclient import TestClient
 
-from app import models, schemas
+from app import models
 from app.main import app
 from app.tests.medium.constants import (
     ACTION1,
@@ -27,6 +27,7 @@ from app.tests.medium.utils import (
     create_badge,
     create_pteam,
     create_topic,
+    create_topicstatus,
     create_user,
     headers,
     invite_to_pteam,
@@ -109,13 +110,7 @@ def test_create_secbadge_with_status_id():
     request1 = {
         "topic_status": "scheduled",
     }
-
-    response1 = client.post(
-        f"/pteams/{pteam.pteam_id}/topicstatus/{topic.topic_id}/{tag.tag_id}",
-        headers=headers(USER1),
-        json=request1,
-    )
-    topic_status = schemas.TopicStatusResponse(**response1.json())
+    topic_status = create_topicstatus(USER1, pteam.pteam_id, topic.topic_id, tag.tag_id, request1)
 
     metadata = {
         "name": f"he reason of {topic.title} has been found!",
@@ -336,12 +331,7 @@ def test_get_secbadges():
     request1 = {
         "topic_status": "scheduled",
     }
-    response1 = client.post(
-        f"/pteams/{pteam.pteam_id}/topicstatus/{topic.topic_id}/{tag.tag_id}",
-        headers=headers(USER1),
-        json=request1,
-    )
-    topic_status = schemas.TopicStatusResponse(**response1.json())
+    topic_status = create_topicstatus(USER1, pteam.pteam_id, topic.topic_id, tag.tag_id, request1)
 
     metadata2 = {
         "image": "",
