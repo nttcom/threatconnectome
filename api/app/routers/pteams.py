@@ -1573,10 +1573,9 @@ def fix_status_mismatch(
                 models.PTeamTopicTagStatus.status_id == models.CurrentPTeamTopicTagStatus.status_id,
             ),
         )
-        .subquery()
     )
 
-    rows = db.query(pteam_query).all()
+    rows = db.scalars(pteam_query).all()
 
     for row in rows:
         pteam_tag = db.scalars(
