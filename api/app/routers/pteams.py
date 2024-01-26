@@ -38,6 +38,7 @@ from app.constants import (
     NOT_MEMBER_UUID,
 )
 from app.database import get_db
+from app.sbom import CDXComponents, SyftCDXComponents, TrivyCDXComponents
 from app.slack import validate_slack_webhook_url
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
@@ -749,6 +750,14 @@ def _make_current_tags_dict(pteam: models.PTeam) -> dict[Any, dict[str, Any]]:
     }
 
 
+def _json_load(fileObject):
+    try:
+        return json.load(fileObject)
+    except json.JSONDecodeError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=("Wrong file content"),
+        ) from error
 
 
 def _json_loads(s: str | bytes | bytearray):
@@ -827,6 +836,44 @@ def remove_specified_group_references_from_pteamtag(db, pteamtag, group):
     # If reference remains, update pteamtag
     else:
         db.add(pteamtag)
+
+
+@router.post("/{pteam_id}/upload_sbom_file", response_model=List[schemas.ExtTagResponse])
+def upload_pteam_sbom_file(
+    pteam_id: UUID,
+    file: UploadFile,
+    group: str = Query("", description="name of group(repository or product)"),
+    force_mode: bool = Query(False, description="if true, create unexist tags"),
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    upload sbom file
+    """
+    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
+    assert pteam
+    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    # _check_file_extention(file, ".json") # TODO: check file extention
+    _check_empty_file(file)
+    jdata = _json_load(file.file)
+    # check sbom format (cdx, spdx)
+    try:
+        tool = jdata["metadata"]["tools"][0]["name"]
+    except (KeyError, TypeError, IndexError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Error: Auto detecting tool failed.",
+        )
+    components: CDXComponents = (
+        TrivyCDXComponents(jdata) if tool == "trivy" else SyftCDXComponents(jdata)
+    )
+
+    try:
+        return apply_group_tags(
+            db, pteam, group, components.list_tags(), auto_create_tags=force_mode, auto_close=False
+        )  # not try autoclose
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
 
 @router.post("/{pteam_id}/upload_tags_file", response_model=List[schemas.ExtTagResponse])
