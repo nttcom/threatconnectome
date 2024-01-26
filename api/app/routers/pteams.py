@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Sequence, Union
+from typing import Any, Dict, List, Sequence, Set, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
@@ -852,15 +852,31 @@ def upload_pteam_tags_file(
     for bline in file.file:
         json_lines.append(_json_load(bline))
 
+    try:
+        return apply_group_tags(
+            db, pteam, group, json_lines, auto_create_tags=force_mode, auto_close=True
+        )
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+
+
+def apply_group_tags(
+    db: Session,
+    pteam: models.PTeam,
+    group: str,
+    json_lines: List[dict],
+    auto_create_tags=False,
+    auto_close=False,
+) -> List[schemas.ExtTagResponse]:
     # Check file format and get tag_names
-    tag_names_in_file = set()
+    tag_names_in_file: Set[str] = set()
     for line in json_lines:
-        if not line.get("tag_name"):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="tag_name missing")
-        tag_names_in_file.add(line.get("tag_name"))
+        if not (_tag_name := line.get("tag_name")):
+            raise ValueError("tag_name missing")
+        tag_names_in_file.add(_tag_name)
 
     # If force_mode is False, check whether tag_names exist in DB
-    if force_mode is False:
+    if auto_create_tags is False:
         check_tags_exist(db, list(tag_names_in_file))
 
     # Create data structure for merging
@@ -870,7 +886,7 @@ def upload_pteam_tags_file(
     # dict_of_text: {tag_name: text}
     dict_of_text: Dict[str, str] = dict()
     for line in json_lines:
-        tag_name = line.get("tag_name")
+        tag_name = line["tag_name"]  # already checked
         # Save references from each line
         for reference_form_file in line.get("references", [{"target": "", "version": ""}]):
             reference = {
@@ -925,7 +941,7 @@ def upload_pteam_tags_file(
         # When there is no pteamtag which has tag_name, create new pteamtag
         else:
             pteamtag = models.PTeamTag(
-                pteam_id=str(pteam_id),
+                pteam_id=pteam.pteam_id,
                 tag_id=get_or_create_topic_tag(db, tag_name).tag_id,
                 references=references,
                 text=dict_of_text[tag_name],
@@ -936,7 +952,8 @@ def upload_pteam_tags_file(
     db.refresh(pteam)
 
     # Execute batch processing, auto close and update PTeamTopicTagStatus
-    auto_close_by_pteamtags(db, pteamtags_for_auto_close)
+    if auto_close:
+        auto_close_by_pteamtags(db, pteamtags_for_auto_close)
     fix_current_status_by_pteam(db, pteam)
 
     return sorted(
