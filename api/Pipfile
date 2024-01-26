@@ -17,6 +17,7 @@ slack-sdk = "*"
 uvicorn = "*"
 sqlalchemy = "*"
 univers = "*"
+packageurl-python = "*"
 
 [dev-packages]
 mypy = "*"
