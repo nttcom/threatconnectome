@@ -749,7 +749,9 @@ def _make_current_tags_dict(pteam: models.PTeam) -> dict[Any, dict[str, Any]]:
     }
 
 
-def _json_load(s: str | bytes | bytearray):
+
+
+def _json_loads(s: str | bytes | bytearray):
     try:
         return json.loads(s)
     except json.JSONDecodeError as error:
@@ -850,7 +852,7 @@ def upload_pteam_tags_file(
     # Read from file
     json_lines = []
     for bline in file.file:
-        json_lines.append(_json_load(bline))
+        json_lines.append(_json_loads(bline))
 
     try:
         return apply_group_tags(
