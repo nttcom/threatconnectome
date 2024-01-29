@@ -1,0 +1,633 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "serialNumber": "urn:uuid:688893fb-c452-48d0-835f-da365cfa05de",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2024-01-25T14:29:12+09:00",
+    "tools": [
+      {
+        "vendor": "anchore",
+        "name": "syft",
+        "version": "0.74.0"
+      }
+    ],
+    "component": {
+      "bom-ref": "a47307aeab2b3d9a",
+      "type": "file",
+      "name": "/home/kazuaki/metemcyber-ix"
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:npm/%40aashutoshrathi/word-wrap@1.2.6?package-id=fa2feeb4872f91b7",
+      "type": "library",
+      "name": "@aashutoshrathi/word-wrap",
+      "version": "1.2.6",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@aashutoshrathi\\/word-wrap:\\@aashutoshrathi\\/word-wrap:1.2.6:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40aashutoshrathi/word-wrap@1.2.6",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "NpmPackageLockJsonMetadata"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@aashutoshrathi\\/word-wrap:\\@aashutoshrathi\\/word_wrap:1.2.6:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@aashutoshrathi\\/word_wrap:\\@aashutoshrathi\\/word-wrap:1.2.6:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@aashutoshrathi\\/word_wrap:\\@aashutoshrathi\\/word_wrap:1.2.6:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@aashutoshrathi\\/word:\\@aashutoshrathi\\/word-wrap:1.2.6:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@aashutoshrathi\\/word:\\@aashutoshrathi\\/word_wrap:1.2.6:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@aashutoshrathi\\/word-wrap:1.2.6:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@aashutoshrathi\\/word_wrap:1.2.6:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "web/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/%40adraffy/ens-normalize@1.10.0?package-id=1ae02ee0b080df7d",
+      "type": "library",
+      "name": "@adraffy/ens-normalize",
+      "version": "1.10.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@adraffy\\/ens-normalize:\\@adraffy\\/ens-normalize:1.10.0:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40adraffy/ens-normalize@1.10.0",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "NpmPackageLockJsonMetadata"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@adraffy\\/ens-normalize:\\@adraffy\\/ens_normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@adraffy\\/ens_normalize:\\@adraffy\\/ens-normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@adraffy\\/ens_normalize:\\@adraffy\\/ens_normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@adraffy\\/ens:\\@adraffy\\/ens-normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@adraffy\\/ens:\\@adraffy\\/ens_normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@adraffy\\/ens-normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@adraffy\\/ens_normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "hardhat/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/%40adraffy/ens-normalize@1.10.0?package-id=2ba2055b4fd24b2b",
+      "type": "library",
+      "name": "@adraffy/ens-normalize",
+      "version": "1.10.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@adraffy\\/ens-normalize:\\@adraffy\\/ens-normalize:1.10.0:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40adraffy/ens-normalize@1.10.0",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "NpmPackageLockJsonMetadata"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@adraffy\\/ens-normalize:\\@adraffy\\/ens_normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@adraffy\\/ens_normalize:\\@adraffy\\/ens-normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@adraffy\\/ens_normalize:\\@adraffy\\/ens_normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@adraffy\\/ens:\\@adraffy\\/ens-normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@adraffy\\/ens:\\@adraffy\\/ens_normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@adraffy\\/ens-normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@adraffy\\/ens_normalize:1.10.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "web/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/%40alloc/quick-lru@5.2.0?package-id=56e04e158043d304",
+      "type": "library",
+      "name": "@alloc/quick-lru",
+      "version": "5.2.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@alloc\\/quick-lru:\\@alloc\\/quick-lru:5.2.0:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40alloc/quick-lru@5.2.0",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "NpmPackageLockJsonMetadata"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@alloc\\/quick-lru:\\@alloc\\/quick_lru:5.2.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@alloc\\/quick_lru:\\@alloc\\/quick-lru:5.2.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@alloc\\/quick_lru:\\@alloc\\/quick_lru:5.2.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@alloc\\/quick:\\@alloc\\/quick-lru:5.2.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@alloc\\/quick:\\@alloc\\/quick_lru:5.2.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@alloc\\/quick-lru:5.2.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@alloc\\/quick_lru:5.2.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "web/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/%40babel/runtime@7.23.8?package-id=73d408a8c416d763",
+      "type": "library",
+      "name": "@babel/runtime",
+      "version": "7.23.8",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@babel\\/runtime:\\@babel\\/runtime:7.23.8:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40babel/runtime@7.23.8",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "NpmPackageLockJsonMetadata"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@babel\\/runtime:7.23.8:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "web/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/%40chainsafe/as-sha256@0.3.1?package-id=4ee07eb0ba98c478",
+      "type": "library",
+      "name": "@chainsafe/as-sha256",
+      "version": "0.3.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@chainsafe\\/as-sha256:\\@chainsafe\\/as-sha256:0.3.1:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40chainsafe/as-sha256@0.3.1",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "NpmPackageLockJsonMetadata"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/as-sha256:\\@chainsafe\\/as_sha256:0.3.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/as_sha256:\\@chainsafe\\/as-sha256:0.3.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/as_sha256:\\@chainsafe\\/as_sha256:0.3.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/as:\\@chainsafe\\/as-sha256:0.3.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/as:\\@chainsafe\\/as_sha256:0.3.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@chainsafe\\/as-sha256:0.3.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@chainsafe\\/as_sha256:0.3.1:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "hardhat/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/%40chainsafe/persistent-merkle-tree@0.4.2?package-id=3eff0e601e03bbc9",
+      "type": "library",
+      "name": "@chainsafe/persistent-merkle-tree",
+      "version": "0.4.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@chainsafe\\/persistent-merkle-tree:\\@chainsafe\\/persistent-merkle-tree:0.4.2:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40chainsafe/persistent-merkle-tree@0.4.2",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "NpmPackageLockJsonMetadata"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent-merkle-tree:\\@chainsafe\\/persistent_merkle_tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent_merkle_tree:\\@chainsafe\\/persistent-merkle-tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent_merkle_tree:\\@chainsafe\\/persistent_merkle_tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent-merkle:\\@chainsafe\\/persistent-merkle-tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent-merkle:\\@chainsafe\\/persistent_merkle_tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent_merkle:\\@chainsafe\\/persistent-merkle-tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent_merkle:\\@chainsafe\\/persistent_merkle_tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent:\\@chainsafe\\/persistent-merkle-tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent:\\@chainsafe\\/persistent_merkle_tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@chainsafe\\/persistent-merkle-tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@chainsafe\\/persistent_merkle_tree:0.4.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "hardhat/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/%40chainsafe/persistent-merkle-tree@0.5.0?package-id=ce649cb56e3885cc",
+      "type": "library",
+      "name": "@chainsafe/persistent-merkle-tree",
+      "version": "0.5.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@chainsafe\\/persistent-merkle-tree:\\@chainsafe\\/persistent-merkle-tree:0.5.0:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40chainsafe/persistent-merkle-tree@0.5.0",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "NpmPackageLockJsonMetadata"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent-merkle-tree:\\@chainsafe\\/persistent_merkle_tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent_merkle_tree:\\@chainsafe\\/persistent-merkle-tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent_merkle_tree:\\@chainsafe\\/persistent_merkle_tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent-merkle:\\@chainsafe\\/persistent-merkle-tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent-merkle:\\@chainsafe\\/persistent_merkle_tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent_merkle:\\@chainsafe\\/persistent-merkle-tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent_merkle:\\@chainsafe\\/persistent_merkle_tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent:\\@chainsafe\\/persistent-merkle-tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:\\@chainsafe\\/persistent:\\@chainsafe\\/persistent_merkle_tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@chainsafe\\/persistent-merkle-tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@chainsafe\\/persistent_merkle_tree:0.5.0:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "hardhat/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/%40chainsafe/ssz@0.10.2?package-id=9eb8fa59c35b0ef",
+      "type": "library",
+      "name": "@chainsafe/ssz",
+      "version": "0.10.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@chainsafe\\/ssz:\\@chainsafe\\/ssz:0.10.2:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40chainsafe/ssz@0.10.2",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "NpmPackageLockJsonMetadata"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@chainsafe\\/ssz:0.10.2:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "hardhat/package-lock.json"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/%40chainsafe/ssz@0.9.4?package-id=acda9265d532e9df",
+      "type": "library",
+      "name": "@chainsafe/ssz",
+      "version": "0.9.4",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "cpe": "cpe:2.3:a:\\@chainsafe\\/ssz:\\@chainsafe\\/ssz:0.9.4:*:*:*:*:*:*:*",
+      "purl": "pkg:npm/%40chainsafe/ssz@0.9.4",
+      "properties": [
+        {
+          "name": "syft:package:foundBy",
+          "value": "javascript-lock-cataloger"
+        },
+        {
+          "name": "syft:package:language",
+          "value": "javascript"
+        },
+        {
+          "name": "syft:package:metadataType",
+          "value": "NpmPackageLockJsonMetadata"
+        },
+        {
+          "name": "syft:package:type",
+          "value": "npm"
+        },
+        {
+          "name": "syft:cpe23",
+          "value": "cpe:2.3:a:*:\\@chainsafe\\/ssz:0.9.4:*:*:*:*:*:*:*"
+        },
+        {
+          "name": "syft:location:0:path",
+          "value": "hardhat/package-lock.json"
+        }
+      ]
+    }
+  ]
+}
