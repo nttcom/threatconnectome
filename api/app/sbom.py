@@ -139,7 +139,11 @@ class TrivyCDXComponents(CDXComponents):
                 pkg_info = (
                     pkg.purl.type
                     if mgr.mgr_class == "lang-pkgs"
-                    else self._fix_distro(pkg.purl.qualifiers.get("distro") or "")
+                    else self._fix_distro(
+                        pkg.purl.qualifiers.get("distro", "")
+                        if isinstance(pkg.purl.qualifiers, dict)
+                        else ""
+                    )
                     if mgr.mgr_class == "os-pkgs"
                     else ""
                 )
@@ -241,7 +245,7 @@ class SyftCDXComponents(CDXComponents):
             purl = PackageURL.from_string(component_data["purl"])
             version = component_data.get("version") or ""
             if pkg_type in self.os_pkg_types:
-                distro = purl.qualifiers.get("distro") or ""
+                distro = purl.qualifiers.get("distro") if isinstance(purl.qualifiers, dict) else ""
                 pkg_info = distro
                 pkg_mgr = ""
                 targets = [f"({distro})"]  # TODO: support hostname
