@@ -294,7 +294,8 @@ def cdx_version(jsondata: dict) -> str:
             raise ValueError("not supported file format")
 
     version = _get_cdx_version(jsondata)
-    if version not in ("1.4", "1.5"):
+    supported_cdx_versions = {"1.4", "1.5"}
+    if version not in supported_cdx_versions:
         raise ValueError("not supported cdx version")
     return version
 
