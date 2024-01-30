@@ -6627,12 +6627,11 @@ def test_upload_pteam_sbom_file_with_trivy():
 
     assert response.status_code == 200
     data = response.json()
-
-    print(data)
-    # assert "@aashutoshrathi/word-wrap" in data[0]["tag_name"]
-    # assert data[0]["references"][0]["target"] == "web/package-lock.json"
-    # assert data[0]["references"][0]["version"] == "1.2.6"
-    # assert data[0]["references"][0]["group"] == params["group"]
+    tags = {tag["tag_name"]: tag for tag in data}
+    assert "@nextui-org/react:npm:npm" in tags
+    assert tags["@nextui-org/react:npm:npm"]["references"][0]["target"] == "web/package-lock.json"
+    assert tags["@nextui-org/react:npm:npm"]["references"][0]["version"] == "2.2.9"
+    assert tags["@nextui-org/react:npm:npm"]["references"][0]["group"] == params["group"]
 
 
 def test_upload_pteam_sbom_file_with_empty_file():
@@ -6682,7 +6681,7 @@ def test_upload_pteam_sbom_file_wrong_content_format():
         Path(__file__).resolve().parent.parent / "upload_test" / "tag_with_wrong_format.json"
     )
     with open(sbom_file, "rb") as tags:
-        with pytest.raises(HTTPError, match=r"400: Bad Request: Error: Auto detecting tool failed."):
+        with pytest.raises(HTTPError, match=r"400: Bad Request: not supported file format"):
             assert_200(
                 client.post(
                     f"/pteams/{pteam.pteam_id}/upload_sbom_file",
