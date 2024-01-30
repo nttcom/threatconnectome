@@ -38,7 +38,7 @@ from app.constants import (
     NOT_MEMBER_UUID,
 )
 from app.database import get_db
-from app.sbom import CDXComponents, SyftCDXComponents, TrivyCDXComponents
+from app.sbom import SbomFormat, gen_cdx_components
 from app.slack import validate_slack_webhook_url
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
@@ -856,19 +856,10 @@ def upload_pteam_sbom_file(
     _check_file_extention(file, ".json")
     _check_empty_file(file)
     jdata = _json_load(file.file)
-    # check sbom format (cdx, spdx)
-    try:
-        tool = jdata["metadata"]["tools"][0]["name"]
-    except (KeyError, TypeError, IndexError):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Error: Auto detecting tool failed.",
-        )
-    components: CDXComponents = (
-        TrivyCDXComponents(jdata) if tool == "trivy" else SyftCDXComponents(jdata)
-    )
 
     try:
+        SbomFormat.from_jsondata(jdata)  # check sbom format
+        components = gen_cdx_components(jdata)
         return apply_group_tags(
             db, pteam, group, components.list_tags(), auto_create_tags=force_mode, auto_close=False
         )  # not try autoclose

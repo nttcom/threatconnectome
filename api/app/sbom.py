@@ -1,11 +1,31 @@
 import os
 import re
 import sys
+from enum import Enum
 from typing import Any, ClassVar, Dict, List, Optional, Pattern, Set, Tuple
 
 from packageurl import PackageURL
 
-SUPPORTED_TOOLS = ["syft", "trivy"]
+
+class SbomFormat(Enum):
+    CDX = 1
+    # SPDX = 2 # TODO
+
+    @classmethod
+    def from_string(cls, string: str) -> "SbomFormat":
+        fixed_string = string.lower()
+        if fixed_string == "cyclonedx":
+            return cls.CDX
+        else:
+            raise ValueError("not supported file format")
+
+    @classmethod
+    def from_jsondata(cls, jsondata: dict) -> "SbomFormat":
+        try:
+            bomformat = jsondata["bomFormat"]
+        except (KeyError, TypeError, IndexError):
+            raise ValueError("not supported file format")
+        return cls.from_string(bomformat)
 
 
 def _pick_prop(props_: List[Dict[str, Any]], name_: str) -> str:
@@ -264,3 +284,34 @@ class SyftCDXComponents(CDXComponents):
             self.components[tag] = (self.components.get(tag, set())) | {
                 (version, target) for target in targets if targets
             }
+
+
+def cdx_version(jsondata: dict) -> str:
+    def _get_cdx_version(jsondata: dict) -> str:
+        try:
+            return jsondata["specVersion"]
+        except (KeyError, TypeError, IndexError):
+            raise ValueError("not supported file format")
+
+    version = _get_cdx_version(jsondata)
+    if version not in ("1.4", "1.5"):
+        raise ValueError("not supported cdx version")
+    return version
+
+
+def gen_cdx_components(jsondata: dict) -> CDXComponents:
+    def _get_tool(jsondata: dict) -> str:
+        try:
+            return jsondata["metadata"]["tools"][0]["name"]
+        except (KeyError, TypeError, IndexError):
+            raise ValueError("not supported file format")
+
+    cdx_version(jsondata)  # check cdx version
+
+    tool = _get_tool(jsondata)
+    if tool == "trivy":
+        return TrivyCDXComponents(jsondata)
+    elif tool == "syft":
+        return SyftCDXComponents(jsondata)
+    else:
+        raise ValueError("not supported sbom tool")
