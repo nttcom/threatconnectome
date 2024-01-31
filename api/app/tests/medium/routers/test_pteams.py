@@ -6581,6 +6581,114 @@ def test_fix_status_mismatch(testdb: Session):
     assert data["user_id"] == str(SYSTEM_UUID)
 
 
+def test_upload_pteam_sbom_file_wiht_syft():
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    # To avoid multiple rows error, pteam2 is created for test
+    create_pteam(USER1, PTEAM2)
+
+    params = {"group": "threatconnectome", "force_mode": True}
+    sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "test_syft_cyclonedx.json"
+    with open(sbom_file, "rb") as tags:
+        response = client.post(
+            f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
+            headers=file_upload_headers(USER1),
+            params=params,
+            files={"file": tags},
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    tags = {tag["tag_name"]: tag for tag in data}
+    assert "axios:npm:npm" in tags
+    assert "package-lock.json" in tags["axios:npm:npm"]["references"][0]["target"]
+    assert tags["axios:npm:npm"]["references"][0]["version"] == "1.6.7"
+    assert tags["axios:npm:npm"]["references"][0]["group"] == params["group"]
+
+
+def test_upload_pteam_sbom_file_with_trivy():
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    # To avoid multiple rows error, pteam2 is created for test
+    create_pteam(USER1, PTEAM2)
+
+    params = {"group": "threatconnectome", "force_mode": True}
+    sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "test_trivy_cyclonedx.json"
+    with open(sbom_file, "rb") as tags:
+        response = client.post(
+            f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
+            headers=file_upload_headers(USER1),
+            params=params,
+            files={"file": tags},
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    tags = {tag["tag_name"]: tag for tag in data}
+    assert "axios:npm:npm" in tags
+    assert "package-lock.json" in tags["axios:npm:npm"]["references"][0]["target"]
+    assert tags["axios:npm:npm"]["references"][0]["version"] == "1.6.7"
+    assert tags["axios:npm:npm"]["references"][0]["group"] == params["group"]
+
+
+def test_upload_pteam_sbom_file_with_empty_file():
+    create_user(USER1)
+    pteam = create_pteam(USER1, PTEAM1)
+
+    params = {"group": "threatconnectome", "force_mode": True}
+    sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "empty.json"
+    with open(sbom_file, "rb") as tags:
+        response = client.post(
+            f"/pteams/{pteam.pteam_id}/upload_sbom_file",
+            headers=file_upload_headers(USER1),
+            params=params,
+            files={"file": tags},
+        )
+
+    assert response.status_code == 400
+    data = response.json()
+    assert data["detail"] == "Upload file is empty"
+
+
+def test_upload_pteam_sbom_file_with_wrong_filename():
+    create_user(USER1)
+    pteam = create_pteam(USER1, PTEAM1)
+
+    params = {"group": "threatconnectome", "force_mode": True}
+    sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "tag.txt"
+    with open(sbom_file, "rb") as tags:
+        response = client.post(
+            f"/pteams/{pteam.pteam_id}/upload_sbom_file",
+            headers=file_upload_headers(USER1),
+            params=params,
+            files={"file": tags},
+        )
+
+    assert response.status_code == 400
+    data = response.json()
+    assert data["detail"] == "Please upload a file with .json as extension"
+
+
+def test_upload_pteam_sbom_file_wrong_content_format():
+    create_user(USER1)
+    pteam = create_pteam(USER1, PTEAM1)
+
+    params = {"group": "threatconnectome", "force_mode": True}
+    sbom_file = (
+        Path(__file__).resolve().parent.parent / "upload_test" / "tag_with_wrong_format.json"
+    )
+    with open(sbom_file, "rb") as tags:
+        with pytest.raises(HTTPError, match=r"400: Bad Request: not supported file format"):
+            assert_200(
+                client.post(
+                    f"/pteams/{pteam.pteam_id}/upload_sbom_file",
+                    headers=file_upload_headers(USER1),
+                    params=params,
+                    files={"file": tags},
+                )
+            )
+
+
 class TestAutoClose:
     class _Util:
         @staticmethod
