@@ -750,16 +750,6 @@ def _make_current_tags_dict(pteam: models.PTeam) -> dict[Any, dict[str, Any]]:
     }
 
 
-def _json_load(fileObject):
-    try:
-        return json.load(fileObject)
-    except json.JSONDecodeError as error:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=("Wrong file content"),
-        ) from error
-
-
 def _json_loads(s: str | bytes | bytearray):
     try:
         return json.loads(s)
@@ -855,7 +845,13 @@ def upload_pteam_sbom_file(
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
     _check_file_extention(file, ".json")
     _check_empty_file(file)
-    jdata = _json_load(file.file)
+    try:
+        jdata = json.load(file.file)
+    except json.JSONDecodeError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=("Wrong file content"),
+        ) from error
 
     try:
         SbomFormat.from_jsondata(jdata)  # check sbom format
