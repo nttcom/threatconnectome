@@ -854,11 +854,16 @@ def upload_pteam_sbom_file(
         ) from error
 
     try:
-        SbomFormat.from_jsondata(jdata)  # check sbom format
-        components = gen_cdx_components(jdata)
-        return apply_group_tags(
-            db, pteam, group, components.list_tags(), auto_create_tags=force_mode, auto_close=False
-        )  # not try autoclose
+        if SbomFormat.from_jsondata(jdata) == SbomFormat.CDX:
+            components = gen_cdx_components(jdata)
+            return apply_group_tags(
+                db,
+                pteam,
+                group,
+                components.list_tags(),
+                auto_create_tags=force_mode,
+                auto_close=False,
+            )  # not try autoclose
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
