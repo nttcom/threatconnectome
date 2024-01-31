@@ -6588,7 +6588,7 @@ def test_upload_pteam_sbom_file_wiht_syft():
     create_pteam(USER1, PTEAM2)
 
     params = {"group": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "syft-ix-cyclonedx.json"
+    sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "test_syft_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
         response = client.post(
             f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
@@ -6600,13 +6600,10 @@ def test_upload_pteam_sbom_file_wiht_syft():
     assert response.status_code == 200
     data = response.json()
     tags = {tag["tag_name"]: tag for tag in data}
-    assert "@aashutoshrathi/word-wrap:npm:npm" in tags
-    assert (
-        tags["@aashutoshrathi/word-wrap:npm:npm"]["references"][0]["target"]
-        == "web/package-lock.json"
-    )
-    assert tags["@aashutoshrathi/word-wrap:npm:npm"]["references"][0]["version"] == "1.2.6"
-    assert tags["@aashutoshrathi/word-wrap:npm:npm"]["references"][0]["group"] == params["group"]
+    assert "axios:npm:npm" in tags
+    assert "package-lock.json" in tags["axios:npm:npm"]["references"][0]["target"]
+    assert tags["axios:npm:npm"]["references"][0]["version"] == "1.6.7"
+    assert tags["axios:npm:npm"]["references"][0]["group"] == params["group"]
 
 
 def test_upload_pteam_sbom_file_with_trivy():
@@ -6616,7 +6613,7 @@ def test_upload_pteam_sbom_file_with_trivy():
     create_pteam(USER1, PTEAM2)
 
     params = {"group": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "trivy-ix-cyclonedx.json"
+    sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "test_trivy_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
         response = client.post(
             f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
@@ -6628,10 +6625,11 @@ def test_upload_pteam_sbom_file_with_trivy():
     assert response.status_code == 200
     data = response.json()
     tags = {tag["tag_name"]: tag for tag in data}
-    assert "@nextui-org/react:npm:npm" in tags
-    assert tags["@nextui-org/react:npm:npm"]["references"][0]["target"] == "web/package-lock.json"
-    assert tags["@nextui-org/react:npm:npm"]["references"][0]["version"] == "2.2.9"
-    assert tags["@nextui-org/react:npm:npm"]["references"][0]["group"] == params["group"]
+    print(tags)
+    assert "axios:npm:npm" in tags
+    assert "package-lock.json" in tags["axios:npm:npm"]["references"][0]["target"]
+    assert tags["axios:npm:npm"]["references"][0]["version"] == "1.6.7"
+    assert tags["axios:npm:npm"]["references"][0]["group"] == params["group"]
 
 
 def test_upload_pteam_sbom_file_with_empty_file():
