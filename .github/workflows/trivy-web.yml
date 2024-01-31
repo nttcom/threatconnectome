@@ -10,6 +10,8 @@ on:
       - main
     paths:
       - web/**
+  schedule:
+    - cron: "40 19 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 jobs:
@@ -33,6 +35,6 @@ jobs:
       - name: Run Trivy vulnerability scanner in fs mode
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          scan-ref: './web'
+          scan-type: "fs"
+          scan-ref: "./web"
           trivy-config: trivy.yaml
