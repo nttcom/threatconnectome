@@ -6625,7 +6625,6 @@ def test_upload_pteam_sbom_file_with_trivy():
     assert response.status_code == 200
     data = response.json()
     tags = {tag["tag_name"]: tag for tag in data}
-    print(tags)
     assert "axios:npm:npm" in tags
     assert "package-lock.json" in tags["axios:npm:npm"]["references"][0]["target"]
     assert tags["axios:npm:npm"]["references"][0]["version"] == "1.6.7"
