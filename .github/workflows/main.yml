@@ -131,10 +131,3 @@ jobs:
           cd ${{ env.API_DIRS }};\
           pipenv run pytest ${{ env.PYTHON_ROOT_DIRS }}/tests --cov --cov-branch --cov-report=term-missing --cov-config=app/tests/.coveragerc"
         working-directory: ${{ env.FIREBASE_DIRS }}
-      # Runs a vulnerability scan by Trivy
-      - name: Run Trivy vulnerability scanner in fs mode
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: "fs"
-          scan-ref: "./api"
-          trivy-config: trivy.yaml

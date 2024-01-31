@@ -1,0 +1,27 @@
+name: Run Trivy scan to web
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - api/**
+  push:
+    branches:
+      - main
+    paths:
+      - api/**
+  schedule:
+    - cron: "30 19 * * *"
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "./api"
+          trivy-config: trivy.yaml
