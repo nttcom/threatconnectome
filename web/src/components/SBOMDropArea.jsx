@@ -1,4 +1,7 @@
-import { Close as CloseIcon } from "@mui/icons-material";
+import {
+  Close as CloseIcon,
+  UploadFile as UploadFileIcon
+} from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -10,11 +13,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useRef, useState } from "react";
 
 import { uploadSBOMFile } from "../utils/api";
+import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
 function PreUploadModal(props) {
@@ -31,36 +36,47 @@ function PreUploadModal(props) {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
+    <Dialog fullWidth open={open} onClose={handleClose}>
       <DialogTitle>
-        <Box display="flex">
-          <Typography>Upload SBOM file</Typography>
-          <Box flexGrow={1} />
-          <IconButton onClick={handleClose}>
+        <Box alignItems="center" display="flex" flexDirection="row">
+          <Typography flexGrow={1} variant="inherit">
+            Upload SBOM File
+          </Typography>
+          <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
             <CloseIcon />
           </IconButton>
         </Box>
       </DialogTitle>
-      <Typography>Selected file: {sbomFile?.name}</Typography>
       <DialogContent>
-        <TextField
-          label="Group name"
-          value={groupName}
-          onChange={(event) => setGroupName(event.target.value)}
-          required
-          error={!groupName}
-        />
+        <Box display="flex" flexDirection="column">
+          <TextField
+            label="Group name"
+            size="small"
+            value={groupName}
+            onChange={(event) => setGroupName(event.target.value)}
+            required
+            error={!groupName}
+            sx={{ mt: 2 }}
+          />
+          <Box display="flex" flexDirection="row" sx={{ mt: 1, ml: 1 }}>
+            <Typography sx={{ fontWeight: "bold" }}>Selected file: </Typography>
+            <Typography>{sbomFile?.name}</Typography>
+          </Box>
+        </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleUpload} disabled={!groupName}>
-          Upload
-        </Button>
+        <Box sx={{ display: "flex", flexDirection: "row", mr: 1, mb: 1 }}>
+          <Box sx={{ flex: "1 1 auto" }} />
+          <Button onClick={handleUpload} disabled={!groupName} sx={modalCommonButtonStyle}>
+            Upload
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   );
 }
 PreUploadModal.propTypes = {
-  sbomFile: PropTypes.object.isRequired,
+  sbomFile: PropTypes.object,
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
   onCompleted: PropTypes.func.isRequired,
@@ -131,8 +147,16 @@ export function SBOMDropArea(props) {
 
   return (
     <>
-      <Box ref={dropRef} sx={{ width: 300, height: 100, border: 1 }}>
-        <Typography>Upload SBOM file here!</Typography>
+      <Box
+        alignItems="center"
+        justifyContent="center"
+        display="flex"
+        flexDirection="column"
+        ref={dropRef}
+        sx={{ width: "100%", minHeight: "300px", border: "4px dotted #888" }}
+      >
+        <UploadFileIcon sx={{ fontSize: 50, mb: 3 }} />
+        <Typography>Drop SBOM file here</Typography>
       </Box>
       <PreUploadModal
         sbomFile={sbomFile}

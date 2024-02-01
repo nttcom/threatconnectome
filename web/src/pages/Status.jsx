@@ -6,7 +6,6 @@ import {
 } from "@mui/icons-material";
 import {
   Box,
-  Button,
   Chip,
   IconButton,
   InputAdornment,
@@ -36,7 +35,6 @@ import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
 import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
 import {
-  commonButtonStyle,
   noPTeamMessage,
   threatImpactName,
   threatImpactProps,
@@ -136,23 +134,6 @@ export function Status() {
   }
   const targetTags = filteredTags.slice(perPage * (page - 1), perPage * page);
 
-  const notRegistered = (
-    <>
-      <Box display="flex" alignItems="flex-start" flexDirection="column">
-        <Typography variant="body1">
-          No artifact tags have been registered yet. Please register first.
-        </Typography>
-        <Button
-          sx={commonButtonStyle}
-          target="_blank"
-          href="https://docs.google.com/document/d/1QWkH21pnuTD4S1bHY9RD-qH5I3bzvyJnJr72itSP87w/edit?usp=sharing"
-        >
-          Open Docs
-        </Button>
-      </Box>
-    </>
-  );
-
   const filterRow = (
     <Box display="flex" alignItems="center" sx={{ mt: 1 }}>
       <Pagination
@@ -247,8 +228,8 @@ export function Status() {
                       ? "0"
                       : "1"
                     : iFilter[val] // keep current
-                    ? "1"
-                    : "0"),
+                      ? "1"
+                      : "0"),
                 ""
               )
             );
@@ -286,19 +267,13 @@ export function Status() {
 
   return (
     <>
-      {summary.tags?.length > 0 || (
-        <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
-      )}
       <Box display="flex" flexDirection="row">
         <PTeamLabel defaultTabIndex={1} />
         <Box flexGrow={1} />
       </Box>
       <PTeamGroupChip />
       {summary.tags.length === 0 ? (
-        <Box display="flex">
-          {notRegistered}
-          <Box flexGrow={1} />
-        </Box>
+        <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
       ) : (
         <>
           <Box display="flex" mt={2}>
