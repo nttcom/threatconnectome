@@ -150,12 +150,16 @@ def search_logs(
     rows = (
         db.query(models.ActionLog)
         .filter(
-            true()
-            if topic_ids is None
-            else models.ActionLog.topic_id.in_(list(map(str, topic_ids))),
-            true()
-            if action_words is None
-            else models.ActionLog.action.bool_op("@@")(func.to_tsquery("|".join(action_words))),
+            (
+                true()
+                if topic_ids is None
+                else models.ActionLog.topic_id.in_(list(map(str, topic_ids)))
+            ),
+            (
+                true()
+                if action_words is None
+                else models.ActionLog.action.bool_op("@@")(func.to_tsquery("|".join(action_words)))
+            ),
             true() if action_types is None else models.ActionLog.action_type.in_(action_types),
             true() if user_ids is None else models.ActionLog.user_id.in_(list(map(str, user_ids))),
             models.ActionLog.pteam_id.in_(list(map(str, pteam_ids))),

@@ -133,9 +133,11 @@ class TrivyCDXComponents(CDXComponents):
             collection = (
                 pkg_components
                 if component.raw_type == "library"
-                else mgr_components
-                if component.raw_type in {"application", "operating-system"}
-                else None
+                else (
+                    mgr_components
+                    if component.raw_type in {"application", "operating-system"}
+                    else None
+                )
             )
             if collection is None:
                 print(
@@ -159,13 +161,15 @@ class TrivyCDXComponents(CDXComponents):
                 pkg_info = (
                     pkg.purl.type
                     if mgr.mgr_class == "lang-pkgs"
-                    else self._fix_distro(
-                        pkg.purl.qualifiers.get("distro", "")
-                        if isinstance(pkg.purl.qualifiers, dict)
+                    else (
+                        self._fix_distro(
+                            pkg.purl.qualifiers.get("distro", "")
+                            if isinstance(pkg.purl.qualifiers, dict)
+                            else ""
+                        )
+                        if mgr.mgr_class == "os-pkgs"
                         else ""
                     )
-                    if mgr.mgr_class == "os-pkgs"
-                    else ""
                 )
 
                 tag = f"{pkg.name}:{pkg_info}:{pkg_mgr}"

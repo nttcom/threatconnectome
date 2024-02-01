@@ -225,9 +225,12 @@ def _counts_topic_per_threat_impact(
         .filter(
             models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
             models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
-            models.CurrentPTeamTopicTagStatus.topic_status == models.TopicStatusType.completed
-            if is_solved
-            else models.CurrentPTeamTopicTagStatus.topic_status != models.TopicStatusType.completed,
+            (
+                models.CurrentPTeamTopicTagStatus.topic_status == models.TopicStatusType.completed
+                if is_solved
+                else models.CurrentPTeamTopicTagStatus.topic_status
+                != models.TopicStatusType.completed
+            ),
         )
         .group_by(models.CurrentPTeamTopicTagStatus.threat_impact)
         .all()
@@ -252,9 +255,12 @@ def _get_tagged_topic_ids_by_pteam_id_and_status(
         .filter(
             models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
             models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
-            models.CurrentPTeamTopicTagStatus.topic_status == models.TopicStatusType.completed
-            if is_solved
-            else models.CurrentPTeamTopicTagStatus.topic_status != models.TopicStatusType.completed,
+            (
+                models.CurrentPTeamTopicTagStatus.topic_status == models.TopicStatusType.completed
+                if is_solved
+                else models.CurrentPTeamTopicTagStatus.topic_status
+                != models.TopicStatusType.completed
+            ),
         )
         .order_by(
             models.CurrentPTeamTopicTagStatus.threat_impact,
