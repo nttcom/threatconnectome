@@ -619,9 +619,11 @@ def search_topics_internal(
         else or_(
             false(),
             *[
-                models.TopicZone.zone_name.is_(None)  # public
-                if zone_name is None
-                else models.TopicZone.zone_name == zone_name
+                (
+                    models.TopicZone.zone_name.is_(None)  # public
+                    if zone_name is None
+                    else models.TopicZone.zone_name == zone_name
+                )
                 for zone_name in zone_names
             ],
         )
@@ -632,9 +634,11 @@ def search_topics_internal(
         else or_(
             false(),
             *[
-                models.TopicTag.tag_id.is_(None)  # no tags
-                if tag_id is None
-                else models.TopicTag.tag_id == tag_id
+                (
+                    models.TopicTag.tag_id.is_(None)  # no tags
+                    if tag_id is None
+                    else models.TopicTag.tag_id == tag_id
+                )
                 for tag_id in tag_ids
             ],
         )
@@ -645,9 +649,11 @@ def search_topics_internal(
         else or_(
             false(),
             *[
-                models.TopicMispTag.tag_id.is_(None)  # no misp_tags
-                if misp_tag_id is None
-                else models.TopicMispTag.tag_id == misp_tag_id
+                (
+                    models.TopicMispTag.tag_id.is_(None)  # no misp_tags
+                    if misp_tag_id is None
+                    else models.TopicMispTag.tag_id == misp_tag_id
+                )
                 for misp_tag_id in misp_tag_ids
             ],
         )
@@ -668,9 +674,11 @@ def search_topics_internal(
         else or_(
             false(),
             *[
-                models.Topic.title == ""  # empty title
-                if title_word is None
-                else models.Topic.title.icontains(title_word, autoescape=True)
+                (
+                    models.Topic.title == ""  # empty title
+                    if title_word is None
+                    else models.Topic.title.icontains(title_word, autoescape=True)
+                )
                 for title_word in title_words
             ],
         )
@@ -681,9 +689,11 @@ def search_topics_internal(
         else or_(
             false(),
             *[
-                models.Topic.abstract == ""  # empty abstract
-                if abstract_word is None
-                else models.Topic.abstract.icontains(abstract_word, autoescape=True)
+                (
+                    models.Topic.abstract == ""  # empty abstract
+                    if abstract_word is None
+                    else models.Topic.abstract.icontains(abstract_word, autoescape=True)
+                )
                 for abstract_word in abstract_words
             ],
         )
@@ -819,29 +829,39 @@ def get_topics_internal(
         )
         .distinct()
         .filter(
-            true()
-            if title_words is None
-            else models.Topic.title.bool_op("@@")(
-                func.to_tsquery("|".join("(" + "&".join(t.split()) + ")" for t in title_words))
-            ),
-            true()
-            if abstract_words is None
-            else models.Topic.abstract.bool_op("@@")(
-                func.to_tsquery("|".join("(" + "&".join(a.split()) + ")" for a in abstract_words))
-            ),
-            true() if threat_impacts is None else models.Topic.threat_impact.in_(threat_impacts),
-            true()
-            if misp_tag_ids is None
-            else models.Topic.topic_id.in_(
-                db.query(models.TopicMispTag.topic_id).filter(
-                    models.TopicMispTag.tag_id.in_(map(str, misp_tag_ids))
+            (
+                true()
+                if title_words is None
+                else models.Topic.title.bool_op("@@")(
+                    func.to_tsquery("|".join("(" + "&".join(t.split()) + ")" for t in title_words))
                 )
             ),
-            true()
-            if tag_ids is None
-            else models.Topic.topic_id.in_(
-                db.query(models.TopicTag.topic_id).filter(
-                    models.TopicTag.tag_id.in_(map(str, tag_ids))
+            (
+                true()
+                if abstract_words is None
+                else models.Topic.abstract.bool_op("@@")(
+                    func.to_tsquery(
+                        "|".join("(" + "&".join(a.split()) + ")" for a in abstract_words)
+                    )
+                )
+            ),
+            true() if threat_impacts is None else models.Topic.threat_impact.in_(threat_impacts),
+            (
+                true()
+                if misp_tag_ids is None
+                else models.Topic.topic_id.in_(
+                    db.query(models.TopicMispTag.topic_id).filter(
+                        models.TopicMispTag.tag_id.in_(map(str, misp_tag_ids))
+                    )
+                )
+            ),
+            (
+                true()
+                if tag_ids is None
+                else models.Topic.topic_id.in_(
+                    db.query(models.TopicTag.topic_id).filter(
+                        models.TopicTag.tag_id.in_(map(str, tag_ids))
+                    )
                 )
             ),
             models.Topic.disabled.is_(False),
@@ -1456,9 +1476,11 @@ def get_pteam_topic_status_history(
             true() if pteam_id is None else models.PTeamTopicTagStatus.pteam_id == str(pteam_id),
             true() if topic_id is None else models.PTeamTopicTagStatus.topic_id == str(topic_id),
             true() if tag_id is None else models.PTeamTopicTagStatus.tag_id == str(tag_id),
-            true()
-            if topic_status is None
-            else models.PTeamTopicTagStatus.topic_status == topic_status,
+            (
+                true()
+                if topic_status is None
+                else models.PTeamTopicTagStatus.topic_status == topic_status
+            ),
         )
         .outerjoin(
             models.ActionLog,
@@ -1660,9 +1682,9 @@ def create_secbadge_internal(
         user_id=data.recipient,
         email=account.email or "",
         created_by=current_user.user_id,
-        obtained_at=datetime.fromtimestamp(obtained_at[0]["value"])
-        if obtained_at
-        else now_timestamp,
+        obtained_at=(
+            datetime.fromtimestamp(obtained_at[0]["value"]) if obtained_at else now_timestamp
+        ),
         created_at=now_timestamp,
         expired_at=datetime.fromtimestamp(expired_at[0]["value"]) if expired_at else None,
         metadata_json=json.dumps(data.metadata, sort_keys=True, indent=2),
