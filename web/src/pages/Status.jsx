@@ -27,12 +27,14 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import { PTeamGroupChip } from "../components/PTeamGroupChip";
 import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
+import { SBOMDropArea } from "../components/SBOMDropArea";
+import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
 import {
   commonButtonStyle,
   noPTeamMessage,
@@ -87,6 +89,7 @@ SearchField.propTypes = {
 export function Status() {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const params = new URLSearchParams(location.search);
   const searchWord = params.get("word")?.trim().toLowerCase() ?? "";
@@ -101,6 +104,11 @@ export function Status() {
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   else if (!user || !summary) return <>Now loading...</>;
+
+  const handleSBOMUploaded = () => {
+    dispatch(getPTeamTagsSummary(pteamId));
+    dispatch(getPTeamGroups(pteamId));
+  };
 
   const iFilter = [0, 1, 2, 3].reduce(
     (ret, idx) => ({
@@ -278,6 +286,9 @@ export function Status() {
 
   return (
     <>
+      {summary.tags?.length > 0 || (
+        <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+      )}
       <Box display="flex" flexDirection="row">
         <PTeamLabel defaultTabIndex={1} />
         <Box flexGrow={1} />
