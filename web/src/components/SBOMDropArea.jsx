@@ -1,7 +1,4 @@
-import {
-  Close as CloseIcon,
-  UploadFile as UploadFileIcon
-} from "@mui/icons-material";
+import { Close as CloseIcon, UploadFile as UploadFileIcon } from "@mui/icons-material";
 import {
   Box,
   Button,

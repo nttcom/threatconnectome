@@ -34,11 +34,7 @@ import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
 import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
-import {
-  noPTeamMessage,
-  threatImpactName,
-  threatImpactProps,
-} from "../utils/const";
+import { noPTeamMessage, threatImpactName, threatImpactProps } from "../utils/const";
 const threatImpactCountMax = 99999;
 
 function SearchField(props) {
@@ -228,8 +224,8 @@ export function Status() {
                       ? "0"
                       : "1"
                     : iFilter[val] // keep current
-                      ? "1"
-                      : "0"),
+                    ? "1"
+                    : "0"),
                 ""
               )
             );
