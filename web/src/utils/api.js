@@ -85,6 +85,19 @@ export const removeWatcherATeam = async (pteamId, ateamId) =>
 
 export const getPTeamGroups = async (pteamId) => axios.get(`/pteams/${pteamId}/groups`);
 
+export const uploadSBOMFile = async (pteamId, group, file, forceMode = true) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const paramData = {
+    group: group,
+    force_mode: forceMode,
+  };
+  return axios.post(`/pteams/${pteamId}/upload_sbom_file`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+    params: paramData,
+  });
+};
+
 // ateams
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);
 

@@ -6,7 +6,6 @@ import {
 } from "@mui/icons-material";
 import {
   Box,
-  Button,
   Chip,
   IconButton,
   InputAdornment,
@@ -27,18 +26,15 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import { PTeamGroupChip } from "../components/PTeamGroupChip";
 import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
-import {
-  commonButtonStyle,
-  noPTeamMessage,
-  threatImpactName,
-  threatImpactProps,
-} from "../utils/const";
+import { SBOMDropArea } from "../components/SBOMDropArea";
+import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
+import { noPTeamMessage, threatImpactName, threatImpactProps } from "../utils/const";
 const threatImpactCountMax = 99999;
 
 function SearchField(props) {
@@ -87,6 +83,7 @@ SearchField.propTypes = {
 export function Status() {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const params = new URLSearchParams(location.search);
   const searchWord = params.get("word")?.trim().toLowerCase() ?? "";
@@ -101,6 +98,11 @@ export function Status() {
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   else if (!user || !summary) return <>Now loading...</>;
+
+  const handleSBOMUploaded = () => {
+    dispatch(getPTeamTagsSummary(pteamId));
+    dispatch(getPTeamGroups(pteamId));
+  };
 
   const iFilter = [0, 1, 2, 3].reduce(
     (ret, idx) => ({
@@ -127,23 +129,6 @@ export function Status() {
     params.set("page", page); // fix for the next
   }
   const targetTags = filteredTags.slice(perPage * (page - 1), perPage * page);
-
-  const notRegistered = (
-    <>
-      <Box display="flex" alignItems="flex-start" flexDirection="column">
-        <Typography variant="body1">
-          No artifact tags have been registered yet. Please register first.
-        </Typography>
-        <Button
-          sx={commonButtonStyle}
-          target="_blank"
-          href="https://docs.google.com/document/d/1QWkH21pnuTD4S1bHY9RD-qH5I3bzvyJnJr72itSP87w/edit?usp=sharing"
-        >
-          Open Docs
-        </Button>
-      </Box>
-    </>
-  );
 
   const filterRow = (
     <Box display="flex" alignItems="center" sx={{ mt: 1 }}>
@@ -284,10 +269,7 @@ export function Status() {
       </Box>
       <PTeamGroupChip />
       {summary.tags.length === 0 ? (
-        <Box display="flex">
-          {notRegistered}
-          <Box flexGrow={1} />
-        </Box>
+        <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
       ) : (
         <>
           <Box display="flex" mt={2}>
