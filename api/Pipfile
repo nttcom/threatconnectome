@@ -7,7 +7,6 @@ name = "pypi"
 alembic = "*"
 fastapi = "*"
 firebase-admin = "*"
-passlib = {extras = ["bcrypt"], version = "*"}
 psycopg2 = "*"
 protobuf = "<4.0"
 pydantic = "*"
