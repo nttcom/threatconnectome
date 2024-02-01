@@ -4,37 +4,24 @@ on:
     branches:
       - main
     paths:
-      - web/**
+      - api/**
   push:
     branches:
       - main
     paths:
-      - web/**
+      - api/**
   schedule:
-    - cron: "40 19 * * *"
+    - cron: "30 19 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [16.x]
-    defaults:
-      run:
-        working-directory: ./web
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
-          cache-dependency-path: ./web/package-lock.json
-      - run: npm ci --omit=dev
       - name: Run Trivy vulnerability scanner in fs mode
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: "fs"
-          scan-ref: "./web"
+          scan-ref: "./api"
           trivy-config: trivy.yaml
