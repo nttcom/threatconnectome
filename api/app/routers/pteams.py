@@ -1693,10 +1693,10 @@ def fix_status_mismatch_tag(
 
     rows = db.scalars(pteam_query).all()
     pteam_tag = db.scalars(
-            select(models.PTeamTag).where(
-                models.PTeamTag.pteam_id == str(pteam_id), models.PTeamTag.tag_id == str(tag_id)
-            )
-        ).one()
+        select(models.PTeamTag).where(
+            models.PTeamTag.pteam_id == str(pteam_id), models.PTeamTag.tag_id == str(tag_id)
+        )
+    ).one()
 
     for row in rows:
         pteam_topic = db.scalars(
