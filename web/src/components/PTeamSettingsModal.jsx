@@ -19,6 +19,7 @@ import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
 import { a11yProps } from "../utils/func.js";
 
 import { PTeamAuthEditor } from "./PTeamAuthEditor";
+import { PTeamAutoClose } from "./PTeamAutoClose";
 import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
 import { SBOMDropArea } from "./SBOMDropArea";
 import { TagMonitoring } from "./TagMonitoring";
@@ -59,6 +60,7 @@ export function PTeamSettingsModal(props) {
             <Tab label="Monitor" {...a11yProps(1)} />
             <Tab label="Authorities" {...a11yProps(2)} />
             <Tab label="Upload" {...a11yProps(3)} />
+            <Tab label="Auto Close" {...a11yProps(3)} />
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
@@ -72,6 +74,7 @@ export function PTeamSettingsModal(props) {
         </TabPanel>
         <TabPanel index={3} value={tab}>
           <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+          <PTeamAutoClose />
         </TabPanel>
       </DialogContent>
     </Dialog>
