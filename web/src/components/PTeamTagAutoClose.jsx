@@ -1,22 +1,30 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
+import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { getPTeamTagsSummary } from "../slices/pteam";
-import { autoClose } from "../utils/api";
+import {
+  getPTeamSolvedTaggedTopicIds,
+  getPTeamUnsolvedTaggedTopicIds,
+  getPTeamTagsSummary,
+} from "../slices/pteam";
+import { autoCloseTag } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
 
-export function PTeamAutoClose() {
+export function PTeamTagAutoClose(props) {
+  const { tagId } = props;
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
 
   const handleSave = async () => {
-    await autoClose(pteamId)
+    await autoCloseTag(pteamId, tagId)
       .then(() => {
         enqueueSnackbar("Auto Close Accepted", { variant: "success" });
+        dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
+        dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
         dispatch(getPTeamTagsSummary(pteamId));
       })
       .catch((error) => {
@@ -41,3 +49,7 @@ export function PTeamAutoClose() {
     </Box>
   );
 }
+
+PTeamTagAutoClose.propTypes = {
+  tagId: PropTypes.string.isRequired,
+};

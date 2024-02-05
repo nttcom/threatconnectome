@@ -4,10 +4,10 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { PTeamAutoClose } from "./PTeamAutoClose";
+import { PTeamTagAutoClose } from "./PTeamTagAutoClose";
 
 export function PTeamTagSettingsModal(props) {
-  const { setShow, show } = props;
+  const { setShow, show, tagId } = props;
 
   const handleClose = () => setShow(false);
 
@@ -24,7 +24,7 @@ export function PTeamTagSettingsModal(props) {
         </Box>
       </DialogTitle>
       <DialogContent>
-        <PTeamAutoClose />
+        <PTeamTagAutoClose tagId={tagId} />
       </DialogContent>
     </Dialog>
   );
@@ -32,4 +32,5 @@ export function PTeamTagSettingsModal(props) {
 PTeamTagSettingsModal.propTypes = {
   setShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
+  tagId: PropTypes.string.isRequired,
 };

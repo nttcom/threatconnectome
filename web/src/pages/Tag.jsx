@@ -109,7 +109,7 @@ export function Tag() {
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
               {tagDict.tag_name}
             </Typography>
-            <PTeamTagLabel />
+            <PTeamTagLabel tagId={tagId} />
           </Box>
           <UUIDTypography>{tagId}</UUIDTypography>
           <Typography mt={1} mr={1} mb={1} variant="caption">
