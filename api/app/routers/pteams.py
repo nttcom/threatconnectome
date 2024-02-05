@@ -1653,3 +1653,52 @@ def fix_status_mismatch(
         pteamtag_try_auto_close_topic(db, pteam_tag, pteam_topic)
 
     return Response(status_code=status.HTTP_200_OK)
+
+
+@router.post("/{pteam_id}/tags/{tag_id}/fix_status_mismatch")
+def fix_status_mismatch_tag(
+    pteam_id: UUID,
+    tag_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
+    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    pteam_tag = validate_pteamtag(db, pteam_id, tag_id, on_error=status.HTTP_404_NOT_FOUND)
+    assert pteam_tag
+
+    pteam_query = (
+        select(models.CurrentPTeamTopicTagStatus, models.PTeamTopicTagStatus)
+        .where(
+            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
+            models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
+            or_(
+                models.CurrentPTeamTopicTagStatus.topic_status.in_(
+                    [
+                        models.TopicStatusType.alerted,
+                        models.TopicStatusType.acknowledged,
+                    ]
+                ),
+                and_(
+                    models.PTeamTopicTagStatus.topic_status == models.TopicStatusType.scheduled,
+                    models.PTeamTopicTagStatus.scheduled_at < datetime.now(),
+                ),
+            ),
+        )
+        .join(
+            models.PTeamTopicTagStatus,
+            and_(
+                models.PTeamTopicTagStatus.status_id == models.CurrentPTeamTopicTagStatus.status_id,
+            ),
+        )
+    )
+
+    rows = db.scalars(pteam_query).all()
+
+    for row in rows:
+        pteam_topic = db.scalars(
+            select(models.Topic).where(models.Topic.topic_id == row.topic_id)
+        ).one()
+        pteamtag_try_auto_close_topic(db, pteam_tag, pteam_topic)
+
+    return Response(status_code=status.HTTP_200_OK)
