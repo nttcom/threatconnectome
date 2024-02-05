@@ -1664,6 +1664,7 @@ def fix_status_mismatch_tag(
 ):
     validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    pteam_tag = validate_pteamtag(db, pteam_id, tag_id, on_error=status.HTTP_404_NOT_FOUND)
 
     pteam_query = (
         select(models.CurrentPTeamTopicTagStatus, models.PTeamTopicTagStatus)
@@ -1692,11 +1693,6 @@ def fix_status_mismatch_tag(
     )
 
     rows = db.scalars(pteam_query).all()
-    pteam_tag = db.scalars(
-        select(models.PTeamTag).where(
-            models.PTeamTag.pteam_id == str(pteam_id), models.PTeamTag.tag_id == str(tag_id)
-        )
-    ).one()
 
     for row in rows:
         pteam_topic = db.scalars(
