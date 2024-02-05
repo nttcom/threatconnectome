@@ -1665,6 +1665,7 @@ def fix_status_mismatch_tag(
     validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
     pteam_tag = validate_pteamtag(db, pteam_id, tag_id, on_error=status.HTTP_404_NOT_FOUND)
+    assert pteam_tag
 
     pteam_query = (
         select(models.CurrentPTeamTopicTagStatus, models.PTeamTopicTagStatus)
