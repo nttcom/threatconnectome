@@ -26,6 +26,7 @@ export function PTeamTagAutoClose(props) {
         dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
         dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
         dispatch(getPTeamTagsSummary(pteamId));
+        // TODO: topic.status is changed when a autocolse button is pressed.
       })
       .catch((error) => {
         const resp = error.response;
