@@ -1,322 +1,432 @@
 import os
 import re
-import sys
-from enum import Enum
-from typing import Any, ClassVar, Dict, List, Optional, Pattern, Set, Tuple
+from dataclasses import dataclass, field
+from typing import Any, ClassVar, Dict, List, NamedTuple, Optional, Pattern, Set, Tuple, Type
 
 from packageurl import PackageURL
 
 
-class SbomFormat(Enum):
-    CDX = 1
-    # SPDX = 2 # TODO
+def error_message(*args, **kwargs):
+    # print(*args, **{k: v for (k, v) in kwargs if k != "file"}, file=sys.stderr)
+    pass
+
+
+@dataclass
+class Artifact:
+    tag: str
+    targets: Set[Tuple[str, str]] = field(init=False, repr=False, default_factory=set)
+    versions: Set[str] = field(init=False, repr=False, default_factory=set)  # for missing targets
+
+    def to_json(self) -> dict:
+        targets = self.targets if self.targets else {("", version) for version in self.versions}
+        return {
+            "tag_name": self.tag,
+            "references": sorted(
+                [
+                    {
+                        "version": version,
+                        "target": target,
+                    }
+                    for (target, version) in targets
+                ],
+                key=lambda x: (x["version"], x["target"]),
+            ),
+        }
+
+
+@dataclass
+class SBOM:
+    spec_name: str
+    spec_version: str
+    tool_name: str
+    tool_version: Optional[str] = None
+    raw: dict = field(init=False, repr=False, default_factory=dict)
+
+
+class SBOMParser:
+    @classmethod
+    def pre_parse(cls, json_data: dict) -> Tuple[SBOM, Type["SBOMParser"]]:
+        def _get_spec_info(jdata_: dict) -> Tuple[str, str]:  # name, version
+            try:
+                if jdata_.get("bomFormat") == "CycloneDX":
+                    return ("CycloneDX", jdata_["specVersion"])
+                if jdata_.get("SPDXID") == "SPDXRef-DOCUMENT":
+                    return ("SPDX", jdata_["spdxVersion"])
+                raise ValueError("Not supported file format")
+            except (KeyError, TypeError):
+                raise ValueError("Not supported file format")
+
+        spec_name, spec_version = _get_spec_info(json_data)
+        spec_parser = {
+            "CycloneDX": CDXParser,
+            "SPDX": None,  # TODO
+        }.get(spec_name)
+        if not spec_parser:
+            raise ValueError("Not supported file format")
+
+        sbom, actual_parser = spec_parser.sub_parse(json_data, spec_version)
+        return (sbom, actual_parser)
 
     @classmethod
-    def from_string(cls, string: str) -> "SbomFormat":
-        fixed_string = string.lower()
-        if fixed_string == "cyclonedx":
-            return cls.CDX
-        else:
-            raise ValueError("not supported file format")
+    def parse_sbom(cls, sbom: SBOM) -> List[Artifact]:
+        raise ValueError("Not implemented")
 
+
+class ToolParser:
     @classmethod
-    def from_jsondata(cls, jsondata: dict) -> "SbomFormat":
+    def sub_parse(cls, json_data: dict, spec_version: str) -> Tuple[SBOM, Type[SBOMParser]]:
+        raise ValueError("Not implemented")
+
+
+class CDXParser(SBOMParser, ToolParser):
+    @classmethod
+    def sub_parse(cls, json_data: dict, spec_version: str) -> Tuple[SBOM, Type[SBOMParser]]:
+        def _get_tool0(jdata_: dict) -> dict:
+            # https://cyclonedx.org/docs/1.5/json/#metadata_tools
+            tools_ = jdata_["metadata"]["tools"]
+            if isinstance(tools_, dict):
+                if components_ := tools_.get("components"):  # CDX1.5
+                    return components_[0]
+                if services_ := tools_.get("services"):  # CDX1.5
+                    return services_[0]
+                raise ValueError("Not supported CycloneDX format")
+            if isinstance(tools_, list):
+                return tools_[0]  # CDX1.5 (legacy)
+            raise ValueError("Not supported CycloneDX format")
+
         try:
-            bomformat = jsondata["bomFormat"]
-        except (KeyError, TypeError, IndexError):
-            raise ValueError("not supported file format")
-        return cls.from_string(bomformat)
+            tool0 = _get_tool0(json_data)
+            tool_name = tool0["name"]
+            tool_version = tool0["version"]
+            actual_parser = {
+                "trivy": TrivyCDXParser,
+                "syft": SyftCDXParser,
+            }[tool_name]
+            sbom = SBOM(
+                spec_name="CycloneDX",
+                spec_version=spec_version,
+                tool_name=tool_name,
+                tool_version=tool_version,
+            )
+            sbom.raw = json_data
+            return (sbom, actual_parser)
+        except (IndexError, KeyError, TypeError):
+            raise ValueError("Not supported CycloneDX format")
 
 
-def _pick_prop(props_: List[Dict[str, Any]], name_: str) -> str:
-    return (next(filter(lambda x: x.get("name") == name_, props_), None) or {}).get("value") or ""
+class TrivyCDXParser(SBOMParser):
+    @dataclass
+    class CDXComponent:
+        class Target(NamedTuple):
+            ref: str
+            name: str
 
-
-class CDXComponents:
-    components: Dict[str, Set[Tuple[str, str]]]  # {tag: {(version, target)}}
-
-    def __init__(self, jdata: dict):
-        self.components = {}
-
-    def list_tags(self) -> List[dict]:
-        return sorted(
-            [
-                {
-                    "tag_name": tag,
-                    "references": sorted(
-                        [
-                            {
-                                "version": version,
-                                "target": target,
-                            }
-                            for (version, target) in refs
-                        ],
-                        key=lambda x: (x["version"], x["target"]),  # type: ignore[index]
-                    ),
-                }
-                for (tag, refs) in self.components.items()
-            ],
-            key=lambda x: x["tag_name"],
-        )
-
-
-class TrivyCDXComponents(CDXComponents):
-    class TrivyCDXComponent:
         bom_ref: str
-        raw_type: str  # library, application, or operating-system
-        name: str  # pkgname, lockfile path (etc), or os family
+        type: str
+        name: str
         version: str
-        purl: Optional[PackageURL]
-        mgr_class: str  # lang-pkgs or os-pkgs: only managers know
-        mgr_type: str  # detailed mgr name, such as pipenv, poetry...
+        raw_purl: Optional[str]
+        properties: Dict[str, Any]
+        purl: Optional[PackageURL] = field(init=False, repr=False)
+        trivy_class: Optional[str] = field(init=False, repr=False)
+        targets: Set[Target] = field(init=False, repr=False, default_factory=set)
+
+        def __post_init__(self):
+            if not self.bom_ref:
+                raise ValueError("Warning: Missing bom-ref")
+            if not self.name:
+                raise ValueError("Warning: Missing name")
+            self.purl = PackageURL.from_string(self.raw_purl) if self.raw_purl else None
+            self.trivy_class = self.properties.get("aquasecurity:trivy:Class")
 
         @staticmethod
-        def _gen_os_name(jdata: dict) -> str:
+        def _fix_distro(distro: str) -> str:
             # Note:
-            #   this method is called for operating-system component, and return value is
-            #   used as target name of os-pkgs. thus set the original name and version.
-            name_ = jdata.get("name") or ""
-            version_ = jdata.get("version") or ""
-            distro_ = name_ if not version_ else f"{name_}-{version_}"
-            return f"({distro_})"  # TODO support hostname?
+            #   syft sees /etc/os-release, but trivy sees /etc/redhat-release.
+            #   if the contents differ, it causes distro mismatch.
+            #   we fix the mismatch here as far as we found out.
+            fix_rules: List[Tuple[Pattern[str], str]] = [
+                (re.compile(r"^(centos-[0-9]+)\..+$"), r"\1"),
+                (re.compile(r"^(debian-[0-9]+)\..+$"), r"\1"),
+            ]
+            for src, dst in fix_rules:
+                distro = re.sub(src, dst, distro)
+            return distro
 
-        def __init__(self, jdata):
-            _class_key = "aquasecurity:trivy:Class"
-            _mgr_type_key = "aquasecurity:trivy:Type"
-
-            # CAUTION:
-            #   Do NOT rely on aquasecurity:trivy:PkgType in component which type is "library".
-            #   Each component has only one PkgType, even if referenced from multiple applications.
-
-            self.bom_ref = jdata.get("bom-ref") or ""
-            self.raw_type = jdata.get("type") or ""
-            self.name = (
-                (jdata.get("name") or "")
-                if self.raw_type != "operating-system"
-                else self._gen_os_name(jdata)
-            )
-            self.version = jdata.get("version") or ""
-            self.purl = None if not (_purl := jdata.get("purl")) else PackageURL.from_string(_purl)
-
-            props = jdata.get("properties") or []
-            self.mgr_class = _pick_prop(props, _class_key)
-            self.mgr_type = _pick_prop(props, _mgr_type_key)
-
-    @staticmethod
-    def _fix_distro(distro: str) -> str:
-        # Note:
-        #   syft sees /etc/os-release, but trivy sees /etc/redhat-release.
-        #   if the contents differ, it causes distro mismatch.
-        #   we fix the mismatch here as far as we found out.
-        fix_rules: List[Tuple[Pattern[str], str]] = [
-            (re.compile(r"^(centos-[0-9]+)\..+$"), r"\1"),
-            (re.compile(r"^(debian-[0-9]+)\..+$"), r"\1"),
-        ]
-        for src, dst in fix_rules:
-            distro = re.sub(src, dst, distro)
-        return distro
-
-    def __init__(self, jdata: dict):
-        super().__init__(jdata)
-        mgr2pkgs: Dict[str, Set[str]] = {}
-        mgr_components: Dict[str, TrivyCDXComponents.TrivyCDXComponent] = {}
-        pkg_components: Dict[str, TrivyCDXComponents.TrivyCDXComponent] = {}
-        for dep in jdata.get("dependencies", []):
-            if not dep.get("ref") or not dep.get("dependsOn"):
-                continue
-            mgr2pkgs[dep["ref"]] = set(dep["dependsOn"])
-        for component_data in jdata.get("components") or []:
-            assert component_data.get("name")
-            component = TrivyCDXComponents.TrivyCDXComponent(component_data)
-            if not component.purl and component.raw_type == "library":
-                print(f"Warning: cannot get purl: {component.name}", file=sys.stderr)
-            collection = (
-                pkg_components
-                if component.raw_type == "library"
-                else (
-                    mgr_components
-                    if component.raw_type in {"application", "operating-system"}
-                    else None
-                )
-            )
-            if collection is None:
-                print(
-                    f"Warning: unknown type of component: {component.raw_type}({component.name})",
-                    file=sys.stderr,
-                )
-                continue
-            assert component.bom_ref not in collection
-            collection[component.bom_ref] = component
-
-        for mgr_ref in mgr2pkgs:
-            if not (mgr := mgr_components.get(mgr_ref)):
-                continue
-            if not (target := mgr.name):
-                continue
-            pkg_mgr = "" if mgr.mgr_class == "os-pkgs" else mgr.mgr_type
-            for pkg_ref in mgr2pkgs.get(mgr.bom_ref, []):
-                if not (pkg := pkg_components.get(pkg_ref)):
+        @staticmethod
+        def _find_pkg_mgr(
+            components_map: Dict[str, "TrivyCDXParser.CDXComponent"],
+            refs: List[str],
+        ) -> Optional["TrivyCDXParser.CDXComponent"]:
+            if not refs:
+                return None
+            if len(refs) == 1:
+                return components_map.get(refs[0])
+            for ref in refs:
+                if not (mgr_candidate := components_map.get(ref)):
                     continue
-                assert pkg.purl
-                pkg_info = (
-                    pkg.purl.type
-                    if mgr.mgr_class == "lang-pkgs"
-                    else (
-                        self._fix_distro(
-                            pkg.purl.qualifiers.get("distro", "")
-                            if isinstance(pkg.purl.qualifiers, dict)
-                            else ""
-                        )
-                        if mgr.mgr_class == "os-pkgs"
-                        else ""
-                    )
-                )
+                if mgr_candidate.trivy_class == "os-pkgs":
+                    return mgr_candidate
+                if mgr_candidate.properties.get("aquasecurity:trivy:Type"):
+                    return mgr_candidate
+            return components_map.get(refs[0])
 
-                tag = f"{pkg.name}:{pkg_info}:{pkg_mgr}"
-
-                self.components[tag] = self.components.get(tag, set()) | {(pkg.version, target)}
-
-
-class SyftCDXComponents(CDXComponents):
-    # https://github.com/anchore/syft/blob/main/syft/pkg/type.go
-    supported_pkg_types: ClassVar[List[str]] = [
-        # 'UnknownPackage',
-        "alpm",
-        "apk",
-        # 'binary',
-        "pod",
-        "conan",
-        "dart-pub",
-        "deb",
-        "dotnet",
-        "gem",
-        "go-module",
-        # 'graalvm-native-image',
-        "hackage",
-        "hex",
-        "java-archive",
-        # 'jenkins-plugin',
-        "msrc-kb",
-        "npm",
-        "php-composer",
-        "portage",
-        "python",
-        "rpm",
-        "rust-crate",
-    ]
-    os_pkg_types: ClassVar[List[str]] = [
-        "alpm",
-        "apk",
-        "deb",
-        "msrc-kb",
-        "portage",
-    ]
-
-    # https://github.com/anchore/syft/blob/main/syft/pkg/cataloger/ * /cataloger.go
-    # Note:
-    #   pkg_mgr is not defined in syft. use the same value in trivy (if exists).
-    location_to_pkg_mgr: ClassVar[List[Tuple[str, Pattern[str]]]] = [
-        ("conan", re.compile(r"conanfile\.txt$")),  # cpp
-        ("conan", re.compile(r"conan\.lock$")),  # cpp
-        ("pub", re.compile(r"pubspec\.lock$")),  # dart
-        ("dotnet", re.compile(r".+\.deps\.json$")),  # dotnet
-        ("mix", re.compile(r"mix\.lock$")),  # elixir: is this correct??
-        ("rebar", re.compile(r"rebar\.lock$")),  # erlang: is this correct??
-        ("gomod", re.compile(r"go\.mod$")),  # golang
-        ("hackage", re.compile(r"stack\.yaml$")),  # haskell
-        ("hackage", re.compile(r"stack\.yaml\.lock$")),  # haskell
-        ("hackage", re.compile(r"cabal\.project\.freeze$")),  # haskell
-        ("pom", re.compile(r"pom\.xml$")),  # java
-        ("npm", re.compile(r"package-lock\.json$")),  # javascript
-        ("yarn", re.compile(r"yarn\.lock$")),  # javascript
-        ("pnpm", re.compile(r"pnpm-lock\.yaml$")),  # javascript
-        ("composer", re.compile(r"installed\.json$")),  # php
-        ("composer", re.compile(r"composer\.lock$")),  # php
-        ("pip", re.compile(r".*requirements.*\.txt$")),  # python
-        ("pip", re.compile(r"setup\.py$")),  # python
-        ("poetry", re.compile(r"poetry\.lock$")),  # python
-        ("pipenv", re.compile(r"Pipfile\.lock$")),  # python
-        ("rpm", re.compile(r".+\.rpm$")),  # rpm
-        ("gem", re.compile(r"Gemfile\.lock$")),  # ruby
-        ("gemspec", re.compile(r".+\.gemspec$")),  # ruby
-        ("cargo", re.compile(r"Cargo\.lock$")),  # rust
-        ("pod", re.compile(r"Podfile\.lock$")),  # swift
-    ]
+        def to_tag(self, components_map: Dict[str, Any]) -> Optional[str]:
+            if not self.purl:
+                return None
+            name_pref = f"{self.purl.namespace}/" if self.purl.namespace else ""
+            pkg_name = name_pref + self.purl.name
+            pkg_info = self.purl.type
+            pkg_mgr = ""
+            if self.targets:
+                mgr = self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
+                if not mgr:
+                    pass
+                elif mgr.trivy_class == "os-pkgs":
+                    pkg_info = self._fix_distro(self.purl.qualifiers.get("distro") or "")
+                else:
+                    pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
+            return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
 
     @classmethod
-    def _resolve_pkg_mgr(cls, locations: List[str]) -> str:
-        if not locations or not locations[0]:
-            return ""
-        tgt = os.path.basename(locations[0])
-        for pkg_mgr, rule in cls.location_to_pkg_mgr:
-            if rule.match(tgt):
-                return pkg_mgr
-        return ""
+    def parse_sbom(cls, sbom: SBOM) -> List[Artifact]:
+        if (
+            sbom.spec_name != "CycloneDX"
+            or sbom.spec_version not in {"1.5"}
+            or sbom.tool_name != "trivy"
+        ):
+            raise ValueError(f"Not supported: {sbom}")
+        actual_parse_func = {
+            "1.5": cls.parse_func_1_5,
+        }.get(sbom.spec_version)
+        if not actual_parse_func:
+            raise ValueError("Internal error: actual_parse_func not found")
+        return actual_parse_func(sbom)
 
-    @staticmethod
-    def _pick_locations(props_: List[Dict[str, str]]) -> List[str]:
-        loc_regex = re.compile("^syft:location:[0-9]+:path$")
-        return [prop_["value"] for prop_ in props_ if loc_regex.match(prop_["name"])]
+    @classmethod
+    def parse_func_1_5(cls, sbom: SBOM) -> List[Artifact]:
+        meta_component = sbom.raw.get("metadata", {}).get("component")
+        raw_components = sbom.raw.get("components", [])
 
-    def __init__(self, jdata: dict):
-        _pkg_type_key = "syft:package:type"
-        super().__init__(jdata)
-        for component_data in jdata.get("components") or []:
-            props = component_data.get("properties") or []
-            pkg_type = _pick_prop(props, _pkg_type_key)
-            if not (component_data.get("purl") and props and pkg_type in self.supported_pkg_types):
+        # parse components
+        components_map: Dict[str, TrivyCDXParser.CDXComponent] = {}
+        for data in [meta_component, *raw_components]:
+            if not data:
                 continue
-            purl = PackageURL.from_string(component_data["purl"])
-            version = component_data.get("version") or ""
-            if pkg_type in self.os_pkg_types:
-                distro = purl.qualifiers.get("distro") if isinstance(purl.qualifiers, dict) else ""
-                pkg_info = distro
-                pkg_mgr = ""
-                targets = [f"({distro})"]  # TODO: support hostname
-            else:
-                pkg_info = purl.type or ""
-                targets = self._pick_locations(props)
+            try:
+                components_map[data["bom-ref"]] = TrivyCDXParser.CDXComponent(
+                    bom_ref=data.get("bom-ref"),
+                    type=data.get("type"),
+                    name=data.get("name"),
+                    version=data.get("version"),
+                    raw_purl=data.get("purl"),
+                    properties={x["name"]: x["value"] for x in data.get("properties", [])},
+                )
+            except ValueError as err:
+                error_message(err)
+                error_message("Dopped component:", data)
 
-                if len(targets) == 0:
-                    continue  # skipped all targets
-                if not (pkg_mgr := self._resolve_pkg_mgr(targets)):
-                    # maybe not supported pkg_mgr by this script. skip this.
+        # parse dependencies
+        dependencies: Dict[str, Set[str]] = {}
+        for dep in sbom.raw.get("dependencies", []):
+            if not (from_ := dep.get("ref")):
+                continue
+            if to_ := dep.get("dependsOn"):
+                dependencies[from_] = set(to_)
+
+        def _recursive_get(ref_: str, current_: Set[str]) -> Set[str]:  # returns new refs only
+            if ref_ in current_:
+                return set()  # nothing to add
+            if not (children_ := dependencies.get(ref_)):
+                return {ref_}  # ref_ is the leaf
+            ret_ = {ref_}
+            for child_ in children_:
+                if child_ in current_ | ret_:
+                    continue  # already fixed
+                ret_ |= _recursive_get(child_, ret_ | current_)
+            return ret_
+
+        # fill component.targets using dependencies
+        for dep_ref in dependencies:
+            if not (target_component := components_map.get(dep_ref)):
+                raise ValueError(f"Missing dependency: {dep_ref}")
+            if target_component.type in {"library"}:
+                # https://cyclonedx.org/docs/1.5/json/#components_items_type
+                continue  # omit pkg to pkg dependencies
+            # FIXME: should omit scan root? e.g. contaner, rootfs, etc
+            # if dep_ref == meta_component["bom-ref"]:
+            #     continue  # omit scan root
+            target_name = target_component.name or ""
+            for pkg_ref in _recursive_get(dep_ref, set()):
+                if pkg_ref == dep_ref:  # cross-reference
                     continue
+                if not (pkg_component := components_map.get(pkg_ref)):
+                    raise ValueError(f"Missing component: {pkg_ref}")
+                pkg_component.targets |= {TrivyCDXParser.CDXComponent.Target(dep_ref, target_name)}
 
-            tag = f'{component_data["name"]}:{pkg_info}:{pkg_mgr}'
+        # convert components to artifacts
+        artifacts_map: Dict[str, Artifact] = {}  # {tag: artifact}
+        for component in components_map.values():
+            if not component.version:
+                continue  # maybe directory or image
+            if not (tag := component.to_tag(components_map)):
+                continue  # omit not packages
+            artifact = artifacts_map.get(tag, Artifact(tag=tag))
+            artifacts_map[tag] = artifact
+            for _target_ref, target_name in component.targets:
+                new_target = (target_name, component.version)
+                if new_target in artifact.targets:
+                    error_message("conflicted target:", tag, new_target)
+                else:
+                    artifact.targets.add(new_target)
+            artifact.versions.add(component.version)
 
-            self.components[tag] = (self.components.get(tag, set())) | {
-                (version, target) for target in targets if targets
-            }
+        return list(artifacts_map.values())
 
 
-def cdx_version(jsondata: dict) -> str:
-    def _get_cdx_version(jsondata: dict) -> str:
-        try:
-            return jsondata["specVersion"]
-        except (KeyError, TypeError, IndexError):
-            raise ValueError("not supported file format")
+class SyftCDXParser(SBOMParser):
+    @dataclass
+    class CDXComponent:
+        class PkgMgrInfo(NamedTuple):
+            name: str
+            location_path: str
 
-    version = _get_cdx_version(jsondata)
-    supported_cdx_versions = {"1.4", "1.5"}
-    if version not in supported_cdx_versions:
-        raise ValueError("not supported cdx version")
-    return version
+        bom_ref: str
+        type: str
+        name: str
+        version: str
+        raw_purl: Optional[str]
+        properties: Dict[str, Any]
+        purl: Optional[PackageURL] = field(init=False, repr=False)
+        mgr_info: Optional[PkgMgrInfo] = field(init=False, repr=False)
+
+        # https://github.com/anchore/syft/blob/main/syft/pkg/cataloger/ * /cataloger.go
+        # Note: pkg_mgr is not defined in syft. use the same value in trivy (if exists).
+        location_to_pkg_mgr: ClassVar[List[Tuple[str, Pattern[str]]]] = [
+            ("conan", re.compile(r"conanfile\.txt$")),  # cpp
+            ("conan", re.compile(r"conan\.lock$")),  # cpp
+            ("pub", re.compile(r"pubspec\.lock$")),  # dart
+            ("dotnet", re.compile(r".+\.deps\.json$")),  # dotnet
+            ("mix", re.compile(r"mix\.lock$")),  # elixir: is this correct??
+            ("rebar", re.compile(r"rebar\.lock$")),  # erlang: is this correct??
+            ("gomod", re.compile(r"go\.mod$")),  # golang
+            ("hackage", re.compile(r"stack\.yaml$")),  # haskell
+            ("hackage", re.compile(r"stack\.yaml\.lock$")),  # haskell
+            ("hackage", re.compile(r"cabal\.project\.freeze$")),  # haskell
+            ("pom", re.compile(r"pom\.xml$")),  # java
+            ("npm", re.compile(r"package-lock\.json$")),  # javascript
+            ("yarn", re.compile(r"yarn\.lock$")),  # javascript
+            ("pnpm", re.compile(r"pnpm-lock\.yaml$")),  # javascript
+            ("composer", re.compile(r"installed\.json$")),  # php
+            ("composer", re.compile(r"composer\.lock$")),  # php
+            ("pip", re.compile(r".*requirements.*\.txt$")),  # python
+            ("pip", re.compile(r"setup\.py$")),  # python
+            ("poetry", re.compile(r"poetry\.lock$")),  # python
+            ("pipenv", re.compile(r"Pipfile\.lock$")),  # python
+            ("rpm", re.compile(r".+\.rpm$")),  # rpm
+            ("gem", re.compile(r"Gemfile\.lock$")),  # ruby
+            ("gemspec", re.compile(r".+\.gemspec$")),  # ruby
+            ("cargo", re.compile(r"Cargo\.lock$")),  # rust
+            ("pod", re.compile(r"Podfile\.lock$")),  # swift
+        ]
+
+        def __post_init__(self):
+            if not self.bom_ref:
+                raise ValueError("Warning: Missing bom-ref")
+            if not self.name:
+                raise ValueError("Warning: Missing name")
+            self.purl = PackageURL.from_string(self.raw_purl) if self.raw_purl else None
+            self.mgr_info = self._guess_mgr()
+
+        def _guess_mgr(self) -> Optional[PkgMgrInfo]:
+            # https://github.com/anchore/syft/blob/main/syft/pkg/package.go#L24
+            # we do not know which is the best to guess pkg_mgr...
+            if not (location_0_path := self.properties.get("syft:location:0:path")):
+                return None
+            idx = 0
+            while True:
+                key = f"syft:location:{idx}:path"
+                if not (location_path := self.properties.get(key)):
+                    # could not guess type, but no more locations.
+                    # return the top of locations as a (hint of) target.
+                    return self.PkgMgrInfo("", location_0_path)
+                filename = os.path.basename(location_path)
+                for mgr_name, pattern in self.location_to_pkg_mgr:
+                    if pattern.match(filename):
+                        return self.PkgMgrInfo(mgr_name, location_path)  # Eureka!
+                idx += 1
+
+        def to_tag(self) -> Optional[str]:
+            if not self.purl:
+                return None
+            name_pref = f"{self.purl.namespace}/" if self.purl.namespace else ""
+            pkg_name = name_pref + self.purl.name
+            pkg_info = self.purl.type
+            pkg_mgr = self.mgr_info.name if self.mgr_info else ""
+
+            return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
+
+    @classmethod
+    def parse_sbom(cls, sbom: SBOM) -> List[Artifact]:
+        if (
+            sbom.spec_name != "CycloneDX"
+            or sbom.spec_version not in {"1.4", "1.5"}
+            or sbom.tool_name != "syft"
+        ):
+            raise ValueError(f"Not supported: {sbom}")
+        actual_parse_func = {
+            "1.4": cls.parse_func_1_4,
+            "1.5": cls.parse_func_1_4,
+        }.get(sbom.spec_version)
+        if not actual_parse_func:
+            raise ValueError("Internal error: actual_parse_func not found")
+        return actual_parse_func(sbom)
+
+    @classmethod
+    def parse_func_1_4(cls, sbom: SBOM) -> List[Artifact]:
+        meta_component = sbom.raw.get("metadata", {}).get("component")
+        raw_components = sbom.raw.get("components", [])
+
+        # parse components
+        components_map: Dict[str, SyftCDXParser.CDXComponent] = {}
+        for data in [meta_component, *raw_components]:
+            if not data:
+                continue
+            try:
+                components_map[data["bom-ref"]] = SyftCDXParser.CDXComponent(
+                    bom_ref=data.get("bom-ref"),
+                    type=data.get("type"),
+                    name=data.get("name"),
+                    version=data.get("version"),
+                    raw_purl=data.get("purl"),
+                    properties={x["name"]: x["value"] for x in data.get("properties", [])},
+                )
+            except ValueError as err:
+                error_message(err)
+                error_message("Dropped component:", data)
+
+        # convert components to artifacts
+        artifacts_map: Dict[str, Artifact] = {}  # {tag: artifact}
+        for component in components_map.values():
+            if not component.version:
+                continue  # maybe directory or image
+            if not (tag := component.to_tag()):
+                continue  # omit not packages
+            artifact = artifacts_map.get(tag, Artifact(tag=tag))
+            artifacts_map[tag] = artifact
+            if component.mgr_info:
+                new_target = (component.mgr_info.location_path, component.version)
+                if new_target in artifact.targets:
+                    error_message("conflicted target:", tag, new_target)
+                artifact.targets |= {(component.mgr_info.location_path, component.version)}
+            artifact.versions |= {component.version}
+
+        return list(artifacts_map.values())
 
 
-def gen_cdx_components(jsondata: dict) -> CDXComponents:
-    def _get_tool(jsondata: dict) -> str:
-        try:
-            return jsondata["metadata"]["tools"][0]["name"]
-        except (KeyError, TypeError, IndexError):
-            raise ValueError("not supported file format")
-
-    cdx_version(jsondata)  # check cdx version
-
-    tool = _get_tool(jsondata)
-    if tool == "trivy":
-        return TrivyCDXComponents(jsondata)
-    elif tool == "syft":
-        return SyftCDXComponents(jsondata)
-    else:
-        raise ValueError("not supported sbom tool")
+def sbom_json_to_artifact_json_lines(jdata: dict) -> List[dict]:
+    sbom, parser = SBOMParser.pre_parse(jdata)
+    return [
+        artifact.to_json()
+        for artifact in sorted([a for a in parser.parse_sbom(sbom)], key=lambda a: a.tag)
+    ]
