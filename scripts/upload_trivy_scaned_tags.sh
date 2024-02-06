@@ -60,7 +60,7 @@ trap "rm -f -- '${trivy_output}' '${tags_jsonl}'" EXIT HUP INT QUIT TERM
 script_path=$(dirname "$0")
 
 echo >&2 "processing trivy."
-trivy_cmd="${trivy_command_path} fs '${scan_path}' --list-all-pkgs --scanners vuln --exit-code 0 --timeout '${trivy_timeout}' -f json -o '${trivy_output}' -q"
+trivy_cmd="${trivy_command_path} rootfs '${scan_path}' --list-all-pkgs --scanners vuln --exit-code 0 --timeout '${trivy_timeout}' -f json -o '${trivy_output}' -q"
 echo >&2 "${trivy_cmd}"
 eval "${trivy_cmd}" || giveup "trivy scan failed with ret_code=$?."
 
