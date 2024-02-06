@@ -183,7 +183,12 @@ class TrivyCDXParser(SBOMParser):
                 if not mgr:
                     pass
                 elif mgr.trivy_class == "os-pkgs":
-                    pkg_info = self._fix_distro(self.purl.qualifiers.get("distro") or "")
+                    distro = (
+                        self.purl.qualifiers.get("distro")
+                        if isinstance(self.purl.qualifiers, dict)
+                        else ""
+                    )
+                    pkg_info = self._fix_distro(distro) if distro else ""
                 else:
                     pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
             return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
