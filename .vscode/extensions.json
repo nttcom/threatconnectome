@@ -3,5 +3,7 @@
         "charliermarsh.ruff", // Ruff for linting
         "ms-python.python",// python
         "esbenp.prettier-vscode", //prettier
+        "ms-python.mypy-type-checker", //mypy
+        "ms-python.black-formatter" //black
     ]
 }
