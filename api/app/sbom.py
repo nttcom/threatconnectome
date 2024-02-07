@@ -315,7 +315,12 @@ class SyftCDXParser(SBOMParser):
                 return None
             name_pref = f"{self.purl.namespace}/" if self.purl.namespace else ""
             pkg_name = name_pref + self.purl.name
-            pkg_info = self.purl.type
+            distro = (
+                self.purl.qualifiers.get("distro")
+                if self.purl and isinstance(self.purl.qualifiers, dict)
+                else None
+            )
+            pkg_info = distro if distro else self.purl.type
             pkg_mgr = self.mgr_info.name if self.mgr_info else ""
 
             return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
