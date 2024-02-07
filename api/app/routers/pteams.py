@@ -1631,7 +1631,7 @@ def fix_status_mismatch(
                 ),
             ),
         )
-        .join(
+        .outerjoin(
             models.PTeamTopicTagStatus,
             and_(
                 models.PTeamTopicTagStatus.status_id == models.CurrentPTeamTopicTagStatus.status_id,
@@ -1685,7 +1685,7 @@ def fix_status_mismatch_tag(
                 ),
             ),
         )
-        .join(
+        .outerjoin(
             models.PTeamTopicTagStatus,
             and_(
                 models.PTeamTopicTagStatus.status_id == models.CurrentPTeamTopicTagStatus.status_id,
