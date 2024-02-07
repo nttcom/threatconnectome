@@ -1,14 +1,36 @@
 import os
 import re
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Dict, List, NamedTuple, Optional, Pattern, Set, Tuple, Type
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Pattern,
+    Set,
+    Tuple,
+    Type,
+    TypeAlias,
+)
 
 from packageurl import PackageURL
+
+SBOM: TypeAlias = dict
 
 
 def error_message(*args, **kwargs):
     # print(*args, **{k: v for (k, v) in kwargs if k != "file"}, file=sys.stderr)
     pass
+
+
+class SBOMInfo(NamedTuple):
+    spec_name: str
+    spec_version: str
+    tool_name: str
+    tool_version: Optional[str]
 
 
 @dataclass
@@ -34,84 +56,11 @@ class Artifact:
         }
 
 
-@dataclass
-class SBOM:
-    spec_name: str
-    spec_version: str
-    tool_name: str
-    tool_version: Optional[str] = None
-    raw: dict = field(init=False, repr=False, default_factory=dict)
-
-
-class SBOMParser:
+class SBOMParser(ABC):
     @classmethod
-    def pre_parse(cls, json_data: dict) -> Tuple[SBOM, Type["SBOMParser"]]:
-        def _get_spec_info(jdata_: dict) -> Tuple[str, str]:  # name, version
-            try:
-                if jdata_.get("bomFormat") == "CycloneDX":
-                    return ("CycloneDX", jdata_["specVersion"])
-                if jdata_.get("SPDXID") == "SPDXRef-DOCUMENT":
-                    return ("SPDX", jdata_["spdxVersion"])
-                raise ValueError("Not supported file format")
-            except (KeyError, TypeError):
-                raise ValueError("Not supported file format")
-
-        spec_name, spec_version = _get_spec_info(json_data)
-        spec_parser = {
-            "CycloneDX": CDXParser,
-            "SPDX": None,  # TODO
-        }.get(spec_name)
-        if not spec_parser:
-            raise ValueError("Not supported file format")
-
-        sbom, actual_parser = spec_parser.sub_parse(json_data, spec_version)
-        return (sbom, actual_parser)
-
-    @classmethod
-    def parse_sbom(cls, sbom: SBOM) -> List[Artifact]:
-        raise ValueError("Not implemented")
-
-
-class ToolParser:
-    @classmethod
-    def sub_parse(cls, json_data: dict, spec_version: str) -> Tuple[SBOM, Type[SBOMParser]]:
-        raise ValueError("Not implemented")
-
-
-class CDXParser(SBOMParser, ToolParser):
-    @classmethod
-    def sub_parse(cls, json_data: dict, spec_version: str) -> Tuple[SBOM, Type[SBOMParser]]:
-        def _get_tool0(jdata_: dict) -> dict:
-            # https://cyclonedx.org/docs/1.5/json/#metadata_tools
-            tools_ = jdata_["metadata"]["tools"]
-            if isinstance(tools_, dict):
-                if components_ := tools_.get("components"):  # CDX1.5
-                    return components_[0]
-                if services_ := tools_.get("services"):  # CDX1.5
-                    return services_[0]
-                raise ValueError("Not supported CycloneDX format")
-            if isinstance(tools_, list):
-                return tools_[0]  # CDX1.5 (legacy)
-            raise ValueError("Not supported CycloneDX format")
-
-        try:
-            tool0 = _get_tool0(json_data)
-            tool_name = tool0["name"]
-            tool_version = tool0["version"]
-            actual_parser = {
-                "trivy": TrivyCDXParser,
-                "syft": SyftCDXParser,
-            }[tool_name]
-            sbom = SBOM(
-                spec_name="CycloneDX",
-                spec_version=spec_version,
-                tool_name=tool_name,
-                tool_version=tool_version,
-            )
-            sbom.raw = json_data
-            return (sbom, actual_parser)
-        except (IndexError, KeyError, TypeError):
-            raise ValueError("Not supported CycloneDX format")
+    @abstractmethod
+    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
+        raise NotImplementedError()
 
 
 class TrivyCDXParser(SBOMParser):
@@ -194,24 +143,24 @@ class TrivyCDXParser(SBOMParser):
             return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
 
     @classmethod
-    def parse_sbom(cls, sbom: SBOM) -> List[Artifact]:
+    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
         if (
-            sbom.spec_name != "CycloneDX"
-            or sbom.spec_version not in {"1.5"}
-            or sbom.tool_name != "trivy"
+            sbom_info.spec_name != "CycloneDX"
+            or sbom_info.spec_version not in {"1.5"}
+            or sbom_info.tool_name != "trivy"
         ):
-            raise ValueError(f"Not supported: {sbom}")
+            raise ValueError(f"Not supported: {sbom_info}")
         actual_parse_func = {
             "1.5": cls.parse_func_1_5,
-        }.get(sbom.spec_version)
+        }.get(sbom_info.spec_version)
         if not actual_parse_func:
             raise ValueError("Internal error: actual_parse_func not found")
         return actual_parse_func(sbom)
 
     @classmethod
     def parse_func_1_5(cls, sbom: SBOM) -> List[Artifact]:
-        meta_component = sbom.raw.get("metadata", {}).get("component")
-        raw_components = sbom.raw.get("components", [])
+        meta_component = sbom.get("metadata", {}).get("component")
+        raw_components = sbom.get("components", [])
 
         # parse components
         components_map: Dict[str, TrivyCDXParser.CDXComponent] = {}
@@ -233,7 +182,7 @@ class TrivyCDXParser(SBOMParser):
 
         # parse dependencies
         dependencies: Dict[str, Set[str]] = {}
-        for dep in sbom.raw.get("dependencies", []):
+        for dep in sbom.get("dependencies", []):
             if not (from_ := dep.get("ref")):
                 continue
             if to_ := dep.get("dependsOn"):
@@ -372,25 +321,25 @@ class SyftCDXParser(SBOMParser):
             return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
 
     @classmethod
-    def parse_sbom(cls, sbom: SBOM) -> List[Artifact]:
+    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
         if (
-            sbom.spec_name != "CycloneDX"
-            or sbom.spec_version not in {"1.4", "1.5"}
-            or sbom.tool_name != "syft"
+            sbom_info.spec_name != "CycloneDX"
+            or sbom_info.spec_version not in {"1.4", "1.5"}
+            or sbom_info.tool_name != "syft"
         ):
-            raise ValueError(f"Not supported: {sbom}")
+            raise ValueError(f"Not supported: {sbom_info}")
         actual_parse_func = {
             "1.4": cls.parse_func_1_4,
             "1.5": cls.parse_func_1_4,
-        }.get(sbom.spec_version)
+        }.get(sbom_info.spec_version)
         if not actual_parse_func:
             raise ValueError("Internal error: actual_parse_func not found")
         return actual_parse_func(sbom)
 
     @classmethod
     def parse_func_1_4(cls, sbom: SBOM) -> List[Artifact]:
-        meta_component = sbom.raw.get("metadata", {}).get("component")
-        raw_components = sbom.raw.get("components", [])
+        meta_component = sbom.get("metadata", {}).get("component")
+        raw_components = sbom.get("components", [])
 
         # parse components
         components_map: Dict[str, SyftCDXParser.CDXComponent] = {}
@@ -429,9 +378,63 @@ class SyftCDXParser(SBOMParser):
         return list(artifacts_map.values())
 
 
+def inspect_cyclonedx(sbom: SBOM) -> Tuple[str, Optional[str]]:  # tool_name, tool_version
+    def _get_tool0(jdata_: dict) -> dict:
+        # https://cyclonedx.org/docs/1.5/json/#metadata_tools
+        tools_ = jdata_["metadata"]["tools"]
+        if isinstance(tools_, dict):
+            if components_ := tools_.get("components"):  # CDX1.5
+                return components_[0]
+            if services_ := tools_.get("services"):  # CDX1.5
+                return services_[0]
+            raise ValueError("Not supported CycloneDX format")
+        if isinstance(tools_, list):
+            return tools_[0]  # CDX1.5 (legacy)
+        raise ValueError("Not supported CycloneDX format")
+
+    try:
+        tool0 = _get_tool0(sbom)
+        tool_name = tool0["name"]
+        tool_version = tool0.get("version")
+        return (tool_name, tool_version)
+    except (IndexError, KeyError, TypeError):
+        raise ValueError("Not supported CycloneDX format")
+
+
+def inspect_spdx(sbom: SBOM) -> Tuple[str, Optional[str]]:  # tool_name, tool_version
+    raise ValueError("SPDX is not yet supported")
+
+
+def inspect_sbom(sbom: SBOM) -> SBOMInfo:
+    try:
+        if sbom.get("bomFormat") == "CycloneDX":
+            spec_name = "CycloneDX"
+            spec_version = sbom["specVersion"]
+            tool_name, tool_version = inspect_cyclonedx(sbom)
+        elif sbom.get("SPDXID") == "SPDXRef-DOCUMENT":
+            spec_name = "SPDX"
+            spec_version = sbom["spdxVersion"]
+            tool_name, tool_version = inspect_spdx(sbom)
+        else:
+            raise ValueError("Not supported file format")
+        return SBOMInfo(spec_name, spec_version, tool_name, tool_version)
+    except (IndexError, KeyError, TypeError):
+        raise ValueError("Not supported file format")
+
+
+SBOM_PARSERS: Dict[Tuple[str, str], Type[SBOMParser]] = {
+    # (spec_name, spec_version, tool_name) : SBOMParser
+    ("CycloneDX", "trivy"): TrivyCDXParser,
+    ("CycloneDX", "syft"): SyftCDXParser,
+}
+
+
 def sbom_json_to_artifact_json_lines(jdata: dict) -> List[dict]:
-    sbom, parser = SBOMParser.pre_parse(jdata)
-    return [
-        artifact.to_json()
-        for artifact in sorted([a for a in parser.parse_sbom(sbom)], key=lambda a: a.tag)
-    ]
+    sbom: SBOM = jdata
+    sbom_info = inspect_sbom(sbom)
+    sbom_parser = SBOM_PARSERS.get((sbom_info.spec_name, sbom_info.tool_name))
+    if not sbom_parser:
+        raise ValueError("Not supported file format")
+
+    artifacts = sbom_parser.parse_sbom(sbom, sbom_info)
+    return [artifact.to_json() for artifact in sorted(artifacts, key=lambda a: a.tag)]
