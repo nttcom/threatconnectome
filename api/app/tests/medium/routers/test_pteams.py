@@ -6794,7 +6794,7 @@ def test_fix_status_mismatch_tag(testdb: Session):
     assert data["user_id"] == str(SYSTEM_UUID)
 
 
-def test_upload_pteam_sbom_file_wiht_syft():
+def test_upload_pteam_sbom_file_with_syft():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     # To avoid multiple rows error, pteam2 is created for test
@@ -6803,20 +6803,21 @@ def test_upload_pteam_sbom_file_wiht_syft():
     params = {"group": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "test_syft_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
-        response = client.post(
-            f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
-            headers=file_upload_headers(USER1),
-            params=params,
-            files={"file": tags},
+        data = assert_200(
+            client.post(
+                f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
+            )
         )
-
-    assert response.status_code == 200
-    data = response.json()
     tags = {tag["tag_name"]: tag for tag in data}
     assert "axios:npm:npm" in tags
-    assert "package-lock.json" in tags["axios:npm:npm"]["references"][0]["target"]
-    assert tags["axios:npm:npm"]["references"][0]["version"] == "1.6.7"
-    assert tags["axios:npm:npm"]["references"][0]["group"] == params["group"]
+    assert {
+        (r["target"], r["version"], r["group"]) for r in tags["axios:npm:npm"]["references"]
+    } == {
+        ("/package-lock.json", "1.6.7", params["group"]),
+    }
 
 
 def test_upload_pteam_sbom_file_with_trivy():
@@ -6828,20 +6829,22 @@ def test_upload_pteam_sbom_file_with_trivy():
     params = {"group": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "test_trivy_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
-        response = client.post(
-            f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
-            headers=file_upload_headers(USER1),
-            params=params,
-            files={"file": tags},
+        data = assert_200(
+            client.post(
+                f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
+            )
         )
-
-    assert response.status_code == 200
-    data = response.json()
     tags = {tag["tag_name"]: tag for tag in data}
     assert "axios:npm:npm" in tags
-    assert "package-lock.json" in tags["axios:npm:npm"]["references"][0]["target"]
-    assert tags["axios:npm:npm"]["references"][0]["version"] == "1.6.7"
-    assert tags["axios:npm:npm"]["references"][0]["group"] == params["group"]
+    assert {
+        (r["target"], r["version"], r["group"]) for r in tags["axios:npm:npm"]["references"]
+    } == {
+        ("package-lock.json", "1.6.7", params["group"]),
+        (".", "1.6.7", params["group"]),
+    }
 
 
 def test_upload_pteam_sbom_file_with_empty_file():
@@ -6891,7 +6894,7 @@ def test_upload_pteam_sbom_file_wrong_content_format():
         Path(__file__).resolve().parent.parent / "upload_test" / "tag_with_wrong_format.json"
     )
     with open(sbom_file, "rb") as tags:
-        with pytest.raises(HTTPError, match=r"400: Bad Request: not supported file format"):
+        with pytest.raises(HTTPError, match=r"400: Bad Request: Not supported file format"):
             assert_200(
                 client.post(
                     f"/pteams/{pteam.pteam_id}/upload_sbom_file",

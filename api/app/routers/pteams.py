@@ -38,7 +38,7 @@ from app.constants import (
     NOT_MEMBER_UUID,
 )
 from app.database import get_db
-from app.sbom import SbomFormat, gen_cdx_components
+from app.sbom import sbom_json_to_artifact_json_lines
 from app.slack import validate_slack_webhook_url
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
@@ -860,16 +860,15 @@ def upload_pteam_sbom_file(
         ) from error
 
     try:
-        if SbomFormat.from_jsondata(jdata) == SbomFormat.CDX:
-            components = gen_cdx_components(jdata)
-            return apply_group_tags(
-                db,
-                pteam,
-                group,
-                components.list_tags(),
-                auto_create_tags=force_mode,
-                auto_close=False,
-            )  # not try autoclose
+        json_lines = sbom_json_to_artifact_json_lines(jdata)
+        return apply_group_tags(
+            db,
+            pteam,
+            group,
+            json_lines,
+            auto_create_tags=force_mode,
+            auto_close=False,
+        )
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
