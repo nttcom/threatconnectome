@@ -74,6 +74,8 @@ export function PTeamSettingsModal(props) {
         </TabPanel>
         <TabPanel index={3} value={tab}>
           <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+        </TabPanel>
+        <TabPanel index={4} value={tab}>
           <PTeamAutoClose />
         </TabPanel>
       </DialogContent>
