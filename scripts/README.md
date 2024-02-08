@@ -188,14 +188,15 @@ python3 trivydb2tc.py -d ~/.cache/trivy/db/trivy.db --force-update "http://local
 
 ```
 
-# :bulb: Read and parse CycloneDX files
+# :bulb: Read and parse CycloneDX v1.5 files
 
-Purpose: To parse CycloneDX files (Trivy, Syft) and output JSON for Threatconnectome registration.
+Purpose: To parse CycloneDX v1.5 files (Trivy, Syft) and output JSON for Threatconnectome registration.
 
 ## :pushpin: Requirements
 
 ```bash
 pip install packageurl-python
+pip install 'cyclonedx-python-lib[json-validation]'
 ```
 
 ## :triangular_flag_on_post: Usage
