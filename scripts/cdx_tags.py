@@ -5,6 +5,9 @@ import re
 import sys
 from typing import Any, ClassVar, Dict, List, Optional, Pattern, Set, Tuple
 
+from cyclonedx.exception import MissingOptionalDependencyException
+from cyclonedx.schema import SchemaVersion
+from cyclonedx.validation.json import JsonStrictValidator
 from packageurl import PackageURL
 
 REP_DELIMITER = "__>>__"
@@ -222,9 +225,11 @@ class TrivyCDXComponents(CDXComponents):
             collection = (
                 pkg_components
                 if component.raw_type == "library"
-                else mgr_components
-                if component.raw_type in {"application", "operating-system"}
-                else None
+                else (
+                    mgr_components
+                    if component.raw_type in {"application", "operating-system"}
+                    else None
+                )
             )
             if collection is None:
                 print(
@@ -248,9 +253,11 @@ class TrivyCDXComponents(CDXComponents):
                 pkg_info = (
                     pkg.purl.type
                     if mgr.mgr_class == "lang-pkgs"
-                    else self._fix_distro(pkg.purl.qualifiers.get("distro") or "")
-                    if mgr.mgr_class == "os-pkgs"
-                    else ""
+                    else (
+                        self._fix_distro(pkg.purl.qualifiers.get("distro") or "")
+                        if mgr.mgr_class == "os-pkgs"
+                        else ""
+                    )
                 )
 
                 tag = f"{pkg.name}:{pkg_info}:{pkg_mgr}"
@@ -389,13 +396,39 @@ class SyftCDXComponents(CDXComponents):
 def main(args: argparse.Namespace) -> None:
     if args.infile == sys.stdin:
         print("reading data from STDIN...", file=sys.stderr)
-    jdata = json.load(args.infile)
+
+    jtext = args.infile.read()
+    my_json_validator = JsonStrictValidator(SchemaVersion.V1_5)
+    try:
+        # Check CycloneDX v1.5 format
+        validation_errors = my_json_validator.validate_str(jtext)
+        if validation_errors:
+            print(
+                "Error: CycloneDX v1.5 JSON invalid: ",
+                repr(validation_errors),
+                file=sys.stderr,
+            )
+            sys.exit(1)
+    # 'json-validation' is not installed
+    except MissingOptionalDependencyException:
+        print(
+            "Error: Missing 'json-validation' extras.",
+            'Run `pip install "cyclonedx-python-lib[json-validation]"`',
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+    jdata = json.loads(jtext)
+
     if args.tool is None:
         try:
             args.tool = jdata["metadata"]["tools"][0]["name"]
             print(f"Auto detected tool: {args.tool}", file=sys.stderr)
         except (KeyError, TypeError, IndexError):
-            print("Error: Auto detecting tool failed. Specify tool by -t option", file=sys.stderr)
+            print(
+                "Error: Auto detecting tool failed. Specify tool by -t option",
+                file=sys.stderr,
+            )
             sys.exit(255)
     if args.tool not in SUPPORTED_TOOLS:
         print(f"Error: Not a supported tool: {args.tool}", file=sys.stderr)
