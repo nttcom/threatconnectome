@@ -338,6 +338,26 @@ def test_update_pteam__by_not_admin():
     assert response.reason_phrase == "Forbidden"
 
 
+def test_update_pteam_empty_data():
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+
+    empty_data = {
+        "pteam_name": "",
+        "contact_info": "",
+        "slack_webhook_url": "",
+    }
+
+    request = schemas.PTeamUpdateRequest(**{**empty_data}).model_dump()
+    response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["pteam_name"] == ""
+    assert data["contact_info"] == ""
+    assert data["slack_webhook_url"] == ""
+    assert data["alert_threat_impact"] == 3
+
+
 def test_get_pteam_groups():
     create_user(USER1)
     pteam2 = create_pteam(USER1, PTEAM2)
