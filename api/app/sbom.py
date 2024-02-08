@@ -123,7 +123,7 @@ class TrivyCDXParser(SBOMParser):
         def to_tag(self, components_map: Dict[str, Any]) -> Optional[str]:
             if not self.purl:
                 return None
-            pkg_name = self.purl.name
+            pkg_name = self.name  # given by trivy. may include namespace in some case.
             pkg_info = self.purl.type
             pkg_mgr = ""
             if self.targets:
@@ -312,7 +312,7 @@ class SyftCDXParser(SBOMParser):
         def to_tag(self) -> Optional[str]:
             if not self.purl:
                 return None
-            pkg_name = self.purl.name
+            pkg_name = self.name  # given by syft. may include namespace in some case.
             distro = (
                 self.purl.qualifiers.get("distro")
                 if self.purl and isinstance(self.purl.qualifiers, dict)
