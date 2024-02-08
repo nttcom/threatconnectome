@@ -188,7 +188,7 @@ python3 trivydb2tc.py -d ~/.cache/trivy/db/trivy.db --force-update "http://local
 
 ```
 
-# :bulb: Read and parse SBOM files
+# :bulb: Read and parse CycloneDX files
 
 Purpose: To parse CycloneDX files (Trivy, Syft) and output JSON for Threatconnectome registration.
 
