@@ -1069,6 +1069,8 @@ def update_pteam(
     if data.slack_webhook_url:
         validate_slack_webhook_url(data.slack_webhook_url)
         pteam.slack_webhook_url = data.slack_webhook_url
+    elif data.slack_webhook_url == "":
+        pteam.slack_webhook_url = data.slack_webhook_url
 
     need_auto_close = (data.disabled is False and pteam.disabled is True) or (
         data.zone_names and set(data.zone_names) - {z.zone_name for z in pteam.zones}
