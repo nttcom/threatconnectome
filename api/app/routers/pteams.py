@@ -935,6 +935,8 @@ def upload_pteam_sbom_file(
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not group:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing group")
     _check_file_extention(file, ".json")
     _check_empty_file(file)
     try:
@@ -976,6 +978,8 @@ def upload_pteam_tags_file(
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not group:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing group")
     _check_file_extention(file, ".jsonl")
     _check_empty_file(file)
 
