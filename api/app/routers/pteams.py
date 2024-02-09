@@ -1,11 +1,12 @@
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Sequence, Set, Union
-from uuid import UUID
+from typing import Any, Dict, List, Sequence, Set, Tuple, Union
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, delete, insert, or_, select
+from sqlalchemy.dialects.postgresql import insert as psql_insert
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql.expression import func, true
 
@@ -42,6 +43,53 @@ from app.sbom import sbom_json_to_artifact_json_lines
 from app.slack import validate_slack_webhook_url
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
+
+
+def sync_pteamtag_with_pteamtagreference(db: Session, pteam_id: Union[str, UUID]):
+    reference_rows = db.scalars(
+        select(models.PTeamTagReference).where(models.PTeamTagReference.pteam_id == str(pteam_id))
+    ).all()
+    refs_dict: Dict[Tuple[str, str], List[dict]] = {}  # {(pteam_id, tag_id): refs}
+    text_dict: Dict[Tuple[str, str], str] = {}  # {(pteam_id, tag_id): text}
+    for row in reference_rows:
+        refs = refs_dict.get((row.pteam_id, row.tag_id), [])
+        refs.append({"group": row.group, "target": row.target, "version": row.version})
+        refs_dict[(row.pteam_id, row.tag_id)] = refs
+
+    current_pteamtag_rows = db.scalars(
+        select(models.PTeamTag).where(models.PTeamTag.pteam_id == str(pteam_id))
+    ).all()
+    for current_row in current_pteamtag_rows:
+        if (current_row.pteam_id, current_row.tag_id) in refs_dict:
+            text_dict[(current_row.pteam_id, current_row.tag_id)] = current_row.text or ""
+        else:
+            #
+            # FIXME
+            # how to keep text without references nor groups, especially made at pteam_create()
+            #
+            db.delete(current_row)
+
+    insert_stmt = psql_insert(models.PTeamTag).values(
+        [
+            {
+                "pteam_id": key[0],
+                "tag_id": key[1],
+                "refs": refs,
+                "text": text_dict.get((key[0], key[1]), ""),
+            }
+            for (key, refs) in refs_dict.items()
+        ]
+    )
+    db.execute(
+        insert_stmt.on_conflict_do_update(
+            index_elements=["pteam_id", "tag_id"],
+            set_={
+                "refs": insert_stmt.excluded.refs,
+                "text": insert_stmt.excluded.text,
+            },
+        )
+    )
+    db.commit()
 
 
 def _modify_pteam_auth(
@@ -924,84 +972,84 @@ def apply_group_tags(
     # If force_mode is False, check whether tag_names exist in DB
     if auto_create_tags is False:
         check_tags_exist(db, list(tag_names_in_file))
-
-    # Create data structure for merging
-    # dict_of_references: {tag_name: references}
-    # references: [{target: target_text, version: [version text], group: [group]}]
-    dict_of_references: Dict[str, List[Dict[str, str]]] = dict()
-    # dict_of_text: {tag_name: text}
-    dict_of_text: Dict[str, str] = dict()
-    for line in json_lines:
-        tag_name = line["tag_name"]  # already checked
-        # Save references from each line
-        for reference_form_file in line.get("references", [{"target": "", "version": ""}]):
-            reference = {
-                "target": reference_form_file.get("target", ""),
-                "version": reference_form_file.get("version", ""),
-                "group": group,
-            }
-
-            if tag_name in dict_of_references:
-                dict_of_references[tag_name].append(reference)
-            else:
-                dict_of_references[tag_name] = [reference]
-        # Save text from each line
-        dict_of_text[tag_name] = line.get("text") or ""
-
-    # First, delete group's references not specified in uploaded file
-    for pteamtag in pteam.pteamtags:
-        tag_name = pteamtag.tag.tag_name
-        if tag_name not in dict_of_references:
-            remove_specified_group_references_from_pteamtag(db, pteamtag, group)
-
-    # Second, update/create references specified in upload file
-    # Save pteamtag which version has changed
-    pteamtags_for_auto_close = []
-    for tag_name, references in dict_of_references.items():
-        # Get pteamtag which has tag_name
-        # pteamtags_with_given_tag_name should be only one pteamtag (or empty)
-        pteamtags_with_given_tag_name = [
-            pteamtag for pteamtag in pteam.pteamtags if pteamtag.tag.tag_name == tag_name
-        ]
-
-        # When there is pteamtag which has tag_name, update references of pteamtag
-        if pteamtags_with_given_tag_name:
-            for pteamtag in pteamtags_with_given_tag_name:
-                # Check version will be changed
-                is_version_update = set(
-                    [reference["version"] for reference in pteamtag.references]
-                ) != set([reference["version"] for reference in references])
-
-                referenes_without_specified_group = [
-                    reference for reference in pteamtag.references if reference["group"] != group
-                ]
-                referenes_without_specified_group.extend(references)
-                # Set new references
-                pteamtag.references = referenes_without_specified_group
-
-                # Update text
-                pteamtag.text = dict_of_text[tag_name]
-
-                if is_version_update:
-                    pteamtags_for_auto_close.append(pteamtag)
-        # When there is no pteamtag which has tag_name, create new pteamtag
-        else:
-            pteamtag = models.PTeamTag(
-                pteam_id=pteam.pteam_id,
-                tag_id=get_or_create_topic_tag(db, tag_name).tag_id,
-                references=references,
-                text=dict_of_text[tag_name],
-            )
-            db.add(pteamtag)
-            pteamtags_for_auto_close.append(pteamtag)
-    db.commit()
-    db.refresh(pteam)
-
-    # Execute batch processing, auto close and update PTeamTopicTagStatus
+    tag_name_to_id: Dict[str, str] = {
+        tag_name: get_or_create_topic_tag(db, tag_name).tag_id for tag_name in tag_names_in_file
+    }
     if auto_close:
-        auto_close_by_pteamtags(db, pteamtags_for_auto_close)
-    fix_current_status_by_pteam(db, pteam)
+        get_versions_query = (
+            select(
+                models.PTeamTagReference.tag_id,
+                func.array_agg(models.PTeamTagReference.version).label("versions"),
+            )
+            .where(models.PTeamTagReference.pteam_id == pteam.pteam_id)
+            .group_by(models.PTeamTagReference.tag_id)
+        )
+        old_version_rows = db.execute(get_versions_query).all()
+        old_versions: Dict[str, Set[str]] = {
+            row_.tag_id: set(row_.versions) for row_ in old_version_rows
+        }
 
+    db.execute(
+        delete(models.PTeamTagReference).where(
+            models.PTeamTagReference.pteam_id == pteam.pteam_id,
+            models.PTeamTagReference.group == group,
+        )
+    )
+    db.execute(
+        insert(models.PTeamTagReference).values(
+            [
+                {
+                    "reference_id": uuid4(),
+                    "pteam_id": pteam.pteam_id,
+                    "tag_id": tag_name_to_id[json_line["tag_name"]],
+                    "group": group,
+                    "target": refs.get("target", ""),
+                    "version": refs.get("version", ""),
+                }
+                for json_line in json_lines
+                for refs in json_line.get("references", [{"target": "", "version": ""}])
+            ]
+        )
+    )
+
+    if auto_close:
+        new_version_rows = db.execute(get_versions_query).all()
+        new_versions: Dict[str, Set[str]] = {
+            row_.tag_id: set(row_.versions) for row_ in new_version_rows
+        }
+        # TODO
+        # for tag_id in {old_tag_ids & new_tag_ids}:
+        #    if new_versions != old_versions:
+        #        pteamtags_to_auto_close.append(xxx)
+        print(new_versions, old_versions)
+
+    # Hum... what should we do with PTeamTag.text?
+    for json_line in json_lines:
+        if (text := json_line.get("text")) is not None:
+            insert_stmt = psql_insert(models.PTeamTag).values(
+                {
+                    "pteam_id": pteam.pteam_id,
+                    "tag_id": tag_name_to_id[json_line["tag_name"]],
+                    "refs": [],  # overwritten later
+                    "text": text,
+                }
+            )
+            db.execute(
+                insert_stmt.on_conflict_do_update(
+                    index_elements=["pteam_id", "tag_id"],
+                    set_={
+                        "text": insert_stmt.excluded.text,
+                    },
+                )
+            )
+
+    # Oops, we have to maintain PTeamTag for backward compatibility...
+    sync_pteamtag_with_pteamtagreference(db, pteam.pteam_id)
+
+    db.commit()
+    pteamtags = db.scalars(
+        select(models.PTeamTag).where(models.PTeamTag.pteam_id == pteam.pteam_id)
+    ).all()
     return sorted(
         [
             schemas.ExtTagResponse(
@@ -1012,7 +1060,7 @@ def apply_group_tags(
                 references=pteamtag.references,
                 text=pteamtag.text,
             )
-            for pteamtag in pteam.pteamtags
+            for pteamtag in pteamtags
         ],
         key=lambda x: x.tag_name,
     )
