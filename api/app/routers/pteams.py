@@ -710,9 +710,13 @@ def get_pteamtag(
         )
         .scalar()
     )
-    setattr(pteamtag, "last_updated_at", last_updated_at)
-
-    return pteamtag
+    return {
+        "pteam_id": pteam_id,
+        "tag_id": tag_id,
+        "references": pteamtag.references or [],
+        "text": pteamtag.text or "",
+        "last_updated_at": last_updated_at,
+    }
 
 
 @router.post("/{pteam_id}/tags/{tag_id}", response_model=schemas.PTeamtagResponse)
