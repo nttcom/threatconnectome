@@ -54,6 +54,7 @@ from app.tests.medium.utils import (
     assert_200,
     assert_204,
     compare_ext_tags,
+    compare_references,
     create_action,
     create_actionlog,
     create_ateam,
@@ -3180,7 +3181,7 @@ def test_upload_pteam_tags_file_with_updated_exttags():
     assert etag3["text"] == "text3"
     etagx = _pick_tag(data, TAG1)
     assert etagx
-    assert etagx["references"] == EXT_TAG1["references"]
+    assert compare_references(etagx["references"], EXT_TAG1["references"])
     assert etagx["text"] == ""
     # removed tags
     assert _pick_tag(data, "teststring") == {}
