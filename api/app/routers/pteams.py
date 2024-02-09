@@ -1098,6 +1098,8 @@ def apply_group_tags(
             auto_close_by_pteamtags(db, pteamtags_for_auto_close)
 
     db.commit()
+    db.refresh(pteam)
+    fix_current_status_by_pteam(db, pteam)
     pteamtags = db.scalars(
         select(models.PTeamTag).where(models.PTeamTag.pteam_id == pteam.pteam_id)
     ).all()
