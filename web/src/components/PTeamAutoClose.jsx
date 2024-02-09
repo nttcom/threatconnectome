@@ -29,13 +29,13 @@ export function PTeamAutoClose() {
   };
 
   return (
-    <Box>
+    <Box sx={{ m: 2 }}>
       <Box display="flex" flexDirection="row" alignItems="center">
         <Typography variant="body2" mb={1} mr={2}>
-          Close only Alerted tags.
+          Manually check alerts that require a response.
         </Typography>
-        <Button onClick={handleSave} sx={{ ...commonButtonStyle, mb: 1 }}>
-          Done
+        <Button variant="contained" onClick={handleSave} sx={{ ...commonButtonStyle, mb: 1 }}>
+          Run
         </Button>
       </Box>
     </Box>
