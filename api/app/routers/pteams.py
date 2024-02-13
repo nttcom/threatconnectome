@@ -1,12 +1,11 @@
 import json
 from datetime import datetime
 from typing import Any, Dict, List, Sequence, Set, Tuple, Union
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
-from sqlalchemy import and_, delete, insert, or_, select
-from sqlalchemy.dialects.postgresql import insert as psql_insert
+from sqlalchemy import and_, delete, or_, select
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql.expression import func, true
 
@@ -65,27 +64,24 @@ def sync_pteamtag_with_pteamtagreference(db: Session, pteam_id: UUID | str) -> N
         else:
             db.delete(current_row)
 
-    insert_stmt = psql_insert(models.PTeamTag).values(
-        [
-            {
-                "pteam_id": key[0],
-                "tag_id": key[1],
-                "refs": refs,
-                "text": text_dict.get((key[0], key[1]), ""),
-            }
-            for (key, refs) in refs_dict.items()
-        ]
-    )
-    db.execute(
-        insert_stmt.on_conflict_do_update(
-            index_elements=["pteam_id", "tag_id"],
-            set_={
-                "refs": insert_stmt.excluded.refs,
-                "text": insert_stmt.excluded.text,
-            },
+    for key, refs in refs_dict.items():
+        text = text_dict.get((key[0], key[1]), "")
+        pteamtag = db.scalars(
+            select(models.PTeamTag).where(
+                models.PTeamTag.pteam_id == key[0],
+                models.PTeamTag.tag_id == key[1],
+            )
+        ).one_or_none() or models.PTeamTag(
+            pteam_id=key[0],
+            tag_id=key[1],
+            references=refs,
+            text=text,
         )
-    )
-    db.commit()
+        pteamtag.references = refs
+        pteamtag.text = text
+        db.add(pteamtag)
+
+    db.flush()
 
 
 def _modify_pteam_auth(
@@ -1037,44 +1033,39 @@ def apply_group_tags(
             models.PTeamTagReference.group == group,
         )
     )
-    db.execute(
-        insert(models.PTeamTagReference).values(
-            [
-                {
-                    "reference_id": uuid4(),
-                    "pteam_id": pteam.pteam_id,
-                    "tag_id": tag_name_to_id[json_line["tag_name"]],
-                    "group": group,
-                    "target": refs.get("target", ""),
-                    "version": refs.get("version", ""),
-                }
-                for json_line in json_lines
-                for refs in json_line.get("references", [{"target": "", "version": ""}])
-            ]
-        )
+    db.add_all(
+        [
+            models.PTeamTagReference(
+                pteam_id=pteam.pteam_id,
+                tag_id=tag_name_to_id[json_line["tag_name"]],
+                group=group,
+                target=refs.get("target", ""),
+                version=refs.get("version", ""),
+            )
+            for json_line in json_lines
+            for refs in json_line.get("references", [{"target": "", "version": ""}])
+        ]
     )
 
     # Hum... what should we do with PTeamTag.text?
     for json_line in json_lines:
         text = json_line.get("text") or ""
-        insert_stmt = psql_insert(models.PTeamTag).values(
-            {
-                "pteam_id": pteam.pteam_id,
-                "tag_id": tag_name_to_id[json_line["tag_name"]],
-                "refs": [],  # overwritten later
-                "text": text,
-            }
-        )
-        db.execute(
-            insert_stmt.on_conflict_do_update(
-                index_elements=["pteam_id", "tag_id"],
-                set_={
-                    "text": insert_stmt.excluded.text,
-                },
+        pteamtag = db.scalars(
+            select(models.PTeamTag).where(
+                models.PTeamTag.pteam_id == pteam.pteam_id,
+                models.PTeamTag.tag_id == tag_name_to_id[json_line["tag_name"]],
             )
+        ).one_or_none() or models.PTeamTag(
+            pteam_id=pteam.pteam_id,
+            tag_id=tag_name_to_id[json_line["tag_name"]],
+            references=[],  # overwritten in sync_pteamtag_with_pteamtagreference()
+            text=text,
         )
+        pteamtag.text = text
+        db.add(pteamtag)
 
     # Oops, we have to maintain PTeamTag for backward compatibility...
+    db.flush()
     sync_pteamtag_with_pteamtagreference(db, pteam.pteam_id)
 
     # try auto close if make sense
@@ -1093,9 +1084,11 @@ def apply_group_tags(
         ]:
             auto_close_by_pteamtags(db, pteamtags_for_auto_close)
 
-    db.commit()
+    db.flush()
     db.refresh(pteam)
     fix_current_status_by_pteam(db, pteam)
+
+    db.commit()
     pteamtags = db.scalars(
         select(models.PTeamTag).where(models.PTeamTag.pteam_id == pteam.pteam_id)
     ).all()
