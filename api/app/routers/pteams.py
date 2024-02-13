@@ -454,27 +454,25 @@ def _db_fix_references(
         group_to_refs[group] = refs
 
     for group, refs in group_to_refs.items():
-        db.execute(
-            delete(models.PTeamTagReference).where(
+        for old_row in db.execute(
+            select(models.PTeamTagReference).where(
                 models.PTeamTagReference.pteam_id == str(pteam_id),
                 models.PTeamTagReference.tag_id == str(tag_id),
                 models.PTeamTagReference.group == group,
             )
-        )
-        insert_stmt = insert(models.PTeamTagReference).values(
-            [
-                {
-                    "reference_id": uuid4(),
-                    "pteam_id": str(pteam_id),
-                    "tag_id": str(tag_id),
-                    "group": group,
-                    "target": target,
-                    "version": version,
-                }
-                for target, version in refs
-            ]
-        )
-        db.execute(insert_stmt)
+        ).all():
+            db.delete(old_row)
+        for new_row in [
+            models.PTeamTagReference(
+                pteam_id=str(pteam_id),
+                tag_id=str(tag_id),
+                group=group,
+                target=target,
+                version=version,
+            )
+            for target, version in refs
+        ]:
+            db.add(new_row)
 
 
 def _db_update_pteamtags(
@@ -533,8 +531,6 @@ def create_pteam(
         alert_threat_impact=data.alert_threat_impact or DEFAULT_ALERT_THREAT_IMPACT,
     )
     db.add(pteam)
-    db.commit()
-    db.refresh(pteam)
     pteam = _db_update_pteamtags(db, pteam, data.tags)
     pteam.zones = update_zones(db, current_user.user_id, True, [], data.zone_names)
     db.add(pteam)
