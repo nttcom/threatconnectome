@@ -15,6 +15,7 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useRef, useState } from "react";
 
+import { WaitingModal } from "../components/WaitingModal";
 import { uploadSBOMFile } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
@@ -85,6 +86,7 @@ export function SBOMDropArea(props) {
   const { enqueueSnackbar } = useSnackbar();
   const [sbomFile, setSbomFile] = useState(null);
   const [preModalOpen, setPreModalOpen] = useState(false);
+  const [isOpenWaitingModal, setIsOpenWaitingModal] = useState(false);
 
   useEffect(() => {
     dropRef.current.addEventListener("dragover", handleDragOver);
@@ -125,6 +127,7 @@ export function SBOMDropArea(props) {
       alert("Something went wrong: missing file or group.");
       return;
     }
+    setIsOpenWaitingModal(true);
     enqueueSnackbar(`Uploading SBOM file: ${file.name}`, { variant: "info" });
     uploadSBOMFile(pteamId, group, file)
       .then((response) => {
@@ -137,6 +140,7 @@ export function SBOMDropArea(props) {
       })
       .finally(() => {
         setSbomFile(null);
+        setIsOpenWaitingModal(false);
       });
   };
 
@@ -161,6 +165,7 @@ export function SBOMDropArea(props) {
         setOpen={setPreModalOpen}
         onCompleted={(group) => handlePreUploadCompleted(group)}
       />
+      <WaitingModal isOpen={isOpenWaitingModal} text="Uploading SBOM file" />
     </>
   );
 }
