@@ -20,6 +20,22 @@ from app.schemas import BadgeRequest, SecBadgeBody
 router = APIRouter(prefix="/achievements", tags=["achievements"])
 
 
+@router.post("", response_model=SecBadgeBody)
+def create_secbadge(
+    data: BadgeRequest,
+    current_user: Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Issue a security badge for the given userID and badge's metadata.
+
+    `priority` is optional, the default is `100`.
+
+    `difficulty` is optional, the default is `low`.
+    """
+    return create_secbadge_internal(data, current_user, db)
+
+
 @router.post("/metadata", status_code=status.HTTP_204_NO_CONTENT)
 def validate_secbadge_metadata(metadata: Dict[str, Any], db: Session = Depends(get_db)):
     return validate_secbadge_metadata_internal(metadata, db)
@@ -41,22 +57,6 @@ def get_secbadges(
         .order_by(desc(SecBadge.created_at))
         .all()
     )
-
-
-@router.post("", response_model=SecBadgeBody)
-def create_secbadge(
-    data: BadgeRequest,
-    current_user: Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Issue a security badge for the given userID and badge's metadata.
-
-    `priority` is optional, the default is `100`.
-
-    `difficulty` is optional, the default is `low`.
-    """
-    return create_secbadge_internal(data, current_user, db)
 
 
 @router.delete("/{badge_id}", status_code=status.HTTP_204_NO_CONTENT)

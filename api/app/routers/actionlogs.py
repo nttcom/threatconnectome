@@ -23,32 +23,6 @@ from app.models import ActionType
 router = APIRouter(prefix="/actionlogs", tags=["actionlogs"])
 
 
-@router.get("/{logging_id}/metadata", response_model=schemas.BadgeRequest)
-def get_metadata(
-    logging_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get metadata from the specified actionlog to create secbadge.
-    Secbadge can only be issued with actionlog that have action_type of elimination or mitigation.
-    """
-    return get_metadata_internal(logging_id, current_user, db)
-
-
-@router.post("/{logging_id}/achievement", response_model=schemas.SecBadgeBody)
-def create_secbadge_from_actionlog(
-    logging_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Create secbadge from the actionlog.
-    Secbadge can only be issued with actionlog that have action_type of elimination or mitigation.
-    """
-    return create_secbadge_from_actionlog_internal(logging_id, current_user, db)
-
-
 @router.get("", response_model=List[schemas.ActionLogResponse])
 def get_logs(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
@@ -93,33 +67,6 @@ def create_log(
     In linux, you can check it with `date --iso-8601=seconds`.
     """
     return create_actionlog_internal(data, current_user, db)
-
-
-@router.get("/topics/{topic_id}", response_model=List[schemas.ActionLogResponse])
-def get_topic_logs(
-    topic_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get actionlogs associated with the specified topic.
-    """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
-    rows = (
-        db.query(models.ActionLog)
-        .filter(
-            models.ActionLog.topic_id == str(topic_id),
-            models.ActionLog.pteam_id.in_(
-                db.query(models.PTeamAccount.pteam_id).filter(
-                    models.PTeamAccount.user_id == current_user.user_id
-                )
-            ),
-        )
-        .all()
-    )
-    return sorted(rows, key=lambda x: x.executed_at, reverse=True)
 
 
 @router.get("/search", response_model=List[schemas.ActionLogResponse])
@@ -168,6 +115,59 @@ def search_logs(
             true() if executed_after is None else models.ActionLog.executed_at >= executed_after,
             true() if created_before is None else models.ActionLog.created_at < created_before,
             true() if created_after is None else models.ActionLog.created_at >= created_after,
+        )
+        .all()
+    )
+    return sorted(rows, key=lambda x: x.executed_at, reverse=True)
+
+
+@router.get("/{logging_id}/metadata", response_model=schemas.BadgeRequest)
+def get_metadata(
+    logging_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get metadata from the specified actionlog to create secbadge.
+    Secbadge can only be issued with actionlog that have action_type of elimination or mitigation.
+    """
+    return get_metadata_internal(logging_id, current_user, db)
+
+
+@router.post("/{logging_id}/achievement", response_model=schemas.SecBadgeBody)
+def create_secbadge_from_actionlog(
+    logging_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Create secbadge from the actionlog.
+    Secbadge can only be issued with actionlog that have action_type of elimination or mitigation.
+    """
+    return create_secbadge_from_actionlog_internal(logging_id, current_user, db)
+
+
+@router.get("/topics/{topic_id}", response_model=List[schemas.ActionLogResponse])
+def get_topic_logs(
+    topic_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get actionlogs associated with the specified topic.
+    """
+    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
+    assert topic
+    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
+    rows = (
+        db.query(models.ActionLog)
+        .filter(
+            models.ActionLog.topic_id == str(topic_id),
+            models.ActionLog.pteam_id.in_(
+                db.query(models.PTeamAccount.pteam_id).filter(
+                    models.PTeamAccount.user_id == current_user.user_id
+                )
+            ),
         )
         .all()
     )

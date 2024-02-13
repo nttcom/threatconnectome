@@ -102,6 +102,120 @@ def create_gteam(
     return gteam
 
 
+@router.get("/auth_info", response_model=schemas.GTeamAuthInfo)
+def get_auth_info(current_user: models.Account = Depends(get_current_user)):
+    """
+    Get gteam authority information.
+    """
+    return schemas.GTeamAuthInfo(
+        authorities=[
+            schemas.GTeamAuthInfo.GTeamAuthEntry(
+                enum=key, name=str(value["name"]), desc=str(value["desc"])
+            )
+            for key, value in models.GTeamAuthEnum.info().items()
+        ],
+        pseudo_uuids=[
+            schemas.GTeamAuthInfo.PseudoUUID(name="member", uuid=MEMBER_UUID),
+            schemas.GTeamAuthInfo.PseudoUUID(name="others", uuid=NOT_MEMBER_UUID),
+        ],
+    )
+
+
+@router.post("/apply_invitation", response_model=schemas.GTeamInfo)
+def apply_invitation(
+    data: schemas.ApplyInvitationRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Apply invitation to gteam.
+    """
+    _expire_invitations(db)
+
+    invitation = (
+        db.query(models.GTeamInvitation)
+        .filter(
+            models.GTeamInvitation.invitation_id == str(data.invitation_id),
+            or_(
+                models.GTeamInvitation.limit_count.is_(None),
+                models.GTeamInvitation.limit_count > models.GTeamInvitation.used_count,
+            ),
+        )
+        .with_for_update()
+        .one_or_none()
+    )  # lock and block!
+    if invitation is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) invitation id"
+        )
+    if current_user in invitation.gteam.members:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Already joined to the gteam"
+        )
+
+    invitation.gteam.members.append(current_user)
+    invitation.used_count += 1
+    if invitation.authority > 0:
+        gteam_auth = db.query(models.GTeamAuthority).filter(
+            models.GTeamAuthority.gteam_id == invitation.gteam_id,
+            models.GTeamAuthority.user_id == current_user.user_id,
+        ).one_or_none() or models.GTeamAuthority(
+            gteam_id=invitation.gteam_id, user_id=current_user.user_id, authority=0
+        )
+        gteam_auth.authority |= invitation.authority
+        db.add(gteam_auth)
+    db.add(invitation)
+    db.commit()
+    db.refresh(invitation)
+
+    return invitation.gteam
+
+
+@router.get("/{gteam_id}", response_model=schemas.GTeamInfo)
+def get_gteam(
+    gteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get gteam details. members only.
+    """
+    gteam = validate_gteam(db, gteam_id, on_error=status.HTTP_404_NOT_FOUND)
+    assert gteam
+    check_gteam_membership(db, gteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    return gteam
+
+
+@router.put("/{gteam_id}", response_model=schemas.GTeamInfo)
+def update_gteam(
+    gteam_id: UUID,
+    data: schemas.GTeamUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Update a gteam.
+    """
+    gteam = validate_gteam(db, gteam_id, on_error=status.HTTP_404_NOT_FOUND)
+    assert gteam
+    check_gteam_auth(
+        db,
+        gteam_id,
+        current_user.user_id,
+        models.GTeamAuthIntFlag.ADMIN,
+        on_error=status.HTTP_403_FORBIDDEN,
+    )
+    for key, value in data:
+        if value is None:
+            continue
+        setattr(gteam, key, value)
+    db.add(gteam)
+    db.commit()
+    db.refresh(gteam)
+
+    return gteam
+
+
 @router.post("/{gteam_id}/authority", response_model=List[schemas.GTeamAuthResponse])
 def update_gteam_auth(
     gteam_id: UUID,
@@ -191,70 +305,6 @@ def get_gteam_auth(
         {"user_id": row.user_id, "authorities": models.GTeamAuthIntFlag(row.authority).to_enums()}
         for row in rows
     ]
-
-
-@router.get("/auth_info", response_model=schemas.GTeamAuthInfo)
-def get_auth_info(current_user: models.Account = Depends(get_current_user)):
-    """
-    Get gteam authority information.
-    """
-    return schemas.GTeamAuthInfo(
-        authorities=[
-            schemas.GTeamAuthInfo.GTeamAuthEntry(
-                enum=key, name=str(value["name"]), desc=str(value["desc"])
-            )
-            for key, value in models.GTeamAuthEnum.info().items()
-        ],
-        pseudo_uuids=[
-            schemas.GTeamAuthInfo.PseudoUUID(name="member", uuid=MEMBER_UUID),
-            schemas.GTeamAuthInfo.PseudoUUID(name="others", uuid=NOT_MEMBER_UUID),
-        ],
-    )
-
-
-@router.get("/{gteam_id}", response_model=schemas.GTeamInfo)
-def get_gteam(
-    gteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get gteam details. members only.
-    """
-    gteam = validate_gteam(db, gteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert gteam
-    check_gteam_membership(db, gteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    return gteam
-
-
-@router.put("/{gteam_id}", response_model=schemas.GTeamInfo)
-def update_gteam(
-    gteam_id: UUID,
-    data: schemas.GTeamUpdateRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Update a gteam.
-    """
-    gteam = validate_gteam(db, gteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert gteam
-    check_gteam_auth(
-        db,
-        gteam_id,
-        current_user.user_id,
-        models.GTeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
-    for key, value in data:
-        if value is None:
-            continue
-        setattr(gteam, key, value)
-    db.add(gteam)
-    db.commit()
-    db.refresh(gteam)
-
-    return gteam
 
 
 @router.get("/{gteam_id}/members", response_model=List[schemas.UserResponse])
@@ -460,56 +510,6 @@ def invited_gteam(invitation_id: UUID, db: Session = Depends(get_db)):
         "user_id": invitation.user_id,
     }
     return resp
-
-
-@router.post("/apply_invitation", response_model=schemas.GTeamInfo)
-def apply_invitation(
-    data: schemas.ApplyInvitationRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Apply invitation to gteam.
-    """
-    _expire_invitations(db)
-
-    invitation = (
-        db.query(models.GTeamInvitation)
-        .filter(
-            models.GTeamInvitation.invitation_id == str(data.invitation_id),
-            or_(
-                models.GTeamInvitation.limit_count.is_(None),
-                models.GTeamInvitation.limit_count > models.GTeamInvitation.used_count,
-            ),
-        )
-        .with_for_update()
-        .one_or_none()
-    )  # lock and block!
-    if invitation is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) invitation id"
-        )
-    if current_user in invitation.gteam.members:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Already joined to the gteam"
-        )
-
-    invitation.gteam.members.append(current_user)
-    invitation.used_count += 1
-    if invitation.authority > 0:
-        gteam_auth = db.query(models.GTeamAuthority).filter(
-            models.GTeamAuthority.gteam_id == invitation.gteam_id,
-            models.GTeamAuthority.user_id == current_user.user_id,
-        ).one_or_none() or models.GTeamAuthority(
-            gteam_id=invitation.gteam_id, user_id=current_user.user_id, authority=0
-        )
-        gteam_auth.authority |= invitation.authority
-        db.add(gteam_auth)
-    db.add(invitation)
-    db.commit()
-    db.refresh(invitation)
-
-    return invitation.gteam
 
 
 @router.get("/{gteam_id}/zones/summary", response_model=schemas.GTeamZonesSummary)

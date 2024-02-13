@@ -122,6 +122,176 @@ def create_ateam(
     return _make_ateam_info(ateam)
 
 
+@router.get("/auth_info", response_model=schemas.ATeamAuthInfo)
+def get_auth_info(current_user: models.Account = Depends(get_current_user)):
+    """
+    Get ateam authority information.
+    """
+    return schemas.ATeamAuthInfo(
+        authorities=[
+            schemas.ATeamAuthInfo.ATeamAuthEntry(
+                enum=key, name=str(value["name"]), desc=str(value["desc"])
+            )
+            for key, value in models.ATeamAuthEnum.info().items()
+        ],
+        pseudo_uuids=[
+            schemas.ATeamAuthInfo.PseudoUUID(name="member", uuid=MEMBER_UUID),
+            schemas.ATeamAuthInfo.PseudoUUID(name="others", uuid=NOT_MEMBER_UUID),
+        ],
+    )
+
+
+@router.post("/apply_invitation", response_model=schemas.ATeamInfo)
+def apply_invitation(
+    data: schemas.ApplyInvitationRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Apply invitation to ateam.
+    """
+    _expire_invitations(db)
+
+    invitation = (
+        db.query(models.ATeamInvitation)
+        .filter(
+            models.ATeamInvitation.invitation_id == str(data.invitation_id),
+            or_(
+                models.ATeamInvitation.limit_count.is_(None),
+                models.ATeamInvitation.limit_count > models.ATeamInvitation.used_count,
+            ),
+        )
+        .with_for_update()
+        .one_or_none()
+    )  # lock and block!
+    if invitation is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) invitation id"
+        )
+    if current_user in invitation.ateam.members:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Already joined to the ateam"
+        )
+
+    invitation.ateam.members.append(current_user)
+    invitation.used_count += 1
+    if invitation.authority > 0:
+        ateam_auth = db.query(models.ATeamAuthority).filter(
+            models.ATeamAuthority.ateam_id == invitation.ateam_id,
+            models.ATeamAuthority.user_id == current_user.user_id,
+        ).one_or_none() or models.ATeamAuthority(
+            ateam_id=invitation.ateam_id, user_id=current_user.user_id, authority=0
+        )
+        ateam_auth.authority |= invitation.authority
+        db.add(ateam_auth)
+    db.add(invitation)
+    db.commit()
+    db.refresh(invitation)
+
+    return _make_ateam_info(invitation.ateam)
+
+
+@router.post("/apply_watching_request", response_model=schemas.PTeamInfo)
+def apply_watching_request(
+    data: schemas.ApplyWatchingRequestRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Apply watching request.
+    """
+    _expire_watching_requests(db)
+
+    watching_request = (
+        db.query(models.ATeamWatchingRequest)
+        .filter(
+            models.ATeamWatchingRequest.request_id == str(data.request_id),
+            or_(
+                models.ATeamWatchingRequest.limit_count.is_(None),
+                models.ATeamWatchingRequest.limit_count > models.ATeamWatchingRequest.used_count,
+            ),
+        )
+        .with_for_update()
+        .one_or_none()
+    )  # lock and block!
+    if watching_request is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) request id"
+        )
+    check_pteam_auth(
+        db,
+        data.pteam_id,
+        current_user.user_id,
+        models.PTeamAuthIntFlag.ADMIN,
+        on_error=status.HTTP_403_FORBIDDEN,
+    )
+
+    if str(data.pteam_id) in [pteam.pteam_id for pteam in watching_request.ateam.pteams]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Already connect to the ateam"
+        )
+
+    pteam = validate_pteam(db, str(data.pteam_id), on_error=status.HTTP_400_BAD_REQUEST)
+    assert pteam
+    watching_request.ateam.pteams.append(pteam)
+
+    watching_request.used_count += 1
+
+    db.add(watching_request)
+    db.commit()
+    db.refresh(watching_request)
+
+    return pteam
+
+
+@router.get("/{ateam_id}", response_model=schemas.ATeamInfo)
+def get_ateam(
+    ateam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get ateam details. members only.
+    """
+    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
+    assert ateam
+    check_ateam_membership(db, ateam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    return _make_ateam_info(ateam)
+
+
+@router.put("/{ateam_id}", response_model=schemas.ATeamInfo)
+def update_ateam(
+    ateam_id: UUID,
+    data: schemas.ATeamUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Update an ateam.
+    """
+    if data.slack_webhook_url:
+        validate_slack_webhook_url(data.slack_webhook_url)
+
+    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
+    assert ateam
+    check_ateam_auth(
+        db,
+        ateam_id,
+        current_user.user_id,
+        models.ATeamAuthIntFlag.ADMIN,
+        on_error=status.HTTP_403_FORBIDDEN,
+    )
+    for key, value in data:
+        if value is None:
+            continue
+        setattr(ateam, key, value)
+    db.add(ateam)
+    db.commit()
+    db.refresh(ateam)
+
+    return _make_ateam_info(ateam)
+
+
 @router.post("/{ateam_id}/authority", response_model=List[schemas.ATeamAuthResponse])
 def update_ateam_auth(
     ateam_id: UUID,
@@ -211,73 +381,6 @@ def get_ateam_auth(
         {"user_id": row.user_id, "authorities": models.ATeamAuthIntFlag(row.authority).to_enums()}
         for row in rows
     ]
-
-
-@router.get("/auth_info", response_model=schemas.ATeamAuthInfo)
-def get_auth_info(current_user: models.Account = Depends(get_current_user)):
-    """
-    Get ateam authority information.
-    """
-    return schemas.ATeamAuthInfo(
-        authorities=[
-            schemas.ATeamAuthInfo.ATeamAuthEntry(
-                enum=key, name=str(value["name"]), desc=str(value["desc"])
-            )
-            for key, value in models.ATeamAuthEnum.info().items()
-        ],
-        pseudo_uuids=[
-            schemas.ATeamAuthInfo.PseudoUUID(name="member", uuid=MEMBER_UUID),
-            schemas.ATeamAuthInfo.PseudoUUID(name="others", uuid=NOT_MEMBER_UUID),
-        ],
-    )
-
-
-@router.get("/{ateam_id}", response_model=schemas.ATeamInfo)
-def get_ateam(
-    ateam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get ateam details. members only.
-    """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_membership(db, ateam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    return _make_ateam_info(ateam)
-
-
-@router.put("/{ateam_id}", response_model=schemas.ATeamInfo)
-def update_ateam(
-    ateam_id: UUID,
-    data: schemas.ATeamUpdateRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Update an ateam.
-    """
-    if data.slack_webhook_url:
-        validate_slack_webhook_url(data.slack_webhook_url)
-
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_auth(
-        db,
-        ateam_id,
-        current_user.user_id,
-        models.ATeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
-    for key, value in data:
-        if value is None:
-            continue
-        setattr(ateam, key, value)
-    db.add(ateam)
-    db.commit()
-    db.refresh(ateam)
-
-    return _make_ateam_info(ateam)
 
 
 @router.get("/{ateam_id}/members", response_model=List[schemas.UserResponse])
@@ -485,56 +588,6 @@ def invited_ateam(invitation_id: UUID, db: Session = Depends(get_db)):
     return resp
 
 
-@router.post("/apply_invitation", response_model=schemas.ATeamInfo)
-def apply_invitation(
-    data: schemas.ApplyInvitationRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Apply invitation to ateam.
-    """
-    _expire_invitations(db)
-
-    invitation = (
-        db.query(models.ATeamInvitation)
-        .filter(
-            models.ATeamInvitation.invitation_id == str(data.invitation_id),
-            or_(
-                models.ATeamInvitation.limit_count.is_(None),
-                models.ATeamInvitation.limit_count > models.ATeamInvitation.used_count,
-            ),
-        )
-        .with_for_update()
-        .one_or_none()
-    )  # lock and block!
-    if invitation is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) invitation id"
-        )
-    if current_user in invitation.ateam.members:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Already joined to the ateam"
-        )
-
-    invitation.ateam.members.append(current_user)
-    invitation.used_count += 1
-    if invitation.authority > 0:
-        ateam_auth = db.query(models.ATeamAuthority).filter(
-            models.ATeamAuthority.ateam_id == invitation.ateam_id,
-            models.ATeamAuthority.user_id == current_user.user_id,
-        ).one_or_none() or models.ATeamAuthority(
-            ateam_id=invitation.ateam_id, user_id=current_user.user_id, authority=0
-        )
-        ateam_auth.authority |= invitation.authority
-        db.add(ateam_auth)
-    db.add(invitation)
-    db.commit()
-    db.refresh(invitation)
-
-    return _make_ateam_info(invitation.ateam)
-
-
 @router.get("/{ateam_id}/watching_pteams", response_model=List[schemas.PTeamEntry])
 def get_watching_pteams(
     ateam_id: UUID,
@@ -703,59 +756,6 @@ def get_requested_ateam(request_id: UUID, db: Session = Depends(get_db)):
         "user_id": watching_request.user_id,
     }
     return resp
-
-
-@router.post("/apply_watching_request", response_model=schemas.PTeamInfo)
-def apply_watching_request(
-    data: schemas.ApplyWatchingRequestRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Apply watching request.
-    """
-    _expire_watching_requests(db)
-
-    watching_request = (
-        db.query(models.ATeamWatchingRequest)
-        .filter(
-            models.ATeamWatchingRequest.request_id == str(data.request_id),
-            or_(
-                models.ATeamWatchingRequest.limit_count.is_(None),
-                models.ATeamWatchingRequest.limit_count > models.ATeamWatchingRequest.used_count,
-            ),
-        )
-        .with_for_update()
-        .one_or_none()
-    )  # lock and block!
-    if watching_request is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) request id"
-        )
-    check_pteam_auth(
-        db,
-        data.pteam_id,
-        current_user.user_id,
-        models.PTeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
-
-    if str(data.pteam_id) in [pteam.pteam_id for pteam in watching_request.ateam.pteams]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Already connect to the ateam"
-        )
-
-    pteam = validate_pteam(db, str(data.pteam_id), on_error=status.HTTP_400_BAD_REQUEST)
-    assert pteam
-    watching_request.ateam.pteams.append(pteam)
-
-    watching_request.used_count += 1
-
-    db.add(watching_request)
-    db.commit()
-    db.refresh(watching_request)
-
-    return pteam
 
 
 @router.get("/{ateam_id}/topicstatus", response_model=schemas.ATeamTopicStatusResponse)
