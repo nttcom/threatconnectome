@@ -1,9 +1,10 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { WaitingModal } from "../components/WaitingModal";
 import {
   getPTeamSolvedTaggedTopicIds,
   getPTeamUnsolvedTaggedTopicIds,
@@ -14,12 +15,14 @@ import { commonButtonStyle } from "../utils/const";
 
 export function PTeamTagAutoClose(props) {
   const { tagId } = props;
+  const [isOpenWaitingModal, setIsOpenWaitingModal] = useState(false);
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
 
   const handleSave = async () => {
+    setIsOpenWaitingModal(true);
     await autoCloseTag(pteamId, tagId)
       .then(() => {
         enqueueSnackbar("Auto Close Accepted", { variant: "success" });
@@ -34,6 +37,9 @@ export function PTeamTagAutoClose(props) {
           `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
           { variant: "error" }
         );
+      })
+      .finally(() => {
+        setIsOpenWaitingModal(false);
       });
   };
 
@@ -47,6 +53,7 @@ export function PTeamTagAutoClose(props) {
           Done
         </Button>
       </Box>
+      <WaitingModal isOpen={isOpenWaitingModal} text="Trying auto close" />
     </Box>
   );
 }
