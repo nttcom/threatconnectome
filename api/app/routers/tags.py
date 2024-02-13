@@ -42,6 +42,27 @@ def create_tag(
     return get_or_create_topic_tag(db, request.tag_name)
 
 
+@router.get("/search", response_model=List[schemas.TagResponse])
+def search_tags(
+    words: Optional[List[str]] = QueryParameter(None),
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Search tags.
+    If given a list of words, return all tags that match any of the words.
+    """
+    # If no words were provided, return all tags.
+    if words is None:
+        return db.query(models.Tag).all()
+
+    # Otherwise, search for tags that match the provided words.
+    query = db.query(models.Tag).filter(
+        models.Tag.tag_name.bool_op("@@")(func.to_tsquery("|".join(words)))
+    )
+    return query.all()
+
+
 @router.delete("/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_tag(
     tag_id: UUID,
@@ -80,24 +101,3 @@ def delete_tag(
     db.delete(tag)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)  # avoid Content-Length Header
-
-
-@router.get("/search", response_model=List[schemas.TagResponse])
-def search_tags(
-    words: Optional[List[str]] = QueryParameter(None),
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Search tags.
-    If given a list of words, return all tags that match any of the words.
-    """
-    # If no words were provided, return all tags.
-    if words is None:
-        return db.query(models.Tag).all()
-
-    # Otherwise, search for tags that match the provided words.
-    query = db.query(models.Tag).filter(
-        models.Tag.tag_name.bool_op("@@")(func.to_tsquery("|".join(words)))
-    )
-    return query.all()
