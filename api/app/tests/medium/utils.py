@@ -335,6 +335,13 @@ def compare_ext_tags(
     return _to_tuple_set(tags1) == _to_tuple_set(tags2)
 
 
+def compare_references(refs1: List[dict], refs2: List[dict]) -> bool:
+    def _to_tuple_set(refs):
+        return {(ref.get("group"), ref.get("target"), ref.get("version")) for ref in refs}
+
+    return _to_tuple_set(refs1) == _to_tuple_set(refs2)
+
+
 def create_badge(
     user: dict, recipient_id: UUID, metadata: dict, badge: dict, pteam_id: UUID
 ) -> schemas.SecBadgeBody:
