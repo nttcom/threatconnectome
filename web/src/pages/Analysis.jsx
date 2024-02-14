@@ -67,13 +67,13 @@ export function Analysis() {
     !((tmp = parseInt(params.get("perPage"))) > 0) // tmp <= 0 or NaN
       ? perPageItems[0]
       : tmp > 100
-      ? perPageItems.slice(-1)[0]
-      : tmp
+        ? perPageItems.slice(-1)[0]
+        : tmp,
   );
   const [sortKey, setSortKey] = useState(
     sortKeyItems.map((item) => item.queryName).includes((tmp = params.get("sortKey")))
       ? tmp
-      : sortKeyItems[0].queryName
+      : sortKeyItems[0].queryName,
   );
   const [search, setSearch] = useState(params.get("search") || "");
   const [actualSearch, setActualSearch] = useState(params.get("search") || "");
@@ -149,7 +149,7 @@ export function Analysis() {
   };
 
   const isAdmin = (authorities.find((x) => x.user_id === user.user_id)?.authorities ?? []).includes(
-    "admin"
+    "admin",
   );
   const pageMax = Math.ceil(pageInfo.num_topics / perPage);
   if (page > pageMax && pageMax > 0) setPage(pageMax);
@@ -339,7 +339,7 @@ export function Analysis() {
                               <Typography ml={0.5} variant="caption">
                                 {format(
                                   utcStringToLocalDate(topic.pteams[0].statuses[0].scheduled_at),
-                                  "yyyy/MM/dd"
+                                  "yyyy/MM/dd",
                                 )}
                               </Typography>
                             </Box>

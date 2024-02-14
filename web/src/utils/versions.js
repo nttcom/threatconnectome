@@ -59,9 +59,9 @@ export function parseVulnerableVersions(vArray) {
             eq: val2.split(/(?<![<>])= *([^<>= ,]+)/)[1],
           },
         ],
-        ret
+        ret,
       ),
-    []
+    [],
   );
 }
 

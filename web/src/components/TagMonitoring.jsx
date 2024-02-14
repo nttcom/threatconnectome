@@ -45,7 +45,7 @@ export function TagMonitoring(props) {
   useEffect(() => {
     if (allTags) {
       setFilteredAllTags(
-        allTags.filter((tag) => fixedTag(tag.tag_name).match(fixedTag(searchAllTags)))
+        allTags.filter((tag) => fixedTag(tag.tag_name).match(fixedTag(searchAllTags))),
       );
     }
   }, [allTags, searchAllTags]);
@@ -60,7 +60,7 @@ export function TagMonitoring(props) {
   useEffect(() => {
     if (sortedPTeamTags) {
       setFilteredPTeamTags(
-        sortedPTeamTags.filter((tag) => fixedTag(tag.tag_name).match(fixedTag(searchPTeamTags)))
+        sortedPTeamTags.filter((tag) => fixedTag(tag.tag_name).match(fixedTag(searchPTeamTags))),
       );
     }
   }, [sortedPTeamTags, searchPTeamTags]);

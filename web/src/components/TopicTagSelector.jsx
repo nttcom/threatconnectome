@@ -67,8 +67,8 @@ export function TopicTagSelector(props) {
     const onClick = !onApply
       ? undefined
       : checked
-      ? () => setSelectedIds(selectedIds.filter((tmp) => tmp !== targetId))
-      : () => setSelectedIds([...selectedIds, targetId]);
+        ? () => setSelectedIds(selectedIds.filter((tmp) => tmp !== targetId))
+        : () => setSelectedIds([...selectedIds, targetId]);
     return (
       <ListItem key={index} style={style} disablePadding>
         <ListItemButton edge="start" onClick={onClick} disableGutters sx={{ py: 0 }}>

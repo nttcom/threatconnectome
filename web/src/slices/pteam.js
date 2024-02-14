@@ -22,7 +22,7 @@ export const getPTeam = createAsyncThunk(
     await apiGetPTeam(pteamId).then((response) => ({
       data: response.data,
       pteamId: pteamId,
-    }))
+    })),
 );
 
 export const getPTeamAchievements = createAsyncThunk(
@@ -31,7 +31,7 @@ export const getPTeamAchievements = createAsyncThunk(
     await apiGetPTeamAchievements(pteamId).then((response) => ({
       data: response.data,
       pteamId: pteamId,
-    }))
+    })),
 );
 
 export const getPTeamAuthInfo = createAsyncThunk(
@@ -39,7 +39,7 @@ export const getPTeamAuthInfo = createAsyncThunk(
   async () =>
     await apiGetPTeamAuthInfo().then((response) => ({
       data: response.data,
-    }))
+    })),
 );
 
 export const getPTeamAuth = createAsyncThunk(
@@ -48,7 +48,7 @@ export const getPTeamAuth = createAsyncThunk(
     await apiGetPTeamAuth(pteamId).then((response) => ({
       data: response.data,
       pteamId: pteamId,
-    }))
+    })),
 );
 
 export const getPTeamMembers = createAsyncThunk(
@@ -60,10 +60,10 @@ export const getPTeamMembers = createAsyncThunk(
           ...ret,
           [val.user_id]: val,
         }),
-        {}
+        {},
       ),
       pteamId: pteamId,
-    }))
+    })),
 );
 
 export const getPTeamTag = createAsyncThunk(
@@ -78,7 +78,7 @@ export const getPTeamTag = createAsyncThunk(
       .catch((error) => {
         if (data.onError) data.onError(error);
         throw error;
-      })
+      }),
 );
 
 export const getPTeamSolvedTaggedTopicIds = createAsyncThunk(
@@ -88,7 +88,7 @@ export const getPTeamSolvedTaggedTopicIds = createAsyncThunk(
       pteamId: data.pteamId,
       tagId: data.tagId,
       data: response.data,
-    }))
+    })),
 );
 
 export const getPTeamUnsolvedTaggedTopicIds = createAsyncThunk(
@@ -98,7 +98,7 @@ export const getPTeamUnsolvedTaggedTopicIds = createAsyncThunk(
       pteamId: data.pteamId,
       tagId: data.tagId,
       data: response.data,
-    }))
+    })),
 );
 
 export const getPTeamTagsSummary = createAsyncThunk(
@@ -107,7 +107,7 @@ export const getPTeamTagsSummary = createAsyncThunk(
     await apiGetPTeamTagsSummary(pteamId).then((response) => ({
       data: response.data,
       pteamId: pteamId,
-    }))
+    })),
 );
 
 export const getPTeamTopicStatusesSummary = createAsyncThunk(
@@ -117,7 +117,7 @@ export const getPTeamTopicStatusesSummary = createAsyncThunk(
       data: response.data,
       pteamId: data.pteamId,
       tagId: data.tagId,
-    }))
+    })),
 );
 
 export const getPTeamTopicStatus = createAsyncThunk(
@@ -128,7 +128,7 @@ export const getPTeamTopicStatus = createAsyncThunk(
       pteamId: data.pteamId,
       topicId: data.topicId,
       tagId: data.tagId,
-    }))
+    })),
 );
 
 export const getPTeamTopicActions = createAsyncThunk(
@@ -138,7 +138,7 @@ export const getPTeamTopicActions = createAsyncThunk(
       actions: response.data.actions,
       pteamId: data.pteamId,
       topicId: data.topicId,
-    }))
+    })),
 );
 
 export const getPTeamGroups = createAsyncThunk(
@@ -147,7 +147,7 @@ export const getPTeamGroups = createAsyncThunk(
     await apiGetPTeamGroups(pteamId).then((response) => ({
       groups: response.data.groups,
       pteamId: pteamId,
-    }))
+    })),
 );
 
 const _initialState = {

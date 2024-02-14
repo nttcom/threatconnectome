@@ -55,8 +55,8 @@ export function GTeamAuthEditor(props) {
           ...ret,
           [val.user_id]: val.authorities,
         }),
-        {}
-      )
+        {},
+      ),
     );
   }, [dispatch, gteamId, authorities]);
 

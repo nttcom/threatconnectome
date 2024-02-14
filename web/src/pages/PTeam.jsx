@@ -103,13 +103,13 @@ export function PTeam() {
                 const badge_names = achievements.map((achievement) => achievement.badge_name);
                 const unique_badge_names = [...new Set(badge_names)].sort();
                 const unique_achievements = unique_badge_names.map((name) =>
-                  achievements.find((achievement) => achievement.badge_name === name)
+                  achievements.find((achievement) => achievement.badge_name === name),
                 );
                 const filtered_achievements = unique_achievements.filter((achievement) =>
-                  handleFilter(achievement)
+                  handleFilter(achievement),
                 );
                 const sorted_achievements = filtered_achievements.sort(
-                  (a, b) => difficulty.indexOf(a.difficulty) - difficulty.indexOf(b.difficulty)
+                  (a, b) => difficulty.indexOf(a.difficulty) - difficulty.indexOf(b.difficulty),
                 );
                 return (
                   <AvatarGroup max={6} variant="rounded" sx={{ m: 0.5, ...avatarGroupStyle }}>

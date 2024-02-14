@@ -92,7 +92,7 @@ export function ATeamTopicCreateModal(props) {
   const collectZonesRelatedTeams = async (zoneNames) => {
     const emptyResult = { ateams: {}, pteams: {} };
     const solvedData = await Promise.all(
-      zoneNames.map((zoneName) => getZonedTeams(zoneName))
+      zoneNames.map((zoneName) => getZonedTeams(zoneName)),
     ).catch((error) => {
       operationError(error);
     });
@@ -110,7 +110,7 @@ export function ATeamTopicCreateModal(props) {
                 ...newATeams,
                 [ateam.ateam_id]: ateam,
               }),
-              {}
+              {},
             ),
           },
           pteams: {
@@ -120,11 +120,11 @@ export function ATeamTopicCreateModal(props) {
                 ...newPTeams,
                 [pteam.pteam_id]: pteam,
               }),
-              {}
+              {},
             ),
           },
         }),
-        emptyResult
+        emptyResult,
       );
   };
 
@@ -444,7 +444,7 @@ export function ATeamTopicCreateModal(props) {
                     .slice()
                     .sort(
                       (a, b) =>
-                        actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
+                        actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type),
                     )
                     .map((action, idx) => (
                       <>
@@ -459,8 +459,10 @@ export function ATeamTopicCreateModal(props) {
                           onChangeRecommended={() =>
                             setActions(
                               actions.map((item) =>
-                                item !== action ? item : { ...item, recommended: !item.recommended }
-                              )
+                                item !== action
+                                  ? item
+                                  : { ...item, recommended: !item.recommended },
+                              ),
                             )
                           }
                           onDelete={() => setActions(actions.filter((item) => item !== action))}

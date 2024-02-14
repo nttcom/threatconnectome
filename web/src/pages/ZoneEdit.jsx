@@ -41,7 +41,7 @@ export function ZoneEdit() {
   if (!zonesSummary) return <></>;
   const zone =
     [...zonesSummary.archived_zones, ...zonesSummary.unarchived_zones].find(
-      (x) => x.zone_name === zoneName
+      (x) => x.zone_name === zoneName,
     ) ?? {};
 
   const handleUpdateArchived = (archived) => {

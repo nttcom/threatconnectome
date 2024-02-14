@@ -34,7 +34,7 @@ export function ActionGenerator(props) {
   const [description, setDescription] = useState(action?.action ?? null);
 
   const [actionTagIds, setActionTagIds] = useState(
-    allTags.filter((tag) => action?.ext?.tags?.includes(tag.tag_name)).map((tag) => tag.tag_id)
+    allTags.filter((tag) => action?.ext?.tags?.includes(tag.tag_name)).map((tag) => tag.tag_id),
   );
   const [actionVulnerables, setActionVulnerables] = useState(
     action?.ext?.vulnerable_versions
@@ -43,16 +43,16 @@ export function ActionGenerator(props) {
             ...ret,
             [item[0]]: item[1].join(" || "),
           }),
-          {}
+          {},
         )
-      : {}
+      : {},
   );
   const [actionZones, setActionZones] = useState(
     action?.zones?.length > 0
       ? typeof action.zones[0] === "string"
         ? action.zones.join(", ")
         : action.zones.map((zone) => zone.zone_name).join(", ")
-      : ""
+      : "",
   );
 
   const cancelButton = onCancel ? (
@@ -154,7 +154,7 @@ export function ActionGenerator(props) {
               ? { [val]: [actionVulnerables[val].trim()] }
               : {}),
           }),
-          {}
+          {},
         ),
     };
   };
@@ -371,7 +371,7 @@ ActionGenerator.propTypes = {
     zones: PropTypes.arrayOf(
       PropTypes.shape({
         zone_name: PropTypes.string,
-      })
+      }),
     ),
     ext: PropTypes.shape({
       tags: PropTypes.array,

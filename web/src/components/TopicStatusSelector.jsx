@@ -66,7 +66,7 @@ export function TopicStatusSelector(props) {
     setSchedule(
       ttStatus?.scheduled_at // scheduled_at(UTC) -> schedule(local)
         ? dateTimeFormat(ttStatus.scheduled_at)
-        : null
+        : null,
     );
   }, [tagId, pteamId, topicId, topicStatus]);
 
@@ -94,7 +94,7 @@ export function TopicStatusSelector(props) {
         const resp = error.response;
         enqueueSnackbar(
           `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
-          { variant: "error" }
+          { variant: "error" },
         );
       });
   };

@@ -53,7 +53,7 @@ export function Account() {
         user: {
           favorite_badge: user.favorite_badge === badgeId ? "" : badgeId,
         },
-      })
+      }),
     );
   };
 
@@ -67,7 +67,7 @@ export function Account() {
       updateUser({
         userId: user.user_id,
         user: { years: editInfo.years },
-      })
+      }),
     );
     handleEditMode();
   };

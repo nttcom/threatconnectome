@@ -82,7 +82,7 @@ export function PTeamMember(props) {
                               .filter(
                                 (achievement) =>
                                   achievement.email === member.email &&
-                                  achievement.badge_id === member.favorite_badge
+                                  achievement.badge_id === member.favorite_badge,
                               )
                               .map((achievement, index) => (
                                 <Tooltip
@@ -129,7 +129,7 @@ export function PTeamMember(props) {
                                   .sort(
                                     (a, b) =>
                                       difficulty.indexOf(a.difficulty) -
-                                      difficulty.indexOf(b.difficulty)
+                                      difficulty.indexOf(b.difficulty),
                                   )
                                   .map((achievement, index) => (
                                     <Tooltip

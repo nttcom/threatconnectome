@@ -36,16 +36,16 @@ export function ZoneItemDeleteModal(props) {
           nameKey: "title",
         }
       : itemType === "action"
-      ? {
-          itemList: zone.actions,
-          idKey: "action_id",
-          nameKey: "action",
-        }
-      : {
-          itemList: zone.pteams,
-          idKey: "pteam_id",
-          nameKey: "pteam_name",
-        };
+        ? {
+            itemList: zone.actions,
+            idKey: "action_id",
+            nameKey: "action",
+          }
+        : {
+            itemList: zone.pteams,
+            idKey: "pteam_id",
+            nameKey: "pteam_name",
+          };
   const target = itemProp.itemList.find((item) => item[itemProp.idKey] === itemId);
   if (!target) return <></>; // will happen after deletion
 
@@ -92,15 +92,15 @@ export function ZoneItemDeleteModal(props) {
                 .filter((item) => item !== zone.zone_name),
             })
       : itemType === "topic"
-      ? lastOne
-        ? () => deleteTopic(itemId)
-        : () =>
-            updateTopic(itemId, {
-              zone_names: target.zones
-                .map((item) => item.zone_name)
-                .filter((item) => item !== zone.zone_name),
-            })
-      : () => deleteZoneFromPTeam(zone.gteam_id, zone.zone_name, itemId);
+        ? lastOne
+          ? () => deleteTopic(itemId)
+          : () =>
+              updateTopic(itemId, {
+                zone_names: target.zones
+                  .map((item) => item.zone_name)
+                  .filter((item) => item !== zone.zone_name),
+              })
+        : () => deleteZoneFromPTeam(zone.gteam_id, zone.zone_name, itemId);
 
   const handleDelete = async () => {
     await processDeletion()
@@ -118,7 +118,7 @@ export function ZoneItemDeleteModal(props) {
         const resp = error.response ?? { status: "???", statusText: error.toString() };
         enqueueSnackbar(
           `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
-          { variant: "error" }
+          { variant: "error" },
         );
       });
   };

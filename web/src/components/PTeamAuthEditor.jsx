@@ -55,8 +55,8 @@ export function PTeamAuthEditor(props) {
           ...ret,
           [val.user_id]: val.authorities,
         }),
-        {}
-      )
+        {},
+      ),
     );
   }, [dispatch, pteamId, authorities]);
 

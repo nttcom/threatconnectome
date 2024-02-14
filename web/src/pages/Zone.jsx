@@ -93,7 +93,7 @@ export function Zone() {
   const filterZones = (zones) => {
     if (!zones) return [];
     return zones.filter(
-      (zone) => !searchWord?.length > 0 || zone.zone_name.toLowerCase().includes(searchWord)
+      (zone) => !searchWord?.length > 0 || zone.zone_name.toLowerCase().includes(searchWord),
     );
   };
 

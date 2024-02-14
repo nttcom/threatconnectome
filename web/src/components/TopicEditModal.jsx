@@ -104,7 +104,7 @@ export function TopicEditModal(props) {
     setActions(currentActions);
     setZoneNames(currentTopic.zones.map((zone) => zone.zone_name));
     setZonesRelatedTeams(
-      await tryCollectZonesRelatedTeams(currentTopic.zones.map((zone) => zone.zone_name))
+      await tryCollectZonesRelatedTeams(currentTopic.zones.map((zone) => zone.zone_name)),
     );
   };
 
@@ -140,7 +140,7 @@ export function TopicEditModal(props) {
           : allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
         zone_names: setEquals(
           new Set(zoneNames),
-          new Set(currentTopic.zones.map((zone) => zone.zone_name))
+          new Set(currentTopic.zones.map((zone) => zone.zone_name)),
         )
           ? null
           : zoneNames,
@@ -460,7 +460,7 @@ export function TopicEditModal(props) {
                       </ListItem>
                       <Divider />
                     </Box>
-                  )
+                  ),
                 )}
               </List>
             </Box>
@@ -543,8 +543,10 @@ export function TopicEditModal(props) {
                       onClick={() =>
                         setActions(
                           actions.map((item) =>
-                            item === action ? { ...action, recommended: !action.recommended } : item
-                          )
+                            item === action
+                              ? { ...action, recommended: !action.recommended }
+                              : item,
+                          ),
                         )
                       }
                       sx={{ pb: 0.5 }}

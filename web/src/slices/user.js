@@ -11,30 +11,30 @@ import {
 
 export const createUser = createAsyncThunk(
   "user/create",
-  async (data) => await apiCreateUser(data).then((response) => response.data)
+  async (data) => await apiCreateUser(data).then((response) => response.data),
 );
 
 export const deleteUser = createAsyncThunk("user/delete", async () => await apiDeleteUser());
 
 export const getAchievements = createAsyncThunk(
   "user/getAchievements",
-  async (userId) => await apiGetAchievements(userId).then((response) => response.data)
+  async (userId) => await apiGetAchievements(userId).then((response) => response.data),
 );
 
 export const getUser = createAsyncThunk(
   "user/get",
-  async () => await apiGetUser().then((response) => response.data)
+  async () => await apiGetUser().then((response) => response.data),
 );
 
 export const updateUser = createAsyncThunk(
   "user/update",
   async (data) =>
-    await apiUpdateUser(data.userId, { ...data.user }).then((response) => response.data)
+    await apiUpdateUser(data.userId, { ...data.user }).then((response) => response.data),
 );
 
 export const getAuthorizedZones = createAsyncThunk(
   "user/getAuthorizedZones",
-  async () => await apiGetAuthorizedZones().then((response) => response.data)
+  async () => await apiGetAuthorizedZones().then((response) => response.data),
 );
 
 const _initialUserState = {

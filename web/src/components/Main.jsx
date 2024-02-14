@@ -17,7 +17,7 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
         easing: theme.transitions.easing.easeOut,
       }),
     }),
-  })
+  }),
 );
 
 export { Main };
