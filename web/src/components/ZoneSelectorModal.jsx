@@ -42,7 +42,7 @@ function ZoneSelector(props) {
   const fixedSearch = search.trim();
   const appliableZoneNames = myZones.apply.map((zone) => zone.zone_name);
   const readOnlyZoneNames = currentZoneNames.filter(
-    (zoneName) => !appliableZoneNames.includes(zoneName)
+    (zoneName) => !appliableZoneNames.includes(zoneName),
   );
   const allZoneNames = [...new Set([...appliableZoneNames, ...readOnlyZoneNames])]
     .filter((zoneName) => zoneName.includes(fixedSearch))

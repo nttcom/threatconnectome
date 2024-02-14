@@ -90,5 +90,5 @@ root.render(
         </ThemeProvider>
       </Provider>
     </CookiesProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

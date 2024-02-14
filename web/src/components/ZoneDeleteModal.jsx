@@ -42,7 +42,7 @@ export function ZoneDeleteModal(props) {
         const resp = error.response ?? { status: "???", statusText: error.toString() };
         enqueueSnackbar(
           `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
-          { variant: "error" }
+          { variant: "error" },
         );
       });
   };

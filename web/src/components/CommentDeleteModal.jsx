@@ -31,7 +31,7 @@ export function CommentDeleteModal(props) {
         enqueueSnackbar(
           "Operation failed: " +
             `${error.response.status} ${error.response.statusText} ${error.response.data?.detail}`,
-          { variant: "error" }
+          { variant: "error" },
         );
       });
   };

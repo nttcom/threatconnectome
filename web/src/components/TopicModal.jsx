@@ -96,10 +96,10 @@ export function TopicModal(props) {
       src?.tags
         ? src.tags.map((tag) => tag.tag_id)
         : presetParentTagId
-        ? [presetParentTagId]
-        : presetTagId
-        ? [presetTagId]
-        : []
+          ? [presetParentTagId]
+          : presetTagId
+            ? [presetTagId]
+            : [],
     );
     setZoneNames(src?.zones?.map((zone) => zone.zone_name) ?? []);
     setMispTags(src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",") ?? "");
@@ -227,7 +227,7 @@ export function TopicModal(props) {
     if (src.created_by !== user.user_id) {
       enqueueSnackbar(
         "Only actions have been changed, not topics. You can't update topic, because you are not topic creator.",
-        { variant: "warning" }
+        { variant: "warning" },
       );
       reloadTopicAfterAPI();
       onSetOpen(false);
@@ -534,7 +534,7 @@ export function TopicModal(props) {
                       .slice()
                       .sort(
                         (a, b) =>
-                          actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
+                          actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type),
                       )
                       .map((action, idx) => (
                         <ActionItem
@@ -548,8 +548,10 @@ export function TopicModal(props) {
                           onChangeRecommended={() =>
                             setActions(
                               actions.map((item) =>
-                                item !== action ? item : { ...item, recommended: !item.recommended }
-                              )
+                                item !== action
+                                  ? item
+                                  : { ...item, recommended: !item.recommended },
+                              ),
                             )
                           }
                           onDelete={() => setActions(actions.filter((item) => item !== action))}
@@ -700,12 +702,12 @@ TopicModal.propTypes = {
       zones: PropTypes.arrayOf(
         PropTypes.shape({
           zone_name: PropTypes.string,
-        })
+        }),
       ),
       ext: PropTypes.shape({
         tags: PropTypes.array,
         vulnerable_versions: PropTypes.object,
       }),
-    })
+    }),
   ),
 };

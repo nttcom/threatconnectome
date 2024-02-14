@@ -24,8 +24,8 @@ export function AssigneesSelector(props) {
     if (!topicStatus[topicId]?.[tagId] || !members) return;
     setAssignees(
       (topicStatus[topicId][tagId].assignees ?? []).map(
-        (user_id) => members[user_id]?.email ?? "(unknown)"
-      )
+        (user_id) => members[user_id]?.email ?? "(unknown)",
+      ),
     );
   }, [members, tagId, pteamId, topicId, topicStatus]);
 
@@ -54,7 +54,7 @@ export function AssigneesSelector(props) {
         const resp = error.response;
         enqueueSnackbar(
           `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
-          { variant: "error" }
+          { variant: "error" },
         );
       });
   };

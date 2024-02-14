@@ -83,10 +83,10 @@ export function PTeamEditAction(props) {
       src?.tags
         ? src.tags.map((tag) => tag.tag_id)
         : presetParentTagId
-        ? [presetParentTagId]
-        : presetTagId
-        ? [presetTagId]
-        : []
+          ? [presetParentTagId]
+          : presetTagId
+            ? [presetTagId]
+            : [],
     );
     setZoneNames(src?.zones?.map((zone) => zone.zone_name) ?? []);
     setMispTags(src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",") ?? "");
@@ -177,7 +177,7 @@ export function PTeamEditAction(props) {
     if (src.created_by !== user.user_id) {
       enqueueSnackbar(
         "Only actions have been changed, not topics. You can't update topic, because you are not topic creator.",
-        { variant: "warning" }
+        { variant: "warning" },
       );
       reloadTopicAfterAPI();
       onSetOpen(false);
@@ -244,9 +244,9 @@ export function PTeamEditAction(props) {
               actionVersion.le,
               actionVersion.lt,
               actionVersion.eq,
-              true
-            )
-          )
+              true,
+            ),
+          ),
       ));
 
   // TODO: make common function around action filter
@@ -254,7 +254,7 @@ export function PTeamEditAction(props) {
     ? actions?.filter(
         (action) =>
           isRelatedAction(action, currentTagDict.tag_name) ||
-          isRelatedAction(action, currentTagDict.parent_name)
+          isRelatedAction(action, currentTagDict.parent_name),
       )
     : actions ?? [];
 
@@ -314,7 +314,7 @@ export function PTeamEditAction(props) {
                         .slice()
                         .sort(
                           (a, b) =>
-                            actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type)
+                            actionTypes.indexOf(a.action_type) - actionTypes.indexOf(b.action_type),
                         )
                         .map((action, idx) => (
                           <ActionItem
@@ -330,8 +330,8 @@ export function PTeamEditAction(props) {
                                 actions.map((item) =>
                                   item !== action
                                     ? item
-                                    : { ...item, recommended: !item.recommended }
-                                )
+                                    : { ...item, recommended: !item.recommended },
+                                ),
                               )
                             }
                             onDelete={() => setActions(actions.filter((item) => item !== action))}
@@ -389,13 +389,13 @@ PTeamEditAction.propTypes = {
       zones: PropTypes.arrayOf(
         PropTypes.shape({
           zone_name: PropTypes.string,
-        })
+        }),
       ),
       ext: PropTypes.shape({
         tags: PropTypes.array,
         vulnerable_versions: PropTypes.object,
       }),
-    })
+    }),
   ),
   currentTagDict: PropTypes.object.isRequired,
   pteamtag: PropTypes.object.isRequired,

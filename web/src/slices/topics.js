@@ -7,7 +7,7 @@ import {
 
 export const getTopic = createAsyncThunk(
   "topics/get",
-  async (topicId) => await apiGetTopic(topicId).then((response) => response.data)
+  async (topicId) => await apiGetTopic(topicId).then((response) => response.data),
 );
 
 export const getActions = createAsyncThunk(
@@ -16,7 +16,7 @@ export const getActions = createAsyncThunk(
     await apiGetUserTopicActions(topicId).then((response) => ({
       data: response.data,
       topicId: topicId,
-    }))
+    })),
 );
 
 const _initialState = {

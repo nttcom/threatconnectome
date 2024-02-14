@@ -40,7 +40,7 @@ export function AcceptATeamWatchingRequest() {
     async function onSuccess(success) {
       enqueueSnackbar(
         `Now pteam '${pteam?.pteam_name}' is watched by ateam '${detail.ateam_name}'`,
-        { variant: "info" }
+        { variant: "info" },
       );
       dispatch(getPTeam(pteamId));
       params.delete("token");

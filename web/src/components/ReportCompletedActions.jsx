@@ -63,8 +63,8 @@ export function ReportCompletedActions(props) {
             }).then((response) => {
               enqueueSnackbar("Action succeeded", { variant: "success" });
               return response.data;
-            })
-        )
+            }),
+        ),
       );
       await createTopicStatus(pteamId, topicId, tagId, {
         topic_status: "completed",

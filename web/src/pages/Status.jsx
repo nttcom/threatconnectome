@@ -109,7 +109,7 @@ export function Status() {
       ...ret,
       [idx]: (params.get("iFilter") ?? "0000")[idx] !== "0",
     }),
-    {}
+    {},
   );
 
   const filteredTags = summary.tags.filter(
@@ -118,7 +118,7 @@ export function Status() {
         ? true // show all if selected none
         : iFilter[parseInt(tag.threat_impact ?? 4) - 1]) && // show only selected
       (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)) &&
-      (selectedGroup === "" || tag.references.some((ref) => ref.group === selectedGroup))
+      (selectedGroup === "" || tag.references.some((ref) => ref.group === selectedGroup)),
   );
 
   let tmp;
@@ -224,10 +224,10 @@ export function Status() {
                       ? "0"
                       : "1"
                     : iFilter[val] // keep current
-                    ? "1"
-                    : "0"),
-                ""
-              )
+                      ? "1"
+                      : "0"),
+                "",
+              ),
             );
             params.set("page", 1); // reset page
             navigate(location.pathname + "?" + params.toString());

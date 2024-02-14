@@ -14,7 +14,7 @@ export const getATeam = createAsyncThunk(
     await apiGetATeam(ateamId).then((response) => ({
       data: response.data,
       ateamId: ateamId,
-    }))
+    })),
 );
 
 export const getATeamAuthInfo = createAsyncThunk(
@@ -22,7 +22,7 @@ export const getATeamAuthInfo = createAsyncThunk(
   async () =>
     await apiGetATeamAuthInfo().then((response) => ({
       data: response.data,
-    }))
+    })),
 );
 
 export const getATeamAuth = createAsyncThunk(
@@ -31,7 +31,7 @@ export const getATeamAuth = createAsyncThunk(
     await apiGetATeamAuth(ateamId).then((response) => ({
       data: response.data,
       ateamId: ateamId,
-    }))
+    })),
 );
 
 export const getATeamMembers = createAsyncThunk(
@@ -43,10 +43,10 @@ export const getATeamMembers = createAsyncThunk(
           ...ret,
           [val.user_id]: val,
         }),
-        {}
+        {},
       ),
       ateamId: ateamId,
-    }))
+    })),
 );
 
 export const getATeamTopics = createAsyncThunk(
@@ -55,7 +55,7 @@ export const getATeamTopics = createAsyncThunk(
     await apiGetATeamTopics(ateamId).then((response) => ({
       data: response.data,
       ateamId: ateamId,
-    }))
+    })),
 );
 
 const _initialState = {

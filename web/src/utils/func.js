@@ -53,7 +53,7 @@ export const pickMismatchedTopicActionTags = (topicTagNames, actionTagNames) => 
         ? []
         : [actionTagName]),
     ],
-    []
+    [],
   );
   return mismatchedTagNames;
 };
@@ -74,7 +74,7 @@ export const tagsMatched = (allowedTags, actualTags) => {
       const parentTag = pickParentTagName(tag);
       if (parentTag === null || parentTag === tag) return [...ret, tag];
       return [...ret, tag, parentTag];
-    }, [])
+    }, []),
   );
   return [...actualTagsWithParents].some((item) => allowedTags.includes(item));
 };
@@ -106,7 +106,7 @@ export const collectZonesRelatedTeams = async (zoneNames) => {
               ...newATeams,
               [ateam.ateam_id]: ateam,
             }),
-            {}
+            {},
           ),
         },
         pteams: {
@@ -116,10 +116,10 @@ export const collectZonesRelatedTeams = async (zoneNames) => {
               ...newPTeams,
               [pteam.pteam_id]: pteam,
             }),
-            {}
+            {},
           ),
         },
       }),
-      emptyResult
+      emptyResult,
     );
 };

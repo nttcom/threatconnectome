@@ -181,7 +181,7 @@ export function App() {
             (newThreatImpact > prevThreatImpact ? "better" : "worse") +
             " to " +
             getThreatProp(newThreatImpact).chipLabel,
-          { variant: newThreatImpact > prevThreatImpact ? "info" : "warning" }
+          { variant: newThreatImpact > prevThreatImpact ? "info" : "warning" },
         );
       }
     }

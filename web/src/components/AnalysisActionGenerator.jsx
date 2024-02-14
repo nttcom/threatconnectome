@@ -46,7 +46,7 @@ export function AnalysisActionGenerator(props) {
   const [productVersion, setProductVersion] = useState(null);
   const [description, setDescription] = useState(action?.action ?? null);
   const [actionTagIds, setActionTagIds] = useState(
-    allTags.filter((tag) => action?.ext?.tags?.includes(tag.tag_name)).map((tag) => tag.tag_id)
+    allTags.filter((tag) => action?.ext?.tags?.includes(tag.tag_name)).map((tag) => tag.tag_id),
   );
   const [actionVulnerables, setActionVulnerables] = useState(
     action?.ext?.vulnerable_versions
@@ -55,9 +55,9 @@ export function AnalysisActionGenerator(props) {
             ...ret,
             [item[0]]: item[1].join(" || "),
           }),
-          {}
+          {},
         )
-      : {}
+      : {},
   );
   const defaultZoneNames =
     action?.zones?.length > 0
@@ -67,7 +67,7 @@ export function AnalysisActionGenerator(props) {
       : [];
   const [zoneNames, setZoneNames] = useState(defaultZoneNames);
   const [zonesRelatedTeams, setZonesRelatedTeams] = useState(
-    collectZonesRelatedTeams(defaultZoneNames)
+    collectZonesRelatedTeams(defaultZoneNames),
   );
 
   const tryCollectZonesRelatedTeams = async (newZoneNames) => {
@@ -177,7 +177,7 @@ export function AnalysisActionGenerator(props) {
               ? { [val]: [actionVulnerables[val].trim()] }
               : {}),
           }),
-          {}
+          {},
         ),
     };
   };
@@ -394,7 +394,7 @@ export function AnalysisActionGenerator(props) {
                   </ListItem>
                   <Divider />
                 </Box>
-              )
+              ),
             )}
           </List>
         </Box>
@@ -494,7 +494,7 @@ AnalysisActionGenerator.propTypes = {
     zones: PropTypes.arrayOf(
       PropTypes.shape({
         zone_name: PropTypes.string,
-      })
+      }),
     ),
     ext: PropTypes.shape({
       tags: PropTypes.array,

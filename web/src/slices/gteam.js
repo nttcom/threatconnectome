@@ -14,7 +14,7 @@ export const getGTeam = createAsyncThunk(
     await apiGetGTeam(gteamId).then((response) => ({
       data: response.data,
       gteamId: gteamId,
-    }))
+    })),
 );
 
 export const getGTeamAuthInfo = createAsyncThunk(
@@ -22,7 +22,7 @@ export const getGTeamAuthInfo = createAsyncThunk(
   async () =>
     await apiGetGTeamAuthInfo().then((response) => ({
       data: response.data,
-    }))
+    })),
 );
 
 export const getGTeamAuth = createAsyncThunk(
@@ -31,7 +31,7 @@ export const getGTeamAuth = createAsyncThunk(
     await apiGetGTeamAuth(gteamId).then((response) => ({
       data: response.data,
       gteamId: gteamId,
-    }))
+    })),
 );
 
 export const getGTeamMembers = createAsyncThunk(
@@ -43,10 +43,10 @@ export const getGTeamMembers = createAsyncThunk(
           ...ret,
           [val.user_id]: val,
         }),
-        {}
+        {},
       ),
       gteamId: gteamId,
-    }))
+    })),
 );
 
 export const getGTeamZonesSummary = createAsyncThunk(
@@ -55,7 +55,7 @@ export const getGTeamZonesSummary = createAsyncThunk(
     await apiGetGTeamZonesSummary(gteamId).then((response) => ({
       data: response.data,
       gteamId: gteamId,
-    }))
+    })),
 );
 
 const _initialState = {

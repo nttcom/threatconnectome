@@ -55,8 +55,8 @@ export function ATeamAuthEditor(props) {
           ...ret,
           [val.user_id]: val.authorities,
         }),
-        {}
-      )
+        {},
+      ),
     );
   }, [dispatch, ateamId, authorities]);
 
