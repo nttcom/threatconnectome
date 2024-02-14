@@ -68,7 +68,7 @@ export function PTeamStatusMenu(props) {
       </Menu>
       <TopicModal
         open={modalOpen}
-        setOpen={setModalOpen}
+        onSetOpen={setModalOpen}
         presetTagId={presetTagId}
         presetParentTagId={presetParentTagId}
       />

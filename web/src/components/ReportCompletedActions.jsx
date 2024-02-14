@@ -34,7 +34,7 @@ import { RecommendedStar } from "./RecommendedStar";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function ReportCompletedActions(props) {
-  const { handleConfirm, setShow, show, topicId, topicActions } = props;
+  const { onConfirm, onSetShow, show, topicId, topicActions } = props;
 
   const [note, setNote] = useState("");
   const [selectedAction, setSelectedAction] = useState([]);
@@ -72,7 +72,7 @@ export function ReportCompletedActions(props) {
         note: note.trim() || null,
       });
       handleClose();
-      handleConfirm();
+      onConfirm();
       setNote("");
       dispatch(getPTeamTagsSummary(pteamId));
       dispatch(getPTeamTopicStatus({ pteamId: pteamId, topicId: topicId, tagId: tagId }));
@@ -87,7 +87,7 @@ export function ReportCompletedActions(props) {
   if (!pteamId || !topicId || !topics[topicId] || !topicActions) return <></>;
 
   const handleClose = () => {
-    setShow(false);
+    onSetShow(false);
   };
 
   const handleSelectAction = async (actionId) => {
@@ -245,8 +245,8 @@ export function ReportCompletedActions(props) {
 }
 
 ReportCompletedActions.propTypes = {
-  handleConfirm: PropTypes.func.isRequired,
-  setShow: PropTypes.func.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+  onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
   topicId: PropTypes.string.isRequired,
   topicActions: PropTypes.array.isRequired,

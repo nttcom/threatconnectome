@@ -16,7 +16,7 @@ import {
 import { modalCommonButtonStyle } from "../utils/const";
 
 export function ZoneItemDeleteModal(props) {
-  const { setShow, show, zone, itemType, itemId } = props;
+  const { onSetShow, show, zone, itemType, itemId } = props;
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -26,7 +26,7 @@ export function ZoneItemDeleteModal(props) {
     return <></>;
   }
 
-  const handleClose = () => setShow(false);
+  const handleClose = () => onSetShow(false);
 
   const itemProp =
     itemType === "topic"
@@ -112,7 +112,7 @@ export function ZoneItemDeleteModal(props) {
           dispatch(getGTeamZonesSummary(zone.gteam_id)),
           enqueueSnackbar(succeededMessage, { variant: "success" }),
         ]);
-        setShow(false);
+        onSetShow(false);
       })
       .catch((error) => {
         const resp = error.response ?? { status: "???", statusText: error.toString() };
@@ -139,7 +139,7 @@ export function ZoneItemDeleteModal(props) {
               {confirmMessage}
               <Box display="flex">
                 <Box flexGrow={1} />
-                <Button onClick={() => setShow(false)} sx={{ ...modalCommonButtonStyle, mt: 1 }}>
+                <Button onClick={() => onSetShow(false)} sx={{ ...modalCommonButtonStyle, mt: 1 }}>
                   Cancel
                 </Button>
                 <Button
@@ -157,7 +157,7 @@ export function ZoneItemDeleteModal(props) {
   );
 }
 ZoneItemDeleteModal.propTypes = {
-  setShow: PropTypes.func.isRequired,
+  onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
   zone: PropTypes.object.isRequired,
   itemType: PropTypes.string.isRequired,

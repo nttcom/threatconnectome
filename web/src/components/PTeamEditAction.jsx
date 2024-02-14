@@ -39,7 +39,7 @@ import { ActionItem } from "./ActionItem";
 export function PTeamEditAction(props) {
   const {
     open,
-    setOpen,
+    onSetOpen,
     presetTopicId,
     presetTagId,
     presetParentTagId,
@@ -180,7 +180,7 @@ export function PTeamEditAction(props) {
         { variant: "warning" }
       );
       reloadTopicAfterAPI();
-      setOpen(false);
+      onSetOpen(false);
       return;
     }
 
@@ -196,13 +196,13 @@ export function PTeamEditAction(props) {
       .then(async () => {
         enqueueSnackbar("Update topic succeeded", { variant: "success" });
         reloadTopicAfterAPI();
-        setOpen(false);
+        onSetOpen(false);
       })
       .catch((error) => operationError(error));
   };
 
   const handleClose = () => {
-    setOpen(false);
+    onSetOpen(false);
   };
 
   function ActionGeneratorModal() {
@@ -376,7 +376,7 @@ export function PTeamEditAction(props) {
 
 PTeamEditAction.propTypes = {
   open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired,
+  onSetOpen: PropTypes.func.isRequired,
   presetTopicId: PropTypes.string,
   presetTagId: PropTypes.string,
   presetParentTagId: PropTypes.string,

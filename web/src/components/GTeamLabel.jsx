@@ -25,7 +25,7 @@ export function GTeamLabel(props) {
         <UUIDTypography>{gteam.gteam_id}</UUIDTypography>
       </Box>
       <GTeamSettingsModal
-        setShow={setGTeamSettingsModalOpen}
+        onSetShow={setGTeamSettingsModalOpen}
         show={gteamSettingsModalOpen}
         gteam={gteam}
       />

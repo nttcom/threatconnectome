@@ -54,7 +54,7 @@ import { ZoneSelectorModal } from "./ZoneSelectorModal";
 const steps = ["Import Flashsense", "Create topic"];
 
 export function TopicModal(props) {
-  const { open, setOpen, presetTopicId, presetTagId, presetParentTagId, presetActions } = props;
+  const { open, onSetOpen, presetTopicId, presetTagId, presetParentTagId, presetActions } = props;
 
   const [errors, setErrors] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
@@ -194,7 +194,7 @@ export function TopicModal(props) {
       .then(async () => {
         enqueueSnackbar("Create topic succeeded", { variant: "success" });
         reloadTopicAfterAPI();
-        setOpen(false);
+        onSetOpen(false);
       })
       .catch((error) => operationError(error));
   };
@@ -230,7 +230,7 @@ export function TopicModal(props) {
         { variant: "warning" }
       );
       reloadTopicAfterAPI();
-      setOpen(false);
+      onSetOpen(false);
       return;
     }
 
@@ -246,7 +246,7 @@ export function TopicModal(props) {
       .then(async () => {
         enqueueSnackbar("Update topic succeeded", { variant: "success" });
         reloadTopicAfterAPI();
-        setOpen(false);
+        onSetOpen(false);
       })
       .catch((error) => operationError(error));
   };
@@ -322,10 +322,10 @@ export function TopicModal(props) {
 
   const handleClose = () => {
     setActiveStep(presetTopicId ? 1 : 0);
-    setOpen(false);
+    onSetOpen(false);
   };
 
-  const onDeleteTopic = () => {
+  const handleDeleteTopic = () => {
     if (presetTagId) {
       dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId }));
       dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId }));
@@ -391,7 +391,7 @@ export function TopicModal(props) {
         open={open === true}
         onClose={(event, reason) => {
           if (reason && reason === "backdropClick") return;
-          setOpen(false);
+          onSetOpen(false);
         }}
         maxWidth="md"
         fullWidth
@@ -658,8 +658,8 @@ export function TopicModal(props) {
                   </Typography>
                   <TopicDeleteModal
                     topicId={presetTopicId}
-                    setOpenTopicModal={setOpen}
-                    onDelete={onDeleteTopic}
+                    onSetOpenTopicModal={onSetOpen}
+                    onDelete={handleDeleteTopic}
                   />
                 </Box>
               </Box>
@@ -687,7 +687,7 @@ export function TopicModal(props) {
 
 TopicModal.propTypes = {
   open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired,
+  onSetOpen: PropTypes.func.isRequired,
   presetTopicId: PropTypes.string,
   presetTagId: PropTypes.string,
   presetParentTagId: PropTypes.string,

@@ -44,7 +44,7 @@ import { ZoneSelectorModal } from "./ZoneSelectorModal";
 const steps = ["Threat, Vulnerability, and Risk", "Dissemination", "Response planning"];
 
 export function ATeamTopicCreateModal(props) {
-  const { open, setOpen } = props;
+  const { open, onSetOpen } = props;
 
   const [activeStep, setActiveStep] = useState(0);
   const [topicId, setTopicId] = useState(uuid.v4());
@@ -183,7 +183,7 @@ export function ATeamTopicCreateModal(props) {
       })
       .catch((error) => operationError(error));
     resetParams();
-    setOpen(false);
+    onSetOpen(false);
   };
 
   const handleNext = () => setActiveStep(activeStep + 1);
@@ -194,7 +194,7 @@ export function ATeamTopicCreateModal(props) {
 
   const handleClose = () => {
     resetParams();
-    setOpen(false);
+    onSetOpen(false);
   };
 
   function ActionGeneratorModal() {
@@ -251,7 +251,7 @@ export function ATeamTopicCreateModal(props) {
         open={open === true}
         onClose={(event, reason) => {
           if (reason === "backdropClick") return;
-          setOpen(false);
+          onSetOpen(false);
         }}
         maxWidth="md"
         fullWidth
@@ -518,5 +518,5 @@ export function ATeamTopicCreateModal(props) {
 
 ATeamTopicCreateModal.propTypes = {
   open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired,
+  onSetOpen: PropTypes.func.isRequired,
 };

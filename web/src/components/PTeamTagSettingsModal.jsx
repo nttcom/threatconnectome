@@ -7,9 +7,9 @@ import React from "react";
 import { PTeamTagAutoClose } from "./PTeamTagAutoClose";
 
 export function PTeamTagSettingsModal(props) {
-  const { setShow, show, tagId } = props;
+  const { onSetShow, show, tagId } = props;
 
-  const handleClose = () => setShow(false);
+  const handleClose = () => onSetShow(false);
 
   return (
     <Dialog fullWidth onClose={handleClose} open={show}>
@@ -30,7 +30,7 @@ export function PTeamTagSettingsModal(props) {
   );
 }
 PTeamTagSettingsModal.propTypes = {
-  setShow: PropTypes.func.isRequired,
+  onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
   tagId: PropTypes.string.isRequired,
 };

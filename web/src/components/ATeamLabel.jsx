@@ -25,7 +25,7 @@ export function ATeamLabel(props) {
         <UUIDTypography>{ateam.ateam_id}</UUIDTypography>
       </Box>
       <ATeamSettingsModal
-        setShow={setATeamSettingsModalOpen}
+        onSetShow={setATeamSettingsModalOpen}
         show={ateamSettingsModalOpen}
         ateam={ateam}
       />

@@ -19,7 +19,7 @@ export function ATeamTopicMenu() {
         >
           New Topic
         </Button>
-        <ATeamTopicCreateModal open={modalOpen} setOpen={setModalOpen} />
+        <ATeamTopicCreateModal open={modalOpen} onSetOpen={setModalOpen} />
       </Box>
     </>
   );

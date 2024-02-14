@@ -21,12 +21,12 @@ import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
 function PreUploadModal(props) {
-  const { sbomFile, open, setOpen, onCompleted } = props;
+  const { sbomFile, open, onSetOpen, onCompleted } = props;
   const [groupName, setGroupName] = useState("");
 
   const handleClose = () => {
     setGroupName("");
-    setOpen(false);
+    onSetOpen(false);
   };
   const handleUpload = () => {
     onCompleted(groupName); // parent will close me
@@ -76,7 +76,7 @@ function PreUploadModal(props) {
 PreUploadModal.propTypes = {
   sbomFile: PropTypes.object,
   open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired,
+  onSetOpen: PropTypes.func.isRequired,
   onCompleted: PropTypes.func.isRequired,
 };
 
@@ -162,7 +162,7 @@ export function SBOMDropArea(props) {
       <PreUploadModal
         sbomFile={sbomFile}
         open={preModalOpen}
-        setOpen={setPreModalOpen}
+        onSetOpen={setPreModalOpen}
         onCompleted={(group) => handlePreUploadCompleted(group)}
       />
       <WaitingModal isOpen={isOpenWaitingModal} text="Uploading SBOM file" />

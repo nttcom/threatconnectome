@@ -249,7 +249,7 @@ export function TopicCard(props) {
         </Box>
         <TopicModal
           open={topicModalOpen}
-          setOpen={setTopicModalOpen}
+          onSetOpen={setTopicModalOpen}
           presetTopicId={topicId}
           presetTagId={currentTagId}
           presetParentTagId={currentTagDict.parent_id}
@@ -493,15 +493,15 @@ export function TopicCard(props) {
             )}
           </CardActions>
           <ReportCompletedActions
-            handleConfirm={handleActionMenuClose}
-            setShow={setActionModalOpen}
+            onConfirm={handleActionMenuClose}
+            onSetShow={setActionModalOpen}
             show={actionModalOpen}
             topicId={topicId}
             topicActions={topicActions}
           />
           <PTeamEditAction
             open={pteamActionModalOpen}
-            setOpen={setPteamActionModalOpen}
+            onSetOpen={setPteamActionModalOpen}
             presetTopicId={topicId}
             presetTagId={currentTagId}
             presetParentTagId={currentTagDict.parent_id}

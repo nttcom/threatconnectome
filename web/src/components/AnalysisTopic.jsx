@@ -77,7 +77,7 @@ export function AnalysisTopic(props) {
   };
 
   useEffect(() => {
-    reloadComments(targetTopic.topic_id);
+    handleReloadComments(targetTopic.topic_id);
     if (topics?.[targetTopic.topic_id] === undefined) dispatch(getTopic(targetTopic.topic_id));
     if (actions?.[targetTopic.topic_id] === undefined) dispatch(getActions(targetTopic.topic_id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,7 +129,7 @@ export function AnalysisTopic(props) {
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
 
-  const reloadComments = async (topicId) => {
+  const handleReloadComments = async (topicId) => {
     await apiGetATeamTopicComments(ateam.ateam_id, topicId)
       .then((response) => setComments(response.data))
       .catch((error) => operationError(error));
@@ -144,7 +144,7 @@ export function AnalysisTopic(props) {
       comment: newComment.trim(),
     })
       .then(() => {
-        reloadComments(targetTopic.topic_id);
+        handleReloadComments(targetTopic.topic_id);
         setNewComment("");
       })
       .catch((error) => operationError(error));
@@ -159,7 +159,7 @@ export function AnalysisTopic(props) {
       comment: editComment.trim(),
     })
       .then(() => {
-        reloadComments(targetTopic.topic_id);
+        handleReloadComments(targetTopic.topic_id);
         setEditComment("");
         setEditable(false);
       })
@@ -681,7 +681,7 @@ export function AnalysisTopic(props) {
         comment={deleteComment}
         onClose={() => {
           setDeleteComment(null);
-          reloadComments(targetTopic.topic_id);
+          handleReloadComments(targetTopic.topic_id);
         }}
       />
     </>

@@ -19,7 +19,7 @@ export function PTeamTagLabel(props) {
         </Box>
       </Box>
       <PTeamTagSettingsModal
-        setShow={setPTeamTagSettingsModalOpen}
+        onSetShow={setPTeamTagSettingsModalOpen}
         show={pteamTagSettingsModalOpen}
         tagId={tagId}
       />

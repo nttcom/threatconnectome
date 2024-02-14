@@ -21,7 +21,7 @@ import { createPTeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
 export function PTeamCreateModal(props) {
-  const { open, setOpen, closeTeamSelector } = props;
+  const { open, onSetOpen, onCloseTeamSelector } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -31,7 +31,7 @@ export function PTeamCreateModal(props) {
   const [slackUrl, setSlackUrl] = useState("");
 
   useEffect(() => {
-    closeTeamSelector();
+    onCloseTeamSelector();
     setPTeamName(null);
     setContactInfo("");
     setSlackUrl("");
@@ -47,7 +47,7 @@ export function PTeamCreateModal(props) {
     await createPTeam(data)
       .then(async (response) => {
         enqueueSnackbar("create pteam succeeded", { variant: "success" });
-        setOpen(false);
+        onSetOpen(false);
         // fix user.pteams before navigating, to avoid overwriting pteamId by pages/App.jsx.
         await dispatch(getUser());
         const newParams = new URLSearchParams();
@@ -65,12 +65,12 @@ export function PTeamCreateModal(props) {
 
   return (
     <>
-      <Dialog fullWidth open={open} onClose={() => setOpen(false)}>
+      <Dialog fullWidth open={open} onClose={() => onSetOpen(false)}>
         <DialogTitle>
           <Box display="flex" flexDirection="row">
             <Typography variant="h5">Create PTeam</Typography>
             <Box flexGrow={1} />
-            <IconButton onClick={() => setOpen(false)}>
+            <IconButton onClick={() => onSetOpen(false)}>
               <CloseIcon />
             </IconButton>
           </Box>
@@ -108,6 +108,6 @@ export function PTeamCreateModal(props) {
 
 PTeamCreateModal.propTypes = {
   open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired,
-  closeTeamSelector: PropTypes.func.isRequired,
+  onSetOpen: PropTypes.func.isRequired,
+  onCloseTeamSelector: PropTypes.func.isRequired,
 };

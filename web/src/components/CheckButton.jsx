@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 export function CheckButton(props) {
-  const { handleClick, isLoading } = props;
+  const { onHandleClick, isLoading } = props;
 
   return (
     <Button
@@ -12,7 +12,7 @@ export function CheckButton(props) {
         textTransform: "none",
         marginRight: "10px",
       }}
-      onClick={handleClick}
+      onClick={onHandleClick}
     >
       {isLoading ? <CircularProgress size="1.6rem" sx={{ color: "#fff" }} /> : "Check"}
     </Button>
@@ -20,6 +20,6 @@ export function CheckButton(props) {
 }
 
 CheckButton.propTypes = {
-  handleClick: PropTypes.func.isRequired,
+  onHandleClick: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,
 };

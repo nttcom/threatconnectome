@@ -134,7 +134,7 @@ export function ZoneEdit() {
         </TableContainer>
       </Box>
       <ZoneSettingsModal
-        setShow={setZoneSettingsModalOpen}
+        onSetShow={setZoneSettingsModalOpen}
         show={zoneSettingsModalOpen}
         gteamId={gteamId}
         zoneName={zoneName}
