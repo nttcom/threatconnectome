@@ -203,7 +203,7 @@ export function ATeamGeneralSetting(props) {
               }
             />
           </FormControl>
-          <CheckButton handleClick={handleCheckSlack} isLoading={checkSlack} />
+          <CheckButton onHandleClick={handleCheckSlack} isLoading={checkSlack} />
         </Box>
         <Box mt={1}>{slackMessage}</Box>
       </Box>
@@ -216,7 +216,7 @@ export function ATeamGeneralSetting(props) {
           <Typography sx={{ color: grey[700], minWidth: "720px" }} mr={1} mb={1}>
             {flashsenseUrl}
           </Typography>
-          <CheckButton handleClick={handleCheckFlashsense} isLoading={checkFlashsense} />
+          <CheckButton onHandleClick={handleCheckFlashsense} isLoading={checkFlashsense} />
         </Box>
       </Box>
       <Box mb={4}>{flashsenseMessage}</Box>

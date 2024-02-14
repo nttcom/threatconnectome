@@ -133,7 +133,7 @@ export function GTeamGeneralSetting(props) {
           <Typography sx={{ color: grey[700], minWidth: "720px" }} mr={1} mb={1}>
             {flashsenseUrl}
           </Typography>
-          <CheckButton handleClick={handleCheckFlashsense} isLoading={checkFlashsense} />
+          <CheckButton onHandleClick={handleCheckFlashsense} isLoading={checkFlashsense} />
         </Box>
       </Box>
       <Box mb={4}>{flashsenseMessage}</Box>

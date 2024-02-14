@@ -21,7 +21,7 @@ import { createGTeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
 export function GTeamCreateModal(props) {
-  const { open, setOpen, closeTeamSelector } = props;
+  const { open, onSetOpen, onCloseTeamSelector } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -30,7 +30,7 @@ export function GTeamCreateModal(props) {
   const [contactInfo, setContactInfo] = useState("");
 
   useEffect(() => {
-    closeTeamSelector();
+    onCloseTeamSelector();
     setGTeamName(null);
     setContactInfo("");
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
@@ -44,7 +44,7 @@ export function GTeamCreateModal(props) {
     await createGTeam(data)
       .then(async (response) => {
         enqueueSnackbar("create gteam succeeded", { variant: "success" });
-        setOpen(false);
+        onSetOpen(false);
         // fix user.gteams before navigating, to avoid overwriting gteamId by pages/App.jsx.
         await dispatch(getUser());
         const newParams = new URLSearchParams();
@@ -62,12 +62,12 @@ export function GTeamCreateModal(props) {
 
   return (
     <>
-      <Dialog fullWidth open={open} onClose={() => setOpen(false)}>
+      <Dialog fullWidth open={open} onClose={() => onSetOpen(false)}>
         <DialogTitle>
           <Box display="flex" flexDirection="row">
             <Typography variant="h5">Create GTeam</Typography>
             <Box flexGrow={1} />
-            <IconButton onClick={() => setOpen(false)}>
+            <IconButton onClick={() => onSetOpen(false)}>
               <CloseIcon />
             </IconButton>
           </Box>
@@ -100,6 +100,6 @@ export function GTeamCreateModal(props) {
 
 GTeamCreateModal.propTypes = {
   open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired,
-  closeTeamSelector: PropTypes.func.isRequired,
+  onSetOpen: PropTypes.func.isRequired,
+  onCloseTeamSelector: PropTypes.func.isRequired,
 };

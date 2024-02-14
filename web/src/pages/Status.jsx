@@ -297,7 +297,7 @@ export function Status() {
                 {targetTags.map((tag) => (
                   <PTeamStatusCard
                     key={tag.tag_id}
-                    handleClick={() => handleNavigateTag(tag.tag_id)}
+                    onHandleClick={() => handleNavigateTag(tag.tag_id)}
                     tag={tag}
                   />
                 ))}

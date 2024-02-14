@@ -20,10 +20,10 @@ import { ATeamAuthEditor } from "./ATeamAuthEditor";
 import { ATeamGeneralSetting } from "./ATeamGeneralSetting";
 
 export function ATeamSettingsModal(props) {
-  const { setShow, show, defaultTabIndex } = props;
+  const { onSetShow, show, defaultTabIndex } = props;
   const [tab, setTab] = useState(defaultTabIndex ?? 0);
 
-  const handleClose = () => setShow(false);
+  const handleClose = () => onSetShow(false);
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
 
@@ -57,7 +57,7 @@ export function ATeamSettingsModal(props) {
   );
 }
 ATeamSettingsModal.propTypes = {
-  setShow: PropTypes.func.isRequired,
+  onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
   defaultTabIndex: PropTypes.number,
 };

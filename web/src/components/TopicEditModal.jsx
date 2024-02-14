@@ -50,7 +50,7 @@ import { TopicTagSelector } from "./TopicTagSelector";
 import { ZoneSelectorModal } from "./ZoneSelectorModal";
 
 export function TopicEditModal(props) {
-  const { open, setOpen, currentTopic, currentActions } = props;
+  const { open, onSetOpen, currentTopic, currentActions } = props;
 
   const [topicId, setTopicId] = useState("");
   const [title, setTitle] = useState("");
@@ -125,7 +125,7 @@ export function TopicEditModal(props) {
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => onSetOpen(false);
 
   const handleUpdate = async () => {
     setUpdating(true);
@@ -203,7 +203,7 @@ export function TopicEditModal(props) {
       // Note: params are kept on failed values
     } finally {
       setUpdating(false);
-      setOpen(false);
+      onSetOpen(false);
     }
   };
 
@@ -586,7 +586,7 @@ export function TopicEditModal(props) {
 
 TopicEditModal.propTypes = {
   open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired,
+  onSetOpen: PropTypes.func.isRequired,
   currentTopic: PropTypes.object.isRequired,
   currentActions: PropTypes.array.isRequired,
 };

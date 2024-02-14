@@ -21,7 +21,7 @@ import { createATeam } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
 export function ATeamCreateModal(props) {
-  const { open, setOpen, closeTeamSelector } = props;
+  const { open, onOpen, onCloseTeamSelector } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -30,7 +30,7 @@ export function ATeamCreateModal(props) {
   const [contactInfo, setContactInfo] = useState("");
 
   useEffect(() => {
-    closeTeamSelector();
+    onCloseTeamSelector();
     setATeamName(null);
     setContactInfo("");
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
@@ -44,7 +44,7 @@ export function ATeamCreateModal(props) {
     await createATeam(data)
       .then(async (response) => {
         enqueueSnackbar("create ateam succeeded", { variant: "success" });
-        setOpen(false);
+        onOpen(false);
         // fix user.ateams before navigating, to avoid overwriting ateamId by pages/App.jsx.
         await dispatch(getUser());
         const newParams = new URLSearchParams();
@@ -62,12 +62,12 @@ export function ATeamCreateModal(props) {
 
   return (
     <>
-      <Dialog fullWidth open={open} onClose={() => setOpen(false)}>
+      <Dialog fullWidth open={open} onClose={() => onOpen(false)}>
         <DialogTitle>
           <Box display="flex" flexDirection="row">
             <Typography variant="h5">Create ATeam</Typography>
             <Box flexGrow={1} />
-            <IconButton onClick={() => setOpen(false)}>
+            <IconButton onClick={() => onOpen(false)}>
               <CloseIcon />
             </IconButton>
           </Box>
@@ -100,6 +100,6 @@ export function ATeamCreateModal(props) {
 
 ATeamCreateModal.propTypes = {
   open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired,
-  closeTeamSelector: PropTypes.func.isRequired,
+  onOpen: PropTypes.func.isRequired,
+  onCloseTeamSelector: PropTypes.func.isRequired,
 };

@@ -10,7 +10,7 @@ import { deleteTopic } from "../utils/api";
 import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
 export function TopicDeleteModal(props) {
-  const { topicId, setOpenTopicModal, onDelete } = props;
+  const { topicId, onSetOpenTopicModal, onDelete } = props;
   const [open, setOpen] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
@@ -35,7 +35,7 @@ export function TopicDeleteModal(props) {
         ]);
       })
       .catch((error) => operationError(error));
-    setOpenTopicModal(false);
+    onSetOpenTopicModal(false);
   }
 
   return (
@@ -85,6 +85,6 @@ export function TopicDeleteModal(props) {
 
 TopicDeleteModal.propTypes = {
   topicId: PropTypes.string.isRequired,
-  setOpenTopicModal: PropTypes.func.isRequired,
+  onSetOpenTopicModal: PropTypes.func.isRequired,
   onDelete: PropTypes.func,
 };

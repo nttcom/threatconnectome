@@ -197,18 +197,18 @@ export function TeamSelector() {
         </Menu>
         <PTeamCreateModal
           open={openPTeamCreationModal}
-          setOpen={setOpenPTeamCreationModal}
-          closeTeamSelector={handleClose}
+          onSetOpen={setOpenPTeamCreationModal}
+          onCloseTeamSelector={handleClose}
         />
         <ATeamCreateModal
           open={openATeamCreationModal}
-          setOpen={setOpenATeamCreationModal}
-          closeTeamSelector={handleClose}
+          onOpen={setOpenATeamCreationModal}
+          onCloseTeamSelector={handleClose}
         />
         <GTeamCreateModal
           open={openGTeamCreationModal}
-          setOpen={setOpenGTeamCreationModal}
-          closeTeamSelector={handleClose}
+          onSetOpen={setOpenGTeamCreationModal}
+          onCloseTeamSelector={handleClose}
         />
       </Box>
     </>

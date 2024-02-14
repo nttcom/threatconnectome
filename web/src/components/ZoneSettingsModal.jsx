@@ -18,7 +18,7 @@ import { updateZone } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
 export function ZoneSettingsModal(props) {
-  const { setShow, show, gteamId, zoneName, currentZoneInfo } = props;
+  const { onSetShow, show, gteamId, zoneName, currentZoneInfo } = props;
 
   const [zoneInfo, setZoneInfo] = useState(currentZoneInfo);
   const { enqueueSnackbar } = useSnackbar();
@@ -28,7 +28,7 @@ export function ZoneSettingsModal(props) {
     setZoneInfo(currentZoneInfo);
   }, [show, currentZoneInfo]);
 
-  const handleClose = () => setShow(false);
+  const handleClose = () => onSetShow(false);
 
   const operationError = (error) => {
     const resp = error.response;
@@ -80,7 +80,7 @@ export function ZoneSettingsModal(props) {
           />
           <Box display="flex">
             <Box flexGrow={1} />
-            <Button onClick={() => setShow(false)} sx={{ ...modalCommonButtonStyle, mt: 1 }}>
+            <Button onClick={() => onSetShow(false)} sx={{ ...modalCommonButtonStyle, mt: 1 }}>
               Cancel
             </Button>
             <Button
@@ -100,7 +100,7 @@ export function ZoneSettingsModal(props) {
   );
 }
 ZoneSettingsModal.propTypes = {
-  setShow: PropTypes.func.isRequired,
+  onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
   gteamId: PropTypes.string.isRequired,
   zoneName: PropTypes.string.isRequired,

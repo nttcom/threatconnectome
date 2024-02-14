@@ -168,7 +168,7 @@ GroupChips.propTypes = {
 };
 
 export function PTeamStatusCard(props) {
-  const { handleClick, tag } = props;
+  const { onHandleClick, tag } = props;
 
   const CommentTooltip = styled(({ className, ...props }) => (
     <Tooltip {...props} classes={{ popper: className }} />
@@ -184,7 +184,7 @@ export function PTeamStatusCard(props) {
 
   return (
     <TableRow
-      onClick={handleClick}
+      onClick={onHandleClick}
       sx={{
         cursor: "pointer",
         "&:last-child td, &:last-child th": { border: 0 },
@@ -225,7 +225,7 @@ export function PTeamStatusCard(props) {
 }
 
 PTeamStatusCard.propTypes = {
-  handleClick: PropTypes.func.isRequired,
+  onHandleClick: PropTypes.func.isRequired,
   tag: PropTypes.shape({
     tag_name: PropTypes.string,
     tag_id: PropTypes.string,

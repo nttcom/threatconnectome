@@ -30,7 +30,7 @@ export function PTeamLabel(props) {
         <UUIDTypography>{pteamId}</UUIDTypography>
       </Box>
       <PTeamSettingsModal
-        setShow={setPTeamSettingsModalOpen}
+        onSetShow={setPTeamSettingsModalOpen}
         show={pteamSettingsModalOpen}
         defaultTabIndex={defaultTabIndex}
       />

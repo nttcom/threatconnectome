@@ -140,7 +140,7 @@ export function ZoneMarkItemTab(props) {
         </TabPanel>
       </Box>
       <ZoneItemDeleteModal
-        setShow={setItemDeleteOpen}
+        onSetShow={setItemDeleteOpen}
         show={itemDeleteOpen}
         zone={zone}
         itemType={itemType}
