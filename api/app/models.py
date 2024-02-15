@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, Union, cast
 
-from sqlalchemy import ARRAY, JSON, Enum, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import ARRAY, JSON, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
@@ -383,38 +383,6 @@ class PTeamTag(Base):
     # see https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html#association-object
     tag = relationship("Tag", back_populates="pteamtags")
     pteam = relationship("PTeam", back_populates="pteamtags")
-
-
-class PTeamTagReference(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.reference_id:
-            self.reference_id = str(uuid.uuid4())
-
-    __tablename__ = "pteamtagreference"
-    __table_args__ = (
-        UniqueConstraint(
-            "pteam_id",
-            "tag_id",
-            "group",
-            "target",
-            "version",
-            name="pteamtagreference_pteam_id_tag_id_group_target_version_key",
-        ),
-    )
-
-    reference_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"),
-        index=True,
-    )
-    tag_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("tag.tag_id", ondelete="CASCADE"),
-        index=True,
-    )
-    group: Mapped[Str255] = mapped_column(index=True)
-    target: Mapped[str]
-    version: Mapped[str]
 
 
 class PTeam(Base):
