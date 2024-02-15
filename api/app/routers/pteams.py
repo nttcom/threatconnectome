@@ -1033,6 +1033,7 @@ def apply_group_tags(
             models.PTeamTagReference.group == group,
         )
     )
+    db.flush()
     db.add_all(
         [
             models.PTeamTagReference(
