@@ -22,7 +22,6 @@ import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamAutoClose } from "./PTeamAutoClose";
 import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
 import { SBOMDropArea } from "./SBOMDropArea";
-import { TagMonitoring } from "./TagMonitoring";
 
 export function PTeamSettingsModal(props) {
   const dispatch = useDispatch();
@@ -57,9 +56,8 @@ export function PTeamSettingsModal(props) {
         <Box borderBottom={1} borderBottomColor="divider">
           <Tabs aria-label="tabs" onChange={handleChangeTab} value={tab}>
             <Tab label="General" {...a11yProps(0)} />
-            <Tab label="Monitor" {...a11yProps(1)} />
-            <Tab label="Authorities" {...a11yProps(2)} />
-            <Tab label="Upload" {...a11yProps(3)} />
+            <Tab label="Authorities" {...a11yProps(1)} />
+            <Tab label="Upload" {...a11yProps(2)} />
             <Tab label="Auto Close" {...a11yProps(3)} />
           </Tabs>
         </Box>
@@ -67,15 +65,12 @@ export function PTeamSettingsModal(props) {
           <PTeamGeneralSetting show={show} />
         </TabPanel>
         <TabPanel index={1} value={tab}>
-          <TagMonitoring />
-        </TabPanel>
-        <TabPanel index={2} value={tab}>
           <PTeamAuthEditor />
         </TabPanel>
-        <TabPanel index={3} value={tab}>
+        <TabPanel index={2} value={tab}>
           <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
         </TabPanel>
-        <TabPanel index={4} value={tab}>
+        <TabPanel index={3} value={tab}>
           <PTeamAutoClose />
         </TabPanel>
       </DialogContent>
