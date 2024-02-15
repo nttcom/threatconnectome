@@ -183,6 +183,86 @@ def get_auth_info(current_user: models.Account = Depends(get_current_user)):
     )
 
 
+@router.post("/apply_invitation", response_model=schemas.PTeamInfo)
+def apply_invitation(
+    request: schemas.ApplyInvitationRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Apply invitation to pteam.
+    """
+    _expire_tokens(db)
+
+    invitation = (
+        db.query(models.PTeamInvitation)
+        .filter(
+            models.PTeamInvitation.invitation_id == str(request.invitation_id),
+            or_(
+                models.PTeamInvitation.limit_count.is_(None),
+                models.PTeamInvitation.limit_count > models.PTeamInvitation.used_count,
+            ),
+        )
+        .with_for_update()
+        .one_or_none()
+    )  # lock and block!
+    if invitation is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) invitation id"
+        )
+    pteam = db.query(models.PTeam).filter(models.PTeam.pteam_id == invitation.pteam_id).one()
+    if current_user in pteam.members:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Already joined to the pteam"
+        )
+
+    pteam_auth = (
+        db.query(models.PTeamAuthority)
+        .filter(
+            models.PTeamAuthority.pteam_id == invitation.pteam_id,
+            models.PTeamAuthority.user_id == current_user.user_id,
+        )
+        .one_or_none()
+    )
+    if pteam_auth is None:
+        pteam_auth = models.PTeamAuthority(
+            pteam_id=invitation.pteam_id, user_id=current_user.user_id, authority=0
+        )
+    pteam_auth.authority |= invitation.authority
+
+    pteam.members.append(current_user)
+    invitation.used_count += 1
+    db.add(pteam)
+    if pteam_auth.authority > 0:
+        db.add(pteam_auth)
+    db.add(invitation)
+    db.commit()
+    db.refresh(pteam)
+
+    return pteam
+
+
+@router.get("/invitation/{invitation_id}", response_model=schemas.PTeamInviterResponse)
+def invited_pteam(
+    invitation_id: UUID, db: Session = Depends(get_db)
+) -> schemas.PTeamInviterResponse:
+    invitation = (
+        db.query(models.PTeamInvitation)
+        .filter(models.PTeamInvitation.invitation_id == str(invitation_id))
+        .one_or_none()
+    )
+    if invitation is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid invitation id")
+
+    invitation_detail = {
+        "pteam_id": invitation.pteam_id,
+        "pteam_name": invitation.pteam.pteam_name,
+        "email": invitation.inviter.email,
+        "user_id": invitation.user_id,
+    }
+    return schemas.PTeamInviterResponse(**invitation_detail)
+
+
 @router.get("/{pteam_id}", response_model=schemas.PTeamInfo)
 def get_pteam(
     pteam_id: UUID,
@@ -312,6 +392,22 @@ def _get_tagged_topic_ids_by_pteam_id_and_status(
     return [row.topic_id for row in topic_ids_rows]
 
 
+@router.get("/{pteam_id}/tags/summary", response_model=schemas.PTeamTagsSummary)
+def get_pteam_tags_summary(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get summary of the pteam tags.
+    """
+    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
+    assert pteam
+    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+
+    return get_pteamtags_summary(db, pteam)
+
+
 @router.get("/{pteam_id}/tags/{tag_id}/solved_topic_ids", response_model=schemas.PTeamTaggedTopics)
 def get_pteam_tagged_solved_topic_ids(
     pteam_id: UUID,
@@ -387,22 +483,6 @@ def get_pteam_tagged_unsolved_topic_ids(
         "threat_impact_count": threat_impact_count,
         "topic_ids": topic_ids,
     }
-
-
-@router.get("/{pteam_id}/tags/summary", response_model=schemas.PTeamTagsSummary)
-def get_pteam_tags_summary(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get summary of the pteam tags.
-    """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-
-    return get_pteamtags_summary(db, pteam)
 
 
 @router.get("/{pteam_id}/topics", response_model=List[schemas.TopicResponse])
@@ -1572,86 +1652,6 @@ def delete_invitation(
     ).delete()
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)  # avoid Content-Length Header
-
-
-@router.get("/invitation/{invitation_id}", response_model=schemas.PTeamInviterResponse)
-def invited_pteam(
-    invitation_id: UUID, db: Session = Depends(get_db)
-) -> schemas.PTeamInviterResponse:
-    invitation = (
-        db.query(models.PTeamInvitation)
-        .filter(models.PTeamInvitation.invitation_id == str(invitation_id))
-        .one_or_none()
-    )
-    if invitation is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid invitation id")
-
-    invitation_detail = {
-        "pteam_id": invitation.pteam_id,
-        "pteam_name": invitation.pteam.pteam_name,
-        "email": invitation.inviter.email,
-        "user_id": invitation.user_id,
-    }
-    return schemas.PTeamInviterResponse(**invitation_detail)
-
-
-@router.post("/apply_invitation", response_model=schemas.PTeamInfo)
-def apply_invitation(
-    request: schemas.ApplyInvitationRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Apply invitation to pteam.
-    """
-    _expire_tokens(db)
-
-    invitation = (
-        db.query(models.PTeamInvitation)
-        .filter(
-            models.PTeamInvitation.invitation_id == str(request.invitation_id),
-            or_(
-                models.PTeamInvitation.limit_count.is_(None),
-                models.PTeamInvitation.limit_count > models.PTeamInvitation.used_count,
-            ),
-        )
-        .with_for_update()
-        .one_or_none()
-    )  # lock and block!
-    if invitation is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) invitation id"
-        )
-    pteam = db.query(models.PTeam).filter(models.PTeam.pteam_id == invitation.pteam_id).one()
-    if current_user in pteam.members:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Already joined to the pteam"
-        )
-
-    pteam_auth = (
-        db.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == invitation.pteam_id,
-            models.PTeamAuthority.user_id == current_user.user_id,
-        )
-        .one_or_none()
-    )
-    if pteam_auth is None:
-        pteam_auth = models.PTeamAuthority(
-            pteam_id=invitation.pteam_id, user_id=current_user.user_id, authority=0
-        )
-    pteam_auth.authority |= invitation.authority
-
-    pteam.members.append(current_user)
-    invitation.used_count += 1
-    db.add(pteam)
-    if pteam_auth.authority > 0:
-        db.add(pteam_auth)
-    db.add(invitation)
-    db.commit()
-    db.refresh(pteam)
-
-    return pteam
 
 
 @router.get("/{pteam_id}/watchers", response_model=List[schemas.ATeamEntry])
