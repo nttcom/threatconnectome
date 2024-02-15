@@ -362,6 +362,24 @@ class Account(Base):
     action_logs = relationship("ActionLog", back_populates="executed_by")
 
 
+class PTeamTagReference(Base):
+    __tablename__ = "pteamtagreference"
+
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    )
+    tag_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("tag.tag_id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    )
+    group: Mapped[Str255] = mapped_column(primary_key=True, index=True)
+    target: Mapped[str] = mapped_column(primary_key=True)
+    version: Mapped[str] = mapped_column(primary_key=True)
+
+
 class PTeamTag(Base):
     __tablename__ = "pteamtag"
 
