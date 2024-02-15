@@ -1114,17 +1114,21 @@ def apply_group_tags(
         )
     )
     db.flush()
+    new_params = {
+        (tag_name_to_id[json_line["tag_name"]], refs.get("target", ""), refs.get("version", ""))
+        for json_line in json_lines
+        for refs in json_line.get("references", [{"target": "", "version": ""}])
+    }
     db.add_all(
         [
             models.PTeamTagReference(
                 pteam_id=pteam.pteam_id,
-                tag_id=tag_name_to_id[json_line["tag_name"]],
                 group=group,
-                target=refs.get("target", ""),
-                version=refs.get("version", ""),
+                tag_id=new_param[0],
+                target=new_param[1],
+                version=new_param[2],
             )
-            for json_line in json_lines
-            for refs in json_line.get("references", [{"target": "", "version": ""}])
+            for new_param in new_params
         ]
     )
 
