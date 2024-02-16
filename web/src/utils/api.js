@@ -42,9 +42,6 @@ export const getPTeamTagsSummary = async (pteamId) => axios.get(`/pteams/${pteam
 
 export const getPTeamTag = async (pteamId, tagId) => axios.get(`/pteams/${pteamId}/tags/${tagId}`);
 
-export const updatePTeamTag = async (pteamId, tagId, data) =>
-  axios.put(`/pteams/${pteamId}/tags/${tagId}`, data);
-
 export const getPTeamTopics = async (pteamId) => axios.get(`/pteams/${pteamId}/topics`);
 
 export const getPTeamSolvedTaggedTopicIds = async (pteamId, tagId) =>
