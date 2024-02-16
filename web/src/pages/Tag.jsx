@@ -8,7 +8,6 @@ import { PTeamTagLabel } from "../components/PTeamTagLabel.jsx";
 import { PTeamTaggedTopics } from "../components/PTeamTaggedTopics";
 import { TabPanel } from "../components/TabPanel";
 import { TagReferences } from "../components/TagReferences";
-import { TagText } from "../components/TagText";
 import { UUIDTypography } from "../components/UUIDTypography";
 import {
   getPTeamMembers,
@@ -116,9 +115,6 @@ export function Tag() {
             {`Updated ${calcTimestampDiff(pteamtag.last_updated_at)}`}
           </Typography>
           <TagReferences references={pteamtag.references} />
-          <Box mt={2}>
-            <TagText pteamId={pteamId} tagId={tagId} />
-          </Box>
         </Box>
       </Box>
       <Divider />
