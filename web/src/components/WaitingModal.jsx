@@ -15,11 +15,11 @@ export function WaitingModal(props) {
   return (
     <Dialog fullWidth open={isOpen}>
       <DialogTitle>
-        <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography flexGrow={1} variant="inherit">
+        <Box alignItems="center" display="flex" flexDirection="row" sx={{ mt: 3 }}>
+          <Typography flexGrow={1} variant="inherit" sx={{ ml: 2 }}>
             {text} is in progress. Please wait.
           </Typography>
-          <CircularProgress />
+          <CircularProgress sx={{ mr: 4 }} />
         </Box>
       </DialogTitle>
       <DialogContent></DialogContent>
