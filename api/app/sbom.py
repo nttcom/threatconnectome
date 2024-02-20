@@ -72,6 +72,7 @@ class TrivyCDXParser(SBOMParser):
 
         bom_ref: str
         type: str
+        group: str
         name: str
         version: str
         raw_purl: Optional[str]
@@ -124,6 +125,7 @@ class TrivyCDXParser(SBOMParser):
             if not self.purl:
                 return None
             pkg_name = self.name  # given by trivy. may include namespace in some case.
+            pkg_group = self.group
             pkg_info = self.purl.type
             pkg_mgr = ""
             if self.targets:
@@ -139,7 +141,11 @@ class TrivyCDXParser(SBOMParser):
                     pkg_info = self._fix_distro(distro) if distro else ""
                 else:
                     pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
-            return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
+
+            if not pkg_group:
+                return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
+
+            return f"{pkg_name}:{pkg_group}:{pkg_info}:{pkg_mgr}"
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
@@ -170,6 +176,7 @@ class TrivyCDXParser(SBOMParser):
                 components_map[data["bom-ref"]] = TrivyCDXParser.CDXComponent(
                     bom_ref=data.get("bom-ref"),
                     type=data.get("type"),
+                    group=data.get("group"),
                     name=data.get("name"),
                     version=data.get("version"),
                     raw_purl=data.get("purl"),
@@ -224,6 +231,9 @@ class TrivyCDXParser(SBOMParser):
                 continue  # maybe directory or image
             if not (tag := component.to_tag(components_map)):
                 continue  # omit not packages
+            print(tag)
+            # print(Artifact(tag=tag))
+            # print(artifacts_map)
             artifact = artifacts_map.get(tag, Artifact(tag=tag))
             artifacts_map[tag] = artifact
             for _target_ref, target_name in component.targets:
