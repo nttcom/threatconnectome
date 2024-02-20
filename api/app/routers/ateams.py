@@ -793,8 +793,9 @@ def get_topic_status(
         select(
             models.ATeamPTeam.pteam_id.label("pteam_id"),
             models.PTeam.pteam_name.label("pteam_name"),
-            models.PTeamTag.tag_id.label("tag_id"),
+            models.PTeamTagReference.tag_id.label("tag_id"),
         )
+        .distinct()
         .join(
             models.PTeam,
             and_(
@@ -802,7 +803,10 @@ def get_topic_status(
                 models.ATeamPTeam.ateam_id == str(ateam_id),
             ),
         )
-        .join(models.PTeamTag, models.PTeamTag.pteam_id == models.ATeamPTeam.pteam_id)
+        .join(
+            models.PTeamTagReference,
+            models.PTeamTagReference.pteam_id == models.ATeamPTeam.pteam_id,
+        )
         .subquery()
     )
 

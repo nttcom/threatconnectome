@@ -197,7 +197,6 @@ def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> Li
 
 def alert_to_ateam(db: Session, action: models.TopicAction):
     alert_targets = _pick_alert_targets_for_ateam(db, action)
-    print(alert_targets)
     for target in alert_targets:
         webhook_url = target.pop("slack_webhook_url")
         blocks = _create_blocks_for_ateam(
@@ -213,6 +212,5 @@ def post_message(url: str, blocks: Sequence[Dict]):
     try:
         webhook = WebhookClient(url)
         return webhook.send(text=blocks[0]["text"]["text"], blocks=blocks)
-    except SlackApiError as error:
-        print(f"Error posting message: {error}")
+    except SlackApiError:
         return None
