@@ -12,12 +12,15 @@ from app.main import app
 from app.tests.medium.constants import (
     ATEAM1,
     ATEAM2,
+    GROUP1,
+    GROUP2,
     GTEAM1,
     PTEAM1,
     PTEAM2,
     SAMPLE_SLACK_WEBHOOK_URL,
     TAG1,
     TAG2,
+    TAG3,
     TOPIC1,
     TOPIC2,
     TOPIC3,
@@ -49,6 +52,7 @@ from app.tests.medium.utils import (
     invite_to_gteam,
     invite_to_pteam,
     schema_to_dict,
+    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -1491,8 +1495,20 @@ def test_get_topic_status():
     user2 = create_user(USER2)
     tag1 = create_tag(USER1, TAG1)
     tag2 = create_tag(USER1, TAG2)
-    pteam1 = create_pteam(USER1, PTEAM1)  # TAG1
-    pteam2 = create_pteam(USER1, PTEAM2)  # TAG1, TAG2, TAG3
+    pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    pteam2 = create_pteam(USER1, PTEAM2)
+    upload_pteam_tags(
+        USER1,
+        pteam2.pteam_id,
+        GROUP2,
+        {
+            TAG1: [("Pipfile.lock", "1.0.0")],
+            TAG2: [("Pipfile.lock", "1.0.0")],
+            TAG3: [("Pipfile.lock", "1.0.0")],
+        },
+        True,
+    )
     ateam1 = create_ateam(USER1, ATEAM1)
 
     invitation = invite_to_ateam(USER1, ateam1.ateam_id)
@@ -1930,7 +1946,10 @@ class TestGetTopicStatusWithQueryParams:
     def common_setup(self):
         create_user(USER1)
         create_tag(USER1, TAG1)
-        self.pteam1 = create_pteam(USER1, PTEAM1)  # TAG1
+        self.pteam1 = create_pteam(USER1, PTEAM1)
+        upload_pteam_tags(
+            USER1, self.pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
+        )
         self.ateam1 = create_ateam(USER1, ATEAM1)
 
     def _get_summary(
@@ -2216,9 +2235,21 @@ def test_get_topic_status__with_zones():
     gteam1 = create_gteam(USER1, GTEAM1)
     zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
     zone2 = create_zone(USER1, gteam1.gteam_id, ZONE2)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": []})  # TAG1
-    pteam2 = create_pteam(USER1, {**PTEAM2, "zone_names": [zone2.zone_name]})  # TAG1, TAG2, TAG3
+    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": []})
+    pteam2 = create_pteam(USER1, {**PTEAM2, "zone_names": [zone2.zone_name]})
     ateam1 = create_ateam(USER1, ATEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(
+        USER1,
+        pteam2.pteam_id,
+        GROUP2,
+        {
+            TAG1: [("Pipfile.lock", "1.0.0")],
+            TAG2: [("Pipfile.lock", "1.0.0")],
+            TAG3: [("Pipfile.lock", "1.0.0")],
+        },
+        True,
+    )
 
     def _pick_pteam(pteams, pteam_id):
         return next(filter(lambda x: x["pteam_id"] == str(pteam_id), pteams), None)

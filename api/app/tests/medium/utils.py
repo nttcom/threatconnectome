@@ -1,7 +1,9 @@
+import json
 import random
 import string
+import tempfile
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -12,6 +14,14 @@ from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.routers.test_auth import get_access_token_headers, get_file_upload_headers
 
 client = TestClient(app)
+
+
+def to_datetime(datetime_value: datetime | str | None) -> datetime | None:
+    if datetime_value is None:
+        return None
+    if isinstance(datetime_value, datetime):
+        return datetime_value
+    return datetime.fromisoformat(datetime_value)
 
 
 def assert_200(response) -> dict:
@@ -98,6 +108,42 @@ def accept_pteam_invitation(user: dict, invitation_id: UUID) -> schemas.PTeamInf
     if response.status_code != 200:
         raise HTTPError(response)
     return schemas.PTeamInfo(**response.json())
+
+
+def upload_pteam_tags(
+    user: dict,
+    pteam_id: UUID | str,
+    group: str,
+    ext_tags: Dict[str, List[Tuple[str, str]]],  # {tag: [(target, version), ...]}
+    force_mode: bool = True,
+) -> List[schemas.ExtTagResponse]:
+    params = {"group": group, "force_mode": str(force_mode)}
+    with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
+        for tag_name, etags in ext_tags.items():
+            assert all(len(etag) == 2 and None not in etag for etag in etags)  # check test code
+            refs = [{"target": etag[0], "version": etag[1]} for etag in etags]
+            tfile.writelines(json.dumps({"tag_name": tag_name, "references": refs}) + "\n")
+        tfile.flush()
+        with open(tfile.name, "rb") as bfile:
+            data = assert_200(
+                client.post(
+                    f"/pteams/{pteam_id}/upload_tags_file",
+                    headers=file_upload_headers(user),
+                    params=params,
+                    files={"file": bfile},
+                )
+            )
+    return [schemas.ExtTagResponse(**item) for item in data]
+
+
+def get_pteam_tags(user: dict, pteam_id: str) -> List[schemas.ExtTagResponse]:
+    data = assert_200(client.get(f"/pteams/{pteam_id}/tags", headers=headers(user)))
+    return [schemas.ExtTagResponse(**item) for item in data]
+
+
+def get_pteam_groups(user: dict, pteam_id: str) -> schemas.PTeamGroupResponse:
+    data = assert_200(client.get(f"/pteams/{pteam_id}/groups", headers=headers(user)))
+    return schemas.PTeamGroupResponse(**data)
 
 
 def create_ateam(user: dict, ateam: dict) -> schemas.ATeamInfo:
@@ -325,20 +371,31 @@ def create_actionlog(
     return schemas.ActionLogResponse(**response.json())
 
 
-def compare_ext_tags(
-    tags1: List[Union[dict, schemas.ExtTagResponse]],
-    tags2: List[Union[dict, schemas.ExtTagResponse]],
+def compare_tags(
+    tags1: Sequence[dict | schemas.TagResponse],
+    tags2: Sequence[dict | schemas.TagResponse],
 ) -> bool:
-    def _to_tuple_set(tags):
-        return set((dict(x)["tag_name"], dict(x)["text"]) for x in tags)
+    def _to_tuple(tag_: dict | schemas.TagResponse):
+        if isinstance(tag_, schemas.TagResponse):
+            tag_ = tag_.model_dump()
+        return (
+            tag_.get("tag_name"),
+            str(tag_.get("tag_id")),
+            tag_.get("parent_name"),
+            str(parent_id) if (parent_id := tag_.get("parent_id")) else None,
+        )
 
-    return _to_tuple_set(tags1) == _to_tuple_set(tags2)
+    return [_to_tuple(t1) for t1 in tags1] == [_to_tuple(t2) for t2 in tags2]
 
 
 def compare_references(refs1: List[dict], refs2: List[dict]) -> bool:
     def _to_tuple_set(refs):
         return {(ref.get("group"), ref.get("target"), ref.get("version")) for ref in refs}
 
+    if not isinstance(refs1, list) or not isinstance(refs2, list):
+        return False
+    if len(refs1) != len(refs2):
+        return False
     return _to_tuple_set(refs1) == _to_tuple_set(refs2)
 
 

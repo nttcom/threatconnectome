@@ -23,6 +23,8 @@ USER3 = {
 TAG1 = "alpha:alpha2:alpha3"
 TAG2 = "bravo:bravo2:bravo3"
 TAG3 = "charlie:charlie2:charlie3"
+GROUP1 = "Threatconnectome"
+GROUP2 = "RepoA"
 REF1 = [
     {"target": "api/Pipfile.lock", "version": "1.0.0", "group": "Threatconnectome"},
     {"target": "api2/Pipfile.lock", "version": "1.0.1", "group": "Threatconnectome"},
@@ -40,17 +42,14 @@ REF3 = [
 EXT_TAG1 = {
     "tag_name": TAG1,
     "references": REF1,
-    "text": f"text {TAG1}",
 }
 EXT_TAG2 = {
     "tag_name": TAG2,
     "references": REF2,
-    "text": f"text {TAG2}",
 }
 EXT_TAG3 = {
     "tag_name": TAG3,
     "references": REF3,
-    "text": f"text {TAG3}",
 }
 MISPTAG1 = "tlp:amber"
 MISPTAG2 = "tlp:clear"
@@ -72,7 +71,6 @@ PTEAM1 = {
     "contact_info": "alpha@ml.com",
     "slack_webhook_url": "",
     "alert_threat_impact": 3,
-    "tags": [EXT_TAG1],
     "zone_names": [],
 }
 
@@ -81,14 +79,12 @@ PTEAM2 = {
     "contact_info": "bravo@ml.com",
     "slack_webhook_url": "",
     "alert_threat_impact": 2,
-    "tags": [EXT_TAG2, EXT_TAG1, EXT_TAG3],  # not sorted
     "zone_names": [],
 }
 PTEAM3 = {
     "pteam_name": "pteam charlie",
     "contact_info": "charlie@ml.com",
     "slack_webhook_url": "",
-    "tags": [EXT_TAG3],
 }
 PTEAM4 = {
     "pteam_name": "pteam delta",

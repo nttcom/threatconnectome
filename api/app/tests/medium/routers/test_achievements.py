@@ -11,12 +11,14 @@ from app.tests.medium.constants import (
     BADGE1,
     BADGE2,
     BADGE3,
+    GROUP1,
     INVALID_METADATA,
     METADATA1,
     PTEAM1,
     PTEAM2,
     RANDOM_METADATA1,
     RANDOM_METADATA2,
+    TAG1,
     TOPIC1,
     USER1,
     USER2,
@@ -31,6 +33,7 @@ from app.tests.medium.utils import (
     create_user,
     headers,
     invite_to_pteam,
+    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -104,13 +107,17 @@ def test_create_secbadge_by_invalid_priority():
 def test_create_secbadge_with_status_id():
     user = create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
-    tag = pteam.tags[0]
+    etags = upload_pteam_tags(
+        USER1, pteam.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
+    )
     topic = create_topic(USER1, TOPIC1)
 
     request1 = {
         "topic_status": "scheduled",
     }
-    topic_status = create_topicstatus(USER1, pteam.pteam_id, topic.topic_id, tag.tag_id, request1)
+    topic_status = create_topicstatus(
+        USER1, pteam.pteam_id, topic.topic_id, etags[0].tag_id, request1
+    )
 
     metadata = {
         "name": f"he reason of {topic.title} has been found!",
@@ -160,6 +167,7 @@ def test_create_secbadge_with_random_status_id():
 def test_create_secbadge_with_logging_id():
     user = create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)
     topic = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action = topic.actions[0]
     now = datetime.now()
@@ -317,7 +325,9 @@ def test_create_secbadge__recipient_is_not_pteam_member():
 def test_get_secbadges():
     user = create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
-    tag = pteam.tags[0]
+    etags = upload_pteam_tags(
+        USER1, pteam.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
+    )
     topic = create_topic(USER1, TOPIC1, actions=[ACTION1])
     actionlog = create_actionlog(
         USER1,
@@ -331,7 +341,9 @@ def test_get_secbadges():
     request1 = {
         "topic_status": "scheduled",
     }
-    topic_status = create_topicstatus(USER1, pteam.pteam_id, topic.topic_id, tag.tag_id, request1)
+    topic_status = create_topicstatus(
+        USER1, pteam.pteam_id, topic.topic_id, etags[0].tag_id, request1
+    )
 
     metadata2 = {
         "image": "",
