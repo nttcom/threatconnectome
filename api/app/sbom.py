@@ -142,10 +142,11 @@ class TrivyCDXParser(SBOMParser):
                 else:
                     pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
 
-            if not pkg_group:
-                return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
-
-            return f"{pkg_name}:{pkg_group}:{pkg_info}:{pkg_mgr}"
+            return (
+                f"{pkg_group}:{pkg_name}:{pkg_info}:{pkg_mgr}"
+                if pkg_group
+                else f"{pkg_name}:{pkg_info}:{pkg_mgr}"
+            )
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
@@ -253,6 +254,7 @@ class SyftCDXParser(SBOMParser):
 
         bom_ref: str
         type: str
+        group: str
         name: str
         version: str
         raw_purl: Optional[str]
@@ -325,10 +327,15 @@ class SyftCDXParser(SBOMParser):
                 if self.purl and isinstance(self.purl.qualifiers, dict)
                 else None
             )
+            pkg_group = self.group
             pkg_info = distro if distro else self.purl.type
             pkg_mgr = self.mgr_info.name if self.mgr_info else ""
 
-            return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
+            return (
+                f"{pkg_group}:{pkg_name}:{pkg_info}:{pkg_mgr}"
+                if pkg_group
+                else f"{pkg_name}:{pkg_info}:{pkg_mgr}"
+            )
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
@@ -360,6 +367,7 @@ class SyftCDXParser(SBOMParser):
                 components_map[data["bom-ref"]] = SyftCDXParser.CDXComponent(
                     bom_ref=data.get("bom-ref"),
                     type=data.get("type"),
+                    group=data.get("group"),
                     name=data.get("name"),
                     version=data.get("version"),
                     raw_purl=data.get("purl"),
