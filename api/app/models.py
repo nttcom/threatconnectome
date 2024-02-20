@@ -379,28 +379,8 @@ class PTeamTagReference(Base):
     target: Mapped[str] = mapped_column(primary_key=True)
     version: Mapped[str] = mapped_column(primary_key=True)
 
-
-class PTeamTag(Base):
-    __tablename__ = "pteamtag"
-
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    tag_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("tag.tag_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    references: Mapped[List[dict]] = mapped_column("refs", default=[])
-    # "references" is reserved word
-    # [{"target": "", "version": "", "group": ""}]
-    text: Mapped[Optional[str]]
-
-    # see https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html#association-object
-    tag = relationship("Tag", back_populates="pteamtags")
-    pteam = relationship("PTeam", back_populates="pteamtags")
+    pteam = relationship("PTeam", back_populates="references")
+    tag = relationship("Tag", back_populates="references")
 
 
 class PTeam(Base):
@@ -418,7 +398,9 @@ class PTeam(Base):
     alert_threat_impact: Mapped[Optional[int]]
     disabled: Mapped[bool] = mapped_column(default=False)
 
-    pteamtags = relationship("PTeamTag", back_populates="pteam", cascade="all, delete-orphan")
+    references = relationship(
+        "PTeamTagReference", back_populates="pteam", cascade="all, delete-orphan"
+    )
     zones = relationship("Zone", secondary=PTeamZone.__tablename__, back_populates="pteams")
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
     invitations = relationship("PTeamInvitation", back_populates="pteam")
@@ -616,6 +598,10 @@ class CurrentPTeamTopicTagStatus(Base):
     threat_impact: Mapped[Optional[int]]
     updated_at: Mapped[Optional[datetime]]
 
+    pteam = relationship("PTeam")
+    topic = relationship("Topic")
+    tag = relationship("Tag")
+
 
 class Tag(Base):
     def __init__(self, *args, **kwargs) -> None:
@@ -631,7 +617,9 @@ class Tag(Base):
     parent_name: Mapped[Optional[str]] = mapped_column(ForeignKey("tag.tag_name"), index=True)
 
     topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
-    pteamtags = relationship("PTeamTag", back_populates="tag", cascade="all, delete-orphan")
+    references = relationship(
+        "PTeamTagReference", back_populates="tag", cascade="all, delete-orphan"
+    )
 
 
 class MispTag(Base):
