@@ -231,9 +231,6 @@ class TrivyCDXParser(SBOMParser):
                 continue  # maybe directory or image
             if not (tag := component.to_tag(components_map)):
                 continue  # omit not packages
-            print(tag)
-            # print(Artifact(tag=tag))
-            # print(artifacts_map)
             artifact = artifacts_map.get(tag, Artifact(tag=tag))
             artifacts_map[tag] = artifact
             for _target_ref, target_name in component.targets:
