@@ -17,9 +17,11 @@ from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
     ATEAM1,
+    GROUP1,
     GTEAM1,
     PTEAM1,
     SAMPLE_SLACK_WEBHOOK_URL,
+    TAG1,
     TOPIC1,
     USER1,
 )
@@ -34,6 +36,7 @@ from app.tests.medium.utils import (
     create_user,
     create_watching_request,
     create_zone,
+    upload_pteam_tags,
 )
 
 
@@ -44,7 +47,8 @@ def test_alert_new_topics(testdb):
         **PTEAM1,
         "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL,
     }
-    create_pteam(USER1, PTEAM1_WITH_SLACK_WEBHOOK_URL)
+    pteam1 = create_pteam(USER1, PTEAM1_WITH_SLACK_WEBHOOK_URL)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)
     create_topic(
         USER1,
         TOPIC1,
@@ -80,21 +84,11 @@ def test_alert_new_topics(testdb):
 def test_alert_new_topics__auto_closed(testdb):
     create_user(USER1)
     tag1 = create_tag(USER1, "testpkg:testinfo:testmgr")
-    ext_tag1 = {
-        "tag_name": tag1.tag_name,
-        "references": [
-            {
-                "target": "test/target1",
-                "version": "1.0",
-                "group": "test group",
-            },
-        ],
-        "text": "test text",
-    }
-    pteam1 = create_pteam(
-        USER1,
-        {**PTEAM1, "tags": [ext_tag1], "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL},
-    )
+
+    pteam1 = create_pteam(USER1, {**PTEAM1, "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL})
+    refs0 = {tag1.tag_name: [("test/target1", "1.0")]}
+    upload_pteam_tags(USER1, pteam1.pteam_id, "test group", refs0)
+
     action1 = {
         "action": "update testpkg to version 1.0",
         "action_type": "elimination",
@@ -133,7 +127,6 @@ def test_pick_alert_targets__tags(testdb) -> None:
     child_tag12 = create_tag(USER1, "pkg1:info1:mgr2")
     parent_tag2 = create_tag(USER1, "pkg2:info1:")
     child_tag21 = create_tag(USER1, "pkg2:info1:mgr1")
-    ext_tag_base = {"references": [], "text": ""}
 
     pteam_tags_patterns: List[List[schemas.TagResponse]] = [
         [],  # 0
@@ -151,12 +144,10 @@ def test_pick_alert_targets__tags(testdb) -> None:
     ]
 
     def _gen_pteam_params(idx: int) -> dict:
-        tags = pteam_tags_patterns[idx]
         return {
             "pteam_name": f"pteam{idx}",
             "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
-            "tags": [{**ext_tag_base, "tag_name": tag.tag_name} for tag in tags],
         }
 
     def _gen_topic_params(tags: List[schemas.TagResponse]) -> dict:
@@ -177,6 +168,11 @@ def test_pick_alert_targets__tags(testdb) -> None:
     pteams: List[schemas.PTeamInfo] = []
     for idx in range(len(pteam_tags_patterns)):
         pteams.append(create_pteam(USER1, _gen_pteam_params(idx)))
+        ext_tags = {}
+        for tag in pteam_tags_patterns[idx]:
+            ext_tags[tag.tag_name] = [("api/Pipfile.lock", "1.0.0")]
+        if len(pteam_tags_patterns[idx]) != 0:
+            upload_pteam_tags(USER1, pteams[idx].pteam_id, GROUP1, ext_tags, True)
     # disable pteams[11]
     db_pteam11 = (
         testdb.query(models.PTeam).filter(models.PTeam.pteam_id == str(pteams[11].pteam_id)).one()
@@ -242,14 +238,12 @@ def test_pick_alert_targets__threshold(testdb) -> None:
     create_user(USER1)
     parent_tag1 = create_tag(USER1, "pkg1:info1:")
     child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
-    ext_tag_base = {"references": [], "text": ""}
 
     def _gen_pteam_params(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
             "slack_webhook_url": "" if idx == 0 else SAMPLE_SLACK_WEBHOOK_URL + str(idx),
             "alert_threat_impact": idx if idx in range(1, 5) else DEFAULT_ALERT_THREAT_IMPACT,
-            "tags": [{**ext_tag_base, "tag_name": child_tag11.tag_name}],
         }
 
     def _gen_topic_params(impact: int) -> dict:
@@ -270,6 +264,13 @@ def test_pick_alert_targets__threshold(testdb) -> None:
     pteams: List[schemas.PTeamInfo] = []
     for idx in range(0, 6):  # 0 for no webhook_url, 5 for disable
         pteams.append(create_pteam(USER1, _gen_pteam_params(idx)))
+        upload_pteam_tags(
+            USER1,
+            pteams[idx].pteam_id,
+            GROUP1,
+            {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]},
+            True,
+        )
     # disable pteams[5]
     db_pteam5 = (
         testdb.query(models.PTeam).filter(models.PTeam.pteam_id == str(pteams[5].pteam_id)).one()
@@ -326,7 +327,6 @@ def test_pick_alert_targets__zones(testdb) -> None:
     create_user(USER1)
     parent_tag1 = create_tag(USER1, "pkg1:info1:")
     child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
-    ext_tag_base = {"references": [], "text": ""}
     gteam1 = create_gteam(USER1, GTEAM1)
 
     def _gen_zone_params(idx: int) -> dict:
@@ -357,7 +357,6 @@ def test_pick_alert_targets__zones(testdb) -> None:
             "pteam_name": f"pteam{idx}",
             "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
-            "tags": [{**ext_tag_base, "tag_name": child_tag11.tag_name}],
             "zone_names": [zone.zone_name for zone in zones],
         }
 
@@ -379,6 +378,13 @@ def test_pick_alert_targets__zones(testdb) -> None:
     pteams: List[schemas.PTeamInfo] = []
     for idx in range(len(pteam_zones_patterns)):
         pteams.append(create_pteam(USER1, _gen_pteam_params(idx)))
+        upload_pteam_tags(
+            USER1,
+            pteams[idx].pteam_id,
+            GROUP1,
+            {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]},
+            True,
+        )
     # disable pteams[8]
     db_pteam8 = (
         testdb.query(models.PTeam).filter(models.PTeam.pteam_id == str(pteams[8].pteam_id)).one()
@@ -437,14 +443,12 @@ def test_pick_alert_targets__disabled(testdb):
     create_user(USER1)
     parent_tag1 = create_tag(USER1, "pkg1:info1:")
     child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
-    ext_tag_base = {"references": [], "text": ""}
 
     def _gen_pteam_params(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
             "slack_webhook_url": "" if idx == 0 else SAMPLE_SLACK_WEBHOOK_URL + str(idx),
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
-            "tags": [{**ext_tag_base, "tag_name": child_tag11.tag_name}],
         }
 
     def _gen_topic_params(impact: int) -> dict:
@@ -462,7 +466,14 @@ def test_pick_alert_targets__disabled(testdb):
     def _select_topic(topic: schemas.TopicCreateResponse) -> models.Topic:
         return testdb.query(models.Topic).filter(models.Topic.topic_id == str(topic.topic_id)).one()
 
-    create_pteam(USER1, _gen_pteam_params(0))
+    pteam = create_pteam(USER1, _gen_pteam_params(0))
+    upload_pteam_tags(
+        USER1,
+        pteam.pteam_id,
+        GROUP1,
+        {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]},
+        True,
+    )
 
     # TOPIC0
     topic = create_topic(USER1, _gen_topic_params(1))
@@ -481,14 +492,12 @@ def test_pick_alert_targets__auto_closed(testdb):
     child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
     parent_tag2 = create_tag(USER1, "pkg2:info1:")
     child_tag21 = create_tag(USER1, "pkg2:info1:mgr1")
-    ext_tag_base = {"references": [], "text": ""}
 
-    def _gen_pteam_params(idx: int, tags: List[schemas.TagResponse]) -> dict:
+    def _gen_pteam_params(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
             "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
-            "tags": [{**ext_tag_base, "tag_name": tag.tag_name} for tag in tags],
         }
 
     def _gen_topic_params(tags: List[schemas.TagResponse]) -> dict:
@@ -506,7 +515,17 @@ def test_pick_alert_targets__auto_closed(testdb):
     def _select_topic(topic: schemas.TopicCreateResponse) -> models.Topic:
         return testdb.query(models.Topic).filter(models.Topic.topic_id == str(topic.topic_id)).one()
 
-    pteam0 = create_pteam(USER1, _gen_pteam_params(0, [child_tag11, child_tag21]))
+    pteam0 = create_pteam(USER1, _gen_pteam_params(0))
+    upload_pteam_tags(
+        USER1,
+        pteam0.pteam_id,
+        GROUP1,
+        {
+            child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")],
+            child_tag21.tag_name: [("api/Pipfile.lock", "1.0.0")],
+        },
+        True,
+    )
 
     def _expected_alert_target(idx: int, tag: schemas.TagResponse) -> dict:
         return {
@@ -572,6 +591,7 @@ def test_alert_ateam(testdb):
     ateam = create_ateam(USER1, ATEAM1_WITH_SLACK_WEBHOOK_URL)
     watching_request = create_watching_request(USER1, ateam.ateam_id)
     accept_watching_request(USER1, watching_request.request_id, pteam.pteam_id)
+    upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)
     topic = create_topic(USER1, TOPIC1, actions=[])
     create_action(USER1, ACTION1, topic_id=topic.topic_id)
     action = testdb.query(models.TopicAction).first()
@@ -605,6 +625,7 @@ def test_send_webhook_when_action_creation(mocker):
     ateam1 = create_ateam(USER1, {**ATEAM1, "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL})
     watching_request = create_watching_request(USER1, ateam1.ateam_id)
     accept_watching_request(USER1, watching_request.request_id, pteam1.pteam_id)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION2])
     action1 = create_action(USER1, ACTION1, topic_id=topic1.topic_id)
 

@@ -49,20 +49,17 @@ def check_fs(
     try:
         response = requests.get(f"{fs_api}/users", headers=headers, timeout=30)
     except requests.exceptions.Timeout as flashsense_timeout:
-        print(flashsense_timeout)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not connect to flashsense",
         ) from flashsense_timeout
 
     if response.status_code == 401:
-        print(response)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Your account is not valid in flashsense",
         )
     if response.status_code != 200:
-        print(response)
         raise HTTPException(status_code=response.status_code, detail="Something went wrong")
 
     return Response(status_code=status.HTTP_200_OK)

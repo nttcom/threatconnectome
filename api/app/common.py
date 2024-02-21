@@ -6,9 +6,9 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 from fastapi.responses import Response
-from sqlalchemy import and_, delete, exists, func, literal, literal_column, or_, select, text
+from sqlalchemy import and_, delete, exists, func, literal, literal_column, or_, select
 from sqlalchemy.dialects.postgresql import insert as psql_insert
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql.expression import false, true
 
 from app import models, schemas
@@ -271,16 +271,14 @@ def validate_pteamtag(
     db: Session,
     pteam_id: Union[UUID, str],
     tag_id: Union[UUID, str],
-    on_error: Optional[int] = None,
-) -> Optional[models.PTeamTag]:
-    pteamtag = (
-        db.query(models.PTeamTag)
-        .filter(models.PTeamTag.pteam_id == str(pteam_id), models.PTeamTag.tag_id == str(tag_id))
-        .one_or_none()
-    )
-    if pteamtag is None and on_error is not None:
-        raise HTTPException(status_code=on_error, detail="No such pteam tag")
-    return pteamtag
+) -> bool:
+    pteamtag = db.scalars(
+        select(models.PTeamTagReference).where(
+            models.PTeamTagReference.pteam_id == str(pteam_id),
+            models.PTeamTagReference.tag_id == str(tag_id),
+        )
+    ).first()
+    return True if pteamtag else False
 
 
 def validate_pteam(
@@ -778,17 +776,12 @@ def search_topics_internal(
 def get_topics_internal(
     db: Session,
     user_id: Union[UUID, str],
-    zones: Optional[List[str]] = None,
-    title_words: Optional[List[str]] = None,
-    abstract_words: Optional[List[str]] = None,
-    threat_impacts: Optional[List[int]] = None,
-    misp_tag_ids: Optional[List[UUID]] = None,
-    # TODO created_by: Optional[UUID] = None,
-    # TODO created_before: Optional[datetime] = None,
-    # TODO created_after: Optional[datetime] = None,
-    # TODO updated_before: Optional[datetime] = None,
-    # TODO updated_after: Optional[datetime] = None,
-    tag_ids: Optional[List[UUID]] = None,
+    zones: List[str] | None = None,
+    title_words: List[str] | None = None,
+    abstract_words: List[str] | None = None,
+    threat_impacts: List[int] | None = None,
+    misp_tag_ids: List[UUID] | None = None,
+    tag_ids: Sequence[UUID | str] | None = None,
 ) -> List[models.Topic]:
     user_id = str(user_id)
     pteam_zones = db.query(models.PTeamZone.zone_name).filter(
@@ -1007,7 +1000,9 @@ def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
         delete(models.CurrentPTeamTopicTagStatus).where(
             models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
             models.CurrentPTeamTopicTagStatus.tag_id.not_in(
-                db.query(models.PTeamTag.tag_id).filter(models.PTeamTag.pteam_id == pteam.pteam_id)
+                select(models.PTeamTagReference.tag_id.distinct()).where(
+                    models.PTeamTagReference.pteam_id == pteam.pteam_id
+                )
             ),
         )
     )
@@ -1049,8 +1044,8 @@ def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
             models.Tag,
             and_(
                 models.Tag.tag_id.in_(
-                    db.query(models.PTeamTag.tag_id).filter(
-                        models.PTeamTag.pteam_id == pteam.pteam_id
+                    select(models.PTeamTagReference.tag_id.distinct()).where(
+                        models.PTeamTagReference.pteam_id == pteam.pteam_id
                     )
                 ),
                 or_(
@@ -1215,9 +1210,9 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
 
     # fill missings or update -- at least updated_at is modified
     _pteam_tags = (
-        db.query(
+        select(
             models.Tag.tag_id,
-            models.PTeamTag.pteam_id,
+            models.PTeamTagReference.pteam_id,
         )
         .join(
             models.TopicTag,
@@ -1230,13 +1225,13 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
             ),
         )
         .join(
-            models.PTeamTag,
-            models.PTeamTag.tag_id == models.Tag.tag_id,
+            models.PTeamTagReference,
+            models.PTeamTagReference.tag_id == models.Tag.tag_id,
         )
         .join(
             models.PTeam,
             and_(
-                models.PTeam.pteam_id == models.PTeamTag.pteam_id,
+                models.PTeam.pteam_id == models.PTeamTagReference.pteam_id,
                 models.PTeam.disabled.is_(False),
             ),
         )
@@ -1249,7 +1244,7 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
             ).join(
                 models.PTeamZone,
                 and_(
-                    models.PTeamZone.pteam_id == models.PTeamTag.pteam_id,
+                    models.PTeamZone.pteam_id == models.PTeamTagReference.pteam_id,
                     models.PTeamZone.zone_name == models.TopicZone.zone_name,
                 ),
             )
@@ -1330,7 +1325,38 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
     db.commit()
 
 
-def get_pteamtags_summary(db: Session, pteam: models.PTeam) -> dict:
+def get_pteam_ext_tags(db: Session, pteam_id: UUID | str) -> List[schemas.ExtTagResponse]:
+    tmp_dict: Dict[Tuple[str, str], schemas.ExtTagResponse] = {}
+    ptrs = db.scalars(
+        select(models.PTeamTagReference)
+        .options(joinedload(models.PTeamTagReference.tag, innerjoin=True))
+        .where(models.PTeamTagReference.pteam_id == str(pteam_id))
+    ).all()
+    for ptr in ptrs:
+        key = (ptr.pteam_id, ptr.tag_id)
+        tmp = tmp_dict.get(
+            key,
+            schemas.ExtTagResponse(
+                tag_id=ptr.tag.tag_id,
+                tag_name=ptr.tag.tag_name,
+                parent_id=ptr.tag.parent_id,
+                parent_name=ptr.tag.parent_name,
+                references=[],
+            ),
+        )
+        tmp.references.append({"group": ptr.group, "target": ptr.target, "version": ptr.version})
+        tmp_dict[key] = tmp
+
+    return sorted(tmp_dict.values(), key=lambda x: x.tag_name)
+
+
+def get_pteamtags_summary(db: Session, pteam_id: UUID | str) -> dict:
+    pteam_id = str(pteam_id)
+
+    # get pteam ext tags
+    ext_tags = get_pteam_ext_tags(db, pteam_id)
+
+    # count statuses for each tags. Note: tags which has no topic does not appear
     _counts = (
         db.query(
             models.CurrentPTeamTopicTagStatus.tag_id,
@@ -1338,7 +1364,7 @@ def get_pteamtags_summary(db: Session, pteam: models.PTeam) -> dict:
             func.count(models.CurrentPTeamTopicTagStatus.topic_status).label("status_count"),
         )
         .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
+            models.CurrentPTeamTopicTagStatus.pteam_id == pteam_id,
         )
         .group_by(
             models.CurrentPTeamTopicTagStatus.tag_id,
@@ -1346,56 +1372,30 @@ def get_pteamtags_summary(db: Session, pteam: models.PTeam) -> dict:
         )
         .all()
     )
-    counts_map: Dict[str, int] = {}
+    counts_map: Dict[Tuple[UUID, str], int] = {}
     for item in _counts:
         str_status = (item.topic_status or models.TopicStatusType.alerted).value
-        counts_map[item.tag_id + str_status] = item.status_count
+        counts_map[(UUID(item.tag_id), str_status)] = item.status_count
 
-    subq_topic = (
-        db.query(
-            models.CurrentPTeamTopicTagStatus.tag_id,  # tag_id is pteamtag, not topictag
-            func.coalesce(
-                func.min(models.CurrentPTeamTopicTagStatus.threat_impact),
-                text("4"),
-            ).label("threat_impact"),
+    # get min threat impact and max updated at
+    _metas = db.execute(
+        select(
+            models.CurrentPTeamTopicTagStatus.tag_id,
+            func.min(models.CurrentPTeamTopicTagStatus.threat_impact).label("threat_impact"),
             func.max(models.CurrentPTeamTopicTagStatus.updated_at).label("updated_at"),
         )
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
-            models.CurrentPTeamTopicTagStatus.topic_status != models.TopicStatusType.completed,
+        .where(
+            models.CurrentPTeamTopicTagStatus.pteam_id == pteam_id,
+            models.CurrentPTeamTopicTagStatus.topic_status
+            != models.TopicStatusType.completed.value,  # do not count completed
         )
-        .group_by(models.CurrentPTeamTopicTagStatus.tag_id)
-        .subquery()
-    )
-    rows = (
-        db.query(
-            models.PTeamTag.tag_id,
-            models.PTeamTag.references,
-            models.PTeamTag.text,
-            models.Tag.tag_name,
-            models.Tag.parent_name,
-            models.Tag.parent_id,
-            subq_topic.c.threat_impact,
-            subq_topic.c.updated_at,
+        .group_by(
+            models.CurrentPTeamTopicTagStatus.tag_id,
         )
-        .join(
-            models.Tag,
-            and_(
-                models.PTeamTag.pteam_id == pteam.pteam_id,
-                models.Tag.tag_id == models.PTeamTag.tag_id,
-            ),
-        )
-        .outerjoin(
-            subq_topic,
-            subq_topic.c.tag_id == models.PTeamTag.tag_id,
-        )
-        .order_by(
-            subq_topic.c.threat_impact,
-            subq_topic.c.updated_at.desc(),
-            models.Tag.tag_name,
-        )
-        .all()
-    )
+    ).all()
+    metas_map: Dict[UUID, Tuple[int, datetime | None]] = {}
+    for _meta in _metas:
+        metas_map[UUID(_meta.tag_id)] = (_meta.threat_impact or 4, _meta.updated_at)
 
     _status_count_keys = {
         models.TopicStatusType.alerted.value,
@@ -1403,27 +1403,32 @@ def get_pteamtags_summary(db: Session, pteam: models.PTeam) -> dict:
         models.TopicStatusType.scheduled.value,
         models.TopicStatusType.completed.value,
     }
+
     threat_impact_count = {"1": 0, "2": 0, "3": 0, "4": 0}
-    tags = []
-    for row in rows:
-        tag = {
-            "tag_name": row.tag_name,
-            "tag_id": row.tag_id,
-            "parent_name": row.parent_name,
-            "parent_id": row.parent_id,
-            "references": row.references or [],
-            "text": row.text or "",
-            "threat_impact": row.threat_impact,
-            "updated_at": row.updated_at if row.updated_at else None,
-            "status_count": {
-                key: counts_map.get(row.tag_id + key, 0) for key in _status_count_keys
-            },
-        }
-        threat_impact_count[str(row.threat_impact or 4)] += 1
-        tags.append(tag)
+    summary_tags = []
+    for ext_tag in ext_tags:
+        threat_impact, updated_at = metas_map.get(ext_tag.tag_id, (None, None))
+        status_count = {key: counts_map.get((ext_tag.tag_id, key), 0) for key in _status_count_keys}
+        summary_tags.append(
+            {
+                **ext_tag.model_dump(),
+                "status_count": status_count,
+                "threat_impact": threat_impact,
+                "updated_at": updated_at,
+            }
+        )
+        threat_impact_count[str(threat_impact or 4)] += 1
+
     summary = {
         "threat_impact_count": threat_impact_count,
-        "tags": tags,
+        "tags": sorted(
+            summary_tags,
+            key=lambda x: (
+                x.get("threat_impact") or 4,
+                -(_dt.timestamp() if (_dt := x.get("updated_at")) else 0),
+                x.get("tag_name", ""),
+            ),
+        ),
     }
 
     return summary
@@ -1754,6 +1759,7 @@ def create_actionlog_internal(
     data: schemas.ActionLogRequest,
     current_user: models.Account,
     db: Session,
+    current_status_table_already_fixed: bool = True,
 ):
     pteam = validate_pteam(db, data.pteam_id, on_error=status.HTTP_400_BAD_REQUEST)
     assert pteam
@@ -1771,28 +1777,14 @@ def create_actionlog_internal(
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
 
     if (
-        db.query(
-            models.TopicTag,
-        )
-        .filter(
-            models.TopicTag.topic_id == str(data.topic_id),
-        )
-        .outerjoin(
-            models.Tag,
-            or_(
-                models.Tag.tag_id == models.TopicTag.tag_id,
-                models.Tag.parent_id == models.TopicTag.tag_id,
-            ),
-        )
-        .join(
-            models.PTeamTag,
-            and_(
-                models.PTeamTag.pteam_id == str(data.pteam_id),
-                models.PTeamTag.tag_id == models.Tag.tag_id,
-            ),
-        )
-        .all()
-        == []
+        current_status_table_already_fixed
+        and db.scalars(
+            select(models.CurrentPTeamTopicTagStatus).where(
+                models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
+                models.CurrentPTeamTopicTagStatus.topic_id == topic.topic_id,
+            )
+        ).first()
+        is None
     ):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam topic")
     topic_action = (
@@ -1885,12 +1877,13 @@ def set_pteam_topic_status_internal(
     data: schemas.TopicStatusRequest,
     current_user: models.Account,
     db: Session,
-) -> schemas.TopicStatusResponse:
+) -> schemas.TopicStatusResponse | None:
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
     topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
     assert topic
-    validate_pteamtag(db, pteam_id, tag_id, on_error=status.HTTP_404_NOT_FOUND)
+    if not validate_pteamtag(db, pteam_id, tag_id):
+        return None
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
     if len(topic.zones) > 0 and not set(topic.zones) & set(pteam.zones):
@@ -1987,57 +1980,55 @@ def set_pteam_topic_status_internal(
 
 def _pick_actions_related_to_pteamtag_from_topic(
     db: Session,
-    pteamtag: models.PTeamTag,
     topic: models.Topic,
+    pteam: models.PTeam,
+    tag: models.Tag,  # should be bound to pteam, not to topic
 ) -> Sequence[models.TopicAction]:
-    _pteam_zone_names_stmt = select(models.PTeamZone.zone_name).where(
-        models.PTeamZone.pteam_id == pteamtag.pteam_id
-    )
-    _is_accessible_stmt = or_(  # filter by zones
-        ~exists().where(models.ActionZone.action_id == models.TopicAction.action_id),  # public
-        exists().where(  # zone matched
-            models.ActionZone.action_id == models.TopicAction.action_id,
-            models.ActionZone.zone_name.in_(_pteam_zone_names_stmt),
-        ),
-    )
-    _tag_matched_stmt = or_(
-        func.json_array_length(  # len(ext["vulnerable_versions"][tag_name])
-            models.TopicAction.ext.op("->")("vulnerable_versions").op("->")(pteamtag.tag.tag_name)
-        )
-        > 0,
-        and_(
-            pteamtag.tag.tag_name != pteamtag.tag.parent_name,  # this line is processed on python
-            func.json_array_length(
-                models.TopicAction.ext.op("->")("vulnerable_versions").op("->")(
-                    pteamtag.tag.parent_name
+    select_stmt = (
+        select(models.TopicAction)
+        .outerjoin(models.ActionZone)
+        .where(
+            models.TopicAction.topic_id == topic.topic_id,
+            # filter by zone
+            or_(
+                models.ActionZone.zone_name.is_(None),  # public
+                models.ActionZone.zone_name.in_(  # zone matched
+                    select(models.PTeamZone.zone_name).where(
+                        models.PTeamZone.pteam_id == pteam.pteam_id
+                    )
+                ),
+            ),
+            # Note:
+            #   We should find INVALID or EMPTY vulnerables to abort auto-close, but could not. :(
+            #   SQL will skip the row caused error, e.g. KeyError on JSON.
+            #   Thus "WHERE NOT json_array_length(...) > 0" does not make sense.
+            or_(
+                func.json_array_length(  # len(ext["vulnerable_versions"][tag_name])
+                    models.TopicAction.ext.op("->")("vulnerable_versions").op("->")(tag.tag_name)
                 )
-            )
-            > 0,
-        ),
+                > 0,
+                and_(
+                    true() if tag.tag_name != tag.parent_name else false(),
+                    func.json_array_length(
+                        models.TopicAction.ext.op("->")("vulnerable_versions").op("->")(
+                            tag.parent_name
+                        )
+                    )
+                    > 0,
+                ),
+            ),
+        )
     )
-    # Note:
-    #   We should find INVALID or EMPTY vulnerables to abort auto-close, but could not. :(
-    #   SQL will skip the row caused error, e.g. KeyError on JSON. thus,
-    #   "WHERE NOT json_array_length(...) > 0" does not make sense.
-    #
-    #   Therefore, we check having at least 1 valid and accessible action, and abort if not.
-
-    select_actions_stmt = select(models.TopicAction).where(
-        models.TopicAction.topic_id == topic.topic_id,
-        _is_accessible_stmt,
-        _tag_matched_stmt,  # having vulnerable_version, but empty or invalid might be included
-    )
-
-    actions = db.scalars(select_actions_stmt).all()
-    return actions
+    actions = db.scalars(select_stmt).all()
+    return list(set(actions))
 
 
 def _pick_vulnerable_version_strings_from_actions(
-    pteamtag: models.PTeamTag,
     actions: Sequence[models.TopicAction],
+    tag: models.Tag,
 ) -> Set[str]:
-    tag_name = pteamtag.tag.tag_name
-    parent_name = pteamtag.tag.parent_name
+    tag_name = tag.tag_name
+    parent_name = tag.parent_name
     vulnerable_versions = set()
     for action in actions:
         vulnerable_versions |= set(action.ext.get("vulnerable_versions", {}).get(tag_name, []))
@@ -2051,7 +2042,12 @@ def _pick_vulnerable_version_strings_from_actions(
     return result
 
 
-def _complete_topic(db: Session, pteamtag: models.PTeamTag, actions: Sequence[models.TopicAction]):
+def _complete_topic(
+    db: Session,
+    pteam: models.PTeam,
+    tag: models.Tag,
+    actions: Sequence[models.TopicAction],
+):
     if not actions:
         return
     topic_id = actions[0].topic_id
@@ -2064,17 +2060,18 @@ def _complete_topic(db: Session, pteamtag: models.PTeamTag, actions: Sequence[mo
                 action_id=UUID(action.action_id),
                 topic_id=UUID(topic_id),
                 user_id=SYSTEM_UUID,
-                pteam_id=UUID(pteamtag.pteam_id),
+                pteam_id=UUID(pteam.pteam_id),
             ),
             system_account,
             db,
+            current_status_table_already_fixed=False,
         )
         logging_ids.append(action_log.logging_id)
 
     set_pteam_topic_status_internal(
-        pteamtag.pteam_id,
+        pteam.pteam_id,
         topic_id,
-        pteamtag.tag_id,
+        tag.tag_id,
         schemas.TopicStatusRequest(
             topic_status=models.TopicStatusType.completed,
             logging_ids=logging_ids,
@@ -2085,31 +2082,38 @@ def _complete_topic(db: Session, pteamtag: models.PTeamTag, actions: Sequence[mo
     )
 
 
-def pteamtag_try_auto_close_topic(db: Session, pteamtag: models.PTeamTag, topic: models.Topic):
-    if topic.disabled:
+def pteamtag_try_auto_close_topic(
+    db: Session,
+    pteam: models.PTeam,
+    tag: models.Tag,  # should be bound to pteam, not to topic
+    topic: models.Topic,
+):
+    if topic.disabled or pteam.disabled:
         return
-    if pteamtag.pteam.disabled:
-        return
-    if len(topic.zones) > 0 and not set(topic.zones) & set(pteamtag.pteam.zones):
+    if len(topic.zones) > 0 and not set(topic.zones) & set(pteam.zones):
         return  # this topic is unvisible from the pteam
 
     try:
         # pick unique reference versions to compare. (omit empty -- maybe added on WebUI)
-        reference_versions = {
-            ref_ver for ref in pteamtag.references if (ref_ver := ref.get("version"))
-        }
+        reference_versions = db.scalars(
+            select(models.PTeamTagReference.version.distinct()).where(
+                models.PTeamTagReference.pteam_id == pteam.pteam_id,
+                models.PTeamTagReference.tag_id == tag.tag_id,
+                models.PTeamTagReference.version != "",
+            )
+        ).all()
         if not reference_versions:
             return  # no references to compare
         # pick all actions which matched on tags and zones
-        actions = _pick_actions_related_to_pteamtag_from_topic(db, pteamtag, topic)
+        actions = _pick_actions_related_to_pteamtag_from_topic(db, topic, pteam, tag)
         if not actions:  # this topic does not have actions for this pteamtag
             return
         # pick all matched vulnerables from actions
-        vulnerable_strings = _pick_vulnerable_version_strings_from_actions(pteamtag, actions)
+        vulnerable_strings = _pick_vulnerable_version_strings_from_actions(actions, tag)
         if not vulnerable_strings:
             return
 
-        package_family = PackageFamily.from_tag_name(pteamtag.tag.tag_name)
+        package_family = PackageFamily.from_tag_name(tag.tag_name)
         vulnerables = {
             VulnerableRange.from_string(package_family, vulnerable_string)
             for vulnerable_string in vulnerable_strings
@@ -2125,12 +2129,13 @@ def pteamtag_try_auto_close_topic(db: Session, pteamtag: models.PTeamTag, topic:
         return  # human check required
 
     # This topic has actionable actions, but no actions left to carry out for this pteamtag.
-    _complete_topic(db, pteamtag, actions)
+    _complete_topic(db, pteam, tag, actions)
 
 
 def _pick_topics_related_to_pteamtag(
     db: Session,
-    pteamtag: models.PTeamTag,
+    pteam: models.PTeam,
+    tag: models.Tag,
 ) -> Sequence[models.Topic]:
     now = datetime.now()
     already_completed_or_scheduled_stmt = (
@@ -2138,8 +2143,8 @@ def _pick_topics_related_to_pteamtag(
         .join(
             models.PTeamTopicTagStatus,
             and_(
-                models.CurrentPTeamTopicTagStatus.pteam_id == pteamtag.pteam_id,
-                models.CurrentPTeamTopicTagStatus.tag_id == pteamtag.tag_id,
+                models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
+                models.CurrentPTeamTopicTagStatus.tag_id == tag.tag_id,
                 models.CurrentPTeamTopicTagStatus.topic_id == models.Topic.topic_id,
                 models.PTeamTopicTagStatus.status_id == models.CurrentPTeamTopicTagStatus.status_id,
                 or_(
@@ -2159,7 +2164,7 @@ def _pick_topics_related_to_pteamtag(
         .join(
             models.PTeamZone,
             and_(
-                models.PTeamZone.pteam_id == pteamtag.pteam_id,
+                models.PTeamZone.pteam_id == pteam.pteam_id,
                 models.PTeamZone.zone_name == models.TopicZone.zone_name,
             ),
         )
@@ -2169,7 +2174,7 @@ def _pick_topics_related_to_pteamtag(
         models.TopicTag,
         and_(
             models.Topic.disabled.is_(False),
-            models.TopicTag.tag_id.in_([pteamtag.tag_id, pteamtag.tag.parent_id]),
+            models.TopicTag.tag_id.in_([tag.tag_id, tag.parent_id]),
             models.TopicTag.topic_id == models.Topic.topic_id,
             accessible_topics_from_pteam_stmt,
             ~already_completed_or_scheduled_stmt,
@@ -2180,19 +2185,20 @@ def _pick_topics_related_to_pteamtag(
     return topics
 
 
-def auto_close_by_pteamtags(db: Session, pteamtags: List[models.PTeamTag]):
-    for pteamtag in pteamtags:
-        if pteamtag.pteam.disabled:
+def auto_close_by_pteamtags(db: Session, pteamtags: List[Tuple[models.PTeam, models.Tag]]):
+    for pteam, tag in pteamtags:
+        if pteam.disabled:
             continue
-        for topic in _pick_topics_related_to_pteamtag(db, pteamtag):
-            pteamtag_try_auto_close_topic(db, pteamtag, topic)
+        for topic in _pick_topics_related_to_pteamtag(db, pteam, tag):
+            pteamtag_try_auto_close_topic(db, pteam, tag, topic)
 
 
 def _pick_pteamtags_related_to_topic(
     db: Session,
     topic: models.Topic,
-) -> Sequence[models.PTeamTag]:
-    assert topic.disabled is False
+) -> Sequence[Tuple[models.PTeam, models.Tag]]:
+    if topic.disabled:
+        return []
     now = datetime.now()
     already_completed_or_scheduled_stmt = (
         select(models.CurrentPTeamTopicTagStatus)
@@ -2224,8 +2230,14 @@ def _pick_pteamtags_related_to_topic(
         )
         .exists(),
     )
-    select_pteamtag_stmt = (
-        select(models.PTeamTag)
+    select_ptrs_related_to_topic_stmt = (
+        select(
+            models.PTeamTagReference.pteam_id,
+            models.PTeamTagReference.tag_id,
+            models.PTeam,
+            models.Tag,
+        )
+        .distinct()
         .join(models.Tag)
         .join(
             models.TopicTag,
@@ -2243,17 +2255,17 @@ def _pick_pteamtags_related_to_topic(
             models.PTeam,
             and_(
                 models.PTeam.disabled.is_(False),
-                models.PTeamTag.pteam_id == models.PTeam.pteam_id,
+                models.PTeamTagReference.pteam_id == models.PTeam.pteam_id,
             ),
         )
     )
 
-    pteamtags = db.scalars(select_pteamtag_stmt).all()
-    return pteamtags
+    ptrs = db.execute(select_ptrs_related_to_topic_stmt).all()
+    return [(ptr.PTeam, ptr.Tag) for ptr in ptrs]
 
 
 def auto_close_by_topic(db: Session, topic: models.Topic):
     if topic.disabled:
         return
-    for pteamtag in _pick_pteamtags_related_to_topic(db, topic):
-        pteamtag_try_auto_close_topic(db, pteamtag, topic)
+    for pteam, tag in _pick_pteamtags_related_to_topic(db, topic):
+        pteamtag_try_auto_close_topic(db, pteam, tag, topic)

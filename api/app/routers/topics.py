@@ -358,7 +358,7 @@ def create_topic(
     topic.zones = update_zones(db, current_user.user_id, True, [], data.zone_names)
 
     db.add(topic)
-    db.commit()
+    db.flush()
     db.refresh(topic)
 
     # create and bind actions -- needs active topic_id
@@ -373,6 +373,9 @@ def create_topic(
 
     auto_close_by_topic(db, topic)
     fix_current_status_by_topic(db, topic)
+
+    db.commit()
+    db.refresh(topic)
 
     alert_new_topic(db, topic)
 

@@ -14,11 +14,14 @@ from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
     ELIMINATED_ACTION,
+    GROUP1,
+    GROUP2,
     GTEAM1,
     GTEAM2,
     MITIGATED_ACTION,
     PTEAM1,
     PTEAM2,
+    TAG1,
     TOPIC1,
     TOPIC2,
     USER1,
@@ -39,6 +42,7 @@ from app.tests.medium.utils import (
     create_zone,
     headers,
     invite_to_pteam,
+    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -47,6 +51,7 @@ client = TestClient(app)
 def test_create_log():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     now = datetime.now()
@@ -71,7 +76,8 @@ def test_create_log():
 def test_create_log__with_wrong_params():
     user1 = create_user(USER1)
     user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)  # TAG1
+    pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     topic2_data = {**TOPIC2, "tags": ["fake tag"]}
@@ -128,6 +134,7 @@ def test_create_log__with_zones():
 
     # action1 has zone1 but pteam1 does not
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     with pytest.raises(
         HTTPError, match=r"400: Bad Request: Zone mismatch between action and pteam"
     ):
@@ -137,6 +144,7 @@ def test_create_log__with_zones():
 
     # action1 has zone1 and pteam2 also
     pteam2 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})
+    upload_pteam_tags(USER1, pteam2.pteam_id, GROUP2, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     actionlog2 = create_actionlog(
         USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam2.pteam_id, now
     )
@@ -147,6 +155,7 @@ def test_create_log__with_zones():
 def test_create_log_when_threat_eliminated():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ELIMINATED_ACTION])
     eliminated_action = topic1.actions[0]
     now = datetime.now()
@@ -169,6 +178,7 @@ def test_create_log_when_threat_eliminated():
 def test_create_log_when_threat_not_eliminated():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[MITIGATED_ACTION])
     mitigated_action = topic1.actions[0]
     now = datetime.now()
@@ -186,6 +196,7 @@ def test_create_log_when_threat_not_eliminated():
 def test_get_metadata():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]
     now = datetime.now()
@@ -203,6 +214,7 @@ def test_get_metadata():
 def test_get_metadata__with_wrong_params():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     create_actionlog(
@@ -220,6 +232,7 @@ def test_get_metadata__by_member():
     pteam1 = create_pteam(USER1, PTEAM1)
     invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER2, invitation.invitation_id)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     actionlog1 = create_actionlog(
@@ -237,6 +250,7 @@ def test_get_metadata__by_not_member():
     user1 = create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     actionlog1 = create_actionlog(
@@ -252,6 +266,7 @@ def test_get_metadata__by_not_member():
 def test_create_secbadge_from_actionlog():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]
     now = datetime.now()
@@ -275,6 +290,7 @@ def test_create_secbadge_from_actionlog__by_member():
     pteam1 = create_pteam(USER1, PTEAM1)
     invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER2, invitation.invitation_id)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     actionlog1 = create_actionlog(
@@ -294,6 +310,7 @@ def test_create_secbadge_from_actionlog__by_not_member():
     user1 = create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     actionlog1 = create_actionlog(
@@ -311,6 +328,7 @@ def test_create_secbadge_from_actionlog__by_not_member():
 def test_get_logs():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]
     action2 = topic1.actions[1]
@@ -333,6 +351,7 @@ def test_get_logs():
 def test_get_logs__members_only():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     actionlog1 = create_actionlog(
@@ -340,6 +359,7 @@ def test_get_logs__members_only():
     )
     user2 = create_user(USER2)
     pteam2 = create_pteam(USER2, PTEAM2)
+    upload_pteam_tags(USER2, pteam2.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     actionlog2 = create_actionlog(
         USER2, action1.action_id, topic1.topic_id, user2.user_id, pteam2.pteam_id, None
     )
@@ -386,6 +406,7 @@ def test_get_logs__members_only():
 def test_get_topic_logs():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]
     action2 = topic1.actions[1]
@@ -414,6 +435,7 @@ def test_get_or_create_topic_logs__without_related_zone():
     zone2 = create_zone(USER2, gteam2.gteam_id, ZONE2)
     pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})
     pteam2 = create_pteam(USER2, {**PTEAM2, "zone_names": [zone2.zone_name]})
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1], zone_names=[zone1.zone_name])
     action1 = topic1.actions[0]
     create_actionlog(
@@ -438,6 +460,7 @@ def test_get_or_create_topic_logs__without_related_zone():
 def test_search_logs__filtered_by_topic_ids():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     topic2 = create_topic(USER1, TOPIC2, actions=[ACTION2])
     action1 = topic1.actions[0]
@@ -464,6 +487,7 @@ def test_search_logs__filtered_by_topic_ids():
 def test_search_logs__filtered_by_action_words():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     topic2 = create_topic(USER1, TOPIC2, actions=[ACTION2])
     action1 = topic1.actions[0]  # action: "action one"
@@ -490,6 +514,7 @@ def test_search_logs__filtered_by_action_words():
 def test_search_logs__filtered_by_action_types():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]  # action_type : elimination
     action2 = topic1.actions[1]  # action_type : mitigation
@@ -516,6 +541,7 @@ def test_search_logs__filtered_by_user_ids():
     user1 = create_user(USER1)
     user2 = create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER2, invitation.invitation_id)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
@@ -543,8 +569,10 @@ def test_search_logs__filtered_by_user_ids():
 def test_search_logs__filtered_by_pteam_ids():
     user1 = create_user(USER1)
     user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)  # TAG1
-    pteam2 = create_pteam(USER2, PTEAM2)  # TAG1
+    pteam1 = create_pteam(USER1, PTEAM1)
+    pteam2 = create_pteam(USER2, PTEAM2)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(USER2, pteam2.pteam_id, GROUP2, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])  # TAG1
     action1 = topic1.actions[0]
     now = datetime.now()
@@ -569,6 +597,7 @@ def test_search_logs__filtered_by_pteam_ids():
 def test_search_logs__filtered_by_executed_at():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]
     action2 = topic1.actions[1]
@@ -613,6 +642,7 @@ def test_search_logs__filtered_by_executed_at():
 def test_search_logs__filtered_by_created_at(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]
     action2 = topic1.actions[1]
@@ -666,6 +696,8 @@ def test_search_logs__members_only():
     create_user(USER3)
     pteam1 = create_pteam(USER1, PTEAM1)
     pteam2 = create_pteam(USER2, PTEAM2)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(USER2, pteam2.pteam_id, GROUP2, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     actionlog1 = create_actionlog(

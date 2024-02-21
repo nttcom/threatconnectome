@@ -91,7 +91,10 @@ def delete_tag(
         )
 
     if (
-        db.query(models.PTeamTag).filter(models.PTeamTag.tag_id == str(tag_id)).count() > 0
+        db.query(models.PTeamTagReference)
+        .filter(models.PTeamTagReference.tag_id == str(tag_id))
+        .count()
+        > 0
         or db.query(models.TopicTag).filter(models.TopicTag.tag_id == str(tag_id)).count() > 0
     ):
         raise HTTPException(

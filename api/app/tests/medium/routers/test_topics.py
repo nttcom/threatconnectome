@@ -14,6 +14,7 @@ from app.tests.medium.constants import (
     ACTION3,
     ATEAM1,
     ATEAM2,
+    GROUP1,
     GTEAM1,
     GTEAM2,
     MISPTAG1,
@@ -62,6 +63,7 @@ from app.tests.medium.utils import (
     random_string,
     search_topics,
     update_topic,
+    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -197,15 +199,9 @@ def test_send_webhook_when_topic_creation(mocker):
         "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL,
     }
     create_user(USER1)
-    pteam1 = create_pteam(
-        USER1,
-        PTEAM1_WITH_SLACK_WEBHOOK_URL,
-    )
-    topic1 = create_topic(
-        USER1,
-        TOPIC1,
-        actions=[ACTION1, ACTION2],
-    )
+    pteam1 = create_pteam(USER1, PTEAM1_WITH_SLACK_WEBHOOK_URL)
+    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)
+    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
 
     blocks = _create_blocks_for_pteam(
         pteam1.pteam_id,
@@ -432,7 +428,9 @@ def test_disable_topic():
 def test_delete_topic(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    tag1 = pteam1.tags[0]
+    etags = upload_pteam_tags(
+        USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
+    )
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     create_actionlog(
         USER1,
@@ -449,7 +447,7 @@ def test_delete_topic(testdb: Session):
         "assignees": [str(user1.user_id)],
         "scheduled_at": str(datetime(2023, 6, 1)),
     }
-    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data)
+    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, etags[0].tag_id, json_data)
 
     # delete topic
     response = client.delete(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1))

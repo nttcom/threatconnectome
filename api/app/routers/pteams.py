@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Sequence, Set, Tuple, Union
+from typing import Dict, List, Sequence, Set, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
@@ -20,6 +20,7 @@ from app.common import (
     fix_current_status_by_pteam,
     get_current_pteam_topic_tag_status,
     get_or_create_topic_tag,
+    get_pteam_ext_tags,
     get_pteam_topic_status_history,
     get_pteamtags_summary,
     get_topics_internal,
@@ -44,44 +45,12 @@ from app.slack import validate_slack_webhook_url
 router = APIRouter(prefix="/pteams", tags=["pteams"])
 
 
-def sync_pteamtag_with_pteamtagreference(db: Session, pteam_id: UUID | str) -> None:
-    reference_rows = db.scalars(
-        select(models.PTeamTagReference).where(models.PTeamTagReference.pteam_id == str(pteam_id))
-    ).all()
-    refs_dict: Dict[Tuple[str, str], List[dict]] = {}  # {(pteam_id, tag_id): refs}
-    text_dict: Dict[Tuple[str, str], str] = {}  # {(pteam_id, tag_id): text}
-    for row in reference_rows:
-        refs = refs_dict.get((row.pteam_id, row.tag_id), [])
-        refs.append({"group": row.group, "target": row.target, "version": row.version})
-        refs_dict[(row.pteam_id, row.tag_id)] = refs
-
-    current_pteamtag_rows = db.scalars(
-        select(models.PTeamTag).where(models.PTeamTag.pteam_id == str(pteam_id))
-    ).all()
-    for current_row in current_pteamtag_rows:
-        if (current_row.pteam_id, current_row.tag_id) in refs_dict:
-            text_dict[(current_row.pteam_id, current_row.tag_id)] = current_row.text or ""
-        else:
-            db.delete(current_row)
-
-    for key, refs in refs_dict.items():
-        text = text_dict.get((key[0], key[1]), "")
-        pteamtag = db.scalars(
-            select(models.PTeamTag).where(
-                models.PTeamTag.pteam_id == key[0],
-                models.PTeamTag.tag_id == key[1],
-            )
-        ).one_or_none() or models.PTeamTag(
-            pteam_id=key[0],
-            tag_id=key[1],
-            references=refs,
-            text=text,
+def pteam_tag_ids(db: Session, pteam_id: UUID | str) -> Sequence[str]:
+    return db.scalars(
+        select(models.PTeamTagReference.tag_id.distinct()).where(
+            models.PTeamTagReference.pteam_id == str(pteam_id)
         )
-        pteamtag.references = refs
-        pteamtag.text = text
-        db.add(pteamtag)
-
-    db.flush()
+    ).all()
 
 
 def _modify_pteam_auth(
@@ -132,26 +101,6 @@ def _modify_pteam_auth(
                 pteam_id=str(pteam_id), user_id=str(user_id), authority=int(auth)
             )
         db.add(current_auth)
-
-
-def _extend_pteam_tags(pteam: models.PTeam):
-    # FIXME: tags should be purged from pteam. it's too heavy to create & read(on UI).
-    setattr(
-        pteam,
-        "tags",
-        [
-            {
-                "tag_name": pteamtag.tag.tag_name,
-                "tag_id": pteamtag.tag.tag_id,
-                "parent_name": pteamtag.tag.parent_name,
-                "parent_id": pteamtag.tag.parent_id,
-                "references": pteamtag.references or [],
-                "text": pteamtag.text,
-            }
-            for pteamtag in pteam.pteamtags
-        ],
-    )
-    return pteam
 
 
 @router.get("", response_model=List[schemas.PTeamEntry])
@@ -276,7 +225,7 @@ def get_pteam(
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
-    return _extend_pteam_tags(pteam)
+    return pteam
 
 
 @router.get("/{pteam_id}/groups", response_model=schemas.PTeamGroupResponse)
@@ -290,21 +239,14 @@ def get_pteam_groups(
     """
     validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    unique_groups = set()
-    pteam = (
-        db.query(models.PTeam)
-        .options(joinedload(models.PTeam.pteamtags))
-        .filter(models.PTeam.pteam_id == str(pteam_id))
-        .one_or_none()
-    )
-    assert pteam
-    for pteamtag in pteam.pteamtags:
-        for reference in pteamtag.references:
-            group = reference.get("group", None)
-            if group is not None:
-                unique_groups.add(reference["group"])
 
-    return schemas.PTeamGroupResponse(groups=list(unique_groups))
+    groups = db.scalars(
+        select(models.PTeamTagReference.group.distinct()).where(
+            models.PTeamTagReference.pteam_id == str(pteam_id),
+        )
+    ).all()
+
+    return {"groups": groups}
 
 
 @router.get("/{pteam_id}/tags", response_model=List[schemas.ExtTagResponse])
@@ -320,15 +262,7 @@ def get_pteam_tags(
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
-    return sorted(
-        [
-            schemas.ExtTagResponse(
-                **pteamtag.tag.__dict__, references=pteamtag.references, text=pteamtag.text
-            )
-            for pteamtag in pteam.pteamtags
-        ],
-        key=lambda x: x.tag_name,
-    )
+    return get_pteam_ext_tags(db, pteam_id)
 
 
 def _counts_topic_per_threat_impact(
@@ -405,7 +339,7 @@ def get_pteam_tags_summary(
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
-    return get_pteamtags_summary(db, pteam)
+    return get_pteamtags_summary(db, pteam_id)
 
 
 @router.get("/{pteam_id}/tags/{tag_id}/solved_topic_ids", response_model=schemas.PTeamTaggedTopics)
@@ -424,15 +358,19 @@ def get_pteam_tagged_solved_topic_ids(
     tag = validate_tag(db, tag_id, on_error=status.HTTP_404_NOT_FOUND)
     assert tag
 
-    requested_pteamtag = (
-        db.query(models.PTeamTag)
+    requested_ptr = (
+        db.query(
+            models.PTeamTagReference.pteam_id,
+            models.PTeamTagReference.tag_id,
+        )
+        .distinct()
         .filter(
-            models.PTeamTag.pteam_id == str(pteam_id),
-            models.PTeamTag.tag_id == str(tag_id),
+            models.PTeamTagReference.pteam_id == str(pteam_id),
+            models.PTeamTagReference.tag_id == str(tag_id),
         )
         .one_or_none()
     )
-    if requested_pteamtag is None:
+    if requested_ptr is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
     topic_ids = _get_tagged_topic_ids_by_pteam_id_and_status(db, pteam_id, tag_id, True)
     threat_impact_count = _counts_topic_per_threat_impact(db, pteam_id, tag_id, True)
@@ -463,15 +401,19 @@ def get_pteam_tagged_unsolved_topic_ids(
     tag = validate_tag(db, tag_id, on_error=status.HTTP_404_NOT_FOUND)
     assert tag
 
-    requested_pteamtag = (
-        db.query(models.PTeamTag)
+    requested_ptr = (
+        db.query(
+            models.PTeamTagReference.pteam_id,
+            models.PTeamTagReference.tag_id,
+        )
+        .distinct()
         .filter(
-            models.PTeamTag.pteam_id == str(pteam_id),
-            models.PTeamTag.tag_id == str(tag_id),
+            models.PTeamTagReference.pteam_id == str(pteam_id),
+            models.PTeamTagReference.tag_id == str(tag_id),
         )
         .one_or_none()
     )
-    if requested_pteamtag is None:
+    if requested_ptr is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
     topic_ids = _get_tagged_topic_ids_by_pteam_id_and_status(db, pteam_id, tag_id, False)
@@ -497,94 +439,15 @@ def get_pteam_topics(
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    rows = (
-        db.query(models.Tag.tag_id)
-        .filter(
-            models.Tag.tag_id.in_(
-                db.query(models.PTeamTag.tag_id).filter(models.PTeamTag.pteam_id == str(pteam_id))
-            )
-        )
-        .all()
-    )
-    tag_ids = [row.tag_id for row in rows]
+
+    tag_ids = pteam_tag_ids(db, pteam_id)
     #
     # FIXME:
     #   should fix the case current_user has more zones than this pteam.
     #
+    if not tag_ids:
+        return []
     return get_topics_internal(db, current_user.user_id, tag_ids=tag_ids)
-
-
-def _db_fix_references(
-    db: Session,
-    pteam_id: UUID | str,
-    tag_id: UUID | str,
-    references: List[dict] | None,
-) -> None:
-    reserved_group_name = ""  # empty string as nameless group
-
-    group_to_refs: Dict[str, Set[Tuple[str, str]]] = {}  # {group: {(target, version)}}
-    for ref in references or [{}]:
-        group = ref.get("group", reserved_group_name)
-        refs = group_to_refs.get(group, set())
-        refs.add((ref.get("target", ""), ref.get("version", "")))
-        group_to_refs[group] = refs
-
-    for group, refs in group_to_refs.items():
-        for old_row in db.execute(
-            select(models.PTeamTagReference).where(
-                models.PTeamTagReference.pteam_id == str(pteam_id),
-                models.PTeamTagReference.tag_id == str(tag_id),
-                models.PTeamTagReference.group == group,
-            )
-        ).all():
-            db.delete(old_row)
-        for new_row in [
-            models.PTeamTagReference(
-                pteam_id=str(pteam_id),
-                tag_id=str(tag_id),
-                group=group,
-                target=target,
-                version=version,
-            )
-            for target, version in refs
-        ]:
-            db.add(new_row)
-
-
-def _db_update_pteamtags(
-    db: Session,
-    pteam: models.PTeam,
-    tags: List[schemas.ExtTagRequest],
-) -> models.PTeam:
-    new_pteamtags = []
-    for etag in tags:
-        tag = get_or_create_topic_tag(db, etag.tag_name)
-        _db_fix_references(db, pteam.pteam_id, tag.tag_id, etag.references)
-        states = [x for x in tag.pteamtags if x.pteam_id == pteam.pteam_id]
-        if len(states) > 0:
-            pteamtag = states[0]
-
-            has_update = False
-            if etag.references is not None and pteamtag.references != etag.references:
-                pteamtag.references = etag.references
-                has_update = True
-            if etag.text is not None and pteamtag.text != etag.text:
-                pteamtag.text = etag.text
-                has_update = True
-
-            if has_update:
-                db.add(pteamtag)
-        else:
-            pteamtag = models.PTeamTag(references=etag.references, text=etag.text)
-            tag.pteamtags.append(pteamtag)
-            pteamtag.pteam = pteam
-            db.add(pteamtag)
-        new_pteamtags.append(pteamtag)
-    pteam.pteamtags = new_pteamtags
-    db.add(pteam)
-    db.commit()
-    db.refresh(pteam)
-    return pteam
 
 
 @router.post("", response_model=schemas.PTeamInfo)
@@ -606,22 +469,14 @@ def create_pteam(
         slack_webhook_url=data.slack_webhook_url.strip(),
         alert_threat_impact=data.alert_threat_impact or DEFAULT_ALERT_THREAT_IMPACT,
     )
-    db.add(pteam)
-    pteam = _db_update_pteamtags(db, pteam, data.tags)
     pteam.zones = update_zones(db, current_user.user_id, True, [], data.zone_names)
     db.add(pteam)
-    db.commit()
-    db.refresh(pteam)
-
-    if pteam.pteamtags:
-        auto_close_by_pteamtags(db, pteam.pteamtags)
-        fix_current_status_by_pteam(db, pteam)
+    db.flush()
 
     # join to the created pteam
     pteamaccount = models.PTeamAccount(pteam_id=pteam.pteam_id, user_id=current_user.user_id)
     db.add(pteamaccount)
-    db.commit()
-    db.refresh(pteamaccount)
+    db.flush()
 
     # set default authority
     _modify_pteam_auth(
@@ -631,7 +486,7 @@ def create_pteam(
     _modify_pteam_auth(db, pteam.pteam_id, NOT_MEMBER_UUID, models.PTeamAuthIntFlag.FREE_TEMPLATE)
     db.commit()
 
-    return _extend_pteam_tags(pteam)
+    return pteam
 
 
 def _guard_last_admin(db: Session, pteam_id: UUID, excludes: Sequence[Union[str, UUID]]):
@@ -762,17 +617,24 @@ def get_pteamtag(
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
     tag = validate_tag(db, tag_id, on_error=status.HTTP_404_NOT_FOUND)
     assert tag
-    pteamtag = (
-        db.query(models.PTeamTag)
-        .filter(
-            models.PTeamTag.pteam_id == str(pteam_id),
-            models.PTeamTag.tag_id == str(tag_id),
+
+    ptrs = db.scalars(
+        select(models.PTeamTagReference).where(
+            models.PTeamTagReference.pteam_id == str(pteam_id),
+            models.PTeamTagReference.tag_id == str(tag_id),
         )
-        .one_or_none()
-    )
-    if pteamtag is None:
+    ).all()
+    if not ptrs:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
+    references = [
+        {
+            "group": ptr.group,
+            "target": ptr.target,
+            "version": ptr.version,
+        }
+        for ptr in ptrs
+    ]
     last_updated_at = (
         db.query(func.max(models.CurrentPTeamTopicTagStatus.updated_at))
         .filter(
@@ -785,103 +647,9 @@ def get_pteamtag(
     return {
         "pteam_id": pteam_id,
         "tag_id": tag_id,
-        "references": pteamtag.references or [],
-        "text": pteamtag.text or "",
+        "references": references,
         "last_updated_at": last_updated_at,
     }
-
-
-@router.post("/{pteam_id}/tags/{tag_id}", response_model=schemas.PTeamtagResponse)
-def add_pteamtag(
-    pteam_id: UUID,
-    tag_id: UUID,
-    data: schemas.PTeamtagRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Add tag to pteamtag list.
-    """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    tag = validate_tag(db, tag_id=tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert tag
-    if tag.tag_id in [pteamtag.tag.tag_id for pteamtag in pteam.pteamtags]:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already exists")
-    pteamtag = models.PTeamTag(
-        pteam_id=str(pteam_id),
-        tag_id=str(tag_id),
-        references=data.references if data.references is not None else [],
-        text=data.text if data.text is not None else "",
-    )
-    db.add(pteamtag)
-    db.commit()
-    db.refresh(pteamtag)
-
-    auto_close_by_pteamtags(db, [pteamtag])
-    fix_current_status_by_pteam(db, pteam)
-
-    updated_pteamtag = validate_pteamtag(
-        db, pteam_id, tag_id, on_error=status.HTTP_500_INTERNAL_SERVER_ERROR
-    )
-    return updated_pteamtag
-
-
-@router.put("/{pteam_id}/tags/{tag_id}", response_model=schemas.PTeamtagResponse)
-def update_pteamtag(
-    pteam_id: UUID,
-    tag_id: UUID,
-    data: schemas.PTeamtagRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Update text or references of a pteam tag.
-    """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    pteamtag = validate_pteamtag(db, pteam_id, tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteamtag
-
-    if data.references is not None:
-        pteamtag.references = data.references
-    if data.text is not None:
-        pteamtag.text = data.text
-    db.add(pteamtag)
-    db.commit()
-    db.refresh(pteamtag)
-
-    auto_close_by_pteamtags(db, [pteamtag])
-
-    updated_pteamtag = validate_pteamtag(
-        db, pteam_id, tag_id, on_error=status.HTTP_500_INTERNAL_SERVER_ERROR
-    )
-    return updated_pteamtag
-
-
-@router.delete("/{pteam_id}/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_pteamtag(
-    pteam_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Remove a specified pteam tag. Not delete record on Tag table.
-    """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-
-    pteamtag = validate_pteamtag(db, pteam_id, tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    db.delete(pteamtag)
-    db.commit()
-
-    fix_current_status_by_pteam(db, pteam)
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 def _check_file_extention(file: UploadFile, extention: str):
@@ -907,17 +675,6 @@ def _check_empty_file(file: UploadFile):
     file.file.seek(0)  # move the cursor back to the beginning
 
 
-def _make_current_tags_dict(pteam: models.PTeam) -> dict[Any, dict[str, Any]]:
-    return {
-        pteamtag.tag.tag_name: {
-            "pteamtag": pteamtag,
-            "text": pteamtag.text or "",
-            "versions": {ref.get("version", "") for ref in pteamtag.references},
-        }
-        for pteamtag in pteam.pteamtags
-    }
-
-
 def _json_loads(s: str | bytes | bytearray):
     try:
         return json.loads(s)
@@ -926,57 +683,6 @@ def _json_loads(s: str | bytes | bytearray):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=("Wrong file content: " + f'{s[:32]!s}{"..." if len(s) > 32 else ""}'),
         ) from error
-
-
-def _merge_pteam_tags(
-    db: Session,
-    pteam: models.PTeam,
-    group: str,
-    currents: Dict[str, Dict[str, models.PTeamTag]],
-    targets: Dict[str, Dict[str, models.PTeamTag]],
-):
-    for tag in currents:
-        if tag in targets["keeps"] or tag in targets["ver_changed"] or tag in targets["infos"]:
-            # already processed
-            continue
-        # not included in uploaded file.
-        pteamtag = currents[tag]["pteamtag"]
-        if len([ref for ref in pteamtag.references if ref.get("group", "") == group]) == 0:
-            # group does not watching the tag from the beginning. do not touch about this.
-            # Note:
-            #   pteamtag.references can be empty. check it out to implement AUTO-PURGE.
-            targets["keeps"][tag] = pteamtag
-            continue
-        # purge group
-        new_refs = [ref for ref in pteamtag.references if (ref.get("group") or "") != group]
-        if len(new_refs) == 0:  # no group watching anymore
-            # will be deleted by updating pteam.pteamtags. nothing to do here.
-            pass
-        else:  # some other group still watching
-            pteamtag.references = new_refs
-            db.add(pteamtag)
-            db.commit()
-            db.refresh(pteamtag)
-            targets["inuse"][tag] = pteamtag
-
-    pteam.pteamtags = (
-        list(targets["addings"].values())
-        + list(targets["keeps"].values())
-        + list(targets["ver_changed"].values())
-        + list(targets["infos"].values())
-        + list(targets["inuse"].values())
-    )
-    db.add(pteam)
-    db.commit()
-    db.refresh(pteam)
-
-    if targets["addings"] or targets["ver_changed"]:
-        pteamtags = list(targets["addings"].values()) + list(targets["ver_changed"].values())
-        auto_close_by_pteamtags(db, pteamtags)
-
-    if targets["addings"] or len(targets["keeps"]) != len(currents):
-        # something added, modified or deleted.
-        fix_current_status_by_pteam(db, pteam)
 
 
 def remove_specified_group_references_from_pteamtag(db, pteamtag, group):
@@ -1084,7 +790,11 @@ def apply_group_tags(
     tag_names_in_file: Set[str] = set()
     for line in json_lines:
         if not (_tag_name := line.get("tag_name")):
-            raise ValueError("tag_name missing")
+            raise ValueError("Missing tag_name")
+        if not (_refs := line.get("references")):
+            raise ValueError("Missing references")
+        if any(None in {_ref.get("target"), _ref.get("version")} for _ref in _refs):
+            raise ValueError("Missing target and|or version")
         tag_names_in_file.add(_tag_name)
 
     # If force_mode is False, check whether tag_names exist in DB
@@ -1113,7 +823,6 @@ def apply_group_tags(
             models.PTeamTagReference.group == group,
         )
     )
-    db.flush()
     new_params = {
         (tag_name_to_id[json_line["tag_name"]], refs.get("target", ""), refs.get("version", ""))
         for json_line in json_lines
@@ -1132,65 +841,32 @@ def apply_group_tags(
         ]
     )
 
-    # Hum... what should we do with PTeamTag.text?
-    for json_line in json_lines:
-        text = json_line.get("text") or ""
-        pteamtag = db.scalars(
-            select(models.PTeamTag).where(
-                models.PTeamTag.pteam_id == pteam.pteam_id,
-                models.PTeamTag.tag_id == tag_name_to_id[json_line["tag_name"]],
-            )
-        ).one_or_none() or models.PTeamTag(
-            pteam_id=pteam.pteam_id,
-            tag_id=tag_name_to_id[json_line["tag_name"]],
-            references=[],  # overwritten in sync_pteamtag_with_pteamtagreference()
-            text=text,
-        )
-        pteamtag.text = text
-        db.add(pteamtag)
-
-    # Oops, we have to maintain PTeamTag for backward compatibility...
-    db.flush()
-    sync_pteamtag_with_pteamtagreference(db, pteam.pteam_id)
-
     # try auto close if make sense
     if auto_close:
+        db.flush()
         new_version_rows = db.execute(get_versions_query).all()
         new_versions: Dict[str, Set[str]] = {
             row_.tag_id: set(row_.versions) for row_ in new_version_rows
         }
-        pteamtags = db.scalars(
-            select(models.PTeamTag).where(models.PTeamTag.pteam_id == pteam.pteam_id)
+
+        ptrs = db.scalars(
+            select(models.PTeamTagReference)
+            .options(joinedload(models.PTeamTagReference.tag, innerjoin=True))
+            .where(models.PTeamTagReference.pteam_id == pteam.pteam_id)
         ).all()
-        if pteamtags_for_auto_close := [
-            pteamtag
-            for pteamtag in pteamtags
-            if new_versions.get(pteamtag.tag_id, set()) != old_versions.get(pteamtag.tag_id, set())
+        if ptrs_for_auto_close := [
+            ptr
+            for ptr in ptrs
+            if new_versions.get(ptr.tag_id, set()) != old_versions.get(ptr.tag_id, set())
         ]:
-            auto_close_by_pteamtags(db, pteamtags_for_auto_close)
+            auto_close_by_pteamtags(db, [(pteam, ptr.tag) for ptr in ptrs_for_auto_close])
 
     db.flush()
     db.refresh(pteam)
     fix_current_status_by_pteam(db, pteam)
 
     db.commit()
-    pteamtags = db.scalars(
-        select(models.PTeamTag).where(models.PTeamTag.pteam_id == pteam.pteam_id)
-    ).all()
-    return sorted(
-        [
-            schemas.ExtTagResponse(
-                tag_name=pteamtag.tag.tag_name,
-                tag_id=pteamtag.tag.tag_id,
-                parent_name=pteamtag.tag.parent_name,
-                parent_id=pteamtag.tag.parent_id,
-                references=pteamtag.references,
-                text=pteamtag.text,
-            )
-            for pteamtag in pteamtags
-        ],
-        key=lambda x: x.tag_name,
-    )
+    return get_pteam_ext_tags(db, pteam.pteam_id)
 
 
 @router.delete("/{pteam_id}/tags", status_code=status.HTTP_204_NO_CONTENT)
@@ -1206,16 +882,14 @@ def remove_pteamtags_by_group(
     pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert pteam
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    currents = _make_current_tags_dict(pteam)
-    targets: Dict[str, Dict[str, models.PTeamTag]] = {  # {type: {tag: PTeamTag}}
-        "addings": {},
-        "keeps": {},
-        "ver_changed": {},
-        "infos": {},
-        "inuse": {},
-    }
 
-    _merge_pteam_tags(db, pteam, group, currents, targets)
+    db.execute(
+        delete(models.PTeamTagReference).where(
+            models.PTeamTagReference.pteam_id == str(pteam_id),
+            models.PTeamTagReference.group == group,
+        )
+    )
+    db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -1248,7 +922,7 @@ def update_pteam(
         pteam.slack_webhook_url = data.slack_webhook_url
 
     need_auto_close = (data.disabled is False and pteam.disabled is True) or (
-        data.zone_names and set(data.zone_names) - {z.zone_name for z in pteam.zones}
+        data.zone_names and set(data.zone_names) != {z.zone_name for z in pteam.zones}
     )
 
     if data.pteam_name is not None:
@@ -1271,30 +945,47 @@ def update_pteam(
         )
 
     db.add(pteam)
-    db.commit()
-    db.refresh(pteam)
 
     if pteam.disabled:
         db.query(models.PTeamInvitation).filter(
             models.PTeamInvitation.pteam_id == str(pteam_id)
         ).delete()
-        db.commit()
     elif need_auto_close:
-        auto_close_by_pteamtags(db, pteam.pteamtags)
+        db.flush()
+        pteamtags = db.execute(
+            select(
+                models.PTeamTagReference.tag_id.distinct(),
+                models.PTeam,
+                models.Tag,
+            )
+            .join(
+                models.PTeam,
+                and_(
+                    models.PTeam.pteam_id == pteam.pteam_id,
+                    models.PTeamTagReference.pteam_id == pteam.pteam_id,
+                ),
+            )
+            .join(models.Tag)
+        ).all()
+        auto_close_by_pteamtags(db, [(pteamtag.PTeam, pteamtag.Tag) for pteamtag in pteamtags])
 
+    db.flush()
+    db.refresh(pteam)
     fix_current_status_by_pteam(db, pteam)
 
-    return _extend_pteam_tags(pteam)
+    db.commit()
+    db.refresh(pteam)
+    return pteam
 
 
 def _get_pteam_topic_statuses_summary(
     db: Session, pteam: models.PTeam, tag_id: str, on_error: int = status.HTTP_400_BAD_REQUEST
 ):
     if (
-        db.query(models.PTeamTag)
+        db.query(models.PTeamTagReference)
         .filter(
-            models.PTeamTag.tag_id == tag_id,
-            models.PTeamTag.pteam_id == pteam.pteam_id,
+            models.PTeamTagReference.tag_id == tag_id,
+            models.PTeamTagReference.pteam_id == pteam.pteam_id,
         )
         .first()
         is None
@@ -1413,7 +1104,15 @@ def set_pteam_topic_status(
     """
     Set topic status of the pteam.
     """
-    return set_pteam_topic_status_internal(pteam_id, topic_id, tag_id, data, current_user, db)
+    if not validate_pteam(db, pteam_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
+    if not validate_topic(db, topic_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+    if not validate_pteamtag(db, pteam_id, tag_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
+    ret = set_pteam_topic_status_internal(pteam_id, topic_id, tag_id, data, current_user, db)
+    assert ret
+    return ret
 
 
 @router.get(
@@ -1433,7 +1132,8 @@ def get_pteam_topic_status(
     assert pteam
     topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
     assert topic
-    validate_pteamtag(db, pteam_id, tag_id, on_error=status.HTTP_404_NOT_FOUND)
+    if not validate_pteamtag(db, pteam_id, tag_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
     check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
     if len(topic.zones) > 0 and not set(topic.zones) & set(pteam.zones):
@@ -1710,8 +1410,14 @@ def fix_status_mismatch(
     validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
-    pteam_query = (
-        select(models.CurrentPTeamTopicTagStatus, models.PTeamTopicTagStatus)
+    select_stmt = (
+        select(models.CurrentPTeamTopicTagStatus)
+        .options(
+            joinedload(models.CurrentPTeamTopicTagStatus.pteam, innerjoin=True),
+            joinedload(models.CurrentPTeamTopicTagStatus.tag, innerjoin=True),
+            joinedload(models.CurrentPTeamTopicTagStatus.topic, innerjoin=True),
+        )
+        .outerjoin(models.PTeamTopicTagStatus)
         .where(
             models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
             or_(
@@ -1727,26 +1433,11 @@ def fix_status_mismatch(
                 ),
             ),
         )
-        .outerjoin(
-            models.PTeamTopicTagStatus,
-            and_(
-                models.PTeamTopicTagStatus.status_id == models.CurrentPTeamTopicTagStatus.status_id,
-            ),
-        )
     )
 
-    rows = db.scalars(pteam_query).all()
-
+    rows = db.scalars(select_stmt).all()
     for row in rows:
-        pteam_tag = db.scalars(
-            select(models.PTeamTag).where(
-                models.PTeamTag.pteam_id == str(pteam_id), models.PTeamTag.tag_id == row.tag_id
-            )
-        ).one()
-        pteam_topic = db.scalars(
-            select(models.Topic).where(models.Topic.topic_id == row.topic_id)
-        ).one()
-        pteamtag_try_auto_close_topic(db, pteam_tag, pteam_topic)
+        pteamtag_try_auto_close_topic(db, row.pteam, row.tag, row.topic)
 
     return Response(status_code=status.HTTP_200_OK)
 
@@ -1760,11 +1451,17 @@ def fix_status_mismatch_tag(
 ):
     validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    pteam_tag = validate_pteamtag(db, pteam_id, tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam_tag
+    if not validate_pteamtag(db, pteam_id, tag_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
-    pteam_query = (
-        select(models.CurrentPTeamTopicTagStatus, models.PTeamTopicTagStatus)
+    select_stmt = (
+        select(models.CurrentPTeamTopicTagStatus)
+        .options(
+            joinedload(models.CurrentPTeamTopicTagStatus.pteam, innerjoin=True),
+            joinedload(models.CurrentPTeamTopicTagStatus.tag, innerjoin=True),
+            joinedload(models.CurrentPTeamTopicTagStatus.topic, innerjoin=True),
+        )
+        .outerjoin(models.PTeamTopicTagStatus)
         .where(
             models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
             models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
@@ -1781,20 +1478,11 @@ def fix_status_mismatch_tag(
                 ),
             ),
         )
-        .outerjoin(
-            models.PTeamTopicTagStatus,
-            and_(
-                models.PTeamTopicTagStatus.status_id == models.CurrentPTeamTopicTagStatus.status_id,
-            ),
-        )
     )
 
-    rows = db.scalars(pteam_query).all()
+    rows = db.scalars(select_stmt).all()
 
     for row in rows:
-        pteam_topic = db.scalars(
-            select(models.Topic).where(models.Topic.topic_id == row.topic_id)
-        ).one()
-        pteamtag_try_auto_close_topic(db, pteam_tag, pteam_topic)
+        pteamtag_try_auto_close_topic(db, row.pteam, row.tag, row.topic)
 
     return Response(status_code=status.HTTP_200_OK)

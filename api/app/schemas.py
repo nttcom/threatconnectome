@@ -172,7 +172,6 @@ class TagRequest(ORMModel):
 
 class ExtTagRequest(TagRequest):
     references: Optional[List[dict]] = []
-    text: Optional[str] = None
 
 
 class TagResponse(ORMModel):
@@ -184,7 +183,6 @@ class TagResponse(ORMModel):
 
 class ExtTagResponse(TagResponse):
     references: List[dict] = []
-    text: Optional[str] = None
 
 
 class PTeamGroupResponse(ORMModel):
@@ -193,14 +191,12 @@ class PTeamGroupResponse(ORMModel):
 
 class PTeamtagRequest(ORMModel):
     references: Optional[List[dict]] = None
-    text: Optional[str] = None
 
 
 class PTeamtagResponse(ORMModel):
     pteam_id: UUID
     tag_id: UUID
     references: List[dict]
-    text: str
 
 
 class PTeamtagExtResponse(PTeamtagResponse):
@@ -313,7 +309,6 @@ class TopicUpdateRequest(ORMModel):
 class PTeamInfo(PTeamEntry):
     slack_webhook_url: str
     alert_threat_impact: int
-    tags: List[ExtTagResponse] = []
     zones: List[ZoneEntry]
     ateams: List[ATeamEntry]
 
@@ -327,7 +322,6 @@ class PTeamCreateRequest(ORMModel):
     contact_info: str = ""
     slack_webhook_url: str = ""
     alert_threat_impact: int = DEFAULT_ALERT_THREAT_IMPACT
-    tags: List[ExtTagRequest] = []
     zone_names: List[str] = []
 
     _threat_impact_range = field_validator("alert_threat_impact", mode="before")(

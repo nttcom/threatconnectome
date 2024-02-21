@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, Union, cast
 
-from sqlalchemy import ARRAY, JSON, Enum, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import ARRAY, JSON, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
@@ -362,59 +362,25 @@ class Account(Base):
     action_logs = relationship("ActionLog", back_populates="executed_by")
 
 
-class PTeamTag(Base):
-    __tablename__ = "pteamtag"
-
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    tag_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("tag.tag_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    references: Mapped[List[dict]] = mapped_column("refs", default=[])
-    # "references" is reserved word
-    # [{"target": "", "version": "", "group": ""}]
-    text: Mapped[Optional[str]]
-
-    # see https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html#association-object
-    tag = relationship("Tag", back_populates="pteamtags")
-    pteam = relationship("PTeam", back_populates="pteamtags")
-
-
 class PTeamTagReference(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.reference_id:
-            self.reference_id = str(uuid.uuid4())
-
     __tablename__ = "pteamtagreference"
-    __table_args__ = (
-        UniqueConstraint(
-            "pteam_id",
-            "tag_id",
-            "group",
-            "target",
-            "version",
-            name="pteamtagreference_pteam_id_tag_id_group_target_version_key",
-        ),
-    )
 
-    reference_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     pteam_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"),
+        primary_key=True,
         index=True,
     )
     tag_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("tag.tag_id", ondelete="CASCADE"),
+        primary_key=True,
         index=True,
     )
-    group: Mapped[Str255] = mapped_column(index=True)
-    target: Mapped[str]
-    version: Mapped[str]
+    group: Mapped[Str255] = mapped_column(primary_key=True, index=True)
+    target: Mapped[str] = mapped_column(primary_key=True)
+    version: Mapped[str] = mapped_column(primary_key=True)
+
+    pteam = relationship("PTeam", back_populates="references")
+    tag = relationship("Tag", back_populates="references")
 
 
 class PTeam(Base):
@@ -432,7 +398,9 @@ class PTeam(Base):
     alert_threat_impact: Mapped[Optional[int]]
     disabled: Mapped[bool] = mapped_column(default=False)
 
-    pteamtags = relationship("PTeamTag", back_populates="pteam", cascade="all, delete-orphan")
+    references = relationship(
+        "PTeamTagReference", back_populates="pteam", cascade="all, delete-orphan"
+    )
     zones = relationship("Zone", secondary=PTeamZone.__tablename__, back_populates="pteams")
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
     invitations = relationship("PTeamInvitation", back_populates="pteam")
@@ -630,6 +598,10 @@ class CurrentPTeamTopicTagStatus(Base):
     threat_impact: Mapped[Optional[int]]
     updated_at: Mapped[Optional[datetime]]
 
+    pteam = relationship("PTeam")
+    topic = relationship("Topic")
+    tag = relationship("Tag")
+
 
 class Tag(Base):
     def __init__(self, *args, **kwargs) -> None:
@@ -645,7 +617,9 @@ class Tag(Base):
     parent_name: Mapped[Optional[str]] = mapped_column(ForeignKey("tag.tag_name"), index=True)
 
     topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
-    pteamtags = relationship("PTeamTag", back_populates="tag", cascade="all, delete-orphan")
+    references = relationship(
+        "PTeamTagReference", back_populates="tag", cascade="all, delete-orphan"
+    )
 
 
 class MispTag(Base):
