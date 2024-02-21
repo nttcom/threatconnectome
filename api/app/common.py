@@ -2230,7 +2230,7 @@ def _pick_pteamtags_related_to_topic(
         )
         .exists(),
     )
-    select_ptr_stmt = (
+    select_ptrs_related_to_topic_stmt = (
         select(
             models.PTeamTagReference.pteam_id,
             models.PTeamTagReference.tag_id,
@@ -2260,7 +2260,7 @@ def _pick_pteamtags_related_to_topic(
         )
     )
 
-    ptrs = db.execute(select_ptr_stmt).all()
+    ptrs = db.execute(select_ptrs_related_to_topic_stmt).all()
     return [(ptr.PTeam, ptr.Tag) for ptr in ptrs]
 
 
