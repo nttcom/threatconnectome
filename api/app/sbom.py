@@ -124,8 +124,9 @@ class TrivyCDXParser(SBOMParser):
         def to_tag(self, components_map: Dict[str, Any]) -> Optional[str]:
             if not self.purl:
                 return None
-            pkg_name = self.name  # given by trivy. may include namespace in some case.
-            pkg_group = self.group
+            pkg_name = (
+                self.group + ":" + self.name if self.group else self.name
+            )  # given by trivy. may include namespace in some case.
             pkg_info = self.purl.type
             pkg_mgr = ""
             if self.targets:
@@ -141,12 +142,7 @@ class TrivyCDXParser(SBOMParser):
                     pkg_info = self._fix_distro(distro) if distro else ""
                 else:
                     pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
-
-            return (
-                f"{pkg_group}:{pkg_name}:{pkg_info}:{pkg_mgr}"
-                if pkg_group
-                else f"{pkg_name}:{pkg_info}:{pkg_mgr}"
-            )
+            return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
@@ -321,21 +317,18 @@ class SyftCDXParser(SBOMParser):
         def to_tag(self) -> Optional[str]:
             if not self.purl:
                 return None
-            pkg_name = self.name  # given by syft. may include namespace in some case.
+            pkg_name = (
+                self.group + ":" + self.name if self.group else self.name
+            )  # given by syft. may include namespace in some case.
             distro = (
                 self.purl.qualifiers.get("distro")
                 if self.purl and isinstance(self.purl.qualifiers, dict)
                 else None
             )
-            pkg_group = self.group
             pkg_info = distro if distro else self.purl.type
             pkg_mgr = self.mgr_info.name if self.mgr_info else ""
 
-            return (
-                f"{pkg_group}:{pkg_name}:{pkg_info}:{pkg_mgr}"
-                if pkg_group
-                else f"{pkg_name}:{pkg_info}:{pkg_mgr}"
-            )
+            return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
