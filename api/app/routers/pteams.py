@@ -952,9 +952,9 @@ def update_pteam(
         ).delete()
     elif need_auto_close:
         db.flush()
-        ptrs = db.execute(
+        pteamtags = db.execute(
             select(
-                models.PTeamTagReference,
+                models.PTeamTagReference.tag_id.distinct(),
                 models.PTeam,
                 models.Tag,
             )
@@ -967,7 +967,7 @@ def update_pteam(
             )
             .join(models.Tag)
         ).all()
-        auto_close_by_pteamtags(db, [(ptr.PTeam, ptr.Tag) for ptr in ptrs])
+        auto_close_by_pteamtags(db, [(pteamtag.PTeam, pteamtag.Tag) for pteamtag in pteamtags])
 
     db.flush()
     db.refresh(pteam)
