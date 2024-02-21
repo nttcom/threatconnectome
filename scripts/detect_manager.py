@@ -144,7 +144,6 @@ def main():
     # tool名の検出
     tool = get_sbom_generator_name(deserialized_bom)
     if tool in ["trivy", "syft"]:
-
         # SBOM作成ツール固有のパッケージマネージャ情報を取得
         package_managers = detect_package_managers(deserialized_bom.components, tool=tool)
 
