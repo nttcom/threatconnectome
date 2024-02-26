@@ -71,6 +71,7 @@ PTEAM1 = {
     "contact_info": "alpha@ml.com",
     "slack_webhook_url": "",
     "alert_threat_impact": 3,
+    "alert_mail": {"enable": True, "address": "alpha@ml.com"},
     "zone_names": [],
 }
 
@@ -79,6 +80,7 @@ PTEAM2 = {
     "contact_info": "bravo@ml.com",
     "slack_webhook_url": "",
     "alert_threat_impact": 2,
+    "alert_mail": {"enable": False, "address": "bravo@ml.com"},
     "zone_names": [],
 }
 PTEAM3 = {

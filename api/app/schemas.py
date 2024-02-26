@@ -306,11 +306,17 @@ class TopicUpdateRequest(ORMModel):
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
 
+class Mail(ORMModel):
+    enable: bool
+    address: str
+
+
 class PTeamInfo(PTeamEntry):
     slack_webhook_url: str
     alert_threat_impact: int
     zones: List[ZoneEntry]
     ateams: List[ATeamEntry]
+    alert_mail: Mail
 
     _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
         threat_impact_range
@@ -322,6 +328,7 @@ class PTeamCreateRequest(ORMModel):
     contact_info: str = ""
     slack_webhook_url: str = ""
     alert_threat_impact: int = DEFAULT_ALERT_THREAT_IMPACT
+    alert_mail: Optional[Mail] = None
     zone_names: List[str] = []
 
     _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
@@ -336,6 +343,7 @@ class PTeamUpdateRequest(ORMModel):
     alert_threat_impact: Optional[int] = None
     zone_names: Optional[List[str]] = None
     disabled: Optional[bool] = None
+    alert_mail: Optional[Mail] = None
 
     _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
         threat_impact_range
