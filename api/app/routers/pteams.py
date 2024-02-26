@@ -469,16 +469,13 @@ def create_pteam(
         slack_webhook_url=data.slack_webhook_url.strip(),
         alert_threat_impact=data.alert_threat_impact or DEFAULT_ALERT_THREAT_IMPACT,
     )
-    pteam.zones = update_zones(db, current_user.user_id, True, [], data.zone_names)
-    db.add(pteam)
-    db.flush()
-
     pteam.alert_mail = models.PTeamMail(
         pteam_id=pteam.pteam_id,
         enable=data.alert_mail.enable if data.alert_mail else False,
         address=data.alert_mail.address if data.alert_mail else "",
     )
-    db.add(pteam.alert_mail)
+    pteam.zones = update_zones(db, current_user.user_id, True, [], data.zone_names)
+    db.add(pteam)
     db.flush()
 
     # join to the created pteam
