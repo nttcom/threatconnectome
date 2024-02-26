@@ -104,7 +104,7 @@ export function GTeamGeneralSetting(props) {
           GTeam name
         </Typography>
         <TextField
-          id="outlined-basic"
+          id="gteam-name-field"
           size="small"
           value={gteamName}
           onChange={(event) => setGTeamName(event.target.value)}
@@ -117,7 +117,7 @@ export function GTeamGeneralSetting(props) {
           Contact Info
         </Typography>
         <TextField
-          id="outlined-basic"
+          id="contact-info-field"
           size="small"
           value={contactInfo}
           onChange={(event) => setContactInfo(event.target.value)}

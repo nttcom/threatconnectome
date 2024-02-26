@@ -147,7 +147,7 @@ export function ATeamGeneralSetting(props) {
           ATeam name
         </Typography>
         <TextField
-          id="outlined-basic"
+          id="ateam-name-field"
           size="small"
           value={ateamName}
           onChange={(event) => setATeamName(event.target.value)}
@@ -160,7 +160,7 @@ export function ATeamGeneralSetting(props) {
           Contact Info
         </Typography>
         <TextField
-          id="outlined-basic"
+          id="contact-info-field"
           size="small"
           value={contactInfo}
           onChange={(event) => setContactInfo(event.target.value)}
@@ -187,7 +187,7 @@ export function ATeamGeneralSetting(props) {
             <OutlinedInput
               id="outlined-adornment-password"
               type={edittingSlackUrl ? "text" : "password"}
-              autocomplete="new-password" // to avoid autocomplete by browser
+              autoComplete="new-password" // to avoid autocomplete by browser
               value={slackUrl}
               onChange={(event) => setSlackUrl(event.target.value)}
               endAdornment={

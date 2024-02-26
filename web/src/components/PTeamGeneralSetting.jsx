@@ -156,7 +156,7 @@ export function PTeamGeneralSetting(props) {
           PTeam name
         </Typography>
         <TextField
-          id="outlined-basic"
+          id="pteam-name-field"
           size="small"
           value={pteamName}
           onChange={(event) => setPTeamName(event.target.value)}
@@ -169,7 +169,7 @@ export function PTeamGeneralSetting(props) {
           Contact Info
         </Typography>
         <TextField
-          id="outlined-basic"
+          id="contact-info-field"
           size="small"
           value={contactInfo}
           onChange={(event) => setContactInfo(event.target.value)}
@@ -195,7 +195,7 @@ export function PTeamGeneralSetting(props) {
             <OutlinedInput
               id="outlined-adornment-password"
               type={edittingSlackUrl ? "text" : "password"}
-              autocomplete="new-password" // to avoid autocomplete by browser
+              autoComplete="new-password" // to avoid autocomplete by browser
               value={slackUrl}
               onChange={(event) => setSlackUrl(event.target.value)}
               endAdornment={

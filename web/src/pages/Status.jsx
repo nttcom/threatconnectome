@@ -264,7 +264,7 @@ export function Status() {
   return (
     <>
       <Box display="flex" flexDirection="row">
-        <PTeamLabel defaultTabIndex={1} />
+        <PTeamLabel defaultTabIndex={0} />
         <Box flexGrow={1} />
       </Box>
       <PTeamGroupChip />
