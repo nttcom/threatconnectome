@@ -97,10 +97,12 @@ PTEAM4 = {
 ATEAM1 = {
     "ateam_name": "ateam a-one",
     "contact_info": "a-one@ml.com",
+    "alert_mail": {"enable": True, "address": "a-one@ml.com"},
 }
 ATEAM2 = {
     "ateam_name": "ateam a-two",
     "contact_info": "",
+    "alert_mail": {"enable": False, "address": "a-two@ml.com"},
 }
 GTEAM1 = {
     "gteam_name": "gteam g-one",

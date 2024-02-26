@@ -32,6 +32,7 @@ def _make_ateam_info(ateam: models.ATeam) -> schemas.ATeamInfo:
         ateam_name=ateam.ateam_name,
         contact_info=ateam.contact_info,
         slack_webhook_url=ateam.slack_webhook_url,
+        alert_mail=schemas.Mail(**ateam.alert_mail.__dict__),
         pteams=ateam.pteams,
         zones=list({zone for pteam in ateam.pteams for zone in pteam.zones}),
     )
@@ -103,6 +104,11 @@ def create_ateam(
         ateam_name=data.ateam_name.strip(),
         contact_info=data.contact_info.strip(),
         slack_webhook_url=data.slack_webhook_url.strip(),
+    )
+    ateam.alert_mail = models.ATeamMail(
+        ateam_id=ateam.ateam_id,
+        enable=data.alert_mail.enable if data.alert_mail else False,
+        address=data.alert_mail.address if data.alert_mail else "",
     )
     current_user.ateams.append(ateam)
     db.add(current_user)
@@ -283,6 +289,9 @@ def update_ateam(
     )
     for key, value in data:
         if value is None:
+            continue
+        if key == "alert_mail":
+            setattr(ateam, key, models.ATeamMail(**value.__dict__))
             continue
         setattr(ateam, key, value)
     db.add(ateam)
