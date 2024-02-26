@@ -5,15 +5,32 @@ Revises: d70c6355860e
 Create Date: 2024-02-26 04:05:16.935403
 
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.engine import Connection
 
 # revision identifiers, used by Alembic.
-revision = '982664e26b3d'
-down_revision = 'd70c6355860e'
+revision = "982664e26b3d"
+down_revision = "d70c6355860e"
 branch_labels = None
 depends_on = None
+
+
+def insert_rows_into_ateam_mail(connection: Connection):
+    query = """
+        INSERT INTO ateammail (ateam_id, enable, address)
+          SELECT ateam_id, false, '' FROM ateam
+        """
+    connection.exec_driver_sql(query)
+
+
+def insert_rows_into_pteam_mail(connection: Connection):
+    query = """
+        INSERT INTO pteammail (pteam_id, enable, address)
+          SELECT pteam_id, false, '' FROM pteam
+        """
+    connection.exec_driver_sql(query)
 
 
 def upgrade() -> None:
@@ -33,8 +50,9 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['pteam_id'], ['pteam.pteam_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('pteam_id')
     )
-    op.create_index(op.f('ix_pteammail_pteam_id'), 'pteammail', ['pteam_id'], unique=False)
-    # ### end Alembic commands ###
+    connection = op.get_bind()
+    insert_rows_into_ateam_mail(connection)
+    insert_rows_into_pteam_mail(connection)
 
 
 def downgrade() -> None:
