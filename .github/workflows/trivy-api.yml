@@ -1,4 +1,4 @@
-name: Run Trivy scan to web
+name: Run Trivy scan to api
 on:
   pull_request:
     branches:
