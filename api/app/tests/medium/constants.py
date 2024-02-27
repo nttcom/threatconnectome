@@ -71,6 +71,7 @@ PTEAM1 = {
     "contact_info": "alpha@ml.com",
     "slack_webhook_url": "",
     "alert_threat_impact": 3,
+    "alert_mail": {"enable": True, "address": "alpha@ml.com"},
     "zone_names": [],
 }
 
@@ -79,6 +80,7 @@ PTEAM2 = {
     "contact_info": "bravo@ml.com",
     "slack_webhook_url": "",
     "alert_threat_impact": 2,
+    "alert_mail": {"enable": False, "address": "bravo@ml.com"},
     "zone_names": [],
 }
 PTEAM3 = {
@@ -95,10 +97,12 @@ PTEAM4 = {
 ATEAM1 = {
     "ateam_name": "ateam a-one",
     "contact_info": "a-one@ml.com",
+    "alert_mail": {"enable": True, "address": "a-one@ml.com"},
 }
 ATEAM2 = {
     "ateam_name": "ateam a-two",
     "contact_info": "",
+    "alert_mail": {"enable": False, "address": "a-two@ml.com"},
 }
 GTEAM1 = {
     "gteam_name": "gteam g-one",

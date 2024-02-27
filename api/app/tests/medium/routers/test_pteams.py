@@ -159,6 +159,8 @@ def test_get_pteam():
     assert data["contact_info"] == PTEAM1["contact_info"]
     assert data["pteam_name"] == PTEAM1["pteam_name"]
     assert data["slack_webhook_url"] == PTEAM1["slack_webhook_url"]
+    assert data["alert_mail"]["enable"] == PTEAM1["alert_mail"]["enable"]
+    assert data["alert_mail"]["address"] == PTEAM1["alert_mail"]["address"]
 
 
 def test_get_pteam__without_auth():
@@ -240,10 +242,13 @@ def test_create_pteam__by_default():
     del _pteam["contact_info"]
     del _pteam["slack_webhook_url"]
     del _pteam["alert_threat_impact"]
+    del _pteam["alert_mail"]
     pteam1 = create_pteam(USER1, _pteam)
     assert pteam1.contact_info == ""
     assert pteam1.slack_webhook_url == ""
     assert pteam1.alert_threat_impact == DEFAULT_ALERT_THREAT_IMPACT
+    assert pteam1.alert_mail.enable is False
+    assert pteam1.alert_mail.address == ""
 
 
 def test_create_pteam__without_auth():
@@ -279,6 +284,8 @@ def test_update_pteam():
     assert data["contact_info"] == PTEAM2["contact_info"]
     assert data["slack_webhook_url"] == PTEAM2["slack_webhook_url"]
     assert data["alert_threat_impact"] == PTEAM2["alert_threat_impact"]
+    assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
+    assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
     assert len(data["zones"]) == 1
     assert (zone2 := _pick_zone_dict(data["zones"], ZONE2["zone_name"]))
     assert zone2["zone_name"] == ZONE2["zone_name"]
@@ -312,6 +319,8 @@ def test_update_pteam__by_admin():
     assert data["contact_info"] == PTEAM2["contact_info"]
     assert data["slack_webhook_url"] == PTEAM2["slack_webhook_url"]
     assert data["alert_threat_impact"] == PTEAM2["alert_threat_impact"]
+    assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
+    assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
     assert len(data["zones"]) == 1
     assert (zone2 := _pick_zone_dict(data["zones"], ZONE2["zone_name"]))
     assert zone2["zone_name"] == ZONE2["zone_name"]

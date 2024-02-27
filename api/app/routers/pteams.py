@@ -469,6 +469,11 @@ def create_pteam(
         slack_webhook_url=data.slack_webhook_url.strip(),
         alert_threat_impact=data.alert_threat_impact or DEFAULT_ALERT_THREAT_IMPACT,
     )
+    pteam.alert_mail = models.PTeamMail(
+        pteam_id=pteam.pteam_id,
+        enable=data.alert_mail.enable if data.alert_mail else False,
+        address=data.alert_mail.address if data.alert_mail else "",
+    )
     pteam.zones = update_zones(db, current_user.user_id, True, [], data.zone_names)
     db.add(pteam)
     db.flush()
@@ -933,6 +938,8 @@ def update_pteam(
         pteam.alert_threat_impact = data.alert_threat_impact
     if data.disabled is not None:
         pteam.disabled = data.disabled
+    if data.alert_mail is not None:
+        pteam.alert_mail = models.PTeamMail(**data.alert_mail.__dict__)
 
     # Zone updating process
     if data.zone_names is not None:

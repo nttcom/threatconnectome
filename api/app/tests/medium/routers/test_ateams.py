@@ -145,6 +145,8 @@ def test_create_ateam():
     assert data["pteams"] == []
     assert data["zones"] == []
     assert data["slack_webhook_url"] == ateam1.slack_webhook_url == SAMPLE_SLACK_WEBHOOK_URL
+    assert data["alert_mail"]["enable"] == ATEAM1["alert_mail"]["enable"]
+    assert data["alert_mail"]["address"] == ATEAM1["alert_mail"]["address"]
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/members", headers=headers(USER1)))
     assert len(data) == 1
@@ -224,6 +226,8 @@ def test_update_ateam__by_member():
     data = assert_200(client.put(f"/ateams/{ateam1.ateam_id}", headers=headers(USER3), json=ATEAM2))
     assert UUID(data["ateam_id"]) == ateam1.ateam_id
     assert data["ateam_name"] == ATEAM2["ateam_name"]
+    assert data["alert_mail"]["enable"] == ATEAM2["alert_mail"]["enable"]
+    assert data["alert_mail"]["address"] == ATEAM2["alert_mail"]["address"]
 
 
 def test_update_ateam__by_not_member():

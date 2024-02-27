@@ -405,6 +405,9 @@ class PTeam(Base):
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
     invitations = relationship("PTeamInvitation", back_populates="pteam")
     ateams = relationship("ATeam", secondary=ATeamPTeam.__tablename__, back_populates="pteams")
+    alert_mail: Mapped["PTeamMail"] = relationship(
+        back_populates="pteam", cascade="all, delete-orphan"
+    )
 
 
 class ATeam(Base):
@@ -424,6 +427,9 @@ class ATeam(Base):
     invitations = relationship("ATeamInvitation", back_populates="ateam")
     pteams = relationship("PTeam", secondary=ATeamPTeam.__tablename__, back_populates="ateams")
     watching_requests = relationship("ATeamWatchingRequest", back_populates="ateam")
+    alert_mail: Mapped["ATeamMail"] = relationship(
+        back_populates="ateam", cascade="all, delete-orphan"
+    )
 
 
 class GTeam(Base):
@@ -480,6 +486,30 @@ class GTeamAuthority(Base):
         ForeignKey("account.user_id"), primary_key=True, index=True
     )
     authority: Mapped[int]  # GTeamAuthIntFlag as an integer
+
+
+class PTeamMail(Base):
+    __tablename__ = "pteammail"
+
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    enable: Mapped[bool]
+    address: Mapped[Str255]
+
+    pteam: Mapped[PTeam] = relationship(back_populates="alert_mail")
+
+
+class ATeamMail(Base):
+    __tablename__ = "ateammail"
+
+    ateam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    enable: Mapped[bool]
+    address: Mapped[Str255]
+
+    ateam: Mapped[ATeam] = relationship(back_populates="alert_mail")
 
 
 class SecBadge(Base):
