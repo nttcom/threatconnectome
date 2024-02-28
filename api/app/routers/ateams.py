@@ -300,6 +300,7 @@ def update_ateam(
             continue
         if key == "alert_slack":
             setattr(ateam, key, models.AteamSlack(**value.__dict__))
+            continue
         if key == "alert_mail":
             setattr(ateam, key, models.ATeamMail(**value.__dict__))
             continue
