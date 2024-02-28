@@ -247,7 +247,7 @@ def test_create_pteam__by_default():
     del _pteam["alert_mail"]
     pteam1 = create_pteam(USER1, _pteam)
     assert pteam1.contact_info == ""
-    assert pteam1.alert_slack.enable is False
+    assert pteam1.alert_slack.enable is True
     assert pteam1.alert_slack.webhook_url == ""
     assert pteam1.alert_threat_impact == DEFAULT_ALERT_THREAT_IMPACT
     assert pteam1.alert_mail.enable is False

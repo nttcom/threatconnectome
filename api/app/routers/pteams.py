@@ -933,14 +933,14 @@ def update_pteam(
         pteam.slack_webhook_url = data.alert_slack.webhook_url  # deprecated
         pteam.alert_slack = models.PteamSlack(
             pteam_id=pteam.pteam_id,
-            enable=data.alert_slack.enable if data.alert_slack else False,
-            webhook_url=data.alert_slack.webhook_url if data.alert_slack else "",
+            enable=data.alert_slack.enable,
+            webhook_url=data.alert_slack.webhook_url,
         )
     elif data.alert_slack and data.alert_slack.webhook_url == "":
         pteam.slack_webhook_url = ""  # deprecated
         pteam.alert_slack = models.PteamSlack(
             pteam_id=pteam.pteam_id,
-            enable=False,  # Turn off alert when webhook_url is deleted
+            enable=data.alert_slack.enable,
             webhook_url="",
         )
 
