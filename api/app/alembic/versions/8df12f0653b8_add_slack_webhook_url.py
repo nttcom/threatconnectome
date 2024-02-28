@@ -20,7 +20,7 @@ depends_on = None
 def insert_pteam_slack_webhook_url(connection: Connection):
     query = (
         "INSERT INTO pteamslack (pteam_id, enable, webhook_url)"
-        " SELECT pteam_id, false, slack_webhook_url FROM pteam"
+        " SELECT pteam_id, true, slack_webhook_url FROM pteam"
     )
     connection.exec_driver_sql(query)
 
@@ -28,7 +28,7 @@ def insert_pteam_slack_webhook_url(connection: Connection):
 def insert_ateam_slack_webhook_url(connection: Connection):
     query = (
         "INSERT INTO ateamslack (ateam_id, enable, webhook_url)"
-        " SELECT ateam_id, false, slack_webhook_url FROM ateam"
+        " SELECT ateam_id, true, slack_webhook_url FROM ateam"
     )
     connection.exec_driver_sql(query)
 

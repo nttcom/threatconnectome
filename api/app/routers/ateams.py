@@ -109,7 +109,7 @@ def create_ateam(
     )
     ateam.alert_slack = models.AteamSlack(
         ateam_id=ateam.ateam_id,
-        enable=data.alert_slack.enable if data.alert_slack else False,
+        enable=data.alert_slack.enable if data.alert_slack else True,
         webhook_url=data.alert_slack.webhook_url if data.alert_slack else "",
     )
     ateam.alert_mail = models.ATeamMail(

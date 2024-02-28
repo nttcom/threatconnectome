@@ -474,7 +474,7 @@ def create_pteam(
     )
     pteam.alert_slack = models.PteamSlack(
         pteam_id=pteam.pteam_id,
-        enable=data.alert_slack.enable if data.alert_slack else False,
+        enable=data.alert_slack.enable if data.alert_slack else True,
         webhook_url=data.alert_slack.webhook_url if data.alert_slack else "",
     )
     pteam.alert_mail = models.PTeamMail(
