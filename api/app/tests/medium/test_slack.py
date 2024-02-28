@@ -189,7 +189,7 @@ def test_pick_alert_targets__tags(testdb) -> None:
     def _expected_alert_target(idx: int, tag: schemas.TagResponse) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
+            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
             "pteam_id": str(pteams[idx].pteam_id),
             "tag_id": str(tag.tag_id),
             "tag_name": tag.tag_name,
@@ -290,7 +290,7 @@ def test_pick_alert_targets__threshold(testdb) -> None:
     def _expected_alert_target(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
+            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
             "pteam_id": str(pteams[idx].pteam_id),
             "tag_id": str(child_tag11.tag_id),
             "tag_name": child_tag11.tag_name,
@@ -404,7 +404,7 @@ def test_pick_alert_targets__zones(testdb) -> None:
     def _expected_alert_target(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
+            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
             "pteam_id": str(pteams[idx].pteam_id),
             "tag_id": str(child_tag11.tag_id),
             "tag_name": child_tag11.tag_name,
@@ -541,7 +541,7 @@ def test_pick_alert_targets__auto_closed(testdb):
     def _expected_alert_target(idx: int, tag: schemas.TagResponse) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
+            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
             "pteam_id": str(pteam0.pteam_id),
             "tag_id": str(tag.tag_id),
             "tag_name": tag.tag_name,
