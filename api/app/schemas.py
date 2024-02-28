@@ -583,6 +583,7 @@ class SlackCheckRequest(ORMModel):
 class EmailCheckRequest(ORMModel):
     email: str
 
+
 class FsServerInfo(ORMModel):
     api_url: str
 
