@@ -42,7 +42,7 @@ export function PTeamCreateModal(props) {
     const data = {
       pteam_name: pteamName,
       contact_info: contactInfo,
-      slack_webhook_url: slackUrl,
+      alert_slack: { enable: true, webhook_url: slackUrl },
     };
     await createPTeam(data)
       .then(async (response) => {
@@ -58,7 +58,7 @@ export function PTeamCreateModal(props) {
         const resp = error.response;
         enqueueSnackbar(
           `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
-          { variant: "error" },
+          { variant: "error" }
         );
       });
   };

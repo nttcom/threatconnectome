@@ -66,7 +66,7 @@ export function ATeamGeneralSetting(props) {
     if (ateam) {
       setATeamName(ateam.ateam_name);
       setContactInfo(ateam.contact_info);
-      setSlackUrl(ateam.slack_webhook_url);
+      setSlackUrl(ateam.alert_slack.webhook_url);
     }
     setCheckFlashsense(false);
     setFlashsenseMessage();
@@ -101,7 +101,7 @@ export function ATeamGeneralSetting(props) {
     const ateamInfo = {
       ateam_name: ateamName,
       contact_info: contactInfo,
-      slack_webhook_url: slackUrl,
+      alert_slack: { enable: true, webhook_url: slackUrl }, //todo change enable status
     };
     await updateATeam(ateamId, ateamInfo)
       .then(() => {
