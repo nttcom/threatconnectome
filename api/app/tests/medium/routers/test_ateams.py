@@ -136,7 +136,9 @@ def test_get_ateam__by_not_member():
 
 def test_create_ateam():
     user1 = create_user(USER1)
-    ateam1 = create_ateam(USER1, {**ATEAM1, "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL})
+    ateam1 = create_ateam(
+        USER1, {**ATEAM1, "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL}}
+    )
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}", headers=headers(USER1)))
     assert UUID(data["ateam_id"]) == ateam1.ateam_id
@@ -144,7 +146,12 @@ def test_create_ateam():
     assert data["contact_info"] == ATEAM1["contact_info"]
     assert data["pteams"] == []
     assert data["zones"] == []
-    assert data["slack_webhook_url"] == ateam1.slack_webhook_url == SAMPLE_SLACK_WEBHOOK_URL
+    assert data["alert_slack"]["enable"] == ateam1.alert_slack.enable
+    assert (
+        data["alert_slack"]["webhook_url"]
+        == ateam1.alert_slack.webhook_url
+        == SAMPLE_SLACK_WEBHOOK_URL
+    )
     assert data["alert_mail"]["enable"] == ATEAM1["alert_mail"]["enable"]
     assert data["alert_mail"]["address"] == ATEAM1["alert_mail"]["address"]
 
@@ -199,7 +206,7 @@ def test_update_validate_slack_webhook_url():
     ateam1 = create_ateam(USER1, ATEAM1)
 
     json = {
-        "slack_webhook_url": "test",
+        "alert_slack": {"enable": True, "webhook_url": "test"},
     }
 
     with pytest.raises(HTTPError, match=r"400: Bad Request: Invalid slack webhook url"):

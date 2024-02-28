@@ -31,7 +31,7 @@ def _make_ateam_info(ateam: models.ATeam) -> schemas.ATeamInfo:
         ateam_id=UUID(ateam.ateam_id),
         ateam_name=ateam.ateam_name,
         contact_info=ateam.contact_info,
-        slack_webhook_url=ateam.slack_webhook_url,
+        alert_slack=schemas.Slack(**ateam.alert_slack.__dict__),
         alert_mail=schemas.Mail(**ateam.alert_mail.__dict__),
         pteams=ateam.pteams,
         zones=list({zone for pteam in ateam.pteams for zone in pteam.zones}),
@@ -98,12 +98,19 @@ def create_ateam(
     """
     Create an ateam.
     """
-    if data.slack_webhook_url:
-        validate_slack_webhook_url(data.slack_webhook_url)
+    if data.alert_slack and data.alert_slack.webhook_url:
+        validate_slack_webhook_url(data.alert_slack.webhook_url)
     ateam = models.ATeam(
         ateam_name=data.ateam_name.strip(),
         contact_info=data.contact_info.strip(),
-        slack_webhook_url=data.slack_webhook_url.strip(),
+        slack_webhook_url=(
+            data.alert_slack.webhook_url.strip() if data.alert_slack else ""
+        ),  # deprecated
+    )
+    ateam.alert_slack = models.AteamSlack(
+        ateam_id=ateam.ateam_id,
+        enable=data.alert_slack.enable if data.alert_slack else False,
+        webhook_url=data.alert_slack.webhook_url if data.alert_slack else "",
     )
     ateam.alert_mail = models.ATeamMail(
         ateam_id=ateam.ateam_id,
@@ -275,8 +282,9 @@ def update_ateam(
     """
     Update an ateam.
     """
-    if data.slack_webhook_url:
-        validate_slack_webhook_url(data.slack_webhook_url)
+
+    if data.alert_slack and data.alert_slack.webhook_url:
+        validate_slack_webhook_url(data.alert_slack.webhook_url)
 
     ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
     assert ateam
@@ -290,6 +298,8 @@ def update_ateam(
     for key, value in data:
         if value is None:
             continue
+        if key == "alert_slack":
+            setattr(ateam, key, models.AteamSlack(**value.__dict__))
         if key == "alert_mail":
             setattr(ateam, key, models.ATeamMail(**value.__dict__))
             continue

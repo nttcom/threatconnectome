@@ -45,7 +45,7 @@ def test_alert_new_topics(testdb):
 
     PTEAM1_WITH_SLACK_WEBHOOK_URL = {
         **PTEAM1,
-        "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL,
+        "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL},
     }
     pteam1 = create_pteam(USER1, PTEAM1_WITH_SLACK_WEBHOOK_URL)
     upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)
@@ -60,11 +60,14 @@ def test_alert_new_topics(testdb):
 
     with httpretty.enabled():
         httpretty.register_uri(
-            httpretty.POST, PTEAM1_WITH_SLACK_WEBHOOK_URL["slack_webhook_url"], body="OK"
+            httpretty.POST, PTEAM1_WITH_SLACK_WEBHOOK_URL["alert_slack"]["webhook_url"], body="OK"
         )
         alert_new_topic(testdb, topic)
         assert httpretty.last_request().method == "POST"
-        assert httpretty.last_request().url == PTEAM1_WITH_SLACK_WEBHOOK_URL["slack_webhook_url"]
+        assert (
+            httpretty.last_request().url
+            == PTEAM1_WITH_SLACK_WEBHOOK_URL["alert_slack"]["webhook_url"]
+        )
 
         # assert posted data contains results of _create_blocks_for_pteam
         expected_blocks = _create_blocks_for_pteam(
@@ -85,7 +88,9 @@ def test_alert_new_topics__auto_closed(testdb):
     create_user(USER1)
     tag1 = create_tag(USER1, "testpkg:testinfo:testmgr")
 
-    pteam1 = create_pteam(USER1, {**PTEAM1, "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL})
+    pteam1 = create_pteam(
+        USER1, {**PTEAM1, "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL}}
+    )
     refs0 = {tag1.tag_name: [("test/target1", "1.0")]}
     upload_pteam_tags(USER1, pteam1.pteam_id, "test group", refs0)
 
@@ -115,7 +120,7 @@ def test_alert_new_topics__auto_closed(testdb):
     assert current_status == models.TopicStatusType.completed  # auto closed
 
     with httpretty.enabled():
-        httpretty.register_uri(httpretty.POST, pteam1.slack_webhook_url, body="OK")
+        httpretty.register_uri(httpretty.POST, pteam1.alert_slack.webhook_url, body="OK")
         alert_new_topic(testdb, db_topic1)
         assert not httpretty.has_request()
 
@@ -146,7 +151,7 @@ def test_pick_alert_targets__tags(testdb) -> None:
     def _gen_pteam_params(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
         }
 
@@ -184,7 +189,7 @@ def test_pick_alert_targets__tags(testdb) -> None:
     def _expected_alert_target(idx: int, tag: schemas.TagResponse) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
             "pteam_id": str(pteams[idx].pteam_id),
             "tag_id": str(tag.tag_id),
             "tag_name": tag.tag_name,
@@ -242,7 +247,10 @@ def test_pick_alert_targets__threshold(testdb) -> None:
     def _gen_pteam_params(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "slack_webhook_url": "" if idx == 0 else SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            "alert_slack": {
+                "enable": True,
+                "webhook_url": "" if idx == 0 else SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            },
             "alert_threat_impact": idx if idx in range(1, 5) else DEFAULT_ALERT_THREAT_IMPACT,
         }
 
@@ -282,7 +290,7 @@ def test_pick_alert_targets__threshold(testdb) -> None:
     def _expected_alert_target(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
             "pteam_id": str(pteams[idx].pteam_id),
             "tag_id": str(child_tag11.tag_id),
             "tag_name": child_tag11.tag_name,
@@ -355,7 +363,7 @@ def test_pick_alert_targets__zones(testdb) -> None:
         zones = pteam_zones_patterns[idx]
         return {
             "pteam_name": f"pteam{idx}",
-            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
             "zone_names": [zone.zone_name for zone in zones],
         }
@@ -396,7 +404,7 @@ def test_pick_alert_targets__zones(testdb) -> None:
     def _expected_alert_target(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
             "pteam_id": str(pteams[idx].pteam_id),
             "tag_id": str(child_tag11.tag_id),
             "tag_name": child_tag11.tag_name,
@@ -447,7 +455,10 @@ def test_pick_alert_targets__disabled(testdb):
     def _gen_pteam_params(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "slack_webhook_url": "" if idx == 0 else SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            "alert_slack": {
+                "enable": True,
+                "webhook_url": "" if idx == 0 else SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            },
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
         }
 
@@ -496,7 +507,7 @@ def test_pick_alert_targets__auto_closed(testdb):
     def _gen_pteam_params(idx: int) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
         }
 
@@ -530,7 +541,7 @@ def test_pick_alert_targets__auto_closed(testdb):
     def _expected_alert_target(idx: int, tag: schemas.TagResponse) -> dict:
         return {
             "pteam_name": f"pteam{idx}",
-            "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx)},
             "pteam_id": str(pteam0.pteam_id),
             "tag_id": str(tag.tag_id),
             "tag_name": tag.tag_name,
@@ -586,7 +597,7 @@ def test_alert_ateam(testdb):
     pteam = create_pteam(USER1, PTEAM1)
     ATEAM1_WITH_SLACK_WEBHOOK_URL = {
         **ATEAM1,
-        "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL,
+        "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL},
     }
     ateam = create_ateam(USER1, ATEAM1_WITH_SLACK_WEBHOOK_URL)
     watching_request = create_watching_request(USER1, ateam.ateam_id)
@@ -597,11 +608,14 @@ def test_alert_ateam(testdb):
     action = testdb.query(models.TopicAction).first()
     with httpretty.enabled():
         httpretty.register_uri(
-            httpretty.POST, ATEAM1_WITH_SLACK_WEBHOOK_URL["slack_webhook_url"], body="OK"
+            httpretty.POST, ATEAM1_WITH_SLACK_WEBHOOK_URL["alert_slack"]["webhook_url"], body="OK"
         )
         alert_to_ateam(testdb, action)
         assert httpretty.last_request().method == "POST"
-        assert httpretty.last_request().url == ATEAM1_WITH_SLACK_WEBHOOK_URL["slack_webhook_url"]
+        assert (
+            httpretty.last_request().url
+            == ATEAM1_WITH_SLACK_WEBHOOK_URL["alert_slack"]["webhook_url"]
+        )
 
         # assert posted data contains results of _create_blocks_for_ateam
         expected_blocks = _create_blocks_for_ateam(
@@ -622,7 +636,9 @@ def test_send_webhook_when_action_creation(mocker):
     m = mocker.patch("app.slack.post_message")
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    ateam1 = create_ateam(USER1, {**ATEAM1, "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL})
+    ateam1 = create_ateam(
+        USER1, {**ATEAM1, "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL}}
+    )
     watching_request = create_watching_request(USER1, ateam1.ateam_id)
     accept_watching_request(USER1, watching_request.request_id, pteam1.pteam_id)
     upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)

@@ -69,7 +69,7 @@ ZONE3 = {
 PTEAM1 = {
     "pteam_name": "pteam alpha",
     "contact_info": "alpha@ml.com",
-    "slack_webhook_url": "",
+    "alert_slack": {"enable": False, "webhook_url": ""},
     "alert_threat_impact": 3,
     "alert_mail": {"enable": True, "address": "alpha@ml.com"},
     "zone_names": [],
@@ -78,7 +78,7 @@ PTEAM1 = {
 PTEAM2 = {
     "pteam_name": "pteam bravo",
     "contact_info": "bravo@ml.com",
-    "slack_webhook_url": "",
+    "alert_slack": {"enable": False, "webhook_url": ""},
     "alert_threat_impact": 2,
     "alert_mail": {"enable": False, "address": "bravo@ml.com"},
     "zone_names": [],
@@ -86,12 +86,12 @@ PTEAM2 = {
 PTEAM3 = {
     "pteam_name": "pteam charlie",
     "contact_info": "charlie@ml.com",
-    "slack_webhook_url": "",
+    "alert_slack": {"enable": False, "webhook_url": ""},
 }
 PTEAM4 = {
     "pteam_name": "pteam delta",
     "contact_info": "",
-    "slack_webhook_url": "",
+    "alert_slack": {"enable": False, "webhook_url": ""},
     "disabled": False,
 }
 ATEAM1 = {
