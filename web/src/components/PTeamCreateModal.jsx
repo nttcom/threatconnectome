@@ -58,7 +58,7 @@ export function PTeamCreateModal(props) {
         const resp = error.response;
         enqueueSnackbar(
           `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
-          { variant: "error" }
+          { variant: "error" },
         );
       });
   };
