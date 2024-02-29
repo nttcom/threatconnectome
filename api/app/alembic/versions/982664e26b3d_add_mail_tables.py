@@ -20,7 +20,7 @@ depends_on = None
 def insert_rows_into_ateam_mail(connection: Connection):
     query = """
         INSERT INTO ateammail (ateam_id, enable, address)
-          SELECT ateam_id, false, '' FROM ateam
+          SELECT ateam_id, true, '' FROM ateam
         """
     connection.exec_driver_sql(query)
 
@@ -28,7 +28,7 @@ def insert_rows_into_ateam_mail(connection: Connection):
 def insert_rows_into_pteam_mail(connection: Connection):
     query = """
         INSERT INTO pteammail (pteam_id, enable, address)
-          SELECT pteam_id, false, '' FROM pteam
+          SELECT pteam_id, true, '' FROM pteam
         """
     connection.exec_driver_sql(query)
 
