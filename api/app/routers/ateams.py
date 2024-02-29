@@ -107,7 +107,7 @@ def create_ateam(
     )
     ateam.alert_mail = models.ATeamMail(
         ateam_id=ateam.ateam_id,
-        enable=data.alert_mail.enable if data.alert_mail else False,
+        enable=data.alert_mail.enable if data.alert_mail else True,
         address=data.alert_mail.address if data.alert_mail else "",
     )
     current_user.ateams.append(ateam)

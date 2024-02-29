@@ -471,7 +471,7 @@ def create_pteam(
     )
     pteam.alert_mail = models.PTeamMail(
         pteam_id=pteam.pteam_id,
-        enable=data.alert_mail.enable if data.alert_mail else False,
+        enable=data.alert_mail.enable if data.alert_mail else True,
         address=data.alert_mail.address if data.alert_mail else "",
     )
     pteam.zones = update_zones(db, current_user.user_id, True, [], data.zone_names)

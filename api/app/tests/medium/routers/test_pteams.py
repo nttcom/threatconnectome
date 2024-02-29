@@ -247,7 +247,7 @@ def test_create_pteam__by_default():
     assert pteam1.contact_info == ""
     assert pteam1.slack_webhook_url == ""
     assert pteam1.alert_threat_impact == DEFAULT_ALERT_THREAT_IMPACT
-    assert pteam1.alert_mail.enable is False
+    assert pteam1.alert_mail.enable is True
     assert pteam1.alert_mail.address == ""
 
 
