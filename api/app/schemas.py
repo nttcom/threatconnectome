@@ -69,6 +69,11 @@ class Mail(ORMModel):
     address: str
 
 
+class Slack(ORMModel):
+    enable: bool
+    webhook_url: str
+
+
 class User(ORMModel):
     user_id: UUID
     email: str
@@ -88,7 +93,7 @@ class ATeamEntry(ORMModel):
 
 
 class ATeamInfo(ATeamEntry):
-    slack_webhook_url: str
+    alert_slack: Slack
     alert_mail: Mail
     pteams: List[PTeamEntry]
     zones: List[ZoneEntry]
@@ -313,7 +318,7 @@ class TopicUpdateRequest(ORMModel):
 
 
 class PTeamInfo(PTeamEntry):
-    slack_webhook_url: str
+    alert_slack: Slack
     alert_threat_impact: int
     zones: List[ZoneEntry]
     ateams: List[ATeamEntry]
@@ -327,7 +332,7 @@ class PTeamInfo(PTeamEntry):
 class PTeamCreateRequest(ORMModel):
     pteam_name: str
     contact_info: str = ""
-    slack_webhook_url: str = ""
+    alert_slack: Optional[Slack] = None
     alert_threat_impact: int = DEFAULT_ALERT_THREAT_IMPACT
     alert_mail: Optional[Mail] = None
     zone_names: List[str] = []
@@ -340,7 +345,7 @@ class PTeamCreateRequest(ORMModel):
 class PTeamUpdateRequest(ORMModel):
     pteam_name: Optional[str] = None
     contact_info: Optional[str] = None
-    slack_webhook_url: Optional[str] = None
+    alert_slack: Optional[Slack] = None
     alert_threat_impact: Optional[int] = None
     zone_names: Optional[List[str]] = None
     disabled: Optional[bool] = None
@@ -404,14 +409,14 @@ class ApplyInvitationRequest(ORMModel):  # common use of PTeam and ATeam
 class ATeamCreateRequest(ORMModel):
     ateam_name: str
     contact_info: str = ""
-    slack_webhook_url: str = ""
+    alert_slack: Optional[Slack] = None
     alert_mail: Optional[Mail] = None
 
 
 class ATeamUpdateRequest(ORMModel):
     ateam_name: Optional[str] = None
     contact_info: Optional[str] = None
-    slack_webhook_url: Optional[str] = None
+    alert_slack: Optional[Slack] = None
     alert_mail: Optional[Mail] = None
 
 

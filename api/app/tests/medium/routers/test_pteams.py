@@ -158,7 +158,8 @@ def test_get_pteam():
     assert data["pteam_id"] == str(pteam1.pteam_id)
     assert data["contact_info"] == PTEAM1["contact_info"]
     assert data["pteam_name"] == PTEAM1["pteam_name"]
-    assert data["slack_webhook_url"] == PTEAM1["slack_webhook_url"]
+    assert data["alert_slack"]["enable"] == PTEAM1["alert_slack"]["enable"]
+    assert data["alert_slack"]["webhook_url"] == PTEAM1["alert_slack"]["webhook_url"]
     assert data["alert_mail"]["enable"] == PTEAM1["alert_mail"]["enable"]
     assert data["alert_mail"]["address"] == PTEAM1["alert_mail"]["address"]
 
@@ -185,7 +186,8 @@ def test_get_pteam__by_member():
     assert data["pteam_id"] == str(pteam1.pteam_id)
     assert data["contact_info"] == PTEAM1["contact_info"]
     assert data["pteam_name"] == PTEAM1["pteam_name"]
-    assert data["slack_webhook_url"] == PTEAM1["slack_webhook_url"]
+    assert data["alert_slack"]["enable"] == PTEAM1["alert_slack"]["enable"]
+    assert data["alert_slack"]["webhook_url"] == PTEAM1["alert_slack"]["webhook_url"]
 
 
 def test_get_pteam__by_not_member():
@@ -203,7 +205,7 @@ def test_create_pteam():
     pteam1 = create_pteam(USER1, PTEAM1)
     assert pteam1.pteam_name == PTEAM1["pteam_name"]
     assert pteam1.contact_info == PTEAM1["contact_info"]
-    assert pteam1.slack_webhook_url == PTEAM1["slack_webhook_url"]
+    assert pteam1.alert_slack.webhook_url == PTEAM1["alert_slack"]["webhook_url"]
     assert pteam1.alert_threat_impact == PTEAM1["alert_threat_impact"]
     assert pteam1.zones == []
     assert pteam1.pteam_id != ZERO_FILLED_UUID
@@ -218,7 +220,7 @@ def test_create_pteam():
     pteam2 = create_pteam(USER1, {**PTEAM2, "zone_names": [ZONE2["zone_name"]]})
     assert pteam2.pteam_name == PTEAM2["pteam_name"]
     assert pteam2.contact_info == PTEAM2["contact_info"]
-    assert pteam2.slack_webhook_url == PTEAM2["slack_webhook_url"]
+    assert pteam2.alert_slack.webhook_url == PTEAM2["alert_slack"]["webhook_url"]
     assert pteam2.alert_threat_impact == PTEAM2["alert_threat_impact"]
     assert pteam2.pteam_id != ZERO_FILLED_UUID
     assert len(pteam2.zones) == 1
@@ -240,12 +242,13 @@ def test_create_pteam__by_default():
     create_user(USER1)
     _pteam = PTEAM1.copy()
     del _pteam["contact_info"]
-    del _pteam["slack_webhook_url"]
+    del _pteam["alert_slack"]
     del _pteam["alert_threat_impact"]
     del _pteam["alert_mail"]
     pteam1 = create_pteam(USER1, _pteam)
     assert pteam1.contact_info == ""
-    assert pteam1.slack_webhook_url == ""
+    assert pteam1.alert_slack.enable is True
+    assert pteam1.alert_slack.webhook_url == ""
     assert pteam1.alert_threat_impact == DEFAULT_ALERT_THREAT_IMPACT
     assert pteam1.alert_mail.enable is True
     assert pteam1.alert_mail.address == ""
@@ -282,7 +285,8 @@ def test_update_pteam():
     data = response.json()
     assert data["pteam_name"] == PTEAM2["pteam_name"]
     assert data["contact_info"] == PTEAM2["contact_info"]
-    assert data["slack_webhook_url"] == PTEAM2["slack_webhook_url"]
+    assert data["alert_slack"]["enable"] == PTEAM2["alert_slack"]["enable"]
+    assert data["alert_slack"]["webhook_url"] == PTEAM2["alert_slack"]["webhook_url"]
     assert data["alert_threat_impact"] == PTEAM2["alert_threat_impact"]
     assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
     assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
@@ -317,7 +321,8 @@ def test_update_pteam__by_admin():
     )
     assert data["pteam_name"] == PTEAM2["pteam_name"]
     assert data["contact_info"] == PTEAM2["contact_info"]
-    assert data["slack_webhook_url"] == PTEAM2["slack_webhook_url"]
+    assert data["alert_slack"]["enable"] == PTEAM2["alert_slack"]["enable"]
+    assert data["alert_slack"]["webhook_url"] == PTEAM2["alert_slack"]["webhook_url"]
     assert data["alert_threat_impact"] == PTEAM2["alert_threat_impact"]
     assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
     assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
@@ -348,7 +353,7 @@ def test_update_pteam_empty_data():
     empty_data = {
         "pteam_name": "",
         "contact_info": "",
-        "slack_webhook_url": "",
+        "alert_slack": {"enable": False, "webhook_url": ""},
     }
 
     request = schemas.PTeamUpdateRequest(**{**empty_data}).model_dump()
@@ -357,7 +362,7 @@ def test_update_pteam_empty_data():
     data = response.json()
     assert data["pteam_name"] == ""
     assert data["contact_info"] == ""
-    assert data["slack_webhook_url"] == ""
+    assert data["alert_slack"]["webhook_url"] == ""
     assert data["alert_threat_impact"] == 3
 
 
@@ -4374,7 +4379,7 @@ def test_disable_pteam():
     pteam_data = pteam_response.json()
     assert pteam_data["pteam_id"] == str(pteam4.pteam_id)
     assert pteam_data["pteam_name"] == PTEAM4["pteam_name"]
-    assert pteam_data["slack_webhook_url"] == PTEAM4["slack_webhook_url"]
+    assert pteam_data["alert_slack"]["webhook_url"] == PTEAM4["alert_slack"]["webhook_url"]
     assert pteam_data["disabled"] is True
 
     user_response = client.get("/users/me", headers=headers(USER1))

@@ -196,7 +196,7 @@ def test_send_webhook_when_topic_creation(mocker):
 
     PTEAM1_WITH_SLACK_WEBHOOK_URL = {
         **PTEAM1,
-        "slack_webhook_url": SAMPLE_SLACK_WEBHOOK_URL,
+        "alert_slack": {"enable": False, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL},
     }
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1_WITH_SLACK_WEBHOOK_URL)
@@ -215,7 +215,7 @@ def test_send_webhook_when_topic_creation(mocker):
 
     m.assert_has_calls(
         [
-            mocker.call(PTEAM1_WITH_SLACK_WEBHOOK_URL["slack_webhook_url"], blocks),
+            mocker.call(PTEAM1_WITH_SLACK_WEBHOOK_URL["alert_slack"]["webhook_url"], blocks),
         ]
     )
 

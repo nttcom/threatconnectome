@@ -405,6 +405,9 @@ class PTeam(Base):
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
     invitations = relationship("PTeamInvitation", back_populates="pteam")
     ateams = relationship("ATeam", secondary=ATeamPTeam.__tablename__, back_populates="pteams")
+    alert_slack: Mapped["PteamSlack"] = relationship(
+        back_populates="pteam", cascade="all, delete-orphan"
+    )
     alert_mail: Mapped["PTeamMail"] = relationship(
         back_populates="pteam", cascade="all, delete-orphan"
     )
@@ -427,6 +430,9 @@ class ATeam(Base):
     invitations = relationship("ATeamInvitation", back_populates="ateam")
     pteams = relationship("PTeam", secondary=ATeamPTeam.__tablename__, back_populates="ateams")
     watching_requests = relationship("ATeamWatchingRequest", back_populates="ateam")
+    alert_slack: Mapped["AteamSlack"] = relationship(
+        back_populates="ateam", cascade="all, delete-orphan"
+    )
     alert_mail: Mapped["ATeamMail"] = relationship(
         back_populates="ateam", cascade="all, delete-orphan"
     )
@@ -510,6 +516,30 @@ class ATeamMail(Base):
     address: Mapped[Str255]
 
     ateam: Mapped[ATeam] = relationship(back_populates="alert_mail")
+
+
+class PteamSlack(Base):
+    __tablename__ = "pteamslack"
+
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    enable: Mapped[bool] = mapped_column(default=True)
+    webhook_url: Mapped[Str255]
+
+    pteam: Mapped[PTeam] = relationship(back_populates="alert_slack")
+
+
+class AteamSlack(Base):
+    __tablename__ = "ateamslack"
+
+    ateam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    enable: Mapped[bool] = mapped_column(default=True)
+    webhook_url: Mapped[Str255]
+
+    ateam: Mapped[ATeam] = relationship(back_populates="alert_slack")
 
 
 class SecBadge(Base):

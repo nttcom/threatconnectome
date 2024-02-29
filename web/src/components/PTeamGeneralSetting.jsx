@@ -70,7 +70,7 @@ export function PTeamGeneralSetting(props) {
     if (pteam) {
       setPTeamName(pteam.pteam_name);
       setContactInfo(pteam.contact_info);
-      setSlackUrl(pteam.slack_webhook_url);
+      setSlackUrl(pteam.alert_slack.webhook_url);
       setAlertImpact(pteam.alert_threat_impact);
     }
     setEdittingSlackUrl(false);
@@ -109,7 +109,7 @@ export function PTeamGeneralSetting(props) {
     const pteamInfo = {
       pteam_name: pteamName,
       contact_info: contactInfo,
-      slack_webhook_url: slackUrl,
+      alert_slack: { enable: true, webhook_url: slackUrl }, //todo change enable status
       alert_threat_impact: alertImpact,
     };
     await updatePTeam(pteamId, pteamInfo)

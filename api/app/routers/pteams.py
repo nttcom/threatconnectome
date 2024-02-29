@@ -461,13 +461,21 @@ def create_pteam(
 
     `tags` is optional, the default is an empty list.
     """
-    if data.slack_webhook_url:
-        validate_slack_webhook_url(data.slack_webhook_url)
+
+    if data.alert_slack and data.alert_slack.webhook_url:
+        validate_slack_webhook_url(data.alert_slack.webhook_url)
     pteam = models.PTeam(
         pteam_name=data.pteam_name.strip(),
         contact_info=data.contact_info.strip(),
-        slack_webhook_url=data.slack_webhook_url.strip(),
+        slack_webhook_url=(
+            data.alert_slack.webhook_url.strip() if data.alert_slack else ""
+        ),  # deprecated
         alert_threat_impact=data.alert_threat_impact or DEFAULT_ALERT_THREAT_IMPACT,
+    )
+    pteam.alert_slack = models.PteamSlack(
+        pteam_id=pteam.pteam_id,
+        enable=data.alert_slack.enable if data.alert_slack else True,
+        webhook_url=data.alert_slack.webhook_url if data.alert_slack else "",
     )
     pteam.alert_mail = models.PTeamMail(
         pteam_id=pteam.pteam_id,
@@ -920,11 +928,21 @@ def update_pteam(
         models.PTeamAuthIntFlag.ADMIN,
         on_error=status.HTTP_403_FORBIDDEN,
     )
-    if data.slack_webhook_url:
-        validate_slack_webhook_url(data.slack_webhook_url)
-        pteam.slack_webhook_url = data.slack_webhook_url
-    elif data.slack_webhook_url == "":
-        pteam.slack_webhook_url = data.slack_webhook_url
+    if data.alert_slack and data.alert_slack.webhook_url:
+        validate_slack_webhook_url(data.alert_slack.webhook_url)
+        pteam.slack_webhook_url = data.alert_slack.webhook_url  # deprecated
+        pteam.alert_slack = models.PteamSlack(
+            pteam_id=pteam.pteam_id,
+            enable=data.alert_slack.enable,
+            webhook_url=data.alert_slack.webhook_url,
+        )
+    elif data.alert_slack and data.alert_slack.webhook_url == "":
+        pteam.slack_webhook_url = ""  # deprecated
+        pteam.alert_slack = models.PteamSlack(
+            pteam_id=pteam.pteam_id,
+            enable=data.alert_slack.enable,
+            webhook_url="",
+        )
 
     need_auto_close = (data.disabled is False and pteam.disabled is True) or (
         data.zone_names and set(data.zone_names) != {z.zone_name for z in pteam.zones}
