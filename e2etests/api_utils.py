@@ -1,6 +1,9 @@
+import json
 import os
-from typing import List, Optional
+import tempfile
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import urljoin
+from uuid import UUID
 
 import requests
 
@@ -33,8 +36,20 @@ def get_access_token_headers(username: str, password: str) -> dict:
     }
 
 
+def get_file_upload_headers(username: str, password: str) -> dict:
+    access_token = get_access_token(username, password)["access_token"]
+    return {
+        "Authorization": f"Bearer {access_token}",
+        "accept": "application/json",
+    }
+
+
 def headers(user: dict) -> dict:
     return get_access_token_headers(user["email"], user["pass"])
+
+
+def file_upload_headers(user: dict) -> dict:
+    return get_file_upload_headers(user["email"], user["pass"])
 
 
 def create_pteam(user: dict, pteam: dict):
@@ -64,6 +79,32 @@ def create_topic(
         f'{api_url}/topics/{topic["topic_id"]}', headers=headers(user), json=request
     )
 
+    if response.status_code != 200:
+        raise HTTPError(response)
+    return response.json()
+
+
+def upload_pteam_tags(
+    user: dict,
+    pteam_id: UUID | str,
+    group: str,
+    ext_tags: Dict[str, List[Tuple[str, str]]],  # {tag: [(target, version), ...]}
+    force_mode: bool = True,
+) -> dict:
+    params = {"group": group, "force_mode": str(force_mode)}
+    with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
+        for tag_name, etags in ext_tags.items():
+            assert all(len(etag) == 2 and None not in etag for etag in etags)  # check test code
+            refs = [{"target": etag[0], "version": etag[1]} for etag in etags]
+            tfile.writelines(json.dumps({"tag_name": tag_name, "references": refs}) + "\n")
+        tfile.flush()
+        with open(tfile.name, "rb") as bfile:
+            response = requests.post(
+                f"{api_url}/pteams/{pteam_id}/upload_tags_file",
+                headers=file_upload_headers(user),
+                params=params,
+                files={"file": bfile},
+            )
     if response.status_code != 200:
         raise HTTPError(response)
     return response.json()

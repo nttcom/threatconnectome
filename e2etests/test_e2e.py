@@ -4,7 +4,7 @@ from urllib.parse import urlencode, urljoin
 
 from playwright.sync_api import Page, expect
 
-from api_utils import create_pteam, create_topic
+from api_utils import create_pteam, create_topic, upload_pteam_tags
 from constants import ACTION1, ACTION2, PTEAM1, TAG1, TOPIC1, TOPIC2, USER1
 
 base_url = os.getenv("BASE_URL", "http://localhost")
@@ -49,12 +49,15 @@ def test_login_first_time(page: Page):
 def test_show_tag_page_directly(page: Page):
     # register data via API
     pteam1 = create_pteam(USER1, PTEAM1)
+    etags = upload_pteam_tags(
+        USER1, pteam1["pteam_id"], "repoA", {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
+    )
     create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     create_topic(USER1, TOPIC2, actions=[ACTION1, ACTION2])
 
     # goto tag page directly
     params = urlencode({"pteamId": pteam1["pteam_id"]})
-    path = "/tags/" + pteam1["tags"][0]["tag_id"]
+    path = "/tags/" + etags[0]["tag_id"]
     url = urljoin(base_url, path) + "?" + params
     page.goto(url)
 
