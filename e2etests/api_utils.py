@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 from uuid import UUID
 
 import requests
+
 from exceptions import HTTPError
 
 base_url = os.getenv("BASE_URL", "http://localhost")
