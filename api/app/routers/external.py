@@ -8,7 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from app.auth import get_current_user, token_scheme
 from app.models import Account
 from app.schemas import EmailCheckRequest, FsServerInfo, SlackCheckRequest
-from app.sendgrid import send_email
+from app.sendgrid import SendgridFailStatusError, SendgridHttpError, send_email
 from app.slack import post_message, validate_slack_webhook_url
 
 router = APIRouter(prefix="/external", tags=["external"])
@@ -38,14 +38,24 @@ def check_email(data: EmailCheckRequest, current_user: Account = Depends(get_cur
     """
     Send test email with sendgrid
     """
+    try:
+        send_email(
+            data.email, "test message from Threatconnectome", "test message from Threatconnectome"
+        )
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
+    except SendgridFailStatusError as err:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"sendgrid fail status error: {str(err)}",
+        )
+    except SendgridHttpError as err:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"sendgrid http error: {str(err)}",
+        )
 
-    response = send_email(
-        data.email, "test message from Threatconnectome", "test message from Threatconnectome"
-    )
-    if response is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    if response.status_code != 200:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.body)
+    return Response(status_code=status.HTTP_200_OK, content="OK")
 
 
 @router.post("/flashsense/check")
