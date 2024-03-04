@@ -17,6 +17,7 @@ uvicorn = "*"
 sqlalchemy = "*"
 univers = "*"
 packageurl-python = "*"
+sendgrid = "*"
 
 [dev-packages]
 mypy = "*"
