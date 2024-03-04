@@ -11,7 +11,12 @@ def send_email(to_email: str, subject: str, content: str):
         from_email = Email(os.environ.get("SYSTEM_EMAIL"))
 
         mail = Mail(from_email, To(to_email), subject, Content("text/plain", content))
-        return sg.client.mail.send.post(request_body=mail.get())
+        response = sg.client.mail.send.post(request_body=mail.get())
+        if response.status_code != 202:
+            print("failed response to send email with sendgrid")
+            print(response.body)
+            return None
+        return response
     except exceptions.HTTPError as e:
         print("failed to send email with sendgrid")
         print(e)

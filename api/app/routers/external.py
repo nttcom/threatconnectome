@@ -44,8 +44,6 @@ def check_email(data: EmailCheckRequest, current_user: Account = Depends(get_cur
     )
     if response is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    if response.status_code != 200:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.body)
 
 
 @router.post("/flashsense/check")
