@@ -1,14 +1,16 @@
 import os
 
 import requests
+from email_validator import validate_email
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 from fastapi.security import HTTPAuthorizationCredentials
 
 from app.auth import get_current_user, token_scheme
+from app.constants import SYSTEM_EMAIL
 from app.models import Account
 from app.schemas import EmailCheckRequest, FsServerInfo, SlackCheckRequest
-from app.sendgrid import SendgridFailStatusError, SendgridHttpError, send_email
+from app.sendgrid import SendgridFailStatusError, SendgridHttpError, ready_to_send_email, send_email
 from app.slack import post_message, validate_slack_webhook_url
 
 router = APIRouter(prefix="/external", tags=["external"])
@@ -38,9 +40,24 @@ def check_email(data: EmailCheckRequest, current_user: Account = Depends(get_cur
     """
     Send test email with sendgrid
     """
+    if not ready_to_send_email():
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Sendgrid not ready (maybe missing api_key)",
+        )
+    try:
+        validate_email(SYSTEM_EMAIL, check_deliverability=False)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Sendgrid not ready (missing SYSTEM_EMAIL)",
+        )
     try:
         send_email(
-            data.email, "test message from Threatconnectome", "test message from Threatconnectome"
+            data.email,
+            SYSTEM_EMAIL,
+            "test message from Threatconnectome",
+            "test message from Threatconnectome",
         )
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
