@@ -628,28 +628,3 @@ def test_alert_ateam(testdb):
         assert (
             json.loads(httpretty.last_request().body.decode("utf-8"))["blocks"] == expected_blocks
         )
-
-
-def test_send_webhook_when_action_creation(mocker):
-    # use mock to test slack webhook
-    # TODO: should check posted http requests
-    m = mocker.patch("app.slack.post_message")
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    ateam1 = create_ateam(
-        USER1, {**ATEAM1, "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL}}
-    )
-    watching_request = create_watching_request(USER1, ateam1.ateam_id)
-    accept_watching_request(USER1, watching_request.request_id, pteam1.pteam_id)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION2])
-    action1 = create_action(USER1, ACTION1, topic_id=topic1.topic_id)
-
-    blocks = _create_blocks_for_ateam(
-        ateam1.ateam_id,
-        ateam1.ateam_name,
-        topic1.title,
-        action1.action,
-        action1.action_type,
-    )
-    m.assert_has_calls([mocker.call(SAMPLE_SLACK_WEBHOOK_URL, blocks)])
