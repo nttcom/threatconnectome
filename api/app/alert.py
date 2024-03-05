@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 from uuid import UUID
 
 from email_validator import validate_email
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql.expression import func
 
@@ -47,6 +47,17 @@ def _pick_alert_targets_for_new_topic(
         .where(
             models.CurrentPTeamTopicTagStatus.topic_id == str(topic_id),
             models.CurrentPTeamTopicTagStatus.topic_status == models.TopicStatusType.alerted,
+        )
+        .join(models.Topic)
+        .join(
+            models.PTeam,
+            and_(
+                models.PTeam.pteam_id == models.CurrentPTeamTopicTagStatus.pteam_id,
+                or_(
+                    models.PTeam.alert_threat_impact.is_(None),
+                    models.PTeam.alert_threat_impact >= models.Topic.threat_impact,
+                ),
+            ),
         )
     ).all()
 
