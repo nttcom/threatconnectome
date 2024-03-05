@@ -16,7 +16,6 @@ from app.common import (
     validate_action,
 )
 from app.database import get_db
-from app.slack import alert_to_ateam
 
 router = APIRouter(prefix="/actions", tags=["actions"])
 
@@ -44,7 +43,6 @@ def create_action(
     action = create_action_internal(db, current_user, data)
 
     auto_close_by_topic(db, action.topic)
-    alert_to_ateam(db, action)
 
     return action
 
