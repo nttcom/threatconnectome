@@ -136,7 +136,7 @@ def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> Li
         select(
             models.ATeamPTeam.ateam_id,
             models.ATeam.ateam_name,
-            models.ATeam.slack_webhook_url,
+            models.ATeamSlack.webhook_url,
         )
         .join(
             models.CurrentPTeamTopicTagStatus,
@@ -149,9 +149,17 @@ def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> Li
         .join(
             models.ATeam,
             and_(
-                func.length(models.ATeam.slack_webhook_url) > 0,
                 # If you wanna filter notifications by topic threat impact, add conditions here.
-                models.ATeam.ateam_id == models.ATeamPTeam.ateam_id,
+                models.ATeam.ateam_id
+                == models.ATeamPTeam.ateam_id,
+            ),
+        )
+        .join(
+            models.ATeamSlack,
+            and_(
+                models.ATeamSlack.enable.is_(True),
+                func.length(models.ATeamSlack.webhook_url) > 0,
+                models.ATeamSlack.ateam_id == models.ATeamPTeam.ateam_id,
             ),
         )
         .distinct()
