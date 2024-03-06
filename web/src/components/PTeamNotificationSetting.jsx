@@ -26,7 +26,11 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { getPTeam } from "../slices/pteam";
 import { getUser } from "../slices/user";
-import { updatePTeam, checkSlack as postCheckSlack } from "../utils/api";
+import {
+  updatePTeam,
+  checkSlack as postCheckSlack,
+  checkMail as postCheckMail,
+} from "../utils/api";
 import { threatImpactName, threatImpactProps, modalCommonButtonStyle } from "../utils/const";
 
 import { CheckButton } from "./CheckButton";
@@ -36,7 +40,9 @@ export function PTeamNotificationSetting(props) {
   const [edittingSlackUrl, setEdittingSlackUrl] = useState(false);
   const [edittingEmail, setEdittingEmail] = useState(false);
   const [slackUrl, setSlackUrl] = useState("");
-  const [emailAddress, setEmailAdress] = useState("");
+  const [slackEnable, setSlackEnable] = useState(false);
+  const [mailAddress, setMailAddress] = useState("");
+  const [mailEnable, setMailEnable] = useState(false);
   const [alertImpact, setAlertImpact] = useState(1);
   const [checkSlack, setCheckSlack] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
@@ -52,8 +58,10 @@ export function PTeamNotificationSetting(props) {
 
   useEffect(() => {
     if (pteam) {
-      setSlackUrl(pteam.slack_webhook_url);
-      setEmailAdress("");
+      setSlackUrl(pteam.alert_slack.webhook_url);
+      setSlackEnable(pteam.alert_slack.enable);
+      setMailAddress(pteam.alert_mail.address);
+      setMailEnable(pteam.alert_mail.enable);
       setAlertImpact(pteam.alert_threat_impact);
     }
     setEdittingSlackUrl(false);
@@ -89,7 +97,8 @@ export function PTeamNotificationSetting(props) {
 
   const handleUpdatePTeam = async () => {
     const pteamInfo = {
-      slack_webhook_url: slackUrl,
+      alert_slack: { enable: slackEnable, webhook_url: slackUrl },
+      alert_mail: { enable: mailEnable, address: mailAddress },
       alert_threat_impact: alertImpact,
     };
     await updatePTeam(pteamId, pteamInfo)
@@ -118,7 +127,7 @@ export function PTeamNotificationSetting(props) {
   const handleCheckMail = async () => {
     setCheckEmail(true);
     setEmailMessage();
-    await postCheckSlack({ slack_webhook_url: emailAddress })
+    await postCheckMail({ email: mailAddress })
       .then(() => {
         setCheckEmail(false);
         setEmailMessage(connectSuccessMessage);
@@ -143,13 +152,13 @@ export function PTeamNotificationSetting(props) {
       },
       "&:before": {
         backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
-          theme.palette.getContrastText(theme.palette.primary.main)
+          theme.palette.getContrastText(theme.palette.primary.main),
         )}" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>")`,
         left: 12,
       },
       "&:after": {
         backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
-          theme.palette.getContrastText(theme.palette.primary.main)
+          theme.palette.getContrastText(theme.palette.primary.main),
         )}" d="M19,13H5V11H19V13Z" /></svg>")`,
         right: 12,
       },
@@ -192,11 +201,11 @@ export function PTeamNotificationSetting(props) {
             size="small"
           >
             <OutlinedInput
-              id="outlined-adornment-password"
+              id="pteam-mail-address-field"
               type={edittingEmail ? "text" : "password"}
-              autocomplete="new-password" // to avoid autocomplete by browser
-              value={emailAddress}
-              onChange={(event) => setEmailAdress(event.target.value)}
+              autoComplete="new-password" // to avoid autocomplete by browser
+              value={mailAddress}
+              onChange={(event) => setMailAddress(event.target.value)}
               endAdornment={
                 <InputAdornment position="end">
                   <IconButton
@@ -225,16 +234,16 @@ export function PTeamNotificationSetting(props) {
             size="small"
           >
             <OutlinedInput
-              id="outlined-adornment-password"
+              id="pteam-slack-url-field"
               type={edittingSlackUrl ? "text" : "password"}
-              autocomplete="new-password" // to avoid autocomplete by browser
+              autoComplete="new-password" // to avoid autocomplete by browser
               value={slackUrl}
               onChange={(event) => setSlackUrl(event.target.value)}
               endAdornment={
                 <InputAdornment position="end">
                   <IconButton
                     aria-label="toggle password visibility"
-                    onClick={() => setEdittingEmail(!edittingSlackUrl)}
+                    onClick={() => setEdittingSlackUrl(!edittingSlackUrl)}
                     edge="end"
                   >
                     {edittingSlackUrl ? <VisibilityOffIcon /> : <VisibilityIcon />}
@@ -251,12 +260,16 @@ export function PTeamNotificationSetting(props) {
       <Box mb={4}>
         <Typography sx={{ fontWeight: 400 }}>Send by</Typography>
         <FormControlLabel
-          control={<AndroidSwitch defaultChecked />}
+          control={
+            <AndroidSwitch checked={slackEnable} onChange={() => setSlackEnable(!slackEnable)} />
+          }
           labelPlacement="start"
           label="Email"
         />
         <FormControlLabel
-          control={<AndroidSwitch defaultChecked />}
+          control={
+            <AndroidSwitch checked={mailEnable} onChange={() => setMailEnable(!mailEnable)} />
+          }
           labelPlacement="start"
           label="Slack"
         />

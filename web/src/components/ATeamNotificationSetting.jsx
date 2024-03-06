@@ -12,8 +12,6 @@ import {
   FormControlLabel,
   IconButton,
   InputAdornment,
-  MenuItem,
-  Select,
   Switch,
   Typography,
   OutlinedInput,
@@ -26,8 +24,12 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { getATeam } from "../slices/ateam";
 import { getUser } from "../slices/user";
-import { updateATeam, checkSlack as postCheckSlack } from "../utils/api";
-import { threatImpactName, threatImpactProps, modalCommonButtonStyle } from "../utils/const";
+import {
+  updateATeam,
+  checkSlack as postCheckSlack,
+  checkMail as postCheckMail,
+} from "../utils/api";
+import { modalCommonButtonStyle } from "../utils/const";
 
 import { CheckButton } from "./CheckButton";
 
@@ -36,8 +38,9 @@ export function ATeamNotificationSetting(props) {
   const [edittingSlackUrl, setEdittingSlackUrl] = useState(false);
   const [edittingEmail, setEdittingEmail] = useState(false);
   const [slackUrl, setSlackUrl] = useState("");
-  const [emailAddress, setEmailAdress] = useState("");
-  const [alertImpact, setAlertImpact] = useState(1);
+  const [slackEnable, setSlackEnable] = useState(false);
+  const [mailAddress, setMailAddress] = useState("");
+  const [mailEnable, setMailEnable] = useState(false);
   const [checkSlack, setCheckSlack] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
   const [slackMessage, setSlackMessage] = useState();
@@ -52,9 +55,10 @@ export function ATeamNotificationSetting(props) {
 
   useEffect(() => {
     if (ateam) {
-      setSlackUrl(ateam.slack_webhook_url);
-      setEmailAdress("");
-      setAlertImpact(ateam.alert_threat_impact);
+      setSlackUrl(ateam.alert_slack.webhook_url);
+      setSlackEnable(ateam.alert_slack.enable);
+      setMailAddress(ateam.alert_mail.address);
+      setMailEnable(ateam.alert_mail.enable);
     }
     setEdittingSlackUrl(false);
     setEdittingEmail(false);
@@ -89,8 +93,8 @@ export function ATeamNotificationSetting(props) {
 
   const handleUpdateATeam = async () => {
     const ateamInfo = {
-      slack_webhook_url: slackUrl,
-      alert_threat_impact: alertImpact,
+      alert_slack: { enable: slackEnable, webhook_url: slackUrl },
+      alert_mail: { enable: mailEnable, address: mailAddress },
     };
     await updateATeam(ateamId, ateamInfo)
       .then(() => {
@@ -118,7 +122,7 @@ export function ATeamNotificationSetting(props) {
   const handleCheckMail = async () => {
     setCheckEmail(true);
     setEmailMessage();
-    await postCheckSlack({ slack_webhook_url: emailAddress })
+    await postCheckMail({ email: mailAddress })
       .then(() => {
         setCheckEmail(false);
         setEmailMessage(connectSuccessMessage);
@@ -143,13 +147,13 @@ export function ATeamNotificationSetting(props) {
       },
       "&:before": {
         backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
-          theme.palette.getContrastText(theme.palette.primary.main)
+          theme.palette.getContrastText(theme.palette.primary.main),
         )}" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>")`,
         left: 12,
       },
       "&:after": {
         backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
-          theme.palette.getContrastText(theme.palette.primary.main)
+          theme.palette.getContrastText(theme.palette.primary.main),
         )}" d="M19,13H5V11H19V13Z" /></svg>")`,
         right: 12,
       },
@@ -164,7 +168,8 @@ export function ATeamNotificationSetting(props) {
 
   return (
     <Box>
-      <Box mb={2}>
+      {/* ateam don't have alert_threat_impact */}
+      {/* <Box mb={2}>
         <Typography sx={{ fontWeight: 400 }} mb={1}>
           Topic notification threshold
         </Typography>
@@ -180,7 +185,7 @@ export function ATeamNotificationSetting(props) {
             </MenuItem>
           ))}
         </Select>
-      </Box>
+      </Box> */}
       <Box mb={2}>
         <Typography sx={{ fontWeight: 400 }} mb={1}>
           Email Address
@@ -192,11 +197,11 @@ export function ATeamNotificationSetting(props) {
             size="small"
           >
             <OutlinedInput
-              id="outlined-adornment-password"
+              id="ateam-mail-address-field"
               type={edittingEmail ? "text" : "password"}
-              autocomplete="new-password" // to avoid autocomplete by browser
-              value={emailAddress}
-              onChange={(event) => setEmailAdress(event.target.value)}
+              autoComplete="new-password" // to avoid autocomplete by browser
+              value={mailAddress}
+              onChange={(event) => setMailAddress(event.target.value)}
               endAdornment={
                 <InputAdornment position="end">
                   <IconButton
@@ -225,16 +230,16 @@ export function ATeamNotificationSetting(props) {
             size="small"
           >
             <OutlinedInput
-              id="outlined-adornment-password"
+              id="ateam-slack-url-field"
               type={edittingSlackUrl ? "text" : "password"}
-              autocomplete="new-password" // to avoid autocomplete by browser
+              autoComplete="new-password" // to avoid autocomplete by browser
               value={slackUrl}
               onChange={(event) => setSlackUrl(event.target.value)}
               endAdornment={
                 <InputAdornment position="end">
                   <IconButton
                     aria-label="toggle password visibility"
-                    onClick={() => setEdittingEmail(!edittingSlackUrl)}
+                    onClick={() => setEdittingSlackUrl(!edittingSlackUrl)}
                     edge="end"
                   >
                     {edittingSlackUrl ? <VisibilityOffIcon /> : <VisibilityIcon />}
@@ -250,12 +255,16 @@ export function ATeamNotificationSetting(props) {
       <Box mb={4}>
         <Typography sx={{ fontWeight: 400 }}>Send by</Typography>
         <FormControlLabel
-          control={<AndroidSwitch defaultChecked />}
+          control={
+            <AndroidSwitch checked={slackEnable} onChange={() => setSlackEnable(!slackEnable)} />
+          }
           labelPlacement="start"
           label="Email"
         />
         <FormControlLabel
-          control={<AndroidSwitch defaultChecked />}
+          control={
+            <AndroidSwitch checked={mailEnable} onChange={() => setMailEnable(!mailEnable)} />
+          }
           labelPlacement="start"
           label="Slack"
         />
