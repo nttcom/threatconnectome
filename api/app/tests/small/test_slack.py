@@ -35,13 +35,14 @@ def test_create_blocks_for_pteam():
             title=notification_data["title"],
             threat_impact=notification_data["threat_impact"],
         ),
-        groups=["test1", "test2"],
+        groups=notification_data["group"],
     )
     assert notification_data["pteam_name"] in blocks[0]["text"]["text"]
     tag_page_url = f"{TAG_URL}{notification_data['tag_id']}?pteamId={notification_data['pteam_id']}"
     assert tag_page_url in blocks[2]["text"]["text"]
     assert notification_data["title"] in blocks[2]["text"]["text"]
     assert THREAT_IMPACT_LABEL[notification_data["threat_impact"]] in blocks[2]["text"]["text"]
+    assert notification_data["group"][0] in blocks[2]["text"]["text"]
 
 
 def test_create_blocks_for_ateam():
