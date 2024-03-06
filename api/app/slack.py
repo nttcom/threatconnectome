@@ -43,17 +43,23 @@ def _block_header(text: str):
     ]
 
 
-def _create_blocks_for_pteam(
-    pteam_id: str,
-    pteam_name: str,
-    tag_id: str,
-    tag_name: str,
-    topic_id: str,
-    title: str,
-    threat_impact: int,
+def post_message(url: str, blocks: Sequence[Dict]):
+    try:
+        webhook = WebhookClient(url)
+        return webhook.send(text=blocks[0]["text"]["text"], blocks=blocks)
+    except SlackApiError:
+        return None
+
+
+def create_slack_pteam_alert_blocks_for_new_topic(
+    pteam: models.PTeam,
+    tag: models.Tag,
+    topic: models.Topic,
+    groups: List[str],
 ):
     blocks: List[Dict[str, Union[str, Dict[str, str], List[Dict[str, str]]]]]
-    blocks = _block_header(text=pteam_name)
+    blocks = _block_header(text=pteam.pteam_name)
+    groups_name = ",".join(groups)
     blocks.extend(
         [
             {
@@ -62,64 +68,22 @@ def _create_blocks_for_pteam(
                     "type": "mrkdwn",
                     "text": "\n".join(
                         [
-                            f"*<{TAG_URL}{str(tag_id)}?pteamId={pteam_id}|{tag_name}>*",
-                            f"*{title}*",
-                            THREAT_IMPACT_LABEL[threat_impact],
+                            f"*<{TAG_URL}{str(tag.tag_id)}?pteamId={pteam.pteam_id}|{tag.tag_name}>*",
+                            f"*{topic.title}*",
+                            f"*{groups_name}*",
+                            THREAT_IMPACT_LABEL[topic.threat_impact],
                         ]
                     ),
                 },
             },
             {
                 "type": "context",
-                "elements": [{"type": "plain_text", "text": str(topic_id)}],
+                "elements": [{"type": "plain_text", "text": str(topic.topic_id)}],
             },
             {"type": "divider"},
         ]
     )
     return blocks
-
-
-def _pick_alert_targets_for_pteam(db: Session, topic: models.Topic) -> List[dict]:
-    if topic.disabled:
-        return []
-    select_stmt = (
-        select(
-            models.PTeam.pteam_name,
-            models.PTeam.slack_webhook_url,
-            models.CurrentPTeamTopicTagStatus.pteam_id,
-            models.CurrentPTeamTopicTagStatus.tag_id,
-            models.Tag.tag_name,
-        )
-        .join(
-            models.CurrentPTeamTopicTagStatus,
-            and_(
-                models.CurrentPTeamTopicTagStatus.topic_id == topic.topic_id,
-                models.CurrentPTeamTopicTagStatus.topic_status == models.TopicStatusType.alerted,
-                models.CurrentPTeamTopicTagStatus.pteam_id == models.PTeam.pteam_id,
-                models.PTeam.disabled.is_(False),
-                func.length(models.PTeam.slack_webhook_url) > 0,
-                models.PTeam.alert_threat_impact >= topic.threat_impact,
-            ),
-        )
-        .join(
-            models.Tag,
-            models.Tag.tag_id == models.CurrentPTeamTopicTagStatus.tag_id,
-        )
-    )
-    return [row._asdict() for row in db.execute(select_stmt).all()]
-
-
-def alert_new_topic(db: Session, topic: models.Topic):
-    alert_targets = _pick_alert_targets_for_pteam(db, topic)
-    for target in alert_targets:
-        webhook_url = target.pop("slack_webhook_url")
-        blocks = _create_blocks_for_pteam(
-            **target,
-            topic_id=topic.topic_id,
-            title=topic.title,
-            threat_impact=topic.threat_impact,
-        )
-        post_message(webhook_url, blocks)
 
 
 def _create_blocks_for_ateam(
@@ -198,7 +162,7 @@ def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> Li
 def alert_to_ateam(db: Session, action: models.TopicAction):
     alert_targets = _pick_alert_targets_for_ateam(db, action)
     for target in alert_targets:
-        webhook_url = target.pop("slack_webhook_url")
+        webhook_url = target.pop("webhook_url")
         blocks = _create_blocks_for_ateam(
             **target,
             title=action.topic.title,
@@ -206,11 +170,3 @@ def alert_to_ateam(db: Session, action: models.TopicAction):
             action_type=action.action_type,
         )
         post_message(webhook_url, blocks)
-
-
-def post_message(url: str, blocks: Sequence[Dict]):
-    try:
-        webhook = WebhookClient(url)
-        return webhook.send(text=blocks[0]["text"]["text"], blocks=blocks)
-    except SlackApiError:
-        return None
