@@ -100,7 +100,13 @@ def alert_new_topic(db: Session, topic_id: UUID | str) -> None:
         if alert_by_mail:
             try:
                 mail_subject, mail_body = create_mail_alert_for_new_topic(
-                    row.pteam, row.tag, row.topic, groups
+                    row.topic.title,
+                    row.topic.threat_impact,
+                    row.pteam.pteam_name,
+                    row.pteam.pteam_id,
+                    row.tag.tag_name,
+                    row.tag.tag_id,
+                    groups,
                 )
                 send_email(row.pteam.alert_mail.address, SYSTEM_EMAIL, mail_subject, mail_body)
             except Exception:
@@ -121,9 +127,12 @@ def _pteam_tag_page_link(pteam_id: UUID | str, tag_id: UUID | str) -> str:
 
 
 def create_mail_alert_for_new_topic(
-    pteam: models.PTeam,
-    tag: models.Tag,
-    topic: models.Topic,
+    topic_title: str,
+    threat_impact: int,
+    pteam_name: str,
+    pteam_id: UUID | str,
+    tag_name: str,  # should be pteamtag, not topictag
+    tag_id: UUID | str,  # should be pteamtag, not topictag
     groups: List[str],
 ) -> Tuple[str, str]:  # subject, body
     threat_impact_label = {
@@ -131,20 +140,20 @@ def create_mail_alert_for_new_topic(
         2: "Off-cycle",
         3: "Acceptable",
         4: "None",
-    }.get(topic.threat_impact) or "WrongThreatImpact"
-    subject = f"[Tc Alert] {threat_impact_label}: {topic.title}"
+    }.get(threat_impact) or "WrongThreatImpact"
+    subject = f"[Tc Alert] {threat_impact_label}: {topic_title}"
     body = "\n".join(
         [
             "A new topic created.",
             "",
-            f"Title: {topic.title}",
+            f"Title: {topic_title}",
             f"ThreatImpact: {threat_impact_label}",
             "",
-            f"PTeam: {pteam.pteam_name}",
+            f"PTeam: {pteam_name}",
             f"Groups: {', '.join(groups)}",
-            f"Artifact: {tag.tag_name}",
+            f"Artifact: {tag_name}",
             "",
-            f"Link to Artifact page: {_pteam_tag_page_link(pteam.pteam_id, tag.tag_id)}",
+            f"Link to Artifact page: {_pteam_tag_page_link(pteam_id, tag_id)}",
         ]
     )
     return subject, body
