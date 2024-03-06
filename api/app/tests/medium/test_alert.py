@@ -1,25 +1,32 @@
 from typing import List, Sequence
 from uuid import uuid4
 
+from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from app import models, schemas
 from app.alert import (
     _pick_alert_targets_for_new_topic,
+    create_mail_alert_for_new_topic,
 )
-from app.constants import DEFAULT_ALERT_THREAT_IMPACT
+from app.constants import DEFAULT_ALERT_THREAT_IMPACT, SYSTEM_EMAIL
+from app.main import app
 from app.tests.medium.constants import (
     GROUP1,
     SAMPLE_SLACK_WEBHOOK_URL,
     USER1,
 )
 from app.tests.medium.utils import (
+    assert_200,
     create_pteam,
     create_tag,
     create_topic,
     create_user,
+    headers,
     upload_pteam_tags,
 )
+
+client = TestClient(app)
 
 
 def test_pick_alert_target_for_new_topic__tags(testdb) -> None:
@@ -314,3 +321,98 @@ def test_pick_alert_target_for_new_topic__auto_closed(testdb) -> None:
     alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
     assert len(alert_targets) == 1
     assert _find_expected(alert_targets, 0, child_tag21)  # alert only uncompleted
+
+
+def test_alert_new_topic__by_mail(mocker) -> None:
+    create_user(USER1)
+    parent_tag1 = create_tag(USER1, "pkg1:info1:")
+    child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
+
+    def _gen_pteam_params(idx: int) -> dict:
+        return {
+            "pteam_name": f"pteam{idx}",
+            "alert_slack": {
+                "enable": True,
+                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            },
+            "alert_mail": {
+                "enable": True,
+                "address": f"account{idx}@example.com",
+            },
+            "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
+        }
+
+    def _gen_topic_params(tags: List[schemas.TagResponse]) -> dict:
+        topic_id = str(uuid4())
+        return {
+            "topic_id": topic_id,
+            "title": "test topic " + topic_id,
+            "abstract": "test abstract " + topic_id,
+            "threat_impact": 1,
+            "tags": [tag.tag_name for tag in tags],
+            "misp_tags": [],
+            "zone_names": [],
+            "actions": [],
+        }
+
+    def _find_expected(
+        _targets: Sequence[models.CurrentPTeamTopicTagStatus],
+        idx: int,
+        tag: schemas.TagResponse,
+    ) -> bool:
+        return any(
+            _tgt.pteam.pteam_name == f"pteam{idx}" and _tgt.tag.tag_name == tag.tag_name
+            for _tgt in _targets
+        )
+
+    pteam0 = create_pteam(USER1, _gen_pteam_params(0))
+    ext_tags = {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]}
+    upload_pteam_tags(USER1, pteam0.pteam_id, GROUP1, ext_tags)
+
+    # topic0: no tags
+    send_email = mocker.patch("app.alert.send_email")
+    create_topic(USER1, _gen_topic_params([]))
+    send_email.assert_not_called()
+
+    # topic1: parent_tag1
+    send_email = mocker.patch("app.alert.send_email")  # reset
+    topic1 = create_topic(USER1, _gen_topic_params([parent_tag1]))
+    exp_to_email = pteam0.alert_mail.address
+    exp_from_email = SYSTEM_EMAIL
+    exp_subject, exp_body = create_mail_alert_for_new_topic(
+        topic1.title,
+        topic1.threat_impact,
+        pteam0.pteam_name,
+        pteam0.pteam_id,
+        child_tag11.tag_name,  # pteamtag, not topictag
+        child_tag11.tag_id,  # pteamtag, not topictag
+        [GROUP1],
+    )
+    send_email.assert_called_once()
+    send_email.assert_called_with(exp_to_email, exp_from_email, exp_subject, exp_body)
+
+    # disable alert_mail
+    request = {"alert_mail": {"enable": False, "address": pteam0.alert_mail.address}}
+    assert_200(client.put(f"/pteams/{pteam0.pteam_id}", headers=headers(USER1), json=request))
+    send_email = mocker.patch("app.alert.send_email")  # reset
+    create_topic(USER1, _gen_topic_params([parent_tag1]))
+    send_email.assert_not_called()
+
+    # enable alert_mail again
+    request = {"alert_mail": {"enable": True, "address": pteam0.alert_mail.address}}
+    assert_200(client.put(f"/pteams/{pteam0.pteam_id}", headers=headers(USER1), json=request))
+    send_email = mocker.patch("app.alert.send_email")  # reset
+    topic3 = create_topic(USER1, _gen_topic_params([parent_tag1]))
+    exp_to_email = pteam0.alert_mail.address
+    exp_from_email = SYSTEM_EMAIL
+    exp_subject, exp_body = create_mail_alert_for_new_topic(
+        topic3.title,
+        topic3.threat_impact,
+        pteam0.pteam_name,
+        pteam0.pteam_id,
+        child_tag11.tag_name,  # pteamtag, not topictag
+        child_tag11.tag_id,  # pteamtag, not topictag
+        [GROUP1],
+    )
+    send_email.assert_called_once()
+    send_email.assert_called_with(exp_to_email, exp_from_email, exp_subject, exp_body)
