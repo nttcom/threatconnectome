@@ -405,7 +405,7 @@ class PTeam(Base):
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
     invitations = relationship("PTeamInvitation", back_populates="pteam")
     ateams = relationship("ATeam", secondary=ATeamPTeam.__tablename__, back_populates="pteams")
-    alert_slack: Mapped["PteamSlack"] = relationship(
+    alert_slack: Mapped["PTeamSlack"] = relationship(
         back_populates="pteam", cascade="all, delete-orphan"
     )
     alert_mail: Mapped["PTeamMail"] = relationship(
@@ -430,7 +430,7 @@ class ATeam(Base):
     invitations = relationship("ATeamInvitation", back_populates="ateam")
     pteams = relationship("PTeam", secondary=ATeamPTeam.__tablename__, back_populates="ateams")
     watching_requests = relationship("ATeamWatchingRequest", back_populates="ateam")
-    alert_slack: Mapped["AteamSlack"] = relationship(
+    alert_slack: Mapped["ATeamSlack"] = relationship(
         back_populates="ateam", cascade="all, delete-orphan"
     )
     alert_mail: Mapped["ATeamMail"] = relationship(
@@ -518,7 +518,7 @@ class ATeamMail(Base):
     ateam: Mapped[ATeam] = relationship(back_populates="alert_mail")
 
 
-class PteamSlack(Base):
+class PTeamSlack(Base):
     __tablename__ = "pteamslack"
 
     pteam_id: Mapped[StrUUID] = mapped_column(
@@ -530,7 +530,7 @@ class PteamSlack(Base):
     pteam: Mapped[PTeam] = relationship(back_populates="alert_slack")
 
 
-class AteamSlack(Base):
+class ATeamSlack(Base):
     __tablename__ = "ateamslack"
 
     ateam_id: Mapped[StrUUID] = mapped_column(
