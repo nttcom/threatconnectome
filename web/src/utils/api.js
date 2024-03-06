@@ -235,6 +235,8 @@ export const getAchievements = async (userId) => axios.get(`/achievements/${user
 // external
 export const checkSlack = async (data) => axios.post("/external/slack/check", data);
 
+export const checkMail = async (data) => axios.post("/external/email/check", data);
+
 export const checkFs = async () => axios.post("/external/flashsense/check");
 
 export const getFsInfo = async () => axios.get("/external/flashsense/info");

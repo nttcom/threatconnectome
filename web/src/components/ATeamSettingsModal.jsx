@@ -18,6 +18,7 @@ import { a11yProps } from "../utils/func.js";
 
 import { ATeamAuthEditor } from "./ATeamAuthEditor";
 import { ATeamGeneralSetting } from "./ATeamGeneralSetting";
+import { ATeamNotificationSetting } from "./ATeamNotificationSetting";
 
 export function ATeamSettingsModal(props) {
   const { onSetShow, show, defaultTabIndex } = props;
@@ -43,13 +44,17 @@ export function ATeamSettingsModal(props) {
         <Box borderBottom={1} borderBottomColor="divider">
           <Tabs aria-label="tabs" onChange={handleChangeTab} value={tab}>
             <Tab label="General" {...a11yProps(0)} />
-            <Tab label="Authorities" {...a11yProps(1)} />
+            <Tab label="Notification" {...a11yProps(1)} />
+            <Tab label="Authorities" {...a11yProps(2)} />
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
           <ATeamGeneralSetting show={show} />
         </TabPanel>
         <TabPanel index={1} value={tab}>
+          <ATeamNotificationSetting show={show} />
+        </TabPanel>
+        <TabPanel index={2} value={tab}>
           <ATeamAuthEditor />
         </TabPanel>
       </DialogContent>

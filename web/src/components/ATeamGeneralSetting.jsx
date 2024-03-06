@@ -1,19 +1,5 @@
-import {
-  ErrorOutline as ErrorOutlineIcon,
-  TaskAlt as TaskAltIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-} from "@mui/icons-material";
-import {
-  Box,
-  Button,
-  IconButton,
-  TextField,
-  Typography,
-  FormControl,
-  OutlinedInput,
-  InputAdornment,
-} from "@mui/material";
+import { ErrorOutline as ErrorOutlineIcon, TaskAlt as TaskAltIcon } from "@mui/icons-material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
@@ -22,12 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { getATeam } from "../slices/ateam";
 import { getUser } from "../slices/user";
-import {
-  updateATeam,
-  checkSlack as postCheckSlack,
-  checkFs as postCheckFs,
-  getFsInfo,
-} from "../utils/api";
+import { updateATeam, checkFs as postCheckFs, getFsInfo } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
 import { CheckButton } from "./CheckButton";
@@ -36,10 +17,7 @@ export function ATeamGeneralSetting(props) {
   const { show } = props;
   const [ateamName, setATeamName] = useState("");
   const [contactInfo, setContactInfo] = useState("");
-  const [edittingSlackUrl, setEdittingSlackUrl] = useState(false);
   const [slackUrl, setSlackUrl] = useState("");
-  const [checkSlack, setCheckSlack] = useState(false);
-  const [slackMessage, setSlackMessage] = useState();
   const [flashsenseUrl, setFlashsenseUrl] = useState("");
   const [checkFlashsense, setCheckFlashsense] = useState(false);
   const [flashsenseMessage, setFlashsenseMessage] = useState();
@@ -112,20 +90,6 @@ export function ATeamGeneralSetting(props) {
       .catch((error) => operationError(error));
   };
 
-  const handleCheckSlack = async () => {
-    setCheckSlack(true);
-    setSlackMessage();
-    await postCheckSlack({ slack_webhook_url: slackUrl })
-      .then(() => {
-        setCheckSlack(false);
-        setSlackMessage(connectSuccessMessage);
-      })
-      .catch((error) => {
-        setCheckSlack(false);
-        setSlackMessage(connectFailMessage(error));
-      });
-  };
-
   const handleCheckFlashsense = async () => {
     setCheckFlashsense(true);
     setFlashsenseMessage();
@@ -147,7 +111,6 @@ export function ATeamGeneralSetting(props) {
           ATeam name
         </Typography>
         <TextField
-          id="ateam-name-field"
           size="small"
           value={ateamName}
           onChange={(event) => setATeamName(event.target.value)}
@@ -160,7 +123,6 @@ export function ATeamGeneralSetting(props) {
           Contact Info
         </Typography>
         <TextField
-          id="contact-info-field"
           size="small"
           value={contactInfo}
           onChange={(event) => setContactInfo(event.target.value)}
@@ -168,46 +130,6 @@ export function ATeamGeneralSetting(props) {
           sx={{ marginRight: "10px", minWidth: "800px" }}
         />
       </Box>
-
-      <Box mb={1}>
-        <Typography sx={{ fontWeight: 900 }} mb={1}>
-          Notification
-        </Typography>
-      </Box>
-      <Box mb={1} sx={{ ml: "40px" }}>
-        <Typography sx={{ fontWeight: 400 }} mb={1}>
-          Slack Incoming Webhook URL
-        </Typography>
-        <Box display="flex" alignItems="center">
-          <FormControl
-            sx={{ marginRight: "10px", minWidth: "675px" }}
-            variant="outlined"
-            size="small"
-          >
-            <OutlinedInput
-              id="outlined-adornment-password"
-              type={edittingSlackUrl ? "text" : "password"}
-              autoComplete="new-password" // to avoid autocomplete by browser
-              value={slackUrl}
-              onChange={(event) => setSlackUrl(event.target.value)}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => setEdittingSlackUrl(!edittingSlackUrl)}
-                    edge="end"
-                  >
-                    {edittingSlackUrl ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  </IconButton>
-                </InputAdornment>
-              }
-            />
-          </FormControl>
-          <CheckButton onHandleClick={handleCheckSlack} isLoading={checkSlack} />
-        </Box>
-        <Box mt={1}>{slackMessage}</Box>
-      </Box>
-
       <Box>
         <Typography sx={{ fontWeight: 900 }} mb={1}>
           Connected Flashsense server
