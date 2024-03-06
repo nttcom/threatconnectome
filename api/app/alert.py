@@ -11,6 +11,7 @@ from sqlalchemy.sql.expression import func
 from app import models
 from app.constants import SYSTEM_EMAIL
 from app.sendgrid import ready_to_send_email, send_email
+from app.slack import create_slack_pteam_alert_blocks_for_new_topic, post_message
 
 
 def _ready_alert_by_email() -> bool:
@@ -89,11 +90,10 @@ def alert_new_topic(db: Session, topic_id: UUID | str) -> None:
 
         if alert_by_slack:
             try:
-                pass
-                # slack_message = "xxx"
-                #
-                # send_to_slack(row.pteam.alert_slack.webhook_url, slack_message)
-                #
+                slack_message_blocks = create_slack_pteam_alert_blocks_for_new_topic(
+                    row.pteam, row.tag, row.topic, groups
+                )
+                post_message(row.pteam.alert_slack.webhook_url, slack_message_blocks)
             except Exception:
                 pass
 
