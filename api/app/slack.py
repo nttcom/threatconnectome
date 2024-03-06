@@ -52,13 +52,17 @@ def post_message(url: str, blocks: Sequence[Dict]):
 
 
 def create_slack_pteam_alert_blocks_for_new_topic(
-    pteam: models.PTeam,
-    tag: models.Tag,
-    topic: models.Topic,
+    pteam_id: str,
+    pteam_name: str,
+    tag_id: str,
+    tag_name: str,
+    topic_id: str,
+    title: str,
+    threat_impact: int,
     groups: List[str],
 ):
     blocks: List[Dict[str, Union[str, Dict[str, str], List[Dict[str, str]]]]]
-    blocks = _block_header(text=pteam.pteam_name)
+    blocks = _block_header(text=pteam_name)
     groups_name = ",".join(groups)
     blocks.extend(
         [
@@ -68,17 +72,17 @@ def create_slack_pteam_alert_blocks_for_new_topic(
                     "type": "mrkdwn",
                     "text": "\n".join(
                         [
-                            f"*<{TAG_URL}{str(tag.tag_id)}?pteamId={pteam.pteam_id}|{tag.tag_name}>*",
-                            f"*{topic.title}*",
+                            f"*<{TAG_URL}{str(tag_id)}?pteamId={pteam_id}|{tag_name}>*",
+                            f"*{title}*",
                             f"*{groups_name}*",
-                            THREAT_IMPACT_LABEL[topic.threat_impact],
+                            THREAT_IMPACT_LABEL[threat_impact],
                         ]
                     ),
                 },
             },
             {
                 "type": "context",
-                "elements": [{"type": "plain_text", "text": str(topic.topic_id)}],
+                "elements": [{"type": "plain_text", "text": str(topic_id)}],
             },
             {"type": "divider"},
         ]

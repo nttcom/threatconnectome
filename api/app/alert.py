@@ -91,7 +91,14 @@ def alert_new_topic(db: Session, topic_id: UUID | str) -> None:
         if alert_by_slack:
             try:
                 slack_message_blocks = create_slack_pteam_alert_blocks_for_new_topic(
-                    row.pteam, row.tag, row.topic, groups
+                    row.pteam.pteam_id,
+                    row.pteam.pteam_name,
+                    row.tag.tag_id,
+                    row.tag.tag_name,
+                    row.topic.topic_id,
+                    row.topic.title,
+                    row.topic.threat_impact,
+                    groups,
                 )
                 post_message(row.pteam.alert_slack.webhook_url, slack_message_blocks)
             except Exception:
