@@ -23,6 +23,8 @@ services:
     environment:
       - FIREBASE_AUTH_EMULATOR_HOST=testfirebase:9099
       - DB_HOST=${TESTDB_HOST} # override env_file
+      - SENDGRID_API_KEY=fake_api_key_for_sendgrid_test
+      - SYSTEM_EMAIL=ic-metemcyber@example.com
     networks:
       - test-network
     volumes:

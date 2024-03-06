@@ -18,6 +18,7 @@ sqlalchemy = "*"
 univers = "*"
 packageurl-python = "*"
 sendgrid = "*"
+email-validator = "*"
 
 [dev-packages]
 mypy = "*"

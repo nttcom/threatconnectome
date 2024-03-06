@@ -107,7 +107,7 @@ def create_ateam(
             data.alert_slack.webhook_url.strip() if data.alert_slack else ""
         ),  # deprecated
     )
-    ateam.alert_slack = models.AteamSlack(
+    ateam.alert_slack = models.ATeamSlack(
         ateam_id=ateam.ateam_id,
         enable=data.alert_slack.enable if data.alert_slack else True,
         webhook_url=data.alert_slack.webhook_url if data.alert_slack else "",
@@ -299,7 +299,7 @@ def update_ateam(
         if value is None:
             continue
         if key == "alert_slack":
-            setattr(ateam, key, models.AteamSlack(**value.__dict__))
+            setattr(ateam, key, models.ATeamSlack(**value.__dict__))
             continue
         if key == "alert_mail":
             setattr(ateam, key, models.ATeamMail(**value.__dict__))

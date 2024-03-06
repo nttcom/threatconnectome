@@ -11,6 +11,7 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from app import models, schemas
+from app.alert import alert_new_topic
 from app.auth import get_current_user, token_scheme
 from app.common import (
     auto_close_by_topic,
@@ -33,7 +34,6 @@ from app.common import (
     validate_zone,
 )
 from app.database import get_db
-from app.slack import alert_new_topic
 
 router = APIRouter(prefix="/topics", tags=["topics"])
 
@@ -377,7 +377,7 @@ def create_topic(
     db.commit()
     db.refresh(topic)
 
-    alert_new_topic(db, topic)
+    alert_new_topic(db, topic.topic_id)
 
     return topic
 
