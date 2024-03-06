@@ -1,11 +1,12 @@
 from urllib.parse import quote_plus
 
+from app import models
 from app.slack import (
     ANALYSIS_URL,
     TAG_URL,
     THREAT_IMPACT_LABEL,
     _create_blocks_for_ateam,
-    _create_blocks_for_pteam,
+    create_slack_pteam_alert_blocks_for_new_topic,
 )
 
 
@@ -18,8 +19,24 @@ def test_create_blocks_for_pteam():
         "topic_id": "b1f74d1f-9360-4a8d-86ac-3cf5dd20c75c",
         "title": "test_title1",
         "threat_impact": 1,
+        "group": ["test1_group", "test2_group"],
     }
-    blocks = _create_blocks_for_pteam(**notification_data)
+
+    blocks = create_slack_pteam_alert_blocks_for_new_topic(
+        models.PTeam(
+            pteam_id=notification_data["pteam_id"], pteam_name=notification_data["pteam_name"]
+        ),
+        models.Tag(
+            tag_id=notification_data["tag_id"],
+            tag_name=notification_data["tag_name"],
+        ),
+        models.Topic(
+            topic_id=notification_data["topic_id"],
+            title=notification_data["title"],
+            threat_impact=notification_data["threat_impact"],
+        ),
+        groups=["test1", "test2"],
+    )
     assert notification_data["pteam_name"] in blocks[0]["text"]["text"]
     tag_page_url = f"{TAG_URL}{notification_data['tag_id']}?pteamId={notification_data['pteam_id']}"
     assert tag_page_url in blocks[2]["text"]["text"]
