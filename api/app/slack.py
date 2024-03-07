@@ -43,7 +43,7 @@ def _block_header(text: str):
     ]
 
 
-def post_message(url: str, blocks: Sequence[Dict]):
+def send_slack(url: str, blocks: Sequence[Dict]):
     try:
         webhook = WebhookClient(url)
         return webhook.send(text=blocks[0]["text"]["text"], blocks=blocks)
@@ -181,4 +181,4 @@ def alert_to_ateam(db: Session, action: models.TopicAction):
             action=action.action,
             action_type=action.action_type,
         )
-        post_message(webhook_url, blocks)
+        send_slack(webhook_url, blocks)
