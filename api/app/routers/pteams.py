@@ -467,9 +467,6 @@ def create_pteam(
     pteam = models.PTeam(
         pteam_name=data.pteam_name.strip(),
         contact_info=data.contact_info.strip(),
-        slack_webhook_url=(
-            data.alert_slack.webhook_url.strip() if data.alert_slack else ""
-        ),  # deprecated
         alert_threat_impact=data.alert_threat_impact or DEFAULT_ALERT_THREAT_IMPACT,
     )
     pteam.alert_slack = models.PTeamSlack(
@@ -930,14 +927,12 @@ def update_pteam(
     )
     if data.alert_slack and data.alert_slack.webhook_url:
         validate_slack_webhook_url(data.alert_slack.webhook_url)
-        pteam.slack_webhook_url = data.alert_slack.webhook_url  # deprecated
         pteam.alert_slack = models.PTeamSlack(
             pteam_id=pteam.pteam_id,
             enable=data.alert_slack.enable,
             webhook_url=data.alert_slack.webhook_url,
         )
     elif data.alert_slack and data.alert_slack.webhook_url == "":
-        pteam.slack_webhook_url = ""  # deprecated
         pteam.alert_slack = models.PTeamSlack(
             pteam_id=pteam.pteam_id,
             enable=data.alert_slack.enable,

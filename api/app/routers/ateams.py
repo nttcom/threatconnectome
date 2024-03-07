@@ -103,9 +103,6 @@ def create_ateam(
     ateam = models.ATeam(
         ateam_name=data.ateam_name.strip(),
         contact_info=data.contact_info.strip(),
-        slack_webhook_url=(
-            data.alert_slack.webhook_url.strip() if data.alert_slack else ""
-        ),  # deprecated
     )
     ateam.alert_slack = models.ATeamSlack(
         ateam_id=ateam.ateam_id,
