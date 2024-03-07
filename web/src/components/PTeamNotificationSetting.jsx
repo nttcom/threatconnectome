@@ -38,7 +38,6 @@ import { CheckButton } from "./CheckButton";
 export function PTeamNotificationSetting(props) {
   const { show } = props;
   const [edittingSlackUrl, setEdittingSlackUrl] = useState(false);
-  const [edittingEmail, setEdittingEmail] = useState(false);
   const [slackUrl, setSlackUrl] = useState("");
   const [slackEnable, setSlackEnable] = useState(false);
   const [mailAddress, setMailAddress] = useState("");
@@ -65,7 +64,6 @@ export function PTeamNotificationSetting(props) {
       setAlertImpact(pteam.alert_threat_impact);
     }
     setEdittingSlackUrl(false);
-    setEdittingEmail(false);
     setCheckSlack(false);
     setSlackMessage();
   }, [show, pteam]);
@@ -202,21 +200,10 @@ export function PTeamNotificationSetting(props) {
           >
             <OutlinedInput
               id="pteam-mail-address-field"
-              type={edittingEmail ? "text" : "password"}
+              type="text"
               autoComplete="new-password" // to avoid autocomplete by browser
               value={mailAddress}
               onChange={(event) => setMailAddress(event.target.value)}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => setEdittingEmail(!edittingEmail)}
-                    edge="end"
-                  >
-                    {edittingEmail ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  </IconButton>
-                </InputAdornment>
-              }
             />
           </FormControl>
           <CheckButton onHandleClick={handleCheckMail} isLoading={checkEmail} />

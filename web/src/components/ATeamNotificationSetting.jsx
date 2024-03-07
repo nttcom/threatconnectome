@@ -36,7 +36,6 @@ import { CheckButton } from "./CheckButton";
 export function ATeamNotificationSetting(props) {
   const { show } = props;
   const [edittingSlackUrl, setEdittingSlackUrl] = useState(false);
-  const [edittingEmail, setEdittingEmail] = useState(false);
   const [slackUrl, setSlackUrl] = useState("");
   const [slackEnable, setSlackEnable] = useState(false);
   const [mailAddress, setMailAddress] = useState("");
@@ -61,7 +60,6 @@ export function ATeamNotificationSetting(props) {
       setMailEnable(ateam.alert_mail.enable);
     }
     setEdittingSlackUrl(false);
-    setEdittingEmail(false);
     setCheckSlack(false);
     setSlackMessage();
   }, [show, ateam]);
@@ -198,21 +196,10 @@ export function ATeamNotificationSetting(props) {
           >
             <OutlinedInput
               id="ateam-mail-address-field"
-              type={edittingEmail ? "text" : "password"}
+              type="text"
               autoComplete="new-password" // to avoid autocomplete by browser
               value={mailAddress}
               onChange={(event) => setMailAddress(event.target.value)}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => setEdittingEmail(!edittingEmail)}
-                    edge="end"
-                  >
-                    {edittingEmail ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  </IconButton>
-                </InputAdornment>
-              }
             />
           </FormControl>
           <CheckButton onHandleClick={handleCheckMail} isLoading={checkEmail} />
