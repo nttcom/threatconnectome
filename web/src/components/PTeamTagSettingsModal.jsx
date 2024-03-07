@@ -16,7 +16,7 @@ export function PTeamTagSettingsModal(props) {
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
-            Tag Close
+            Auto Close
           </Typography>
           <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
             <CloseIcon />

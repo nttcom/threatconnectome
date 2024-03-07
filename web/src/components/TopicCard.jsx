@@ -143,15 +143,15 @@ export function TopicCard(props) {
               actionVersion.le,
               actionVersion.lt,
               actionVersion.eq,
-              true,
-            ),
-          ),
+              true
+            )
+          )
       ));
   const topicActions = actionFilter
     ? pteamTopicActions[topicId]?.filter(
         (action) =>
           isRelatedAction(action, currentTagDict.tag_name) ||
-          isRelatedAction(action, currentTagDict.parent_name),
+          isRelatedAction(action, currentTagDict.parent_name)
       )
     : pteamTopicActions[topicId] ?? [];
 
@@ -204,7 +204,7 @@ export function TopicCard(props) {
                 (actionVersion.eq === undefined || isComparable(ref.version, actionVersion.eq))
               );
             });
-          },
+          }
         );
       });
     });
@@ -357,7 +357,7 @@ export function TopicCard(props) {
                 const otherActions = topicActions?.filter((action) =>
                   ttStatus.topic_status !== "completed"
                     ? !action.recommended
-                    : !ttStatus.action_logs?.map((log) => log.action_id).includes(action.action_id),
+                    : !ttStatus.action_logs?.map((log) => log.action_id).includes(action.action_id)
                 );
                 return otherActions?.length >= 1 ? (
                   <>
@@ -547,8 +547,8 @@ export function TopicCard(props) {
                 {(ttStatus.topic_status ?? "scheduled") === "scheduled" &&
                   ttStatus.scheduled_at && (
                     <Box display="flex" alignItems="flex-end">
-                      <CalendarMonthIcon fontSize="small" sx={{ color: grey[700] }} />
                       <Typography ml={0.5} variant="caption">
+                        <CalendarMonthIcon fontSize="small" sx={{ color: grey[700], mb: -0.7 }} />
                         {dateTimeFormat(ttStatus.scheduled_at)}
                       </Typography>
                     </Box>
