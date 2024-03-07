@@ -11,7 +11,7 @@ from app.constants import SYSTEM_EMAIL
 from app.models import Account
 from app.schemas import EmailCheckRequest, FsServerInfo, SlackCheckRequest
 from app.sendgrid import SendgridFailStatusError, SendgridHttpError, ready_to_send_email, send_email
-from app.slack import post_message, validate_slack_webhook_url
+from app.slack import send_slack, validate_slack_webhook_url
 
 router = APIRouter(prefix="/external", tags=["external"])
 
@@ -28,7 +28,7 @@ def check_webhook_url(data: SlackCheckRequest, current_user: Account = Depends(g
             "text": {"type": "mrkdwn", "text": "test message from Threatconnectome"},
         }
     ]
-    response = post_message(data.slack_webhook_url, blocks)
+    response = send_slack(data.slack_webhook_url, blocks)
     if response is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     if response.status_code != 200:
