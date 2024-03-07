@@ -112,7 +112,7 @@ StatusRatioGraph.propTypes = {
 function GroupChips(props) {
   const { references } = props;
   const unduplicatedGroups = [...new Set(references.map((ref) => ref.group))].filter(
-    (group) => group !== ""
+    (group) => group !== "",
   );
 
   const location = useLocation();
@@ -158,7 +158,7 @@ GroupChips.propTypes = {
       target: PropTypes.string,
       version: PropTypes.string,
       group: PropTypes.string,
-    })
+    }),
   ).isRequired,
 };
 

@@ -128,7 +128,7 @@ export function TopicManagement() {
       .catch((error) =>
         enqueueSnackbar(`Search topics failed: ${errorToString(error)}`, {
           variant: "error",
-        })
+        }),
       );
   };
 

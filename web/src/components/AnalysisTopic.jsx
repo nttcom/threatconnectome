@@ -124,7 +124,7 @@ export function AnalysisTopic(props) {
     enqueueSnackbar(
       "Operation failed: " +
         `${error.response.status} ${error.response.statusText} ${error.response.data?.detail}`,
-      { variant: "error" }
+      { variant: "error" },
     );
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
@@ -186,7 +186,7 @@ export function AnalysisTopic(props) {
 
   const topicTagNames = topicDetail.tags.map((tag) => tag.tag_name);
   const recommendedActions = actions?.[targetTopic.topic_id]?.filter(
-    (action) => action.recommended
+    (action) => action.recommended,
   );
   const otherActions = actions?.[targetTopic.topic_id]?.filter((action) => !action.recommended);
 
@@ -195,7 +195,7 @@ export function AnalysisTopic(props) {
       ...dict,
       [pteam.pteam_id]: pteam.contact_info || "(no contact info)",
     }),
-    {}
+    {},
   );
 
   const warningMessageForPTeam = (pteam) =>
@@ -280,7 +280,7 @@ export function AnalysisTopic(props) {
                           ))}
                         </TableCell>
                       </TableRow>
-                    ))
+                    )),
                   )}
                 </TableBody>
               </Table>
