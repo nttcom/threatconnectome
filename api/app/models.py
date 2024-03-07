@@ -394,7 +394,6 @@ class PTeam(Base):
     pteam_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     pteam_name: Mapped[Str255]
     contact_info: Mapped[Str255]
-    slack_webhook_url: Mapped[Str255]
     alert_threat_impact: Mapped[Optional[int]]
     disabled: Mapped[bool] = mapped_column(default=False)
 
@@ -424,8 +423,6 @@ class ATeam(Base):
     ateam_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     ateam_name: Mapped[Str255]
     contact_info: Mapped[Str255]
-    slack_webhook_url: Mapped[Str255]
-
     members = relationship("Account", secondary=ATeamAccount.__tablename__, back_populates="ateams")
     invitations = relationship("ATeamInvitation", back_populates="ateam")
     pteams = relationship("PTeam", secondary=ATeamPTeam.__tablename__, back_populates="ateams")
