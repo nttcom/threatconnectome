@@ -47,7 +47,7 @@ import {
   getPTeamTag as apiGetPTeamTag,
   updateATeamTopicComment as apiUpdateATeamTopicComment,
 } from "../utils/api";
-import { commonButtonStyle, rootPrefix, threatImpactName } from "../utils/const";
+import { rootPrefix, threatImpactName } from "../utils/const";
 import { a11yProps, dateTimeFormat, tagsMatched } from "../utils/func.js";
 
 export function AnalysisTopic(props) {
@@ -301,9 +301,11 @@ export function AnalysisTopic(props) {
               />
               <Button
                 onClick={handleCreateComment}
+                variant="outlined"
+                color="success"
                 sx={{
                   margin: "10px 0 30px auto",
-                  ...commonButtonStyle,
+                  textTransform: "none",
                 }}
               >
                 Comment
@@ -354,16 +356,18 @@ export function AnalysisTopic(props) {
                                 Cancel
                               </Button>
                               <Button
+                                variant="outlined"
+                                color="success"
                                 onClick={() => handleUpdateComment(comment.comment_id)}
                                 sx={{
-                                  ...commonButtonStyle,
+                                  textTransform: "none",
                                 }}
                               >
                                 Edit
                               </Button>
                             </Box>
                           ) : (
-                            <>
+                            <Box display="flex" justifyContent="flex-end">
                               {comment.user_id === user.user_id && (
                                 <IconButton
                                   aria-label="delete"
@@ -382,7 +386,7 @@ export function AnalysisTopic(props) {
                               >
                                 <DeleteIcon fontSize="inherit" />
                               </IconButton>
-                            </>
+                            </Box>
                           )}
                         </Box>
                       )}

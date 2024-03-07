@@ -189,7 +189,9 @@ export function TopicSearchModal(props) {
               onChange={(newDate) =>
                 (dateFormList === "since" ? setUpdatedAfter : setUpdatedBefore)(newDate)
               }
-              renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
+              renderInput={(params) => (
+                <TextField size="small" fullWidth margin="dense" required {...params} />
+              )}
             />
           </Grid>
         )}
@@ -201,7 +203,9 @@ export function TopicSearchModal(props) {
               maxDateTime={updatedBefore || now}
               value={updatedAfter}
               onChange={(newDate) => setUpdatedAfter(newDate)}
-              renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
+              renderInput={(params) => (
+                <TextField size="small" fullWidth margin="dense" required {...params} />
+              )}
             />
             <Typography sx={{ margin: "20px" }}>~</Typography>
             <DateTimePicker
@@ -211,7 +215,9 @@ export function TopicSearchModal(props) {
               maxDateTime={now}
               value={updatedBefore}
               onChange={(newDate) => setUpdatedBefore(newDate)}
-              renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
+              renderInput={(params) => (
+                <TextField size="small" fullWidth margin="dense" required {...params} />
+              )}
             />
           </Grid>
         )}

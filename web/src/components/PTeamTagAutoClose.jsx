@@ -47,10 +47,10 @@ export function PTeamTagAutoClose(props) {
     <Box>
       <Box display="flex" flexDirection="row" alignItems="center">
         <Typography variant="body2" mb={1} mr={2}>
-          Close only Alerted tags.
+          Manually check alerts that require a response.
         </Typography>
         <Button onClick={handleSave} sx={{ ...commonButtonStyle, mb: 1 }}>
-          Done
+          Run
         </Button>
       </Box>
       <WaitingModal isOpen={isOpenWaitingModal} text="Trying auto close" />

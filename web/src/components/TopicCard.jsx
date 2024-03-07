@@ -547,8 +547,8 @@ export function TopicCard(props) {
                 {(ttStatus.topic_status ?? "scheduled") === "scheduled" &&
                   ttStatus.scheduled_at && (
                     <Box display="flex" alignItems="flex-end">
-                      <CalendarMonthIcon fontSize="small" sx={{ color: grey[700] }} />
                       <Typography ml={0.5} variant="caption">
+                        <CalendarMonthIcon fontSize="small" sx={{ color: grey[700], mb: -0.7 }} />
                         {dateTimeFormat(ttStatus.scheduled_at)}
                       </Typography>
                     </Box>

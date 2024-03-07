@@ -1,5 +1,6 @@
 import {
   CheckCircleOutline as CheckCircleOutlineIcon,
+  HorizontalRule as HorizontalRuleIcon,
   Info as InfoIcon,
   Search as SearchIcon,
 } from "@mui/icons-material";
@@ -76,7 +77,7 @@ function TopicManagementTableRow(props) {
         {actionList?.length > 0 ? (
           <CheckCircleOutlineIcon color="success" />
         ) : (
-          <CheckCircleOutlineIcon sx={{ color: grey[500] }} />
+          <HorizontalRuleIcon sx={{ color: grey[500] }} />
         )}
       </TableCell>
       <TableCell>

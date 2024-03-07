@@ -1,9 +1,4 @@
-import {
-  ChatBubbleOutline as ChatBubbleOutlineIcon,
-  ChatOutlined as ChatOutlinedIcon,
-} from "@mui/icons-material";
 import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
-import { tooltipClasses } from "@mui/material/Tooltip";
 import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
@@ -170,18 +165,6 @@ GroupChips.propTypes = {
 export function PTeamStatusCard(props) {
   const { onHandleClick, tag } = props;
 
-  const CommentTooltip = styled(({ className, ...props }) => (
-    <Tooltip {...props} classes={{ popper: className }} />
-  ))(({ theme }) => ({
-    [`& .${tooltipClasses.tooltip}`]: {
-      backgroundColor: grey[50],
-      color: "rgba(0, 0, 0, 0.87)",
-      maxWidth: 480,
-      fontSize: theme.typography.pxToRem(12),
-      border: "1px solid #dadde9",
-    },
-  }));
-
   return (
     <TableRow
       onClick={onHandleClick}
@@ -209,13 +192,6 @@ export function PTeamStatusCard(props) {
             <Typography variant="body2">
               {`Updated ${calcTimestampDiff(tag.updated_at)}`}
             </Typography>
-            {tag.text ? (
-              <CommentTooltip title={<Typography variant="body2">{tag.text}</Typography>}>
-                <ChatOutlinedIcon />
-              </CommentTooltip>
-            ) : (
-              <ChatBubbleOutlineIcon sx={{ color: grey[300] }} />
-            )}
           </Box>
           <StatusRatioGraph counts={tag.status_count ?? []} threatImpact={tag.threat_impact ?? 4} />
         </Box>
