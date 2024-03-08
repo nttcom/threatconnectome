@@ -20,7 +20,7 @@ from app.routers import (
 
 
 def create_app():
-    app = FastAPI()
+    app = FastAPI(title="Threatconnectome")
     origins = [
         "http://localhost:3000",  # dev
         "http://localhost:8080",  # dev
