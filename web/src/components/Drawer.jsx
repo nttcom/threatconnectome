@@ -158,7 +158,7 @@ export function Drawer() {
         )}
         {/* Topics */}
         <StyledListItemButton
-          onClick={() => navigate("/topics")}
+          onClick={() => navigate("/topics?" + queryParams)}
           selected={location.pathname === "/topics"}
         >
           <StyledListItemIcon>
