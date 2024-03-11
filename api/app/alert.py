@@ -149,7 +149,7 @@ def create_mail_alert_for_new_topic(
         4: "None",
     }.get(threat_impact) or "WrongThreatImpact"
     subject = f"[Tc Alert] {threat_impact_label}: {topic_title}"
-    body = "\n".join(
+    body = "<br>".join(
         [
             "A new topic created.",
             "",
@@ -160,7 +160,7 @@ def create_mail_alert_for_new_topic(
             f"Groups: {', '.join(groups)}",
             f"Artifact: {tag_name}",
             "",
-            f"Link to Artifact page: {_pteam_tag_page_link(pteam_id, tag_id)}",
+            f"<a href={_pteam_tag_page_link(pteam_id, tag_id)}>Link to Artifact page</a>",
         ]
     )
     return subject, body
