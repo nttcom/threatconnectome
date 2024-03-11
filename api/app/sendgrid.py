@@ -36,7 +36,7 @@ def send_email(to_email: str, from_email: str, subject: str, content: str):
 
     try:
         sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
-        mail = Mail(Email(from_email), To(to_email), subject, Content("text/plain", content))
+        mail = Mail(Email(from_email), To(to_email), subject, Content("text/html", content))
 
         response = sg.client.mail.send.post(request_body=mail.get())
         if response.status_code != 202:
