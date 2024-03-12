@@ -212,12 +212,13 @@ def main(args: argparse.Namespace) -> None:
             continue  # this topic is not a pteam watching target
         actual_pteam_tag_ids = set()  # save pteam tags to get topic status
         for parent_id in matched_parent_ids:
-            if parent_id:
-                actual_pteam_tag_ids |= set(pteam_tag_groups[parent_id])
-            else:  # not standard tags -- missing parents
-                actual_pteam_tag_ids |= set(pteam_tag_groups.get(None, [])) & set(
-                    topic_tag_groups.get(None, [])
-                )
+            actual_topic_tag_ids = set(topic_tag_groups.get(parent_id, []))
+            pteam_tag_ids = set(pteam_tag_groups.get(parent_id, []))
+            if parent_id and parent_id in actual_topic_tag_ids:
+                # topic tags include parent, thus add all pteam tags
+                actual_pteam_tag_ids |= pteam_tag_ids
+            else:  # topic tags are children only, add exactly matched pteam tags only
+                actual_pteam_tag_ids |= actual_topic_tag_ids & pteam_tag_ids
         if not actual_pteam_tag_ids:
             # for the case topic and pteam has different parent-less tags
             # e.g. topic_tags = [test1:xxx] and pteam_tags = [test2:xxx]
