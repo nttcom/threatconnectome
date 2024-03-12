@@ -19,6 +19,7 @@ RETCODE_ALL_MATCHED_TOPICS_COMPLETED = 0
 RETCODE_SOME_MATCHED_TOPICS_LEFT_UNCOMPLETED = 1
 RETCODE_NO_TOPICS_MATCHED_WITH_MISP_TAG = 2
 RETCODE_NOT_MATCHED_WITH_PTEAM_WATCHING_TARGETS = 3
+RETCODE_TOO_MANY_TOPICS_MATCHED_WITH_MISP_TAG = 4
 
 
 class APIError(Exception):
@@ -194,7 +195,10 @@ def main(args: argparse.Namespace) -> None:
         print(f"No topic matched with misp_tag: {args.misp_tag}")
         sys.exit(RETCODE_NO_TOPICS_MATCHED_WITH_MISP_TAG)
 
-    assert search_result["num_topics"] < 100  # TODO?
+    # raise error if cannot get all topics at once
+    if search_result["num_topics"] > 100:  # 100 is the limit of search topics api
+        print(f"Too many topics matched with misp_tag: {args.misp_tag}")
+        sys.exit(RETCODE_TOO_MANY_TOPICS_MATCHED_WITH_MISP_TAG)
 
     # process each topics
     topics_dict: Dict[str, dict] = {}  # topic_id: topic
