@@ -125,7 +125,6 @@ export function PTeamEditAction(props) {
         // When only the parent tag is registered in a topic, child tags can also be selected.
         if (tag.tag_id !== presetTagId && tag.tag_id === presetParentTagId) {
           const tag = allTags.filter((tag) => tag.tag_id === presetTagId);
-          console.log(tag[0].tag_name);
           validTagNames.add(tag[0].tag_name);
         }
       });
