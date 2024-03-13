@@ -96,7 +96,7 @@ class ThreatconnectomeClient:
                 _retry -= 1
             sleep(3)
 
-    def get_pteam_tags(self, pteam_id: UUID | str) -> dict:
+    def get_pteam_tags(self, pteam_id: UUID | str) -> List[dict]:
         url = f"{self.api_url}/pteams/{pteam_id}/tags"
         response = self.retry_call(requests.get, url)
         return response.json()
@@ -168,7 +168,7 @@ def trace_message(*args, **kwargs):
     sys.stderr.flush()
 
 
-def _divide_tag_groups(tags: dict) -> Dict[str | None, List[str]]:
+def _divide_tag_groups(tags: List[dict]) -> Dict[str | None, List[str]]:
     ret_dict: Dict[str | None, List[str]] = {}  # {parent_id: [tag_ids]}
     for tag in tags:
         tag_id = tag["tag_id"]
@@ -179,14 +179,38 @@ def _divide_tag_groups(tags: dict) -> Dict[str | None, List[str]]:
     return ret_dict
 
 
+def _pick_overlapped_pteam_tag_ids(topic_tags: List[dict], pteam_tags: List[dict]) -> Set[str]:
+    overlapped_pteam_tag_ids: Set[str] = set()
+    topic_tag_groups = _divide_tag_groups(topic_tags)
+    pteam_tag_groups = _divide_tag_groups(pteam_tags)
+
+    # at 1st, check if topic & pteam have same tag groups(same parent_ids)
+    matched_parent_ids = set(topic_tag_groups.keys()) & set(pteam_tag_groups.keys())
+    if not matched_parent_ids:
+        return set()
+    # at 2nd, check if each tag groups is exactly matched, especially topic tag is child tag
+    for parent_id in matched_parent_ids:
+        topic_tag_ids = set(topic_tag_groups.get(parent_id, []))
+        pteam_tag_ids = set(pteam_tag_groups.get(parent_id, []))
+        if parent_id and parent_id in topic_tag_ids:
+            # topic tags include parent, thus add all pteam tags
+            overlapped_pteam_tag_ids |= pteam_tag_ids
+        else:
+            # topic tags are children only, add exactly matched pteam tags only
+            # Note: this case includes parent-less tags, e.g. "test1"
+            overlapped_pteam_tag_ids |= topic_tag_ids & pteam_tag_ids
+    if not overlapped_pteam_tag_ids:
+        # 2nd check detects topic_tags and pteam_tags does not overlap
+        return set()
+    return overlapped_pteam_tag_ids
+
+
 def main(args: argparse.Namespace) -> None:
     tc_client = ThreatconnectomeClient(args.endpoint, args.refresh_token, retry_max=1)
 
-    # get pteam tags & gen watching tags
+    # get pteam tags
     pteam_tags_list = tc_client.get_pteam_tags(args.pteam_id)
     pteam_tags_dict = {t["tag_id"]: t for t in pteam_tags_list}
-    pteam_tag_groups = _divide_tag_groups(pteam_tags_list)
-    pteam_parent_ids = set(pteam_tag_groups.keys())
 
     # search related topics matched with misp_tag
     search_result = tc_client.search_topics_by_misp_tag(args.misp_tag)
@@ -204,45 +228,30 @@ def main(args: argparse.Namespace) -> None:
             offset += 100
 
     # process each topics
-    topics_dict: Dict[str, dict] = {}  # topic_id: topic
-    topic_to_pteam_tags_set: Dict[str, Set[str]] = {}  # topic_id: {tag_id, ...}
+    pteam_watching_topics: Dict[str, dict] = {}  # topic_id: topic
+    pteamtags_for_topics: Dict[str, Set[str]] = {}  # topic_id: {pteamtag_id, ...}
     for topic_summary in related_topics:
-        # check if the topic is pteam's watching target
+        # get details of the topic
         topic = tc_client.get_topic(topic_summary["topic_id"])
         topic_id = topic["topic_id"]
-        topic_tag_groups = _divide_tag_groups(topic["tags"])
-        topic_parent_ids = set(topic_tag_groups.keys())
 
-        # compare topic_tags and pteam_tags by each tag groups
-        matched_parent_ids = topic_parent_ids & pteam_parent_ids
-        if not matched_parent_ids:
-            continue  # this topic is not a pteam watching target
-        actual_pteam_tag_ids = set()  # save pteam tags to get topic status
-        for parent_id in matched_parent_ids:
-            actual_topic_tag_ids = set(topic_tag_groups.get(parent_id, []))
-            pteam_tag_ids = set(pteam_tag_groups.get(parent_id, []))
-            if parent_id and parent_id in actual_topic_tag_ids:
-                # topic tags include parent, thus add all pteam tags
-                actual_pteam_tag_ids |= pteam_tag_ids
-            else:  # topic tags are children only, add exactly matched pteam tags only
-                actual_pteam_tag_ids |= actual_topic_tag_ids & pteam_tag_ids
-        if not actual_pteam_tag_ids:
-            # for the case topic and pteam has different parent-less tags
-            # e.g. topic_tags = [test1:xxx] and pteam_tags = [test2:xxx]
-            continue  # this topic is not a pteam watching target
+        # check if the pteam watches this topic
+        pteam_watching_tag_ids = _pick_overlapped_pteam_tag_ids(topic["tags"], pteam_tags_list)
+        if not pteam_watching_tag_ids:
+            continue  # pteam does not watch this topic
 
         # save infos to get details later
-        topics_dict[topic_id] = topic
-        topic_to_pteam_tags_set[topic_id] = actual_pteam_tag_ids
+        pteam_watching_topics[topic_id] = topic
+        pteamtags_for_topics[topic_id] = pteam_watching_tag_ids
 
-    if len(topics_dict) == 0:
+    if len(pteam_watching_topics) == 0:
         print(f"Your PTeam does not watch any topics matched with misp_tag: {args.misp_tag}")
         sys.exit(RETCODE_NOT_MATCHED_WITH_PTEAM_WATCHING_TARGETS)
 
     # get topic statuses for each pteam tags
     solved_topic_tags = []
     unsolved_topic_statuses: Dict[str, List[dict]] = {}  # topic_id: [status, ...]
-    for topic_id, pteam_tag_ids in topic_to_pteam_tags_set.items():
+    for topic_id, pteam_tag_ids in pteamtags_for_topics.items():
         statuses = []
         for pteam_tag_id in pteam_tag_ids:
             status = tc_client.get_pteam_topic_tag_status(args.pteam_id, topic_id, pteam_tag_id)
@@ -257,7 +266,7 @@ def main(args: argparse.Namespace) -> None:
         print(f"Your PTeam has already comleted all of related {len(solved_topic_tags)} topics.")
         solved_summary = []
         for solved in solved_topic_tags:
-            topic = topics_dict[solved["topic_id"]]
+            topic = pteam_watching_topics[solved["topic_id"]]
             pteam_tag = pteam_tags_dict[solved["pteam_tag_id"]]
             solved_summary.append(f"  - {pteam_tag['tag_name']}\t{topic['title']}")
         print("\n".join(sorted(solved_summary)))
@@ -265,7 +274,7 @@ def main(args: argparse.Namespace) -> None:
 
     print(f"Your PTeam has unsolved {len(unsolved_topic_statuses)} topics")
     for idx, [topic_id, statuses] in enumerate(unsolved_topic_statuses.items()):
-        topic = topics_dict[topic_id]
+        topic = pteam_watching_topics[topic_id]
         impact_labels = {
             1: "Immediate",
             2: "Off-cycle",
