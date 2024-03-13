@@ -19,7 +19,6 @@ RETCODE_ALL_MATCHED_TOPICS_COMPLETED = 0
 RETCODE_SOME_MATCHED_TOPICS_LEFT_UNCOMPLETED = 1
 RETCODE_NO_TOPICS_MATCHED_WITH_MISP_TAG = 2
 RETCODE_NOT_MATCHED_WITH_PTEAM_WATCHING_TARGETS = 3
-RETCODE_TOO_MANY_TOPICS_MATCHED_WITH_MISP_TAG = 4
 
 
 class APIError(Exception):
@@ -102,11 +101,11 @@ class ThreatconnectomeClient:
         response = self.retry_call(requests.get, url)
         return response.json()
 
-    def search_topics_by_misp_tag(self, misp_tag: str) -> dict:
+    def search_topics_by_misp_tag(self, misp_tag: str, offset: int = 0, limit: int = 100) -> dict:
         params = {
             "misp_tag_names": [misp_tag],
-            "offset": 0,
-            "limit": 100,
+            "offset": offset,
+            "limit": limit,
         }
         url = f"{self.api_url}/topics/search"
         response = self.retry_call(requests.get, url, params=params)
@@ -195,15 +194,19 @@ def main(args: argparse.Namespace) -> None:
         print(f"No topic matched with misp_tag: {args.misp_tag}")
         sys.exit(RETCODE_NO_TOPICS_MATCHED_WITH_MISP_TAG)
 
-    # raise error if cannot get all topics at once
+    # get left topics if cannot get at once
+    related_topics = search_result["topics"]
     if search_result["num_topics"] > 100:  # 100 is the limit of search topics api
-        print(f"Too many topics matched with misp_tag: {args.misp_tag}")
-        sys.exit(RETCODE_TOO_MANY_TOPICS_MATCHED_WITH_MISP_TAG)
+        offset = 100
+        while offset < search_result["num_topics"]:
+            tmp_result = tc_client.search_topics_by_misp_tag(args.misp_tag, offset=offset)
+            related_topics.extend(tmp_result["topics"])
+            offset += 100
 
     # process each topics
     topics_dict: Dict[str, dict] = {}  # topic_id: topic
     topic_to_pteam_tags_set: Dict[str, Set[str]] = {}  # topic_id: {tag_id, ...}
-    for topic_summary in search_result["topics"]:
+    for topic_summary in related_topics:
         # check if the topic is pteam's watching target
         topic = tc_client.get_topic(topic_summary["topic_id"])
         topic_id = topic["topic_id"]
