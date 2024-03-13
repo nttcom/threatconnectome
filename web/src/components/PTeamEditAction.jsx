@@ -121,6 +121,13 @@ export function PTeamEditAction(props) {
         if (tag.parent_name && tag.parent_name !== tag.tag_name) {
           validTagNames.add(tag.parent_name);
         }
+
+        // When only the parent tag is registered in a topic, child tags can also be selected.
+        if (tag.tag_id !== presetTagId && tag.tag_id === presetParentTagId) {
+          const tag = allTags.filter((tag) => tag.tag_id === presetTagId);
+          console.log(tag[0].tag_name);
+          validTagNames.add(tag[0].tag_name);
+        }
       });
     for (let action of actions) {
       if (action.ext?.tags && !action.ext.tags.every((tag) => validTagNames.has(tag))) {
