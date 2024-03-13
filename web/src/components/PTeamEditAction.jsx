@@ -114,6 +114,8 @@ export function PTeamEditAction(props) {
 
   const validateActionTags = () => {
     const validTagNames = new Set();
+    const presetTag = allTags.find((tag) => tag.tag_id === presetTagId);
+
     allTags
       .filter((tag) => tagIds.includes(tag.tag_id))
       .forEach((tag) => {
@@ -124,8 +126,7 @@ export function PTeamEditAction(props) {
 
         // When only the parent tag is registered in a topic, child tags can also be selected.
         if (tag.tag_id !== presetTagId && tag.tag_id === presetParentTagId) {
-          const tag = allTags.filter((tag) => tag.tag_id === presetTagId);
-          validTagNames.add(tag[0].tag_name);
+          validTagNames.add(presetTag.tag_name);
         }
       });
     for (let action of actions) {
