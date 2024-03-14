@@ -137,6 +137,9 @@ export function TopicModal(props) {
 
   const validateActionTags = () => {
     const validTagNames = new Set();
+    const presetTag = allTags.find((tag) => tag.tag_id === presetTagId);
+    validTagNames.add(presetTag.tag_name);
+
     allTags
       .filter((tag) => tagIds.includes(tag.tag_id))
       .forEach((tag) => {
