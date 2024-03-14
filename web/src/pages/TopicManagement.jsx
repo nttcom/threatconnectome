@@ -29,6 +29,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { FormattedDateTimeWithTooltip } from "../components/FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "../components/TopicSearchModal";
+import styles from "../cssModule/button.module.css";
 import { getActions, getTopic } from "../slices/topics";
 import { searchTopics } from "../utils/api";
 import { difficulty, difficultyColors } from "../utils/const";
@@ -200,9 +201,7 @@ export function TopicManagement() {
         <Box flexGrow={1} />
         <Box mb={0.5}>
           <Button
-            variant="contained"
-            color="success"
-            sx={{ textTransform: "none" }}
+            className={styles.prominent_btn}
             onClick={() => {
               setSearchMenuOpen(true);
             }}

@@ -40,6 +40,7 @@ import { ThreatImpactChip } from "../components/ThreatImpactChip";
 import { TopicEditModal } from "../components/TopicEditModal";
 import { UUIDTypography } from "../components/UUIDTypography";
 import { WarningTooltip } from "../components/WarningTooltip";
+import styles from "../cssModule/button.module.css";
 import { getActions, getTopic } from "../slices/topics";
 import {
   createATeamTopicComment as apiCreateATeamTopicComment,
@@ -300,12 +301,10 @@ export function AnalysisTopic(props) {
                 onChange={(event) => setNewComment(event.target.value)}
               />
               <Button
+                className={styles.check_btn}
                 onClick={handleCreateComment}
-                variant="outlined"
-                color="success"
                 sx={{
                   margin: "10px 0 30px auto",
-                  textTransform: "none",
                 }}
               >
                 Comment

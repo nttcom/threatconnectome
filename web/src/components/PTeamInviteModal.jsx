@@ -19,8 +19,9 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
+import styles from "../cssModule/button.module.css";
 import { createPTeamInvitation } from "../utils/api";
-import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
+import { modalCommonButtonStyle } from "../utils/const";
 
 import { CopiedIcon } from "./CopiedIcon";
 
@@ -73,7 +74,7 @@ export function PTeamInviteModal(props) {
 
   return (
     <>
-      <Button onClick={handleOpen} sx={commonButtonStyle}>
+      <Button className={styles.prominent_btn} onClick={handleOpen}>
         {text}
       </Button>
       <Dialog open={open} fullWidth>
