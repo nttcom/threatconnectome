@@ -32,7 +32,6 @@ export const getAuthorizedZones = createAsyncThunk(
 );
 
 const _initialUserState = {
-  achievements: undefined,
   user: {},
   zones: undefined,
 };

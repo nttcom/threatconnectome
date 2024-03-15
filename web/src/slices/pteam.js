@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import {
   getPTeam as apiGetPTeam,
-  getPTeamAchievements as apiGetPTeamAchievements,
   getPTeamAuth as apiGetPTeamAuth,
   getPTeamAuthInfo as apiGetPTeamAuthInfo,
   getPTeamMembers as apiGetPTeamMembers,
@@ -20,15 +19,6 @@ export const getPTeam = createAsyncThunk(
   "pteam/getPTeam",
   async (pteamId) =>
     await apiGetPTeam(pteamId).then((response) => ({
-      data: response.data,
-      pteamId: pteamId,
-    })),
-);
-
-export const getPTeamAchievements = createAsyncThunk(
-  "pteam/getPTeamAchievements",
-  async (pteamId) =>
-    await apiGetPTeamAchievements(pteamId).then((response) => ({
       data: response.data,
       pteamId: pteamId,
     })),
@@ -153,7 +143,6 @@ export const getPTeamGroups = createAsyncThunk(
 const _initialState = {
   pteamId: undefined,
   pteam: undefined,
-  achievements: undefined,
   authInfo: undefined,
   authorities: undefined,
   members: undefined,
@@ -186,10 +175,6 @@ const pteamSlice = createSlice({
       .addCase(getPTeam.fulfilled, (state, action) => ({
         ...state,
         pteam: action.payload.data,
-      }))
-      .addCase(getPTeamAchievements.fulfilled, (state, action) => ({
-        ...state,
-        achievements: action.payload.data,
       }))
       .addCase(getPTeamAuthInfo.fulfilled, (state, action) => ({
         ...state,

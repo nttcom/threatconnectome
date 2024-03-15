@@ -24,8 +24,6 @@ export const getPTeam = async (pteamId) => axios.get(`/pteams/${pteamId}`);
 
 export const updatePTeam = async (pteamId, data) => axios.put(`/pteams/${pteamId}`, data);
 
-export const getPTeamAchievements = async (pteamId) => axios.get(`/pteams/${pteamId}/achievements`);
-
 export const getPTeamMembers = async (pteamId) => axios.get(`/pteams/${pteamId}/members`);
 
 export const deletePTeamMember = async (pteamId, userId) =>
