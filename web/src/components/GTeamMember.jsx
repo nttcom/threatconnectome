@@ -38,7 +38,7 @@ export function GTeamMember(props) {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ width: "30%", fontWeight: 900 }}>USER(EMAIL)</TableCell>
-                <TableCell sx={{ fontWeight: 900 }}>ACHIEVEMENT</TableCell>
+                <TableCell sx={{ fontWeight: 900 }}>EXPERIENCE in SecOps</TableCell>
                 <TableCell sx={{ fontWeight: 900 }} align="right">
                   ACTIONS
                 </TableCell>
