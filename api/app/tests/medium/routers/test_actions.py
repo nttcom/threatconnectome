@@ -10,29 +10,22 @@ from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
     ACTION3,
-    GTEAM1,
     PTEAM1,
     TOPIC1,
     TOPIC2,
     USER1,
     USER2,
-    ZONE1,
-    ZONE2,
 )
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
-    accept_gteam_invitation,
     assert_200,
     assert_204,
     common_put,
-    create_gteam,
     create_pteam,
     create_tag,
     create_topic,
     create_user,
-    create_zone,
     headers,
-    invite_to_gteam,
 )
 
 client = TestClient(app)
@@ -64,9 +57,6 @@ def test_create_action__tags():
         for key, val in req.items():
             if key == "action_id":
                 if not resp[key]:
-                    return False
-            elif key == "zone_names":
-                if {x["zone_name"] for x in resp["zones"]} != set(req[key]):
                     return False
             else:
                 if req[key] != resp[key]:
@@ -164,135 +154,6 @@ def test_create_action__tags():
     assert _find_action(all_actions, action23)
 
 
-def test_create_action__zones():
-    create_user(USER1)
-    create_user(USER2)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam1.gteam_id, ZONE2)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name, zone2.zone_name]})
-
-    def _get_action_by_id(action: dict) -> dict:
-        return assert_200(client.get(f"/actions/{action['action_id']}", headers=headers(USER1)))
-
-    def _get_pteam_actions(pteam: schemas.PTeamInfo, topic: schemas.TopicResponse) -> List[dict]:
-        data = assert_200(
-            client.get(
-                f"/topics/{topic.topic_id}/actions/pteam/{pteam.pteam_id}",
-                headers=headers(USER1),
-            )
-        )
-        return data.get("actions", [])
-
-    def _cmp_actions(req: Optional[dict], resp: dict) -> bool:
-        if not req:
-            return False
-        for key, val in req.items():
-            if key == "action_id":
-                if not resp[key]:
-                    return False
-            elif key == "zone_names":
-                if {x["zone_name"] for x in resp["zones"]} != set(req[key]):
-                    return False
-            else:
-                if req[key] != resp[key]:
-                    return False
-        return True
-
-    def _find_action(actions: List[dict], target: dict) -> Optional[dict]:
-        return next(filter(lambda x: _cmp_actions(x, target), actions), {})
-
-    ## topic1: no zone
-    topic1 = create_topic(USER1, {**TOPIC1, "zone_names": []})
-    assert _get_pteam_actions(pteam1, topic1) == []
-
-    # no zoned action: ok
-    request = {
-        **ACTION1,
-        "topic_id": str(topic1.topic_id),
-        "zone_names": [],
-    }
-    action11 = assert_200(client.post("/actions", headers=headers(USER1), json=request))
-    assert _cmp_actions(request, action11)
-    assert _cmp_actions(request, _get_action_by_id(action11))
-
-    all_actions = _get_pteam_actions(pteam1, topic1)
-    assert len(all_actions) == 1
-    assert _find_action(all_actions, action11)
-
-    # zoned action: ok
-    request = {
-        **ACTION2,
-        "topic_id": str(topic1.topic_id),
-        "zone_names": [zone1.zone_name],
-    }
-    action12 = assert_200(client.post("/actions", headers=headers(USER1), json=request))
-    assert _cmp_actions(request, action12)
-    assert _cmp_actions(request, _get_action_by_id(action12))
-
-    all_actions = _get_pteam_actions(pteam1, topic1)
-    assert len(all_actions) == 2
-    assert _find_action(all_actions, action11)
-    assert _find_action(all_actions, action12)
-
-    ## topic2: zoned zone1
-    topic2 = create_topic(USER1, {**TOPIC2, "zone_names": [zone1.zone_name]})
-    assert _get_pteam_actions(pteam1, topic2) == []
-
-    # by not zoned user: ng
-    request = {
-        **ACTION1,
-        "topic_id": str(topic2.topic_id),
-    }
-    with pytest.raises(HTTPError, match=r"403: Forbidden: You do not have related zone"):
-        assert_200(client.post("/actions", headers=headers(USER2), json=request))
-
-    # not zoned action: ok
-    request = {
-        **ACTION1,
-        "topic_id": str(topic2.topic_id),
-        "zone_names": [],
-    }
-    action21 = assert_200(client.post("/actions", headers=headers(USER1), json=request))
-    assert _cmp_actions(request, action21)
-    assert _cmp_actions(request, _get_action_by_id(action21))
-
-    all_actions = _get_pteam_actions(pteam1, topic2)
-    assert len(all_actions) == 1
-    assert _find_action(all_actions, action21)
-
-    # zoned (same) action: ok
-    request = {
-        **ACTION2,
-        "topic_id": str(topic2.topic_id),
-        "zone_names": [zone1.zone_name],
-    }
-    action22 = assert_200(client.post("/actions", headers=headers(USER1), json=request))
-    assert _cmp_actions(request, action22)
-    assert _cmp_actions(request, _get_action_by_id(action22))
-
-    all_actions = _get_pteam_actions(pteam1, topic2)
-    assert len(all_actions) == 2
-    assert _find_action(all_actions, action21)
-    assert _find_action(all_actions, action22)
-
-    # zoned (different) action: ok
-    request = {
-        **ACTION3,
-        "topic_id": str(topic2.topic_id),
-        "zone_names": [zone2.zone_name],
-    }
-    action23 = assert_200(client.post("/actions", headers=headers(USER1), json=request))
-    assert _cmp_actions(request, action23)
-    assert _cmp_actions(request, _get_action_by_id(action23))
-
-    all_actions = _get_pteam_actions(pteam1, topic2)
-    assert len(all_actions) == 3
-    assert _find_action(all_actions, action21)
-    assert _find_action(all_actions, action22)
-    assert _find_action(all_actions, action23)
-
-
 def test_create_action__with_action_id():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -313,12 +174,8 @@ def test_create_action__with_action_id():
         if not req:
             return False
         for key, val in req.items():
-            if key == "zone_names":
-                if {x["zone_name"] for x in resp["zones"]} != set(req[key]):
-                    return False
-            else:
-                if req[key] != resp[key]:
-                    return False
+            if req[key] != resp[key]:
+                return False
         return True
 
     def _find_action(actions: List[dict], target: dict) -> Optional[dict]:
@@ -380,10 +237,7 @@ def test_update_action():
     child_tag11 = create_tag(USER1, "alpha:info1:mgr1")
     child_tag12 = create_tag(USER1, "alpha:info1:mgr2")
     parent_tag2 = create_tag(USER1, "bravo:info2:")
-    gteam1 = create_gteam(USER1, GTEAM1)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam1.gteam_id, ZONE2)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name, zone2.zone_name]})
+    pteam1 = create_pteam(USER1, PTEAM1)
 
     def _get_action_by_id(action: dict) -> dict:
         return assert_200(client.get(f"/actions/{action['action_id']}", headers=headers(USER1)))
@@ -403,9 +257,6 @@ def test_update_action():
         for key, val in req.items():
             if key == "action_id":
                 if not resp[key]:
-                    return False
-            elif key == "zone_names":
-                if {x["zone_name"] for x in resp["zones"]} != set(req[key]):
                     return False
             else:
                 if req[key] != resp[key]:
@@ -433,13 +284,11 @@ def test_update_action():
         )
 
     # update without tag: ok
-    # and adding zone: ok
     request = {
         "action": "updated action one",
         "action_type": "detection",
         "recommended": not request["recommended"],
         "ext": {},  # not modified
-        "zone_names": [zone1.zone_name, zone2.zone_name],
     }
     action11b = assert_200(
         client.put(f"/actions/{action11['action_id']}", headers=headers(USER1), json=request)
@@ -454,62 +303,26 @@ def test_update_action():
     assert len(all_actions) == 1
     assert _find_action(all_actions, action11b)
 
-    # reduce zones (not empty): ok
-    request = {
-        **request,
-        "zone_names": [zone2.zone_name],
-    }
-    action11c = assert_200(
-        client.put(f"/actions/{action11['action_id']}", headers=headers(USER1), json=request)
-    )
-    assert action11c["action_id"] == action11["action_id"]
-
-    assert _cmp_actions(request, action11c)
-    assert _cmp_actions(request, _get_action_by_id(action11))
-
-    all_actions = _get_pteam_actions(pteam1, topic1)
-    assert len(all_actions) == 1
-    assert _find_action(all_actions, action11c)
-
-    # make zones empty: ng
-    request = {
-        **request,
-        "zone_names": [],
-    }
-    with pytest.raises(HTTPError, match=r"400: Bad Request: Once a topic action has been zoned, "):
-        assert_200(
-            client.put(f"/actions/{action11['action_id']}", headers=headers(USER1), json=request)
-        )
-
-    # by not zoned user: ng
-    with pytest.raises(HTTPError, match=r"403: Forbidden: You do not have related zone"):
-        assert_200(
-            client.put(f"/actions/{action11['action_id']}", headers=headers(USER2), json=ACTION1)
-        )
-
     ## topic2: tagged parent1
     topic2 = create_topic(USER1, {**TOPIC2, "tags": [parent_tag1.tag_name]})
     assert _get_pteam_actions(pteam1, topic2) == []
 
-    # tagged (child11) and zoned (zone1) action
+    # tagged (child11)
     request = {
         **ACTION1,
         "topic_id": str(topic2.topic_id),
         "ext": {"tags": [child_tag11.tag_name]},
-        "zone_names": [zone1.zone_name],
     }
     action21 = assert_200(client.post("/actions", headers=headers(USER1), json=request))
     assert _cmp_actions(request, action21)
     assert _cmp_actions(request, _get_action_by_id(action21))
 
     # update with tag (another child 12): ok
-    # and adding zone: ok
     request = {
         "action": "updated action two",
         "action_type": "rejection",
         "recommended": not request["recommended"],
         "ext": {"tags": [child_tag12.tag_name]},
-        "zone_names": [zone1.zone_name, zone2.zone_name],
     }
     action21b = assert_200(
         client.put(f"/actions/{action21['action_id']}", headers=headers(USER1), json=request)
@@ -533,11 +346,9 @@ def test_update_action():
         )
 
     # remove tag: ok
-    # and remove zone (not empty): ok
     request = {
         **request,
         "ext": {},
-        "zone_names": [zone1.zone_name],
     }
     action21c = assert_200(
         client.put(f"/actions/{action21['action_id']}", headers=headers(USER1), json=request)
@@ -616,8 +427,6 @@ class TestUpdatePartialAction:
     parent_tag1: schemas.TagResponse
     child_tag11: schemas.TagResponse
     child_tag12: schemas.TagResponse
-    zone1: schemas.ZoneInfo
-    zone2: schemas.ZoneInfo
     action1_api: str
     action_data1: dict
 
@@ -627,9 +436,6 @@ class TestUpdatePartialAction:
         self.parent_tag1 = create_tag(USER1, "alpha:info1:")
         self.child_tag11 = create_tag(USER1, "alpha:info1:mgr1")
         self.child_tag12 = create_tag(USER1, "alpha:info1:mgr2")
-        gteam1 = create_gteam(USER1, GTEAM1)
-        self.zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-        self.zone2 = create_zone(USER1, gteam1.gteam_id, ZONE2)
 
         action_id1 = str(uuid4())
         self.action1_api = f"/actions/{action_id1}"
@@ -641,7 +447,6 @@ class TestUpdatePartialAction:
             "action": "Update package to latest version",
             "action_type": models.ActionType.elimination,
             "recommended": True,
-            "zone_names": [self.zone1.zone_name],
             "ext": {
                 "tags": [self.child_tag11.tag_name],
             },
@@ -658,7 +463,6 @@ class TestUpdatePartialAction:
         # get action1 as base data to compare
         data = assert_200(client.get(self.action1_api, headers=headers(USER1)))
         assert data["action_id"] == action_id1
-        assert {zone["zone_name"] for zone in data["zones"]} == set(action1_request["zone_names"])
         for key in ["action", "action_type", "recommended", "ext"]:
             assert data[key] == action1_request[key]
         self.action_data1 = data
@@ -684,13 +488,6 @@ class TestUpdatePartialAction:
         data = common_put(USER1, self.action1_api, recommended=new_recommended)
         assert data == {**self.action_data1, "recommended": new_recommended}
 
-    def test_update_zone_names(self):
-        new_zone_names = [self.zone2.zone_name]
-        data = common_put(USER1, self.action1_api, zone_names=new_zone_names)
-        assert {zone["zone_name"] for zone in data["zones"]} == set(new_zone_names)
-        for key in ["topic_id", "action_id", "action", "action_type", "recommended", "ext"]:
-            assert data[key] == self.action_data1[key]
-
     def test_update_ext(self):
         new_ext = {"tags": [self.child_tag12.tag_name]}
         data = common_put(USER1, self.action1_api, ext=new_ext)
@@ -703,7 +500,6 @@ class TestUpdatePartialAction:
             "action": "give up",
             "action_type": models.ActionType.acceptance,
             "recommended": False,
-            "zone_names": [self.zone1.zone_name, self.zone2.zone_name],
             "ext": {
                 "tags": [self.child_tag11.tag_name, self.child_tag12.tag_name],
             },
@@ -713,15 +509,12 @@ class TestUpdatePartialAction:
             assert data[key] == self.action_data1[key]
         for key in ["action", "action_type", "recommended", "ext"]:
             assert data[key] == update_request[key]
-        assert {zone["zone_name"] for zone in data["zones"]} == set(update_request["zone_names"])
 
 
 def test_delete_action():
     create_user(USER1)
     create_user(USER2)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})
+    pteam1 = create_pteam(USER1, PTEAM1)
 
     def _get_action_by_id(action: dict) -> dict:
         return assert_200(client.get(f"/actions/{action['action_id']}", headers=headers(USER1)))
@@ -742,9 +535,6 @@ def test_delete_action():
             if key == "action_id":
                 if not resp[key]:
                     return False
-            elif key == "zone_names":
-                if {x["zone_name"] for x in resp["zones"]} != set(req[key]):
-                    return False
             else:
                 if req[key] != resp[key]:
                     return False
@@ -757,51 +547,19 @@ def test_delete_action():
     topic1 = create_topic(USER1, {**TOPIC1, "tags": []})
     assert _get_pteam_actions(pteam1, topic1) == []
 
-    # not zoned action1
+    # add action1
     request = {
         **ACTION1,
         "topic_id": str(topic1.topic_id),
-        "zone_names": [],
     }
     action1 = assert_200(client.post("/actions", headers=headers(USER1), json=request))
     assert _cmp_actions(request, action1)
     assert _cmp_actions(request, _get_action_by_id(action1))
 
-    # zonedd action2
-    request = {
-        **ACTION2,
-        "topic_id": str(topic1.topic_id),
-        "zone_names": [zone1.zone_name],
-    }
-    action2 = assert_200(client.post("/actions", headers=headers(USER1), json=request))
-    assert _cmp_actions(request, action2)
-    assert _cmp_actions(request, _get_action_by_id(action2))
-
-    all_actions = _get_pteam_actions(pteam1, topic1)
-    assert len(all_actions) == 2
-    assert _find_action(all_actions, action1)
-    assert _find_action(all_actions, action2)
-
-    # delete zoned action without related zone: ng
-    with pytest.raises(HTTPError, match=r"403: Forbidden: You do not have related zone"):
-        assert_204(client.delete(f"/actions/{action2['action_id']}", headers=headers(USER2)))
-
-    # delete not zoned action by not a creator: ok
+    # delete action by not a creator: ok
     assert_204(client.delete(f"/actions/{action1['action_id']}", headers=headers(USER2)))
 
     with pytest.raises(HTTPError, match=r"404: Not Found: No such topic action"):
         _get_action_by_id(action1)
-    all_actions = _get_pteam_actions(pteam1, topic1)
-    assert len(all_actions) == 1
-    assert not _find_action(all_actions, action1)
-    assert _find_action(all_actions, action2)
-
-    # delete zoned action with related zone: ok
-    g_invitation = invite_to_gteam(USER1, gteam1.gteam_id)
-    accept_gteam_invitation(USER2, g_invitation.invitation_id)
-    assert_204(client.delete(f"/actions/{action2['action_id']}", headers=headers(USER2)))
-
-    with pytest.raises(HTTPError, match=r"404: Not Found: No such topic action"):
-        _get_action_by_id(action2)
     all_actions = _get_pteam_actions(pteam1, topic1)
     assert len(all_actions) == 0

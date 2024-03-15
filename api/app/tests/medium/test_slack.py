@@ -97,7 +97,6 @@ def test_pick_alert_targets__disabled(testdb):
             "threat_impact": impact,
             "tags": [parent_tag1.tag_name],
             "misp_tags": [],
-            "zone_names": [],
             "actions": [],
         }
 

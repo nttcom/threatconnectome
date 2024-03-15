@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Set, Union
+from typing import List, Optional
 from uuid import UUID, uuid4
 
 import pytest
@@ -13,15 +13,11 @@ from app.tests.medium.constants import (
     ACTION2,
     ACTION3,
     ATEAM1,
-    ATEAM2,
     GROUP1,
-    GTEAM1,
-    GTEAM2,
     MISPTAG1,
     MISPTAG2,
     MISPTAG3,
     PTEAM1,
-    PTEAM2,
     TAG1,
     TAG2,
     TAG3,
@@ -32,21 +28,14 @@ from app.tests.medium.constants import (
     USER1,
     USER2,
     USER3,
-    ZONE1,
-    ZONE2,
-    ZONE3,
 )
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
-    accept_ateam_invitation,
-    accept_gteam_invitation,
-    accept_pteam_invitation,
     accept_watching_request,
     assert_200,
     assert_204,
     create_actionlog,
     create_ateam,
-    create_gteam,
     create_misp_tag,
     create_pteam,
     create_tag,
@@ -54,11 +43,7 @@ from app.tests.medium.utils import (
     create_topicstatus,
     create_user,
     create_watching_request,
-    create_zone,
     headers,
-    invite_to_ateam,
-    invite_to_gteam,
-    invite_to_pteam,
     random_string,
     search_topics,
     update_topic,
@@ -68,23 +53,12 @@ from app.tests.medium.utils import (
 client = TestClient(app)
 
 
-def _pick_zone(zones_: List[schemas.ZoneEntry], zone_name_: str) -> Optional[schemas.ZoneEntry]:
-    for zone in zones_:
-        if zone.zone_name == zone_name_:
-            return zone
-    return None
-
-
 def test_create_topic():
     user1 = create_user(USER1)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
     topic1 = create_topic(
         USER1,
         TOPIC1,
         actions=[ACTION1, ACTION2],
-        zone_names=[ZONE1["zone_name"], ZONE2["zone_name"]],
     )
 
     assert topic1.topic_id == TOPIC1["topic_id"]
@@ -98,14 +72,6 @@ def test_create_topic():
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in topic1.misp_tags]
     assert ACTION1["action"] in [a.action for a in topic1.actions]
     assert ACTION2["action"] in [a.action for a in topic1.actions]
-    assert (zone1 := _pick_zone(topic1.zones, ZONE1["zone_name"]))
-    assert zone1.zone_name == ZONE1["zone_name"]
-    assert zone1.zone_info == ZONE1["zone_info"]
-    assert zone1.gteam_id == gteam1.gteam_id
-    assert (zone2 := _pick_zone(topic1.zones, ZONE2["zone_name"]))
-    assert zone2.zone_name == ZONE2["zone_name"]
-    assert zone2.zone_info == ZONE2["zone_info"]
-    assert zone2.gteam_id == gteam1.gteam_id
 
 
 def test_create_topic__with_new_tags():
@@ -204,15 +170,11 @@ def test_create_too_long_action():
 
 def test_get_topic():
     user1 = create_user(USER1)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
-    create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
+    create_pteam(USER1, PTEAM1)
     topic1 = create_topic(
         USER1,
         TOPIC1,
         actions=[ACTION1, ACTION2],
-        zone_names=[ZONE1["zone_name"], ZONE2["zone_name"]],
     )
 
     response = client.get(f"/topics/{topic1.topic_id}", headers=headers(USER1))
@@ -227,14 +189,6 @@ def test_get_topic():
     assert responsed_topic.updated_at == topic1.updated_at
     assert TOPIC1["tags"][0] in [t.tag_name for t in responsed_topic.tags]
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in responsed_topic.misp_tags]
-    assert (zone1 := _pick_zone(topic1.zones, ZONE1["zone_name"]))
-    assert zone1.zone_name == ZONE1["zone_name"]
-    assert zone1.zone_info == ZONE1["zone_info"]
-    assert zone1.gteam_id == gteam1.gteam_id
-    assert (zone2 := _pick_zone(topic1.zones, ZONE2["zone_name"]))
-    assert zone2.zone_name == ZONE2["zone_name"]
-    assert zone2.zone_info == ZONE2["zone_info"]
-    assert zone2.gteam_id == gteam1.gteam_id
     # actions are removed from TopicResponse.
     # use 'GET /topics/{tid}/actions/pteam/{pid}' to get actions.
 
@@ -242,42 +196,32 @@ def test_get_topic():
 def test_get_all_topics():
     create_user(USER1)
     create_user(USER2)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    gteam2 = create_gteam(USER2, GTEAM2)
-    create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
-    create_zone(USER1, gteam1.gteam_id, {"zone_name": "zoneA", "zone_info": "info a"})
-    create_zone(USER2, gteam2.gteam_id, {"zone_name": "zoneB", "zone_info": "info b"})
-    create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
+    create_pteam(USER1, PTEAM1)
 
-    create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2], zone_names=[ZONE1["zone_name"]])
-    create_topic(USER1, TOPIC2, actions=[ACTION3], zone_names=[ZONE1["zone_name"]])
-    create_topic(USER1, TOPIC3, zone_names=["zoneA"])
-    create_topic(USER1, TOPIC4, zone_names=[])
-    create_topic(USER2, {**TOPIC1, "topic_id": str(uuid4())}, zone_names=["zoneB"])
+    topic1 = create_topic(USER1, {**TOPIC1, "threat_impact": 1}, actions=[ACTION1, ACTION2])
+    topic2 = create_topic(USER1, {**TOPIC2, "threat_impact": 2}, actions=[ACTION3])
+    topic3 = create_topic(USER1, {**TOPIC3, "threat_impact": 3})
+    topic4 = create_topic(USER1, {**TOPIC4, "threat_impact": 2})
+    topic5 = create_topic(USER2, {**TOPIC1, "threat_impact": 1, "topic_id": str(uuid4())})
 
-    response = client.get("/topics", headers=headers(USER1))
-    assert response.status_code == 200
-    responsed_topics = response.json()
-    assert len(responsed_topics) == 4
-    assert responsed_topics[0]["topic_id"] == str(TOPIC3["topic_id"])  # visible via gteam1
-    assert responsed_topics[1]["topic_id"] == str(TOPIC1["topic_id"])
-    assert responsed_topics[2]["topic_id"] == str(TOPIC4["topic_id"])
-    assert responsed_topics[3]["topic_id"] == str(TOPIC2["topic_id"])
+    data = assert_200(client.get("/topics", headers=headers(USER1)))
+    assert len(data) == 5
+    # sorted orders are [threat_impact, updated_at(desc)]
+    assert data[0]["topic_id"] == str(topic5.topic_id)
+    assert data[1]["topic_id"] == str(topic1.topic_id)
+    assert data[2]["topic_id"] == str(topic4.topic_id)
+    assert data[3]["topic_id"] == str(topic2.topic_id)
+    assert data[4]["topic_id"] == str(topic3.topic_id)
 
 
 def test_update_topic():
     create_user(USER1)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
-    create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
+    create_pteam(USER1, PTEAM1)
     tag1 = create_tag(USER1, "omega")
     create_topic(
         USER1,
         TOPIC1,
         actions=[ACTION1],
-        zone_names=[ZONE1["zone_name"]],
     )
     request = {
         "title": "topic one dash",
@@ -285,7 +229,6 @@ def test_update_topic():
         "threat_impact": 2,
         "tags": [tag1.tag_name],
         "misp_tags": ["tlp:white"],
-        "zone_names": [ZONE2["zone_name"]],
     }
     response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
 
@@ -303,34 +246,6 @@ def test_update_topic():
     assert TOPIC1["misp_tags"][0] not in [
         misp_tag.tag_name for misp_tag in responsed_topic.misp_tags
     ]
-    assert request["zone_names"][0] in [zone.zone_name for zone in responsed_topic.zones]
-    assert ZONE1 not in [zone.zone_name for zone in responsed_topic.zones]
-
-
-def test_update_topic__cannot_change_to_0_zones():
-    create_user(USER1)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
-    create_topic(
-        USER1,
-        TOPIC1,
-        actions=[{**ACTION1, "zone_names": [ZONE1["zone_name"]]}],  # 1 zone
-        zone_names=[ZONE1["zone_name"]],  # 1 zone
-    )
-    request = {
-        "title": "topic one dash",
-        "zone_names": [],  # 0 zones
-    }
-    message = (
-        "400: Bad Request: "
-        "Once a topic has been zoned, it cannot be returned to public status. "
-        "Consider deleting and recreating the topic."
-    )
-    with pytest.raises(HTTPError, match=message):
-        assert_200(
-            client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
-        )
 
 
 def test_update_topic__with_new_tags():
@@ -467,104 +382,24 @@ def test_delete_topic_not_creater(testdb: Session):
         assert_204(client.delete(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER2)))
 
 
-def test_cannot_access_topic_without_related_zone():
-    create_user(USER1)
-    create_user(USER2)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    gteam2 = create_gteam(USER2, GTEAM2)
-    create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_zone(USER2, gteam2.gteam_id, ZONE2)
-    create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
-    create_topic(
-        USER2,
-        TOPIC1,
-        actions=[ACTION1],
-        zone_names=[ZONE2["zone_name"]],
-    )
-    error_message = "404: Not Found: You do not have related zone"
-    with pytest.raises(HTTPError, match=error_message):
-        assert_200(client.get(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1)))
-
-    with pytest.raises(HTTPError, match=error_message):
-        assert_200(client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json={}))
-
-    with pytest.raises(HTTPError, match=error_message):
-        assert_200(client.delete(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1)))
-
-
 def test_get_pteam_topic_actions():
     create_user(USER1)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
-    create_zone(USER1, gteam1.gteam_id, ZONE3)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})  # TAG1
-    assert {zone.zone_name for zone in pteam1.zones} == {ZONE1["zone_name"]}
-    action1_req = {**ACTION1, "zone_names": [ZONE1["zone_name"]]}
-    action2_req = {**ACTION2, "zone_names": [ZONE2["zone_name"]]}
-    action3_req = {**ACTION3, "zone_names": []}
-    create_topic(
-        USER1, TOPIC2, zone_names=[], actions=[action1_req, action2_req, action3_req]
-    )  # noise
-    topic1 = create_topic(
-        USER1, TOPIC1, zone_names=[], actions=[action1_req, action2_req, action3_req]
-    )
+    pteam1 = create_pteam(USER1, PTEAM1)  # TAG1
+    create_topic(USER1, TOPIC2, actions=[ACTION1, ACTION2, ACTION3])  # noise
+    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2, ACTION3])
 
-    def _find_action(resp_: dict, action_: str) -> dict:
-        return next(filter(lambda x: x["action"] == action_, resp_["actions"]), {})
+    def _find_action(resp_: dict, action_: dict) -> dict:
+        return next(filter(lambda x: x["action"] == action_["action"], resp_["actions"]), {})
 
     data = assert_200(
         client.get(
             f"/topics/{topic1.topic_id}/actions/pteam/{pteam1.pteam_id}", headers=headers(USER1)
         )
     )
-    assert len(data["actions"]) == 2
-    assert (act1 := _find_action(data, action1_req["action"]))  # zone matche
-    assert {zone["zone_name"] for zone in act1["zones"]} == {ZONE1["zone_name"]}
-    assert not _find_action(data, action2_req["action"])  # zone mismatche
-    assert (act3 := _find_action(data, action3_req["action"]))  # no zonee
-    assert {zone["zone_name"] for zone in act3["zones"]} == set()
-
-    # multiple zones
-    pteam2 = create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"], ZONE2["zone_name"]]})
-    assert {zone.zone_name for zone in pteam2.zones} == {ZONE1["zone_name"], ZONE2["zone_name"]}
-    action4_req = {**ACTION1, "zone_names": [ZONE1["zone_name"], ZONE2["zone_name"]]}
-    action5_req = {**ACTION2, "zone_names": [ZONE1["zone_name"], ZONE3["zone_name"]]}
-    action6_req = {**ACTION3, "zone_names": [ZONE3["zone_name"]]}
-    topic3 = create_topic(
-        USER1, TOPIC3, actions=[action4_req, action5_req, action6_req], zone_names=[]
-    )
-    data = assert_200(
-        client.get(
-            f"/topics/{topic3.topic_id}/actions/pteam/{pteam2.pteam_id}", headers=headers(USER1)
-        )
-    )
-    assert len(data["actions"]) == 2
-    assert (act4 := _find_action(data, action4_req["action"]))  # multiple match
-    assert {zone["zone_name"] for zone in act4["zones"]} == {ZONE1["zone_name"], ZONE2["zone_name"]}
-    assert (act5 := _find_action(data, action5_req["action"]))  # matche with mismatche
-    assert {zone["zone_name"] for zone in act5["zones"]} == {ZONE1["zone_name"], ZONE3["zone_name"]}
-    assert not _find_action(data, action6_req["action"])  # not match
-
-    # no zoneed pteam
-    pteam3 = create_pteam(USER1, {**PTEAM1, "zone_names": []})
-    assert {zone.zone_name for zone in pteam3.zones} == set()
-    data = assert_200(
-        client.get(
-            f"/topics/{topic1.topic_id}/actions/pteam/{pteam3.pteam_id}", headers=headers(USER1)
-        )
-    )
-    assert len(data["actions"]) == 1
-    assert not _find_action(data, action1_req["action"])
-    assert not _find_action(data, action2_req["action"])
-    assert (act3 := _find_action(data, action3_req["action"]))
-    assert {zone["zone_name"] for zone in act3["zones"]} == set()  # not zoneed actions only
-    data = assert_200(
-        client.get(
-            f"/topics/{topic3.topic_id}/actions/pteam/{pteam3.pteam_id}", headers=headers(USER1)
-        )
-    )
-    assert len(data["actions"]) == 0
+    assert len(data["actions"]) == 3
+    assert _find_action(data, ACTION1)
+    assert _find_action(data, ACTION2)
+    assert _find_action(data, ACTION3)
 
     # via ateam
     create_user(USER2)
@@ -588,14 +423,8 @@ def test_get_pteam_topic_actions():
 def test_get_pteam_topic_actions__errors():
     create_user(USER1)
     create_user(USER2)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
-    invitation = invite_to_gteam(USER1, gteam1.gteam_id)
-    accept_gteam_invitation(USER2, invitation.invitation_id)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
-    create_pteam(USER2, {**PTEAM2, "zone_names": [ZONE2["zone_name"]]})
-    topic1 = create_topic(USER1, TOPIC1, zone_names=[ZONE2["zone_name"]])
+    pteam1 = create_pteam(USER1, PTEAM1)
+    topic1 = create_topic(USER1, TOPIC1)
 
     # wrong topic_id
     with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
@@ -605,15 +434,7 @@ def test_get_pteam_topic_actions__errors():
             )
         )
 
-    # pteam1 not having ZONE2
-    with pytest.raises(HTTPError, match=r"404: Not Found: No such topic id"):
-        assert_200(
-            client.get(
-                f"/topics/{topic1.topic_id}/actions/pteam/{pteam1.pteam_id}", headers=headers(USER1)
-            )
-        )
-
-    # user2 having ZONE2 but not a member of pteam1
+    # user2 not a member of pteam1
     with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
         assert_200(
             client.get(
@@ -621,7 +442,7 @@ def test_get_pteam_topic_actions__errors():
             )
         )
 
-    # wrong pteam_id (having ZONE2)
+    # wrong pteam_id
     with pytest.raises(HTTPError, match=r"404: Not Found: No such pteam"):
         assert_200(
             client.get(
@@ -630,263 +451,27 @@ def test_get_pteam_topic_actions__errors():
         )
 
 
-class TestGetUserTopicActions:
-    class _Common:
-        tag1: schemas.TagResponse
-        pteam1: schemas.PTeamInfo
-        pteam2: schemas.PTeamInfo
-        ateam1: schemas.ATeamInfo
-        ateam2: schemas.ATeamInfo
-        gteam1: schemas.GTeamInfo
-        gteam2: schemas.GTeamInfo
-        zone1: schemas.ZoneInfo
-        zone2: schemas.ZoneInfo
-        action_req1: dict = {**ACTION1, "zone_names": [ZONE1["zone_name"]]}
-        action_req2: dict = {**ACTION2, "zone_names": [ZONE2["zone_name"]]}
-        action_req3: dict = {**ACTION3, "zone_names": []}
-        topic_base1: dict = {**TOPIC1, "tags": [TAG1], "zone_names": []}
-        topic1: schemas.TopicResponse
-
-        def _common_setup(self):
-            create_user(USER1)  # super user
-            create_user(USER2)  # account for test
-            self.tag1 = create_tag(USER1, TAG1)
-            self.pteam1 = create_pteam(USER1, PTEAM1)
-            self.pteam2 = create_pteam(USER1, PTEAM2)
-            self.ateam1 = create_ateam(USER1, ATEAM1)
-            self.ateam2 = create_ateam(USER1, ATEAM2)
-            self.gteam1 = create_gteam(USER1, GTEAM1)
-            self.gteam2 = create_gteam(USER1, GTEAM1)
-            self.zone1 = create_zone(USER1, self.gteam1.gteam_id, ZONE1)
-            self.zone2 = create_zone(USER1, self.gteam2.gteam_id, ZONE2)
-            self.topic1 = create_topic(
-                USER1,
-                {
-                    **self.topic_base1,
-                    "actions": [self.action_req1, self.action_req2, self.action_req3],
-                },
-            )
-            create_topic(  # noise
-                USER1,
-                {
-                    **self.topic_base1,
-                    "topic_id": uuid4(),
-                    "actions": [self.action_req1, self.action_req2, self.action_req3],
-                },
-            )
-
-        @staticmethod
-        def find_action(
-            actions: List[schemas.ActionResponse],
-            target: dict,
-        ):
-            return next(filter(lambda x: x.action == target["action"], actions), None)
-
-        def get_topic1_actions(self) -> List[schemas.ActionResponse]:
-            data = assert_200(
-                client.get(
-                    f"/topics/{self.topic1.topic_id}/actions/user/me", headers=headers(USER2)
-                )
-            )
-            return [schemas.ActionResponse(**action) for action in data]
-
-        def set_pteam_zones(self, pteam: schemas.PTeamInfo, zones: List[schemas.ZoneInfo]):
-            request = {"zone_names": [zone.zone_name for zone in zones]}
-            assert_200(
-                client.put(f"/pteams/{pteam.pteam_id}", headers=headers(USER1), json=request)
-            )
-
-    class TestWithoutTeams(_Common):
-        @pytest.fixture(scope="function", autouse=True)
-        def common_setup(self):
-            self._common_setup()
-
-        def test_without_teams(self):
-            actions = self.get_topic1_actions()
-            assert len(actions) == 1
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-    class TestWithPTeam(_Common):
-        @pytest.fixture(scope="function", autouse=True)
-        def common_setup(self):
-            self._common_setup()
-            invitation1 = invite_to_pteam(USER1, self.pteam1.pteam_id)
-            accept_pteam_invitation(USER2, invitation1.invitation_id)
-            # USER2 is a member of pteam1
-
-        def test_without_pteam_zone(self):
-            actions = self.get_topic1_actions()
-            assert len(actions) == 1
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-        def test_with_pteam_zone(self):
-            self.set_pteam_zones(self.pteam1, [self.zone1])
-            self.set_pteam_zones(self.pteam2, [self.zone2])  # noise
-
-            actions = self.get_topic1_actions()
-            assert len(actions) == 2
-            assert self.find_action(actions, self.action_req1)  # zone1 via pteam1
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-        def test_with_multiple_pteam_zones(self):
-            self.set_pteam_zones(self.pteam1, [self.zone1])
-            self.set_pteam_zones(self.pteam2, [self.zone2])
-            invitation2 = invite_to_pteam(USER1, self.pteam2.pteam_id)
-            accept_pteam_invitation(USER2, invitation2.invitation_id)
-
-            actions = self.get_topic1_actions()
-            assert len(actions) == 3
-            assert self.find_action(actions, self.action_req1)  # zone1 via pteam1
-            assert self.find_action(actions, self.action_req2)  # zone2 via pteam2
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-    class TestWithATeam(_Common):
-        @pytest.fixture(scope="function", autouse=True)
-        def common_setup(self):
-            self._common_setup()
-            invitation1 = invite_to_ateam(USER1, self.ateam1.ateam_id)
-            accept_ateam_invitation(USER2, invitation1.invitation_id)
-            # USER2 is a member of ateam1
-
-        def test_without_pteam(self):
-            actions = self.get_topic1_actions()
-            assert len(actions) == 1
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-        def test_with_pteam_without_zone(self):
-            watching_request = create_watching_request(USER1, self.ateam1.ateam_id)
-            accept_watching_request(USER1, watching_request.request_id, self.pteam1.pteam_id)
-
-            actions = self.get_topic1_actions()
-            assert len(actions) == 1
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-        def test_with_zoned_pteam(self):
-            watching_request = create_watching_request(USER1, self.ateam1.ateam_id)
-            accept_watching_request(USER1, watching_request.request_id, self.pteam1.pteam_id)
-            self.set_pteam_zones(self.pteam1, [self.zone1])
-            self.set_pteam_zones(self.pteam2, [self.zone2])  # noise
-
-            actions = self.get_topic1_actions()
-            assert len(actions) == 2
-            assert self.find_action(actions, self.action_req1)  # action1 via pteam1 via ateam1
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-        def test_with_multiple_zoned_pteams(self):
-            watching_request1 = create_watching_request(USER1, self.ateam1.ateam_id)
-            accept_watching_request(USER1, watching_request1.request_id, self.pteam1.pteam_id)
-            watching_request2 = create_watching_request(USER1, self.ateam1.ateam_id)
-            accept_watching_request(USER1, watching_request2.request_id, self.pteam2.pteam_id)
-            self.set_pteam_zones(self.pteam1, [self.zone1])
-            self.set_pteam_zones(self.pteam2, [self.zone2])
-
-            actions = self.get_topic1_actions()
-            assert len(actions) == 3
-            assert self.find_action(actions, self.action_req1)  # action1 via pteam1 via ateam1
-            assert self.find_action(actions, self.action_req2)  # action2 via pteam1 via ateam1
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-        def test_with_multiple_ateams(self):
-            watching_request1 = create_watching_request(USER1, self.ateam1.ateam_id)
-            accept_watching_request(USER1, watching_request1.request_id, self.pteam1.pteam_id)
-            watching_request2 = create_watching_request(USER1, self.ateam2.ateam_id)
-            accept_watching_request(USER1, watching_request2.request_id, self.pteam2.pteam_id)
-            self.set_pteam_zones(self.pteam1, [self.zone1])
-            self.set_pteam_zones(self.pteam2, [self.zone2])
-            invitation2 = invite_to_ateam(USER1, self.ateam2.ateam_id)
-            accept_ateam_invitation(USER2, invitation2.invitation_id)
-
-            actions = self.get_topic1_actions()
-            assert len(actions) == 3
-            assert self.find_action(actions, self.action_req1)  # action1 via pteam1 via ateam1
-            assert self.find_action(actions, self.action_req2)  # action2 via pteam2 via ateam2
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-    class TestWithGTeam(_Common):
-        @pytest.fixture(scope="function", autouse=True)
-        def common_setup(self):
-            self._common_setup()
-            invitation1 = invite_to_gteam(USER1, self.gteam1.gteam_id)
-            accept_gteam_invitation(USER2, invitation1.invitation_id)
-            # USER2 is a member of gteam1
-
-        def test_with_gteam(self):
-            actions = self.get_topic1_actions()
-            assert len(actions) == 2
-            assert self.find_action(actions, self.action_req1)  # action1 via gteam1
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-        def test_with_multiple_gteams(self):
-            invitation2 = invite_to_gteam(USER1, self.gteam2.gteam_id)
-            accept_gteam_invitation(USER2, invitation2.invitation_id)
-
-            actions = self.get_topic1_actions()
-            assert len(actions) == 3
-            assert self.find_action(actions, self.action_req1)  # action1 via gteam1
-            assert self.find_action(actions, self.action_req2)  # action2 via gteam2
-            assert self.find_action(actions, self.action_req3)  # action3 is public
-
-    class TestErrors(_Common):
-        random_uuid: UUID
-
-        @pytest.fixture(scope="function", autouse=True)
-        def common_setup(self):
-            self._common_setup()
-            self.random_uuid = uuid4()
-
-        def set_topic1_zones(self, zones: List[schemas.ZoneInfo]):
-            request = {"zone_names": [zone.zone_name for zone in zones]}
-            assert_200(
-                client.put(f"/topics/{self.topic1.topic_id}", headers=headers(USER1), json=request)
-            )
-
-        def test_wrong_topic_id(self):
-            with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
-                assert_200(
-                    client.get(
-                        f"/topics/{self.random_uuid}/actions/user/me", headers=headers(USER2)
-                    )
-                )
-
-        def test_not_visible_topic(self):
-            # pteam1 have zone1 only
-            self.set_topic1_zones([self.zone2])  # set zone2 instead of zone1
-
-            with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
-                assert_200(
-                    client.get(
-                        f"/topics/{self.topic1.topic_id}/actions/user/me", headers=headers(USER2)
-                    )
-                )
-
-
 def test_create_topic_actions():
     create_user(USER1)
     create_user(USER2)
     parent1 = create_tag(USER1, "alpha:alpha:")
     child11 = create_tag(USER1, "alpha:alpha:alpha1")
     child21 = create_tag(USER1, "bravo:bravo:bravo1")
-    gteam1 = create_gteam(USER1, GTEAM1)
-    gteam2 = create_gteam(USER2, GTEAM2)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER2, gteam2.gteam_id, ZONE2)
 
-    def _gen_topic(tags: List[str], zone_names: List[str], actions: List[dict]) -> dict:
+    def _gen_topic(tags: List[str], actions: List[dict]) -> dict:
         return {
             **TOPIC1,
             "topic_id": str(uuid4()),
             "tags": tags,
-            "zone_names": zone_names,
             "actions": actions,
         }
 
-    def _gen_action(tags: List[str], zone_names: List[str]) -> dict:
+    def _gen_action(tags: List[str]) -> dict:
         return {
             "action_id": None,
             "action": "action " + str(uuid4()),
             "action_type": "elimination",
             "recommended": True,
-            "zone_names": zone_names,
             "ext": {
                 "tags": tags,
                 "vulnerable_versions": {},
@@ -895,9 +480,6 @@ def test_create_topic_actions():
 
     def _pick_action(topic: dict, action: dict) -> dict:
         return next(filter(lambda x: x["action"] == action["action"], topic["actions"]), {})
-
-    def _zone_strs(zones: Union[List[str], List[dict]]) -> Set[str]:
-        return {x["zone_name"] if isinstance(x, dict) else x for x in zones}
 
     def _cmp_actions(alpha: dict, bravo: dict) -> bool:
         for key in alpha.keys():
@@ -910,21 +492,15 @@ def test_create_topic_actions():
                     return False
             elif key == "created_by" or key == "created_at":
                 continue
-            elif key == "zones":
-                if _zone_strs(alpha[key]) != _zone_strs(bravo["zone_names"]):
-                    return False
-            elif key == "zone_names":
-                if _zone_strs(alpha[key]) != _zone_strs(bravo["zones"]):
-                    return False
             elif alpha[key] != bravo[key]:
                 return False
         return True
 
     # ordinary topic and actions
-    action1 = _gen_action([], [])
-    action2 = _gen_action([child11.tag_name], [])
-    action3 = _gen_action([parent1.tag_name], [])
-    topic1 = _gen_topic([parent1.tag_name], [], [action1, action2, action3])
+    action1 = _gen_action([])
+    action2 = _gen_action([child11.tag_name])
+    action3 = _gen_action([parent1.tag_name])
+    topic1 = _gen_topic([parent1.tag_name], [action1, action2, action3])
     data = assert_200(
         client.post(f"/topics/{topic1['topic_id']}", headers=headers(USER1), json=topic1)
     )
@@ -938,33 +514,11 @@ def test_create_topic_actions():
     assert UUID(r_action3["action_id"])
 
     # with wrong tagged action
-    action4 = _gen_action([child21.tag_name], [])
-    topic2 = _gen_topic([parent1.tag_name], [], [action4])
+    action4 = _gen_action([child21.tag_name])
+    topic2 = _gen_topic([parent1.tag_name], [action4])
     with pytest.raises(HTTPError, match=r"400: Bad Request: Action Tag mismatch with Topic Tag"):
         data = assert_200(
             client.post(f"/topics/{topic2['topic_id']}", headers=headers(USER1), json=topic2)
-        )
-
-    # with zones
-    action5 = _gen_action([], [])
-    action6 = _gen_action([], [zone1.zone_name])
-    topic3 = _gen_topic([], [], [action5, action6])
-    data = assert_200(
-        client.post(f"/topics/{topic3['topic_id']}", headers=headers(USER1), json=topic3)
-    )
-    assert data["topic_id"] == topic3["topic_id"]
-    assert len(data["actions"]) == 2
-    assert _cmp_actions((r_action5 := _pick_action(data, action5)), action5)
-    assert _cmp_actions((r_action6 := _pick_action(data, action6)), action6)
-    assert UUID(r_action5["action_id"])
-    assert UUID(r_action6["action_id"])
-
-    # with wrong zone
-    action7 = _gen_action([], [zone2.zone_name])
-    topic4 = _gen_topic([], [], [action7])
-    with pytest.raises(HTTPError, match=r"400: Bad Request: You do not have related zone"):
-        data = assert_200(
-            client.post(f"/topics/{topic4['topic_id']}", headers=headers(USER1), json=topic4)
         )
 
 
@@ -979,7 +533,6 @@ def test_create_topic_actions__with_action_id():
             "action": f"action for {action_id}",
             "action_type": "elimination",
             "recommended": True,
-            "zone_names": [],
             "ext": {"tags": [child11.tag_name]},
         }
 
@@ -994,9 +547,6 @@ def test_create_topic_actions__with_action_id():
     def _pick_action(topic: dict, action_id: UUID) -> dict:
         return next(filter(lambda x: x["action_id"] == str(action_id), topic["actions"]), {})
 
-    def _zone_strs(zones: Union[List[str], List[dict]]) -> Set[str]:
-        return {x["zone_name"] if isinstance(x, dict) else x for x in zones}
-
     def _cmp_actions(alpha: dict, bravo: dict) -> bool:
         for key in alpha.keys():
             if key == "topic_id":
@@ -1005,9 +555,6 @@ def test_create_topic_actions__with_action_id():
                 # ignore missing topic_id
             elif key == "created_by" or key == "created_at":
                 continue
-            elif key == "zones":
-                if _zone_strs(alpha[key]) != _zone_strs(bravo["zone_names"]):
-                    return False
             elif alpha[key] != bravo[key]:
                 return False
         return True
@@ -1158,11 +705,6 @@ class TestSearchTopics:
             self.misp_tag1 = create_misp_tag(USER1, MISPTAG1)
             self.misp_tag2 = create_misp_tag(USER1, MISPTAG2)
             self.misp_tag3 = create_misp_tag(USER1, MISPTAG3)
-            self.gteam1 = create_gteam(USER1, GTEAM1)
-            self.gteam2 = create_gteam(USER2, GTEAM2)
-            self.zone1 = create_zone(USER1, self.gteam1.gteam_id, ZONE1)
-            self.zone2 = create_zone(USER2, self.gteam2.gteam_id, ZONE2)
-            self.zone3 = create_zone(USER1, self.gteam1.gteam_id, ZONE3)
 
         @staticmethod
         def create_minimal_topic(user: dict, params: dict) -> schemas.TopicCreateResponse:
@@ -1350,92 +892,6 @@ class TestSearchTopics:
         def test_search_by_misp_tag(self, search_words, expected):
             search_params = {} if search_words is None else {"misp_tag_names": search_words}
             self.try_search_topics(USER1, self.topics, search_params, expected)
-
-    class TestSearchByZone(Common_):
-        @pytest.fixture(scope="function", autouse=True)
-        def setup_for_zone(self):
-            self.topic1 = self.create_minimal_topic(USER1, {"zone_names": [ZONE1["zone_name"]]})
-            self.topic2 = self.create_minimal_topic(USER2, {"zone_names": [ZONE2["zone_name"]]})
-            self.topic3 = self.create_minimal_topic(
-                USER1, {"zone_names": [ZONE1["zone_name"], ZONE3["zone_name"]]}
-            )
-            self.topic4 = self.create_minimal_topic(USER1, {"zone_names": []})
-            self.topics = {
-                1: self.topic1,
-                2: self.topic2,
-                3: self.topic3,
-                4: self.topic4,
-            }
-
-        @pytest.mark.parametrize(
-            "search_words, expected",
-            [
-                (None, {1, 3, 4}),  # USER1 cannot access to ZONE2(topic2)
-                ([ZONE1["zone_name"]], {1, 3}),
-                ([ZONE2["zone_name"]], "403: Forbidden: You do not have related zone"),
-                (["xxx"], set()),  # not existed zone_name
-                ([""], {4}),  # "" is the reserved keyword means empty|public
-                (["", ZONE3["zone_name"]], {3, 4}),
-            ],
-        )
-        def test_search_by_zone(self, search_words, expected):
-            search_params = {} if search_words is None else {"zone_names": search_words}
-            self.try_search_topics(USER1, self.topics, search_params, expected)
-
-        @pytest.mark.parametrize(
-            "search_words, expected",
-            [
-                (None, {2, 4}),  # USER2 cannot access to ZONE1, ZONE3
-                ([ZONE1["zone_name"]], "403: Forbidden: You do not have related zone"),
-                ([ZONE2["zone_name"]], {2}),
-                (["xxx"], set()),  # not existed zone_name
-                ([""], {4}),  # "" is the reserved keyword means empty|public
-                (["", ZONE3["zone_name"]], "403: Forbidden: You do not have related zone"),
-            ],
-        )
-        def test_search_by_zone_by_another(self, search_words, expected):
-            search_params = {} if search_words is None else {"zone_names": search_words}
-            self.try_search_topics(USER2, self.topics, search_params, expected)  # by USER2
-
-        @pytest.fixture(scope="function", autouse=False)
-        def setup_for_complexed_topic5(self):
-            # user1 join to gteam2
-            g_invitation = invite_to_gteam(USER2, self.gteam2.gteam_id)
-            accept_gteam_invitation(USER1, g_invitation.invitation_id)
-            self.topic5 = self.create_minimal_topic(
-                USER1, {"zone_names": [ZONE1["zone_name"], ZONE2["zone_name"]]}
-            )
-            self.topics[5] = self.topic5
-            # user1 leave gteam2
-            assert_204(
-                client.delete(
-                    f"/gteams/{self.gteam2.gteam_id}/members/{self.user1.user_id}",
-                    headers=headers(USER1),
-                )
-            )
-            # now topic5 has accessible ZONE1 and inaccessible ZONE2 (from USER1)
-
-        @pytest.mark.parametrize(
-            "search_words, user1_expected, user2_expected",
-            [
-                (None, {1, 3, 4, 5}, {2, 4, 5}),
-                ([ZONE1["zone_name"]], {1, 3, 5}, "403: Forbidden: You do not have related zone"),
-                ([ZONE2["zone_name"]], "403: Forbidden: You do not have related zone", {2, 5}),
-                (["xxx"], set(), set()),
-                ([""], {4}, {4}),
-                (["", ZONE3["zone_name"]], {3, 4}, "403: Forbidden: You do not have"),
-            ],
-        )
-        def test_search_by_zone_complex(
-            self,
-            setup_for_complexed_topic5,
-            search_words,
-            user1_expected,
-            user2_expected,
-        ):
-            search_params = {} if search_words is None else {"zone_names": search_words}
-            self.try_search_topics(USER1, self.topics, search_params, user1_expected)
-            self.try_search_topics(USER2, self.topics, search_params, user2_expected)
 
     class TestSearchByTopicId(Common_):
         @pytest.fixture(scope="function", autouse=True)

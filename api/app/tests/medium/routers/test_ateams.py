@@ -14,7 +14,6 @@ from app.tests.medium.constants import (
     ATEAM2,
     GROUP1,
     GROUP2,
-    GTEAM1,
     PTEAM1,
     PTEAM2,
     SAMPLE_SLACK_WEBHOOK_URL,
@@ -28,48 +27,28 @@ from app.tests.medium.constants import (
     USER1,
     USER2,
     USER3,
-    ZONE1,
-    ZONE2,
 )
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     accept_ateam_invitation,
-    accept_gteam_invitation,
     accept_pteam_invitation,
     accept_watching_request,
     assert_200,
     create_ateam,
-    create_gteam,
     create_pteam,
     create_tag,
     create_topic,
     create_topicstatus,
     create_user,
     create_watching_request,
-    create_zone,
     headers,
     invite_to_ateam,
-    invite_to_gteam,
     invite_to_pteam,
     schema_to_dict,
     upload_pteam_tags,
 )
 
 client = TestClient(app)
-
-
-def _pick_zone(zones_: List[schemas.ZoneEntry], zone_name_: str) -> Optional[schemas.ZoneEntry]:
-    for zone in zones_:
-        if zone.zone_name == zone_name_:
-            return zone
-    return None
-
-
-def _pick_zone_dict(zones_: List[dict], zone_name_: str) -> Optional[dict]:
-    for zone in zones_:
-        if zone["zone_name"] == zone_name_:
-            return zone
-    return None
 
 
 def test_get_ateams():
@@ -104,7 +83,6 @@ def test_get_ateam():
     assert data["ateam_name"] == ATEAM1["ateam_name"]
     assert data["contact_info"] == ATEAM1["contact_info"]
     assert data["pteams"] == []
-    assert data["zones"] == []
 
     with pytest.raises(HTTPError, match=r"401: Unauthorized"):
         assert_200(client.get(f"/ateams/{ateam1.ateam_id}"))  # no headers
@@ -122,7 +100,6 @@ def test_get_ateam__by_member():
     assert data["ateam_name"] == ATEAM1["ateam_name"]
     assert data["contact_info"] == ATEAM1["contact_info"]
     assert data["pteams"] == []
-    assert data["zones"] == []
 
 
 def test_get_ateam__by_not_member():
@@ -145,7 +122,6 @@ def test_create_ateam():
     assert data["ateam_name"] == ATEAM1["ateam_name"]
     assert data["contact_info"] == ATEAM1["contact_info"]
     assert data["pteams"] == []
-    assert data["zones"] == []
     assert data["alert_slack"]["enable"] == ateam1.alert_slack.enable
     assert (
         data["alert_slack"]["webhook_url"]
@@ -191,14 +167,12 @@ def test_update_ateam():
     assert data["ateam_name"] == ATEAM2["ateam_name"]
     assert data["contact_info"] == ATEAM2["contact_info"]
     assert data["pteams"] == []
-    assert data["zones"] == []
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}", headers=headers(USER1)))
     assert UUID(data["ateam_id"]) == ateam1.ateam_id
     assert data["ateam_name"] == ATEAM2["ateam_name"]
     assert data["contact_info"] == ATEAM2["contact_info"]
     assert data["pteams"] == []
-    assert data["zones"] == []
 
 
 def test_update_validate_slack_webhook_url():
@@ -1431,13 +1405,8 @@ def test_accept_watching_request():
     create_user(USER1)
     create_user(USER2)
     create_user(USER3)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    invitation = invite_to_gteam(USER1, gteam1.gteam_id)
-    accept_gteam_invitation(USER2, invitation.invitation_id)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
     ateam1 = create_ateam(USER1, ATEAM1)
-    pteam1 = create_pteam(USER2, {**PTEAM1, "zone_names": [zone1.zone_name]})
+    pteam1 = create_pteam(USER2, PTEAM1)
 
     # create one-time watching_request
     watching_request1 = create_watching_request(USER1, ateam1.ateam_id)
@@ -1456,11 +1425,6 @@ def test_accept_watching_request():
     assert len(data["pteams"]) == 1
     assert UUID(data["pteams"][0]["pteam_id"]) == pteam1.pteam_id
     assert data["pteams"][0]["pteam_name"] == PTEAM1["pteam_name"]
-    assert len(data["zones"]) == 1
-    assert (ret_zone1 := _pick_zone_dict(data["zones"], zone1.zone_name))
-    assert ret_zone1["zone_name"] == ZONE1["zone_name"]
-    assert ret_zone1["zone_info"] == ZONE1["zone_info"]
-    assert UUID(ret_zone1["gteam_id"]) == gteam1.gteam_id
 
     data = assert_200(client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2)))
     assert UUID(data["pteam_id"]) == pteam1.pteam_id
@@ -2239,171 +2203,6 @@ class TestGetTopicStatusWithQueryParams:
         self._assert_nums(data, 2, 2, self.default_limit, 0)
         assert data["search"] == "topic t"
         assert data["sort_key"] == schemas.TopicSortKey.THREAT_IMPACT
-
-
-def test_get_topic_status__with_zones():
-    create_user(USER1)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam1.gteam_id, ZONE2)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": []})
-    pteam2 = create_pteam(USER1, {**PTEAM2, "zone_names": [zone2.zone_name]})
-    ateam1 = create_ateam(USER1, ATEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)
-    upload_pteam_tags(
-        USER1,
-        pteam2.pteam_id,
-        GROUP2,
-        {
-            TAG1: [("Pipfile.lock", "1.0.0")],
-            TAG2: [("Pipfile.lock", "1.0.0")],
-            TAG3: [("Pipfile.lock", "1.0.0")],
-        },
-        True,
-    )
-
-    def _pick_pteam(pteams, pteam_id):
-        return next(filter(lambda x: x["pteam_id"] == str(pteam_id), pteams), None)
-
-    # PTEAM1 joins
-    watching_request1 = create_watching_request(USER1, ateam1.ateam_id)
-    accept_watching_request(USER1, watching_request1.request_id, pteam1.pteam_id)
-
-    # create topic1 without zones
-    topic1 = create_topic(USER1, {**TOPIC1, "tags": [TAG1], "zone_names": []})
-
-    # ateam1 can see topic1 via pteam1
-    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
-    assert data["num_topics"] == 1
-    assert len(topic_statuses := data["topic_statuses"]) == 1
-    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
-    assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    assert _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
-
-    # create topic2 with zone2
-    topic2 = create_topic(USER1, {**TOPIC2, "tags": [TAG1], "zone_names": [zone2.zone_name]})
-
-    # topic2 is not visible from ateam1 (missing zone2)
-    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
-    assert data["num_topics"] == 1
-    assert len(topic_statuses := data["topic_statuses"]) == 1
-    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
-    assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    assert _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
-
-    # PTEAM2 (has zone2) joins
-    watching_request2 = create_watching_request(USER1, ateam1.ateam_id)
-    accept_watching_request(USER1, watching_request2.request_id, pteam2.pteam_id)
-
-    # now ateam1 can see topic1 via pteam1 & pteam2, and topc2 via pteam2.
-    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
-    assert data["num_topics"] == 2
-    assert len(topic_statuses := data["topic_statuses"]) == 2
-    assert topic2.updated_at > topic1.updated_at
-    assert topic2.threat_impact > topic1.threat_impact
-    # topic1
-    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
-    assert topic_statuses[0]["num_pteams"] == 2
-    assert len(topic_statuses[0]["pteams"]) == 2
-    assert _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
-    assert _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
-    # topic2
-    assert UUID(topic_statuses[1]["topic_id"]) == topic2.topic_id
-    assert topic_statuses[1]["num_pteams"] == 1
-    assert len(topic_statuses[1]["pteams"]) == 1
-    assert _pick_pteam(topic_statuses[1]["pteams"], pteam2.pteam_id)
-
-    # give zone1 to topic1
-    request = {
-        "zone_names": [zone1.zone_name],
-    }
-    assert_200(client.put(f"/topics/{topic1.topic_id}", headers=headers(USER1), json=request))
-
-    # now ateam1 can see only topc2 via pteam2.
-    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
-    assert data["num_topics"] == 1
-    assert len(topic_statuses := data["topic_statuses"]) == 1
-    assert UUID(topic_statuses[0]["topic_id"]) == topic2.topic_id
-    assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    assert _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
-
-    # give zone1 to pteam1
-    request = {
-        "zone_names": [zone1.zone_name],
-    }
-    assert_200(client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request))
-
-    # now ateam1 can see topic1 via pteam1, and topc2 via pteam2.
-    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
-    assert data["num_topics"] == 2
-    assert len(topic_statuses := data["topic_statuses"]) == 2
-    assert topic2.updated_at > topic1.updated_at
-    assert topic2.threat_impact > topic1.threat_impact
-    # topic1
-    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
-    assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    assert _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
-    # topic2
-    assert UUID(topic_statuses[1]["topic_id"]) == topic2.topic_id
-    assert topic_statuses[1]["num_pteams"] == 1
-    assert len(topic_statuses[1]["pteams"]) == 1
-    assert _pick_pteam(topic_statuses[1]["pteams"], pteam2.pteam_id)
-
-    # remove zone2 from pteam2
-    request = {
-        "zone_names": [],
-    }
-    assert_200(client.put(f"/pteams/{pteam2.pteam_id}", headers=headers(USER1), json=request))
-
-    # now ateam1 can see only topic1 via pteam1.
-    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
-    assert data["num_topics"] == 1
-    assert len(topic_statuses := data["topic_statuses"]) == 1
-    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
-    assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    assert _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
-
-    # give zone1 + zone2 to topic1
-    request = {
-        "zone_names": [zone1.zone_name, zone2.zone_name],
-    }
-    assert_200(client.put(f"/topics/{topic1.topic_id}", headers=headers(USER1), json=request))
-
-    # ateam1 view not changed
-    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
-    assert data["num_topics"] == 1
-    assert len(topic_statuses := data["topic_statuses"]) == 1
-    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
-    assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    assert _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
-
-    # give zone1 + zone2 to pteam1
-    request = {
-        "zone_names": [zone1.zone_name, zone2.zone_name],
-    }
-    assert_200(client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request))
-
-    # now pteam1 matches with topic1 on multiple zones
-    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
-    assert data["num_topics"] == 2
-    assert len(topic_statuses := data["topic_statuses"]) == 2
-    assert topic2.threat_impact > topic1.threat_impact
-    # topic1: get single result even if matched on multiple zones
-    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
-    assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    assert _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
-    # topic2
-    assert UUID(topic_statuses[1]["topic_id"]) == topic2.topic_id
-    assert topic_statuses[1]["num_pteams"] == 1
-    assert len(topic_statuses[1]["pteams"]) == 1
-    assert _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
 
 
 def test_topic_comment():

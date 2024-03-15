@@ -75,7 +75,6 @@ def test_pick_alert_target_for_new_topic__tags(testdb) -> None:
             "threat_impact": 1,
             "tags": [tag.tag_name for tag in tags],
             "misp_tags": [],
-            "zone_names": [],
             "actions": [],
         }
 
@@ -171,7 +170,6 @@ def test_pick_alert_target_for_new_topic__threshold(testdb) -> None:
             "threat_impact": impact,
             "tags": [parent_tag1.tag_name],
             "misp_tags": [],
-            "zone_names": [],
             "actions": [],
         }
 
@@ -259,7 +257,6 @@ def test_pick_alert_target_for_new_topic__auto_closed(testdb) -> None:
             "threat_impact": 1,
             "tags": [tag.tag_name for tag in tags],
             "misp_tags": [],
-            "zone_names": [],
             "actions": [],
         }
 
@@ -288,7 +285,6 @@ def test_pick_alert_target_for_new_topic__auto_closed(testdb) -> None:
             "tags": [child_tag11.tag_name],
             "vulnerable_versions": {child_tag11.tag_name: ["< 1.0.0"]},  # closable
         },
-        "zone_names": [],
     }
     action2_unclosable = {
         "action": "action two",
@@ -298,7 +294,6 @@ def test_pick_alert_target_for_new_topic__auto_closed(testdb) -> None:
             "tags": [child_tag21.tag_name],
             "vulnerable_versions": {child_tag21.tag_name: ["< 2.0.0"]},  # unclosable
         },
-        "zone_names": [],
     }
 
     # topic0: has parent_tag1 with closable action1
@@ -351,7 +346,6 @@ def test_alert_new_topic__by_mail(mocker) -> None:
             "threat_impact": 1,
             "tags": [tag.tag_name for tag in tags],
             "misp_tags": [],
-            "zone_names": [],
             "actions": [],
         }
 
