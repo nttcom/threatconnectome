@@ -1,5 +1,4 @@
-import { Verified as VerifiedIcon } from "@mui/icons-material";
-import { Avatar, AvatarGroup, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/material";
+import { Avatar, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -8,7 +7,7 @@ import { ATeamMember } from "../components/ATeamMember";
 import { ATeamWatching } from "../components/ATeamWatching";
 import { TabPanel } from "../components/TabPanel";
 import { getATeam, getATeamAuth, getATeamMembers } from "../slices/ateam";
-import { avatarGroupStyle, difficulty, noATeamMessage, experienceColors } from "../utils/const";
+import { noATeamMessage, experienceColors } from "../utils/const";
 import { a11yProps } from "../utils/func.js";
 
 export function ATeam() {
@@ -20,7 +19,6 @@ export function ATeam() {
   const ateam = useSelector((state) => state.ateam.ateam);
   const members = useSelector((state) => state.ateam.members);
   const authorities = useSelector((state) => state.ateam.authorities);
-  const achievements = []; // TODO: not yet implemented for ateam
 
   const dispatch = useDispatch();
 
@@ -31,25 +29,14 @@ export function ATeam() {
     if (!ateam) dispatch(getATeam(ateamId));
     if (!members) dispatch(getATeamMembers(ateamId));
     if (!authorities) dispatch(getATeamAuth(ateamId));
-    // if (!achievements) dispatch(getATeamAchievements(ateamId));
-  }, [dispatch, ateamId, ateam, members, authorities /*, achievements*/]);
-
-  const handleFilter = (achievement) => {
-    switch (filterMode) {
-      case "ATeam":
-        return achievement.ateam_id === ateamId;
-      case "All":
-      default:
-        return true;
-    }
-  };
+  }, [dispatch, ateamId, ateam, members, authorities]);
 
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
   if (!ateamId) return <>{noATeamMessage}</>;
-  if (!user || !ateam || !members || !achievements || !authorities) return <></>;
+  if (!user || !ateam || !members || !authorities) return <></>;
 
   const isAdmin = (
     authorities?.find((x) => x.user_id === user.user_id)?.authorities ?? []
@@ -98,43 +85,6 @@ export function ATeam() {
                   </Tooltip>
                 );
               })()}
-            {achievements &&
-              (() => {
-                const badge_names = achievements.map((achievement) => achievement.badge_name);
-                const unique_badge_names = [...new Set(badge_names)].sort();
-                const unique_achievements = unique_badge_names.map((name) =>
-                  achievements.find((achievement) => achievement.badge_name === name),
-                );
-                const filtered_achievements = unique_achievements.filter((achievement) =>
-                  handleFilter(achievement),
-                );
-                const sorted_achievements = filtered_achievements.sort(
-                  (a, b) => difficulty.indexOf(a.difficulty) - difficulty.indexOf(b.difficulty),
-                );
-                return (
-                  <AvatarGroup max={6} variant="rounded" sx={{ m: 0.5, ...avatarGroupStyle }}>
-                    {sorted_achievements.map((achievement) => (
-                      <Tooltip
-                        arrow
-                        describeChild
-                        key={achievement.badge_id}
-                        placement="bottom-start"
-                        title={achievement.badge_name}
-                      >
-                        <Avatar
-                          alt={achievement.badge_name.slice(0, 1)}
-                          className={achievement.difficulty}
-                          src={achievement.image_url}
-                          variant="square"
-                        >
-                          {/* default badge image */}
-                          {achievement.image_url ? "" : <VerifiedIcon />}
-                        </Avatar>
-                      </Tooltip>
-                    ))}
-                  </AvatarGroup>
-                );
-              })()}
           </Box>
         </Box>
       </Box>
@@ -149,7 +99,6 @@ export function ATeam() {
           <ATeamMember
             ateamId={ateamId}
             members={members}
-            achievements={achievements}
             authorities={authorities}
             isAdmin={isAdmin}
           />

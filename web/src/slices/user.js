@@ -3,7 +3,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   createUser as apiCreateUser,
   deleteUser as apiDeleteUser,
-  getAchievements as apiGetAchievements,
   getAuthorizedZones as apiGetAuthorizedZones,
   getMyUserInfo as apiGetUser,
   updateUser as apiUpdateUser,
@@ -15,11 +14,6 @@ export const createUser = createAsyncThunk(
 );
 
 export const deleteUser = createAsyncThunk("user/delete", async () => await apiDeleteUser());
-
-export const getAchievements = createAsyncThunk(
-  "user/getAchievements",
-  async (userId) => await apiGetAchievements(userId).then((response) => response.data),
-);
 
 export const getUser = createAsyncThunk(
   "user/get",
@@ -38,7 +32,6 @@ export const getAuthorizedZones = createAsyncThunk(
 );
 
 const _initialUserState = {
-  achievements: undefined,
   user: {},
   zones: undefined,
 };
@@ -53,10 +46,6 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getAchievements.fulfilled, (state, action) => ({
-        ...state,
-        achievements: action.payload,
-      }))
       .addCase(createUser.fulfilled, (state, action) => ({
         ...state,
         user: action.payload,

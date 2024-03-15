@@ -1,8 +1,6 @@
-import { Star as StarIcon, Verified as VerifiedIcon } from "@mui/icons-material";
+import { Star as StarIcon } from "@mui/icons-material";
 import {
   Avatar,
-  AvatarGroup,
-  Badge,
   Box,
   Paper,
   Table,
@@ -11,20 +9,19 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { avatarGroupStyle, difficulty, difficultyColors, experienceColors } from "../utils/const";
+import { experienceColors } from "../utils/const";
 
 import { GTeamInviteModal } from "./GTeamInviteModal";
 import { GTeamMemberMenu } from "./GTeamMemberMenu";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function GTeamMember(props) {
-  const { gteamId, members, achievements, authorities, isAdmin } = props;
+  const { gteamId, members, authorities, isAdmin } = props;
 
   const checkAdmin = (userId) => {
     return (authorities?.find((x) => x.user_id === userId)?.authorities ?? []).includes("admin");
@@ -41,7 +38,7 @@ export function GTeamMember(props) {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ width: "30%", fontWeight: 900 }}>USER(EMAIL)</TableCell>
-                <TableCell sx={{ fontWeight: 900 }}>ACHIEVEMENT</TableCell>
+                <TableCell sx={{ fontWeight: 900 }}>EXPERIENCE in SecOps</TableCell>
                 <TableCell sx={{ fontWeight: 900 }} align="right">
                   ACTIONS
                 </TableCell>
@@ -77,82 +74,6 @@ export function GTeamMember(props) {
                           >
                             {member.years}+
                           </Avatar>
-                          {achievements &&
-                            achievements
-                              .filter(
-                                (achievement) =>
-                                  achievement.email === member.email &&
-                                  achievement.badge_id === member.favorite_badge,
-                              )
-                              .map((achievement, index) => (
-                                <Tooltip
-                                  arrow
-                                  describeChild
-                                  key={index}
-                                  placement="bottom-start"
-                                  title={`${achievement.badge_name} *`}
-                                  sx={{ m: 0.5 }}
-                                >
-                                  <Badge
-                                    anchorOrigin={{
-                                      horizontal: "right",
-                                      vertical: "bottom",
-                                    }}
-                                    badgeContent={<StarIcon color="warning" />}
-                                    overlap="circular"
-                                  >
-                                    <Avatar
-                                      alt={achievement.badge_name.slice(0, 1)}
-                                      src={achievement.image_url}
-                                      variant="square"
-                                      sx={{
-                                        border: 2,
-                                        borderColor: difficultyColors[achievement.difficulty],
-                                      }}
-                                    >
-                                      {/* default badge image */}
-                                      {achievement.image_url ? "" : <VerifiedIcon />}
-                                    </Avatar>
-                                  </Badge>
-                                </Tooltip>
-                              ))}
-                          {achievements?.filter((achievement) => achievement.email === member.email)
-                            ?.length > 0 && (
-                            <Box alignItems="center" display="flex" flexDirection="row" pl={1}>
-                              <AvatarGroup
-                                max={3}
-                                variant="rounded"
-                                sx={{ mx: 0.5, ...avatarGroupStyle }}
-                              >
-                                {achievements
-                                  ?.filter((achievement) => achievement.email === member.email)
-                                  .sort(
-                                    (a, b) =>
-                                      difficulty.indexOf(a.difficulty) -
-                                      difficulty.indexOf(b.difficulty),
-                                  )
-                                  .map((achievement, index) => (
-                                    <Tooltip
-                                      arrow
-                                      key={index}
-                                      placement="bottom-start"
-                                      title={achievement.badge_name}
-                                      sx={{ m: 0.5 }}
-                                    >
-                                      <Avatar
-                                        alt={achievement.badge_name.slice(0, 1)}
-                                        className={achievement.difficulty}
-                                        src={achievement.image_url}
-                                        variant="square"
-                                      >
-                                        {/* default badge image */}
-                                        {achievement.image_url ? "" : <VerifiedIcon />}
-                                      </Avatar>
-                                    </Tooltip>
-                                  ))}
-                              </AvatarGroup>
-                            </Box>
-                          )}
                         </Box>
                       </TableCell>
                       <TableCell align="right">
@@ -181,7 +102,6 @@ GTeamMember.propTypes = {
     disabled: PropTypes.bool,
     years: PropTypes.number,
   }).isRequired,
-  achievements: PropTypes.arrayOf(PropTypes.object).isRequired,
   authorities: PropTypes.arrayOf(PropTypes.object).isRequired,
   isAdmin: PropTypes.bool.isRequired,
 };

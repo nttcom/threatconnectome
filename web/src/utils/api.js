@@ -24,8 +24,6 @@ export const getPTeam = async (pteamId) => axios.get(`/pteams/${pteamId}`);
 
 export const updatePTeam = async (pteamId, data) => axios.put(`/pteams/${pteamId}`, data);
 
-export const getPTeamAchievements = async (pteamId) => axios.get(`/pteams/${pteamId}/achievements`);
-
 export const getPTeamMembers = async (pteamId) => axios.get(`/pteams/${pteamId}/members`);
 
 export const deletePTeamMember = async (pteamId, userId) =>
@@ -228,9 +226,6 @@ export const createTag = async (data) => axios.post("/tags", data);
 
 // actionlogs
 export const createActionLog = async (data) => axios.post("/actionlogs", data);
-
-// achievements
-export const getAchievements = async (userId) => axios.get(`/achievements/${userId}`);
 
 // external
 export const checkSlack = async (data) => axios.post("/external/slack/check", data);
