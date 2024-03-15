@@ -2,18 +2,13 @@ import { Button, CircularProgress } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
+import styles from "../cssModule/button.module.css";
+
 export function CheckButton(props) {
   const { onHandleClick, isLoading } = props;
 
   return (
-    <Button
-      variant="outlined"
-      sx={{
-        textTransform: "none",
-        marginRight: "10px",
-      }}
-      onClick={onHandleClick}
-    >
+    <Button className={styles.check_btn} onClick={onHandleClick}>
       {isLoading ? <CircularProgress size="1.6rem" sx={{ color: "#fff" }} /> : "Check"}
     </Button>
   );

@@ -1,0 +1,15 @@
+.prominent_btn.prominent_btn {
+    background-color: green;
+    color: white;
+    text-transform: none;
+    &:hover {
+        background-color: darkgreen;
+    }
+} 
+
+.check_btn.check_btn {
+    text-transform: none;
+    border: 1px solid;
+    padding-left: 13px;
+    padding-right: 13px
+}

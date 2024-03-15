@@ -1,7 +1,7 @@
 import { Button, Box } from "@mui/material";
 import React, { useState } from "react";
 
-import { commonButtonStyle } from "../utils/const";
+import styles from "../cssModule/button.module.css";
 
 import { ATeamTopicCreateModal } from "./ATeamTopicCreateModal";
 
@@ -12,10 +12,11 @@ export function ATeamTopicMenu() {
     <>
       <Box display="flex" justifyContent="flex-end" mb={2}>
         <Button
+          className={styles.prominent_btn}
           onClick={() => {
             setModalOpen(true);
           }}
-          sx={{ ...commonButtonStyle, width: "100px" }}
+          sx={{ width: "100px" }}
         >
           New Topic
         </Button>

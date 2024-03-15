@@ -12,10 +12,11 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 
+import styles from "../cssModule/button.module.css";
 import { getGTeamZonesSummary } from "../slices/gteam";
 import { getAuthorizedZones } from "../slices/user";
 import { createGTeamZone } from "../utils/api";
-import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
+import { modalCommonButtonStyle } from "../utils/const";
 
 export function ZoneCreateModal(props) {
   const { gteamId } = props;
@@ -53,7 +54,7 @@ export function ZoneCreateModal(props) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} sx={{ ...commonButtonStyle }}>
+      <Button className={styles.prominent_btn} onClick={() => setOpen(true)}>
         Create Zone
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
