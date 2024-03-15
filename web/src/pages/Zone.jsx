@@ -1,16 +1,8 @@
 import { Clear as ClearIcon } from "@mui/icons-material";
 import { Box, IconButton, InputAdornment, TextField, Tabs, Tab } from "@mui/material";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
-
-import { GTeamLabel } from "../components/GTeamLabel";
-import { GTeamZoneCard } from "../components/GTeamZoneCard";
-import { TabPanel } from "../components/TabPanel";
-import { ZoneCreateModal } from "../components/ZoneCreateModal";
-import { getGTeam, getGTeamZonesSummary } from "../slices/gteam";
-import { noGTeamMessage } from "../utils/const";
 
 function SearchField(props) {
   const { word, onApply } = props;
@@ -64,9 +56,6 @@ function a11yProps(index) {
 
 export function Zone() {
   const [value, setValue] = useState(0);
-  const gteamId = useSelector((state) => state.gteam.gteamId);
-  const gteam = useSelector((state) => state.gteam.gteam);
-  const zonesSummary = useSelector((state) => state.gteam.zonesSummary);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -74,13 +63,6 @@ export function Zone() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (!gteamId) return;
-    if (!gteam) dispatch(getGTeam(gteamId));
-    if (!zonesSummary) dispatch(getGTeamZonesSummary(gteamId));
-  }, [dispatch, gteamId, gteam, zonesSummary]);
 
   const params = new URLSearchParams(location.search);
   const searchWord = params.get("word")?.trim().toLowerCase() ?? "";
@@ -90,20 +72,9 @@ export function Zone() {
     navigate(location.pathname + "?" + params.toString());
   };
 
-  const filterZones = (zones) => {
-    if (!zones) return [];
-    return zones.filter(
-      (zone) => !searchWord?.length > 0 || zone.zone_name.toLowerCase().includes(searchWord),
-    );
-  };
-
-  if (!gteamId) return <>{noGTeamMessage}</>;
-  if (!gteam) return <></>;
-
   return (
     <>
       <Box display="flex" flexDirection="row">
-        <GTeamLabel gteam={gteam} />
         <Box flexGrow={1} />
       </Box>
       <Box display="flex" sx={{ mb: -5, mr: 1 }}>
@@ -119,16 +90,6 @@ export function Zone() {
             <Tab label="Archived" {...a11yProps(1)} />
           </Tabs>
         </Box>
-
-        <TabPanel value={value} index={0}>
-          <Box display="flex" justifyContent="flex-end" sx={{ mb: 2, mr: 1 }}>
-            <ZoneCreateModal gteamId={gteamId} />
-          </Box>
-          <GTeamZoneCard zones={filterZones(zonesSummary?.unarchived_zones)} />
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          <GTeamZoneCard zones={filterZones(zonesSummary?.archived_zones)} archived={true} />
-        </TabPanel>
       </Box>
     </>
   );

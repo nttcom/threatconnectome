@@ -10,13 +10,11 @@ import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-d
 import {
   AcceptATeamInvitation,
   AcceptATeamWatchingRequest,
-  AcceptGTeamInvitation,
   AcceptPTeamInvitation,
   Account,
   Analysis,
   App,
   ATeam,
-  GTeam,
   Login,
   ResetPassword,
   Status,
@@ -60,10 +58,6 @@ root.render(
                   <Route path="ateam">
                     <Route index element={<ATeam />} />
                     <Route path="join" element={<AcceptATeamInvitation />} />
-                  </Route>
-                  <Route path="gteam">
-                    <Route index element={<GTeam />} />
-                    <Route path="join" element={<AcceptGTeamInvitation />} />
                   </Route>
                   <Route path="zone">
                     <Route index element={<Zone />} />

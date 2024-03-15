@@ -134,23 +134,6 @@ export function Account() {
             )}
           </Box>
         </Box>
-        <Box alignItems="center" display="flex" flexDirection="row" my={1}>
-          <Box display="flex" flexDirection="row" width="30%">
-            <Typography>GTeam:</Typography>
-          </Box>
-          <Box display="flex" flexDirection="column" width="70%">
-            {user.gteams?.length >= 1 ? (
-              user.gteams.map((gteam, index) => (
-                <Box alignItems="baseline" display="flex" flexDirection="row" key={index}>
-                  <Typography mr={1}>{gteam.gteam_name}</Typography>
-                  <UUIDTypography>{gteam.gteam_id}</UUIDTypography>
-                </Box>
-              ))
-            ) : (
-              <Typography>-</Typography>
-            )}
-          </Box>
-        </Box>
         <Box alignItems="center" display="flex" flexDirection="row" mt={1}>
           <Box display="flex" flexDirection="row" width="30%">
             <Tooltip
