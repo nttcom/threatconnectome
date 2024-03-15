@@ -10,7 +10,7 @@ base_url = os.getenv("BASE_URL", "http://localhost")
 
 
 def print_console(page: Page):
-    page.on("console", lambda msg: print("console:", msg.text))
+    page.on("console", lambda msg: print("console:", msg.text, msg.location))
 
 
 def login(page: Page, user: dict):
@@ -35,7 +35,6 @@ def login(page: Page, user: dict):
     page.get_by_label("Email Address").fill(user["email"])
     page.get_by_label("Password").fill(user["pass"])
     page.get_by_role("button", name="Log In with Email").click()
-    print_console(page)
 
     # Wait login process finish and print logout button
     # https://playwright.dev/python/docs/api/class-locator#locator-wait-for
@@ -44,14 +43,16 @@ def login(page: Page, user: dict):
 
 
 def test_login_first_time(page: Page):
+    print_console(page)
     # register user1 by login
     login(page, USER1)
-    print_console(page)
+
     # navigate to account page
     expect(page).to_have_url(re.compile(".*/account"))
 
 
 def test_show_tag_page_directly(page: Page):
+    print_console(page)
     # register data via API
     pteam1 = create_pteam(USER1, PTEAM1)
     etags = upload_pteam_tags(
@@ -72,7 +73,7 @@ def test_show_tag_page_directly(page: Page):
     page.get_by_label("Email Address").fill(str(USER1["email"]))
     page.get_by_label("Password").fill(str(USER1["pass"]))
     page.get_by_role("button", name="Log In").click()
-    print_console(page)
+
     # tag page
     expect(page).to_have_url(re.compile(path))
     expect(page.get_by_role("heading", name=TAG1)).to_have_text(TAG1)
@@ -89,9 +90,9 @@ def test_show_tag_page_directly(page: Page):
 
 
 def test_show_tag_page(page: Page):
+    print_console(page)
     login(page, USER1)
 
-    print_console(page)
     page.locator("#team-selector-button").click()
     page.get_by_role("menuitem", name=str(PTEAM1["pteam_name"])).click()
     # status page
@@ -101,7 +102,6 @@ def test_show_tag_page(page: Page):
     expect(page.get_by_role("rowheader", name=TAG1)).to_have_text(re.compile(TAG1))
     page.get_by_role("rowheader", name=TAG1).click()
 
-    print_console(page)
     # tag page
     expect(page.get_by_role("heading", name=TAG1)).to_have_text(TAG1)
     expect(page.locator("#threat-impact-count-chip-1")).to_have_text("1")
