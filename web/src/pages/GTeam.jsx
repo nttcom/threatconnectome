@@ -39,7 +39,6 @@ export function GTeam() {
         <GTeamMember
           gteamId={gteamId}
           members={members}
-          achievements={[]}
           authorities={authorities}
           isAdmin={isAdmin}
         />

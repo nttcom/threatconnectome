@@ -229,9 +229,6 @@ export const createTag = async (data) => axios.post("/tags", data);
 // actionlogs
 export const createActionLog = async (data) => axios.post("/actionlogs", data);
 
-// achievements
-export const getAchievements = async (userId) => axios.get(`/achievements/${userId}`);
-
 // external
 export const checkSlack = async (data) => axios.post("/external/slack/check", data);
 

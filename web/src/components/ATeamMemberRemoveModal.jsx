@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { /*getATeamAchievements,*/ getATeamAuth, getATeamMembers } from "../slices/ateam";
+import { getATeamAuth, getATeamMembers } from "../slices/ateam";
 import { deleteATeamMember } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 
@@ -17,7 +17,6 @@ export function ATeamMemberRemoveModal(props) {
 
   const handleRemove = async () => {
     function onSuccess(success) {
-      //dispatch(getATeamAchievements(ateamId)); // TODO: not yet implemented for ateam
       dispatch(getATeamAuth(ateamId));
       dispatch(getATeamMembers(ateamId));
       enqueueSnackbar(`Remove ${userName} from ${ateamName} succeeded`, { variant: "success" });
