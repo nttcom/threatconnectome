@@ -34,7 +34,6 @@ def _pick_alert_targets_for_new_topic(
     # Note:
     #   process auto-close and fix-current-status beforehand, and
     #   disabled topics and pteams are excluded from CurrentPTeamTopicTagStatus table.
-    #   unvisible topics by zones are also excluded.
     return db.scalars(
         select(models.CurrentPTeamTopicTagStatus)
         .options(

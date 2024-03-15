@@ -1,12 +1,11 @@
 import json
 from datetime import datetime
 from hashlib import md5
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union, cast
+from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from fastapi.responses import Response
-from sqlalchemy import and_, delete, exists, func, literal, literal_column, or_, select
+from sqlalchemy import and_, delete, func, literal_column, or_, select
 from sqlalchemy.dialects.postgresql import insert as psql_insert
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql.expression import false, true
@@ -30,19 +29,6 @@ def get_system_account(db: Session) -> models.Account:
             detail="No such system user",
         )
     return system_account
-
-
-def validate_secbadge(
-    db: Session,
-    badge_id: Union[UUID, str],
-    on_error: Optional[int] = None,
-) -> Optional[models.SecBadge]:
-    secbadge = (
-        db.query(models.SecBadge).filter(models.SecBadge.badge_id == str(badge_id)).one_or_none()
-    )
-    if secbadge is None and on_error is not None:
-        raise HTTPException(status_code=on_error, detail="No such secbadge")
-    return secbadge
 
 
 def validate_actionlog(
@@ -70,128 +56,6 @@ def validate_actionlog(
     if row is None and on_error is not None:
         raise HTTPException(status_code=on_error, detail="No such actionlog")
     return row
-
-
-def check_zone_accessible(
-    db: Session,
-    user_id: Union[UUID, str],
-    zones: Union[List[str], List[models.Zone]],
-    on_error: Optional[int] = None,
-) -> bool:
-    user_id = str(user_id)
-    if zones == [] or user_id == str(SYSTEM_UUID):
-        return True
-    zone_names = [x if isinstance(x, str) else x.zone_name for x in zones]
-    zoned_pteams_accessible = db.query(models.PTeamZone.pteam_id).filter(
-        models.PTeamZone.zone_name.in_(zone_names),
-        or_(
-            models.PTeamZone.pteam_id.in_(
-                db.query(models.PTeamAccount.pteam_id).filter(
-                    models.PTeamAccount.user_id == user_id
-                ),
-            ),
-            models.PTeamZone.pteam_id.in_(
-                db.query(models.ATeamPTeam.pteam_id).join(
-                    models.ATeamAccount,
-                    and_(
-                        models.ATeamAccount.user_id == user_id,
-                        models.ATeamAccount.ateam_id == models.ATeamPTeam.ateam_id,
-                    ),
-                ),
-            ),
-        ),
-    )
-    gteam_membership = db.query(models.Zone.gteam_id).join(
-        models.GTeamAccount,
-        and_(
-            models.Zone.zone_name.in_(zone_names),
-            models.GTeamAccount.user_id == user_id,
-            models.GTeamAccount.gteam_id == models.Zone.gteam_id,
-        ),
-    )
-    ret = (
-        db.query(literal(True))
-        .filter(
-            or_(
-                zoned_pteams_accessible.exists(),
-                gteam_membership.exists(),
-            ),
-        )
-        .scalar()
-    ) or False
-
-    if not ret and on_error:
-        raise HTTPException(status_code=on_error, detail="You do not have related zone")
-    return ret
-
-
-def validate_zone(
-    db: Session,
-    user_id: Union[UUID, str],
-    zone_name: str,
-    on_error: Optional[int] = None,
-    auth_mode: Optional[str] = None,  # None | read | apply | admin
-    on_auth_error: Optional[int] = None,
-    on_archived: Optional[int] = None,
-) -> Optional[models.Zone]:
-    user_id = str(user_id)
-    row = db.query(models.Zone).filter(models.Zone.zone_name == zone_name).one_or_none()
-    # Note:
-    #   validate_zone() should be used to check the zone is valid and specified
-    #   user has authority to (read|apply|destroy) the zone itself.
-    #   To check the user can access to zoned resources, use check_zone_accessible() instead.
-    if row is None:
-        if on_error is None:
-            return None
-        raise HTTPException(status_code=on_error, detail="No such zone")
-    if auth_mode:
-        # FIXME: need update auth check depends on auth_mode
-        if not check_gteam_membership(db, row.gteam_id, user_id):
-            if on_auth_error:
-                raise HTTPException(
-                    status_code=on_auth_error,
-                    detail="You do not have related zone",  # FIXME: correct message?
-                )
-            return None
-    if on_archived and row.archived:
-        raise HTTPException(
-            status_code=on_archived,
-            detail="Cannot apply archived zone",
-        )
-
-    return row
-
-
-def update_zones(
-    db: Session,
-    user_id: Union[UUID, str],
-    is_admin: bool,  # admin can remove any zone without auth
-    current_zones: List[models.Zone],
-    new_zones: List[str],
-) -> List[models.Zone]:
-    keeps = {  # not in new_zones or user does not have auth to apply
-        zone
-        for zone in current_zones
-        if zone.zone_name in new_zones
-        or (not is_admin and not validate_zone(db, user_id, zone.zone_name, auth_mode="apply"))
-    }
-    addings: Set[models.Zone] = {
-        cast(
-            models.Zone,
-            validate_zone(
-                db,
-                user_id,
-                zone_str,
-                on_error=status.HTTP_400_BAD_REQUEST,
-                auth_mode="apply",
-                on_auth_error=status.HTTP_400_BAD_REQUEST,
-                on_archived=status.HTTP_400_BAD_REQUEST,
-            ),
-        )
-        for zone_str in new_zones
-        if zone_str not in {x.zone_name for x in current_zones}
-    }
-    return list(addings | keeps)
 
 
 def validate_tag(
@@ -442,77 +306,6 @@ def check_ateam_auth(
     raise HTTPException(status_code=on_error, detail="You do not have authority")
 
 
-def validate_gteam(
-    db: Session,
-    gteam_id: Union[UUID, str],
-    on_error: Optional[int] = None,
-) -> Optional[models.GTeam]:
-    gteam = (
-        db.query(models.GTeam)
-        .filter(
-            models.GTeam.gteam_id == str(gteam_id),
-        )
-        .one_or_none()
-    )
-    if gteam is None and on_error is not None:
-        raise HTTPException(status_code=on_error, detail="No such gteam")
-    return gteam
-
-
-def check_gteam_membership(
-    db: Session,
-    gteam_id: Union[UUID, str],
-    user_id: Union[UUID, str],
-    on_error: Optional[int] = None,
-) -> bool:
-    if str(user_id) == str(SYSTEM_UUID):
-        return True
-    row = (
-        db.query(models.GTeamAccount)
-        .filter(
-            models.GTeamAccount.gteam_id == str(gteam_id),
-            models.GTeamAccount.user_id == str(user_id),
-        )
-        .one_or_none()
-    )
-    if row is None and on_error is not None:
-        raise HTTPException(status_code=on_error, detail="Not a gteam member")
-    return row is not None
-
-
-def check_gteam_auth(
-    db: Session,
-    gteam_id: Union[UUID, str],
-    user_id: Optional[Union[UUID, str]],
-    required: models.GTeamAuthIntFlag,
-    on_error: Optional[int] = None,
-) -> bool:
-    if user_id and str(user_id) == str(SYSTEM_UUID):
-        return True
-    str_user_ids = [str(NOT_MEMBER_UUID)]
-    if user_id and (
-        str(user_id) == str(MEMBER_UUID) or check_gteam_membership(db, gteam_id, user_id)
-    ):
-        str_user_ids += [str(user_id), str(MEMBER_UUID)]  # apply only if member
-
-    rows = (
-        db.query(models.GTeamAuthority.authority)
-        .filter(
-            models.GTeamAuthority.gteam_id == str(gteam_id),
-            models.GTeamAuthority.user_id.in_(str_user_ids),
-        )
-        .all()
-    )
-    auth = 0
-    for row in rows:
-        auth |= row.authority
-    if auth & required == required:  # OK
-        return True
-    if on_error is None:
-        return False
-    raise HTTPException(status_code=on_error, detail="You do not have authority")
-
-
 def validate_topic(
     db: Session,
     topic_id: Union[UUID, str],
@@ -563,7 +356,6 @@ def search_topics_internal(
     abstract_words: Optional[List[Optional[str]]] = None,
     tag_ids: Optional[List[Optional[str]]] = None,
     misp_tag_ids: Optional[List[Optional[str]]] = None,
-    zone_names: Optional[List[Optional[str]]] = None,
     topic_ids: Optional[List[str]] = None,
     creator_ids: Optional[List[str]] = None,
     created_after: Optional[datetime] = None,
@@ -571,60 +363,11 @@ def search_topics_internal(
     updated_after: Optional[datetime] = None,
     updated_before: Optional[datetime] = None,
 ) -> dict:
-    # current_user accessible topics
-    pteam_ids_stmt = select(models.PTeamAccount.pteam_id).filter(
-        models.PTeamAccount.user_id == current_user.user_id
-    )
-    pteam_ids_via_ateams_stmt = select(models.ATeamPTeam.pteam_id).join(
-        models.ATeamAccount,
-        and_(
-            models.ATeamAccount.user_id == current_user.user_id,
-            models.ATeamAccount.ateam_id == models.ATeamPTeam.ateam_id,
-        ),
-    )
-    zone_names_via_pteams_stmt = (
-        select(models.PTeamZone.zone_name)
-        .filter(
-            or_(
-                models.PTeamZone.pteam_id.in_(pteam_ids_stmt),
-                models.PTeamZone.pteam_id.in_(pteam_ids_via_ateams_stmt),
-            ),
-        )
-        .distinct()
-    )
-    zone_names_via_gteams_stmt = select(models.Zone.zone_name).join(
-        models.GTeamAccount,
-        and_(
-            models.GTeamAccount.user_id == current_user.user_id,
-            models.GTeamAccount.gteam_id == models.Zone.gteam_id,
-        ),
-    )
-    current_user_accessible_stmt = or_(
-        models.TopicZone.zone_name.is_(None),
-        models.TopicZone.zone_name.in_(zone_names_via_pteams_stmt),
-        models.TopicZone.zone_name.in_(zone_names_via_gteams_stmt),
-    )
-
-    # additional search conditions
+    # search conditions
     search_by_threat_impacts_stmt = (
         true()
         if threat_impacts is None  # do not filter by threat_impact
         else models.Topic.threat_impact.in_(threat_impacts)
-    )
-    search_by_zone_names_stmt = (
-        true()
-        if zone_names is None  # do not filter by zone
-        else or_(
-            false(),
-            *[
-                (
-                    models.TopicZone.zone_name.is_(None)  # public
-                    if zone_name is None
-                    else models.TopicZone.zone_name == zone_name
-                )
-                for zone_name in zone_names
-            ],
-        )
     )
     search_by_tag_ids_stmt = (
         true()
@@ -719,7 +462,6 @@ def search_topics_internal(
 
     search_conditions = [
         search_by_threat_impacts_stmt,
-        search_by_zone_names_stmt,
         search_by_tag_ids_stmt,
         search_by_misp_tag_ids_stmt,
         search_by_topic_ids_stmt,
@@ -733,15 +475,12 @@ def search_topics_internal(
     ]
     filter_topics_stmt = and_(
         models.Topic.disabled.is_(False),
-        current_user_accessible_stmt,
         *search_conditions,
     )
 
     # join tables only if required
-    select_topics_stmt = select(models.Topic).outerjoin(models.TopicZone)
-    select_count_stmt = select(func.count(models.Topic.topic_id.distinct())).outerjoin(
-        models.TopicZone
-    )
+    select_topics_stmt = select(models.Topic)
+    select_count_stmt = select(func.count(models.Topic.topic_id.distinct()))
     if tag_ids is not None:
         select_topics_stmt = select_topics_stmt.outerjoin(models.TopicTag)
         select_count_stmt = select_count_stmt.outerjoin(models.TopicTag)
@@ -776,7 +515,6 @@ def search_topics_internal(
 def get_topics_internal(
     db: Session,
     user_id: Union[UUID, str],
-    zones: List[str] | None = None,
     title_words: List[str] | None = None,
     abstract_words: List[str] | None = None,
     threat_impacts: List[int] | None = None,
@@ -784,42 +522,8 @@ def get_topics_internal(
     tag_ids: Sequence[UUID | str] | None = None,
 ) -> List[models.Topic]:
     user_id = str(user_id)
-    pteam_zones = db.query(models.PTeamZone.zone_name).filter(
-        or_(
-            models.PTeamZone.pteam_id.in_(
-                db.query(models.PTeamAccount.pteam_id).filter(
-                    models.PTeamAccount.user_id == user_id
-                ),
-            ),
-            models.PTeamZone.pteam_id.in_(
-                db.query(models.ATeamPTeam.pteam_id).join(
-                    models.ATeamAccount,
-                    and_(
-                        models.ATeamAccount.user_id == user_id,
-                        models.ATeamAccount.ateam_id == models.ATeamPTeam.ateam_id,
-                    ),
-                ),
-            ),
-        ),
-    )
-    gteam_zones = db.query(models.Zone.zone_name).join(
-        models.GTeamAccount,
-        and_(
-            models.GTeamAccount.user_id == user_id,
-            models.GTeamAccount.gteam_id == models.Zone.gteam_id,
-        ),
-    )
-
     return (
         db.query(models.Topic)
-        .outerjoin(models.TopicZone)
-        .filter(
-            or_(
-                models.TopicZone.zone_name.is_(None),
-                models.TopicZone.zone_name.in_(pteam_zones),
-                models.TopicZone.zone_name.in_(gteam_zones),
-            ),
-        )
         .distinct()
         .filter(
             (
@@ -881,20 +585,16 @@ def create_action_internal(
         ignore_disabled=True,
     )
     assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_403_FORBIDDEN)
     check_topic_action_tags_integrity(
         topic.tags,
         action.ext.get("tags"),
         on_error=status.HTTP_400_BAD_REQUEST,
     )
-    action_zones = update_zones(db, current_user.user_id, False, [], action.zone_names)
 
     action_id = str(action.action_id) if action.action_id else None
-    del action.zone_names
     del action.action_id
     row = models.TopicAction(
         **action.model_dump(),
-        zones=action_zones,
         action_id=action_id,
         created_by=current_user.user_id,
         created_at=datetime.now(),
@@ -991,10 +691,6 @@ def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
         db.commit()
         return
 
-    pteam_zones = db.query(models.PTeamZone.zone_name).filter(
-        models.PTeamZone.pteam_id == pteam.pteam_id,
-    )
-
     # remove untagged
     db.execute(
         delete(models.CurrentPTeamTopicTagStatus).where(
@@ -1004,36 +700,6 @@ def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
                     models.PTeamTagReference.pteam_id == pteam.pteam_id
                 )
             ),
-        )
-    )
-
-    # remove hidden topics
-    zoned_topics = (
-        db.query(
-            models.TopicZone.zone_name,
-            models.CurrentPTeamTopicTagStatus.topic_id,
-        )
-        .join(
-            models.CurrentPTeamTopicTagStatus,
-            and_(
-                models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
-                models.CurrentPTeamTopicTagStatus.topic_id == models.TopicZone.topic_id,
-            ),
-        )
-        .distinct()
-        .subquery()
-    )
-    hidden_topics = (
-        db.query(zoned_topics.c.topic_id)  # public topics are already excluded
-        .filter(
-            ~exists().where(zoned_topics.c.zone_name.in_(pteam_zones)),  # not having matched zone
-        )
-        .distinct()
-    )
-    db.execute(
-        delete(models.CurrentPTeamTopicTagStatus).where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
-            models.CurrentPTeamTopicTagStatus.topic_id.in_(hidden_topics),
         )
     )
 
@@ -1059,16 +725,6 @@ def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
             and_(
                 models.Topic.topic_id == models.TopicTag.topic_id,
                 models.Topic.disabled.is_(False),
-            ),
-        )
-        .outerjoin(
-            models.TopicZone,
-            models.TopicZone.topic_id == models.TopicTag.topic_id,
-        )
-        .filter(
-            or_(
-                models.TopicZone.zone_name.is_(None),
-                models.TopicZone.zone_name.in_(pteam_zones),
             ),
         )
         .distinct()
@@ -1166,7 +822,7 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
 
     # remove untagged
     current_related_tags = (
-        db.query(models.Tag.tag_id)
+        select(models.Tag.tag_id)
         .join(
             models.TopicTag,
             and_(
@@ -1186,30 +842,8 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
         )
     )
 
-    if topic.zones:  # not a public topic
-        # remove from kicked out pteams
-        allowed_pteams = (
-            db.query(
-                models.PTeamZone.pteam_id,
-            )
-            .join(
-                models.TopicZone,
-                and_(
-                    models.TopicZone.topic_id == topic.topic_id,
-                    models.TopicZone.zone_name == models.PTeamZone.zone_name,
-                ),
-            )
-            .distinct()
-        )
-        db.execute(
-            delete(models.CurrentPTeamTopicTagStatus).where(
-                models.CurrentPTeamTopicTagStatus.topic_id == topic.topic_id,
-                models.CurrentPTeamTopicTagStatus.pteam_id.not_in(allowed_pteams),
-            )
-        )
-
     # fill missings or update -- at least updated_at is modified
-    _pteam_tags = (
+    pteam_tags = (
         select(
             models.Tag.tag_id,
             models.PTeamTagReference.pteam_id,
@@ -1235,33 +869,17 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
                 models.PTeam.disabled.is_(False),
             ),
         )
-    )
-    pteam_tags = (  # filter by zone only if not a public topic
-        (
-            _pteam_tags.join(
-                models.TopicZone,
-                models.TopicZone.topic_id == models.TopicTag.topic_id,
-            ).join(
-                models.PTeamZone,
-                and_(
-                    models.PTeamZone.pteam_id == models.PTeamTagReference.pteam_id,
-                    models.PTeamZone.zone_name == models.TopicZone.zone_name,
-                ),
-            )
-            if topic.zones
-            else _pteam_tags
-        )
         .distinct()
         .subquery()
     )
     latests = (
-        db.query(
+        select(
             models.PTeamTopicTagStatus.pteam_id,
             models.PTeamTopicTagStatus.topic_id,
             models.PTeamTopicTagStatus.tag_id,
             func.max(models.PTeamTopicTagStatus.created_at).label("latest"),
         )
-        .filter(
+        .where(
             models.PTeamTopicTagStatus.topic_id == topic.topic_id,
         )
         .group_by(
@@ -1272,7 +890,7 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
         .subquery()
     )
     new_currents = (
-        db.query(
+        select(
             pteam_tags.c.pteam_id,
             literal_column(f"'{topic.topic_id}'"),
             pteam_tags.c.tag_id,
@@ -1434,23 +1052,6 @@ def get_pteamtags_summary(db: Session, pteam_id: UUID | str) -> dict:
     return summary
 
 
-def get_authorized_zones(
-    db: Session, user: models.Account
-) -> Tuple[Sequence[models.Zone], Sequence[models.Zone], Sequence[models.Zone]]:  # admin,apply,read
-    # FIXME:
-    #   this is temporal implementation.
-    #
-    select_stmt = select(models.Zone).join(
-        models.GTeamAccount,
-        and_(
-            models.GTeamAccount.user_id == user.user_id,
-            models.GTeamAccount.gteam_id == models.Zone.gteam_id,
-        ),
-    )
-    rows = db.scalars(select_stmt).all()
-    return rows, rows, rows
-
-
 def calculate_topic_content_fingerprint(
     title: str,
     abstract: str,
@@ -1511,250 +1112,6 @@ def get_pteam_topic_status_history(
     return sorted(ret_dict.values(), key=lambda x: x.created_at, reverse=True)
 
 
-def get_metadata_internal(logging_id: Union[UUID, str], current_user: models.Account, db: Session):
-    actionlog = validate_actionlog(db, logging_id=logging_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert actionlog
-    if current_user.user_id != str(SYSTEM_UUID):
-        check_pteam_membership(
-            db, actionlog.pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN
-        )
-    if not actionlog.user_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="The recipient account no longer exists"
-        )
-    accept_action_types = ["elimination", "mitigation"]
-    if actionlog.action_type not in accept_action_types:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Secbadge can only be issued with actionlog"
-            " that have action_type of elimination or mitigation.",
-        )
-
-    topic = (
-        db.query(models.Topic)
-        .filter(models.Topic.topic_id == actionlog.topic_id, models.Topic.disabled.is_(False))
-        .one_or_none()
-    )
-    if not topic:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Disabled topic")
-
-    if current_user.user_id == str(SYSTEM_UUID):
-        certifier_type = models.CertifierType.system
-    elif actionlog.user_id == current_user.user_id:
-        certifier_type = models.CertifierType.myself
-    else:
-        certifier_type = models.CertifierType.coworker
-
-    metadata: Dict[str, Any] = {
-        "description": f"{topic.title} has been solved by doing {actionlog.action}",
-        "external_url": "https://www.metemcyber.ntt.com/",
-        "image": "",
-        "name": f"{topic.title} has been solved!",
-        "logging_id": str(logging_id),
-    }
-    result = {
-        "recipient": actionlog.user_id,
-        "metadata": metadata,
-        "priority": 100,
-        "difficulty": models.Difficulty.low,
-        "badge_type": [models.BadgeType.performance],
-        "certifier_type": certifier_type,
-        "pteam_id": actionlog.pteam_id,
-    }
-    return result
-
-
-def validate_secbadge_metadata_internal(metadata: Dict[str, Any], db: Session):
-    def _raise_400(keyname: str):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid metadata: parameter '{keyname}' is wrong or missing",
-        )
-
-    required_keys = ["name"]
-    for key in required_keys:
-        if len(metadata.get(key, "")) == 0:
-            _raise_400(key)
-
-    logging_id = metadata.get("logging_id")
-    if logging_id:
-        actionlog = (
-            db.query(models.ActionLog)
-            .filter(models.ActionLog.logging_id == logging_id)
-            .one_or_none()
-        )
-        if not actionlog or actionlog.logging_id != logging_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Logging_id is wrong"
-            )
-
-    status_id = metadata.get("status_id")
-    if status_id:
-        topic_status = (
-            db.query(models.PTeamTopicTagStatus)
-            .filter(models.PTeamTopicTagStatus.status_id == status_id)
-            .one_or_none()
-        )
-        if not topic_status or topic_status.status_id != status_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="PTeam topic status id is wrong"
-            )
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-def _get_topic_status_metadata(
-    pteam_id: Union[UUID, str], topic_id: Union[UUID, str], tag_id: Union[UUID, str], db: Session
-) -> schemas.BadgeRequest:
-    """
-    Get metadata from the specified topic_status to create secbadge.
-    Secbadge can only be issued with topic status that is scheduled or completed.
-    """
-    current_topic_status = get_current_pteam_topic_tag_status(db, pteam_id, topic_id, tag_id)
-    assert current_topic_status
-
-    topic = (
-        db.query(models.Topic)
-        .filter(models.Topic.topic_id == topic_id, models.Topic.disabled.is_(False))
-        .one_or_none()
-    )
-    if not topic:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a valid topic")
-
-    metadata: Dict[str, Any] = {
-        "description": f"The reason of {topic.title} has been found!",
-        "external_url": "https://www.metemcyber.ntt.com/",
-        "image": "",
-        "name": f"The reason of {topic.title} has been found!",
-        "status_id": current_topic_status.status_id,
-    }
-    result = schemas.BadgeRequest(
-        recipient=UUID(current_topic_status.user_id),
-        metadata=metadata,
-        priority=100,
-        difficulty=models.Difficulty.low,
-        badge_type=[models.BadgeType.performance],
-        certifier_type=models.CertifierType.system,
-        pteam_id=UUID(current_topic_status.pteam_id),
-    )
-    return result
-
-
-def create_secbadge_from_topic_status(
-    pteam_id: Union[UUID, str],
-    topic_id: Union[UUID, str],
-    tag_id: Union[UUID, str],
-    current_user: models.Account,
-    db: Session,
-):
-    data = _get_topic_status_metadata(pteam_id, topic_id, tag_id, db)
-    create_secbadge_internal(data, current_user, db)
-
-
-def create_secbadge_internal(
-    data: schemas.BadgeRequest,
-    current_user: models.Account,
-    db: Session,
-) -> models.SecBadge:
-    account = (
-        db.query(models.Account).filter(models.Account.user_id == str(data.recipient)).one_or_none()
-    )
-    if not account:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid recipient userID"
-        )
-    if data.priority and (data.priority > 65535 or data.priority < 0):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Priority must be in the range of 0 to 65535.",
-        )
-    validate_secbadge_metadata_internal(data.metadata, db)
-    validate_pteam(db, data.pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_pteam_membership(db, data.pteam_id, data.recipient, on_error=status.HTTP_400_BAD_REQUEST)
-
-    if current_user.user_id != str(SYSTEM_UUID):
-        check_pteam_membership(
-            db, data.pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN
-        )
-
-    attributes = data.metadata.get("attributes", [])
-    obtained_at = [attr for attr in attributes if attr.get("trait_type") == "obtained"]
-    expired_at = [attr for attr in attributes if attr.get("trait_type") == "expired"]
-    now_timestamp = datetime.now()
-    badge = models.SecBadge(
-        badge_name=data.metadata["name"],
-        image_url=data.metadata.get("image", ""),
-        user_id=data.recipient,
-        email=account.email or "",
-        created_by=current_user.user_id,
-        obtained_at=(
-            datetime.fromtimestamp(obtained_at[0]["value"]) if obtained_at else now_timestamp
-        ),
-        created_at=now_timestamp,
-        expired_at=datetime.fromtimestamp(expired_at[0]["value"]) if expired_at else None,
-        metadata_json=json.dumps(data.metadata, sort_keys=True, indent=2),
-        priority=data.priority,
-        difficulty=data.difficulty,
-        badge_type=list(set(data.badge_type)),
-        certifier_type=data.certifier_type,
-        pteam_id=data.pteam_id,
-    )
-
-    db.add(badge)
-    db.commit()
-    db.refresh(badge)
-
-    return badge
-
-
-def _get_metadata_for_completeing_topic_within_1h(
-    status_id: Union[UUID, str], db: Session
-) -> schemas.BadgeRequest:
-    topic_status = (
-        db.query(models.PTeamTopicTagStatus)
-        .filter(models.PTeamTopicTagStatus.status_id == str(status_id))
-        .one_or_none()
-    )
-    if not topic_status:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid status id")
-
-    topic = (
-        db.query(models.Topic)
-        .filter(
-            models.Topic.topic_id == topic_status.topic_id,
-            models.Topic.disabled.is_(False),
-        )
-        .one_or_none()
-    )
-    if not topic:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a valid topic")
-
-    metadata: Dict[str, Any] = {
-        "description": f"{topic.title} has been completed within 1h!",
-        "external_url": "https://www.metemcyber.ntt.com/",
-        "image": "",
-        "name": f"{topic.title} has been completed within 1h!",
-        "status_id": topic_status.status_id,
-    }
-    result = schemas.BadgeRequest(
-        recipient=UUID(topic_status.user_id),
-        metadata=metadata,
-        priority=100,
-        difficulty=models.Difficulty.low,
-        badge_type=[models.BadgeType.performance],
-        certifier_type=models.CertifierType.system,
-        pteam_id=UUID(topic_status.pteam_id),
-    )
-    return result
-
-
-def create_secbadge_from_actionlog_internal(
-    logging_id: Union[UUID, str], current_user: models.Account, db: Session
-):
-    data = get_metadata_internal(logging_id, current_user, db)
-    return create_secbadge_internal(schemas.BadgeRequest(**data), current_user, db)
-
-
 def create_actionlog_internal(
     data: schemas.ActionLogRequest,
     current_user: models.Account,
@@ -1774,7 +1131,6 @@ def create_actionlog_internal(
     check_pteam_membership(db, data.pteam_id, data.user_id, on_error=status.HTTP_400_BAD_REQUEST)
     topic = validate_topic(db, data.topic_id, on_error=status.HTTP_400_BAD_REQUEST)
     assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
 
     if (
         current_status_table_already_fixed
@@ -1797,10 +1153,6 @@ def create_actionlog_internal(
     )
     if not topic_action:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
-    if len(topic_action.zones) > 0 and not set(topic_action.zones) & set(pteam.zones):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Zone mismatch between action and pteam"
-        )
 
     result = data.model_dump()
     result["action"] = topic_action.action
@@ -1815,9 +1167,6 @@ def create_actionlog_internal(
     db.add(log)
     db.commit()
     db.refresh(log)
-
-    if topic_action.action_type == "elimination":
-        create_secbadge_from_actionlog_internal(log.logging_id, get_system_account(db), db)
 
     return log
 
@@ -1885,11 +1234,6 @@ def set_pteam_topic_status_internal(
     if not validate_pteamtag(db, pteam_id, tag_id):
         return None
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
-    if len(topic.zones) > 0 and not set(topic.zones) & set(pteam.zones):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="You do not have related zone"
-        )
     if data.topic_status not in {
         models.TopicStatusType.acknowledged,
         models.TopicStatusType.scheduled,
@@ -1950,31 +1294,6 @@ def set_pteam_topic_status_internal(
     db.add(row)
     db.commit()
 
-    # issue badge for change topic_status to scheduled or completed
-    if new_status.topic_status in {"scheduled", "completed"}:
-        create_secbadge_from_topic_status(
-            new_status.pteam_id, new_status.topic_id, new_status.tag_id, get_system_account(db), db
-        )
-
-    # issue badge for solving topic within 1h
-    if new_status.topic_status == models.TopicStatusType.completed:
-        acknowledged_status = get_pteam_topic_status_history(
-            db,
-            pteam_id=str(pteam_id),
-            topic_id=str(topic_id),
-            tag_id=str(tag_id),
-            topic_status=models.TopicStatusType.acknowledged,
-        )
-        if (
-            acknowledged_status
-            and (new_status.created_at - acknowledged_status[0].created_at).total_seconds() <= 3600
-        ):
-            create_secbadge_internal(
-                _get_metadata_for_completeing_topic_within_1h(new_status.status_id, db),
-                get_system_account(db),
-                db,
-            )
-
     return pteam_topic_tag_status_to_response(db, new_status)
 
 
@@ -1984,40 +1303,25 @@ def _pick_actions_related_to_pteamtag_from_topic(
     pteam: models.PTeam,
     tag: models.Tag,  # should be bound to pteam, not to topic
 ) -> Sequence[models.TopicAction]:
-    select_stmt = (
-        select(models.TopicAction)
-        .outerjoin(models.ActionZone)
-        .where(
-            models.TopicAction.topic_id == topic.topic_id,
-            # filter by zone
-            or_(
-                models.ActionZone.zone_name.is_(None),  # public
-                models.ActionZone.zone_name.in_(  # zone matched
-                    select(models.PTeamZone.zone_name).where(
-                        models.PTeamZone.pteam_id == pteam.pteam_id
-                    )
-                ),
-            ),
-            # Note:
-            #   We should find INVALID or EMPTY vulnerables to abort auto-close, but could not. :(
-            #   SQL will skip the row caused error, e.g. KeyError on JSON.
-            #   Thus "WHERE NOT json_array_length(...) > 0" does not make sense.
-            or_(
-                func.json_array_length(  # len(ext["vulnerable_versions"][tag_name])
-                    models.TopicAction.ext.op("->")("vulnerable_versions").op("->")(tag.tag_name)
+    select_stmt = select(models.TopicAction).where(
+        models.TopicAction.topic_id == topic.topic_id,
+        # Note:
+        #   We should find INVALID or EMPTY vulnerables to abort auto-close, but could not. :(
+        #   SQL will skip the row caused error, e.g. KeyError on JSON.
+        #   Thus "WHERE NOT json_array_length(...) > 0" does not make sense.
+        or_(
+            func.json_array_length(  # len(ext["vulnerable_versions"][tag_name])
+                models.TopicAction.ext.op("->")("vulnerable_versions").op("->")(tag.tag_name)
+            )
+            > 0,
+            and_(
+                true() if tag.tag_name != tag.parent_name else false(),
+                func.json_array_length(
+                    models.TopicAction.ext.op("->")("vulnerable_versions").op("->")(tag.parent_name)
                 )
                 > 0,
-                and_(
-                    true() if tag.tag_name != tag.parent_name else false(),
-                    func.json_array_length(
-                        models.TopicAction.ext.op("->")("vulnerable_versions").op("->")(
-                            tag.parent_name
-                        )
-                    )
-                    > 0,
-                ),
             ),
-        )
+        ),
     )
     actions = db.scalars(select_stmt).all()
     return list(set(actions))
@@ -2090,8 +1394,6 @@ def pteamtag_try_auto_close_topic(
 ):
     if topic.disabled or pteam.disabled:
         return
-    if len(topic.zones) > 0 and not set(topic.zones) & set(pteam.zones):
-        return  # this topic is unvisible from the pteam
 
     try:
         # pick unique reference versions to compare. (omit empty -- maybe added on WebUI)
@@ -2104,7 +1406,7 @@ def pteamtag_try_auto_close_topic(
         ).all()
         if not reference_versions:
             return  # no references to compare
-        # pick all actions which matched on tags and zones
+        # pick all actions which matched on tags
         actions = _pick_actions_related_to_pteamtag_from_topic(db, topic, pteam, tag)
         if not actions:  # this topic does not have actions for this pteamtag
             return
@@ -2158,25 +1460,12 @@ def _pick_topics_related_to_pteamtag(
         )
         .exists()
     )
-    accessible_topics_from_pteam_stmt = or_(
-        ~exists().where(models.TopicZone.topic_id == models.Topic.topic_id),
-        select(models.TopicZone)
-        .join(
-            models.PTeamZone,
-            and_(
-                models.PTeamZone.pteam_id == pteam.pteam_id,
-                models.PTeamZone.zone_name == models.TopicZone.zone_name,
-            ),
-        )
-        .exists(),
-    )
     select_topic_stmt = select(models.Topic).join(
         models.TopicTag,
         and_(
             models.Topic.disabled.is_(False),
             models.TopicTag.tag_id.in_([tag.tag_id, tag.parent_id]),
             models.TopicTag.topic_id == models.Topic.topic_id,
-            accessible_topics_from_pteam_stmt,
             ~already_completed_or_scheduled_stmt,
         ),
     )
@@ -2218,18 +1507,6 @@ def _pick_pteamtags_related_to_topic(
         )
         .exists()
     )
-    accessible_topics_from_pteam_stmt = or_(
-        ~exists().where(models.TopicZone.topic_id == topic.topic_id),  # public
-        select(models.PTeamZone)
-        .join(
-            models.TopicZone,
-            and_(
-                models.TopicZone.topic_id == topic.topic_id,
-                models.TopicZone.zone_name == models.PTeamZone.zone_name,
-            ),
-        )
-        .exists(),
-    )
     select_ptrs_related_to_topic_stmt = (
         select(
             models.PTeamTagReference.pteam_id,
@@ -2247,7 +1524,6 @@ def _pick_pteamtags_related_to_topic(
                     models.TopicTag.tag_id == models.Tag.tag_id,
                     models.TopicTag.tag_id == models.Tag.parent_id,
                 ),
-                accessible_topics_from_pteam_stmt,
                 ~already_completed_or_scheduled_stmt,
             ),
         )

@@ -10,9 +10,7 @@ from app.common import (
     auto_close_by_topic,
     check_tags_exist,
     check_topic_action_tags_integrity,
-    check_zone_accessible,
     create_action_internal,
-    update_zones,
     validate_action,
 )
 from app.database import get_db
@@ -58,12 +56,6 @@ def get_action(
     """
     action = validate_action(db, action_id, on_error=status.HTTP_404_NOT_FOUND)
     assert action
-    check_zone_accessible(
-        db,
-        current_user.user_id,
-        action.zones,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
     return action
 
 
@@ -79,12 +71,6 @@ def update_action(
     """
     action = validate_action(db, action_id, on_error=status.HTTP_404_NOT_FOUND)
     assert action
-    check_zone_accessible(
-        db,
-        current_user.user_id,
-        action.zones,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
     if data.ext:
         check_topic_action_tags_integrity(
             action.topic.tags,
@@ -95,18 +81,6 @@ def update_action(
     for key, value in data:
         if value is None:
             continue
-        if key == "zone_names":
-            assert data.zone_names is not None
-            new_zones = update_zones(db, current_user.user_id, False, action.zones, data.zone_names)
-            if len(action.zones) > 0 and len(new_zones) == 0:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "Once a topic action has been zoned, it cannot be returned to public "
-                        "status. Consider deleting and recreating the topic action."
-                    ),
-                )
-            action.zones = new_zones
         elif key == "ext":
             check_tags_exist(db, value.get("tags", []))
             setattr(action, key, value)
@@ -134,13 +108,6 @@ def delete_action(
     """
     action = validate_action(db, action_id, on_error=status.HTTP_404_NOT_FOUND)
     assert action
-    check_zone_accessible(
-        db,
-        current_user.user_id,
-        action.zones,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
-
     topic = action.topic
 
     db.delete(action)
