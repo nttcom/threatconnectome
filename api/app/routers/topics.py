@@ -7,7 +7,7 @@ import requests
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
 from fastapi.security import HTTPAuthorizationCredentials
-from sqlalchemy import and_, or_
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -18,20 +18,17 @@ from app.common import (
     calculate_topic_content_fingerprint,
     check_pteam_membership,
     check_topic_action_tags_integrity,
-    check_zone_accessible,
     create_action_internal,
     fix_current_status_by_deleted_topic,
     fix_current_status_by_topic,
     get_misp_tag,
     get_topics_internal,
     search_topics_internal,
-    update_zones,
     validate_action,
     validate_misp_tag,
     validate_pteam,
     validate_tag,
     validate_topic,
-    validate_zone,
 )
 from app.database import get_db
 
@@ -69,7 +66,6 @@ def search_topics(
     abstract_words: Optional[List[str]] = Query(None),
     tag_names: Optional[List[str]] = Query(None),
     misp_tag_names: Optional[List[str]] = Query(None),
-    zone_names: Optional[List[str]] = Query(None),
     creator_ids: Optional[List[str]] = Query(None),
     created_after: Optional[datetime] = Query(None),
     created_before: Optional[datetime] = Query(None),
@@ -86,7 +82,6 @@ def search_topics(
     - abstract_words
     - tag_names
     - misp_tag_names
-    - zone_names
     - created_after
     - created_before
     - updated_after
@@ -94,38 +89,20 @@ def search_topics(
     - topic_ids
     - creator_ids
 
-    Zoned topics you cannot access to will not appear in the result.
     Defaults are "" for strings, None for datetimes, both means skip filtering.
     Different parameters are AND conditions.
-    Wrong names of tag, misp_tag, zone_name do not cause error, are just ignored.
+    Wrong names of tag and misp_tag do not cause error, are just ignored.
     The words search is case-insensitive.
-    Empty string ("") is a special keyword for empty or public for zone_names.
 
     Caution: If you do not want to filter by something, DO NOT give the param.
 
     examples:
       "...?tag_names=" -> search topics which have no tags
       (query does not include misp_tag_words) -> do not filter by misp_tag
-      "...?zone_names=zone1&zone_names=" -> zone1 or public
       "...?title_words=a&title_words=%20&title_words=B" -> title includes [aAbB ]
       "...?title_words=a&title_words=&title_words=B" -> title includes [aAbB] or empty
     """
     keyword_for_empty = ""
-
-    fixed_zone_names: Set[Optional[str]] = set()
-    if zone_names is not None:
-        for zone_name in zone_names:
-            if zone_name == keyword_for_empty:
-                fixed_zone_names.add(None)
-                continue
-            if not validate_zone(db, current_user.user_id, zone_name):
-                continue  # ignore wrong zone_name
-            if not check_zone_accessible(db, current_user.user_id, [zone_name]):
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You do not have related zone",  # FIXME: fix message with others
-                )
-            fixed_zone_names.add(zone_name)
 
     fixed_tag_ids: Set[Optional[str]] = set()
     if tag_names is not None:
@@ -202,7 +179,6 @@ def search_topics(
         abstract_words=None if abstract_words is None else list(fixed_abstract_words),
         tag_ids=None if tag_names is None else list(fixed_tag_ids),
         misp_tag_ids=None if misp_tag_names is None else list(fixed_misp_tag_ids),
-        zone_names=None if zone_names is None else list(fixed_zone_names),
         topic_ids=None if topic_ids is None else list(fixed_topic_ids),
         creator_ids=None if creator_ids is None else list(fixed_creator_ids),
         created_after=created_after,
@@ -260,7 +236,6 @@ def get_topic(
     """
     topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND, ignore_disabled=True)
     assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
     return topic
 
 
@@ -304,18 +279,6 @@ def create_topic(
         on_error=status.HTTP_400_BAD_REQUEST,
     )
 
-    # check zones
-    for zone_str in {zone_name for action in data.actions or [] for zone_name in action.zone_names}:
-        validate_zone(  # looks redundant but need check before commit something
-            db,
-            current_user.user_id,
-            zone_str,
-            on_error=status.HTTP_400_BAD_REQUEST,
-            auth_mode="apply",
-            on_auth_error=status.HTTP_400_BAD_REQUEST,
-            on_archived=status.HTTP_400_BAD_REQUEST,
-        )
-
     # check actions
     action_ids = [action.action_id for action in data.actions if action.action_id]
     if len(action_ids) != len(set(action_ids)):
@@ -355,7 +318,6 @@ def create_topic(
     # fix relations
     topic.tags = [requested_tags[tag_name] for tag_name in set(data.tags)]
     topic.misp_tags = [get_misp_tag(db, tag) for tag in set(data.misp_tags)]
-    topic.zones = update_zones(db, current_user.user_id, True, [], data.zone_names)
 
     db.add(topic)
     db.flush()
@@ -395,27 +357,10 @@ def update_topic(
     topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND, ignore_disabled=True)
     assert topic
 
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
-
     if topic.created_by != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="you are not topic creator",
-        )
-
-    # If the topic is already zoned, it cannot be returned to public status.
-    is_request_to_clear_all_existing_zones = (
-        len(topic.zones) >= 1
-        and data.zone_names == []
-        and update_zones(db, current_user.user_id, False, topic.zones, []) == []
-    )
-    if is_request_to_clear_all_existing_zones:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Once a topic has been zoned, it cannot be returned to public status. "
-                "Consider deleting and recreating the topic."
-            ),
         )
 
     new_title = None if data.title is None else data.title.strip()
@@ -431,19 +376,7 @@ def update_topic(
                 detail=f"No such tags: {', '.join(sorted(not_exist_tag_names))}",
             )
         new_tags = list(tags_dict.values())
-    new_zones = (
-        None
-        if data.zone_names is None
-        else update_zones(
-            db,
-            current_user.user_id,
-            False,
-            topic.zones,
-            data.zone_names,
-        )
-    )
     tags_updated = new_tags is not None and set(new_tags) != set(topic.tags)
-    zones_updated = new_zones is not None and set(new_zones) != set(topic.zones)
 
     need_update_content_fingerprint = (
         new_title not in {None, topic.title}
@@ -451,19 +384,15 @@ def update_topic(
         or data.threat_impact not in {None, topic.threat_impact}
         or tags_updated
     )
-    need_auto_close = (
-        (data.disabled is False and topic.disabled is True)
-        or tags_updated  # Note: since the causes which prevent auto-close can be removed,
-        or zones_updated  #      not only adding but also deleting should trigger auto-close
-    )
+    # Note: since the causes which prevent auto-close can be removed,
+    #       not only adding but also deleting should trigger auto-close
+    need_auto_close = (data.disabled is False and topic.disabled is True) or tags_updated
 
     # Update topic attributes
     if new_tags is not None:
         topic.tags = new_tags
     if data.misp_tags is not None:
         topic.misp_tags = [get_misp_tag(db, tag) for tag in data.misp_tags]
-    if new_zones is not None:
-        topic.zones = new_zones
     if new_title is not None:
         topic.title = new_title
     if new_abstract is not None:
@@ -497,11 +426,10 @@ def delete_topic(
     db: Session = Depends(get_db),
 ):
     """
-    Delete a topic and related records except actionlog and secbadge.
+    Delete a topic and related records except actionlog.
     """
     topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
     assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
 
     if topic.created_by != current_user.user_id:
         raise HTTPException(
@@ -527,58 +455,18 @@ def get_pteam_topic_actions(
     """
     Get actions list of the topic for specified pteam.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
+    validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
+    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
-    # If there is no common zones between topic and pteam, access is not permitted.
-    if len(topic.zones) > 0 and not set(topic.zones) & set(pteam.zones):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic id")
-
-    pteam_zones = db.query(
-        models.PTeamZone.zone_name,
-    ).filter(
-        models.PTeamZone.pteam_id == str(pteam_id),
-    )  # Query, not subquery
-
-    action_ids = (
-        db.query(
-            models.TopicAction.action_id,
-        )
-        .filter(
-            models.TopicAction.topic_id == str(topic_id),
-        )
-        .subquery()
-    )
-
-    actions_accessible_from_pteam = (
-        db.query(
-            models.TopicAction,
-        )
-        .join(action_ids, action_ids.c.action_id == models.TopicAction.action_id)
-        .outerjoin(
-            models.ActionZone,
-            and_(
-                models.TopicAction.topic_id == str(topic_id),
-                models.ActionZone.action_id == models.TopicAction.action_id,
-            ),
-        )
-        .filter(
-            or_(
-                models.ActionZone.zone_name.is_(None),
-                models.ActionZone.zone_name.in_(pteam_zones),
-            ),
-        )
-        .all()
-    )
+    actions = db.scalars(
+        select(models.TopicAction).where(models.TopicAction.topic_id == str(topic_id))
+    ).all()
 
     return {
         "topic_id": topic_id,
         "pteam_id": pteam_id,
-        "actions": actions_accessible_from_pteam,
+        "actions": actions,
     }
 
 
@@ -592,64 +480,14 @@ def get_user_topic_actions(
     Get actions list of the topic for current user.
     """
     topic = validate_topic(db, topic_id)
-    if not topic or not check_zone_accessible(db, current_user.user_id, topic.zones):
+    if not topic:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No such topic",
         )
 
-    pteam_zones = (
-        db.query(models.PTeamZone.zone_name)
-        .filter(
-            or_(
-                models.PTeamZone.pteam_id.in_(
-                    # joined pteams
-                    db.query(models.PTeamAccount.pteam_id).filter(
-                        models.PTeamAccount.user_id == current_user.user_id
-                    )
-                ),
-                models.PTeamZone.pteam_id.in_(
-                    # pteams via joined ateams
-                    db.query(models.ATeamPTeam.pteam_id).join(
-                        models.ATeamAccount,
-                        and_(
-                            models.ATeamAccount.user_id == current_user.user_id,
-                            models.ATeamAccount.ateam_id == models.ATeamPTeam.ateam_id,
-                        ),
-                    ),
-                ),
-            )
-        )
-        .distinct()
-    )
-    gteam_zones = db.query(models.Zone.zone_name).join(
-        models.GTeamAccount,
-        and_(
-            models.GTeamAccount.user_id == current_user.user_id,
-            models.GTeamAccount.gteam_id == models.Zone.gteam_id,
-        ),
-    )
-    related_action_ids = (
-        db.query(
-            models.TopicAction.action_id,
-        )
-        .filter(
-            models.TopicAction.topic_id == str(topic_id),
-        )
-        .subquery()
-    )
-
-    actions = (
-        db.query(models.TopicAction)
-        .join(related_action_ids, related_action_ids.c.action_id == models.TopicAction.action_id)
-        .outerjoin(models.ActionZone)
-        .filter(
-            or_(
-                models.ActionZone.zone_name.is_(None),  # public
-                models.ActionZone.zone_name.in_(pteam_zones),
-                models.ActionZone.zone_name.in_(gteam_zones),
-            ),
-        )
+    actions = db.scalars(
+        select(models.TopicAction).where(models.TopicAction.topic_id == str(topic_id))
     ).all()
 
     return actions

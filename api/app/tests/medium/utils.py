@@ -217,46 +217,6 @@ def accept_ateam_invitation(user: dict, invitation_id: UUID) -> schemas.ATeamInf
     return schemas.ATeamInfo(**response.json())
 
 
-def create_gteam(user: dict, gteam: dict) -> schemas.GTeamInfo:
-    request = {**gteam}
-
-    response = client.post("/gteams", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.GTeamInfo(**response.json())
-
-
-def invite_to_gteam(
-    user: dict,
-    gteam_id: Union[UUID, str],
-    authes: Optional[List[models.GTeamAuthEnum]] = None,
-) -> schemas.GTeamInvitationResponse:
-    request = {
-        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
-        "limit_count": 1,
-        "authorities": authes,
-    }
-
-    response = client.post(f"/gteams/{gteam_id}/invitation", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.GTeamInvitationResponse(**response.json())
-
-
-def accept_gteam_invitation(user: dict, invitation_id: UUID) -> schemas.GTeamInfo:
-    request = {
-        "invitation_id": str(invitation_id),
-    }
-
-    response = client.post("/gteams/apply_invitation", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.GTeamInfo(**response.json())
-
-
 def create_tag(user: dict, tag_name: str) -> schemas.TagResponse:
     request = {
         "tag_name": tag_name,
@@ -277,26 +237,15 @@ def create_misp_tag(user: dict, tag_name: str) -> schemas.MispTagResponse:
     return schemas.MispTagResponse(**response.json())
 
 
-def create_zone(user: dict, gteam_id: Union[UUID, str], zone: dict) -> schemas.ZoneInfo:
-    request = {**zone}
-    response = client.post(f"/gteams/{gteam_id}/zones", headers=headers(user), json=request)
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.ZoneInfo(**response.json())
-
-
 def create_topic(
     user: dict,
     topic: dict,
     actions: Optional[List[dict]] = None,
-    zone_names: Optional[List[str]] = None,
     auto_create_tags: bool = True,
 ) -> schemas.TopicCreateResponse:
     request = {**topic}
     if actions is not None:
         request.update({"actions": actions})
-    if zone_names is not None:
-        request.update({"zone_names": zone_names})
     del request["topic_id"]
 
     response = client.post(f'/topics/{topic["topic_id"]}', headers=headers(user), json=request)
@@ -310,7 +259,7 @@ def create_topic(
         ):
             for tag_name in detail[len(no_tag_msg) :].split(", "):  # split tag_names CSV
                 create_tag(user, tag_name)
-            return create_topic(user, topic, actions, zone_names, auto_create_tags=False)
+            return create_topic(user, topic, actions, auto_create_tags=False)
         raise HTTPError(response)
     return schemas.TopicCreateResponse(**response.json())
 
@@ -337,13 +286,10 @@ def create_action(
     action: dict,
     topic_id: Union[str, UUID],
     ext: Optional[dict] = None,
-    zone_names: Optional[List[str]] = None,
 ) -> schemas.ActionResponse:
     request: dict = {**action, "topic_id": str(topic_id)}
     if ext is not None:
         request.update({"ext": ext})
-    if zone_names is not None:
-        request.update({"zone_names": zone_names})
     data = assert_200(client.post("/actions", headers=headers(user), json=request))
     return schemas.ActionResponse(**data)
 
@@ -397,23 +343,6 @@ def compare_references(refs1: List[dict], refs2: List[dict]) -> bool:
     if len(refs1) != len(refs2):
         return False
     return _to_tuple_set(refs1) == _to_tuple_set(refs2)
-
-
-def create_badge(
-    user: dict, recipient_id: UUID, metadata: dict, badge: dict, pteam_id: UUID
-) -> schemas.SecBadgeBody:
-    request = {
-        "recipient": str(recipient_id),
-        "metadata": metadata,
-        **badge,
-        "pteam_id": str(pteam_id),
-    }
-
-    response = client.post("/achievements", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.SecBadgeBody(**response.json())
 
 
 def create_topicstatus(

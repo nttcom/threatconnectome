@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, Union, cast
 
-from sqlalchemy import ARRAY, JSON, Enum, ForeignKey, String, Text
+from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
@@ -20,30 +20,9 @@ class ActionType(str, enum.Enum):
     rejection = "rejection"
 
 
-class BadgeType(str, enum.Enum):
-    skill = "skill"
-    performance = "performance"
-    position = "position"
-
-
-class CertifierType(str, enum.Enum):
-    trusted_third_party = "trusted_third_party"
-    coworker = "coworker"
-    myself = "myself"
-    system = "system"
-
-
-class Difficulty(str, enum.Enum):
-    low = "low"
-    middle = "middle"
-    high = "high"
-
-
 class PTeamAuthEnum(str, enum.Enum):
     ADMIN = "admin"
-    PTEAMBADGE_APPLY = "pteambadge_apply"
     INVITE = "invite"
-    PTEAMBADGE_MANAGE = "pteambadge_manage"
     TOPIC_STATUS = "topic_status"
 
     @classmethod
@@ -54,21 +33,13 @@ class PTeamAuthEnum(str, enum.Enum):
                 "name": "Administrator",
                 "desc": "To administrate the pteam.",
             },
-            "pteambadge_apply": {
-                "int": 1,
-                "name": "PTeam badge element",
-                "desc": "To be counted in pteam badge.",
-            },
+            # 1 is unused
             "invite": {
                 "int": 2,
                 "name": "Inviter",
                 "desc": "To create invitation to the pteam.",
             },
-            "pteambadge_manage": {
-                "int": 3,
-                "name": "PTeam badge manager",
-                "desc": "To manage pteam member's badge.",
-            },
+            # 3 is unused
             "topic_status": {
                 "int": 4,
                 "name": "Topic status operator",
@@ -88,14 +59,12 @@ class PTeamAuthIntFlag(enum.IntFlag):
     """
 
     ADMIN = 1 << PTeamAuthEnum.ADMIN.to_int()
-    PTEAMBADGE_APPLY = 1 << PTeamAuthEnum.PTEAMBADGE_APPLY.to_int()
     INVITE = 1 << PTeamAuthEnum.INVITE.to_int()
-    PTEAMBADGE_MANAGE = 1 << PTeamAuthEnum.PTEAMBADGE_MANAGE.to_int()
     TOPIC_STATUS = 1 << PTeamAuthEnum.TOPIC_STATUS.to_int()
 
     # authority sets for members
     PTEAM_MEMBER = TOPIC_STATUS
-    PTEAM_LEADER = PTEAM_MEMBER | PTEAMBADGE_APPLY | INVITE | PTEAMBADGE_MANAGE
+    PTEAM_LEADER = PTEAM_MEMBER | INVITE
     PTEAM_MASTER = 0x0FFFFFFF
 
     # template authority set for non-members
@@ -172,61 +141,6 @@ class ATeamAuthIntFlag(enum.IntFlag):
         return result
 
 
-class GTeamAuthEnum(str, enum.Enum):
-    ADMIN = "admin"
-    INVITE = "invite"
-
-    @classmethod
-    def info(cls) -> Dict[str, Dict[str, Union[int, str]]]:
-        return {
-            "admin": {
-                "int": 0,
-                "name": "Administrator",
-                "desc": "To administrate the gteam.",
-            },
-            "invite": {
-                "int": 1,
-                "name": "Inviter",
-                "desc": "To create invitation to the gteam.",
-            },
-        }
-
-    def to_int(self) -> int:
-        return cast(int, GTeamAuthEnum.info()[self.value]["int"])
-
-
-class GTeamAuthIntFlag(enum.IntFlag):
-    """
-    Integer which can be combined using the bitwise operators. (INTERNAL USE ONLY!)
-
-    See GTeamAuthEnum.info() for details.
-    """
-
-    ADMIN = 1 << GTeamAuthEnum.ADMIN.to_int()
-    INVITE = 1 << GTeamAuthEnum.INVITE.to_int()
-
-    # authority sets for members
-    GTEAM_MEMBER = 0
-    GTEAM_MASTER = 0x0FFFFFFF
-
-    # template authority set for non-members
-    FREE_TEMPLATE = 0
-
-    @classmethod
-    def from_enums(cls, datas: List[GTeamAuthEnum]):
-        result = 0
-        for data in datas:
-            result |= 1 << data.to_int()
-        return GTeamAuthIntFlag(result)
-
-    def to_enums(self) -> List[GTeamAuthEnum]:
-        result = []
-        for data in list(GTeamAuthEnum):
-            if self & 1 << data.to_int():
-                result.append(data)
-        return result
-
-
 class TopicStatusType(str, enum.Enum):
     alerted = "alerted"
     acknowledged = "acknowledged"
@@ -249,19 +163,11 @@ class Base(DeclarativeBase):
             dict: JSON,
             List[dict]: ARRAY(JSON),
             List[StrUUID]: ARRAY(String(36)),
-            List[BadgeType]: ARRAY(Enum(BadgeType)),
         }
     )
 
 
 # secondary tables #
-
-
-class PTeamZone(Base):
-    __tablename__ = "pteamzone"
-
-    pteam_id = mapped_column(ForeignKey("pteam.pteam_id"), primary_key=True, index=True)
-    zone_name = mapped_column(ForeignKey("zone.zone_name"), primary_key=True, index=True)
 
 
 class PTeamAccount(Base):
@@ -275,13 +181,6 @@ class ATeamAccount(Base):
     __tablename__ = "ateamaccount"
 
     ateam_id = mapped_column(ForeignKey("ateam.ateam_id"), primary_key=True, index=True)
-    user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
-
-
-class GTeamAccount(Base):
-    __tablename__ = "gteamaccount"
-
-    gteam_id = mapped_column(ForeignKey("gteam.gteam_id"), primary_key=True, index=True)
     user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
 
 
@@ -314,24 +213,6 @@ class TopicMispTag(Base):
     )
 
 
-class TopicZone(Base):
-    __tablename__ = "topiczone"
-
-    topic_id = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    zone_name = mapped_column(
-        ForeignKey("zone.zone_name", ondelete="CASCADE"), primary_key=True, index=True
-    )
-
-
-class ActionZone(Base):
-    __tablename__ = "actionzone"
-
-    action_id = mapped_column(ForeignKey("topicaction.action_id"), primary_key=True, index=True)
-    zone_name = mapped_column(ForeignKey("zone.zone_name"), primary_key=True, index=True)
-
-
 # primary tables #
 
 
@@ -348,16 +229,11 @@ class Account(Base):
     email: Mapped[Optional[Str255]]
     disabled: Mapped[bool] = mapped_column(default=False)
     years: Mapped[Optional[int]]
-    favorite_badge: Mapped[Optional[StrUUID]] = mapped_column(
-        ForeignKey("secbadge.badge_id", use_alter=True), index=True
-    )
 
     pteams = relationship("PTeam", secondary=PTeamAccount.__tablename__, back_populates="members")
     ateams = relationship("ATeam", secondary=ATeamAccount.__tablename__, back_populates="members")
-    gteams = relationship("GTeam", secondary=GTeamAccount.__tablename__, back_populates="members")
     pteam_invitations = relationship("PTeamInvitation", back_populates="inviter")
     ateam_invitations = relationship("ATeamInvitation", back_populates="inviter")
-    gteam_invitations = relationship("GTeamInvitation", back_populates="inviter")
     ateam_requests = relationship("ATeamWatchingRequest", back_populates="requester")
     action_logs = relationship("ActionLog", back_populates="executed_by")
 
@@ -400,7 +276,6 @@ class PTeam(Base):
     references = relationship(
         "PTeamTagReference", back_populates="pteam", cascade="all, delete-orphan"
     )
-    zones = relationship("Zone", secondary=PTeamZone.__tablename__, back_populates="pteams")
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
     invitations = relationship("PTeamInvitation", back_populates="pteam")
     ateams = relationship("ATeam", secondary=ATeamPTeam.__tablename__, back_populates="pteams")
@@ -435,23 +310,6 @@ class ATeam(Base):
     )
 
 
-class GTeam(Base):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self.gteam_id:
-            self.gteam_id = str(uuid.uuid4())
-
-    __tablename__ = "gteam"
-
-    gteam_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    gteam_name: Mapped[Str255]
-    contact_info: Mapped[Str255]
-
-    members = relationship("Account", secondary=GTeamAccount.__tablename__, back_populates="gteams")
-    invitations = relationship("GTeamInvitation", back_populates="gteam")
-    zones = relationship("Zone", back_populates="gteam")
-
-
 # TODO: This info should be stored in PTeamAccount table to cascade delete
 class PTeamAuthority(Base):
     __tablename__ = "pteamauthority"
@@ -476,19 +334,6 @@ class ATeamAuthority(Base):
         ForeignKey("account.user_id"), primary_key=True, index=True
     )
     authority: Mapped[int]  # ATeamAuthIntFlag as an integer
-
-
-# TODO: This info should be stored in GTeamAccount table to cascade delete
-class GTeamAuthority(Base):
-    __tablename__ = "gteamauthority"
-
-    gteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("gteam.gteam_id"), primary_key=True, index=True
-    )
-    user_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("account.user_id"), primary_key=True, index=True
-    )
-    authority: Mapped[int]  # GTeamAuthIntFlag as an integer
 
 
 class PTeamMail(Base):
@@ -539,31 +384,6 @@ class ATeamSlack(Base):
     ateam: Mapped[ATeam] = relationship(back_populates="alert_slack")
 
 
-class SecBadge(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.badge_id:
-            self.badge_id = str(uuid.uuid4())
-
-    __tablename__ = "secbadge"
-
-    badge_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    badge_name: Mapped[Str255]
-    image_url: Mapped[Str255]
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    email: Mapped[Str255]
-    created_by: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    obtained_at: Mapped[datetime]
-    created_at: Mapped[datetime]
-    expired_at: Mapped[Optional[datetime]]
-    metadata_json: Mapped[dict]
-    priority: Mapped[int] = mapped_column(default=100)
-    difficulty: Mapped[Difficulty] = mapped_column(default="low")
-    badge_type: Mapped[List[BadgeType]]
-    certifier_type: Mapped[CertifierType]
-    pteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("pteam.pteam_id"), index=True)
-
-
 class Topic(Base):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -587,7 +407,6 @@ class Topic(Base):
     misp_tags = relationship(
         "MispTag", secondary=TopicMispTag.__tablename__, order_by="MispTag.tag_name"
     )
-    zones = relationship("Zone", secondary=TopicZone.__tablename__, order_by="Zone.zone_name")
 
 
 class TopicAction(Base):
@@ -609,7 +428,6 @@ class TopicAction(Base):
     created_by: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
 
-    zones = relationship("Zone", secondary=ActionZone.__tablename__, order_by="Zone.zone_name")
     topic = relationship("Topic", back_populates="actions")
 
 
@@ -693,28 +511,6 @@ class MispTag(Base):
     topics = relationship("Topic", secondary=TopicMispTag.__tablename__, back_populates="misp_tags")
 
 
-class Zone(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-    __tablename__ = "zone"
-
-    zone_name: Mapped[Str255] = mapped_column(primary_key=True)
-    zone_info: Mapped[str]
-    gteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("gteam.gteam_id"), index=True)
-    created_by: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    archived: Mapped[bool]
-
-    gteam = relationship("GTeam", back_populates="zones")
-    pteams = relationship("PTeam", secondary=PTeamZone.__tablename__, back_populates="zones")
-    topics = relationship("Topic", secondary=TopicZone.__tablename__, back_populates="zones")
-    actions = relationship(
-        "TopicAction",
-        secondary=ActionZone.__tablename__,
-        back_populates="zones",
-    )
-
-
 class ActionLog(Base):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -776,26 +572,6 @@ class ATeamInvitation(Base):
 
     ateam = relationship("ATeam", back_populates="invitations")
     inviter = relationship("Account", back_populates="ateam_invitations")
-
-
-class GTeamInvitation(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.invitation_id:
-            self.invitation_id = str(uuid.uuid4())
-
-    __tablename__ = "gteaminvitation"
-
-    invitation_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    gteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("gteam.gteam_id"), index=True)
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    expiration: Mapped[datetime]
-    limit_count: Mapped[Optional[int]]  # None for unlimited
-    used_count: Mapped[int] = mapped_column(server_default="0")
-    authority: Mapped[int]  # GTeamAuthIntFlag
-
-    gteam = relationship("GTeam", back_populates="invitations")
-    inviter = relationship("Account", back_populates="gteam_invitations")
 
 
 class ATeamWatchingRequest(Base):

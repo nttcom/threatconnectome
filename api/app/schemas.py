@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -9,10 +9,6 @@ from app.constants import DEFAULT_ALERT_THREAT_IMPACT
 from app.models import (
     ActionType,
     ATeamAuthEnum,
-    BadgeType,
-    CertifierType,
-    Difficulty,
-    GTeamAuthEnum,
     PTeamAuthEnum,
     TopicStatusType,
 )
@@ -37,31 +33,6 @@ class Token(ORMModel):
 
 class RefreshTokenRequest(ORMModel):
     refresh_token: str
-
-
-class ZoneRequest(ORMModel):
-    zone_name: str
-    zone_info: str
-
-
-class ZoneUpdateRequest(ORMModel):
-    zone_info: Optional[str] = None
-
-
-class ZoneUpdateArchivedRequest(ORMModel):
-    archived: bool
-
-
-class ZoneEntry(ORMModel):
-    zone_name: str
-    zone_info: str
-    gteam_id: UUID
-    created_by: UUID
-    archived: bool
-
-
-class ZoneInfo(ZoneEntry):
-    pass
 
 
 class Mail(ORMModel):
@@ -96,45 +67,6 @@ class ATeamInfo(ATeamEntry):
     alert_slack: Slack
     alert_mail: Mail
     pteams: List[PTeamEntry]
-    zones: List[ZoneEntry]
-
-
-class GTeamEntry(ORMModel):
-    gteam_id: UUID
-    gteam_name: str
-    contact_info: str
-
-
-class GTeamInfo(GTeamEntry):
-    pass
-
-
-class BadgeRequest(ORMModel):
-    recipient: UUID
-    metadata: Dict[str, Any]
-    priority: Optional[int] = 100
-    difficulty: Optional[Difficulty] = Difficulty["low"]
-    badge_type: List[BadgeType]
-    certifier_type: CertifierType
-    pteam_id: UUID
-
-
-class SecBadgeBody(ORMModel):
-    badge_id: str
-    badge_name: str
-    image_url: Optional[str] = None
-    user_id: UUID
-    email: str
-    created_by: UUID
-    obtained_at: datetime
-    created_at: datetime
-    expired_at: Optional[datetime] = None
-    metadata_json: str
-    priority: int
-    difficulty: Difficulty
-    badge_type: List[BadgeType]
-    certifier_type: CertifierType
-    pteam_id: UUID
 
 
 class UserResponse(ORMModel):
@@ -145,8 +77,6 @@ class UserResponse(ORMModel):
     years: int
     pteams: List[PTeamEntry]
     ateams: List[ATeamEntry]
-    gteams: List[GTeamEntry]
-    favorite_badge: Optional[UUID] = None
 
 
 class UserCreateRequest(ORMModel):
@@ -156,13 +86,6 @@ class UserCreateRequest(ORMModel):
 class UserUpdateRequest(ORMModel):
     disabled: Optional[bool] = None
     years: Optional[int] = None
-    favorite_badge: Optional[Union[UUID, Literal[""]]] = None
-
-
-class AuthorizedZones(ORMModel):
-    admin: List[ZoneInfo]
-    apply: List[ZoneEntry]
-    read: List[ZoneEntry]
 
 
 class ActionResponse(ORMModel):
@@ -173,7 +96,6 @@ class ActionResponse(ORMModel):
     recommended: bool
     created_by: UUID
     created_at: datetime
-    zones: List[ZoneEntry]
     ext: dict  # see ActionCreateRequest
 
 
@@ -250,7 +172,6 @@ class Topic(TopicEntry):
 class TopicResponse(Topic):
     tags: List[TagResponse]
     misp_tags: List[MispTagResponse]
-    zones: List[ZoneEntry]
 
 
 class TopicCreateResponse(TopicResponse):
@@ -277,7 +198,6 @@ class ActionCreateRequest(ORMModel):
     action: str = Field(..., max_length=1024)
     action_type: ActionType
     recommended: bool = False
-    zone_names: List[str] = []
     ext: dict = {}
     # {
     #   tags: List[str] = [],
@@ -289,7 +209,6 @@ class ActionUpdateRequest(ORMModel):
     action: Optional[str] = None
     action_type: Optional[ActionType] = None
     recommended: Optional[bool] = None
-    zone_names: Optional[List[str]] = None
     ext: Optional[dict] = None
 
 
@@ -299,7 +218,6 @@ class TopicCreateRequest(ORMModel):
     threat_impact: int
     tags: List[str] = []
     misp_tags: List[str] = []
-    zone_names: List[str] = []
     actions: List[ActionCreateRequest] = []
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
@@ -311,7 +229,6 @@ class TopicUpdateRequest(ORMModel):
     threat_impact: Optional[int] = None
     tags: Optional[List[str]] = None
     misp_tags: Optional[List[str]] = None
-    zone_names: Optional[List[str]] = None
     disabled: Optional[bool] = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
@@ -320,7 +237,6 @@ class TopicUpdateRequest(ORMModel):
 class PTeamInfo(PTeamEntry):
     alert_slack: Slack
     alert_threat_impact: int
-    zones: List[ZoneEntry]
     ateams: List[ATeamEntry]
     alert_mail: Mail
 
@@ -335,7 +251,6 @@ class PTeamCreateRequest(ORMModel):
     alert_slack: Optional[Slack] = None
     alert_threat_impact: int = DEFAULT_ALERT_THREAT_IMPACT
     alert_mail: Optional[Mail] = None
-    zone_names: List[str] = []
 
     _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
         threat_impact_range
@@ -347,7 +262,6 @@ class PTeamUpdateRequest(ORMModel):
     contact_info: Optional[str] = None
     alert_slack: Optional[Slack] = None
     alert_threat_impact: Optional[int] = None
-    zone_names: Optional[List[str]] = None
     disabled: Optional[bool] = None
     alert_mail: Optional[Mail] = None
 
@@ -639,77 +553,3 @@ class ATeamTopicCommentResponse(ORMModel):
     updated_at: Optional[datetime] = None
     comment: str
     email: str
-
-
-class GTeamCreateRequest(ORMModel):
-    gteam_name: str
-    contact_info: str = ""
-
-
-class GTeamUpdateRequest(ORMModel):
-    gteam_name: Optional[str] = None
-    contact_info: Optional[str] = None
-
-
-class GTeamAuthInfo(ORMModel):
-    class GTeamAuthEntry(ORMModel):
-        enum: str
-        name: str
-        desc: str
-
-    class PseudoUUID(ORMModel):
-        name: str
-        uuid: UUID
-
-    authorities: List[GTeamAuthEntry]
-    pseudo_uuids: List[PseudoUUID]
-
-
-class GTeamAuthRequest(ORMModel):
-    user_id: UUID
-    authorities: List[GTeamAuthEnum]
-
-
-class GTeamAuthResponse(ORMModel):
-    user_id: UUID
-    authorities: List[GTeamAuthEnum]
-
-
-class GTeamInvitationRequest(ORMModel):
-    expiration: datetime
-    limit_count: Optional[int] = None  # None for unlimited
-    authorities: Optional[List[GTeamAuthEnum]] = None  # require ADMIN for not-None
-
-
-class GTeamInvitationResponse(ORMModel):
-    invitation_id: UUID
-    gteam_id: UUID
-    expiration: datetime
-    limit_count: Optional[int] = None
-    used_count: int
-    authorities: List[GTeamAuthEnum]
-
-
-class GTeamInviterResponse(ORMModel):
-    gteam_id: UUID
-    gteam_name: str
-    email: str
-    user_id: UUID
-
-
-class ZoneSummary(ZoneEntry):
-    pteams: List[PTeamEntry]
-    actions: List[ActionResponse]
-    topics: List[TopicResponse]
-
-
-class GTeamZonesSummary(ORMModel):
-    unarchived_zones: List[ZoneSummary]
-    archived_zones: List[ZoneSummary]
-
-
-class ZonedTeamsResponse(ORMModel):
-    zone: ZoneEntry
-    gteam: GTeamEntry
-    ateams: List[ATeamEntry]
-    pteams: List[PTeamEntry]

@@ -16,7 +16,6 @@ from app.common import (
     check_pteam_auth,
     check_pteam_membership,
     check_tags_exist,
-    check_zone_accessible,
     fix_current_status_by_pteam,
     get_current_pteam_topic_tag_status,
     get_or_create_topic_tag,
@@ -27,7 +26,6 @@ from app.common import (
     pteam_topic_tag_status_to_response,
     pteamtag_try_auto_close_topic,
     set_pteam_topic_status_internal,
-    update_zones,
     validate_pteam,
     validate_pteamtag,
     validate_tag,
@@ -441,10 +439,6 @@ def get_pteam_topics(
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
     tag_ids = pteam_tag_ids(db, pteam_id)
-    #
-    # FIXME:
-    #   should fix the case current_user has more zones than this pteam.
-    #
     if not tag_ids:
         return []
     return get_topics_internal(db, current_user.user_id, tag_ids=tag_ids)
@@ -479,7 +473,6 @@ def create_pteam(
         enable=data.alert_mail.enable if data.alert_mail else True,
         address=data.alert_mail.address if data.alert_mail else "",
     )
-    pteam.zones = update_zones(db, current_user.user_id, True, [], data.zone_names)
     db.add(pteam)
     db.flush()
 
@@ -939,9 +932,7 @@ def update_pteam(
             webhook_url="",
         )
 
-    need_auto_close = (data.disabled is False and pteam.disabled is True) or (
-        data.zone_names and set(data.zone_names) != {z.zone_name for z in pteam.zones}
-    )
+    need_auto_close = data.disabled is False and pteam.disabled is True
 
     if data.pteam_name is not None:
         pteam.pteam_name = data.pteam_name
@@ -953,16 +944,6 @@ def update_pteam(
         pteam.disabled = data.disabled
     if data.alert_mail is not None:
         pteam.alert_mail = models.PTeamMail(**data.alert_mail.__dict__)
-
-    # Zone updating process
-    if data.zone_names is not None:
-        pteam.zones = update_zones(
-            db,
-            current_user.user_id,
-            True,
-            pteam.zones,
-            data.zone_names,
-        )
 
     db.add(pteam)
 
@@ -1012,12 +993,6 @@ def _get_pteam_topic_statuses_summary(
     ):
         raise HTTPException(status_code=on_error, detail="No such pteam tag")
 
-    pteam_zones = db.query(
-        models.PTeamZone.zone_name,
-    ).filter(
-        models.PTeamZone.pteam_id == str(pteam.pteam_id),
-    )
-
     rows = (
         db.query(
             models.Tag,
@@ -1036,13 +1011,6 @@ def _get_pteam_topic_statuses_summary(
             and_(
                 models.Topic.disabled.is_(False),
                 models.Topic.topic_id == models.TopicTag.topic_id,
-            ),
-        )
-        .outerjoin(models.TopicZone)
-        .filter(
-            or_(
-                models.TopicZone.zone_name.is_(None),
-                models.TopicZone.zone_name.in_(pteam_zones),
             ),
         )
         .outerjoin(
@@ -1155,11 +1123,6 @@ def get_pteam_topic_status(
     if not validate_pteamtag(db, pteam_id, tag_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
     check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
-    if len(topic.zones) > 0 and not set(topic.zones) & set(pteam.zones):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="You do not have related zone"
-        )
 
     current_row = get_current_pteam_topic_tag_status(db, pteam_id, topic_id, tag_id)
     if current_row is None or current_row.status_id is None:
@@ -1220,46 +1183,6 @@ def delete_member(
     db.add(pteam)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)  # avoid Content-Length Header
-
-
-@router.get("/{pteam_id}/achievements", response_model=List[schemas.SecBadgeBody])
-def get_pteam_achievements(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get pteam members' achievements.
-    """
-    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    required_auth = models.PTeamAuthIntFlag.PTEAMBADGE_APPLY
-    return (
-        db.query(models.SecBadge)
-        .filter(
-            models.SecBadge.user_id.in_(
-                db.query(models.PTeamAccount.user_id).filter(
-                    models.PTeamAccount.pteam_id == str(pteam_id)
-                )
-            ),  # pteam member
-            (
-                true()
-                if check_pteam_auth(
-                    db,
-                    pteam_id,
-                    MEMBER_UUID,
-                    required_auth,  # all members are allowed
-                )
-                else models.SecBadge.user_id.in_(
-                    db.query(models.PTeamAuthority.user_id).filter(  # individually allowed users
-                        models.PTeamAuthority.pteam_id == str(pteam_id),
-                        models.PTeamAuthority.authority.op("&")(required_auth) == required_auth,
-                    )
-                )
-            ),
-        )
-        .order_by(models.SecBadge.created_at.desc())
-        .all()
-    )
 
 
 def _expire_tokens(db: Session):

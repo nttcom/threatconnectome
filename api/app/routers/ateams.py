@@ -34,7 +34,6 @@ def _make_ateam_info(ateam: models.ATeam) -> schemas.ATeamInfo:
         alert_slack=schemas.Slack(**ateam.alert_slack.__dict__),
         alert_mail=schemas.Mail(**ateam.alert_mail.__dict__),
         pteams=ateam.pteams,
-        zones=list({zone for pteam in ateam.pteams for zone in pteam.zones}),
     )
 
 
@@ -854,21 +853,9 @@ def get_topic_status(
             models.TopicTag,
             models.TopicTag.tag_id.in_([models.Tag.tag_id, models.Tag.parent_id]),
         )
-        .outerjoin(
-            models.PTeamZone,
-            models.PTeamZone.pteam_id == subq.c.pteam_id,
-        )
-        .outerjoin(
-            models.TopicZone,
-            models.TopicZone.topic_id == models.TopicTag.topic_id,
-        )
         .join(
             models.Topic,
             and_(
-                or_(
-                    models.TopicZone.zone_name.is_(None),
-                    models.TopicZone.zone_name == models.PTeamZone.zone_name,
-                ),
                 models.Topic.title.icontains(search, autoescape=True) if search else true(),
                 models.Topic.disabled.is_(False),
                 models.Topic.topic_id == models.TopicTag.topic_id,

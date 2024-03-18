@@ -3,19 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth import get_firebase_credentials, setup_firebase_auth
 from app.routers import (
-    achievements,
     actionlogs,
     actions,
     ateams,
     auth,
     external,
-    gteams,
     misptags,
     pteams,
     tags,
     topics,
     users,
-    zones,
 )
 
 
@@ -41,18 +38,15 @@ def create_app():
 
     # Register routersx
     app.include_router(auth.router)  # place auth on the top for comfortable docs
-    app.include_router(achievements.router)
     app.include_router(actionlogs.router)
     app.include_router(actions.router)
     app.include_router(ateams.router)
     app.include_router(external.router)
-    app.include_router(gteams.router)
     app.include_router(misptags.router)
     app.include_router(pteams.router)
     app.include_router(tags.router)
     app.include_router(topics.router)
     app.include_router(users.router)
-    app.include_router(zones.router)
 
     # setup firebase
     cred = setup_firebase_auth()

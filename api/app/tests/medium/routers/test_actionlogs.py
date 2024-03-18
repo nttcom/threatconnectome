@@ -1,4 +1,3 @@
-import json
 import re
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
@@ -7,18 +6,14 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app import models, schemas
-from app.constants import SYSTEM_UUID, ZERO_FILLED_UUID
+from app import models
+from app.constants import ZERO_FILLED_UUID
 from app.main import app
 from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
-    ELIMINATED_ACTION,
     GROUP1,
     GROUP2,
-    GTEAM1,
-    GTEAM2,
-    MITIGATED_ACTION,
     PTEAM1,
     PTEAM2,
     TAG1,
@@ -27,19 +22,14 @@ from app.tests.medium.constants import (
     USER1,
     USER2,
     USER3,
-    ZONE1,
-    ZONE2,
 )
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     accept_pteam_invitation,
-    assert_200,
     create_actionlog,
-    create_gteam,
     create_pteam,
     create_topic,
     create_user,
-    create_zone,
     headers,
     invite_to_pteam,
     upload_pteam_tags,
@@ -121,208 +111,6 @@ def test_create_log__with_wrong_params():
         USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, None
     )
     assert actionlog1.action_id == action1.action_id
-
-
-def test_create_log__with_zones():
-    user1 = create_user(USER1)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    topic1 = create_topic(USER1, TOPIC1, actions=[{**ACTION1, "zone_names": [zone1.zone_name]}])
-    assert len(topic1.actions) == 1
-    action1 = topic1.actions[0]
-    now = datetime.now()
-
-    # action1 has zone1 but pteam1 does not
-    pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    with pytest.raises(
-        HTTPError, match=r"400: Bad Request: Zone mismatch between action and pteam"
-    ):
-        create_actionlog(
-            USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, now
-        )
-
-    # action1 has zone1 and pteam2 also
-    pteam2 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})
-    upload_pteam_tags(USER1, pteam2.pteam_id, GROUP2, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    actionlog2 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam2.pteam_id, now
-    )
-    assert actionlog2.action_id == action1.action_id
-    assert actionlog2.pteam_id == pteam2.pteam_id
-
-
-def test_create_log_when_threat_eliminated():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[ELIMINATED_ACTION])
-    eliminated_action = topic1.actions[0]
-    now = datetime.now()
-
-    actionlog = create_actionlog(
-        USER1, eliminated_action.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, now
-    )
-    # when action_type is elimination, make sure a badge is issued
-    response = client.get(f"/achievements/{user1.user_id}", headers=headers(USER1))
-
-    assert response.status_code == 200
-    data = response.json()
-    assert data[0]["created_by"] == str(SYSTEM_UUID)
-    assert data[0]["certifier_type"] == models.CertifierType.system
-    metadata = json.loads(data[0]["metadata_json"])
-    assert actionlog.user_id == user1.user_id
-    assert str(actionlog.logging_id) == metadata["logging_id"]
-
-
-def test_create_log_when_threat_not_eliminated():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[MITIGATED_ACTION])
-    mitigated_action = topic1.actions[0]
-    now = datetime.now()
-
-    create_actionlog(
-        USER1, mitigated_action.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, now
-    )
-    # when action_type is not elimination, make sure a badge is not issued
-    response = client.get(f"/achievements/{user1.user_id}", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert data == []
-
-
-def test_get_metadata():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
-    action1 = topic1.actions[0]
-    now = datetime.now()
-    actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, now
-    )
-    response = client.get(f"/actionlogs/{actionlog1.logging_id}/metadata", headers=headers(USER1))
-    assert response.status_code == 200
-    data = schemas.BadgeRequest(**response.json())
-    assert data.recipient == user1.user_id
-    assert data.certifier_type == "myself"
-    assert data.metadata["logging_id"] == str(actionlog1.logging_id)
-
-
-def test_get_metadata__with_wrong_params():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
-    action1 = topic1.actions[0]
-    create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, None
-    )
-
-    response = client.get(f"/actionlogs/{uuid4()}/metadata", headers=headers(USER1))
-    assert response.status_code == 404
-    assert response.reason_phrase == "Not Found"
-
-
-def test_get_metadata__by_member():
-    user1 = create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
-    action1 = topic1.actions[0]
-    actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, None
-    )
-
-    response = client.get(f"/actionlogs/{actionlog1.logging_id}/metadata", headers=headers(USER2))
-
-    assert response.status_code == 200
-    data = response.json()
-    assert data["metadata"]["logging_id"] == str(actionlog1.logging_id)
-
-
-def test_get_metadata__by_not_member():
-    user1 = create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
-    action1 = topic1.actions[0]
-    actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, None
-    )
-
-    response = client.get(f"/actionlogs/{actionlog1.logging_id}/metadata", headers=headers(USER2))
-
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
-
-
-def test_create_secbadge_from_actionlog():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
-    action1 = topic1.actions[0]
-    now = datetime.now()
-    actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, now
-    )
-    response = client.post(
-        f"/actionlogs/{actionlog1.logging_id}/achievement", headers=headers(USER1)
-    )
-    assert response.status_code == 200
-    data = schemas.SecBadgeBody(**response.json())
-    assert data.user_id == user1.user_id
-    assert data.certifier_type == "myself"
-    metadata = json.loads(data.metadata_json)
-    assert metadata["logging_id"] == str(actionlog1.logging_id)
-
-
-def test_create_secbadge_from_actionlog__by_member():
-    user1 = create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
-    action1 = topic1.actions[0]
-    actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, None
-    )
-
-    response = client.post(
-        f"/actionlogs/{actionlog1.logging_id}/achievement", headers=headers(USER2)
-    )
-
-    assert response.status_code == 200
-    metadata = json.loads(response.json()["metadata_json"])
-    assert metadata["logging_id"] == str(actionlog1.logging_id)
-
-
-def test_create_secbadge_from_actionlog__by_not_member():
-    user1 = create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
-    action1 = topic1.actions[0]
-    actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, None
-    )
-
-    response = client.post(
-        f"/actionlogs/{actionlog1.logging_id}/achievement", headers=headers(USER2)
-    )
-
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
 
 
 def test_get_logs():
@@ -424,37 +212,6 @@ def test_get_topic_logs():
     assert len(data) == 2
     assert data[0]["logging_id"] == str(actionlog2.logging_id)  # sorted by excuted_at
     assert data[1]["logging_id"] == str(actionlog1.logging_id)
-
-
-def test_get_or_create_topic_logs__without_related_zone():
-    user1 = create_user(USER1)
-    user2 = create_user(USER2)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    gteam2 = create_gteam(USER2, GTEAM2)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER2, gteam2.gteam_id, ZONE2)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})
-    pteam2 = create_pteam(USER2, {**PTEAM2, "zone_names": [zone2.zone_name]})
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
-    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1], zone_names=[zone1.zone_name])
-    action1 = topic1.actions[0]
-    create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, datetime.now()
-    )
-    error_message = "404: Not Found: You do not have related zone"
-    # USER2 does not have ZONE1
-    with pytest.raises(HTTPError, match=error_message):
-        assert_200(client.get(f"/actionlogs/topics/{topic1.topic_id}", headers=headers(USER2)))
-
-    with pytest.raises(HTTPError, match=error_message):
-        create_actionlog(
-            USER2,
-            action1.action_id,
-            topic1.topic_id,
-            user2.user_id,
-            pteam2.pteam_id,
-            datetime.now(),
-        )
 
 
 def test_search_logs__filtered_by_topic_ids():

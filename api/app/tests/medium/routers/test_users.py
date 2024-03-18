@@ -1,18 +1,16 @@
-from uuid import uuid4
-
 import pytest
 from fastapi.testclient import TestClient
 
 from app.constants import ZERO_FILLED_UUID
 from app.main import app
-from app.tests.medium.constants import BADGE1, METADATA1, PTEAM1, USER1, USER2
+from app.tests.medium.constants import USER1, USER2
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.routers.test_auth import (
     get_access_token,
     refresh_access_token,
     refresh_headers,
 )
-from app.tests.medium.utils import create_badge, create_pteam, create_user, headers
+from app.tests.medium.utils import create_user, headers
 
 client = TestClient(app)
 
@@ -22,7 +20,6 @@ def test_create_user():
     assert user1.email == USER1["email"]
     assert user1.years == USER1["years"]
     assert user1.user_id != ZERO_FILLED_UUID
-    assert user1.favorite_badge is None
 
 
 def test_duplicate_user():
@@ -83,36 +80,3 @@ def test_update_user_by_another_user():
     assert response.status_code == 403
     data = response.json()
     assert data["detail"] == "Information can only be updated by user himself"
-
-
-def test_update_user_with_favorite_badge():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    badge1 = create_badge(USER1, str(user1.user_id), METADATA1, BADGE1, str(pteam1.pteam_id))
-
-    request = {"favorite_badge": str(badge1.badge_id)}
-
-    response = client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["favorite_badge"] == badge1.badge_id
-
-    # clear favorite badge
-    request = {"favorite_badge": ""}
-    response = client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request)
-    data = response.json()
-    assert data["favorite_badge"] is None
-
-
-def test_update_user_with_invalid_favorite_badge():
-    wrong_uuid = uuid4()
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    create_badge(USER1, str(user1.user_id), METADATA1, BADGE1, str(pteam1.pteam_id))
-
-    request = {"favorite_badge": str(wrong_uuid)}
-
-    response = client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request)
-    assert response.status_code == 400
-    data = response.json()
-    assert data["detail"] == f"no such secbadge: {str(wrong_uuid)}"

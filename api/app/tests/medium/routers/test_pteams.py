@@ -26,8 +26,6 @@ from app.tests.medium.constants import (
     EXT_TAG1,
     EXT_TAG2,
     EXT_TAG3,
-    GTEAM1,
-    GTEAM2,
     PTEAM1,
     PTEAM2,
     PTEAM3,
@@ -42,12 +40,9 @@ from app.tests.medium.constants import (
     USER1,
     USER2,
     USER3,
-    ZONE1,
-    ZONE2,
 )
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
-    accept_gteam_invitation,
     accept_pteam_invitation,
     accept_watching_request,
     assert_200,
@@ -57,19 +52,16 @@ from app.tests.medium.utils import (
     create_action,
     create_actionlog,
     create_ateam,
-    create_gteam,
     create_pteam,
     create_tag,
     create_topic,
     create_topicstatus,
     create_user,
     create_watching_request,
-    create_zone,
     file_upload_headers,
     get_pteam_groups,
     get_pteam_tags,
     headers,
-    invite_to_gteam,
     invite_to_pteam,
     schema_to_dict,
     to_datetime,
@@ -77,20 +69,6 @@ from app.tests.medium.utils import (
 )
 
 client = TestClient(app)
-
-
-def _pick_zone(zones_: List[schemas.ZoneEntry], zone_name_: str) -> Optional[schemas.ZoneEntry]:
-    for zone in zones_:
-        if zone.zone_name == zone_name_:
-            return zone
-    return None
-
-
-def _pick_zone_dict(zones_: List[dict], zone_name_: str) -> Optional[dict]:
-    for zone in zones_:
-        if zone["zone_name"] == zone_name_:
-            return zone
-    return None
 
 
 def test_get_pteams():
@@ -207,7 +185,6 @@ def test_create_pteam():
     assert pteam1.contact_info == PTEAM1["contact_info"]
     assert pteam1.alert_slack.webhook_url == PTEAM1["alert_slack"]["webhook_url"]
     assert pteam1.alert_threat_impact == PTEAM1["alert_threat_impact"]
-    assert pteam1.zones == []
     assert pteam1.pteam_id != ZERO_FILLED_UUID
 
     response = client.get("/users/me", headers=headers(USER1))
@@ -215,19 +192,12 @@ def test_create_pteam():
     user_me = response.json()
     assert {UUID(pteam["pteam_id"]) for pteam in user_me["pteams"]} == {pteam1.pteam_id}
 
-    gteam1 = create_gteam(USER1, GTEAM1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
-    pteam2 = create_pteam(USER1, {**PTEAM2, "zone_names": [ZONE2["zone_name"]]})
+    pteam2 = create_pteam(USER1, PTEAM2)
     assert pteam2.pteam_name == PTEAM2["pteam_name"]
     assert pteam2.contact_info == PTEAM2["contact_info"]
     assert pteam2.alert_slack.webhook_url == PTEAM2["alert_slack"]["webhook_url"]
     assert pteam2.alert_threat_impact == PTEAM2["alert_threat_impact"]
     assert pteam2.pteam_id != ZERO_FILLED_UUID
-    assert len(pteam2.zones) == 1
-    assert (zone2 := _pick_zone(pteam2.zones, ZONE2["zone_name"]))
-    assert zone2.zone_name == ZONE2["zone_name"]
-    assert zone2.zone_info == ZONE2["zone_info"]
-    assert zone2.gteam_id == gteam1.gteam_id
 
     response = client.get("/users/me", headers=headers(USER1))
     assert response.status_code == 200
@@ -275,11 +245,7 @@ def test_update_pteam():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
 
-    gteam1 = create_gteam(USER1, GTEAM1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
-    request = schemas.PTeamUpdateRequest(
-        **{**PTEAM2, "zone_names": [ZONE2["zone_name"]]}
-    ).model_dump()
+    request = schemas.PTeamUpdateRequest(**PTEAM2).model_dump()
     response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request)
     assert response.status_code == 200
     data = response.json()
@@ -290,32 +256,16 @@ def test_update_pteam():
     assert data["alert_threat_impact"] == PTEAM2["alert_threat_impact"]
     assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
     assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
-    assert len(data["zones"]) == 1
-    assert (zone2 := _pick_zone_dict(data["zones"], ZONE2["zone_name"]))
-    assert zone2["zone_name"] == ZONE2["zone_name"]
-    assert zone2["zone_info"] == ZONE2["zone_info"]
-    assert UUID(zone2["gteam_id"]) == gteam1.gteam_id
 
 
 def test_update_pteam__by_admin():
     create_user(USER1)
     create_user(USER2)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
+    pteam1 = create_pteam(USER1, PTEAM1)
     invitation = invite_to_pteam(USER1, pteam1.pteam_id, ["admin"])
     accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    request = schemas.PTeamUpdateRequest(
-        **{**PTEAM2, "zone_names": [ZONE2["zone_name"]]}
-    ).model_dump()
-
-    with pytest.raises(HTTPError, match=r"400: Bad Request: You do not have related zone"):
-        assert_200(client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2), json=request))
-
-    g_invitation = invite_to_gteam(USER1, gteam1.gteam_id)
-    accept_gteam_invitation(USER2, g_invitation.invitation_id)
+    request = schemas.PTeamUpdateRequest(**PTEAM2).model_dump()
     data = assert_200(
         client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2), json=request)
     )
@@ -326,11 +276,6 @@ def test_update_pteam__by_admin():
     assert data["alert_threat_impact"] == PTEAM2["alert_threat_impact"]
     assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
     assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
-    assert len(data["zones"]) == 1
-    assert (zone2 := _pick_zone_dict(data["zones"], ZONE2["zone_name"]))
-    assert zone2["zone_name"] == ZONE2["zone_name"]
-    assert zone2["zone_info"] == ZONE2["zone_info"]
-    assert UUID(zone2["gteam_id"]) == gteam1.gteam_id
 
 
 def test_update_pteam__by_not_admin():
@@ -653,7 +598,7 @@ def test_update_pteam_auth__pseudo_uuid(testdb):
         assert row_not_member.authority == models.PTeamAuthIntFlag.FREE_TEMPLATE  # not member
 
     # update MEMBER & NOT_MEMBER
-    member_auth = list(map(models.PTeamAuthEnum, ["pteambadge_apply", "topic_status"]))
+    member_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
     not_member_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
     request = [
         {"user_id": str(MEMBER_UUID), "authorities": member_auth},
@@ -707,7 +652,7 @@ def test_update_pteam_auth__not_member(testdb):
     assert row_user2 is None
 
     # give auth to not member
-    request_auth = list(map(models.PTeamAuthEnum, ["pteambadge_apply"]))
+    request_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
     request = [
         {
             "user_id": str(user2.user_id),
@@ -900,7 +845,7 @@ def test_get_pteam_auth():
     accept_pteam_invitation(USER2, invitation.invitation_id)
 
     # set pteam auth
-    member_auth = list(map(models.PTeamAuthEnum, ["pteambadge_apply", "topic_status"]))
+    member_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
     not_member_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
     request = [
         {"user_id": str(MEMBER_UUID), "authorities": member_auth},
@@ -1526,7 +1471,7 @@ def test_get_pteam_members():
     assert response.status_code == 200
     members = response.json()
     assert len(members) == 1
-    keys = ["user_id", "uid", "email", "disabled", "years", "favorite_badge"]
+    keys = ["user_id", "uid", "email", "disabled", "years"]
     for key in keys:
         assert str(members[0].get(key)) == str(getattr(user1, key))
     assert {UUID(pteam["pteam_id"]) for pteam in members[0]["pteams"]} == {pteam1.pteam_id}
@@ -1540,7 +1485,7 @@ def test_get_pteam_members():
     members = response.json()
     assert len(members) == 2
     members_map = {UUID(x["user_id"]): x for x in members}
-    keys = ["user_id", "uid", "email", "disabled", "years", "favorite_badge"]
+    keys = ["user_id", "uid", "email", "disabled", "years"]
     for key in keys:
         assert str(members_map.get(user1.user_id).get(key)) == str(getattr(user1, key))
         assert str(members_map.get(user2.user_id).get(key)) == str(getattr(user2, key))
@@ -1563,7 +1508,7 @@ def test_get_pteam_members__by_member():
     members = response.json()
     assert len(members) == 2
     members_map = {UUID(x["user_id"]): x for x in members}
-    keys = ["user_id", "uid", "email", "disabled", "years", "favorite_badge"]
+    keys = ["user_id", "uid", "email", "disabled", "years"]
     for key in keys:
         assert str(members_map.get(user1.user_id).get(key)) == str(getattr(user1, key))
         assert str(members_map.get(user2.user_id).get(key)) == str(getattr(user2, key))
@@ -1628,31 +1573,6 @@ def test_set_pteam_topic_status():
     # set with not pteam tag
     with pytest.raises(HTTPError, match=r"404: Not Found: No such pteam tag"):
         create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag3.tag_id, json_data)
-
-
-def test_set_pteam_topic_status__without_related_zone():
-    create_user(USER1)
-    tag1 = create_tag(USER1, TAG1)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    create_zone(USER1, gteam1.gteam_id, ZONE1)
-    create_zone(USER1, gteam1.gteam_id, ZONE2)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
-    topic1 = create_topic(USER1, TOPIC1, zone_names=[ZONE2["zone_name"]])  # TAG1
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    # set topicstatus
-    json_data = {
-        "topic_status": "acknowledged",
-        "note": "acknowledged",
-        "scheduled_at": str(datetime(2023, 6, 1)),
-    }
-    # without related zone (zones mismatch between topic and pteam)
-    with pytest.raises(HTTPError, match=r"404: Not Found: You do not have related zone"):
-        create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data)
 
 
 def test_set_pteam_topic_status__not_specify_assignee():
@@ -1753,168 +1673,6 @@ def test_set_pteam_topic_status__with_unselectable_status():
     json_data = {"topic_status": "alerted", "note": "alerted"}
     with pytest.raises(HTTPError, match=r"400: Bad Request: Wrong topic status"):
         create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data)
-
-
-def test_set_pteam_topic_status__as_scheduled():
-    user1 = create_user(USER1)
-    tag1 = create_tag(USER1, TAG1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    topic1 = create_topic(USER1, TOPIC1)
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    request = {
-        "topic_status": "scheduled",
-    }
-    data1 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
-
-    response2 = client.get(f"/achievements/{user1.user_id}", headers=headers(USER1))
-    assert response2.status_code == 200
-    data2 = response2.json()
-    assert len(data2) == 1
-    metadata = json.loads(data2[0]["metadata_json"])
-    assert data1.user_id == user1.user_id
-    assert data1.pteam_id == pteam1.pteam_id
-    assert str(data1.status_id) == metadata["status_id"]
-    assert "has been found!" in metadata["name"]
-    assert data2[0]["created_by"] == str(SYSTEM_UUID)
-
-
-def test_set_pteam_topic_status__as_completed():
-    user1 = create_user(USER1)
-    tag1 = create_tag(USER1, TAG1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    topic1 = create_topic(USER1, TOPIC1)
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    request = {
-        "topic_status": "completed",
-    }
-    data1 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
-
-    response2 = client.get(f"/achievements/{user1.user_id}", headers=headers(USER1))
-    assert response2.status_code == 200
-    data2 = response2.json()
-    assert len(data2) == 1
-    metadata = json.loads(data2[0]["metadata_json"])
-    assert data1.user_id == user1.user_id
-    assert data1.pteam_id == pteam1.pteam_id
-    assert str(data1.status_id) == metadata["status_id"]
-    assert "has been found!" in metadata["name"]
-    assert data2[0]["created_by"] == str(SYSTEM_UUID)
-    assert data2[0]["certifier_type"] == models.CertifierType.system
-
-
-def test_set_pteam_topic_status__not_scheduled_or_completed():
-    user1 = create_user(USER1)
-    tag1 = create_tag(USER1, TAG1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    topic1 = create_topic(USER1, TOPIC1)
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    request = {
-        "topic_status": "acknowledged",
-    }
-    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
-
-    response = client.get(f"/achievements/{user1.user_id}", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert data == []
-
-
-def test_set_pteam_topic_status__as_completed_within_1h(testdb: Session):
-    user1 = create_user(USER1)
-    tag1 = create_tag(USER1, TAG1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    topic1 = create_topic(USER1, TOPIC1)
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    request = {"topic_status": "acknowledged"}
-    data1 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
-    db_status1 = (
-        testdb.query(models.PTeamTopicTagStatus)
-        .filter(models.PTeamTopicTagStatus.status_id == str(data1.status_id))
-        .one()
-    )
-    db_status1.created_at = datetime.now() - timedelta(minutes=30)  # overwrite created_at on DB
-    testdb.add(db_status1)
-    testdb.commit()
-
-    request = {"topic_status": "completed"}
-    data2 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
-    assert data2.user_id == user1.user_id
-    assert data2.pteam_id == pteam1.pteam_id
-
-    response3 = client.get(f"/achievements/{user1.user_id}", headers=headers(USER1))
-    assert response3.status_code == 200
-    data3 = response3.json()
-    assert len(data3) == 2  # topic completed badge and within 1h badge
-    metadata1 = json.loads(data3[0]["metadata_json"])
-    assert str(data2.status_id) == metadata1["status_id"]
-    assert "completed within 1h!" in metadata1["name"]
-    assert data3[0]["created_by"] == str(SYSTEM_UUID)
-    assert data3[0]["certifier_type"] == models.CertifierType.system
-    metadata2 = json.loads(data3[1]["metadata_json"])
-    assert str(data2.status_id) == metadata2["status_id"]
-    assert "has been found!" in metadata2["name"]
-    assert data3[1]["created_by"] == str(SYSTEM_UUID)
-    assert data3[1]["certifier_type"] == models.CertifierType.system
-
-
-def test_set_pteam_topic_status__as_completed_for_over_1h(testdb: Session):
-    user1 = create_user(USER1)
-    tag1 = create_tag(USER1, TAG1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    topic1 = create_topic(USER1, TOPIC1)
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    request = {"topic_status": "acknowledged"}
-    now = datetime.now()
-    data1 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
-    db_status1 = (
-        testdb.query(models.PTeamTopicTagStatus)
-        .filter(models.PTeamTopicTagStatus.status_id == str(data1.status_id))
-        .one()
-    )
-    db_status1.created_at = now - timedelta(minutes=70)  # overwrite created_at on DB
-    testdb.add(db_status1)
-    testdb.commit()
-
-    request = {"topic_status": "completed"}
-    data2 = create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, request)
-    assert data2.user_id == user1.user_id
-    assert data2.pteam_id == pteam1.pteam_id
-
-    response3 = client.get(f"/achievements/{user1.user_id}", headers=headers(USER1))
-    assert response3.status_code == 200
-    data3 = response3.json()
-    assert len(data3) == 1  # only topic completed badge, not within 1h badge
-    metadata = json.loads(data3[0]["metadata_json"])
-    assert str(data2.status_id) == metadata["status_id"]
-    assert "completed within 1h!" not in metadata["name"]
-    assert "has been found!" in metadata["name"]
-    assert data3[0]["created_by"] == str(SYSTEM_UUID)
-    assert data3[0]["certifier_type"] == models.CertifierType.system
 
 
 def test_set_pteam_topic_status__parent():
@@ -2105,80 +1863,6 @@ def test_get_pteam_topics():
     assert {x["tag_name"] for x in data[0]["misp_tags"]} == set(TOPIC1["misp_tags"])
 
 
-def test_get_pteam_topics__with_zones():
-    create_user(USER1)
-    create_user(USER2)
-    create_tag(USER1, TAG1)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    gteam2 = create_gteam(USER1, GTEAM2)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam2.gteam_id, ZONE2)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zones": []})
-    p_invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, p_invitation.invitation_id)
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    create_topic(USER1, {**TOPIC1, "tags": [TAG1], "zone_names": [zone1.zone_name]})
-    create_topic(USER1, {**TOPIC2, "tags": [TAG1], "zone_names": [zone2.zone_name]})
-    create_topic(
-        USER1, {**TOPIC3, "tags": [TAG1], "zone_names": [zone1.zone_name, zone2.zone_name]}
-    )
-    create_topic(USER1, {**TOPIC4, "tags": [TAG1], "zone_names": []})
-
-    def _pick_topic(topics_: List[dict], target_: dict) -> dict:
-        return next(filter(lambda x: x["title"] == target_["title"], topics_), {})
-
-    # USER1 has zone1 & zone2 via gteams
-    #   Note: currently, result is filtered by the zones of USER, not of pteam. this may be fixed.
-    data = assert_200(client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER1)))
-    assert len(data) == 4
-    assert _pick_topic(data, TOPIC1)
-    assert _pick_topic(data, TOPIC2)
-    assert _pick_topic(data, TOPIC3)
-    assert _pick_topic(data, TOPIC4)
-
-    # USER2 (and pteam1) has no zones
-    data = assert_200(client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER2)))
-    assert len(data) == 1
-    assert _pick_topic(data, TOPIC4)
-
-    # add zone1 to pteam1
-    assert_200(
-        client.put(
-            f"/pteams/{pteam1.pteam_id}",
-            headers=headers(USER1),
-            json={"zone_names": [zone1.zone_name]},
-        )
-    )
-
-    # now USER2 (and pteam1) has zone1
-    data = assert_200(client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER2)))
-    assert len(data) == 3
-    assert _pick_topic(data, TOPIC1)
-    assert _pick_topic(data, TOPIC3)
-    assert _pick_topic(data, TOPIC4)
-
-    # pteam1 switch zone1 to zone2
-    assert_200(
-        client.put(
-            f"/pteams/{pteam1.pteam_id}",
-            headers=headers(USER1),
-            json={"zone_names": [zone2.zone_name]},
-        )
-    )
-
-    # now USER2 (and pteam1) has zone2
-    data = assert_200(client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER2)))
-    assert len(data) == 3
-    assert _pick_topic(data, TOPIC2)
-    assert _pick_topic(data, TOPIC3)
-    assert _pick_topic(data, TOPIC4)
-
-
 def test_get_pteam_topics_with_topic_disabled():
     create_user(USER1)
     create_tag(USER1, TAG1)
@@ -2286,79 +1970,6 @@ def test_get_pteam_topic_status__by_not_member():
     )
     assert response.status_code == 403
     assert response.reason_phrase == "Forbidden"
-
-
-def test_get_pteam_topic_status__with_zones():
-    create_user(USER1)
-    create_user(USER2)
-    tag1 = create_tag(USER1, TAG1)
-    gteam1 = create_gteam(USER1, GTEAM1)
-    gteam2 = create_gteam(USER1, GTEAM2)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam2.gteam_id, ZONE2)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})
-    p_invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, p_invitation.invitation_id)
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    topic1 = create_topic(
-        USER1, {**TOPIC1, "tags": [tag1.tag_name], "zone_names": [zone1.zone_name]}
-    )
-    topic2 = create_topic(
-        USER1, {**TOPIC2, "tags": [tag1.tag_name], "zone_names": [zone2.zone_name]}
-    )
-    topic3 = create_topic(
-        USER1, {**TOPIC3, "tags": [tag1.tag_name], "zone_names": [zone1.zone_name, zone2.zone_name]}
-    )
-    topic4 = create_topic(USER1, {**TOPIC4, "tags": [tag1.tag_name], "zone_names": []})
-
-    for topic in [topic1, topic3, topic4]:
-        data = assert_200(
-            client.get(
-                f"/pteams/{pteam1.pteam_id}/topicstatus/{topic.topic_id}/{tag1.tag_id}",
-                headers=headers(USER2),
-            )
-        )
-        assert UUID(data["topic_id"]) == topic.topic_id
-        assert data["topic_status"] in {models.TopicStatusType.alerted, None}
-    for topic in [topic2]:
-        with pytest.raises(HTTPError, match=r"404: Not Found: You do not have related zone"):
-            assert_200(
-                client.get(
-                    f"/pteams/{pteam1.pteam_id}/topicstatus/{topic.topic_id}/{tag1.tag_id}",
-                    headers=headers(USER2),
-                )
-            )
-
-    # pteam1 switch zone1 to zone2
-    assert_200(
-        client.put(
-            f"/pteams/{pteam1.pteam_id}",
-            headers=headers(USER1),
-            json={"zone_names": [zone2.zone_name]},
-        )
-    )
-    for topic in [topic2, topic3, topic4]:
-        data = assert_200(
-            client.get(
-                f"/pteams/{pteam1.pteam_id}/topicstatus/{topic.topic_id}/{tag1.tag_id}",
-                headers=headers(USER2),
-            )
-        )
-        assert UUID(data["topic_id"]) == topic.topic_id
-        assert data["topic_status"] in {models.TopicStatusType.alerted, None}
-    for topic in [topic1]:
-        with pytest.raises(HTTPError, match=r"404: Not Found: You do not have related zone"):
-            assert_200(
-                client.get(
-                    f"/pteams/{pteam1.pteam_id}/topicstatus/{topic.topic_id}/{tag1.tag_id}",
-                    headers=headers(USER2),
-                )
-            )
 
 
 def test_get_pteam_topic_status_list():
@@ -2891,35 +2502,6 @@ def test_get_pteam_topic_statuses_summary__parent():
     )
     assert data["topics"][1]["topic_status"] == request["topic_status"]
     assert datetime.fromisoformat(data["topics"][1]["executed_at"]).timestamp() - now < 10
-
-
-def test_get_pteam_topic_statuses_summary__with_zone():
-    create_user(USER1)
-    tag1 = create_tag(USER1, TAG1)
-
-    gteam1 = create_gteam(USER1, GTEAM1)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam1.gteam_id, ZONE2)
-
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})  # only ZONE1
-    topic1 = create_topic(USER1, TOPIC1)  # TAG1
-    topic2 = create_topic(USER1, TOPIC2, zone_names=[zone1.zone_name])  # TAG1
-    create_topic(USER1, TOPIC3, zone_names=[zone2.zone_name])  # TAG1
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    response = client.get(
-        f"/pteams/{pteam1.pteam_id}/topicstatusessummary/{tag1.tag_id}", headers=headers(USER1)
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["tag_id"] == str(tag1.tag_id)
-    assert len(data["topics"]) == 2
-    assert data["topics"][0]["topic_id"] == str(topic1.topic_id)  # no ZONE
-    assert data["topics"][1]["topic_id"] == str(topic2.topic_id)  # ZONE1
 
 
 def test_upload_pteam_tags_file():
@@ -3890,290 +3472,6 @@ def test_update_pteam_tags_summary__update_topic():
     assert _compare_summaries(summary3, summary3_exp4)
 
 
-def test_update_pteam_tags_summary__with_pteam_zones():
-    create_user(USER1)
-    parent_tag1 = create_tag(USER1, "alpha:alpha:")
-    child_tag1 = create_tag(USER1, "alpha:alpha:alpha-1")
-    gteam1 = create_gteam(USER1, GTEAM1)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam1.gteam_id, ZONE2)
-    test_topic_1 = {
-        **TOPIC1,
-        "topic_id": uuid4(),
-        "threat_impact": 1,
-        "tags": [parent_tag1.tag_name],
-        "zone_names": [zone1.zone_name],
-    }
-    test_topic_2 = {
-        **TOPIC1,
-        "topic_id": uuid4(),
-        "threat_impact": 2,
-        "tags": [parent_tag1.tag_name],
-        "zone_names": [zone1.zone_name, zone2.zone_name],
-    }
-    topic1 = create_topic(USER1, test_topic_1)
-    topic2 = create_topic(USER1, test_topic_2)
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": []})
-    ext0 = {
-        "references": [{"group": "fake group", "target": "fake target", "version": "fake version"}],
-    }
-    refs0 = {child_tag1.tag_name: [("fake target", "fake version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, "fake group", refs0)
-
-    # no topic matches (missing zones)
-    summary = assert_200(
-        client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
-    )
-    assert summary == {
-        "threat_impact_count": {"1": 0, "2": 0, "3": 0, "4": 1},
-        "tags": [
-            {
-                **schema_to_dict(child_tag1),
-                **ext0,
-                "threat_impact": None,
-                "updated_at": None,
-                "status_count": {"alerted": 0, "acknowledged": 0, "scheduled": 0, "completed": 0},
-            },
-        ],
-    }
-
-    # give zone2 to pteam1
-    request = {
-        "zone_names": [zone2.zone_name],
-    }
-    assert_200(client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request))
-    summary = assert_200(
-        client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
-    )
-    assert summary == {
-        "threat_impact_count": {"1": 0, "2": 1, "3": 0, "4": 0},
-        "tags": [
-            {
-                **schema_to_dict(child_tag1),
-                **ext0,
-                "threat_impact": topic2.threat_impact,
-                "updated_at": topic2.updated_at.isoformat(),
-                "status_count": {"alerted": 1, "acknowledged": 0, "scheduled": 0, "completed": 0},
-            },
-        ],
-    }
-
-    # give zone1 + zone2 to pteam1
-    request = {
-        "zone_names": [zone1.zone_name, zone2.zone_name],
-    }
-    assert_200(client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request))
-    summary = assert_200(
-        client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
-    )
-    assert topic1.threat_impact < topic2.threat_impact
-    assert topic1.updated_at < topic2.updated_at
-    assert summary == {
-        "threat_impact_count": {"1": 1, "2": 0, "3": 0, "4": 0},
-        "tags": [
-            {
-                **schema_to_dict(child_tag1),
-                **ext0,
-                "threat_impact": topic1.threat_impact,
-                "updated_at": topic2.updated_at.isoformat(),
-                "status_count": {"alerted": 2, "acknowledged": 0, "scheduled": 0, "completed": 0},
-            },
-        ],
-    }
-
-    # remove zone2 from pteam1 (topic2 is still matched by zone1)
-    request = {
-        "zone_names": [zone1.zone_name],
-    }
-    assert_200(client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request))
-    summary = assert_200(
-        client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
-    )
-    assert topic1.updated_at < topic2.updated_at
-    assert summary == {
-        "threat_impact_count": {"1": 1, "2": 0, "3": 0, "4": 0},
-        "tags": [
-            {
-                **schema_to_dict(child_tag1),
-                **ext0,
-                "threat_impact": topic1.threat_impact,
-                "updated_at": topic2.updated_at.isoformat(),
-                "status_count": {"alerted": 2, "acknowledged": 0, "scheduled": 0, "completed": 0},
-            },
-        ],
-    }
-
-    # remove zone1 from pteam1
-    request = {
-        "zone_names": [],
-    }
-    assert_200(client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request))
-    # now, no topic matches (missing zones)
-    summary = assert_200(
-        client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
-    )
-    assert summary == {
-        "threat_impact_count": {"1": 0, "2": 0, "3": 0, "4": 1},
-        "tags": [
-            {
-                **schema_to_dict(child_tag1),
-                **ext0,
-                "threat_impact": None,
-                "updated_at": None,
-                "status_count": {"alerted": 0, "acknowledged": 0, "scheduled": 0, "completed": 0},
-            },
-        ],
-    }
-
-
-def test_update_pteam_tags_summary__complex():
-    create_user(USER1)
-    parent1 = create_tag(USER1, "alpha:alpha:")
-    child11 = create_tag(USER1, "alpha:alpha:alpha-1")
-    child12 = create_tag(USER1, "alpha:alpha:alpha-2")
-    gteam1 = create_gteam(USER1, GTEAM1)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam1.gteam_id, ZONE2)
-    test_topic_1 = {**TOPIC1, "threat_impact": 1, "tags": [parent1.tag_name], "zone_names": []}
-    test_topic_2 = {**TOPIC2, "threat_impact": 2, "tags": [parent1.tag_name], "zone_names": []}
-    test_topic_3 = {**TOPIC3, "threat_impact": 3, "tags": [parent1.tag_name], "zone_names": []}
-    ext0 = {"references": [{"group": "group", "target": "target", "version": "version"}]}
-
-    def _summary(pteam: schemas.PTeamInfo) -> schemas.PTeamTagsSummary:
-        return schemas.PTeamTagsSummary(
-            **assert_200(
-                client.get(f"/pteams/{pteam.pteam_id}/tags/summary", headers=headers(USER1))
-            )
-        )
-
-    def _update_topic(topic: schemas.TopicResponse, key: str, value: Any) -> schemas.TopicResponse:
-        return schemas.TopicResponse(
-            **assert_200(
-                client.put(f"/topics/{topic.topic_id}", headers=headers(USER1), json={key: value})
-            )
-        )
-
-    def _update_pteam(pteam: schemas.PTeamInfo, key: str, value: Any) -> schemas.PTeamInfo:
-        return schemas.PTeamInfo(
-            **assert_200(
-                client.put(f"/pteams/{pteam.pteam_id}", headers=headers(USER1), json={key: value})
-            )
-        )
-
-    def _summary_exp(
-        threat_impacts: List[int],
-        tag: schemas.TagResponse,
-        threat_impact: Optional[int],
-        updated_at: Optional[datetime],
-        num_alerted: int,
-    ) -> schemas.PTeamTagsSummary:
-        return schemas.PTeamTagsSummary(
-            threat_impact_count={str(idx + 1): count for idx, count in enumerate(threat_impacts)},
-            tags=[
-                schemas.PTeamTagSummary(
-                    **tag.model_dump(),
-                    **ext0,
-                    threat_impact=threat_impact,
-                    updated_at=updated_at if updated_at else None,
-                    status_count={
-                        "alerted": num_alerted,
-                        "acknowledged": 0,
-                        "scheduled": 0,
-                        "completed": 0,
-                    },
-                )
-            ],
-        )
-
-    # no topics
-    pteam1 = create_pteam(USER1, PTEAM1)
-    refs1 = {child11.tag_name: [("target", "version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, "group", refs1)
-
-    pteam2 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})
-    refs2 = {child11.tag_name: [("target", "version")]}
-    upload_pteam_tags(USER1, pteam2.pteam_id, "group", refs2)
-
-    pteam3 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})
-    refs3 = {child12.tag_name: [("target", "version")]}
-    upload_pteam_tags(USER1, pteam3.pteam_id, "group", refs3)
-
-    assert _summary(pteam1) == _summary_exp([0, 0, 0, 1], child11, None, None, 0)
-    assert _summary(pteam2) == _summary_exp([0, 0, 0, 1], child11, None, None, 0)
-    assert _summary(pteam3) == _summary_exp([0, 0, 0, 1], child12, None, None, 0)
-
-    # create topic2 (threat impact 2)
-    topic2 = create_topic(USER1, test_topic_2)
-    assert _summary(pteam1) == _summary_exp([0, 1, 0, 0], child11, 2, topic2.updated_at, 1)
-    assert _summary(pteam2) == _summary_exp([0, 1, 0, 0], child11, 2, topic2.updated_at, 1)
-    assert _summary(pteam3) == _summary_exp([0, 1, 0, 0], child12, 2, topic2.updated_at, 1)
-
-    # create topic1 (threat impact 1)
-    topic1 = create_topic(USER1, test_topic_1)
-    assert _summary(pteam1) == _summary_exp([1, 0, 0, 0], child11, 1, topic1.updated_at, 2)
-    assert _summary(pteam2) == _summary_exp([1, 0, 0, 0], child11, 1, topic1.updated_at, 2)
-    assert _summary(pteam3) == _summary_exp([1, 0, 0, 0], child12, 1, topic1.updated_at, 2)
-
-    # create topic3 (threat impact 3)
-    topic3 = create_topic(USER1, test_topic_3)
-    assert _summary(pteam1) == _summary_exp([1, 0, 0, 0], child11, 1, topic3.updated_at, 3)
-    assert _summary(pteam2) == _summary_exp([1, 0, 0, 0], child11, 1, topic3.updated_at, 3)
-    assert _summary(pteam3) == _summary_exp([1, 0, 0, 0], child12, 1, topic3.updated_at, 3)
-
-    # set zone1 to topic1
-    topic1 = _update_topic(topic1, "zone_names", [zone1.zone_name])
-    # topic1 is invisible for pteam1
-    assert _summary(pteam1) == _summary_exp([0, 1, 0, 0], child11, 2, topic3.updated_at, 2)
-    # topic1 is visible and latest for pteam[23]
-    assert _summary(pteam2) == _summary_exp([1, 0, 0, 0], child11, 1, topic1.updated_at, 3)
-    assert _summary(pteam3) == _summary_exp([1, 0, 0, 0], child12, 1, topic1.updated_at, 3)
-
-    # modify topic1 tag parent1 -> child11
-    topic1 = _update_topic(topic1, "tags", [child11.tag_name])
-    # topic1 is invisible for pteam1
-    assert _summary(pteam1) == _summary_exp([0, 1, 0, 0], child11, 2, topic3.updated_at, 2)
-    # topic1 is visible and latest for pteam2
-    assert _summary(pteam2) == _summary_exp([1, 0, 0, 0], child11, 1, topic1.updated_at, 3)
-    # topic1 is visible for pteam3 but tags mismatch
-    assert _summary(pteam3) == _summary_exp([0, 1, 0, 0], child12, 2, topic3.updated_at, 2)
-
-    # set zone2 to topic3
-    topic3 = _update_topic(topic3, "zone_names", [zone2.zone_name])
-    # topic3 is invisible for pteam[123]
-    assert _summary(pteam1) == _summary_exp([0, 1, 0, 0], child11, 2, topic2.updated_at, 1)
-    assert _summary(pteam2) == _summary_exp([1, 0, 0, 0], child11, 1, topic1.updated_at, 2)
-    assert _summary(pteam3) == _summary_exp([0, 1, 0, 0], child12, 2, topic2.updated_at, 1)
-
-    # modify topic2 threat impact 2 -> 1
-    topic2 = _update_topic(topic2, "threat_impact", 1)
-    # topic2 is invisible for pteam[123]
-    assert _summary(pteam1) == _summary_exp([1, 0, 0, 0], child11, 1, topic2.updated_at, 1)
-    assert _summary(pteam2) == _summary_exp([1, 0, 0, 0], child11, 1, topic2.updated_at, 2)
-    assert _summary(pteam3) == _summary_exp([1, 0, 0, 0], child12, 1, topic2.updated_at, 1)
-
-    # revert topic1 tag child11 -> parent1
-    topic1 = _update_topic(topic1, "tags", [parent1.tag_name])
-    # topic1 is invisible for pteam1
-    assert _summary(pteam1) == _summary_exp([1, 0, 0, 0], child11, 1, topic2.updated_at, 1)
-    # topic1 is visible for pteam[23] and the latest
-    assert _summary(pteam2) == _summary_exp([1, 0, 0, 0], child11, 1, topic1.updated_at, 2)
-    assert _summary(pteam3) == _summary_exp([1, 0, 0, 0], child12, 1, topic1.updated_at, 2)
-
-    # give zone1 + zone2 to pteam1
-    pteam1 = _update_pteam(pteam1, "zone_names", [zone1.zone_name, zone2.zone_name])
-    # topic[123] visible for pteam1
-    assert _summary(pteam1) == _summary_exp([1, 0, 0, 0], child11, 1, topic1.updated_at, 3)
-    # topic[12] visible for pteam[23]
-    assert _summary(pteam2) == _summary_exp([1, 0, 0, 0], child11, 1, topic1.updated_at, 2)
-    assert _summary(pteam3) == _summary_exp([1, 0, 0, 0], child12, 1, topic1.updated_at, 2)
-
-    # modify topic tag parent1 -> parent1 + child11 (test matched topic by child *AND* parent)
-    topic1 = _update_topic(topic1, "tags", [parent1.tag_name, child11.tag_name])
-    assert _summary(pteam1) == _summary_exp([1, 0, 0, 0], child11, 1, topic1.updated_at, 3)
-    assert _summary(pteam2) == _summary_exp([1, 0, 0, 0], child11, 1, topic1.updated_at, 2)
-    assert _summary(pteam3) == _summary_exp([1, 0, 0, 0], child12, 1, topic1.updated_at, 2)
-
-
 def test_get_pteam_tagged_topic_ids():
     create_user(USER1)
     create_user(USER2)
@@ -4960,147 +4258,6 @@ def test_auto_close_topic__parent():
     assert len(data["action_logs"]) == 0
 
 
-def test_auto_close_topic__with_zones():
-    create_user(USER1)
-    child1 = create_tag(USER1, "alpha:alpha:alpha-1")
-    gteam1 = create_gteam(USER1, GTEAM1)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam1.gteam_id, ZONE2)
-    ext1 = {
-        "references": [{"target": "target1", "group": "group1", "version": "2.0"}],
-        "tag_name": child1.tag_name,
-    }
-    action1 = {
-        "action": "update alpha to version 2.0",
-        "action_type": "elimination",
-        "recommended": True,
-        "ext": {
-            "tags": [child1.parent_name],
-            "vulnerable_versions": {
-                child1.parent_name: [">=0 <2.0"],
-            },
-        },
-    }
-
-    def _base_topic() -> dict:
-        return {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "actions": [action1],
-            "tags": [child1.parent_name],
-        }
-
-    def _tags_summary(pteam: schemas.PTeamInfo) -> dict:
-        return assert_200(
-            client.get(f"/pteams/{pteam.pteam_id}/tags/summary", headers=headers(USER1))
-        )
-
-    def _set_disabled(pteam: schemas.PTeamInfo, disabled: bool) -> schemas.PTeamInfo:
-        # Note:
-        #   switching pteam to enabled will trigger auto closing topics
-        return schemas.PTeamInfo(
-            **assert_200(
-                client.put(
-                    f"/pteams/{pteam5.pteam_id}",
-                    headers=headers(USER1),
-                    json={"disabled": disabled},
-                )
-            )
-        )
-
-    def _tt_status(
-        pteam: schemas.PTeamInfo,
-        topic: schemas.Topic,
-        tag: schemas.TagResponse,
-    ) -> dict:
-        return assert_200(
-            client.get(
-                f"/pteams/{pteam.pteam_id}/topicstatus/{topic.topic_id}/{tag.tag_id}",
-                headers=headers(USER1),
-            )
-        )
-
-    pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": []})
-    pteam2 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name]})
-    pteam3 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone2.zone_name]})
-    pteam4 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name, zone2.zone_name]})
-    pteam5 = create_pteam(USER1, {**PTEAM1, "zone_names": [zone1.zone_name, zone2.zone_name]})
-    refs0 = {child1.tag_name: [("target1", "2.0")]}
-    for pteam in [pteam1, pteam2, pteam3, pteam4, pteam5]:
-        upload_pteam_tags(USER1, pteam.pteam_id, "group1", refs0)
-    pteam5 = _set_disabled(pteam5, True)  # pteam5 will be enabled after test topic created
-
-    tag_exp0 = {
-        **schema_to_dict(child1),
-        "references": ext1["references"],
-    }
-
-    def _summary_exp(completed: int) -> dict:
-        return {
-            "threat_impact_count": {"1": 0, "2": 0, "3": 0, "4": 1},
-            "tags": [
-                {
-                    **tag_exp0,
-                    "threat_impact": None,
-                    "updated_at": None,
-                    "status_count": {
-                        "alerted": 0,
-                        "acknowledged": 0,
-                        "scheduled": 0,
-                        "completed": completed,
-                    },
-                }
-            ],
-        }
-
-    # no topics
-    pteam5 = _set_disabled(pteam5, False)
-    for pteam in [pteam1, pteam2, pteam3, pteam4, pteam5]:
-        summary = _tags_summary(pteam)
-        assert summary == _summary_exp(0)
-    pteam5 = _set_disabled(pteam5, True)
-
-    # create topic1 without zones
-    topic1 = create_topic(USER1, {**_base_topic(), "zone_names": []})
-
-    pteam5 = _set_disabled(pteam5, False)
-    for pteam in [pteam1, pteam2, pteam3, pteam4, pteam5]:
-        assert _tags_summary(pteam) == _summary_exp(1)  # topic1 visible
-        assert _tt_status(pteam, topic1, child1)["topic_status"] == "completed"
-    pteam5 = _set_disabled(pteam5, True)
-
-    # create topic2 with zone2
-    topic2 = create_topic(USER1, {**_base_topic(), "zone_names": [zone2.zone_name]})
-
-    pteam5 = _set_disabled(pteam5, False)
-    for pteam in [pteam3, pteam4, pteam5]:
-        assert _tags_summary(pteam) == _summary_exp(2)
-        assert _tt_status(pteam, topic2, child1)["topic_status"] == "completed"
-    for pteam in [pteam1, pteam2]:
-        assert _tags_summary(pteam) == _summary_exp(1)  # topic2 not visible
-        with pytest.raises(HTTPError, match=r"404: Not Found: You do not have related zone"):
-            _tt_status(pteam, topic2, child1)
-    pteam5 = _set_disabled(pteam5, True)
-
-    # create topic3 with zone1 + zone2
-    topic3 = create_topic(
-        USER1, {**_base_topic(), "zone_names": [zone1.zone_name, zone2.zone_name]}
-    )
-
-    pteam5 = _set_disabled(pteam5, False)
-    for pteam in [pteam3, pteam4, pteam5]:
-        assert _tags_summary(pteam) == _summary_exp(3)
-        assert _tt_status(pteam, topic3, child1)["topic_status"] == "completed"
-    for pteam in [pteam2]:
-        assert _tags_summary(pteam) == _summary_exp(2)  # topic2 not visible
-        assert _tt_status(pteam, topic3, child1)["topic_status"] == "completed"
-    for pteam in [pteam1]:
-        assert _tags_summary(pteam) == _summary_exp(1)  # topic[23] not visible
-        with pytest.raises(HTTPError, match=r"404: Not Found: You do not have related zone"):
-            _tt_status(pteam, topic3, child1)
-    pteam5 = _set_disabled(pteam5, True)
-
-
 def test_auto_close_by_pteamtags():
     create_user(USER1)
     tag1 = create_tag(USER1, "test:tag:alpha")
@@ -5627,173 +4784,6 @@ def test_auto_close__on_upload_pteam_tags_file__parent():
     assert data["action_logs"][0]["pteam_id"] == str(pteam1.pteam_id)
     assert data["action_logs"][0]["user_id"] == str(SYSTEM_UUID)
     assert data["action_logs"][0]["email"] == SYSTEM_EMAIL
-
-
-def test_auto_close__with_zones(testdb):
-    create_user(USER1)
-    tag1 = create_tag(USER1, "alpha:alpha:alpha-1")
-    gteam1 = create_gteam(USER1, GTEAM1)
-    zone1 = create_zone(USER1, gteam1.gteam_id, ZONE1)
-    zone2 = create_zone(USER1, gteam1.gteam_id, ZONE2)
-    group_a = {"group": "group-a"}
-    action1 = {
-        "action": "update alpha to version 2.0",
-        "action_type": "elimination",
-        "recommended": True,
-        "ext": {
-            "tags": [tag1.parent_name],
-            "vulnerable_versions": {
-                tag1.parent_name: [">=0 <2.0"],
-            },
-        },
-    }
-
-    def _base_topic() -> dict:
-        return {**TOPIC1, "topic_id": uuid4(), "actions": [action1], "tags": [tag1.parent_name]}
-
-    topic1 = create_topic(USER1, {**_base_topic(), "zone_names": []})
-    topic2 = create_topic(USER1, {**_base_topic(), "zone_names": [zone1.zone_name]})
-    topic3 = create_topic(USER1, {**_base_topic(), "zone_names": [zone2.zone_name]})
-    topic4 = create_topic(
-        USER1, {**_base_topic(), "zone_names": [zone1.zone_name, zone2.zone_name]}
-    )
-    topic5 = create_topic(USER1, {**_base_topic(), "zone_names": []})
-    assert_200(
-        client.put(f"/topics/{topic5.topic_id}", headers=headers(USER1), json={"disabled": True})
-    )
-
-    def _eval_upload_tags_file(pteam: schemas.PTeamInfo, lines_: List[str], params_: dict) -> dict:
-        with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
-            for line in lines_:
-                tfile.writelines(json.dumps(line) + "\n")
-            tfile.flush()
-            tfile.seek(0)
-            with open(tfile.name, "rb") as bfile:
-                return assert_200(
-                    client.post(
-                        f"/pteams/{pteam.pteam_id}/upload_tags_file",
-                        headers=file_upload_headers(USER1),
-                        files={"file": bfile},
-                        params=params_,
-                    )
-                )
-
-    def _tags_summary(pteam: schemas.PTeamInfo) -> dict:
-        return assert_200(
-            client.get(f"/pteams/{pteam.pteam_id}/tags/summary", headers=headers(USER1))
-        )
-
-    def _tt_status(
-        pteam: schemas.PTeamInfo,
-        topic: schemas.Topic,
-        tag: schemas.TagResponse,
-    ) -> dict:
-        return assert_200(
-            client.get(
-                f"/pteams/{pteam.pteam_id}/topicstatus/{topic.topic_id}/{tag.tag_id}",
-                headers=headers(USER1),
-            )
-        )
-
-    pteam1 = create_pteam(USER1, {**PTEAM1, "tags": [], "zone_names": []})
-    # no tags
-    summary = _tags_summary(pteam1)
-    summary_exp0 = {
-        "threat_impact_count": {"1": 0, "2": 0, "3": 0, "4": 0},
-        "tags": [],
-    }
-    assert summary == summary_exp0
-    # add tag1(child) to pteam1
-    ref1 = {"target": "target1", "version": "2.0"}
-    lines = [
-        {"tag_name": tag1.tag_name, "references": [ref1]},
-    ]
-    data = _eval_upload_tags_file(pteam1, lines, group_a)
-    tag_exp1 = {
-        **schema_to_dict(tag1),
-        "references": [{**ref1, **group_a}],
-    }
-    assert data == [tag_exp1]
-    summary = _tags_summary(pteam1)
-    summary_exp1 = {
-        "threat_impact_count": {"1": 0, "2": 0, "3": 0, "4": 1},
-        "tags": [
-            {
-                **tag_exp1,
-                "threat_impact": None,
-                "updated_at": None,
-                "status_count": {"alerted": 0, "acknowledged": 0, "scheduled": 0, "completed": 1},
-            }
-        ],
-    }
-    assert summary == summary_exp1
-    for topic in [topic1]:
-        data = _tt_status(pteam1, topic, tag1)
-        assert data["topic_status"] == "completed"
-        assert data["note"] == "auto closed by system"
-    for topic in [topic2, topic3, topic4]:
-        with pytest.raises(HTTPError, match=r"404: Not Found: You do not have related zone"):
-            _tt_status(pteam1, topic, tag1)
-    for topic in [topic5]:
-        with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
-            _tt_status(pteam1, topic, tag1)
-
-    # pteam2 having zone1
-    pteam2 = create_pteam(USER1, {**PTEAM1, "tags": [], "zone_names": [zone1.zone_name]})
-    # add tag1(child) to pteam2
-    data = _eval_upload_tags_file(pteam2, lines, group_a)
-    assert data == [tag_exp1]
-    summary = _tags_summary(pteam2)
-    summary_exp2 = {
-        "threat_impact_count": {"1": 0, "2": 0, "3": 0, "4": 1},
-        "tags": [
-            {
-                **tag_exp1,
-                "threat_impact": None,
-                "updated_at": None,
-                "status_count": {"alerted": 0, "acknowledged": 0, "scheduled": 0, "completed": 3},
-            }
-        ],
-    }
-    assert summary == summary_exp2
-    for topic in [topic1, topic2, topic4]:
-        data = _tt_status(pteam2, topic, tag1)
-        assert data["topic_status"] == "completed"
-        assert data["note"] == "auto closed by system"
-    for topic in [topic3]:
-        with pytest.raises(HTTPError, match=r"404: Not Found: You do not have related zone"):
-            _tt_status(pteam2, topic, tag1)
-    for topic in [topic5]:
-        with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
-            _tt_status(pteam2, topic, tag1)
-
-    # pteam3 having zone1 + zone2
-    pteam3 = create_pteam(
-        USER1, {**PTEAM1, "tags": [], "zone_names": [zone1.zone_name, zone2.zone_name]}
-    )
-    # add tag1(child) to pteam3
-    data = _eval_upload_tags_file(pteam3, lines, group_a)
-    assert data == [tag_exp1]
-    summary = _tags_summary(pteam3)
-    summary_exp3 = {
-        "threat_impact_count": {"1": 0, "2": 0, "3": 0, "4": 1},
-        "tags": [
-            {
-                **tag_exp1,
-                "threat_impact": None,
-                "updated_at": None,
-                "status_count": {"alerted": 0, "acknowledged": 0, "scheduled": 0, "completed": 4},
-            }
-        ],
-    }
-    assert summary == summary_exp3
-    for topic in [topic1, topic2, topic3, topic4]:
-        data = _tt_status(pteam3, topic, tag1)
-        assert data["topic_status"] == "completed"
-        assert data["note"] == "auto closed by system"
-    for topic in [topic5]:
-        with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
-            _tt_status(pteam3, topic, tag1)
 
 
 def test_remove_pteamtags_by_group():
@@ -6392,7 +5382,6 @@ class TestAutoClose:
                         TAG1: [">=1.0 <2.0"],
                     },
                 },
-                "zone_names": [],
                 **kwargs,
             }
             return action
@@ -6411,9 +5400,6 @@ class TestAutoClose:
 
         class TestOnUpdateTopic:
             util: Type
-            gteam1: schemas.GTeamInfo
-            zone1: schemas.ZoneInfo
-            zone2: schemas.ZoneInfo
             tag1: schemas.TagResponse
             topic1: schemas.Topic
             action1: schemas.ActionResponse
@@ -6422,45 +5408,17 @@ class TestAutoClose:
             def common_setup(self):
                 self.util = TestAutoClose._Util
                 create_user(USER1)
-                self.gteam1 = create_gteam(USER1, GTEAM1)
-                self.zone1 = create_zone(USER1, self.gteam1.gteam_id, ZONE1)
-                self.zone2 = create_zone(USER1, self.gteam1.gteam_id, ZONE2)
                 self.tag1 = create_tag(USER1, TAG1)
                 topic1 = create_topic(
                     USER1,
                     {
                         **TOPIC1,
                         "tags": [TAG1],
-                        "zone_names": [ZONE1["zone_name"]],
                         "actions": [TestAutoClose._Util.gen_action_dict()],
                     },
                 )
                 self.action1 = topic1.actions[0]
                 self.topic1 = topic1
-
-            def test_update_topic__to_visible(self) -> None:
-                pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE2["zone_name"]]})
-                refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
-                upload_pteam_tags(USER1, pteam1.pteam_id, "group1", refs0)
-                with pytest.raises(
-                    HTTPError,
-                    match=r"404: Not Found: You do not have related zone",
-                ):
-                    self.util.get_topic_status(pteam1, self.topic1, self.tag1)
-
-                # test auto-close triggerd when topic become visible
-                request = {"zone_names": [ZONE2["zone_name"]]}
-                assert_200(
-                    client.put(
-                        f"/topics/{self.topic1.topic_id}", headers=headers(USER1), json=request
-                    )
-                )
-
-                status = self.util.get_topic_status(pteam1, self.topic1, self.tag1)
-                assert status.topic_status == models.TopicStatusType.completed
-                assert len(status.action_logs) == 1
-                log0 = status.action_logs[0]
-                assert log0.action_id == self.action1.action_id
 
             def test_update_topic__to_enable(self) -> None:
                 request = {"disabled": True}
@@ -6470,7 +5428,7 @@ class TestAutoClose:
                     )
                 )
 
-                pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
+                pteam1 = create_pteam(USER1, PTEAM1)
                 refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
                 upload_pteam_tags(USER1, pteam1.pteam_id, "group1", refs0)
                 with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
@@ -6494,9 +5452,6 @@ class TestAutoClose:
         class TestOnCreateAction:
             util: Type
             pteam1: schemas.PTeamInfo
-            gteam1: schemas.GTeamInfo
-            zone1: schemas.ZoneInfo
-            zone2: schemas.ZoneInfo
             tag1: schemas.TagResponse
             topic1: schemas.Topic
 
@@ -6504,12 +5459,9 @@ class TestAutoClose:
             def common_setup(self):
                 self.util = TestAutoClose._Util
                 create_user(USER1)
-                self.gteam1 = create_gteam(USER1, GTEAM1)
-                self.zone1 = create_zone(USER1, self.gteam1.gteam_id, ZONE1)
-                self.zone2 = create_zone(USER1, self.gteam1.gteam_id, ZONE2)
                 self.tag1 = create_tag(USER1, TAG1)
                 self.tag2 = create_tag(USER1, TAG2)
-                self.pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
+                self.pteam1 = create_pteam(USER1, PTEAM1)
                 refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
                 upload_pteam_tags(USER1, self.pteam1.pteam_id, "group1", refs0)
                 self.topic1 = create_topic(
@@ -6518,11 +5470,10 @@ class TestAutoClose:
                         **TOPIC1,
                         "tags": [TAG1, TAG2],
                         "actions": [],
-                        "zone_names": [],
                     },
                 )
 
-            def test_add_action__matched_accessible(self) -> None:
+            def test_add_action__matched(self) -> None:
                 # topic1 alerted because of having no actions
                 status = self.util.get_topic_status(self.pteam1, self.topic1, self.tag1)
                 assert status.topic_status in {models.TopicStatusType.alerted, None}
@@ -6577,37 +5528,9 @@ class TestAutoClose:
                 log0 = status.action_logs[0]
                 assert log0.action_id == action2.action_id
 
-            def test_add_action__not_accessible(self) -> None:
-                status = self.util.get_topic_status(self.pteam1, self.topic1, self.tag1)
-                assert status.topic_status in {models.TopicStatusType.alerted, None}
-
-                # test auto-close aborted if accessible action not found
-                action1_dict = self.util.gen_action_dict(zone_names=[ZONE2["zone_name"]])
-                create_action(USER1, action1_dict, self.topic1.topic_id)
-
-                status = self.util.get_topic_status(self.pteam1, self.topic1, self.tag1)
-                assert status.topic_status in {models.TopicStatusType.alerted, None}
-
-                # test auto-close pick only accessible actions
-                action2_dict = {
-                    **action1_dict,
-                    "action": action1_dict["action"] + "xxx",  # not to conflict action_id
-                    "zone_names": [ZONE1["zone_name"]],
-                }
-                action2 = create_action(USER1, action2_dict, self.topic1.topic_id)
-
-                status = self.util.get_topic_status(self.pteam1, self.topic1, self.tag1)
-                assert status.topic_status == models.TopicStatusType.completed
-                assert len(status.action_logs) == 1
-                log0 = status.action_logs[0]
-                assert log0.action_id == action2.action_id
-
         class TestOnDeleteAction:
             util: Type
             pteam1: schemas.PTeamInfo
-            gteam1: schemas.GTeamInfo
-            zone1: schemas.ZoneInfo
-            zone2: schemas.ZoneInfo
             tag1: schemas.TagResponse
             topic1: schemas.Topic
 
@@ -6615,12 +5538,9 @@ class TestAutoClose:
             def common_setup(self):
                 self.util = TestAutoClose._Util
                 create_user(USER1)
-                self.gteam1 = create_gteam(USER1, GTEAM1)
-                self.zone1 = create_zone(USER1, self.gteam1.gteam_id, ZONE1)
-                self.zone2 = create_zone(USER1, self.gteam1.gteam_id, ZONE2)
                 self.tag1 = create_tag(USER1, TAG1)
                 self.tag2 = create_tag(USER1, TAG2)
-                self.pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": [ZONE1["zone_name"]]})
+                self.pteam1 = create_pteam(USER1, PTEAM1)
                 refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
                 upload_pteam_tags(USER1, self.pteam1.pteam_id, "group1", refs0)
                 self.topic1 = create_topic(
@@ -6629,7 +5549,6 @@ class TestAutoClose:
                         **TOPIC1,
                         "tags": [TAG1, TAG2],
                         "actions": [],
-                        "zone_names": [],
                     },
                 )
 
@@ -6673,59 +5592,20 @@ class TestAutoClose:
         class TestOnUpdatePTeam:
             util: Type
             pteam1: schemas.PTeamInfo
-            gteam1: schemas.GTeamInfo
-            zone1: schemas.ZoneInfo
-            zone2: schemas.ZoneInfo
             tag1: schemas.TagResponse
 
             @pytest.fixture(scope="function", autouse=True)
             def common_setup(self):
                 self.util = TestAutoClose._Util
                 create_user(USER1)
-                self.gteam1 = create_gteam(USER1, GTEAM1)
-                self.zone1 = create_zone(USER1, self.gteam1.gteam_id, ZONE1)
-                self.zone2 = create_zone(USER1, self.gteam1.gteam_id, ZONE2)
                 self.tag1 = create_tag(USER1, TAG1)
-                self.pteam1 = create_pteam(USER1, {**PTEAM1, "zone_names": []})
+                self.pteam1 = create_pteam(USER1, PTEAM1)
                 refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
                 upload_pteam_tags(USER1, self.pteam1.pteam_id, "group1", refs0)
-
-            def test_update_pteam__to_visible(self) -> None:
-                topic1 = create_topic(
-                    USER1,
-                    {
-                        **TOPIC1,
-                        "tags": [TAG1],
-                        "zone_names": [ZONE1["zone_name"]],
-                        "actions": [self.util.gen_action_dict()],
-                    },
-                )
-                action1 = topic1.actions[0]
-
-                with pytest.raises(
-                    HTTPError,
-                    match=r"404: Not Found: You do not have related zone",
-                ):
-                    self.util.get_topic_status(self.pteam1, topic1, self.tag1)
-
-                # test auto-close triggerd when pteam become accessible
-                request = {"zone_names": [ZONE1["zone_name"]]}
-                assert_200(
-                    client.put(
-                        f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=request
-                    )
-                )
-
-                status = self.util.get_topic_status(self.pteam1, topic1, self.tag1)
-                assert status.topic_status == models.TopicStatusType.completed
-                assert len(status.action_logs) == 1
-                log0 = status.action_logs[0]
-                assert log0.action_id == action1.action_id
 
             def test_update_pteam__to_enable(self) -> None:
                 request = {
                     "disabled": True,
-                    "zone_names": [ZONE1["zone_name"]],
                 }
                 assert_200(
                     client.put(
@@ -6739,7 +5619,6 @@ class TestAutoClose:
                         **TOPIC1,
                         "tags": [TAG1],
                         "actions": [self.util.gen_action_dict()],
-                        "zone_names": [ZONE1["zone_name"]],
                     },
                 )
                 action1 = topic1.actions[0]

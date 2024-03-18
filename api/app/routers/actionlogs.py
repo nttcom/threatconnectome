@@ -11,10 +11,7 @@ from app import models, schemas
 from app.auth import get_current_user
 from app.common import (
     check_pteam_membership,
-    check_zone_accessible,
     create_actionlog_internal,
-    create_secbadge_from_actionlog_internal,
-    get_metadata_internal,
     validate_topic,
 )
 from app.database import get_db
@@ -121,32 +118,6 @@ def search_logs(
     return sorted(rows, key=lambda x: x.executed_at, reverse=True)
 
 
-@router.get("/{logging_id}/metadata", response_model=schemas.BadgeRequest)
-def get_metadata(
-    logging_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get metadata from the specified actionlog to create secbadge.
-    Secbadge can only be issued with actionlog that have action_type of elimination or mitigation.
-    """
-    return get_metadata_internal(logging_id, current_user, db)
-
-
-@router.post("/{logging_id}/achievement", response_model=schemas.SecBadgeBody)
-def create_secbadge_from_actionlog(
-    logging_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Create secbadge from the actionlog.
-    Secbadge can only be issued with actionlog that have action_type of elimination or mitigation.
-    """
-    return create_secbadge_from_actionlog_internal(logging_id, current_user, db)
-
-
 @router.get("/topics/{topic_id}", response_model=List[schemas.ActionLogResponse])
 def get_topic_logs(
     topic_id: UUID,
@@ -158,7 +129,6 @@ def get_topic_logs(
     """
     topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
     assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
     rows = (
         db.query(models.ActionLog)
         .filter(
