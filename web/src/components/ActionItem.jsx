@@ -16,7 +16,6 @@ export function ActionItem(props) {
     actionType,
     createdAt,
     recommended,
-    zones,
     ext,
     focusTags,
     onChangeRecommended,
@@ -49,7 +48,6 @@ export function ActionItem(props) {
           action: action,
           action_type: actionType,
           recommended: !recommended,
-          zones: zones,
           ext: ext,
         })
       }
@@ -88,16 +86,6 @@ export function ActionItem(props) {
   ) : (
     <></>
   );
-  const zonesInfo = !(zones && zones?.length > 0) ? (
-    <></>
-  ) : (
-    <Typography color={grey[600]} variant="caption">
-      Zones:{" "}
-      {typeof zones?.[0] === "string"
-        ? zones.join(", ")
-        : zones.map((zone) => zone.zone_name).join(", ")}
-    </Typography>
-  );
 
   return (
     <>
@@ -122,7 +110,6 @@ export function ActionItem(props) {
               >
                 <Box display="flex" flexDirection="column">
                   {extInfo}
-                  {zonesInfo}
                   <UUIDTypography>{actionId}</UUIDTypography>
                   <Typography color={grey[600]} variant="caption">
                     {dateTimeFormat(createdAt)}
@@ -144,10 +131,6 @@ ActionItem.propTypes = {
   actionType: PropTypes.string.isRequired,
   createdAt: PropTypes.string,
   recommended: PropTypes.bool,
-  zones: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.string),
-    PropTypes.arrayOf(PropTypes.object),
-  ]),
   ext: PropTypes.object,
   focusTags: PropTypes.arrayOf(PropTypes.string),
   onChangeRecommended: PropTypes.func,

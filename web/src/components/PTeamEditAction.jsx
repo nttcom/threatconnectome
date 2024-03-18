@@ -63,7 +63,6 @@ export function PTeamEditAction(props) {
   const [abst, setAbst] = useState("");
   const [threatImpact, setThreatImpact] = useState(4);
   const [tagIds, setTagIds] = useState([]);
-  const [zoneNames, setZoneNames] = useState([]);
   const [mispTags, setMispTags] = useState("");
   const [actionTagOptions, setActionTagOptions] = useState([]);
   const [actions, setActions] = useState([]);
@@ -88,7 +87,6 @@ export function PTeamEditAction(props) {
             ? [presetTagId]
             : [],
     );
-    setZoneNames(src?.zones?.map((zone) => zone.zone_name) ?? []);
     setMispTags(src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",") ?? "");
     setActionTagOptions([
       ...new Set([
@@ -160,10 +158,8 @@ export function PTeamEditAction(props) {
     actions.forEach((a) => {
       const actionRequest = {
         ...a,
-        zone_names: a.zones.map((zone) => zone.zone_name),
         topic_id: topicId,
       };
-      delete actionRequest.zones;
       if (a.action_id === null) {
         createAction(actionRequest).catch((error) => operationError(error));
       } else if (presetActionIds.has(a.action_id)) {
@@ -192,7 +188,6 @@ export function PTeamEditAction(props) {
       abstract: abst,
       threat_impact: parseInt(threatImpact),
       tags: allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
-      zone_names: zoneNames,
       misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
     };
     await updateTopic(topicId, data)
@@ -326,7 +321,6 @@ export function PTeamEditAction(props) {
                             actionId={action.action_id}
                             actionType={action.action_type}
                             recommended={action.recommended}
-                            zones={action.zones}
                             ext={action.ext}
                             onChangeRecommended={() =>
                               setActions(
@@ -389,11 +383,6 @@ PTeamEditAction.propTypes = {
       action: PropTypes.string,
       action_type: PropTypes.string,
       recommended: PropTypes.bool,
-      zones: PropTypes.arrayOf(
-        PropTypes.shape({
-          zone_name: PropTypes.string,
-        }),
-      ),
       ext: PropTypes.shape({
         tags: PropTypes.array,
         vulnerable_versions: PropTypes.object,

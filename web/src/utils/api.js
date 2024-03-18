@@ -146,56 +146,6 @@ export const updateATeamTopicComment = async (ateamId, topicId, commentId, data)
 export const deleteATeamTopicComment = async (ateamId, topicId, commentId) =>
   axios.delete(`/ateams/${ateamId}/topiccomment/${topicId}/${commentId}`);
 
-// gteams
-export const updateGTeam = async (gteamId, data) => axios.put(`/gteams/${gteamId}`, data);
-
-export const createGTeam = async (data) => axios.post("/gteams", data);
-
-export const getGTeam = async (gteamId) => axios.get(`/gteams/${gteamId}`);
-
-export const getGTeamMembers = async (gteamId) => axios.get(`/gteams/${gteamId}/members`);
-
-export const deleteGTeamMember = async (gteamId, userId) =>
-  axios.delete(`/gteams/${gteamId}/members/${userId}`);
-
-export const createGTeamInvitation = async (gteamId, data) =>
-  axios.post(`/gteams/${gteamId}/invitation`, data);
-
-export const getGTeamInvited = async (tokenId) => axios.get(`/gteams/invitation/${tokenId}`);
-
-export const applyGTeamInvitation = async (tokenId) =>
-  axios.post("/gteams/apply_invitation", { invitation_id: tokenId });
-
-export const getGTeamAuthInfo = async () => axios.get("/gteams/auth_info");
-
-export const getGTeamAuth = async (gteamId) => axios.get(`/gteams/${gteamId}/authority`);
-
-export const updateGTeamAuth = async (gteamId, data) =>
-  axios.post(`/gteams/${gteamId}/authority`, data);
-
-export const createGTeamZone = async (gteamId, data) =>
-  axios.post(`/gteams/${gteamId}/zones`, data);
-
-export const deleteGTeamZone = async (gteamId, zoneName) =>
-  axios.delete(`/gteams/${gteamId}/zones/${zoneName}`);
-
-export const updateZone = async (gteamId, zoneName, data) =>
-  axios.put(`/gteams/${gteamId}/zones/${zoneName}`, data);
-
-export const updateZoneArchived = async (gteamId, zoneName, data) =>
-  axios.put(`/gteams/${gteamId}/zones/${zoneName}/archived`, data);
-
-export const getGTeamZonesSummary = async (gteamId) =>
-  axios.get(`/gteams/${gteamId}/zones/summary`);
-
-export const deleteZoneFromPTeam = async (gteamId, zoneName, pteamId) =>
-  axios.delete(`/gteams/${gteamId}/zones/${zoneName}/pteams/${pteamId}`);
-
-// zones
-export const getAuthorizedZones = async () => axios.get("/zones/authorized_for_me");
-
-export const getZonedTeams = async (zoneName) => axios.get(`/zones/${zoneName}/teams`);
-
 // topics
 export const getTopic = async (topicId) => axios.get(`/topics/${topicId}`);
 

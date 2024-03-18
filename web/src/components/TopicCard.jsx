@@ -300,7 +300,6 @@ export function TopicCard(props) {
                           actionType={action.action_type}
                           createdAt={action.created_at}
                           recommended={action.recommended}
-                          zones={action.zones}
                           ext={action.ext}
                           focusTags={
                             actionFilter
@@ -387,7 +386,6 @@ export function TopicCard(props) {
                           actionType={action.action_type}
                           createdAt={action.created_at}
                           recommended={action.recommended}
-                          zones={action.zones}
                           ext={action.ext}
                           focusTags={
                             actionFilter
