@@ -3,7 +3,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   createUser as apiCreateUser,
   deleteUser as apiDeleteUser,
-  getAuthorizedZones as apiGetAuthorizedZones,
   getMyUserInfo as apiGetUser,
   updateUser as apiUpdateUser,
 } from "../utils/api";
@@ -26,14 +25,8 @@ export const updateUser = createAsyncThunk(
     await apiUpdateUser(data.userId, { ...data.user }).then((response) => response.data),
 );
 
-export const getAuthorizedZones = createAsyncThunk(
-  "user/getAuthorizedZones",
-  async () => await apiGetAuthorizedZones().then((response) => response.data),
-);
-
 const _initialUserState = {
   user: {},
-  zones: undefined,
 };
 
 const userSlice = createSlice({
@@ -61,10 +54,6 @@ const userSlice = createSlice({
       .addCase(updateUser.fulfilled, (state, action) => ({
         ...state,
         user: action.payload,
-      }))
-      .addCase(getAuthorizedZones.fulfilled, (state, action) => ({
-        ...state,
-        zones: action.payload,
       }));
   },
 });

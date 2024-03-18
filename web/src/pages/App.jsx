@@ -9,7 +9,6 @@ import { AppBar } from "../components/AppBar";
 import { Drawer } from "../components/Drawer";
 import { Main } from "../components/Main";
 import { setATeamId } from "../slices/ateam";
-import { setGTeamId } from "../slices/gteam";
 import { getPTeamTagsSummary, setPTeamId } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
 import { getTags } from "../slices/tags";
@@ -90,27 +89,6 @@ export function App() {
         return;
       }
       dispatch(setATeamId(params.get("ateamId")));
-    } else if (["/gteam"].includes(location.pathname) || /\/zone/.test(location.pathname)) {
-      dispatch(setTeamMode("gteam"));
-      if (!user.gteams.length > 0) {
-        dispatch(setGTeamId(undefined));
-        return;
-      }
-      const gteamIdx = params.get("gteamId") || user.gteams[0].gteam_id;
-      if (!user.gteams.find((gteam) => gteam.gteam_id === gteamIdx)) {
-        enqueueSnackbar(`Wrong gteamId. Force switching to '${user.gteams[0].gteam_name}'.`, {
-          variant: "error",
-        });
-        params.set("gteamId", user.gteams[0].gteam_id);
-        navigate(location.pathname + "?" + params.toString());
-        return;
-      }
-      if (params.get("gteamId") !== gteamIdx) {
-        params.set("gteamId", gteamIdx);
-        navigate(location.pathname + "?" + params.toString());
-        return;
-      }
-      dispatch(setGTeamId(params.get("gteamId")));
     } else if (
       ["/", "/pteam", "/pteam/watching_request"].includes(location.pathname) ||
       /\/tags\//.test(location.pathname)

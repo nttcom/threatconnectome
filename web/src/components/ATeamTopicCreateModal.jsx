@@ -1,7 +1,6 @@
 import {
   AddBox as AddBoxIcon,
   Close as CloseIcon,
-  FiberManualRecord as FiberManualRecordIcon,
   SentimentSatisfiedAlt as SentimentSatisfiedAltIcon,
   SentimentVeryDissatisfied as SentimentVeryDissatisfiedIcon,
 } from "@mui/icons-material";
@@ -19,8 +18,6 @@ import {
   TextField,
   Typography,
   List,
-  ListItem,
-  ListItemText,
 } from "@mui/material";
 import { blue, grey, red, green } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
@@ -31,7 +28,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { getATeamTopics } from "../slices/ateam";
 import { getTopic } from "../slices/topics";
-import { createTopic, getZonedTeams } from "../utils/api";
+import { createTopic } from "../utils/api";
 import { actionTypes, modalCommonButtonStyle } from "../utils/const";
 import { pickMismatchedTopicActionTags, validateNotEmpty, validateUUID } from "../utils/func";
 
@@ -39,7 +36,6 @@ import { ActionGenerator } from "./ActionGenerator";
 import { ActionItem } from "./ActionItem";
 import { ThreatImpactChip } from "./ThreatImpactChip";
 import { TopicTagSelector } from "./TopicTagSelector";
-import { ZoneSelectorModal } from "./ZoneSelectorModal";
 
 const steps = ["Threat, Vulnerability, and Risk", "Dissemination", "Response planning"];
 
@@ -52,9 +48,7 @@ export function ATeamTopicCreateModal(props) {
   const [abst, setAbst] = useState("");
   const [threatImpact, setThreatImpact] = useState(1);
   const [tagIds, setTagIds] = useState([]);
-  const [zoneNames, setZoneNames] = useState([]);
   const [actions, setActions] = useState([]);
-  const [zonesRelatedTeams, setZonesRelatedTeams] = useState({ ateams: {}, pteams: {} });
   const [actionTagOptions, setActionTagOptions] = useState([]);
   const [editActionOpen, setEditActionOpen] = useState(false);
   const [editActionTarget] = useState({});
@@ -72,7 +66,6 @@ export function ATeamTopicCreateModal(props) {
     setAbst("");
     setThreatImpact(1);
     setTagIds([]);
-    setZoneNames([]);
     setActions([]);
   };
 
@@ -83,50 +76,7 @@ export function ATeamTopicCreateModal(props) {
     });
   };
 
-  const validateTopicParams = () =>
-    validateUUID(topicId) &&
-    validateNotEmpty(title) &&
-    (zoneNames.length === 0 ||
-      (zonesRelatedTeams !== undefined && Object.values(zonesRelatedTeams.pteams).length > 0));
-
-  const collectZonesRelatedTeams = async (zoneNames) => {
-    const emptyResult = { ateams: {}, pteams: {} };
-    const solvedData = await Promise.all(
-      zoneNames.map((zoneName) => getZonedTeams(zoneName)),
-    ).catch((error) => {
-      operationError(error);
-    });
-    if (solvedData === undefined) return undefined; // caught error
-
-    return solvedData
-      .map((solved) => solved.data)
-      .reduce(
-        (ret, teamData) => ({
-          ...ret,
-          ateams: {
-            ...ret.ateams,
-            ...teamData.ateams.reduce(
-              (newATeams, ateam) => ({
-                ...newATeams,
-                [ateam.ateam_id]: ateam,
-              }),
-              {},
-            ),
-          },
-          pteams: {
-            ...ret.pteams,
-            ...teamData.pteams.reduce(
-              (newPTeams, pteam) => ({
-                ...newPTeams,
-                [pteam.pteam_id]: pteam,
-              }),
-              {},
-            ),
-          },
-        }),
-        emptyResult,
-      );
-  };
+  const validateTopicParams = () => validateUUID(topicId) && validateNotEmpty(title);
 
   const createActionTagOptions = (tagIdList) => {
     // TODO
@@ -159,16 +109,10 @@ export function ATeamTopicCreateModal(props) {
       abstract: abst,
       threat_impact: parseInt(threatImpact),
       tags: allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
-      zone_names: zoneNames,
       actions: actions.map((action) => {
         const obj = {
           ...action,
-          zone_names:
-            action.zones?.length > 0 && typeof action.zones[0] === "string"
-              ? action.zones
-              : action.zones.map((zone) => zone.zone_name),
         };
-        delete obj.zones;
         return obj;
       }),
     };
@@ -364,64 +308,9 @@ export function ATeamTopicCreateModal(props) {
                 />
                 <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    Zone
-                  </Typography>
-                  <ZoneSelectorModal
-                    currentZoneNames={zoneNames}
-                    onApply={async (newZoneNames) => {
-                      if (newZoneNames.sort().toString() === zoneNames.toString()) return;
-                      setZonesRelatedTeams(await collectZonesRelatedTeams(newZoneNames));
-                      setZoneNames(newZoneNames.sort());
-                    }}
-                  />
-                </Box>
-                <TextField
-                  size="small"
-                  variant="outlined"
-                  value={zoneNames.join(", ")}
-                  error={
-                    zoneNames.length > 0 &&
-                    (zonesRelatedTeams === undefined ||
-                      Object.values(zonesRelatedTeams.pteams).length === 0)
-                  }
-                  // sx={{ minWidth: "720px" }}
-                  sx={{ width: "100%" }}
-                  inputProps={{ readOnly: true }}
-                />
-                <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     The PTeam that the topic reaches
                   </Typography>
                 </Box>
-                <List sx={{ ml: 1 }}>
-                  {zoneNames.length === 0 ? (
-                    <>All of PTeams</>
-                  ) : zonesRelatedTeams === undefined ? (
-                    <Typography sx={{ color: "red" }}>Something went wrong</Typography>
-                  ) : Object.values(zonesRelatedTeams.pteams).length > 0 ? (
-                    <>
-                      {Object.values(zonesRelatedTeams.pteams).map((pteam) => (
-                        <ListItem key={pteam.pteam_id} disablePadding>
-                          <FiberManualRecordIcon
-                            sx={{ m: 1, color: grey[500], fontSize: "small" }}
-                          />
-                          <ListItemText
-                            primary={pteam.pteam_name}
-                            primaryTypographyProps={{
-                              style: {
-                                whiteSpace: "nowrap",
-                                overflow: "auto",
-                                textOverflow: "ellipsis",
-                              },
-                            }}
-                          />
-                        </ListItem>
-                      ))}
-                    </>
-                  ) : (
-                    <Typography sx={{ color: "red" }}>No PTeams</Typography>
-                  )}
-                </List>
               </Box>
             )}
             {activeStep === 2 && (
@@ -454,7 +343,6 @@ export function ATeamTopicCreateModal(props) {
                           actionId={action.action_id}
                           actionType={action.action_type}
                           recommended={action.recommended}
-                          zones={action.zones}
                           ext={action.ext}
                           onChangeRecommended={() =>
                             setActions(

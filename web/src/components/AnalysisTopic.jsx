@@ -422,24 +422,6 @@ export function AnalysisTopic(props) {
                 )}
               </Box>
               <Box sx={box_sx}>
-                <Typography fontWeight={900}>Zone</Typography>
-                <Box>
-                  {topicDetail.zones.length > 0 ? (
-                    <>
-                      {topicDetail.zones.map((zone, index) => (
-                        <Box key={index} ml={1}>
-                          <Typography variant="body">{zone.zone_name}</Typography>
-                        </Box>
-                      ))}
-                    </>
-                  ) : (
-                    <Typography sx={{ color: grey[500] }} ml={1}>
-                      No Data
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-              <Box sx={box_sx}>
                 <Box display="flex" flexDirection="columns" justifyContent="space-between">
                   <Typography mb={0.5} fontWeight={900}>
                     MISP Tags
@@ -554,12 +536,6 @@ export function AnalysisTopic(props) {
                               />
                             </Box>
                             <Box display="flex" flexDirection="columns">
-                              <Typography fontWeight={300}>Zone: </Typography>
-                              {action.zones.map((zone, index) => (
-                                <Typography key={index}>{zone.zone_name}</Typography>
-                              ))}
-                            </Box>
-                            <Box display="flex" flexDirection="columns">
                               <Typography fontWeight={300}>Author: </Typography>
                               <Typography>{action.created_by}</Typography>
                             </Box>
@@ -644,12 +620,6 @@ export function AnalysisTopic(props) {
                                   color: "#ffffff",
                                 }}
                               />
-                            </Box>
-                            <Box display="flex" flexDirection="columns">
-                              <Typography fontWeight={300}>Zone: </Typography>
-                              {action.zones.map((zone, index) => (
-                                <Typography key={index}>{zone.zone_name}</Typography>
-                              ))}
                             </Box>
                             <Box display="flex" flexDirection="columns">
                               <Typography fontWeight={300}>Author: </Typography>
