@@ -3,11 +3,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   createUser as apiCreateUser,
   deleteUser as apiDeleteUser,
-<<<<<<< HEAD
-  getAuthorizedZones as apiGetAuthorizedZones,
-=======
-  getAchievements as apiGetAchievements,
->>>>>>> 58a2cbd (delete zone and gteam in api and slices)
   getMyUserInfo as apiGetUser,
   updateUser as apiUpdateUser,
 } from "../utils/api";

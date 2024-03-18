@@ -1,7 +1,6 @@
 import {
   AddBox as AddBoxIcon,
   Close as CloseIcon,
-  FiberManualRecord as FiberManualRecordIcon,
   SentimentSatisfiedAlt as SentimentSatisfiedAltIcon,
   SentimentVeryDissatisfied as SentimentVeryDissatisfiedIcon,
 } from "@mui/icons-material";
@@ -19,8 +18,6 @@ import {
   TextField,
   Typography,
   List,
-  ListItem,
-  ListItemText,
 } from "@mui/material";
 import { blue, grey, red, green } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
