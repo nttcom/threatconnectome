@@ -675,7 +675,7 @@ export function AnalysisTopic(props) {
         </TabPanel>
         <TopicEditModal
           open={topicModalOpen}
-          setOpen={setTopicModalOpen}
+          onSetOpen={setTopicModalOpen}
           currentTopic={topicDetail}
           currentActions={topicActions}
         />
