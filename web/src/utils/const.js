@@ -8,7 +8,6 @@ import {
   blue,
   blueGrey,
   brown,
-  cyan,
   green,
   grey,
   lightBlue,
