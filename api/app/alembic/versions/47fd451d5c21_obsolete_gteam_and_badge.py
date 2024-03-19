@@ -16,6 +16,18 @@ branch_labels = None
 depends_on = None
 
 
+def _add_on_delete_cascade_to_topicaction() -> None:
+    op.drop_constraint("actionzone_action_id_fkey", table_name="actionzone")
+    op.create_foreign_key(
+        "actionzone_action_id_fkey",
+        "actionzone",
+        "topicaction",
+        ["action_id"],
+        ["action_id"],
+        ondelete="CASCADE",
+    )
+
+
 def _delete_zoned_actions() -> None:
     op.get_bind().exec_driver_sql(
         "DELETE FROM topicaction USING actionzone"
@@ -37,6 +49,8 @@ def _fix_obsoleted_pteam_auth() -> None:
 
 
 def upgrade() -> None:
+    # fix foreignkey constraint before dropping topicaction
+    _add_on_delete_cascade_to_topicaction()
     # delete zoned items before dropping zone table.
     _delete_zoned_actions()
     _delete_zoned_topics()
