@@ -1,3 +1,4 @@
+import { WarningAmber as WarningAmberIcon } from "@mui/icons-material";
 import {
   Box,
   Paper,
@@ -7,7 +8,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
 } from "@mui/material";
+import { orange } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -46,7 +49,12 @@ export function ATeamWatching(props) {
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell align="left" style={{ width: "30%" }}>
-                      {monitorTeam.pteam_name}
+                      <Box alignItems="center" display="flex" flexDirection="row">
+                        <Tooltip title="Last Update of SBOM: 2024/2/15">
+                          <WarningAmberIcon sx={{ color: orange[500], mr: 1 }} />
+                        </Tooltip>
+                        {monitorTeam.pteam_name}
+                      </Box>
                     </TableCell>
                     <TableCell align="left">{monitorTeam.contact_info}</TableCell>
                     <TableCell align="right">
