@@ -10,6 +10,10 @@ from constants import ACTION1, ACTION2, PTEAM1, TAG1, TOPIC1, TOPIC2, USER1
 base_url = os.getenv("BASE_URL", "http://localhost")
 
 
+def print_console(page: Page):
+    page.on("console", lambda msg: print("console:", msg.text, msg.location))
+
+
 def login(page: Page, user: dict):
     """
     common function to login on login page
@@ -40,13 +44,16 @@ def login(page: Page, user: dict):
 
 
 def test_login_first_time(page: Page):
+    print_console(page)
     # register user1 by login
     login(page, USER1)
+
     # navigate to account page
     expect(page).to_have_url(re.compile(".*/account"))
 
 
 def test_show_tag_page_directly(page: Page):
+    print_console(page)
     # register data via API
     pteam1 = create_pteam(USER1, PTEAM1)
     etags = upload_pteam_tags(
@@ -84,6 +91,7 @@ def test_show_tag_page_directly(page: Page):
 
 
 def test_show_tag_page(page: Page):
+    print_console(page)
     login(page, USER1)
 
     page.locator("#team-selector-button").click()
