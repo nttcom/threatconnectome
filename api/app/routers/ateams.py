@@ -1,29 +1,34 @@
 from datetime import datetime
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
-from sqlalchemy import and_, nullsfirst, or_, select
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import true
 
-from app import models, schemas
+from app import command, models, persistence, schemas
 from app.auth import get_current_user
 from app.common import (
     check_ateam_auth,
     check_ateam_membership,
     check_pteam_auth,
-    sortkey2orderby,
-    validate_ateam,
-    validate_pteam,
-    validate_topic,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 from app.database import get_db
 from app.slack import validate_slack_webhook_url
 
 router = APIRouter(prefix="/ateams", tags=["ateams"])
+
+NO_SUCH_ATEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ateam")
+NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+NOT_AN_ATEAM_MEMBER = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="Not an ateam member",
+)
+NOT_HAVE_AUTH = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="You do not have authority",
+)
 
 
 def _make_ateam_info(ateam: models.ATeam) -> schemas.ATeamInfo:
@@ -37,47 +42,6 @@ def _make_ateam_info(ateam: models.ATeam) -> schemas.ATeamInfo:
     )
 
 
-def _modify_ateam_auth(
-    db: Session,
-    ateam_id: Union[UUID, str],
-    authes: List[
-        Tuple[
-            Union[UUID, str],  # user_id
-            Union[models.ATeamAuthIntFlag, int],  # auth. 0 for delete
-        ]
-    ],
-):
-    for user_id, auth in authes:
-        if str(user_id) in map(str, [MEMBER_UUID, NOT_MEMBER_UUID]):
-            if auth & models.ATeamAuthIntFlag.ADMIN:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Cannot give ADMIN to pseudo account",
-                )
-        else:
-            check_ateam_membership(db, ateam_id, user_id, on_error=status.HTTP_400_BAD_REQUEST)
-
-    for user_id, auth in authes:
-        row = (
-            db.query(models.ATeamAuthority)
-            .filter(
-                models.ATeamAuthority.ateam_id == str(ateam_id),
-                models.ATeamAuthority.user_id == str(user_id),
-            )
-            .one_or_none()
-        )
-        if row is None:
-            if not auth:
-                continue  # nothing to remove
-            row = models.ATeamAuthority(ateam_id=str(ateam_id), user_id=str(user_id))
-        if auth:
-            row.authority = int(auth)
-            db.add(row)
-        else:
-            db.delete(row)
-    db.commit()
-
-
 @router.get("", response_model=List[schemas.ATeamEntry])
 def get_ateams(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
@@ -85,7 +49,7 @@ def get_ateams(
     """
     Get all ateam entries.
     """
-    return db.query(models.ATeam).all()
+    return persistence.get_all_ateams(db)
 
 
 @router.post("", response_model=schemas.ATeamInfo)
@@ -113,20 +77,32 @@ def create_ateam(
         enable=data.alert_mail.enable if data.alert_mail else True,
         address=data.alert_mail.address if data.alert_mail else "",
     )
-    current_user.ateams.append(ateam)
-    db.add(current_user)
-    db.commit()
-    db.refresh(ateam)
+    ateam = persistence.create_ateam(db, ateam)
 
-    _modify_ateam_auth(
-        db,
-        ateam.ateam_id,
-        [
-            (current_user.user_id, models.ATeamAuthIntFlag.ATEAM_MASTER),
-            (MEMBER_UUID, models.ATeamAuthIntFlag.ATEAM_MEMBER),
-            (NOT_MEMBER_UUID, models.ATeamAuthIntFlag.FREE_TEMPLATE),
-        ],
+    # join to the created ateam
+    ateam.members.append(current_user)
+
+    # set default authority
+    user_auth = models.ATeamAuthority(
+        ateam_id=ateam.ateam_id,
+        user_id=current_user.user_id,
+        authority=models.ATeamAuthIntFlag.ATEAM_MASTER,
     )
+    member_auth = models.ATeamAuthority(
+        ateam_id=ateam.ateam_id,
+        user_id=str(MEMBER_UUID),
+        authority=models.ATeamAuthIntFlag.ATEAM_MEMBER,
+    )
+    not_member_auth = models.ATeamAuthority(
+        ateam_id=ateam.ateam_id,
+        user_id=str(NOT_MEMBER_UUID),
+        authority=models.ATeamAuthIntFlag.FREE_TEMPLATE,
+    )
+    persistence.create_ateam_authority(db, user_auth)
+    persistence.create_ateam_authority(db, member_auth)
+    persistence.create_ateam_authority(db, not_member_auth)
+
+    db.commit()
 
     return _make_ateam_info(ateam)
 
@@ -159,21 +135,9 @@ def apply_invitation(
     """
     Apply invitation to ateam.
     """
-    _expire_invitations(db)
+    persistence.expire_ateam_invitations(db)
 
-    invitation = (
-        db.query(models.ATeamInvitation)
-        .filter(
-            models.ATeamInvitation.invitation_id == str(data.invitation_id),
-            or_(
-                models.ATeamInvitation.limit_count.is_(None),
-                models.ATeamInvitation.limit_count > models.ATeamInvitation.used_count,
-            ),
-        )
-        .with_for_update()
-        .one_or_none()
-    )  # lock and block!
-    if invitation is None:
+    if not (invitation := persistence.get_ateam_invitation_by_id(db, data.invitation_id)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) invitation id"
         )
@@ -183,20 +147,19 @@ def apply_invitation(
         )
 
     invitation.ateam.members.append(current_user)
-    invitation.used_count += 1
-    if invitation.authority > 0:
-        ateam_auth = db.query(models.ATeamAuthority).filter(
-            models.ATeamAuthority.ateam_id == invitation.ateam_id,
-            models.ATeamAuthority.user_id == current_user.user_id,
-        ).one_or_none() or models.ATeamAuthority(
-            ateam_id=invitation.ateam_id, user_id=current_user.user_id, authority=0
-        )
-        ateam_auth.authority |= invitation.authority
-        db.add(ateam_auth)
-    db.add(invitation)
-    db.commit()
-    db.refresh(invitation)
 
+    if invitation.authority:  # invitation with authority
+        # Note: non-members never have ateam auth
+        ateam_auth = models.ATeamAuthority(
+            ateam_id=invitation.ateam_id,
+            user_id=current_user.user_id,
+            authority=invitation.authority,
+        )
+        persistence.create_ateam_authority(db, ateam_auth)
+
+    invitation.used_count += 1
+
+    db.commit()
     return _make_ateam_info(invitation.ateam)
 
 
@@ -209,46 +172,27 @@ def apply_watching_request(
     """
     Apply watching request.
     """
-    _expire_watching_requests(db)
+    persistence.expire_ateam_watching_requests(db)
 
-    watching_request = (
-        db.query(models.ATeamWatchingRequest)
-        .filter(
-            models.ATeamWatchingRequest.request_id == str(data.request_id),
-            or_(
-                models.ATeamWatchingRequest.limit_count.is_(None),
-                models.ATeamWatchingRequest.limit_count > models.ATeamWatchingRequest.used_count,
-            ),
-        )
-        .with_for_update()
-        .one_or_none()
-    )  # lock and block!
-    if watching_request is None:
+    if not (watching_request := persistence.get_ateam_watching_request_by_id(db, data.request_id)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) request id"
         )
-    check_pteam_auth(
-        db,
-        data.pteam_id,
-        current_user.user_id,
-        models.PTeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
-
-    if str(data.pteam_id) in [pteam.pteam_id for pteam in watching_request.ateam.pteams]:
+    if str(data.pteam_id) in [_pteam.pteam_id for _pteam in watching_request.ateam.pteams]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Already connect to the ateam"
         )
+    if not (pteam := persistence.get_pteam_by_id(db, data.pteam_id)):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid pteam id")
+    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
+        raise NOT_HAVE_AUTH
 
-    pteam = validate_pteam(db, str(data.pteam_id), on_error=status.HTTP_400_BAD_REQUEST)
-    assert pteam
     watching_request.ateam.pteams.append(pteam)
-
     watching_request.used_count += 1
+    db.flush()
+    persistence.expire_ateam_watching_requests(db)
 
-    db.add(watching_request)
     db.commit()
-    db.refresh(watching_request)
 
     return pteam
 
@@ -262,9 +206,11 @@ def get_ateam(
     """
     Get ateam details. members only.
     """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_membership(db, ateam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
+    if not check_ateam_membership(ateam, current_user):
+        raise NOT_AN_ATEAM_MEMBER
     return _make_ateam_info(ateam)
 
 
@@ -282,15 +228,11 @@ def update_ateam(
     if data.alert_slack and data.alert_slack.webhook_url:
         validate_slack_webhook_url(data.alert_slack.webhook_url)
 
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_auth(
-        db,
-        ateam_id,
-        current_user.user_id,
-        models.ATeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
+    if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN):
+        raise NOT_HAVE_AUTH
     for key, value in data:
         if value is None:
             continue
@@ -301,7 +243,7 @@ def update_ateam(
             setattr(ateam, key, models.ATeamMail(**value.__dict__))
             continue
         setattr(ateam, key, value)
-    db.add(ateam)
+
     db.commit()
     db.refresh(ateam)
 
@@ -322,47 +264,62 @@ def update_ateam_auth(
       - 00000000-0000-0000-0000-0000cafe0001 : ateam member
       - 00000000-0000-0000-0000-0000cafe0002 : not ateam member
     """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_auth(
-        db,
-        ateam_id,
-        current_user.user_id,
-        models.ATeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
+    if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN):
+        raise NOT_HAVE_AUTH
 
     str_ids = [str(x.user_id) for x in requests]
     if len(set(str_ids)) != len(str_ids):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ambiguous request")
-    for str_id in str_ids:
-        if str_id == str(SYSTEM_UUID):
+
+    response = []
+    for request in requests:
+        if (user_id := str(request.user_id)) == str(SYSTEM_UUID):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
-        if str_id in {str(MEMBER_UUID), str(NOT_MEMBER_UUID)}:
-            continue
-        check_ateam_membership(db, ateam_id, str_id, on_error=status.HTTP_400_BAD_REQUEST)
+        if (user_id := str(request.user_id)) in list(map(str, [MEMBER_UUID, NOT_MEMBER_UUID])):
+            if "admin" in request.authorities:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cannot give ADMIN to pseudo account",
+                )
+        else:
+            if not (user := persistence.get_account_by_id(db, user_id)):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid user id",
+                )
+            if not check_ateam_membership(ateam, user):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Not an ateam member",
+                )
+        if not (auth := persistence.get_ateam_authority(db, ateam_id, user_id)):
+            auth = models.ATeamAuthority(
+                ateam_id=str(ateam_id),
+                user_id=user_id,
+                authority=0,
+            )
+            auth = persistence.create_ateam_authority(db, auth)
+        auth.authority = models.ATeamAuthIntFlag.from_enums(request.authorities)
 
-    if not any(models.ATeamAuthEnum.ADMIN in x.authorities for x in requests):
-        _guard_last_admin(db, ateam_id, str_ids)
-
-    _modify_ateam_auth(
-        db,
-        ateam_id,
-        [(x.user_id, models.ATeamAuthIntFlag.from_enums(x.authorities)) for x in requests],
-    )
-
-    authes = (
-        db.query(models.ATeamAuthority)
-        .filter(
-            models.ATeamAuthority.ateam_id == str(ateam_id),
-            models.ATeamAuthority.user_id.in_(str_ids),
+    db.flush()
+    if command.missing_ateam_admin(db, ateam):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"
         )
-        .all()
-    )
-    auth_map = {x.user_id: models.ATeamAuthIntFlag(x.authority).to_enums() for x in authes}
-    response = [
-        {"user_id": user_id, "authorities": auth_map.get(user_id) or []} for user_id in str_ids
-    ]
+
+    db.commit()
+
+    for request in requests:
+        auth = persistence.get_ateam_authority(db, ateam_id, request.user_id)
+        response.append(
+            {
+                "user_id": request.user_id,
+                "authorities": models.ATeamAuthIntFlag(auth.authority).to_enums() if auth else [],
+            }
+        )
     return response
 
 
@@ -379,24 +336,20 @@ def get_ateam_auth(
       - 00000000-0000-0000-0000-0000cafe0001 : ateam member
       - 00000000-0000-0000-0000-0000cafe0002 : not ateam member
     """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    rows = (
-        db.query(models.ATeamAuthority)
-        .filter(
-            models.ATeamAuthority.ateam_id == str(ateam_id),
-            (
-                true()
-                if check_ateam_membership(db, ateam_id, current_user.user_id)
-                else models.ATeamAuthority.user_id == str(NOT_MEMBER_UUID)
-            ),  # limit if not a member
-        )
-        .all()
-    )
-    return [
-        {"user_id": row.user_id, "authorities": models.ATeamAuthIntFlag(row.authority).to_enums()}
-        for row in rows
-    ]
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
+    if current_user in ateam.members:  # member can get all authorities
+        authorities = persistence.get_ateam_all_authorities(db, ateam_id)
+    else:  # not member can get only for NOT_MEMBER_UUID
+        auth_for_not_member = persistence.get_ateam_authority(db, ateam_id, NOT_MEMBER_UUID)
+        authorities = [auth_for_not_member] if auth_for_not_member else []
+
+    response = []
+    for auth in authorities:
+        enums = models.ATeamAuthIntFlag(auth.authority).to_enums()
+        response.append({"user_id": auth.user_id, "authorities": enums})
+    return response
 
 
 @router.get("/{ateam_id}/members", response_model=List[schemas.UserResponse])
@@ -408,27 +361,13 @@ def get_ateam_members(
     """
     Get members of the ateam.
     """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_membership(db, ateam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
+    if not check_ateam_membership(ateam, current_user):
+        raise NOT_AN_ATEAM_MEMBER
 
     return ateam.members
-
-
-def _guard_last_admin(db: Session, ateam_id: UUID, excludes: Sequence[Union[UUID, str]]):
-    if (
-        db.query(models.ATeamAuthority.user_id)
-        .filter(
-            models.ATeamAuthority.ateam_id == str(ateam_id),
-            models.ATeamAuthority.authority.op("&")(models.ATeamAuthIntFlag.ADMIN) > 0,
-            models.ATeamAuthority.user_id.not_in(list(map(str, excludes))),
-        )
-        .count()
-        == 0
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"
-        )
 
 
 @router.delete("/{ateam_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -441,42 +380,39 @@ def delete_member(
     """
     User leaves the ateam.
     """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
     if user_id in {MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID}:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot remove pseudo account"
         )
-    if current_user.user_id != str(user_id):
-        check_ateam_auth(
-            db,
-            ateam_id,
-            current_user.user_id,
-            models.ATeamAuthIntFlag.ADMIN,
-            on_error=status.HTTP_403_FORBIDDEN,
-        )
-    check_ateam_membership(db, ateam_id, user_id, on_error=status.HTTP_404_NOT_FOUND)
-    _guard_last_admin(db, ateam_id, [user_id])
-    _modify_ateam_auth(db, ateam_id, [(user_id, 0)])
 
-    ateam.members = [user for user in ateam.members if user.user_id != str(user_id)]
-    db.add(ateam)
+    if current_user.user_id != str(user_id) and not check_ateam_auth(
+        db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN
+    ):
+        raise NOT_HAVE_AUTH
+
+    target_users = [x for x in ateam.members if x.user_id == str(user_id)]
+    if len(target_users) == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ateam member")
+
+    # remove all extra authorities  # FIXME: should be deleted on cascade
+    if auth := persistence.get_ateam_authority(db, ateam_id, user_id):
+        command.workaround_delete_ateam_authority(db, auth)
+
+    # remove from members
+    ateam.members.remove(target_users[0])
+
+    db.flush()
+    if command.missing_ateam_admin(db, ateam):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"
+        )
+
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-def _expire_invitations(db: Session):
-    db.query(models.ATeamInvitation).filter(
-        or_(
-            models.ATeamInvitation.expiration < datetime.now(),
-            and_(
-                models.ATeamInvitation.limit_count.is_not(None),
-                models.ATeamInvitation.used_count >= models.ATeamInvitation.limit_count,
-            ),
-        )
-    ).delete()
-    db.commit()
 
 
 @router.post("/{ateam_id}/invitation", response_model=schemas.ATeamInvitationResponse)
@@ -489,16 +425,13 @@ def create_invitation(
     """
     Create a new ateam invitation token.
     """
-    validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_ateam_auth(
-        db,
-        ateam_id,
-        current_user.user_id,
-        models.ATeamAuthIntFlag.INVITE,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
+    if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.INVITE):
+        raise NOT_HAVE_AUTH
     if data.authorities is not None and not check_ateam_auth(
-        db, ateam_id, current_user.user_id, models.ATeamAuthIntFlag.ADMIN
+        db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="ADMIN required to set authorities"
@@ -510,13 +443,13 @@ def create_invitation(
             detail="Unwise limit_count (give null for unlimited)",
         )
 
-    _expire_invitations(db)
+    persistence.expire_ateam_invitations(db)
 
     del data.authorities
-    invitation = models.ATeamInvitation(
+    new_invitation = models.ATeamInvitation(
         ateam_id=str(ateam_id), user_id=current_user.user_id, authority=intflag, **data.model_dump()
     )
-    db.add(invitation)
+    invitation = persistence.create_ateam_invitation(db, new_invitation)
     db.commit()
     db.refresh(invitation)
 
@@ -535,17 +468,14 @@ def list_invitation(
     """
     List effective invitations.
     """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_auth(
-        db,
-        ateam_id,
-        current_user.user_id,
-        models.ATeamAuthIntFlag.INVITE,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
+    if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.INVITE):
+        raise NOT_HAVE_AUTH
 
-    _expire_invitations(db)
+    persistence.expire_ateam_invitations(db)
+    # do not commit within GET method
 
     return [
         {**item.__dict__, "authorities": models.ATeamAuthIntFlag(item.authority).to_enums()}
@@ -563,21 +493,18 @@ def delete_invitation(
     """
     Invalidate invitation to ateam.
     """
-    validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_ateam_auth(
-        db,
-        ateam_id,
-        current_user.user_id,
-        models.ATeamAuthIntFlag.INVITE,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
-    _expire_invitations(db)
+    if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
+        raise NO_SUCH_ATEAM
+    if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.INVITE):
+        raise NOT_HAVE_AUTH
+    persistence.expire_ateam_invitations(db)
 
     # omit validating invitation to avoid raising error if already expired.
-    db.query(models.ATeamInvitation).filter(
-        models.ATeamInvitation.invitation_id == str(invitation_id)
-    ).delete()
+    if invitation := persistence.get_ateam_invitation_by_id(db, invitation_id):
+        persistence.delete_ateam_invitation(db, invitation)
+
     db.commit()
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -586,11 +513,7 @@ def invited_ateam(invitation_id: UUID, db: Session = Depends(get_db)):
     """
     Get invited ateam info.
     """
-    invitation = (
-        db.query(models.ATeamInvitation)
-        .filter(models.ATeamInvitation.invitation_id == str(invitation_id))
-        .one_or_none()
-    )
+    invitation = persistence.get_ateam_invitation_by_id(db, invitation_id)
     if invitation is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No such invitation (or already expired)"
@@ -613,10 +536,11 @@ def get_watching_pteams(
     """
     Get watching pteams of the ateam.
     """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_membership(db, ateam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
+    if not check_ateam_membership(ateam, current_user):
+        raise NOT_AN_ATEAM_MEMBER
     return ateam.pteams
 
 
@@ -630,34 +554,17 @@ def remove_watching_pteam(
     """
     Remove pteam from watching list.
     """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_auth(
-        db,
-        ateam_id,
-        current_user.user_id,
-        models.ATeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
+    if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN):
+        raise NOT_HAVE_AUTH
 
     ateam.pteams = [pteam for pteam in ateam.pteams if pteam.pteam_id != str(pteam_id)]
-    db.add(ateam)
+
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-def _expire_watching_requests(db: Session):
-    db.query(models.ATeamWatchingRequest).filter(
-        or_(
-            models.ATeamWatchingRequest.expiration < datetime.now(),
-            and_(
-                models.ATeamWatchingRequest.limit_count.is_not(None),
-                models.ATeamWatchingRequest.used_count >= models.ATeamWatchingRequest.limit_count,
-            ),
-        )
-    ).delete()
-    db.commit()
 
 
 @router.post("/{ateam_id}/watching_request", response_model=schemas.ATeamWatchingRequestResponse)
@@ -670,26 +577,22 @@ def create_watching_request(
     """
     Create a new ateam watching request token.
     """
-    validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_ateam_auth(
-        db,
-        ateam_id,
-        current_user.user_id,
-        models.ATeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
+        raise NO_SUCH_ATEAM
+    if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN):
+        raise NOT_HAVE_AUTH
     if data.limit_count is not None and data.limit_count <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Unwise limit_count (give null for unlimited)",
         )
 
-    _expire_watching_requests(db)
+    persistence.expire_ateam_watching_requests(db)
 
-    watching_request = models.ATeamWatchingRequest(
+    new_watching_request = models.ATeamWatchingRequest(
         ateam_id=str(ateam_id), user_id=current_user.user_id, **data.model_dump()
     )
-    db.add(watching_request)
+    watching_request = persistence.create_ateam_watching_request(db, new_watching_request)
     db.commit()
     db.refresh(watching_request)
 
@@ -707,18 +610,14 @@ def list_watching_request(
     """
     List effective watching_request.
     """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_auth(
-        db,
-        ateam_id,
-        current_user.user_id,
-        models.ATeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    ateam = persistence.get_ateam_by_id(db, ateam_id)
+    if ateam is None:
+        raise NO_SUCH_ATEAM
+    if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN):
+        raise NOT_HAVE_AUTH
 
-    _expire_watching_requests(db)
-
+    persistence.expire_ateam_watching_requests(db)
+    db.commit()
     return ateam.watching_requests
 
 
@@ -732,21 +631,18 @@ def delete_watching_request(
     """
     Invalidate watching request.
     """
-    validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_ateam_auth(
-        db,
-        ateam_id,
-        current_user.user_id,
-        models.ATeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
-    _expire_watching_requests(db)
+    if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
+        raise NO_SUCH_ATEAM
+    if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN):
+        raise NOT_HAVE_AUTH
+    persistence.expire_ateam_watching_requests(db)
 
     # omit validating request to avoid raising error if already expired.
-    db.query(models.ATeamWatchingRequest).filter(
-        models.ATeamWatchingRequest.request_id == str(request_id)
-    ).delete()
+    if request := persistence.get_ateam_watching_request_by_id(db, request_id):
+        persistence.delete_ateam_watching_request(db, request)
+
     db.commit()
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -755,11 +651,7 @@ def get_requested_ateam(request_id: UUID, db: Session = Depends(get_db)):
     """
     Get ateam info of watching request.
     """
-    watching_request = (
-        db.query(models.ATeamWatchingRequest)
-        .filter(models.ATeamWatchingRequest.request_id == str(request_id))
-        .one_or_none()
-    )
+    watching_request = persistence.get_ateam_watching_request_by_id(db, request_id)
     if watching_request is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -798,85 +690,14 @@ def get_topic_status(
     - Empty string as **search** will be ignored.
     - The secondary sort key is updated_at_desc or threat_impact.
     """
-    ateam = validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert ateam
-    check_ateam_membership(db, ateam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-
+    if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
+        raise NO_SUCH_ATEAM
+    if not check_ateam_membership(ateam, current_user):
+        raise NOT_AN_ATEAM_MEMBER
     # ignore empty search.
     search = search if search else None
 
-    subq = (
-        select(
-            models.ATeamPTeam.pteam_id.label("pteam_id"),
-            models.PTeam.pteam_name.label("pteam_name"),
-            models.PTeamTagReference.tag_id.label("tag_id"),
-        )
-        .distinct()
-        .join(
-            models.PTeam,
-            and_(
-                models.PTeam.pteam_id == models.ATeamPTeam.pteam_id,
-                models.ATeamPTeam.ateam_id == str(ateam_id),
-            ),
-        )
-        .join(
-            models.PTeamTagReference,
-            models.PTeamTagReference.pteam_id == models.ATeamPTeam.pteam_id,
-        )
-        .subquery()
-    )
-
-    sort_rules = sortkey2orderby[sort_key] + [
-        models.TopicTag.topic_id,  # group by topic
-        nullsfirst(models.PTeamTopicTagStatus.topic_status),  # worst state on array[0]
-        models.PTeamTopicTagStatus.scheduled_at.desc(),  # latest on array[0] if worst is scheduled
-        subq.c.pteam_name,
-        models.Tag.tag_name,
-    ]
-
-    select_stmt = (
-        select(
-            subq.c.pteam_id,
-            subq.c.pteam_name,
-            models.Tag,
-            models.TopicTag.topic_id,
-            models.Topic.title,
-            models.Topic.updated_at,
-            models.Topic.threat_impact,
-            models.PTeamTopicTagStatus,
-        )
-        .join(
-            models.Tag,
-            models.Tag.tag_id == subq.c.tag_id,
-        )
-        .join(
-            models.TopicTag,
-            models.TopicTag.tag_id.in_([models.Tag.tag_id, models.Tag.parent_id]),
-        )
-        .join(
-            models.Topic,
-            and_(
-                models.Topic.title.icontains(search, autoescape=True) if search else true(),
-                models.Topic.disabled.is_(False),
-                models.Topic.topic_id == models.TopicTag.topic_id,
-            ),
-        )
-        .outerjoin(
-            models.CurrentPTeamTopicTagStatus,
-            and_(
-                models.CurrentPTeamTopicTagStatus.pteam_id == subq.c.pteam_id,
-                models.CurrentPTeamTopicTagStatus.tag_id == subq.c.tag_id,
-                models.CurrentPTeamTopicTagStatus.topic_id == models.TopicTag.topic_id,
-            ),
-        )
-        .outerjoin(
-            models.PTeamTopicTagStatus,
-        )
-        .order_by(*sort_rules)
-        .distinct()
-    )
-
-    rows = db.execute(select_stmt).all()
+    rows = command.get_ateam_topic_statuses(db, ateam_id, sort_key, search)
 
     # Caution:
     #   rows includes completed. (how can i filter by query???)
@@ -960,33 +781,13 @@ def get_topic_comments(
     """
     Get ateam topic comments.
     """
-    validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_ateam_membership(db, ateam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    return (
-        db.query(
-            models.ATeamTopicComment.comment_id,
-            models.ATeamTopicComment.topic_id,
-            models.ATeamTopicComment.ateam_id,
-            models.ATeamTopicComment.user_id,
-            models.ATeamTopicComment.created_at,
-            models.ATeamTopicComment.updated_at,
-            models.ATeamTopicComment.comment,
-            models.Account.email,
-        )
-        .join(
-            models.Account,
-            models.Account.user_id == models.ATeamTopicComment.user_id,
-        )
-        .filter(
-            models.ATeamTopicComment.ateam_id == str(ateam_id),
-            models.ATeamTopicComment.topic_id == str(topic_id),
-        )
-        .order_by(
-            models.ATeamTopicComment.created_at.desc(),
-        )
-        .all()
-    )
+    if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
+        raise NO_SUCH_ATEAM
+    if not persistence.get_topic_by_id(db, topic_id):
+        raise NO_SUCH_TOPIC
+    if not check_ateam_membership(ateam, current_user):
+        raise NOT_AN_ATEAM_MEMBER
+    return command.get_ateam_topic_comments(db, ateam_id, topic_id)
 
 
 @router.post(
@@ -1002,19 +803,22 @@ def add_topic_comment(
     """
     Add ateam topic comment.
     """
-    validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_ateam_membership(db, ateam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    comment = models.ATeamTopicComment(
+    if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
+        raise NO_SUCH_ATEAM
+    if not persistence.get_topic_by_id(db, topic_id):
+        raise NO_SUCH_TOPIC
+    if not check_ateam_membership(ateam, current_user):
+        raise NOT_AN_ATEAM_MEMBER
+    new_comment = models.ATeamTopicComment(
         topic_id=str(topic_id),
         ateam_id=str(ateam_id),
         user_id=str(current_user.user_id),
         comment=data.comment,
         created_at=datetime.now(),
     )
-    db.add(comment)
+    comment = persistence.create_ateam_topic_comment(db, new_comment)
     db.commit()
-    db.refresh(comment)
+    db.refresh(comment)  # comment.__dict__ has to refresh
     return {**comment.__dict__, "email": current_user.email}
 
 
@@ -1033,22 +837,17 @@ def update_topic_comment(
     """
     Update ateam topic comment.
     """
-    validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    comment = (
-        db.query(models.ATeamTopicComment)
-        .filter(
-            models.ATeamTopicComment.comment_id == str(comment_id),
-        )
-        .one_or_none()
-    )
+    if not persistence.get_ateam_by_id(db, ateam_id):
+        raise NO_SUCH_ATEAM
+    if not persistence.get_topic_by_id(db, topic_id):
+        raise NO_SUCH_TOPIC
+    comment = persistence.get_ateam_topic_comment_by_id(db, comment_id)
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such comment")
     if comment.user_id != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your comment")
     comment.comment = data.comment
     comment.updated_at = datetime.now()
-    db.add(comment)
     db.commit()
     db.refresh(comment)
     return {**comment.__dict__, "email": current_user.email}
@@ -1067,25 +866,16 @@ def delete_topic_comment(
     """
     Delete ateam topic comment.
     """
-    validate_ateam(db, ateam_id, on_error=status.HTTP_404_NOT_FOUND)
-    validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    comment = (
-        db.query(models.ATeamTopicComment)
-        .filter(
-            models.ATeamTopicComment.comment_id == str(comment_id),
-        )
-        .one_or_none()
-    )
+    if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
+        raise NO_SUCH_ATEAM
+    if not persistence.get_topic_by_id(db, topic_id):
+        raise NO_SUCH_TOPIC
+    comment = persistence.get_ateam_topic_comment_by_id(db, comment_id)
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such comment")
     if comment.user_id != current_user.user_id:
-        check_ateam_auth(
-            db,
-            ateam_id,
-            current_user.user_id,
-            models.ATeamAuthIntFlag.ADMIN,
-            on_error=status.HTTP_403_FORBIDDEN,
-        )
-    db.delete(comment)
+        if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN):
+            raise NOT_HAVE_AUTH
+    persistence.delete_ateam_topic_comment(db, comment)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
