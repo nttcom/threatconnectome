@@ -6,6 +6,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from firebase_admin import auth, credentials, initialize_app
 from sqlalchemy.orm import Session
 
+from app import persistence
+
 from .database import get_db
 from .models import Account
 
@@ -75,7 +77,7 @@ def verify_id_token(
 def get_current_user(
     decoded_token: Dict[str, Any] = Depends(verify_id_token), db: Session = Depends(get_db)
 ) -> Account:
-    user = db.query(Account).filter(Account.uid == decoded_token["uid"]).one_or_none()
+    user = persistence.get_account_by_firebase_uid(db, decoded_token["uid"])
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

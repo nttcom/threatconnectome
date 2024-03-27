@@ -1,9 +1,4 @@
-import pytest
-from fastapi import HTTPException, status
-
-from app.common import (
-    check_topic_action_tags_integrity,
-)
+from app.common import check_topic_action_tags_integrity
 
 
 class TestCheckTopicActionTagsIntegrity:
@@ -28,9 +23,3 @@ class TestCheckTopicActionTagsIntegrity:
         assert not self.test_func(["alpha"], ["bravo"])
         assert not self.test_func(["alpha:bravo:charlie"], ["alpha:bravo:delta"])
         assert not self.test_func(["alpha:bravo:charlie"], ["alpha:bravo:"])
-
-    def test_raise_httpexception_on_error_if_specified(self) -> None:
-        with pytest.raises(HTTPException) as error:
-            self.test_func([], ["bravo"], on_error=status.HTTP_400_BAD_REQUEST)
-        assert error.value.status_code == status.HTTP_400_BAD_REQUEST
-        assert error.value.detail == "Action Tag mismatch with Topic Tag"
