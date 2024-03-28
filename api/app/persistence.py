@@ -1,10 +1,8 @@
-from datetime import datetime
-from typing import List, Optional, Sequence
+from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import true
 
 from app import models
 from app.constants import SYSTEM_UUID
@@ -99,50 +97,6 @@ def create_action_log(db: Session, action_log: models.ActionLog) -> models.Actio
     db.flush()
     db.refresh(action_log)
     return action_log
-
-
-def search_logs(
-    db: Session,
-    topic_ids: Optional[List[UUID]],
-    action_words: Optional[List[str]],
-    action_types: Optional[List[models.ActionType]],
-    user_ids: Optional[List[UUID]],
-    pteam_ids: List[UUID],
-    emails: Optional[List[str]],
-    executed_before: Optional[datetime],
-    executed_after: Optional[datetime],
-    created_before: Optional[datetime],
-    created_after: Optional[datetime],
-) -> List[models.ActionLog]:
-
-    return (
-        db.query(models.ActionLog)
-        .filter(
-            (
-                true()
-                if topic_ids is None
-                else models.ActionLog.topic_id.in_(list(map(str, topic_ids)))
-            ),
-            (
-                true()
-                if action_words is None
-                else models.ActionLog.action.bool_op("@@")(func.to_tsquery("|".join(action_words)))
-            ),
-            true() if action_types is None else models.ActionLog.action_type.in_(action_types),
-            true() if user_ids is None else models.ActionLog.user_id.in_(list(map(str, user_ids))),
-            (
-                true()
-                if pteam_ids is None
-                else models.ActionLog.pteam_id.in_(list(map(str, pteam_ids)))
-            ),
-            true() if emails is None else models.ActionLog.email.in_(emails),
-            true() if executed_before is None else models.ActionLog.executed_at < executed_before,
-            true() if executed_after is None else models.ActionLog.executed_at >= executed_after,
-            true() if created_before is None else models.ActionLog.created_at < created_before,
-            true() if created_after is None else models.ActionLog.created_at >= created_after,
-        )
-        .all()
-    )
 
 
 def get_topic_logs_by_user_id(
@@ -512,7 +466,7 @@ def create_tag(db: Session, tag: models.Tag) -> models.Tag:
     return tag
 
 
-def search_tags_by_name(db: Session, words: List[str]) -> Sequence[models.Tag]:
+def search_tags_by_name(db: Session, words: Sequence[str]) -> Sequence[models.Tag]:
     return db.scalars(
         select(models.Tag).where(
             models.Tag.tag_name.bool_op("@@")(func.to_tsquery("|".join(words)))
@@ -545,7 +499,7 @@ def create_misp_tag(db: Session, misptag: models.MispTag) -> models.MispTag:
     return misptag
 
 
-def search_misp_tags_by_name(db: Session, words: List[str]) -> Sequence[models.MispTag]:
+def search_misp_tags_by_name(db: Session, words: Sequence[str]) -> Sequence[models.MispTag]:
     return db.scalars(
         select(models.MispTag).where(
             models.MispTag.tag_name.bool_op("@@")(func.to_tsquery("|".join(words)))
