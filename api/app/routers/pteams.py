@@ -628,7 +628,7 @@ def apply_group_tags(
         old_versions = command.get_pteam_reference_versions_of_each_tags(db, pteam.pteam_id)
 
     # remove all current references of the group
-    for ptr in persistence.get_pteam_tag_references(db, pteam.pteam_id):
+    for ptr in persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id):
         if ptr.group == group:
             persistence.delete_pteam_tag_reference(db, ptr)
     # create new references from json_lines
@@ -646,7 +646,7 @@ def apply_group_tags(
     # try auto close if make sense
     if auto_close:
         new_versions = command.get_pteam_reference_versions_of_each_tags(db, pteam.pteam_id)
-        ptrs = persistence.get_pteam_tag_references(db, pteam.pteam_id)
+        ptrs = persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id)
         if ptrs_for_auto_close := [
             ptr
             for ptr in ptrs
@@ -730,7 +730,7 @@ def update_pteam(
         for invitation in persistence.get_pteam_invitations(db, pteam_id):
             persistence.delete_pteam_invitation(db, invitation)
     elif need_auto_close:
-        ptrs = persistence.get_pteam_tag_references(db, pteam.pteam_id)
+        ptrs = persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id)
         ptr_dict = {ptr.tag_id: ptr.tag for ptr in ptrs}  # pick only 1 tag for each tag_id
         auto_close_by_pteamtags(db, [(pteam, tag) for tag in ptr_dict.values()])
 

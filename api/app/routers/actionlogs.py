@@ -23,9 +23,9 @@ def get_logs(
     """
     Get actionlogs of pteams the user belongs to.
     """
-    logs = persistence.get_action_logs(db, current_user.user_id)
+    logs = persistence.get_action_logs_by_user_id(db, current_user.user_id)
     result = []
-    for log in logs:
+    for log in sorted(logs, key=lambda l: l.executed_at, reverse=True):
         if log.created_at:
             log.created_at = log.created_at.astimezone(timezone.utc)
         if log.executed_at:
@@ -61,7 +61,7 @@ def create_log(
     if str(data.topic_id) not in command.get_pteam_topic_ids(db, data.pteam_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam topic")
     if not (
-        topic_action := persistence.get_action(db, data.action_id)
+        topic_action := persistence.get_action_by_id(db, data.action_id)
     ) or topic_action.topic_id != str(data.topic_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
 
@@ -143,5 +143,5 @@ def get_topic_logs(
     if topic is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
     assert topic
-    rows = persistence.get_topic_logs(db, topic_id, current_user.user_id)
+    rows = persistence.get_topic_logs_by_user_id(db, topic_id, current_user.user_id)
     return sorted(rows, key=lambda x: x.executed_at, reverse=True)

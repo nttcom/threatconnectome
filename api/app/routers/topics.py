@@ -282,7 +282,7 @@ def create_topic(
             detail="Ambiguous action ids",
         )
     for action_id in action_ids:
-        if persistence.get_action(db, action_id):
+        if persistence.get_action_by_id(db, action_id):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Action id already exists",

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional, Sequence
 from uuid import UUID
 
-from sqlalchemy import desc, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import true
 
@@ -47,7 +47,7 @@ def delete_account(db: Session, account: models.Account) -> None:
 ### Action
 
 
-def get_action(db: Session, action_id: UUID | str) -> models.TopicAction | None:
+def get_action_by_id(db: Session, action_id: UUID | str) -> models.TopicAction | None:
     return db.scalars(
         select(models.TopicAction).where(models.TopicAction.action_id == str(action_id))
     ).one_or_none()
@@ -80,19 +80,17 @@ def get_action_log_by_id(db: Session, logging_id: UUID | str) -> models.ActionLo
     ).one_or_none()
 
 
-def get_action_logs(db: Session, user_id: UUID | str) -> Sequence[models.ActionLog]:
+def get_action_logs_by_user_id(db: Session, user_id: UUID | str) -> Sequence[models.ActionLog]:
     return db.scalars(
-        select(models.ActionLog)
-        .where(
+        select(models.ActionLog).where(
             models.ActionLog.pteam_id.in_(
                 db.scalars(
                     select(models.PTeamAccount.pteam_id).where(
-                        models.PTeamAccount.user_id == user_id
+                        models.PTeamAccount.user_id == str(user_id)
                     )
                 )
             )
         )
-        .order_by(desc(models.ActionLog.created_at))
     ).all()
 
 
@@ -147,14 +145,18 @@ def search_logs(
     )
 
 
-def get_topic_logs(db: Session, topic_id: UUID, user_id: UUID | str) -> Sequence[models.ActionLog]:
+def get_topic_logs_by_user_id(
+    db: Session,
+    topic_id: UUID | str,
+    user_id: UUID | str,
+) -> Sequence[models.ActionLog]:
     return db.scalars(
         select(models.ActionLog).where(
             models.ActionLog.topic_id == str(topic_id),
             models.ActionLog.pteam_id.in_(
                 db.scalars(
                     select(models.PTeamAccount.pteam_id).where(
-                        models.PTeamAccount.user_id == user_id
+                        models.PTeamAccount.user_id == str(user_id)
                     )
                 )
             ),
@@ -357,15 +359,6 @@ def delete_pteam_invitation(
     db.flush()
 
 
-def get_pteam_tag_references(
-    db: Session,
-    pteam_id: UUID | str,
-) -> Sequence[models.PTeamTagReference]:
-    return db.scalars(
-        select(models.PTeamTagReference).where(models.PTeamTagReference.pteam_id == str(pteam_id))
-    ).all()
-
-
 def create_pteam_tag_reference(
     db: Session,
     ptr: models.PTeamTagReference,
@@ -379,6 +372,15 @@ def create_pteam_tag_reference(
 def delete_pteam_tag_reference(db: Session, ptr: models.PTeamTagReference):
     db.delete(ptr)
     db.flush()
+
+
+def get_pteam_tag_references_by_pteam_id(
+    db: Session,
+    pteam_id: UUID | str,
+) -> Sequence[models.PTeamTagReference]:
+    return db.scalars(
+        select(models.PTeamTagReference).where(models.PTeamTagReference.pteam_id == str(pteam_id))
+    ).all()
 
 
 def get_pteam_tag_references_by_tag_id(
@@ -510,7 +512,7 @@ def create_tag(db: Session, tag: models.Tag) -> models.Tag:
     return tag
 
 
-def search_tags(db: Session, words: List[str]) -> Sequence[models.Tag]:
+def search_tags_by_name(db: Session, words: List[str]) -> Sequence[models.Tag]:
     return db.scalars(
         select(models.Tag).where(
             models.Tag.tag_name.bool_op("@@")(func.to_tsquery("|".join(words)))
@@ -526,7 +528,7 @@ def delete_tag(db: Session, tag: models.Tag):
 ### MispTag
 
 
-def get_misp_tags(db: Session) -> Sequence[models.MispTag]:
+def get_all_misp_tags(db: Session) -> Sequence[models.MispTag]:
     return db.scalars(select(models.MispTag)).all()
 
 
@@ -543,7 +545,7 @@ def create_misp_tag(db: Session, misptag: models.MispTag) -> models.MispTag:
     return misptag
 
 
-def search_misp_tags_by_tag_name(db: Session, words: List[str]) -> Sequence[models.MispTag]:
+def search_misp_tags_by_name(db: Session, words: List[str]) -> Sequence[models.MispTag]:
     return db.scalars(
         select(models.MispTag).where(
             models.MispTag.tag_name.bool_op("@@")(func.to_tsquery("|".join(words)))

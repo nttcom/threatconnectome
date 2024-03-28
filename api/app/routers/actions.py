@@ -32,7 +32,7 @@ def create_action(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing topic_id")
     if not (topic := persistence.get_topic_by_id(db, data.topic_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
-    if data.action_id and persistence.get_action(db, data.action_id):
+    if data.action_id and persistence.get_action_by_id(db, data.action_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Action id already exists",
@@ -83,7 +83,7 @@ def get_action(
     """
     Get a topic action.
     """
-    if not (action := persistence.get_action(db, action_id)):
+    if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
 
     return action
@@ -99,7 +99,7 @@ def update_action(
     """
     Update a topic action.
     """
-    if not (action := persistence.get_action(db, action_id)):
+    if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
     if data.ext:
         if not_exist_tags := {
@@ -141,7 +141,7 @@ def delete_action(
     """
     Delete a topic action.
     """
-    if not (action := persistence.get_action(db, action_id)):
+    if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
 
     topic = action.topic

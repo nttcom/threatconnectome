@@ -407,7 +407,7 @@ def get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> list[schemas.ExtTagR
     # Note: this is temporal placement. following get_pteamtags_summary() requires me.
 
     tmp_dict: dict[tuple[str, str], schemas.ExtTagResponse] = {}
-    ptrs = persistence.get_pteam_tag_references(db, pteam.pteam_id)
+    ptrs = persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id)
     for ptr in ptrs:
         key = (ptr.pteam_id, ptr.tag_id)
         tmp = tmp_dict.get(

@@ -58,7 +58,7 @@ def search_tags(
         return persistence.get_all_tags(db)
 
     # Otherwise, search for tags that match the provided words.
-    return persistence.search_tags(db, words)
+    return persistence.search_tags_by_name(db, words)
 
 
 @router.delete("/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)

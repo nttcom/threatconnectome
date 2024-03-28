@@ -18,7 +18,7 @@ def get_misp_tags(
     """
     Get all misp tags.
     """
-    return persistence.get_misp_tags(db)
+    return persistence.get_all_misp_tags(db)
 
 
 @router.post("", response_model=schemas.MispTagResponse)
@@ -54,7 +54,7 @@ def search_misp_tags(
     """
     # If no words were provided, return all misp tags.
     if words is None:
-        return persistence.get_misp_tags(db)
+        return persistence.get_all_misp_tags(db)
 
     # Otherwise, search for tags that match the provided words.
-    return persistence.search_misp_tags_by_tag_name(db, words)
+    return persistence.search_misp_tags_by_name(db, words)
