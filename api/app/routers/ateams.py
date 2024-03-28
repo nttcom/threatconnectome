@@ -135,7 +135,7 @@ def apply_invitation(
     """
     Apply invitation to ateam.
     """
-    persistence.expire_ateam_invitations(db)
+    command.expire_ateam_invitations(db)
 
     if not (invitation := persistence.get_ateam_invitation_by_id(db, data.invitation_id)):
         raise HTTPException(
@@ -172,7 +172,7 @@ def apply_watching_request(
     """
     Apply watching request.
     """
-    persistence.expire_ateam_watching_requests(db)
+    command.expire_ateam_watching_requests(db)
 
     if not (watching_request := persistence.get_ateam_watching_request_by_id(db, data.request_id)):
         raise HTTPException(
@@ -190,7 +190,7 @@ def apply_watching_request(
     watching_request.ateam.pteams.append(pteam)
     watching_request.used_count += 1
     db.flush()
-    persistence.expire_ateam_watching_requests(db)
+    command.expire_ateam_watching_requests(db)
 
     db.commit()
 
@@ -443,7 +443,7 @@ def create_invitation(
             detail="Unwise limit_count (give null for unlimited)",
         )
 
-    persistence.expire_ateam_invitations(db)
+    command.expire_ateam_invitations(db)
 
     del data.authorities
     new_invitation = models.ATeamInvitation(
@@ -474,7 +474,7 @@ def list_invitation(
     if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.INVITE):
         raise NOT_HAVE_AUTH
 
-    persistence.expire_ateam_invitations(db)
+    command.expire_ateam_invitations(db)
     # do not commit within GET method
 
     return [
@@ -497,13 +497,13 @@ def delete_invitation(
         raise NO_SUCH_ATEAM
     if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.INVITE):
         raise NOT_HAVE_AUTH
-    persistence.expire_ateam_invitations(db)
+    command.expire_ateam_invitations(db)
 
     # omit validating invitation to avoid raising error if already expired.
     if invitation := persistence.get_ateam_invitation_by_id(db, invitation_id):
         persistence.delete_ateam_invitation(db, invitation)
 
-    db.commit()
+    db.commit()  # commit deleted and expired
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -587,7 +587,7 @@ def create_watching_request(
             detail="Unwise limit_count (give null for unlimited)",
         )
 
-    persistence.expire_ateam_watching_requests(db)
+    command.expire_ateam_watching_requests(db)
 
     new_watching_request = models.ATeamWatchingRequest(
         ateam_id=str(ateam_id), user_id=current_user.user_id, **data.model_dump()
@@ -616,8 +616,9 @@ def list_watching_request(
     if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN):
         raise NOT_HAVE_AUTH
 
-    persistence.expire_ateam_watching_requests(db)
-    db.commit()
+    command.expire_ateam_watching_requests(db)
+    # do not commit within GET request
+
     return ateam.watching_requests
 
 
@@ -635,13 +636,13 @@ def delete_watching_request(
         raise NO_SUCH_ATEAM
     if not check_ateam_auth(db, ateam, current_user, models.ATeamAuthIntFlag.ADMIN):
         raise NOT_HAVE_AUTH
-    persistence.expire_ateam_watching_requests(db)
+    command.expire_ateam_watching_requests(db)
 
     # omit validating request to avoid raising error if already expired.
     if request := persistence.get_ateam_watching_request_by_id(db, request_id):
         persistence.delete_ateam_watching_request(db, request)
 
-    db.commit()
+    db.commit()  # commit deleted and expired
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

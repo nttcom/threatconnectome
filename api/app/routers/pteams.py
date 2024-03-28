@@ -78,7 +78,7 @@ def apply_invitation(
     """
     Apply invitation to pteam.
     """
-    persistence.expire_pteam_invitations(db)
+    command.expire_pteam_invitations(db)
 
     if not (invitation := persistence.get_pteam_invitation_by_id(db, request.invitation_id)):
         raise HTTPException(
@@ -963,7 +963,7 @@ def create_invitation(
             detail="Unwise limit_count (give Null for unlimited)",
         )
 
-    persistence.expire_pteam_invitations(db)
+    command.expire_pteam_invitations(db)
 
     del request.authorities
     invitation = persistence.create_pteam_invitation(
@@ -999,7 +999,8 @@ def list_invitations(
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
         raise NOT_HAVE_AUTH
 
-    persistence.expire_pteam_invitations(db)
+    command.expire_pteam_invitations(db)
+    # do not commit within GET method
 
     return [
         {
@@ -1022,7 +1023,7 @@ def delete_invitation(
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
         raise NOT_HAVE_AUTH
 
-    persistence.expire_pteam_invitations(db)
+    command.expire_pteam_invitations(db)
 
     invitation = persistence.get_pteam_invitation_by_id(db, invitation_id)
     if invitation:  # can be expired before deleting

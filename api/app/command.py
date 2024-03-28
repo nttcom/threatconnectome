@@ -1143,3 +1143,49 @@ def get_num_of_tags_by_tag_id_of_topic_tag(
     tag_id: UUID,
 ) -> int:
     return db.query(models.TopicTag).filter(models.TopicTag.tag_id == str(tag_id)).count()
+
+
+def expire_pteam_invitations(db: Session) -> None:
+    db.execute(
+        delete(models.PTeamInvitation).where(
+            or_(
+                models.PTeamInvitation.expiration < datetime.now(),
+                and_(
+                    models.PTeamInvitation.limit_count.is_not(None),
+                    models.PTeamInvitation.limit_count <= models.PTeamInvitation.used_count,
+                ),
+            ),
+        )
+    )
+    db.flush()
+
+
+def expire_ateam_invitations(db: Session) -> None:
+    db.execute(
+        delete(models.ATeamInvitation).where(
+            or_(
+                models.ATeamInvitation.expiration < datetime.now(),
+                and_(
+                    models.ATeamInvitation.limit_count.is_not(None),
+                    models.ATeamInvitation.limit_count <= models.ATeamInvitation.used_count,
+                ),
+            ),
+        )
+    )
+    db.flush()
+
+
+def expire_ateam_watching_requests(db: Session) -> None:
+    db.execute(
+        delete(models.ATeamWatchingRequest).where(
+            or_(
+                models.ATeamWatchingRequest.expiration < datetime.now(),
+                and_(
+                    models.ATeamWatchingRequest.limit_count.is_not(None),
+                    models.ATeamWatchingRequest.limit_count
+                    <= models.ATeamWatchingRequest.used_count,
+                ),
+            ),
+        )
+    )
+    db.flush()

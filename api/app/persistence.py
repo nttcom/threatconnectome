@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional, Sequence
 from uuid import UUID
 
-from sqlalchemy import and_, delete, desc, func, or_, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import true
 
@@ -208,21 +208,6 @@ def delete_ateam_invitation(db: Session, invitation: models.ATeamInvitation) -> 
     db.flush()
 
 
-def expire_ateam_invitations(db: Session) -> None:
-    db.execute(
-        delete(models.ATeamInvitation).where(
-            or_(
-                models.ATeamInvitation.expiration < datetime.now(),
-                and_(
-                    models.ATeamInvitation.limit_count.is_not(None),
-                    models.ATeamInvitation.limit_count <= models.ATeamInvitation.used_count,
-                ),
-            ),
-        )
-    )
-    db.flush()
-
-
 def get_ateam_watching_request_by_id(
     db: Session,
     request_id: UUID | str,
@@ -246,22 +231,6 @@ def create_ateam_watching_request(
 
 def delete_ateam_watching_request(db: Session, request: models.ATeamWatchingRequest) -> None:
     db.delete(request)
-    db.flush()
-
-
-def expire_ateam_watching_requests(db: Session) -> None:
-    db.execute(
-        delete(models.ATeamWatchingRequest).where(
-            or_(
-                models.ATeamWatchingRequest.expiration < datetime.now(),
-                and_(
-                    models.ATeamWatchingRequest.limit_count.is_not(None),
-                    models.ATeamWatchingRequest.limit_count
-                    <= models.ATeamWatchingRequest.used_count,
-                ),
-            ),
-        )
-    )
     db.flush()
 
 
@@ -385,21 +354,6 @@ def delete_pteam_invitation(
     invitation: models.PTeamInvitation,
 ):
     db.delete(invitation)
-    db.flush()
-
-
-def expire_pteam_invitations(db: Session) -> None:
-    db.execute(
-        delete(models.PTeamInvitation).where(
-            or_(
-                models.PTeamInvitation.expiration < datetime.now(),
-                and_(
-                    models.PTeamInvitation.limit_count.is_not(None),
-                    models.PTeamInvitation.limit_count <= models.PTeamInvitation.used_count,
-                ),
-            ),
-        )
-    )
     db.flush()
 
 
