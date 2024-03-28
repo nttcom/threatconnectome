@@ -377,7 +377,7 @@ def count_pteam_topics_per_threat_impact(
     }
 
 
-def get_topic_ids_by_pteam_id_and_tag_id(
+def get_sorted_topic_ids_by_pteam_tag_and_status(
     db: Session,
     pteam_id: UUID | str,
     tag_id: UUID | str,

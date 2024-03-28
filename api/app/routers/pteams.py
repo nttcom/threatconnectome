@@ -209,7 +209,7 @@ def get_pteam_tagged_solved_topic_ids(
     if tag not in {ref.tag for ref in pteam.references}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
-    topic_ids = command.get_topic_ids_by_pteam_id_and_tag_id(db, pteam_id, tag_id, True)
+    topic_ids = command.get_sorted_topic_ids_by_pteam_tag_and_status(db, pteam_id, tag_id, True)
     threat_impact_count = command.count_pteam_topics_per_threat_impact(db, pteam_id, tag_id, True)
 
     return {
@@ -241,7 +241,7 @@ def get_pteam_tagged_unsolved_topic_ids(
     if tag not in {ref.tag for ref in pteam.references}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
-    topic_ids = command.get_topic_ids_by_pteam_id_and_tag_id(db, pteam_id, tag_id, False)
+    topic_ids = command.get_sorted_topic_ids_by_pteam_tag_and_status(db, pteam_id, tag_id, False)
     threat_impact_count = command.count_pteam_topics_per_threat_impact(db, pteam_id, tag_id, False)
 
     return {
