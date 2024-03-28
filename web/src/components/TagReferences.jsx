@@ -40,7 +40,7 @@ export function TagReferences(props) {
                 <TableRow>
                   <TableCell sx={{ fontWeight: 900 }}>target</TableCell>
                   <TableCell sx={{ fontWeight: 900 }}>version</TableCell>
-                  <TableCell sx={{ fontWeight: 900 }}>group</TableCell>
+                  <TableCell sx={{ fontWeight: 900 }}>Service</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
