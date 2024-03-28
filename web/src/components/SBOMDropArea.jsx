@@ -48,7 +48,7 @@ function PreUploadModal(props) {
       <DialogContent>
         <Box display="flex" flexDirection="column">
           <TextField
-            label="Group name"
+            label="Service name"
             size="small"
             value={groupName}
             onChange={(event) => setGroupName(event.target.value)}
