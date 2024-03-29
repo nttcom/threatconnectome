@@ -210,7 +210,7 @@ def set_pteam_topic_status_internal(
         topic_status=data.topic_status,
         user_id=current_user.user_id,
         note=data.note,
-        logging_ids=list(set(data.logging_ids)),
+        logging_ids=list(map(str, set(data.logging_ids))),
         assignees=list(set(assignees)),
         scheduled_at=data.scheduled_at,
         created_at=datetime.now(),

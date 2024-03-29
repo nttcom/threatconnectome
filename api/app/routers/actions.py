@@ -69,7 +69,6 @@ def create_action(
     auto_close_by_topic(db, action.topic)
 
     db.commit()
-    db.refresh(action)
 
     return action
 
@@ -127,7 +126,6 @@ def update_action(
     #   do not try auto close topic because core of action should be immutable
 
     db.commit()
-    db.refresh(action)
 
     return action
 

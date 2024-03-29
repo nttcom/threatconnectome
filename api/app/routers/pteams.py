@@ -99,11 +99,14 @@ def apply_invitation(
         )
         persistence.create_pteam_authority(db, pteam_auth)
 
+    pteam = invitation.pteam  # keep for the case invitation is expired
     invitation.used_count += 1
+    db.flush()
+    command.expire_pteam_invitations(db)
 
     db.commit()
 
-    return invitation.pteam
+    return pteam
 
 
 @router.get("/invitation/{invitation_id}", response_model=schemas.PTeamInviterResponse)
@@ -304,7 +307,7 @@ def create_pteam(
         enable=data.alert_mail.enable if data.alert_mail else True,
         address=data.alert_mail.address if data.alert_mail else "",
     )
-    pteam = persistence.create_pteam(db, pteam)
+    persistence.create_pteam(db, pteam)
 
     # join to the created pteam
     pteam.members.append(current_user)
@@ -380,9 +383,9 @@ def update_pteam_auth(
             auth = models.PTeamAuthority(
                 pteam_id=str(pteam_id),
                 user_id=user_id,
-                authority=0,
+                authority=0,  # fix later
             )
-            auth = persistence.create_pteam_authority(db, auth)
+            persistence.create_pteam_authority(db, auth)
         auth.authority = models.PTeamAuthIntFlag.from_enums(request.authorities)
 
     db.flush()
@@ -966,23 +969,22 @@ def create_invitation(
     command.expire_pteam_invitations(db)
 
     del request.authorities
-    invitation = persistence.create_pteam_invitation(
-        db,
-        models.PTeamInvitation(
-            pteam_id=str(pteam_id),
-            user_id=current_user.user_id,
-            authority=intflag,
-            **request.model_dump(),
-        ),
+    invitation = models.PTeamInvitation(
+        **request.model_dump(),
+        pteam_id=str(pteam_id),
+        user_id=current_user.user_id,
+        authority=intflag,
     )
+    persistence.create_pteam_invitation(db, invitation)
 
-    db.commit()
-    db.refresh(invitation)
-
-    return {
-        **invitation.__dict__,
+    ret = {
+        **invitation.__dict__,  # cannot get after db.commit() without refresh
         "authorities": models.PTeamAuthIntFlag(invitation.authority).to_enums(),
     }
+
+    db.commit()
+
+    return ret
 
 
 @router.get("/{pteam_id}/invitation", response_model=list[schemas.PTeamInvitationResponse])

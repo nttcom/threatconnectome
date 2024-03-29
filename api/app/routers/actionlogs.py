@@ -79,7 +79,6 @@ def create_log(
     persistence.create_action_log(db, log)
 
     db.commit()
-    db.refresh(log)
 
     return log
 
