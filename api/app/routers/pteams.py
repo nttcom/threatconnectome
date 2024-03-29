@@ -1,41 +1,24 @@
 import json
-from datetime import datetime
-from typing import Dict, List, Sequence, Set, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
-from sqlalchemy import and_, delete, or_, select
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.sql.expression import func, true
+from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import command, models, persistence, schemas
 from app.auth import get_current_user
 from app.common import (
     auto_close_by_pteamtags,
     check_pteam_auth,
     check_pteam_membership,
-    check_tags_exist,
-    fix_current_status_by_pteam,
-    get_current_pteam_topic_tag_status,
+    get_enabled_topics,
     get_or_create_topic_tag,
-    get_pteam_ext_tags,
-    get_pteam_topic_status_history,
-    get_pteamtags_summary,
-    get_topics_internal,
-    pteam_topic_tag_status_to_response,
+    get_sorted_topics,
+    get_tag_ids_with_parent_ids,
     pteamtag_try_auto_close_topic,
     set_pteam_topic_status_internal,
-    validate_pteam,
-    validate_pteamtag,
-    validate_tag,
-    validate_topic,
 )
-from app.constants import (
-    DEFAULT_ALERT_THREAT_IMPACT,
-    MEMBER_UUID,
-    NOT_MEMBER_UUID,
-)
+from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db
 from app.sbom import sbom_json_to_artifact_json_lines
 from app.slack import validate_slack_webhook_url
@@ -43,72 +26,28 @@ from app.slack import validate_slack_webhook_url
 router = APIRouter(prefix="/pteams", tags=["pteams"])
 
 
-def pteam_tag_ids(db: Session, pteam_id: UUID | str) -> Sequence[str]:
-    return db.scalars(
-        select(models.PTeamTagReference.tag_id.distinct()).where(
-            models.PTeamTagReference.pteam_id == str(pteam_id)
-        )
-    ).all()
+NOT_A_PTEAM_MEMBER = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="Not a pteam member",
+)
+NOT_HAVE_AUTH = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="You do not have authority",
+)
+NO_SUCH_ATEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ateam")
+NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
+NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+NO_SUCH_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
 
 
-def _modify_pteam_auth(
-    db: Session,
-    pteam_id: Union[UUID, str],
-    user_id: Union[UUID, str],  # user_id
-    auth: Union[models.PTeamAuthIntFlag, int],  # auth, 0 for delete
-):
-    """
-    Set PteamAuthority (privilege in pteam) as auth.
-    auth is integer representing authority.
-    if auth = 0, delete PteamAuthority.
-    """
-
-    is_pseudo_user = str(user_id) in map(str, [MEMBER_UUID, NOT_MEMBER_UUID])
-    if is_pseudo_user:
-        if auth & models.PTeamAuthIntFlag.ADMIN:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot give ADMIN to pseudo account",
-            )
-        else:
-            pass  # skip check_pteam_membership for system user
-    else:
-        check_pteam_membership(db, pteam_id, user_id, on_error=status.HTTP_400_BAD_REQUEST)
-
-    current_auth = (
-        db.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam_id),
-            models.PTeamAuthority.user_id == str(user_id),
-        )
-        .one_or_none()
-    )
-
-    # Note: 0 is not valid as PTeamAuthIntFlag, 0 represents deletion operation here.
-    is_delete = auth == 0
-    if is_delete:
-        if current_auth:  # 1. delete
-            db.delete(current_auth)
-        else:  # 2. nothing to do
-            pass
-    else:
-        if current_auth:  # 3. update
-            current_auth.authority = int(auth)
-        else:  # 4. create
-            current_auth = models.PTeamAuthority(
-                pteam_id=str(pteam_id), user_id=str(user_id), authority=int(auth)
-            )
-        db.add(current_auth)
-
-
-@router.get("", response_model=List[schemas.PTeamEntry])
+@router.get("", response_model=list[schemas.PTeamEntry])
 def get_pteams(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """
     Get all pteams list.
     """
-    return db.query(models.PTeam).all()
+    return persistence.get_all_pteams(db)
 
 
 @router.get("/auth_info", response_model=schemas.PTeamAuthInfo)
@@ -139,66 +78,37 @@ def apply_invitation(
     """
     Apply invitation to pteam.
     """
-    _expire_tokens(db)
+    command.expire_pteam_invitations(db)
 
-    invitation = (
-        db.query(models.PTeamInvitation)
-        .filter(
-            models.PTeamInvitation.invitation_id == str(request.invitation_id),
-            or_(
-                models.PTeamInvitation.limit_count.is_(None),
-                models.PTeamInvitation.limit_count > models.PTeamInvitation.used_count,
-            ),
-        )
-        .with_for_update()
-        .one_or_none()
-    )  # lock and block!
-    if invitation is None:
+    if not (invitation := persistence.get_pteam_invitation_by_id(db, request.invitation_id)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) invitation id"
         )
-    pteam = db.query(models.PTeam).filter(models.PTeam.pteam_id == invitation.pteam_id).one()
-    if current_user in pteam.members:
+    if current_user in invitation.pteam.members:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Already joined to the pteam"
         )
+    invitation.pteam.members.append(current_user)
 
-    pteam_auth = (
-        db.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == invitation.pteam_id,
-            models.PTeamAuthority.user_id == current_user.user_id,
-        )
-        .one_or_none()
-    )
-    if pteam_auth is None:
+    if invitation.authority:  # invitation with authority
+        # Note: non-members never have pteam auth
         pteam_auth = models.PTeamAuthority(
-            pteam_id=invitation.pteam_id, user_id=current_user.user_id, authority=0
+            pteam_id=invitation.pteam_id,
+            user_id=current_user.user_id,
+            authority=invitation.authority,
         )
-    pteam_auth.authority |= invitation.authority
+        persistence.create_pteam_authority(db, pteam_auth)
 
-    pteam.members.append(current_user)
     invitation.used_count += 1
-    db.add(pteam)
-    if pteam_auth.authority > 0:
-        db.add(pteam_auth)
-    db.add(invitation)
-    db.commit()
-    db.refresh(pteam)
 
-    return pteam
+    db.commit()
+
+    return invitation.pteam
 
 
 @router.get("/invitation/{invitation_id}", response_model=schemas.PTeamInviterResponse)
-def invited_pteam(
-    invitation_id: UUID, db: Session = Depends(get_db)
-) -> schemas.PTeamInviterResponse:
-    invitation = (
-        db.query(models.PTeamInvitation)
-        .filter(models.PTeamInvitation.invitation_id == str(invitation_id))
-        .one_or_none()
-    )
-    if invitation is None:
+def invited_pteam(invitation_id: UUID, db: Session = Depends(get_db)):
+    if not (invitation := persistence.get_pteam_invitation_by_id(db, invitation_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid invitation id")
 
     invitation_detail = {
@@ -207,7 +117,7 @@ def invited_pteam(
         "email": invitation.inviter.email,
         "user_id": invitation.user_id,
     }
-    return schemas.PTeamInviterResponse(**invitation_detail)
+    return invitation_detail
 
 
 @router.get("/{pteam_id}", response_model=schemas.PTeamInfo)
@@ -219,9 +129,10 @@ def get_pteam(
     """
     Get pteam details. members only.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND, ignore_disabled=True)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
 
     return pteam
 
@@ -235,19 +146,17 @@ def get_pteam_groups(
     """
     Get groups of the pteam.
     """
-    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
 
-    groups = db.scalars(
-        select(models.PTeamTagReference.group.distinct()).where(
-            models.PTeamTagReference.pteam_id == str(pteam_id),
-        )
-    ).all()
+    groups = persistence.get_pteam_groups(db, pteam_id)
 
     return {"groups": groups}
 
 
-@router.get("/{pteam_id}/tags", response_model=List[schemas.ExtTagResponse])
+@router.get("/{pteam_id}/tags", response_model=list[schemas.ExtTagResponse])
 def get_pteam_tags(
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -256,72 +165,12 @@ def get_pteam_tags(
     """
     Get tags of the pteam.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
 
-    return get_pteam_ext_tags(db, pteam_id)
-
-
-def _counts_topic_per_threat_impact(
-    db: Session,
-    pteam_id: Union[UUID, str],
-    tag_id: Union[UUID, str],
-    is_solved: bool,
-) -> Dict[str, int]:
-    threat_counts_rows = (
-        db.query(
-            models.CurrentPTeamTopicTagStatus.threat_impact,
-            func.count(models.CurrentPTeamTopicTagStatus.threat_impact).label("num_rows"),
-        )
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
-            (
-                models.CurrentPTeamTopicTagStatus.topic_status == models.TopicStatusType.completed
-                if is_solved
-                else models.CurrentPTeamTopicTagStatus.topic_status
-                != models.TopicStatusType.completed
-            ),
-        )
-        .group_by(models.CurrentPTeamTopicTagStatus.threat_impact)
-        .all()
-    )
-    return {
-        "1": 0,
-        "2": 0,
-        "3": 0,
-        "4": 0,
-        **{str(row.threat_impact): row.num_rows for row in threat_counts_rows},
-    }
-
-
-def _get_tagged_topic_ids_by_pteam_id_and_status(
-    db: Session,
-    pteam_id: Union[UUID, str],
-    tag_id: Union[UUID, str],
-    is_solved: bool,
-) -> List[UUID]:
-    topic_ids_rows = (
-        db.query(models.CurrentPTeamTopicTagStatus.topic_id)
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
-            (
-                models.CurrentPTeamTopicTagStatus.topic_status == models.TopicStatusType.completed
-                if is_solved
-                else models.CurrentPTeamTopicTagStatus.topic_status
-                != models.TopicStatusType.completed
-            ),
-        )
-        .order_by(
-            models.CurrentPTeamTopicTagStatus.threat_impact,
-            models.CurrentPTeamTopicTagStatus.updated_at.desc(),
-        )
-        .all()
-    )
-
-    return [row.topic_id for row in topic_ids_rows]
+    return command.get_pteam_ext_tags(db, pteam)
 
 
 @router.get("/{pteam_id}/tags/summary", response_model=schemas.PTeamTagsSummary)
@@ -333,11 +182,12 @@ def get_pteam_tags_summary(
     """
     Get summary of the pteam tags.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
 
-    return get_pteamtags_summary(db, pteam_id)
+    return command.get_pteamtags_summary(db, pteam)
 
 
 @router.get("/{pteam_id}/tags/{tag_id}/solved_topic_ids", response_model=schemas.PTeamTaggedTopics)
@@ -350,28 +200,17 @@ def get_pteam_tagged_solved_topic_ids(
     """
     Get tagged and solved topic id list of the pteam.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    tag = validate_tag(db, tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert tag
-
-    requested_ptr = (
-        db.query(
-            models.PTeamTagReference.pteam_id,
-            models.PTeamTagReference.tag_id,
-        )
-        .distinct()
-        .filter(
-            models.PTeamTagReference.pteam_id == str(pteam_id),
-            models.PTeamTagReference.tag_id == str(tag_id),
-        )
-        .one_or_none()
-    )
-    if requested_ptr is None:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (tag := persistence.get_tag_by_id(db, tag_id)):
+        raise NO_SUCH_TAG
+    if tag not in {ref.tag for ref in pteam.references}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
-    topic_ids = _get_tagged_topic_ids_by_pteam_id_and_status(db, pteam_id, tag_id, True)
-    threat_impact_count = _counts_topic_per_threat_impact(db, pteam_id, tag_id, True)
+
+    topic_ids = command.get_sorted_topic_ids_by_pteam_tag_and_status(db, pteam_id, tag_id, True)
+    threat_impact_count = command.count_pteam_topics_per_threat_impact(db, pteam_id, tag_id, True)
 
     return {
         "pteam_id": pteam_id,
@@ -393,29 +232,17 @@ def get_pteam_tagged_unsolved_topic_ids(
     """
     Get tagged and unsolved topic id list of the pteam.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    tag = validate_tag(db, tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert tag
-
-    requested_ptr = (
-        db.query(
-            models.PTeamTagReference.pteam_id,
-            models.PTeamTagReference.tag_id,
-        )
-        .distinct()
-        .filter(
-            models.PTeamTagReference.pteam_id == str(pteam_id),
-            models.PTeamTagReference.tag_id == str(tag_id),
-        )
-        .one_or_none()
-    )
-    if requested_ptr is None:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (tag := persistence.get_tag_by_id(db, tag_id)):
+        raise NO_SUCH_TAG
+    if tag not in {ref.tag for ref in pteam.references}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
-    topic_ids = _get_tagged_topic_ids_by_pteam_id_and_status(db, pteam_id, tag_id, False)
-    threat_impact_count = _counts_topic_per_threat_impact(db, pteam_id, tag_id, False)
+    topic_ids = command.get_sorted_topic_ids_by_pteam_tag_and_status(db, pteam_id, tag_id, False)
+    threat_impact_count = command.count_pteam_topics_per_threat_impact(db, pteam_id, tag_id, False)
 
     return {
         "pteam_id": pteam_id,
@@ -425,7 +252,7 @@ def get_pteam_tagged_unsolved_topic_ids(
     }
 
 
-@router.get("/{pteam_id}/topics", response_model=List[schemas.TopicResponse])
+@router.get("/{pteam_id}/topics", response_model=list[schemas.TopicResponse])
 def get_pteam_topics(
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -434,14 +261,18 @@ def get_pteam_topics(
     """
     Get topics of the pteam.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
 
-    tag_ids = pteam_tag_ids(db, pteam_id)
-    if not tag_ids:
+    pteam_tags = command.get_pteam_tags(db, pteam_id)
+    if not pteam_tags:
         return []
-    return get_topics_internal(db, current_user.user_id, tag_ids=tag_ids)
+    topic_tag_ids = get_tag_ids_with_parent_ids(pteam_tags)
+    return get_sorted_topics(
+        get_enabled_topics(persistence.get_topics_by_tag_ids(db, topic_tag_ids))
+    )
 
 
 @router.post("", response_model=schemas.PTeamInfo)
@@ -461,7 +292,7 @@ def create_pteam(
     pteam = models.PTeam(
         pteam_name=data.pteam_name.strip(),
         contact_info=data.contact_info.strip(),
-        alert_threat_impact=data.alert_threat_impact or DEFAULT_ALERT_THREAT_IMPACT,
+        alert_threat_impact=data.alert_threat_impact,
     )
     pteam.alert_slack = models.PTeamSlack(
         pteam_id=pteam.pteam_id,
@@ -473,45 +304,40 @@ def create_pteam(
         enable=data.alert_mail.enable if data.alert_mail else True,
         address=data.alert_mail.address if data.alert_mail else "",
     )
-    db.add(pteam)
-    db.flush()
+    pteam = persistence.create_pteam(db, pteam)
 
     # join to the created pteam
-    pteamaccount = models.PTeamAccount(pteam_id=pteam.pteam_id, user_id=current_user.user_id)
-    db.add(pteamaccount)
-    db.flush()
+    pteam.members.append(current_user)
 
     # set default authority
-    _modify_pteam_auth(
-        db, pteam.pteam_id, current_user.user_id, models.PTeamAuthIntFlag.PTEAM_MASTER
+    user_auth = models.PTeamAuthority(
+        pteam_id=pteam.pteam_id,
+        user_id=current_user.user_id,
+        authority=models.PTeamAuthIntFlag.PTEAM_MASTER,
     )
-    _modify_pteam_auth(db, pteam.pteam_id, MEMBER_UUID, models.PTeamAuthIntFlag.PTEAM_MEMBER)
-    _modify_pteam_auth(db, pteam.pteam_id, NOT_MEMBER_UUID, models.PTeamAuthIntFlag.FREE_TEMPLATE)
+    member_auth = models.PTeamAuthority(
+        pteam_id=pteam.pteam_id,
+        user_id=str(MEMBER_UUID),
+        authority=models.PTeamAuthIntFlag.PTEAM_MEMBER,
+    )
+    not_member_auth = models.PTeamAuthority(
+        pteam_id=pteam.pteam_id,
+        user_id=str(NOT_MEMBER_UUID),
+        authority=models.PTeamAuthIntFlag.FREE_TEMPLATE,
+    )
+    persistence.create_pteam_authority(db, user_auth)
+    persistence.create_pteam_authority(db, member_auth)
+    persistence.create_pteam_authority(db, not_member_auth)
+
     db.commit()
 
     return pteam
 
 
-def _guard_last_admin(db: Session, pteam_id: UUID, excludes: Sequence[Union[str, UUID]]):
-    left_admins = (
-        db.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam_id),
-            models.PTeamAuthority.user_id.not_in(list(map(str, excludes))),
-            models.PTeamAuthority.authority.op("&")(models.PTeamAuthIntFlag.ADMIN) != 0,
-        )
-        .all()
-    )
-    if len(left_admins) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"
-        )
-
-
-@router.post("/{pteam_id}/authority", response_model=List[schemas.PTeamAuthResponse])
+@router.post("/{pteam_id}/authority", response_model=list[schemas.PTeamAuthResponse])
 def update_pteam_auth(
     pteam_id: UUID,
-    requests: List[schemas.PTeamAuthRequest],
+    requests: list[schemas.PTeamAuthRequest],
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -522,46 +348,53 @@ def update_pteam_auth(
       - 00000000-0000-0000-0000-0000cafe0001 : pteam member
       - 00000000-0000-0000-0000-0000cafe0002 : not pteam member
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_auth(
-        db,
-        pteam_id,
-        current_user.user_id,
-        models.PTeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
+        raise NOT_HAVE_AUTH
 
     str_ids = [str(request.user_id) for request in requests]
     if len(set(str_ids)) != len(str_ids):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ambiguous request")
-    for str_id in str_ids:
-        if (
-            str_id not in [str(MEMBER_UUID), str(NOT_MEMBER_UUID)]
-            and not db.query(models.Account).filter(models.Account.user_id == str_id).one_or_none()
-        ):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
-
-    if len([x for x in requests if "admin" in x.authorities]) == 0:  # no admin in requests
-        _guard_last_admin(db, pteam_id, str_ids)
-
-    for x in requests:
-        _modify_pteam_auth(
-            db, pteam_id, x.user_id, models.PTeamAuthIntFlag.from_enums(x.authorities)
-        )
-    # TODO: Committ should be done in all it once for atomicity.
-    db.commit()
 
     response = []
     for request in requests:
-        auth = (
-            db.query(models.PTeamAuthority)
-            .filter(
-                models.PTeamAuthority.pteam_id == str(pteam_id),
-                models.PTeamAuthority.user_id == str(request.user_id),
+        if (user_id := str(request.user_id)) in list(map(str, [MEMBER_UUID, NOT_MEMBER_UUID])):
+            if "admin" in request.authorities:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cannot give ADMIN to pseudo account",
+                )
+        else:
+            if not (user := persistence.get_account_by_id(db, user_id)):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid user id",
+                )
+            if not check_pteam_membership(db, pteam, user, ignore_ateam=True):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Not a pteam member",
+                )
+        if not (auth := persistence.get_pteam_authority(db, pteam_id, user_id)):
+            auth = models.PTeamAuthority(
+                pteam_id=str(pteam_id),
+                user_id=user_id,
+                authority=0,
             )
-            .one_or_none()
+            auth = persistence.create_pteam_authority(db, auth)
+        auth.authority = models.PTeamAuthIntFlag.from_enums(request.authorities)
+
+    db.flush()
+    if command.missing_pteam_admin(db, pteam):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"
         )
+
+    db.commit()
+
+    for request in requests:
+        auth = persistence.get_pteam_authority(db, pteam_id, request.user_id)
         response.append(
             {
                 "user_id": request.user_id,
@@ -571,7 +404,7 @@ def update_pteam_auth(
     return response
 
 
-@router.get("/{pteam_id}/authority", response_model=List[schemas.PTeamAuthResponse])
+@router.get("/{pteam_id}/authority", response_model=list[schemas.PTeamAuthResponse])
 def get_pteam_auth(
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -584,27 +417,25 @@ def get_pteam_auth(
       - 00000000-0000-0000-0000-0000cafe0001 : pteam member
       - 00000000-0000-0000-0000-0000cafe0002 : not pteam member
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    rows = (
-        db.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam_id),
-            (
-                true()
-                if check_pteam_membership(db, pteam_id, current_user.user_id)
-                else models.PTeamAuthority.user_id == str(NOT_MEMBER_UUID)
-            ),  # limit if not a member
-        )
-        .all()
-    )
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+
+    if current_user in pteam.members:  # member can get all authorities
+        authorities = persistence.get_pteam_all_authorities(db, pteam_id)
+    else:  # not member can get only for NOT_MEMBER_UUID
+        auth_for_not_member = persistence.get_pteam_authority(db, pteam_id, NOT_MEMBER_UUID)
+        authorities = [auth_for_not_member] if auth_for_not_member else []
+
     response = []
-    for row in rows:
-        enums = models.PTeamAuthIntFlag(row.authority).to_enums()
-        response.append({"user_id": row.user_id, "authorities": enums})
+    for auth in authorities:
+        enums = models.PTeamAuthIntFlag(auth.authority).to_enums()
+        response.append({"user_id": auth.user_id, "authorities": enums})
     return response
 
 
+# FIXME!
+# following get_pteamtag() has no tests!!!
+#
 @router.get("/{pteam_id}/tags/{tag_id}", response_model=schemas.PTeamtagExtResponse)
 def get_pteamtag(
     pteam_id: UUID,
@@ -615,21 +446,16 @@ def get_pteamtag(
     """
     Get detals of the pteam tag with last updated date.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    tag = validate_tag(db, tag_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert tag
-
-    ptrs = db.scalars(
-        select(models.PTeamTagReference).where(
-            models.PTeamTagReference.pteam_id == str(pteam_id),
-            models.PTeamTagReference.tag_id == str(tag_id),
-        )
-    ).all()
-    if not ptrs:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (tag := persistence.get_tag_by_id(db, tag_id)):
+        raise NO_SUCH_TAG
+    if tag not in {ref.tag for ref in pteam.references}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
+    ptrs = persistence.get_pteam_tag_references_by_tag_id(db, pteam_id, tag_id)
     references = [
         {
             "group": ptr.group,
@@ -638,15 +464,11 @@ def get_pteamtag(
         }
         for ptr in ptrs
     ]
-    last_updated_at = (
-        db.query(func.max(models.CurrentPTeamTopicTagStatus.updated_at))
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
-            models.CurrentPTeamTopicTagStatus.topic_status != models.TopicStatusType.completed,
-        )
-        .scalar()
+
+    last_updated_at = command.get_last_updated_at_in_current_pteam_topic_tag_status(
+        db, pteam_id, tag_id
     )
+
     return {
         "pteam_id": pteam_id,
         "tag_id": tag_id,
@@ -688,24 +510,7 @@ def _json_loads(s: str | bytes | bytearray):
         ) from error
 
 
-def remove_specified_group_references_from_pteamtag(db, pteamtag, group):
-    """
-    Delete specified group's references from pteamtag
-    """
-    pteamtag.references = [
-        reference for reference in pteamtag.references if reference["group"] != group
-    ]
-    # Note: This fuc deletes pteamtag when reference become empty.
-    #       This specification is different from update_pteamtag.
-    # If reference become empty, delete pteamtag
-    if len(pteamtag.references) == 0:
-        db.delete(pteamtag)
-    # If reference remains, update pteamtag
-    else:
-        db.add(pteamtag)
-
-
-@router.post("/{pteam_id}/upload_sbom_file", response_model=List[schemas.ExtTagResponse])
+@router.post("/{pteam_id}/upload_sbom_file", response_model=list[schemas.ExtTagResponse])
 def upload_pteam_sbom_file(
     pteam_id: UUID,
     file: UploadFile,
@@ -717,9 +522,10 @@ def upload_pteam_sbom_file(
     """
     upload sbom file
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
     if not group:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing group")
     _check_file_extention(file, ".json")
@@ -734,7 +540,7 @@ def upload_pteam_sbom_file(
 
     try:
         json_lines = sbom_json_to_artifact_json_lines(jdata)
-        return apply_group_tags(
+        ret = apply_group_tags(
             db,
             pteam,
             group,
@@ -745,8 +551,12 @@ def upload_pteam_sbom_file(
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
+    db.commit()
 
-@router.post("/{pteam_id}/upload_tags_file", response_model=List[schemas.ExtTagResponse])
+    return ret
+
+
+@router.post("/{pteam_id}/upload_tags_file", response_model=list[schemas.ExtTagResponse])
 def upload_pteam_tags_file(
     pteam_id: UUID,
     file: UploadFile,
@@ -760,9 +570,10 @@ def upload_pteam_tags_file(
 
     Format of file content must be JSON Lines.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
     if not group:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing group")
     _check_file_extention(file, ".jsonl")
@@ -774,23 +585,28 @@ def upload_pteam_tags_file(
         json_lines.append(_json_loads(bline))
 
     try:
-        return apply_group_tags(
+        ret = apply_group_tags(
             db, pteam, group, json_lines, auto_create_tags=force_mode, auto_close=True
         )
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+
+    db.commit()
+
+    return ret
 
 
 def apply_group_tags(
     db: Session,
     pteam: models.PTeam,
     group: str,
-    json_lines: List[dict],
+    json_lines: list[dict],
     auto_create_tags=False,
     auto_close=False,
-) -> List[schemas.ExtTagResponse]:
+) -> list[schemas.ExtTagResponse]:
     # Check file format and get tag_names
-    tag_names_in_file: Set[str] = set()
+    tag_name_to_id: dict[str, str] = {}
+    missing_tags = set()
     for line in json_lines:
         if not (_tag_name := line.get("tag_name")):
             raise ValueError("Missing tag_name")
@@ -798,65 +614,39 @@ def apply_group_tags(
             raise ValueError("Missing references")
         if any(None in {_ref.get("target"), _ref.get("version")} for _ref in _refs):
             raise ValueError("Missing target and|or version")
-        tag_names_in_file.add(_tag_name)
+        if not (_tag := persistence.get_tag_by_name(db, _tag_name)):
+            if auto_create_tags:
+                _tag = get_or_create_topic_tag(db, _tag_name)  # FIXME!!
+            else:
+                missing_tags.add(_tag_name)
+        if _tag:
+            tag_name_to_id[_tag.tag_name] = _tag.tag_id
+    if missing_tags:
+        raise ValueError(f"No such tags: {', '.join(sorted(missing_tags))}")
 
-    # If force_mode is False, check whether tag_names exist in DB
-    if auto_create_tags is False:
-        check_tags_exist(db, list(tag_names_in_file))
-    tag_name_to_id: Dict[str, str] = {
-        tag_name: get_or_create_topic_tag(db, tag_name).tag_id for tag_name in tag_names_in_file
-    }
     if auto_close:
-        get_versions_query = (
-            select(
-                models.PTeamTagReference.tag_id,
-                func.array_agg(models.PTeamTagReference.version).label("versions"),
-            )
-            .where(models.PTeamTagReference.pteam_id == pteam.pteam_id)
-            .group_by(models.PTeamTagReference.tag_id)
-        )
-        old_version_rows = db.execute(get_versions_query).all()
-        old_versions: Dict[str, Set[str]] = {
-            row_.tag_id: set(row_.versions) for row_ in old_version_rows
-        }
+        old_versions = command.get_pteam_reference_versions_of_each_tags(db, pteam.pteam_id)
 
-    db.execute(
-        delete(models.PTeamTagReference).where(
-            models.PTeamTagReference.pteam_id == pteam.pteam_id,
-            models.PTeamTagReference.group == group,
-        )
-    )
-    new_params = {
-        (tag_name_to_id[json_line["tag_name"]], refs.get("target", ""), refs.get("version", ""))
-        for json_line in json_lines
-        for refs in json_line.get("references", [{"target": "", "version": ""}])
-    }
-    db.add_all(
-        [
-            models.PTeamTagReference(
+    # remove all current references of the group
+    for ptr in persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id):
+        if ptr.group == group:
+            persistence.delete_pteam_tag_reference(db, ptr)
+    # create new references from json_lines
+    for json_line in json_lines:
+        for ref in json_line.get("references", [{"target": "", "version": ""}]):
+            ptr = models.PTeamTagReference(
                 pteam_id=pteam.pteam_id,
                 group=group,
-                tag_id=new_param[0],
-                target=new_param[1],
-                version=new_param[2],
+                tag_id=tag_name_to_id[json_line["tag_name"]],
+                target=ref.get("target", ""),
+                version=ref.get("version", ""),
             )
-            for new_param in new_params
-        ]
-    )
+            persistence.create_pteam_tag_reference(db, ptr)
 
     # try auto close if make sense
     if auto_close:
-        db.flush()
-        new_version_rows = db.execute(get_versions_query).all()
-        new_versions: Dict[str, Set[str]] = {
-            row_.tag_id: set(row_.versions) for row_ in new_version_rows
-        }
-
-        ptrs = db.scalars(
-            select(models.PTeamTagReference)
-            .options(joinedload(models.PTeamTagReference.tag, innerjoin=True))
-            .where(models.PTeamTagReference.pteam_id == pteam.pteam_id)
-        ).all()
+        new_versions = command.get_pteam_reference_versions_of_each_tags(db, pteam.pteam_id)
+        ptrs = persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id)
         if ptrs_for_auto_close := [
             ptr
             for ptr in ptrs
@@ -864,12 +654,9 @@ def apply_group_tags(
         ]:
             auto_close_by_pteamtags(db, [(pteam, ptr.tag) for ptr in ptrs_for_auto_close])
 
-    db.flush()
-    db.refresh(pteam)
-    fix_current_status_by_pteam(db, pteam)
+    command.fix_current_status_by_pteam(db, pteam)
 
-    db.commit()
-    return get_pteam_ext_tags(db, pteam.pteam_id)
+    return command.get_pteam_ext_tags(db, pteam)
 
 
 @router.delete("/{pteam_id}/tags", status_code=status.HTTP_204_NO_CONTENT)
@@ -882,16 +669,14 @@ def remove_pteamtags_by_group(
     """
     Remove pteam tags filtered by group.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
 
-    db.execute(
-        delete(models.PTeamTagReference).where(
-            models.PTeamTagReference.pteam_id == str(pteam_id),
-            models.PTeamTagReference.group == group,
-        )
-    )
+    for ptr in persistence.get_pteam_tag_references_by_group(db, pteam_id, group):
+        persistence.delete_pteam_tag_reference(db, ptr)
+
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -909,15 +694,10 @@ def update_pteam(
 
     Note: monitoring tags cannot be update with this api. use (add|update|remove)_pteamtag instead.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND, ignore_disabled=True)
-    assert pteam
-    check_pteam_auth(
-        db,
-        pteam_id,
-        current_user.user_id,
-        models.PTeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
+        raise NOT_HAVE_AUTH
     if data.alert_slack and data.alert_slack.webhook_url:
         validate_slack_webhook_url(data.alert_slack.webhook_url)
         pteam.alert_slack = models.PTeamSlack(
@@ -944,104 +724,21 @@ def update_pteam(
         pteam.disabled = data.disabled
     if data.alert_mail is not None:
         pteam.alert_mail = models.PTeamMail(**data.alert_mail.__dict__)
-
-    db.add(pteam)
+    db.flush()
 
     if pteam.disabled:
-        db.query(models.PTeamInvitation).filter(
-            models.PTeamInvitation.pteam_id == str(pteam_id)
-        ).delete()
+        for invitation in persistence.get_pteam_invitations(db, pteam_id):
+            persistence.delete_pteam_invitation(db, invitation)
     elif need_auto_close:
-        db.flush()
-        pteamtags = db.execute(
-            select(
-                models.PTeamTagReference.tag_id.distinct(),
-                models.PTeam,
-                models.Tag,
-            )
-            .join(
-                models.PTeam,
-                and_(
-                    models.PTeam.pteam_id == pteam.pteam_id,
-                    models.PTeamTagReference.pteam_id == pteam.pteam_id,
-                ),
-            )
-            .join(models.Tag)
-        ).all()
-        auto_close_by_pteamtags(db, [(pteamtag.PTeam, pteamtag.Tag) for pteamtag in pteamtags])
+        ptrs = persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id)
+        ptr_dict = {ptr.tag_id: ptr.tag for ptr in ptrs}  # pick only 1 tag for each tag_id
+        auto_close_by_pteamtags(db, [(pteam, tag) for tag in ptr_dict.values()])
 
-    db.flush()
-    db.refresh(pteam)
-    fix_current_status_by_pteam(db, pteam)
+    command.fix_current_status_by_pteam(db, pteam)
 
     db.commit()
-    db.refresh(pteam)
+
     return pteam
-
-
-def _get_pteam_topic_statuses_summary(
-    db: Session, pteam: models.PTeam, tag_id: str, on_error: int = status.HTTP_400_BAD_REQUEST
-):
-    if (
-        db.query(models.PTeamTagReference)
-        .filter(
-            models.PTeamTagReference.tag_id == tag_id,
-            models.PTeamTagReference.pteam_id == pteam.pteam_id,
-        )
-        .first()
-        is None
-    ):
-        raise HTTPException(status_code=on_error, detail="No such pteam tag")
-
-    rows = (
-        db.query(
-            models.Tag,
-            models.Topic,
-            models.PTeamTopicTagStatus.created_at.label("executed_at"),
-            models.PTeamTopicTagStatus.topic_status,
-        )
-        .filter(
-            models.Tag.tag_id == tag_id,
-        )
-        .join(
-            models.TopicTag, models.TopicTag.tag_id.in_([models.Tag.tag_id, models.Tag.parent_id])
-        )
-        .join(
-            models.Topic,
-            and_(
-                models.Topic.disabled.is_(False),
-                models.Topic.topic_id == models.TopicTag.topic_id,
-            ),
-        )
-        .outerjoin(
-            models.CurrentPTeamTopicTagStatus,
-            and_(
-                models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
-                models.CurrentPTeamTopicTagStatus.tag_id == models.Tag.tag_id,
-                models.CurrentPTeamTopicTagStatus.topic_id == models.TopicTag.topic_id,
-            ),
-        )
-        .outerjoin(
-            models.PTeamTopicTagStatus,
-        )
-        .order_by(
-            models.Topic.threat_impact,
-            models.Topic.updated_at.desc(),
-        )
-        .all()
-    )
-
-    return {
-        "tag_id": tag_id,
-        "topics": [
-            {
-                **row.Topic.__dict__,
-                "topic_status": row.topic_status or models.TopicStatusType.alerted,
-                "executed_at": row.executed_at,
-            }
-            for row in rows
-        ],
-    }
 
 
 @router.get(
@@ -1056,26 +753,15 @@ def get_pteam_topic_statuses_summary(
     """
     Get current status summary of all pteam topics.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    return _get_pteam_topic_statuses_summary(
-        db, pteam, str(tag_id), on_error=status.HTTP_404_NOT_FOUND
-    )
-
-
-@router.get("/{pteam_id}/topicstatus", response_model=List[schemas.TopicStatusResponse])
-def get_pteam_topic_status_list(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get topic status list of the pteam.
-    """
-    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    return get_pteam_topic_status_history(db, pteam_id=pteam_id)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (tag := persistence.get_tag_by_id(db, tag_id)):
+        raise NO_SUCH_TAG
+    if tag not in {ref.tag for ref in pteam.references}:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
+    return command.get_pteam_topic_statuses_summary(db, pteam, tag)
 
 
 @router.post(
@@ -1092,14 +778,65 @@ def set_pteam_topic_status(
     """
     Set topic status of the pteam.
     """
-    if not validate_pteam(db, pteam_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
-    if not validate_topic(db, topic_id):
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    # TODO: should check pteam auth: topic_status
+
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
-    if not validate_pteamtag(db, pteam_id, tag_id):
+    # TODO: should check pteam topic???
+    # TODO: should check topic tag?? -- should care about parent&child
+
+    if not (tag := persistence.get_tag_by_id(db, tag_id)):
+        raise NO_SUCH_TAG
+    if tag not in {ref.tag for ref in pteam.references}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
-    ret = set_pteam_topic_status_internal(pteam_id, topic_id, tag_id, data, current_user, db)
-    assert ret
+
+    if not command.check_tag_is_related_to_topic(db, tag, topic):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tag mismatch")
+
+    if data.topic_status not in {
+        models.TopicStatusType.acknowledged,
+        models.TopicStatusType.scheduled,
+        models.TopicStatusType.completed,
+    }:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
+
+    for logging_id_ in data.logging_ids:
+        if not (log := persistence.get_action_log_by_id(db, logging_id_)):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No such actionlog",
+            )
+        if log.pteam_id != str(pteam_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Not an actionlog for the pteam",
+            )
+        if log.topic_id != str(topic_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Not an actionlog for the topic",
+            )
+    for assignee in data.assignees:
+        if not (a_user := persistence.get_account_by_id(db, assignee)):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No such user",
+            )
+        if not check_pteam_membership(db, pteam, a_user):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Not a pteam member",
+            )
+
+    ret = set_pteam_topic_status_internal(db, current_user, pteam, topic, tag, data)
+
+    db.commit()
+
     return ret
 
 
@@ -1116,25 +853,35 @@ def get_pteam_topic_status(
     """
     Get the current status (or None) of the pteam topic.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
-    if not validate_pteamtag(db, pteam_id, tag_id):
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+        raise NO_SUCH_TOPIC
+    if not (tag := persistence.get_tag_by_id(db, tag_id)):
+        raise NO_SUCH_TAG
+    if tag not in {ref.tag for ref in pteam.references}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
 
-    current_row = get_current_pteam_topic_tag_status(db, pteam_id, topic_id, tag_id)
+    # TODO: should check pteam topic???
+    # TODO: should check topic tag?? -- should care about parent&child
+
+    current_row = persistence.get_current_pteam_topic_tag_status(db, pteam_id, topic_id, tag_id)
     if current_row is None or current_row.status_id is None:
+        # should not happen if request is right
         return {
             "pteam_id": pteam_id,
             "topic_id": topic_id,
             "tag_id": tag_id,
         }
-    return pteam_topic_tag_status_to_response(db, current_row)
+
+    status_row = persistence.get_pteam_topic_tag_status_by_id(db, current_row.status_id)
+    assert status_row
+    return command.pteam_topic_tag_status_to_response(db, status_row)
 
 
-@router.get("/{pteam_id}/members", response_model=List[schemas.UserResponse])
+@router.get("/{pteam_id}/members", response_model=list[schemas.UserResponse])
 def get_pteam_members(
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -1143,9 +890,10 @@ def get_pteam_members(
     """
     Get members of the pteam.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
     return pteam.members
 
 
@@ -1159,43 +907,32 @@ def delete_member(
     """
     User leaves the pteam.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    if current_user.user_id != str(user_id):
-        check_pteam_auth(
-            db,
-            pteam_id,
-            current_user.user_id,
-            models.PTeamAuthIntFlag.ADMIN,
-            on_error=status.HTTP_403_FORBIDDEN,
-        )
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if current_user.user_id != str(user_id) and not check_pteam_auth(
+        db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN
+    ):
+        raise NOT_HAVE_AUTH
 
     target_users = [x for x in pteam.members if x.user_id == str(user_id)]
     if len(target_users) == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam member")
-    _guard_last_admin(db, pteam_id, [user_id])
 
-    # remove all extra authorities
-    _modify_pteam_auth(db, pteam_id, user_id, 0)
+    # remove all extra authorities  # FIXME: should be deleted on cascade
+    if auth := persistence.get_pteam_authority(db, pteam_id, user_id):
+        command.workaround_delete_pteam_authority(db, auth)
 
     # remove from members
     pteam.members.remove(target_users[0])
-    db.add(pteam)
+
+    db.flush()
+    if command.missing_pteam_admin(db, pteam):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"
+        )
+
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)  # avoid Content-Length Header
-
-
-def _expire_tokens(db: Session):
-    db.query(models.PTeamInvitation).filter(
-        or_(
-            models.PTeamInvitation.expiration < datetime.now(),
-            and_(
-                models.PTeamInvitation.limit_count.is_not(None),
-                models.PTeamInvitation.used_count >= models.PTeamInvitation.limit_count,
-            ),
-        )
-    ).delete()
-    db.commit()
 
 
 @router.post("/{pteam_id}/invitation", response_model=schemas.PTeamInvitationResponse)
@@ -1208,16 +945,13 @@ def create_invitation(
     """
     Create a new pteam invitation token.
     """
-    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_pteam_auth(
-        db,
-        pteam_id,
-        current_user.user_id,
-        models.PTeamAuthIntFlag.INVITE,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
+        raise NOT_HAVE_AUTH
+    # only ADMIN can set authorities to the invitation
     if request.authorities is not None and not check_pteam_auth(
-        db, pteam_id, current_user.user_id, models.PTeamAuthIntFlag.ADMIN
+        db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="ADMIN required to set authorities"
@@ -1229,51 +963,51 @@ def create_invitation(
             detail="Unwise limit_count (give Null for unlimited)",
         )
 
-    _expire_tokens(db)
+    command.expire_pteam_invitations(db)
 
     del request.authorities
-    token = models.PTeamInvitation(
-        pteam_id=str(pteam_id),
-        user_id=current_user.user_id,
-        authority=intflag,
-        **request.model_dump(),
+    invitation = persistence.create_pteam_invitation(
+        db,
+        models.PTeamInvitation(
+            pteam_id=str(pteam_id),
+            user_id=current_user.user_id,
+            authority=intflag,
+            **request.model_dump(),
+        ),
     )
-    db.add(token)
+
     db.commit()
-    db.refresh(token)
+    db.refresh(invitation)
 
-    return schemas.PTeamInvitationResponse(
-        **token.__dict__, authorities=models.PTeamAuthIntFlag(token.authority).to_enums()
-    )
+    return {
+        **invitation.__dict__,
+        "authorities": models.PTeamAuthIntFlag(invitation.authority).to_enums(),
+    }
 
 
-@router.get("/{pteam_id}/invitation", response_model=List[schemas.PTeamInvitationResponse])
+@router.get("/{pteam_id}/invitation", response_model=list[schemas.PTeamInvitationResponse])
 def list_invitations(
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    List effective invitations.
+    list effective invitations.
     """
-    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_pteam_auth(
-        db,
-        pteam_id,
-        current_user.user_id,
-        models.PTeamAuthIntFlag.INVITE,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
+        raise NOT_HAVE_AUTH
 
-    _expire_tokens(db)
+    command.expire_pteam_invitations(db)
+    # do not commit within GET method
 
     return [
-        schemas.PTeamInvitationResponse(
-            **row.__dict__, authorities=models.PTeamAuthIntFlag(row.authority).to_enums()
-        )
-        for row in db.query(models.PTeamInvitation)
-        .filter(models.PTeamInvitation.pteam_id == str(pteam_id))
-        .all()
+        {
+            **invitation.__dict__,
+            "authorities": models.PTeamAuthIntFlag(invitation.authority).to_enums(),
+        }
+        for invitation in persistence.get_pteam_invitations(db, pteam_id)
     ]
 
 
@@ -1284,24 +1018,23 @@ def delete_invitation(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_pteam_auth(
-        db,
-        pteam_id,
-        current_user.user_id,
-        models.PTeamAuthIntFlag.INVITE,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
-    _expire_tokens(db)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
+        raise NOT_HAVE_AUTH
 
-    db.query(models.PTeamInvitation).filter(
-        models.PTeamInvitation.invitation_id == str(invitation_id)
-    ).delete()
-    db.commit()
+    command.expire_pteam_invitations(db)
+
+    invitation = persistence.get_pteam_invitation_by_id(db, invitation_id)
+    if invitation:  # can be expired before deleting
+        persistence.delete_pteam_invitation(db, invitation)
+
+    db.commit()  # commit not only deleted but also expired
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)  # avoid Content-Length Header
 
 
-@router.get("/{pteam_id}/watchers", response_model=List[schemas.ATeamEntry])
+@router.get("/{pteam_id}/watchers", response_model=list[schemas.ATeamEntry])
 def get_pteam_watchers(
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -1310,9 +1043,10 @@ def get_pteam_watchers(
     """
     Get watching pteams of the ateam.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
 
     return pteam.ateams
 
@@ -1327,19 +1061,15 @@ def remove_watcher_ateam(
     """
     Remove ateam from watchers list.
     """
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_auth(
-        db,
-        pteam_id,
-        current_user.user_id,
-        models.PTeamAuthIntFlag.ADMIN,
-        on_error=status.HTTP_403_FORBIDDEN,
-    )
-
-    pteam.ateams = [ateams for ateams in pteam.ateams if ateams.ateam_id != str(ateam_id)]
-    db.add(pteam)
-    db.commit()
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
+        raise NOT_HAVE_AUTH
+    if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
+        raise NO_SUCH_ATEAM
+    if ateam in pteam.ateams:  # ignore removing not-watcher
+        pteam.ateams.remove(ateam)
+        db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -1350,37 +1080,15 @@ def fix_status_mismatch(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
 
-    select_stmt = (
-        select(models.CurrentPTeamTopicTagStatus)
-        .options(
-            joinedload(models.CurrentPTeamTopicTagStatus.pteam, innerjoin=True),
-            joinedload(models.CurrentPTeamTopicTagStatus.tag, innerjoin=True),
-            joinedload(models.CurrentPTeamTopicTagStatus.topic, innerjoin=True),
-        )
-        .outerjoin(models.PTeamTopicTagStatus)
-        .where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
-            or_(
-                models.CurrentPTeamTopicTagStatus.topic_status.in_(
-                    [
-                        models.TopicStatusType.alerted,
-                        models.TopicStatusType.acknowledged,
-                    ]
-                ),
-                and_(
-                    models.PTeamTopicTagStatus.topic_status == models.TopicStatusType.scheduled,
-                    models.PTeamTopicTagStatus.scheduled_at < datetime.now(),
-                ),
-            ),
-        )
-    )
+    for tag, topic in command.get_auto_close_triable_pteam_tags_and_topics(db, pteam):
+        pteamtag_try_auto_close_topic(db, pteam, tag, topic)
 
-    rows = db.scalars(select_stmt).all()
-    for row in rows:
-        pteamtag_try_auto_close_topic(db, row.pteam, row.tag, row.topic)
+    db.commit()
 
     return Response(status_code=status.HTTP_200_OK)
 
@@ -1392,40 +1100,18 @@ def fix_status_mismatch_tag(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
-    if not validate_pteamtag(db, pteam_id, tag_id):
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (tag := persistence.get_tag_by_id(db, tag_id)):
+        raise NO_SUCH_TAG
+    if tag not in {ref.tag for ref in pteam.references}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
-    select_stmt = (
-        select(models.CurrentPTeamTopicTagStatus)
-        .options(
-            joinedload(models.CurrentPTeamTopicTagStatus.pteam, innerjoin=True),
-            joinedload(models.CurrentPTeamTopicTagStatus.tag, innerjoin=True),
-            joinedload(models.CurrentPTeamTopicTagStatus.topic, innerjoin=True),
-        )
-        .outerjoin(models.PTeamTopicTagStatus)
-        .where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
-            or_(
-                models.CurrentPTeamTopicTagStatus.topic_status.in_(
-                    [
-                        models.TopicStatusType.alerted,
-                        models.TopicStatusType.acknowledged,
-                    ]
-                ),
-                and_(
-                    models.PTeamTopicTagStatus.topic_status == models.TopicStatusType.scheduled,
-                    models.PTeamTopicTagStatus.scheduled_at < datetime.now(),
-                ),
-            ),
-        )
-    )
+    for topic in command.get_auto_close_triable_pteam_topics(db, pteam, tag):
+        pteamtag_try_auto_close_topic(db, pteam, tag, topic)
 
-    rows = db.scalars(select_stmt).all()
-
-    for row in rows:
-        pteamtag_try_auto_close_topic(db, row.pteam, row.tag, row.topic)
+    db.commit()
 
     return Response(status_code=status.HTTP_200_OK)

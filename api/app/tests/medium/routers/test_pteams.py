@@ -760,9 +760,8 @@ def test_update_pteam_auth__pseudo_admin():
     assert response.reason_phrase == "Bad Request"
 
 
-def test_update_pteam_auth__remove_admin():
+def test_update_pteam_auth__remove_admin__last():
     user1 = create_user(USER1)
-    user2 = create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
 
     # remove last admin
@@ -776,11 +775,19 @@ def test_update_pteam_auth__remove_admin():
     assert response.reason_phrase == "Bad Request"
     assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
+
+def test_update_pteam_auth__remove_admin__another():
+    user1 = create_user(USER1)
+    user2 = create_user(USER2)
+    pteam1 = create_pteam(USER1, PTEAM1)
     # invite another admin
     invitation = invite_to_pteam(USER1, pteam1.pteam_id, ["admin"])
     accept_pteam_invitation(USER2, invitation.invitation_id)
 
     # try removing (no more last) admin
+    request = [
+        {"user_id": str(user1.user_id), "authorities": []},
+    ]
     response = client.post(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
@@ -1333,7 +1340,7 @@ def test_apply_invitation__individual_auth():
     assert set(auth_map.get(str(user2.user_id), {}).get("authorities", [])) == set(request_auth)
 
 
-def test_delete_member():
+def test_delete_member__last_admin():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
 
@@ -1351,18 +1358,45 @@ def test_delete_member():
     assert response.reason_phrase == "Bad Request"
     assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
+
+def test_delete_member__last_admin_another():
+    user1 = create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+
+    response = client.get("/users/me", headers=headers(USER1))
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user_id"] == str(user1.user_id)
+    assert {UUID(pteam["pteam_id"]) for pteam in data["pteams"]} == {pteam1.pteam_id}
+
     # invite another member (not ADMIN)
-    user2 = create_user(USER2)
+    create_user(USER2)
     invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    # try again
+    # try leaving the pteam
     response = client.delete(
         f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1)
     )
     assert response.status_code == 400
     assert response.reason_phrase == "Bad Request"
     assert response.json()["detail"] == "Removing last ADMIN is not allowed"
+
+
+def test_delete_member__not_last_admin():
+    user1 = create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+
+    response = client.get("/users/me", headers=headers(USER1))
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user_id"] == str(user1.user_id)
+    assert {UUID(pteam["pteam_id"]) for pteam in data["pteams"]} == {pteam1.pteam_id}
+
+    # invite another member (not ADMIN)
+    user2 = create_user(USER2)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER2, invitation.invitation_id)
 
     # make the other member ADMIN
     response = client.post(
@@ -1372,7 +1406,7 @@ def test_delete_member():
     )
     assert response.status_code == 200
 
-    # try again
+    # try leaving pteam
     response = client.delete(
         f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1)
     )
@@ -1421,13 +1455,18 @@ def test_delete_member__by_admin():
     assert response.reason_phrase == "Bad Request"
     assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
+
+def test_delete_member__by_admin_myself():
+    create_user(USER1)
+    user2 = create_user(USER2)
+    pteam1 = create_pteam(USER1, PTEAM1)
     # invite another ADMIN
-    invitation = invite_to_pteam(USER3, pteam1.pteam_id, ["admin"])
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id, ["admin"])
     accept_pteam_invitation(USER2, invitation.invitation_id)
 
     # kickout myself
     response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}", headers=headers(USER3)
+        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER2)
     )
     assert response.status_code == 204
 
@@ -1970,179 +2009,6 @@ def test_get_pteam_topic_status__by_not_member():
     )
     assert response.status_code == 403
     assert response.reason_phrase == "Forbidden"
-
-
-def test_get_pteam_topic_status_list():
-    user1 = create_user(USER1)
-    tag1 = create_tag(USER1, TAG1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    topic1 = create_topic(USER1, TOPIC1)  # TAG1
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    # get topicstatus list
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER1))
-    assert response.status_code == 200
-    assert response.json() == []
-
-    # register topicstatus
-    set_request = {
-        "topic_status": models.TopicStatusType.acknowledged,
-        "logging_ids": [],
-        "assignees": [],
-        "note": f"acknowledged by {USER1['email']}",
-        "scheduled_at": None,
-    }
-    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, set_request)
-
-    # get topicstatus list
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER1))
-    assert response.status_code == 200
-    responsed_topicstatuses = response.json()
-    assert len(responsed_topicstatuses) == 1
-    # latest status record should be head of list
-    assert responsed_topicstatuses[0]["pteam_id"] == str(pteam1.pteam_id)
-    assert responsed_topicstatuses[0]["topic_id"] == str(topic1.topic_id)
-    assert responsed_topicstatuses[0]["tag_id"] == str(tag1.tag_id)
-    assert responsed_topicstatuses[0]["user_id"] == str(user1.user_id)
-    assert responsed_topicstatuses[0]["topic_status"] == set_request["topic_status"]
-    assert responsed_topicstatuses[0]["note"] == set_request["note"]
-
-
-def test_get_pteam_topic_status_list__by_not_member():
-    create_user(USER1)
-    create_user(USER2)
-    create_tag(USER1, TAG1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER2))
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
-
-
-def test_get_pteam_topic_status_list__actionlogs():
-    user1 = create_user(USER1)
-    tag1 = create_tag(USER1, TAG1)
-    create_tag(USER1, TAG2)
-    create_tag(USER1, TAG3)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    user2 = create_user(USER2)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    user3 = create_user(USER3)
-    pteam3 = create_pteam(USER3, PTEAM2)
-
-    topic_a = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])  # TAG1
-    topic_b = create_topic(USER3, TOPIC2, actions=[ACTION1, ACTION2])  # TAG1
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    # add tag[1,2,3] to pteam3
-    group_x = "group_x"
-    refs3 = {
-        TAG1: [("fake target 1", "fake version 1")],
-        TAG2: [("fake target 2", "fake version 2")],
-        TAG3: [("fake target 3", "fake version 3")],
-    }
-    upload_pteam_tags(USER3, pteam3.pteam_id, group_x, refs3)
-
-    def _compare_action_logs(
-        logs1: List[schemas.ActionLogResponse], logs2: List[schemas.ActionLogResponse]
-    ) -> bool:
-        def _logs_to_text(logs: List[schemas.ActionLogResponse]) -> str:
-            return json.dumps([{k: str(v) for k, v in log} for log in logs], sort_keys=True)
-
-        return _logs_to_text(logs1) == _logs_to_text(logs2)
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER1))
-    assert response.status_code == 200
-    assert response.json() == []
-
-    actionlog1a1 = create_actionlog(
-        USER1, topic_a.actions[0].action_id, topic_a.topic_id, user1.user_id, pteam1.pteam_id, None
-    )
-    actionlog1b1 = create_actionlog(
-        USER2, topic_b.actions[0].action_id, topic_b.topic_id, user2.user_id, pteam1.pteam_id, None
-    )  # for user2 by user2
-    actionlog3a1 = create_actionlog(
-        USER3, topic_a.actions[0].action_id, topic_a.topic_id, user3.user_id, pteam3.pteam_id, None
-    )
-    actionlog1a2 = create_actionlog(
-        USER1, topic_a.actions[1].action_id, topic_a.topic_id, user2.user_id, pteam1.pteam_id, None
-    )  # for user2 by user1
-
-    # pteam1, topicA
-    request = {
-        "topic_status": models.TopicStatusType.completed,
-        "logging_ids": [str(x.logging_id) for x in [actionlog1a1, actionlog1a2]],
-    }
-    data = create_topicstatus(USER1, pteam1.pteam_id, topic_a.topic_id, tag1.tag_id, request)
-    assert _compare_action_logs(data.action_logs, [actionlog1a2, actionlog1a1])
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER1))
-    assert response.status_code == 200
-    data = [schemas.TopicStatusResponse(**x) for x in response.json()]
-    assert len(data) == 1
-    assert _compare_action_logs(data[0].action_logs, [actionlog1a2, actionlog1a1])
-
-    # pteam1, topicA (append)
-    request = {
-        "topic_status": models.TopicStatusType.completed,
-        "logging_ids": [str(x.logging_id) for x in []],
-    }
-    data = create_topicstatus(USER1, pteam1.pteam_id, topic_a.topic_id, tag1.tag_id, request)
-    assert _compare_action_logs(data.action_logs, [])
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER1))
-    assert response.status_code == 200
-    data = [schemas.TopicStatusResponse(**x) for x in response.json()]
-    assert len(data) == 2
-    assert _compare_action_logs(data[0].action_logs, [])
-    assert _compare_action_logs(data[1].action_logs, [actionlog1a2, actionlog1a1])
-
-    # pteam3, topicA
-    request = {
-        "topic_status": models.TopicStatusType.completed,
-        "logging_ids": [str(x.logging_id) for x in [actionlog3a1]],
-    }
-    data = create_topicstatus(USER3, pteam3.pteam_id, topic_a.topic_id, tag1.tag_id, request)
-    assert _compare_action_logs(data.action_logs, [actionlog3a1])
-
-    # no change for pteam1
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER1))
-    assert response.status_code == 200
-    data = [schemas.TopicStatusResponse(**x) for x in response.json()]
-    assert len(data) == 2
-    assert _compare_action_logs(data[0].action_logs, [])
-    assert _compare_action_logs(data[1].action_logs, [actionlog1a2, actionlog1a1])
-
-    # pteam1, topicB, by user2
-    request = {
-        "topic_status": models.TopicStatusType.completed,
-        "logging_ids": [str(x.logging_id) for x in [actionlog1b1, actionlog1b1]],  # duplicated
-    }
-    data = create_topicstatus(USER2, pteam1.pteam_id, topic_b.topic_id, tag1.tag_id, request)
-    assert _compare_action_logs(data.action_logs, [actionlog1b1])
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topicstatus", headers=headers(USER2))
-    assert response.status_code == 200
-    data = [schemas.TopicStatusResponse(**x) for x in response.json()]
-    assert len(data) == 3
-    assert _compare_action_logs(data[0].action_logs, [actionlog1b1])
-    assert _compare_action_logs(data[1].action_logs, [])
-    assert _compare_action_logs(data[2].action_logs, [actionlog1a2, actionlog1a1])
 
 
 def test_get_pteam_topic_statuses_summary():

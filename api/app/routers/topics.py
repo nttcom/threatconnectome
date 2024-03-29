@@ -1,16 +1,15 @@
 import os
 from datetime import datetime
-from typing import Dict, List, Optional, Set
+from typing import Sequence, Set
 from uuid import UUID
 
 import requests
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
 from fastapi.security import HTTPAuthorizationCredentials
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import command, models, persistence, schemas
 from app.alert import alert_new_topic
 from app.auth import get_current_user, token_scheme
 from app.common import (
@@ -18,24 +17,19 @@ from app.common import (
     calculate_topic_content_fingerprint,
     check_pteam_membership,
     check_topic_action_tags_integrity,
-    create_action_internal,
-    fix_current_status_by_deleted_topic,
-    fix_current_status_by_topic,
-    get_misp_tag,
-    get_topics_internal,
-    search_topics_internal,
-    validate_action,
-    validate_misp_tag,
-    validate_pteam,
-    validate_tag,
-    validate_topic,
+    get_enabled_topics,
+    get_or_create_misp_tag,
+    get_sorted_topics,
 )
 from app.database import get_db
 
 router = APIRouter(prefix="/topics", tags=["topics"])
 
 
-@router.get("", response_model=List[schemas.TopicEntry])
+NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
+
+@router.get("", response_model=list[schemas.TopicEntry])
 def get_topics(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
 ):
@@ -52,7 +46,7 @@ def get_topics(
         }
         return hashlib.md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
     """
-    return get_topics_internal(db, current_user.user_id)
+    return get_sorted_topics(get_enabled_topics(persistence.get_all_topics(db)))
 
 
 @router.get("/search", response_model=schemas.SearchTopicsResponse)
@@ -60,17 +54,17 @@ def search_topics(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),  # 10 is default in web/src/pages/TopicManagement.jsx
     sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.THREAT_IMPACT),
-    threat_impacts: Optional[List[int]] = Query(None),
-    topic_ids: Optional[List[str]] = Query(None),
-    title_words: Optional[List[str]] = Query(None),
-    abstract_words: Optional[List[str]] = Query(None),
-    tag_names: Optional[List[str]] = Query(None),
-    misp_tag_names: Optional[List[str]] = Query(None),
-    creator_ids: Optional[List[str]] = Query(None),
-    created_after: Optional[datetime] = Query(None),
-    created_before: Optional[datetime] = Query(None),
-    updated_after: Optional[datetime] = Query(None),
-    updated_before: Optional[datetime] = Query(None),
+    threat_impacts: list[int] | None = Query(None),
+    topic_ids: list[str] | None = Query(None),
+    title_words: list[str] | None = Query(None),
+    abstract_words: list[str] | None = Query(None),
+    tag_names: list[str] | None = Query(None),
+    misp_tag_names: list[str] | None = Query(None),
+    creator_ids: list[str] | None = Query(None),
+    created_after: datetime | None = Query(None),
+    created_before: datetime | None = Query(None),
+    updated_after: datetime | None = Query(None),
+    updated_before: datetime | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -104,23 +98,23 @@ def search_topics(
     """
     keyword_for_empty = ""
 
-    fixed_tag_ids: Set[Optional[str]] = set()
+    fixed_tag_ids: Set[str | None] = set()
     if tag_names is not None:
         for tag_name in tag_names:
             if tag_name == keyword_for_empty:
                 fixed_tag_ids.add(None)
                 continue
-            if (tag := validate_tag(db, tag_name=tag_name)) is None:
+            if not (tag := persistence.get_tag_by_name(db, tag_name)):
                 continue  # ignore wrong tag_name
             fixed_tag_ids.add(tag.tag_id)
 
-    fixed_misp_tag_ids: Set[Optional[str]] = set()
+    fixed_misp_tag_ids: Set[str | None] = set()
     if misp_tag_names is not None:
         for misp_tag_name in misp_tag_names:
             if misp_tag_name == keyword_for_empty:
                 fixed_misp_tag_ids.add(None)
                 continue
-            if (misp_tag := validate_misp_tag(db, tag_name=misp_tag_name)) is None:
+            if not (misp_tag := persistence.get_misp_tag_by_name(db, misp_tag_name)):
                 continue  # ignore wrong misp_tag_name
             fixed_misp_tag_ids.add(misp_tag.tag_id)
 
@@ -136,13 +130,11 @@ def search_topics(
     fixed_creator_ids = set()
     if creator_ids is not None:
         for creator_id in creator_ids:
-            try:
-                UUID(creator_id)
-                fixed_creator_ids.add(creator_id)
-            except ValueError:
-                pass
+            if not persistence.get_account_by_id(db, creator_id):
+                continue
+            fixed_creator_ids.add(creator_id)
 
-    fixed_title_words: Set[Optional[str]] = set()
+    fixed_title_words: Set[str | None] = set()
     if title_words is not None:
         for title_word in title_words:
             if title_word == keyword_for_empty:
@@ -150,7 +142,7 @@ def search_topics(
                 continue
             fixed_title_words.add(title_word)
 
-    fixed_abstract_words: Set[Optional[str]] = set()
+    fixed_abstract_words: Set[str | None] = set()
     if abstract_words is not None:
         for abstract_word in abstract_words:
             if abstract_word == keyword_for_empty:
@@ -168,9 +160,8 @@ def search_topics(
             except ValueError:
                 pass
 
-    return search_topics_internal(
+    return command.search_topics_internal(
         db,
-        current_user,
         offset=offset,
         limit=limit,
         sort_key=sort_key,
@@ -234,8 +225,9 @@ def get_topic(
     """
     Get a topic.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND, ignore_disabled=True)
-    assert topic
+    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+        raise NO_SUCH_TOPIC
+
     return topic
 
 
@@ -259,13 +251,13 @@ def create_topic(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create default topic"
         )
-    if validate_topic(db, topic_id, ignore_disabled=True) is not None:
+    if persistence.get_topic_by_id(db, topic_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Topic already exists")
 
     # check tags
     action_tag_names = {tag for action in data.actions for tag in action.ext.get("tags", [])}
-    requested_tags: Dict[str, Optional[models.Tag]] = {
-        tag_name: validate_tag(db, tag_name=tag_name)
+    requested_tags: dict[str, models.Tag | None] = {
+        tag_name: persistence.get_tag_by_name(db, tag_name)
         for tag_name in set(data.tags) | action_tag_names
     }
     if not_exist_tag_names := [tag_name for tag_name, tag in requested_tags.items() if tag is None]:
@@ -273,11 +265,14 @@ def create_topic(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"No such tags: {', '.join(sorted(not_exist_tag_names))}",
         )
-    check_topic_action_tags_integrity(
+    if not check_topic_action_tags_integrity(
         data.tags,
         list(action_tag_names),
-        on_error=status.HTTP_400_BAD_REQUEST,
-    )
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Action Tag mismatch with Topic Tag",
+        )
 
     # check actions
     action_ids = [action.action_id for action in data.actions if action.action_id]
@@ -287,7 +282,7 @@ def create_topic(
             detail="Ambiguous action ids",
         )
     for action_id in action_ids:
-        if validate_action(db, action_id) is not None:
+        if persistence.get_action_by_id(db, action_id):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Action id already exists",
@@ -317,24 +312,24 @@ def create_topic(
     )
     # fix relations
     topic.tags = [requested_tags[tag_name] for tag_name in set(data.tags)]
-    topic.misp_tags = [get_misp_tag(db, tag) for tag in set(data.misp_tags)]
-
-    db.add(topic)
-    db.flush()
-    db.refresh(topic)
-
-    # create and bind actions -- needs active topic_id
+    topic.misp_tags = [get_or_create_misp_tag(db, tag) for tag in set(data.misp_tags)]
     for action in data.actions:
-        del action.topic_id
-        create_action_internal(
-            db,
-            current_user,
-            schemas.ActionCreateRequest(**action.model_dump(), topic_id=UUID(topic.topic_id)),
+        new_action = models.TopicAction(
+            action_id=str(action.action_id) if action.action_id else None,
+            # topic_id will be filled at appending to topic.actions
+            action=action.action,
+            action_type=action.action_type,
+            recommended=action.recommended,
+            ext=action.ext,
+            created_by=current_user.user_id,
+            created_at=now,
         )
-    db.refresh(topic)
+        topic.actions.append(new_action)
+
+    persistence.create_topic(db, topic)
 
     auto_close_by_topic(db, topic)
-    fix_current_status_by_topic(db, topic)
+    command.fix_current_status_by_topic(db, topic)
 
     db.commit()
     db.refresh(topic)
@@ -354,9 +349,8 @@ def update_topic(
     """
     Update a topic.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND, ignore_disabled=True)
-    assert topic
-
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):  # ignore disabled
+        raise NO_SUCH_TOPIC
     if topic.created_by != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -365,10 +359,10 @@ def update_topic(
 
     new_title = None if data.title is None else data.title.strip()
     new_abstract = None if data.abstract is None else data.abstract.strip()
-    new_tags: Optional[List[Optional[models.Tag]]] = None
+    new_tags: list[models.Tag | None] | None = None
     if data.tags is not None:
         tags_dict = {
-            tag_name: validate_tag(db, tag_name=tag_name) for tag_name in set(data.tags or [])
+            tag_name: persistence.get_tag_by_name(db, tag_name) for tag_name in set(data.tags or [])
         }
         if not_exist_tag_names := [tag_name for tag_name, tag in tags_dict.items() if tag is None]:
             raise HTTPException(
@@ -392,7 +386,7 @@ def update_topic(
     if new_tags is not None:
         topic.tags = new_tags
     if data.misp_tags is not None:
-        topic.misp_tags = [get_misp_tag(db, tag) for tag in data.misp_tags]
+        topic.misp_tags = [get_or_create_misp_tag(db, tag) for tag in data.misp_tags]
     if new_title is not None:
         topic.title = new_title
     if new_abstract is not None:
@@ -408,13 +402,15 @@ def update_topic(
         )
 
     topic.updated_at = datetime.now()
-    db.add(topic)
-    db.commit()
-    db.refresh(topic)
+
+    db.flush()
 
     if need_auto_close:
         auto_close_by_topic(db, topic)
-    fix_current_status_by_topic(db, topic)
+    command.fix_current_status_by_topic(db, topic)
+
+    db.commit()
+    db.refresh(topic)
 
     return topic
 
@@ -428,8 +424,8 @@ def delete_topic(
     """
     Delete a topic and related records except actionlog.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
+    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+        raise NO_SUCH_TOPIC
 
     if topic.created_by != current_user.user_id:
         raise HTTPException(
@@ -437,10 +433,10 @@ def delete_topic(
             detail="you are not topic creator",
         )
 
-    db.delete(topic)
-    db.commit()
+    persistence.delete_topic(db, topic)
+    command.fix_current_status_by_deleted_topic(db, topic.topic_id)
 
-    fix_current_status_by_deleted_topic(db, topic.topic_id)
+    db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -455,13 +451,15 @@ def get_pteam_topic_actions(
     """
     Get actions list of the topic for specified pteam.
     """
-    validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+        raise NO_SUCH_TOPIC
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
+    if not check_pteam_membership(db, pteam, current_user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
 
-    actions = db.scalars(
-        select(models.TopicAction).where(models.TopicAction.topic_id == str(topic_id))
-    ).all()
+    # Note: no limitations currently, thus return all topic actions
+    actions = persistence.get_actions_by_topic_id(db, topic_id)
 
     return {
         "topic_id": topic_id,
@@ -470,7 +468,7 @@ def get_pteam_topic_actions(
     }
 
 
-@router.get("/{topic_id}/actions/user/me", response_model=List[schemas.ActionResponse])
+@router.get("/{topic_id}/actions/user/me", response_model=Sequence[schemas.ActionResponse])
 def get_user_topic_actions(
     topic_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -479,15 +477,10 @@ def get_user_topic_actions(
     """
     Get actions list of the topic for current user.
     """
-    topic = validate_topic(db, topic_id)
-    if not topic:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No such topic",
-        )
+    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+        raise NO_SUCH_TOPIC
 
-    actions = db.scalars(
-        select(models.TopicAction).where(models.TopicAction.topic_id == str(topic_id))
-    ).all()
+    # Note: no limitations currently, thus return all topic actions
+    actions = persistence.get_actions_by_topic_id(db, topic_id)
 
     return actions

@@ -1,46 +1,29 @@
 from datetime import datetime, timezone
-from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy import desc, func
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import true
 
-from app import models, schemas
+from app import command, models, persistence, schemas
 from app.auth import get_current_user
 from app.common import (
     check_pteam_membership,
-    create_actionlog_internal,
-    validate_topic,
 )
 from app.database import get_db
-from app.models import ActionType
 
 router = APIRouter(prefix="/actionlogs", tags=["actionlogs"])
 
 
-@router.get("", response_model=List[schemas.ActionLogResponse])
+@router.get("", response_model=list[schemas.ActionLogResponse])
 def get_logs(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """
     Get actionlogs of pteams the user belongs to.
     """
-    logs = (
-        db.query(models.ActionLog)
-        .filter(
-            models.ActionLog.pteam_id.in_(
-                db.query(models.PTeamAccount.pteam_id).filter(
-                    models.PTeamAccount.user_id == current_user.user_id
-                )
-            )
-        )
-        .order_by(desc(models.ActionLog.created_at))
-        .all()
-    )
+    logs = persistence.get_action_logs_by_user_id(db, current_user.user_id)
     result = []
-    for log in logs:
+    for log in sorted(logs, key=lambda l: l.executed_at, reverse=True):
         if log.created_at:
             log.created_at = log.created_at.astimezone(timezone.utc)
         if log.executed_at:
@@ -63,62 +46,45 @@ def create_log(
     The format of `executed_at` is ISO-8601.
     In linux, you can check it with `date --iso-8601=seconds`.
     """
-    return create_actionlog_internal(data, current_user, db)
+    if not (pteam := persistence.get_pteam_by_id(db, data.pteam_id)) or pteam.disabled:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such pteam")
+    if not check_pteam_membership(db, pteam, current_user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
+    if not (user := persistence.get_account_by_id(db, data.user_id)):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
+    if not check_pteam_membership(db, pteam, user):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam member")
+    if not (topic := persistence.get_topic_by_id(db, data.topic_id)) or topic.disabled:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
+    if str(data.topic_id) not in command.get_pteam_topic_ids(db, data.pteam_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam topic")
+    if not (
+        topic_action := persistence.get_action_by_id(db, data.action_id)
+    ) or topic_action.topic_id != str(data.topic_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
 
-
-@router.get("/search", response_model=List[schemas.ActionLogResponse])
-def search_logs(
-    topic_ids: Optional[List[UUID]] = Query(None),
-    action_words: Optional[List[str]] = Query(None),
-    action_types: Optional[List[ActionType]] = Query(None),
-    user_ids: Optional[List[UUID]] = Query(None),
-    pteam_ids: Optional[List[UUID]] = Query(None),
-    emails: Optional[List[str]] = Query(None),
-    executed_before: Optional[datetime] = Query(None),
-    executed_after: Optional[datetime] = Query(None),
-    created_before: Optional[datetime] = Query(None),
-    created_after: Optional[datetime] = Query(None),
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Search actionlogs.
-    """
-    if pteam_ids is None:
-        pteam_ids = [pteam.pteam_id for pteam in current_user.pteams]
-    else:
-        for pteam_id in pteam_ids:
-            check_pteam_membership(
-                db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN
-            )
-    rows = (
-        db.query(models.ActionLog)
-        .filter(
-            (
-                true()
-                if topic_ids is None
-                else models.ActionLog.topic_id.in_(list(map(str, topic_ids)))
-            ),
-            (
-                true()
-                if action_words is None
-                else models.ActionLog.action.bool_op("@@")(func.to_tsquery("|".join(action_words)))
-            ),
-            true() if action_types is None else models.ActionLog.action_type.in_(action_types),
-            true() if user_ids is None else models.ActionLog.user_id.in_(list(map(str, user_ids))),
-            models.ActionLog.pteam_id.in_(list(map(str, pteam_ids))),
-            true() if emails is None else models.ActionLog.email.in_(emails),
-            true() if executed_before is None else models.ActionLog.executed_at < executed_before,
-            true() if executed_after is None else models.ActionLog.executed_at >= executed_after,
-            true() if created_before is None else models.ActionLog.created_at < created_before,
-            true() if created_after is None else models.ActionLog.created_at >= created_after,
-        )
-        .all()
+    now = datetime.now()
+    log = models.ActionLog(
+        action_id=data.action_id,
+        topic_id=data.topic_id,
+        action=topic_action.action,
+        action_type=topic_action.action_type,
+        recommended=topic_action.recommended,
+        user_id=data.user_id,
+        pteam_id=data.pteam_id,
+        email=user.email,
+        executed_at=data.executed_at or now,
+        created_at=now,
     )
-    return sorted(rows, key=lambda x: x.executed_at, reverse=True)
+    persistence.create_action_log(db, log)
+
+    db.commit()
+    db.refresh(log)
+
+    return log
 
 
-@router.get("/topics/{topic_id}", response_model=List[schemas.ActionLogResponse])
+@router.get("/topics/{topic_id}", response_model=list[schemas.ActionLogResponse])
 def get_topic_logs(
     topic_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -127,18 +93,9 @@ def get_topic_logs(
     """
     Get actionlogs associated with the specified topic.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
+    topic = persistence.get_topic_by_id(db, topic_id)
+    if topic is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
     assert topic
-    rows = (
-        db.query(models.ActionLog)
-        .filter(
-            models.ActionLog.topic_id == str(topic_id),
-            models.ActionLog.pteam_id.in_(
-                db.query(models.PTeamAccount.pteam_id).filter(
-                    models.PTeamAccount.user_id == current_user.user_id
-                )
-            ),
-        )
-        .all()
-    )
+    rows = persistence.get_topic_logs_by_user_id(db, topic_id, current_user.user_id)
     return sorted(rows, key=lambda x: x.executed_at, reverse=True)
