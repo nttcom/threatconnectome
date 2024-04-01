@@ -2451,6 +2451,31 @@ def test_upload_pteam_tags_file():
         ],
     )
 
+    # upload duplicated lines
+    lines += [
+        (
+            '{"tag_name":"test1",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
+            '{"target":"api3/Pipfile.lock","version":"0.1"}]}'
+        )
+    ]
+    data = _eval_upload_tags_file(lines, params)
+    tags = {tag["tag_name"]: tag for tag in data}
+    assert len(tags) == 2
+    assert "teststring" in tags
+    assert "test1" in tags
+    assert compare_references(
+        tags["teststring"]["references"],
+        [{"group": params["group"], "target": "api/Pipfile.lock", "version": "1.0"}],
+    )
+    assert compare_references(
+        tags["test1"]["references"],
+        [
+            {"group": params["group"], "target": "api/Pipfile.lock", "version": "1.0"},
+            {"group": params["group"], "target": "api3/Pipfile.lock", "version": "0.1"},
+        ],
+    )
+
     # upload another lines
     lines = ['{"tag_name":"alpha:alpha2:alpha3", "references": [{"target": "", "version": ""}]}']
     data = _eval_upload_tags_file(lines, params)
