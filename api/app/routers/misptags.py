@@ -37,7 +37,6 @@ def create_misp_tag(
     persistence.create_misp_tag(db, misp_tag)
 
     db.commit()
-    db.refresh(misp_tag)
 
     return misp_tag
 

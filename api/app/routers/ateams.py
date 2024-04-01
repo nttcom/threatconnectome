@@ -77,7 +77,7 @@ def create_ateam(
         enable=data.alert_mail.enable if data.alert_mail else True,
         address=data.alert_mail.address if data.alert_mail else "",
     )
-    ateam = persistence.create_ateam(db, ateam)
+    persistence.create_ateam(db, ateam)
 
     # join to the created ateam
     ateam.members.append(current_user)
@@ -157,10 +157,14 @@ def apply_invitation(
         )
         persistence.create_ateam_authority(db, ateam_auth)
 
+    ateam = invitation.ateam  # keep for the case invitation is expired
     invitation.used_count += 1
+    db.flush()
+    command.expire_ateam_invitations(db)
 
     db.commit()
-    return _make_ateam_info(invitation.ateam)
+
+    return _make_ateam_info(ateam)
 
 
 @router.post("/apply_watching_request", response_model=schemas.PTeamInfo)
@@ -178,12 +182,12 @@ def apply_watching_request(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid (or expired) request id"
         )
-    if str(data.pteam_id) in [_pteam.pteam_id for _pteam in watching_request.ateam.pteams]:
+    if not (pteam := persistence.get_pteam_by_id(db, str(data.pteam_id))):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid pteam id")
+    if pteam in watching_request.ateam.pteams:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Already connect to the ateam"
         )
-    if not (pteam := persistence.get_pteam_by_id(db, data.pteam_id)):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid pteam id")
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
         raise NOT_HAVE_AUTH
 
@@ -244,10 +248,11 @@ def update_ateam(
             continue
         setattr(ateam, key, value)
 
-    db.commit()
-    db.refresh(ateam)
+    ret = _make_ateam_info(ateam)
 
-    return _make_ateam_info(ateam)
+    db.commit()
+
+    return ret
 
 
 @router.post("/{ateam_id}/authority", response_model=List[schemas.ATeamAuthResponse])
@@ -301,7 +306,7 @@ def update_ateam_auth(
                 user_id=user_id,
                 authority=0,
             )
-            auth = persistence.create_ateam_authority(db, auth)
+            persistence.create_ateam_authority(db, auth)
         auth.authority = models.ATeamAuthIntFlag.from_enums(request.authorities)
 
     db.flush()
@@ -446,17 +451,18 @@ def create_invitation(
     command.expire_ateam_invitations(db)
 
     del data.authorities
-    new_invitation = models.ATeamInvitation(
-        ateam_id=str(ateam_id), user_id=current_user.user_id, authority=intflag, **data.model_dump()
+    invitation = models.ATeamInvitation(
+        **data.model_dump(), ateam_id=str(ateam_id), user_id=current_user.user_id, authority=intflag
     )
-    invitation = persistence.create_ateam_invitation(db, new_invitation)
-    db.commit()
-    db.refresh(invitation)
-
-    return {
-        **invitation.__dict__,
+    persistence.create_ateam_invitation(db, invitation)
+    ret = {
+        **invitation.__dict__,  # cannot get after db.commit() without refresh
         "authorities": models.ATeamAuthIntFlag(invitation.authority).to_enums(),
     }
+
+    db.commit()
+
+    return ret
 
 
 @router.get("/{ateam_id}/invitation", response_model=List[schemas.ATeamInvitationResponse])
@@ -589,12 +595,12 @@ def create_watching_request(
 
     command.expire_ateam_watching_requests(db)
 
-    new_watching_request = models.ATeamWatchingRequest(
-        ateam_id=str(ateam_id), user_id=current_user.user_id, **data.model_dump()
+    watching_request = models.ATeamWatchingRequest(
+        **data.model_dump(), ateam_id=str(ateam_id), user_id=current_user.user_id
     )
-    watching_request = persistence.create_ateam_watching_request(db, new_watching_request)
+    persistence.create_ateam_watching_request(db, watching_request)
+
     db.commit()
-    db.refresh(watching_request)
 
     return watching_request
 
@@ -810,17 +816,23 @@ def add_topic_comment(
         raise NO_SUCH_TOPIC
     if not check_ateam_membership(ateam, current_user):
         raise NOT_AN_ATEAM_MEMBER
-    new_comment = models.ATeamTopicComment(
+
+    comment = models.ATeamTopicComment(
         topic_id=str(topic_id),
         ateam_id=str(ateam_id),
         user_id=str(current_user.user_id),
         comment=data.comment,
         created_at=datetime.now(),
     )
-    comment = persistence.create_ateam_topic_comment(db, new_comment)
+    persistence.create_ateam_topic_comment(db, comment)
+    ret = {
+        **comment.__dict__,  # cannot get after db.commit() without refresh
+        "email": current_user.email,
+    }
+
     db.commit()
-    db.refresh(comment)  # comment.__dict__ has to refresh
-    return {**comment.__dict__, "email": current_user.email}
+
+    return ret
 
 
 @router.put(
@@ -849,9 +861,11 @@ def update_topic_comment(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your comment")
     comment.comment = data.comment
     comment.updated_at = datetime.now()
+    ret = {**comment.__dict__, "email": current_user.email}
+
     db.commit()
-    db.refresh(comment)
-    return {**comment.__dict__, "email": current_user.email}
+
+    return ret
 
 
 @router.delete(

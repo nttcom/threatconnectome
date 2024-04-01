@@ -35,11 +35,11 @@ def create_user(
     email = decoded_token["email"]
     if persistence.get_account_by_email(db, email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used")
-    account = models.Account(uid=uid, email=email, **data.model_dump())
+
+    account = models.Account(**data.model_dump(), uid=uid, email=email)
     persistence.create_account(db, account)
 
     db.commit()
-    db.refresh(account)
 
     return account
 
@@ -67,7 +67,6 @@ def update_user(
         user.years = data.years
 
     db.commit()
-    db.refresh(user)
 
     return user
 

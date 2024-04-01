@@ -332,7 +332,6 @@ def create_topic(
     command.fix_current_status_by_topic(db, topic)
 
     db.commit()
-    db.refresh(topic)
 
     alert_new_topic(db, topic.topic_id)
 
@@ -410,7 +409,6 @@ def update_topic(
     command.fix_current_status_by_topic(db, topic)
 
     db.commit()
-    db.refresh(topic)
 
     return topic
 

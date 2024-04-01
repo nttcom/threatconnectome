@@ -30,11 +30,9 @@ def get_system_account(db: Session) -> models.Account:
     ).one()
 
 
-def create_account(db: Session, account: models.Account) -> models.Account:
+def create_account(db: Session, account: models.Account) -> None:
     db.add(account)
     db.flush()
-    db.refresh(account)
-    return account
 
 
 def delete_account(db: Session, account: models.Account) -> None:
@@ -57,11 +55,9 @@ def get_actions_by_topic_id(db: Session, topic_id: UUID | str) -> Sequence[model
     ).all()
 
 
-def create_action(db: Session, action: models.TopicAction) -> models.TopicAction:
+def create_action(db: Session, action: models.TopicAction) -> None:
     db.add(action)
     db.flush()
-    db.refresh(action)
-    return action
 
 
 def delete_action(db: Session, action: models.TopicAction) -> None:
@@ -92,11 +88,9 @@ def get_action_logs_by_user_id(db: Session, user_id: UUID | str) -> Sequence[mod
     ).all()
 
 
-def create_action_log(db: Session, action_log: models.ActionLog) -> models.ActionLog:
+def create_action_log(db: Session, action_log: models.ActionLog) -> None:
     db.add(action_log)
     db.flush()
-    db.refresh(action_log)
-    return action_log
 
 
 def get_topic_logs_by_user_id(
@@ -131,11 +125,9 @@ def get_all_ateams(db: Session) -> Sequence[models.ATeam]:
     return db.scalars(select(models.ATeam)).all()
 
 
-def create_ateam(db: Session, ateam: models.ATeam) -> models.ATeam:
+def create_ateam(db: Session, ateam: models.ATeam) -> None:
     db.add(ateam)
     db.flush()
-    db.refresh(ateam)
-    return ateam
 
 
 def get_ateam_invitation_by_id(
@@ -149,14 +141,9 @@ def get_ateam_invitation_by_id(
     ).one_or_none()
 
 
-def create_ateam_invitation(
-    db: Session,
-    invitation: models.ATeamInvitation,
-) -> models.ATeamInvitation:
+def create_ateam_invitation(db: Session, invitation: models.ATeamInvitation) -> None:
     db.add(invitation)
     db.flush()
-    db.refresh(invitation)
-    return invitation
 
 
 def delete_ateam_invitation(db: Session, invitation: models.ATeamInvitation) -> None:
@@ -175,14 +162,9 @@ def get_ateam_watching_request_by_id(
     ).one_or_none()
 
 
-def create_ateam_watching_request(
-    db: Session,
-    request: models.ATeamWatchingRequest,
-) -> models.ATeamWatchingRequest:
+def create_ateam_watching_request(db: Session, request: models.ATeamWatchingRequest) -> None:
     db.add(request)
     db.flush()
-    db.refresh(request)
-    return request
 
 
 def delete_ateam_watching_request(db: Session, request: models.ATeamWatchingRequest) -> None:
@@ -212,23 +194,17 @@ def get_ateam_all_authorities(db: Session, ateam_id: UUID | str) -> Sequence[mod
     ).all()
 
 
-def create_ateam_authority(db: Session, auth: models.ATeamAuthority) -> models.ATeamAuthority:
+def create_ateam_authority(db: Session, auth: models.ATeamAuthority) -> None:
     db.add(auth)
     db.flush()
-    db.refresh(auth)
-    return auth
 
 
 ### ATeamTopicComment
 
 
-def create_ateam_topic_comment(
-    db: Session, comment: models.ATeamTopicComment
-) -> models.ATeamTopicComment:
+def create_ateam_topic_comment(db: Session, comment: models.ATeamTopicComment) -> None:
     db.add(comment)
     db.flush()
-    db.refresh(comment)
-    return comment
 
 
 def delete_ateam_topic_comment(db: Session, comment: models.ATeamTopicComment) -> None:
@@ -259,11 +235,9 @@ def get_pteam_by_id(db: Session, pteam_id: UUID | str) -> models.PTeam | None:
     ).one_or_none()
 
 
-def create_pteam(db: Session, pteam: models.PTeam) -> models.PTeam:
+def create_pteam(db: Session, pteam: models.PTeam) -> None:
     db.add(pteam)
     db.flush()
-    db.refresh(pteam)
-    return pteam
 
 
 # TODO: groups(services) should have direct relationship with pteam
@@ -295,32 +269,19 @@ def get_pteam_invitation_by_id(
     ).one_or_none()
 
 
-def create_pteam_invitation(
-    db: Session,
-    invitation: models.PTeamInvitation,
-) -> models.PTeamInvitation:
+def create_pteam_invitation(db: Session, invitation: models.PTeamInvitation) -> None:
     db.add(invitation)
     db.flush()
-    db.refresh(invitation)
-    return invitation
 
 
-def delete_pteam_invitation(
-    db: Session,
-    invitation: models.PTeamInvitation,
-):
+def delete_pteam_invitation(db: Session, invitation: models.PTeamInvitation) -> None:
     db.delete(invitation)
     db.flush()
 
 
-def create_pteam_tag_reference(
-    db: Session,
-    ptr: models.PTeamTagReference,
-) -> models.PTeamTagReference:
+def create_pteam_tag_reference(db: Session, ptr: models.PTeamTagReference) -> None:
     db.add(ptr)
     db.flush()
-    db.refresh(ptr)
-    return ptr
 
 
 def delete_pteam_tag_reference(db: Session, ptr: models.PTeamTagReference):
@@ -385,24 +346,17 @@ def get_pteam_all_authorities(db: Session, pteam_id: UUID | str) -> Sequence[mod
     ).all()
 
 
-def create_pteam_authority(db: Session, auth: models.PTeamAuthority) -> models.PTeamAuthority:
+def create_pteam_authority(db: Session, auth: models.PTeamAuthority) -> None:
     db.add(auth)
     db.flush()
-    db.refresh(auth)
-    return auth
 
 
 ### PTeamTopicTagStatus
 
 
-def create_pteam_topic_tag_status(
-    db: Session,
-    status: models.PTeamTopicTagStatus,
-) -> models.PTeamTopicTagStatus:
+def create_pteam_topic_tag_status(db: Session, status: models.PTeamTopicTagStatus) -> None:
     db.add(status)
     db.flush()
-    db.refresh(status)
-    return status
 
 
 def get_pteam_topic_tag_status_by_id(
@@ -422,11 +376,9 @@ def get_pteam_topic_tag_status_by_id(
 def create_current_pteam_topic_tag_status(
     db: Session,
     status: models.CurrentPTeamTopicTagStatus,
-) -> models.CurrentPTeamTopicTagStatus:
+) -> None:
     db.add(status)
     db.flush()
-    db.refresh(status)
-    return status
 
 
 def get_current_pteam_topic_tag_status(
@@ -459,11 +411,9 @@ def get_tag_by_name(db: Session, tag_name: str) -> models.Tag | None:
     return db.scalars(select(models.Tag).where(models.Tag.tag_name == tag_name)).one_or_none()
 
 
-def create_tag(db: Session, tag: models.Tag) -> models.Tag:
+def create_tag(db: Session, tag: models.Tag) -> None:
     db.add(tag)
     db.flush()
-    db.refresh(tag)
-    return tag
 
 
 def search_tags_by_name(db: Session, words: Sequence[str]) -> Sequence[models.Tag]:
@@ -492,11 +442,9 @@ def get_misp_tag_by_name(db: Session, tag_name: str) -> models.MispTag | None:
     ).one_or_none()
 
 
-def create_misp_tag(db: Session, misptag: models.MispTag) -> models.MispTag:
+def create_misp_tag(db: Session, misptag: models.MispTag) -> None:
     db.add(misptag)
     db.flush()
-    db.refresh(misptag)
-    return misptag
 
 
 def search_misp_tags_by_name(db: Session, words: Sequence[str]) -> Sequence[models.MispTag]:
