@@ -608,8 +608,8 @@ def apply_group_tags(
     auto_close=False,
 ) -> list[schemas.ExtTagResponse]:
     # Check file format and get tag_names
-    tag_name_to_id: dict[str, str] = {}
     missing_tags = set()
+    new_pteam_tag_references_set: set[tuple[str, str, str]] = set()  # (tag_id, target, version)
     for line in json_lines:
         if not (_tag_name := line.get("tag_name")):
             raise ValueError("Missing tag_name")
@@ -623,7 +623,10 @@ def apply_group_tags(
             else:
                 missing_tags.add(_tag_name)
         if _tag:
-            tag_name_to_id[_tag.tag_name] = _tag.tag_id
+            for ref in line.get("references", [{}]):
+                new_pteam_tag_references_set.add(
+                    (_tag.tag_id, ref.get("target", ""), ref.get("version", ""))
+                )
     if missing_tags:
         raise ValueError(f"No such tags: {', '.join(sorted(missing_tags))}")
 
@@ -634,17 +637,16 @@ def apply_group_tags(
     for ptr in persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id):
         if ptr.group == group:
             persistence.delete_pteam_tag_reference(db, ptr)
-    # create new references from json_lines
-    for json_line in json_lines:
-        for ref in json_line.get("references", [{"target": "", "version": ""}]):
-            ptr = models.PTeamTagReference(
-                pteam_id=pteam.pteam_id,
-                group=group,
-                tag_id=tag_name_to_id[json_line["tag_name"]],
-                target=ref.get("target", ""),
-                version=ref.get("version", ""),
-            )
-            persistence.create_pteam_tag_reference(db, ptr)
+    # create new references
+    for [tag_id, target, version] in new_pteam_tag_references_set:
+        new_ptr = models.PTeamTagReference(
+            pteam_id=pteam.pteam_id,
+            group=group,
+            tag_id=tag_id,
+            target=target,
+            version=version,
+        )
+        persistence.create_pteam_tag_reference(db, new_ptr)
 
     # try auto close if make sense
     if auto_close:
