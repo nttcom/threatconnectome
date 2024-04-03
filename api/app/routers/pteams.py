@@ -633,10 +633,15 @@ def apply_group_tags(
     if auto_close:
         old_versions = command.get_pteam_reference_versions_of_each_tags(db, pteam.pteam_id)
 
-    # remove all current references of the group
+    # separate ptrs to keep, delete or create
     for ptr in persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id):
-        if ptr.group == group:
-            persistence.delete_pteam_tag_reference(db, ptr)
+        if ptr.group != group:
+            continue  # do not touch if group does not match
+        if (item := (ptr.tag_id, ptr.target, ptr.version)) in new_pteam_tag_references_set:
+            new_pteam_tag_references_set.remove(item)  # already exists
+            continue
+        # delete obsoleted
+        persistence.delete_pteam_tag_reference(db, ptr)
     # create new references
     for [tag_id, target, version] in new_pteam_tag_references_set:
         new_ptr = models.PTeamTagReference(
