@@ -26,6 +26,8 @@ from app.tests.medium.constants import (
     EXT_TAG1,
     EXT_TAG2,
     EXT_TAG3,
+    GROUP1,
+    GROUP2,
     PTEAM1,
     PTEAM2,
     PTEAM3,
@@ -33,6 +35,8 @@ from app.tests.medium.constants import (
     TAG1,
     TAG2,
     TAG3,
+    TARGET1,
+    TARGET2,
     TOPIC1,
     TOPIC2,
     TOPIC3,
@@ -40,14 +44,18 @@ from app.tests.medium.constants import (
     USER1,
     USER2,
     USER3,
+    VERSION1,
+    VERSION2,
 )
 from app.tests.medium.exceptions import HTTPError
+from app.tests.medium.util_test_user import TestUser
 from app.tests.medium.utils import (
     accept_pteam_invitation,
     accept_watching_request,
     assert_200,
     assert_204,
     compare_references,
+    compare_schemas,
     compare_tags,
     create_action,
     create_actionlog,
@@ -69,6 +77,319 @@ from app.tests.medium.utils import (
 )
 
 client = TestClient(app)
+
+
+class CommonFixtures:
+    @pytest.fixture(scope="function", name="user1")
+    def _create_user1(self):
+        self.user1 = TestUser.create(USER1)
+
+    @pytest.fixture(scope="function", name="user2")
+    def _create_user2(self):
+        self.user2 = TestUser.create(USER2)
+
+    @pytest.fixture(scope="function", name="user3")
+    def _create_user3(self):
+        self.user3 = TestUser.create(USER3)
+
+    @pytest.fixture(scope="function", name="pteam1")
+    def _create_pteam1(self):
+        self.pteam1 = self.user1.api.create_pteam(PTEAM1)
+
+    @pytest.fixture(scope="function", name="pteam2")
+    def _create_pteam2(self):
+        self.pteam2 = self.user1.api.create_pteam(PTEAM2)
+
+    @pytest.fixture(scope="function", name="pteam3")
+    def _create_pteam3(self):
+        self.pteam3 = self.user1.api.create_pteam(PTEAM3)
+
+    @pytest.fixture(scope="function", name="pteam4")
+    def _create_pteam4(self):
+        self.pteam4 = self.user1.api.create_pteam(PTEAM4)
+
+    @pytest.fixture(scope="function", name="tag1")
+    def _create_tag1(self):
+        self.tag1 = self.user1.api.create_tag({"tag_name": TAG1})
+
+    @pytest.fixture(scope="function", name="tag2")
+    def _create_tag2(self):
+        self.tag2 = self.user1.api.create_tag({"tag_name": TAG2})
+
+    @pytest.fixture(scope="function", name="tag3")
+    def _create_tag3(self):
+        self.tag3 = self.user1.api.create_tag({"tag_name": TAG3})
+
+
+class TestPTeam(CommonFixtures):
+    def test_get_all_pteams__without_pteams(self, user1):
+        pteams = self.user1.api.get_all_pteams()
+        assert len(pteams) == 0
+
+    def test_create_pteam1(self, user1, pteam1):
+        expected = schemas.PTeamInfo(
+            **PTEAM1,
+            pteam_id=UUID(int=0),  # exclude
+            disabled=False,
+            ateams=[],
+        )
+        assert compare_schemas(self.pteam1, expected, excludes=["pteam_id"])
+
+    def test_get_all_pteams__with_pteam1(self, user1, pteam1):
+        pteams = self.user1.api.get_all_pteams()
+        assert len(pteams) == 1
+        assert schemas.PTeamEntry(**self.pteam1.model_dump()) in pteams
+
+    def test_get_all_pteams__with_pteam1_and_pteam2(self, user1, pteam1, pteam2):
+        pteams = self.user1.api.get_all_pteams()
+        assert len(pteams) == 2
+        assert schemas.PTeamEntry(**self.pteam1.model_dump()) in pteams
+        assert schemas.PTeamEntry(**self.pteam2.model_dump()) in pteams
+
+    def test_update_pteam1(self, user1, pteam1):
+        new_pteam1 = self.user1.api.update_pteam(self.pteam1.pteam_id, PTEAM2)
+        expected = schemas.PTeamInfo(
+            **PTEAM2,
+            pteam_id=self.pteam1.pteam_id,
+            disabled=self.pteam1.disabled,
+            ateams=self.pteam1.ateams,
+        )
+        assert compare_schemas(new_pteam1, expected)
+
+    def test_get_all_pteams__with_pteam1_and_updated_pteam2(self, user1, pteam1, pteam2):
+        new_pteam2 = self.user1.api.update_pteam(self.pteam2.pteam_id, PTEAM1)
+        pteams = self.user1.api.get_all_pteams()
+        assert len(pteams) == 2
+        assert schemas.PTeamEntry(**self.pteam1.model_dump()) in pteams
+        assert schemas.PTeamEntry(**new_pteam2.model_dump()) in pteams
+
+
+class TestUploadTagsFile(CommonFixtures):
+
+    @staticmethod
+    def _eval_upload_tags_file(  # for testing error cases
+        user: TestUser,
+        pteam: schemas.PTeamInfo,
+        group: str,
+        content: str | None,
+        force_mode: bool = False,
+        suffix: str = ".jsonl",
+    ) -> list[schemas.ExtTagResponse]:
+        with tempfile.NamedTemporaryFile(mode="w+t", suffix=suffix) as tfile:
+            if content:
+                tfile.writelines(content)
+                tfile.flush()
+            with open(tfile.name, "rb") as tags_file:
+                return user.api.upload_pteam_tags_file(pteam.pteam_id, group, tags_file, force_mode)
+
+    def test_returns_400_with_empty_file(self, user1, pteam1):
+        with pytest.raises(HTTPError, match=r"400: Bad Request: Upload file is empty"):
+            self.user1.util.upload_tags_file(self.pteam1, GROUP1, [])  # empty list
+
+    def test_returns_400_with_wrong_filename(self, user1, pteam1, tag1):
+        valid_content = (
+            f'{{"tag_name":"{self.tag1.tag_name}","references":['
+            f'{{"target":"{TARGET1}","version":"{VERSION1}"}}]}}\n'
+        )
+
+        with pytest.raises(
+            HTTPError,
+            match=r"400: Bad Request: Please upload a file with .jsonl as extension",
+        ):
+            self._eval_upload_tags_file(
+                self.user1, self.pteam1, GROUP1, valid_content, suffix=".json"  # not ".jsonl"
+            )
+
+    def test_returns_400_with_not_json_content(self, user1, pteam1, tag1):
+        invalid_content = (
+            f'{{"tag_name":"{self.tag1.tag_name}","references":['
+            f'{{"target":"{TARGET1}","version":"{VERSION1}"}}]'
+            # as a json, following comma is redundant and causes parse error
+            ",}\n"
+        )
+
+        with pytest.raises(HTTPError, match=r"400: Bad Request: Wrong file content"):
+            self._eval_upload_tags_file(self.user1, self.pteam1, GROUP1, invalid_content)
+
+    def test_returns_400_without_group(self, user1, pteam1, tag1):
+        line_data1 = {
+            "tag_name": self.tag1.tag_name,
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data_list = [line_data1]
+        lines = [json.dumps(line_data) for line_data in line_data_list]
+
+        with pytest.raises(HTTPError, match=r"400: Bad Request: Missing group"):
+            self.user1.util.upload_tags_file(self.pteam1, "", lines)  # empty string as group
+
+    def test_returns_400_without_tag_name(self, user1, pteam1, tag1):
+        line_data1 = {
+            # "tag_name": self.tag1.tag_name,  # omit tag_name
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data_list = [line_data1]
+        lines = [json.dumps(line_data) for line_data in line_data_list]
+
+        with pytest.raises(HTTPError, match=r"400: Bad Request: Missing tag_name"):
+            self.user1.util.upload_tags_file(self.pteam1, GROUP1, lines)
+
+    def test_returns_400_with_not_exist_tag_name(self, user1, pteam1):
+        line_data1 = {
+            "tag_name": TAG1,  # not yet created
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data_list = [line_data1]
+        lines = [json.dumps(line_data) for line_data in line_data_list]
+
+        with pytest.raises(HTTPError, match=r"400: Bad Request: No such tags: "):
+            self.user1.util.upload_tags_file(self.pteam1, GROUP1, lines)
+
+    def test_returns_expected(self, user1, pteam1, tag1):
+        line_data1 = {
+            "tag_name": self.tag1.tag_name,
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data_list = [line_data1]
+        lines = [json.dumps(line_data) for line_data in line_data_list]
+
+        ret = self.user1.util.upload_tags_file(self.pteam1, GROUP1, lines)
+
+        expected = [
+            schemas.ExtTagResponse(
+                **self.tag1.model_dump(),
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
+
+    def test_creates_not_existing_tag_on_force_mode(self, user1, pteam1):
+        line_data1 = {
+            "tag_name": TAG1,  # not yet created
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data_list = [line_data1]
+        lines = [json.dumps(line_data) for line_data in line_data_list]
+
+        ret = self.user1.util.upload_tags_file(self.pteam1, GROUP1, lines, force_mode=True)
+
+        # TAG1 should be auto created
+        assert (all_tags := self.user1.api.get_all_tags())
+        assert (tag1 := list(filter(lambda tag: tag.tag_name == TAG1, all_tags))[0])
+        expected = [
+            schemas.ExtTagResponse(
+                **tag1.model_dump(),
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
+
+    def test_is_effective(self, user1, pteam1, tag1):
+        line_data1 = {
+            "tag_name": self.tag1.tag_name,
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data_list = [line_data1]
+        lines = [json.dumps(line_data) for line_data in line_data_list]
+        self.user1.util.upload_tags_file(self.pteam1, GROUP1, lines)
+
+        ret = self.user1.api.get_pteam_tags(self.pteam1.pteam_id)
+
+        expected = [
+            schemas.ExtTagResponse(
+                **self.tag1.model_dump(),
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
+
+    def test_unifies_duplicated_references(self, user1, pteam1, tag1):
+        line_data1 = {
+            "tag_name": self.tag1.tag_name,
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data_list = [line_data1, line_data1]  # duplicated lines
+        lines = [json.dumps(line_data) for line_data in line_data_list]
+        self.user1.util.upload_tags_file(self.pteam1, GROUP1, lines)
+
+        ret = self.user1.api.get_pteam_tags(self.pteam1.pteam_id)
+
+        expected = [
+            schemas.ExtTagResponse(
+                **self.tag1.model_dump(),
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
+
+    def test_merges_groups(self, user1, pteam1, tag1):
+        line_data1 = {
+            "tag_name": self.tag1.tag_name,
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data2 = {
+            "tag_name": self.tag1.tag_name,
+            "references": [{"target": TARGET2, "version": VERSION2}],
+        }
+
+        # upload for GROUP1
+        line_data_list1 = [line_data1]
+        lines1 = [json.dumps(line_data) for line_data in line_data_list1]
+        self.user1.util.upload_tags_file(self.pteam1, GROUP1, lines1)
+
+        # upload for GROUP2
+        line_data_list2 = [line_data1, line_data2]
+        lines2 = [json.dumps(line_data) for line_data in line_data_list2]
+        self.user1.util.upload_tags_file(self.pteam1, GROUP2, lines2)
+
+        # get the result
+        ret = self.user1.api.get_pteam_tags(self.pteam1.pteam_id)
+
+        expected = [
+            schemas.ExtTagResponse(
+                **self.tag1.model_dump(),
+                references=[],  # references should be compared as set
+            ),
+        ]
+        assert compare_schemas(ret, expected, excludes=["references"])
+        assert len(ret) == 1  # tag1
+        assert len(references := ret[0].references) == 3
+        assert {"group": GROUP1, "target": TARGET1, "version": VERSION1} in references
+        assert {"group": GROUP2, "target": TARGET1, "version": VERSION1} in references
+        assert {"group": GROUP2, "target": TARGET2, "version": VERSION2} in references
+
+    def test_returns_403_by_not_member(self, user1, user2, pteam1, tag1):
+        line_data1 = {
+            "tag_name": self.tag1.tag_name,
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data_list = [line_data1]
+        lines = [json.dumps(line_data) for line_data in line_data_list]
+
+        with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
+            self.user2.util.upload_tags_file(self.pteam1, GROUP1, lines)
+
+    def test_is_effective_by_member(self, user1, user2, pteam1, tag1):
+        line_data1 = {
+            "tag_name": self.tag1.tag_name,
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data_list = [line_data1]
+        lines = [json.dumps(line_data) for line_data in line_data_list]
+
+        # user2 join to pteam1
+        invitation = self.user1.util.invite_to_pteam(self.pteam1)
+        self.user2.util.accept_pteam_invitation(invitation)
+
+        # test user2 can upload tags file
+        ret = self.user2.util.upload_tags_file(self.pteam1, GROUP1, lines)
+
+        expected = [
+            schemas.ExtTagResponse(
+                **self.tag1.model_dump(),
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
 
 
 def test_get_pteams():
