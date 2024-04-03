@@ -25,6 +25,10 @@ TAG2 = "bravo:bravo2:bravo3"
 TAG3 = "charlie:charlie2:charlie3"
 GROUP1 = "Threatconnectome"
 GROUP2 = "RepoA"
+TARGET1 = "api/Pipfile.lock"
+TARGET2 = "web/package-lock.json"
+VERSION1 = "1.0"
+VERSION2 = "2.3.4"
 REF1 = [
     {"target": "api/Pipfile.lock", "version": "1.0.0", "group": "Threatconnectome"},
     {"target": "api2/Pipfile.lock", "version": "1.0.1", "group": "Threatconnectome"},

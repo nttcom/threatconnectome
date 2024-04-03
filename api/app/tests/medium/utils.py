@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 from uuid import UUID
 
 from fastapi.testclient import TestClient
+from pydantic import BaseModel
 
 from app import models, schemas
 from app.main import app
@@ -33,6 +34,34 @@ def assert_200(response) -> dict:
 def assert_204(response):
     if response.status_code != 204:
         raise HTTPError(response)
+
+
+def compare_schemas(
+    alpha: BaseModel | list[BaseModel] | None,
+    bravo: BaseModel | list[BaseModel] | None,
+    excludes: list[str] = [],
+) -> bool:
+    if [alpha, bravo] in [[None, None], [[], []]]:
+        return True
+    if (None in [alpha, bravo]) or ([] in [alpha, bravo]):
+        return False
+    if isinstance(alpha, list):
+        if not isinstance(bravo, list) or len(alpha) != len(bravo):
+            return False
+        for idx in range(len(alpha)):
+            if not compare_schemas(alpha[idx], bravo[idx], excludes=excludes):
+                return False
+        return True
+
+    vars_a = vars(alpha)
+    vars_b = vars(bravo)
+    keys = {*vars_a, *vars_b}
+    for key in keys:
+        if key in excludes:
+            continue
+        if vars_a.get(key) != vars_b.get(key):
+            return False
+    return True
 
 
 def schema_to_dict(data) -> dict:
