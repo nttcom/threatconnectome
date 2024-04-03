@@ -126,6 +126,25 @@ def get_auth_info(current_user: models.Account = Depends(get_current_user)):
     )
 
 
+@router.get("/invitation/{invitation_id}", response_model=schemas.ATeamInviterResponse)
+def invited_ateam(invitation_id: UUID, db: Session = Depends(get_db)):
+    """
+    Get invited ateam info.
+    """
+    invitation = persistence.get_ateam_invitation_by_id(db, invitation_id)
+    if invitation is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No such invitation (or already expired)"
+        )
+    resp = {
+        "ateam_id": invitation.ateam.ateam_id,
+        "ateam_name": invitation.ateam.ateam_name,
+        "email": invitation.inviter.email,
+        "user_id": invitation.user_id,
+    }
+    return resp
+
+
 @router.post("/apply_invitation", response_model=schemas.ATeamInfo)
 def apply_invitation(
     data: schemas.ApplyInvitationRequest,
@@ -165,6 +184,26 @@ def apply_invitation(
     db.commit()
 
     return _make_ateam_info(ateam)
+
+
+@router.get("/watching_request/{request_id}", response_model=schemas.ATeamRequesterResponse)
+def get_requested_ateam(request_id: UUID, db: Session = Depends(get_db)):
+    """
+    Get ateam info of watching request.
+    """
+    watching_request = persistence.get_ateam_watching_request_by_id(db, request_id)
+    if watching_request is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No such watching request (or already expired)",
+        )
+    resp = {
+        "ateam_id": watching_request.ateam.ateam_id,
+        "ateam_name": watching_request.ateam.ateam_name,
+        "email": watching_request.requester.email,
+        "user_id": watching_request.user_id,
+    }
+    return resp
 
 
 @router.post("/apply_watching_request", response_model=schemas.PTeamInfo)
@@ -514,25 +553,6 @@ def delete_invitation(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/invitation/{invitation_id}", response_model=schemas.ATeamInviterResponse)
-def invited_ateam(invitation_id: UUID, db: Session = Depends(get_db)):
-    """
-    Get invited ateam info.
-    """
-    invitation = persistence.get_ateam_invitation_by_id(db, invitation_id)
-    if invitation is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="No such invitation (or already expired)"
-        )
-    resp = {
-        "ateam_id": invitation.ateam.ateam_id,
-        "ateam_name": invitation.ateam.ateam_name,
-        "email": invitation.inviter.email,
-        "user_id": invitation.user_id,
-    }
-    return resp
-
-
 @router.get("/{ateam_id}/watching_pteams", response_model=List[schemas.PTeamEntry])
 def get_watching_pteams(
     ateam_id: UUID,
@@ -651,26 +671,6 @@ def delete_watching_request(
     db.commit()  # commit deleted and expired
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.get("/watching_request/{request_id}", response_model=schemas.ATeamRequesterResponse)
-def get_requested_ateam(request_id: UUID, db: Session = Depends(get_db)):
-    """
-    Get ateam info of watching request.
-    """
-    watching_request = persistence.get_ateam_watching_request_by_id(db, request_id)
-    if watching_request is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No such watching request (or already expired)",
-        )
-    resp = {
-        "ateam_id": watching_request.ateam.ateam_id,
-        "ateam_name": watching_request.ateam.ateam_name,
-        "email": watching_request.requester.email,
-        "user_id": watching_request.user_id,
-    }
-    return resp
 
 
 @router.get("/{ateam_id}/topicstatus", response_model=schemas.ATeamTopicStatusResponse)
