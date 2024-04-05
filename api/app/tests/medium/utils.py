@@ -2,8 +2,9 @@ import json
 import random
 import string
 import tempfile
+from contextlib import contextmanager
 from datetime import datetime
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, Generator, List, Optional, Sequence, Tuple, Union
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -34,6 +35,30 @@ def assert_200(response) -> dict:
 def assert_204(response):
     if response.status_code != 204:
         raise HTTPError(response)
+
+
+@contextmanager
+def temporal_jsonl(file_content: str | list[dict]) -> Generator:  # raw data | data for JsonLines
+    with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
+        if file_content:
+            if isinstance(file_content, str):
+                tfile.write(file_content)
+            else:
+                for line in file_content:  # convert to json lines
+                    tfile.write(json.dumps(line) + "\n")
+        tfile.flush()
+        with open(tfile.name, "rb") as jsonl_file:
+            yield jsonl_file
+
+
+@contextmanager
+def temporal_invalid_jsonl(file_content: str, suffix: str = ".jsonl") -> Generator:
+    with tempfile.NamedTemporaryFile(mode="w+t", suffix=suffix) as tfile:
+        if file_content:
+            tfile.writelines(file_content)
+        tfile.flush()
+        with open(tfile.name, "rb") as ret_file:
+            yield ret_file
 
 
 def compare_schemas(

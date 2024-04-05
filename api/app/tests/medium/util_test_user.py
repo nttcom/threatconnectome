@@ -1,6 +1,8 @@
+import json
 import tempfile
+from contextlib import contextmanager
 from datetime import datetime
-from typing import IO, Any
+from typing import IO, Any, Generator
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -23,16 +25,16 @@ def assert_204(response) -> None:
         raise HTTPError(response)
 
 
-def get_access_token(user: dict) -> dict:  # user = {"email": x, "pass": y}
+def get_access_token(user: dict) -> str:  # user = {"email": x, "pass": y}
     body = {
         "username": user["email"],
         "password": user["pass"],
     }
-    return assert_200(client.post("/auth/token", data=body))
+    data = assert_200(client.post("/auth/token", data=body))
+    return data["access_token"]
 
 
-def headers(user: dict) -> dict:  # user = {"email": x, "pass": y}
-    access_token = get_access_token(user)["access_token"]
+def _access_token_to_headers(access_token: str) -> dict:
     return {
         "Authorization": f"Bearer {access_token}",
         "accept": "application/json",
@@ -40,28 +42,50 @@ def headers(user: dict) -> dict:  # user = {"email": x, "pass": y}
     }
 
 
-def _remove_content_type_from_headers(headers: dict) -> dict:
-    return {k: v for (k, v) in headers.items() if k != "Content-Type"}
+def _access_token_to_headers_for_upload(access_token: str) -> dict:
+    return {
+        "Authorization": f"Bearer {access_token}",
+        "accept": "application/json",
+    }
 
 
-def _fix_to_json_serializable(data: dict) -> dict:
+def _fix_to_json_serializable(data: dict | list | Any) -> Any:
     if isinstance(data, list):
         return [_fix_to_json_serializable(x) for x in data]
-    ret = {}
-    for key, value in data.items():
-        fixed_value: Any = value
-        if isinstance(value, list):
-            fixed_value = [_fix_to_json_serializable(x) for x in value]
-        elif isinstance(value, dict):
-            fixed_value = _fix_to_json_serializable(value)
-        elif isinstance(value, UUID) or isinstance(value, datetime):
-            fixed_value = str(value)
-        ret[key] = fixed_value
-    return ret
+    if isinstance(data, dict):
+        ret = {}
+        for key, value in data.items():
+            fixed_value: Any = value
+            if isinstance(value, list):
+                fixed_value = [_fix_to_json_serializable(x) for x in value]
+            elif isinstance(value, dict):
+                fixed_value = _fix_to_json_serializable(value)
+            elif isinstance(value, UUID) or isinstance(value, datetime):
+                fixed_value = str(value)
+            ret[key] = fixed_value
+        return ret
+    if isinstance(data, UUID) or isinstance(data, datetime):
+        return str(data)
+    return data
+
+
+@contextmanager
+def temporal_jsonl(file_content: str | list[dict]) -> Generator:  # raw data | data for JsonLines
+    with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
+        if file_content:
+            if isinstance(file_content, str):
+                tfile.write(file_content)
+            else:
+                for line in file_content:  # convert to json lines
+                    tfile.write(json.dumps(line) + "\n")
+        tfile.flush()
+        with open(tfile.name, "rb") as jsonl_file:
+            yield jsonl_file
 
 
 class TestUser:
     account: schemas.UserResponse
+    access_token: str
     api: "API"
     util: "Util"
 
@@ -76,17 +100,26 @@ class TestUser:
         return TestUser(user)
 
     def __init__(self, user: dict):  # user = {email: x, pass: y, years: z}
-        _headers = headers(user)
-        self.account = self._create_account(_headers, user)
-        self.api = API(_headers)
+        self.access_token = get_access_token(user)
+        headers = _access_token_to_headers(self.access_token)
+        self.account = self._create_account(headers, user)
+        self.api = API(self.access_token)
         self.util = Util(self.api)
 
 
 class API:
-    headers: dict
+    access_token: str
 
-    def __init__(self, headers: dict):
-        self.headers = headers
+    def __init__(self, access_token: str):
+        self.access_token = access_token
+
+    @property
+    def headers(self) -> dict:
+        return _access_token_to_headers(self.access_token)
+
+    @property
+    def headers_for_upload(self) -> dict:
+        return _access_token_to_headers_for_upload(self.access_token)
 
     ### User
 
@@ -98,6 +131,7 @@ class API:
         return schemas.UserResponse(**ret)
 
     def update_user(self, user_id: UUID | str, data: dict) -> schemas.UserResponse:
+        data = _fix_to_json_serializable(data)
         url = f"/users/{user_id}"
         ret = assert_200(client.put(url, headers=self.headers, json=data))
         return schemas.UserResponse(**ret)
@@ -114,6 +148,7 @@ class API:
         return [schemas.TagResponse(**x) for x in ret]
 
     def create_tag(self, data: dict) -> schemas.TagResponse:
+        data = _fix_to_json_serializable(data)
         url = "/tags"
         ret = assert_200(client.post(url, headers=self.headers, json=data))
         return schemas.TagResponse(**ret)
@@ -140,6 +175,7 @@ class API:
         return [schemas.MispTagResponse(**x) for x in ret]
 
     def create_misp_tag(self, data: dict) -> schemas.MispTagResponse:
+        data = _fix_to_json_serializable(data)
         url = "/misp_tags"
         ret = assert_200(client.post(url, headers=self.headers, json=data))
         return schemas.MispTagResponse(**ret)
@@ -167,16 +203,18 @@ class API:
         return schemas.FsTopicSummary(**ret)
 
     def create_topic(self, topic_id: UUID | str, data: dict) -> schemas.TopicCreateResponse:
+        data = _fix_to_json_serializable(data)
         url = f"/topics/{topic_id}"
         ret = assert_200(client.post(url, headers=self.headers, json=data))
         return schemas.TopicCreateResponse(**ret)
 
     def update_topic(self, topic_id: UUID | str, data: dict) -> schemas.TopicResponse:
+        data = _fix_to_json_serializable(data)
         url = f"/topics/{topic_id}"
         ret = assert_200(client.put(url, headers=self.headers, json=data))
         return schemas.TopicResponse(**ret)
 
-    def delete_topic(self, topic_id: UUID | str, data: dict) -> None:
+    def delete_topic(self, topic_id: UUID | str) -> None:
         url = f"/topics/{topic_id}"
         assert_204(client.delete(url, headers=self.headers))
 
@@ -303,7 +341,7 @@ class API:
             "group": group,
             "force_mode": str(force_mode),
         }
-        headers = _remove_content_type_from_headers(self.headers)
+        headers = self.headers_for_upload
         ret = assert_200(client.post(url, headers=headers, files=files, params=params))
         return [schemas.ExtTagResponse(**x) for x in ret]
 
@@ -320,7 +358,7 @@ class API:
             "group": group,
             "force_mode": str(force_mode),
         }
-        headers = _remove_content_type_from_headers(self.headers)
+        headers = self.headers_for_upload
         ret = assert_200(client.post(url, headers=headers, files=files, params=params))
         return [schemas.ExtTagResponse(**x) for x in ret]
 
@@ -344,11 +382,11 @@ class API:
         ret = assert_200(client.get(url, headers=self.headers))
         return schemas.PTeamTopicStatusesSummary(**ret)
 
-    def set_pteam_tag_topic_status(
+    def set_pteam_topic_tag_status(
         self,
         pteam_id: UUID | str,
-        tag_id: UUID | str,
         topic_id: UUID | str,
+        tag_id: UUID | str,
         data: dict,
     ) -> schemas.TopicStatusResponse:
         data = _fix_to_json_serializable(data)
@@ -356,14 +394,14 @@ class API:
         ret = assert_200(client.post(url, headers=self.headers, json=data))
         return schemas.TopicStatusResponse(**ret)
 
-    def get_pteam_topic_status(
+    def get_pteam_topic_tag_status(
         self,
         pteam_id: UUID | str,
-        tag_id: UUID | str,
         topic_id: UUID | str,
+        tag_id: UUID | str,
     ) -> schemas.TopicStatusResponse:
         url = f"/pteams/{pteam_id}/topicstatus/{topic_id}/{tag_id}"
-        ret = assert_200(client.post(url, headers=self.headers))
+        ret = assert_200(client.get(url, headers=self.headers))
         return schemas.TopicStatusResponse(**ret)
 
     def get_pteam_members(self, pteam_id: UUID | str) -> list[schemas.UserResponse]:
@@ -665,15 +703,11 @@ class Util:
         self,
         pteam: schemas.PTeamInfo,
         group: str,
-        lines: list[str],
+        lines: list[dict],
         force_mode: bool = False,
     ) -> list[schemas.ExtTagResponse]:
-        with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
-            for line in lines:
-                tfile.writelines(line + "\n")
-            tfile.flush()
-            with open(tfile.name, "rb") as tags_file:
-                return self.api.upload_pteam_tags_file(pteam.pteam_id, group, tags_file, force_mode)
+        with temporal_jsonl(lines) as tags_file:
+            return self.api.upload_pteam_tags_file(pteam.pteam_id, group, tags_file, force_mode)
 
     def invite_to_pteam(self, pteam: schemas.PTeamInfo) -> schemas.PTeamInvitationResponse:
         request = {"expiration": datetime(3000, 1, 1), "limit_count": 1}
