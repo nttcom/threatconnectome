@@ -51,9 +51,12 @@ def search_misp_tags(
     Search misp tags.
     If given a list of words, return all misp tags that match any of the words.
     """
+    all_misp_tags = persistence.get_all_misp_tags(db)
     # If no words were provided, return all misp tags.
     if words is None:
-        return persistence.get_all_misp_tags(db)
+        return all_misp_tags
 
     # Otherwise, search for tags that match the provided words.
-    return persistence.search_misp_tags_by_name(db, words)
+    return filter(
+        lambda x: any(word.lower() in x.tag_name.lower() for word in words), all_misp_tags
+    )

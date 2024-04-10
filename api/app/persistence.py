@@ -1,7 +1,7 @@
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import models
@@ -416,14 +416,6 @@ def create_tag(db: Session, tag: models.Tag) -> None:
     db.flush()
 
 
-def search_tags_by_name(db: Session, words: Sequence[str]) -> Sequence[models.Tag]:
-    return db.scalars(
-        select(models.Tag).where(
-            models.Tag.tag_name.bool_op("@@")(func.to_tsquery("|".join(words)))
-        )
-    ).all()
-
-
 def delete_tag(db: Session, tag: models.Tag):
     db.delete(tag)
     db.flush()
@@ -445,14 +437,6 @@ def get_misp_tag_by_name(db: Session, tag_name: str) -> models.MispTag | None:
 def create_misp_tag(db: Session, misptag: models.MispTag) -> None:
     db.add(misptag)
     db.flush()
-
-
-def search_misp_tags_by_name(db: Session, words: Sequence[str]) -> Sequence[models.MispTag]:
-    return db.scalars(
-        select(models.MispTag).where(
-            models.MispTag.tag_name.bool_op("@@")(func.to_tsquery("|".join(words)))
-        )
-    ).all()
 
 
 ### Topic

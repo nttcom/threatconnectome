@@ -143,20 +143,31 @@ def test_delete_tag():
     assert len(data) == 0
 
 
-@pytest.mark.skip(reason='TODO: need fix syntax error in query at searching with ":"')
 def test_search_tag():
     create_user(USER1)
 
-    # tag_1 = create_tag(USER1, 'a1:a2:')
-    # tag_11 = create_tag(USER1, 'a1:a2:a3-1')
-    # tag_12 = create_tag(USER1, 'a1:a2:a3-2')
-    # tag_1 = create_tag(USER1, 'b1:b2:')
-    # tag_11 = create_tag(USER1, 'b1:b2:b3-1')
-    # tag_12 = create_tag(USER1, 'b1:b2:b3-2')
-    # tag_x = create_tag(USER1, 'a2')
+    tag_1 = create_tag(USER1, "a1:a2:")
+    tag_11 = create_tag(USER1, "a1:a2:a3-1")
+    tag_12 = create_tag(USER1, "a1:a2:a3-2")
+    create_tag(USER1, "b1:b2:")
+    tag_21 = create_tag(USER1, "b1:b2:b3-1")
+    create_tag(USER1, "b1:b2:b3-2")
+    create_tag(USER1, "a2")
 
-    # params = {"words": ["a1:a2:a3-1"]}
-    # data = assert_200(client.get("/tags/search", headers=headers(USER1), params=params))
-    # assert len(data) == 1
-    # assert data[0] == schema_to_dict(tag_11)
-    # # TODO: check more
+    params = {"words": ["a3-1"]}
+    data = assert_200(client.get("/tags/search", headers=headers(USER1), params=params))
+    assert len(data) == 1
+    assert schema_to_dict(tag_11) in data
+
+    params = {"words": ["3-1"]}
+    data = assert_200(client.get("/tags/search", headers=headers(USER1), params=params))
+    assert len(data) == 2
+    assert schema_to_dict(tag_11) in data
+    assert schema_to_dict(tag_21) in data
+
+    params = {"words": [":A2"]}
+    data = assert_200(client.get("/tags/search", headers=headers(USER1), params=params))
+    assert len(data) == 3
+    assert schema_to_dict(tag_1) in data
+    assert schema_to_dict(tag_11) in data
+    assert schema_to_dict(tag_12) in data
