@@ -53,12 +53,13 @@ def search_tags(
     Search tags.
     If given a list of words, return all tags that match any of the words.
     """
+    all_tags = persistence.get_all_tags(db)
     # If no words were provided, return all tags.
     if words is None:
-        return persistence.get_all_tags(db)
+        return all_tags
 
     # Otherwise, search for tags that match the provided words.
-    return persistence.search_tags_by_name(db, words)
+    return filter(lambda x: any(word.lower() in x.tag_name.lower() for word in words), all_tags)
 
 
 @router.delete("/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
