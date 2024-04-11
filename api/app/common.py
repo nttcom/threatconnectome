@@ -184,6 +184,32 @@ def calculate_topic_content_fingerprint(
     return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
 
 
+def get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> Sequence[schemas.ExtTagResponse]:
+    ext_tags_dict: dict[str, schemas.ExtTagResponse] = {}
+    for service in pteam.services:
+        for dependency in service.dependencies:
+            ext_tag = ext_tags_dict.get(
+                dependency.tag_id,
+                schemas.ExtTagResponse(
+                    tag_id=dependency.tag_id,
+                    tag_name=dependency.tag.tag_name,
+                    parent_id=dependency.tag.parent_id,
+                    parent_name=dependency.tag.parent_name,
+                    references=[],
+                ),
+            )
+            ext_tag.references.append(
+                {
+                    "group": service.service_name,
+                    "target": dependency.target,
+                    "version": dependency.version,
+                }
+            )
+            ext_tags_dict[dependency.tag_id] = ext_tag
+
+    return sorted(ext_tags_dict.values(), key=lambda x: x.tag_name)
+
+
 def set_pteam_topic_status_internal(
     db: Session,
     current_user: models.Account,
@@ -314,7 +340,12 @@ def pteamtag_try_auto_close_topic(
 
     try:
         # pick unique reference versions to compare. (omit empty -- maybe added on WebUI)
-        reference_versions = command.get_pteam_tag_versions(db, pteam.pteam_id, tag.tag_id)
+        reference_versions = {
+            dependency.version
+            for service in pteam.services
+            for dependency in service.dependencies
+            if dependency.tag == tag and dependency.version
+        }
         if not reference_versions:
             return  # no references to compare
         # pick all actions which matched on tags
