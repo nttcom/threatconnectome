@@ -1,0 +1,26 @@
+.dialog_title.dialog_title {
+    color: red;
+    font-size: 20px;
+    margin-top: 5px;
+}
+
+.submit_btn.submit_btn {
+    color: black;
+    text-transform: none;
+    &:disabled {
+        color: #c0c0c0;
+    }
+}
+
+.delete_btn.delete_btn {
+    color: red;
+    text-transform: none;
+    &:disabled {
+        color: #c0c0c0;
+    }
+}
+
+.action_area.action_area {
+    margin-right: 1%;
+    margin-bottom: 1%;
+}

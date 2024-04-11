@@ -16,9 +16,9 @@ import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import { getUser } from "../slices/user";
 import { createATeam } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 
 export function ATeamCreateModal(props) {
   const { open, onOpen, onCloseTeamSelector } = props;
@@ -65,7 +65,7 @@ export function ATeamCreateModal(props) {
       <Dialog fullWidth open={open} onClose={() => onOpen(false)}>
         <DialogTitle>
           <Box display="flex" flexDirection="row">
-            <Typography variant="h5">Create ATeam</Typography>
+            <Typography className={dialogStyle.dialog_title}>Create ATeam</Typography>
             <Box flexGrow={1} />
             <IconButton onClick={() => onOpen(false)}>
               <CloseIcon />
@@ -88,8 +88,8 @@ export function ATeamCreateModal(props) {
             ></TextField>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCreate} disabled={!ateamName} sx={modalCommonButtonStyle}>
+        <DialogActions className={dialogStyle.action_area}>
+          <Button onClick={handleCreate} disabled={!ateamName} className={dialogStyle.submit_btn}>
             Create
           </Button>
         </DialogActions>

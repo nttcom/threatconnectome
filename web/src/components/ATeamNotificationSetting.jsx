@@ -7,7 +7,6 @@ import {
 import {
   Box,
   Button,
-  Divider,
   FormControl,
   FormControlLabel,
   IconButton,
@@ -256,7 +255,6 @@ export function ATeamNotificationSetting(props) {
           label="Slack"
         />
       </Box>
-      <Divider />
       <Box display="flex" mt={2}>
         <Box flexGrow={1} />
         <Button onClick={() => handleUpdateATeam()} sx={{ ...modalCommonButtonStyle, ml: 1 }}>

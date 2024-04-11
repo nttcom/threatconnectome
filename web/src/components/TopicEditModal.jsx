@@ -23,16 +23,16 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
-import { blue, grey, green, red } from "@mui/material/colors";
+import { blue, green, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
+import dialogStyle from "../cssModule/dialog.module.css";
 import { getActions, getTopic } from "../slices/topics";
 import { createAction, deleteAction, updateAction, updateTopic } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -206,17 +206,15 @@ export function TopicEditModal(props) {
           <AddBoxIcon />
         </IconButton>
         <Dialog open={generatorOpen} onClose={() => setGeneratorOpen(false)}>
-          <DialogContent>
-            <AnalysisActionGenerator
-              text="Add action"
-              tagIds={actionTagOptions}
-              onGenerate={(ret) => {
-                setActions([...actions, ret]);
-                setGeneratorOpen(false);
-              }}
-              onCancel={() => setGeneratorOpen(false)}
-            />
-          </DialogContent>
+          <AnalysisActionGenerator
+            text="Add action"
+            tagIds={actionTagOptions}
+            onGenerate={(ret) => {
+              setActions([...actions, ret]);
+              setGeneratorOpen(false);
+            }}
+            onCancel={() => setGeneratorOpen(false)}
+          />
         </Dialog>
       </>
     );
@@ -228,10 +226,10 @@ export function TopicEditModal(props) {
     <Dialog open={open === true} maxWidth="md" fullWidth sx={{ maxHeight: "100vh" }}>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
+          <Typography flexGrow={1} className={dialogStyle.dialog_title}>
             Edit Topic
           </Typography>
-          <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+          <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -413,10 +411,14 @@ export function TopicEditModal(props) {
           </Box>
         </TabPanel>
       </DialogContent>
-      <DialogActions>
-        <Box sx={{ display: "flex", flexDirection: "row", mr: 1, mb: 1 }}>
+      <DialogActions className={dialogStyle.action_area}>
+        <Box sx={{ display: "flex", flexDirection: "row" }}>
           <Box sx={{ flex: "1 1 auto" }} />
-          <Button disabled={!readyForUpdate()} sx={modalCommonButtonStyle} onClick={handleUpdate}>
+          <Button
+            disabled={!readyForUpdate()}
+            onClick={handleUpdate}
+            className={dialogStyle.submit_btn}
+          >
             Update
           </Button>
         </Box>

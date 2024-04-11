@@ -19,17 +19,18 @@ import {
   Typography,
   List,
 } from "@mui/material";
-import { blue, grey, red, green } from "@mui/material/colors";
+import { blue, red, green } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import { getATeamTopics } from "../slices/ateam";
 import { getTopic } from "../slices/topics";
 import { createTopic } from "../utils/api";
-import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import { actionTypes } from "../utils/const";
 import { pickMismatchedTopicActionTags, validateNotEmpty, validateUUID } from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
@@ -203,10 +204,10 @@ export function ATeamTopicCreateModal(props) {
       >
         <DialogTitle>
           <Box alignItems="center" display="flex" flexDirection="row">
-            <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
               Create Topic
             </Typography>
-            <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+            <IconButton onClick={handleClose}>
               <CloseIcon />
             </IconButton>
           </Box>
@@ -366,7 +367,7 @@ export function ATeamTopicCreateModal(props) {
                 color="inherit"
                 disabled={activeStep === 0}
                 onClick={handleBack}
-                sx={{ mr: 1, textTransform: "none" }}
+                className={dialogStyle.submit_btn}
               >
                 Back
               </Button>
@@ -375,12 +376,12 @@ export function ATeamTopicCreateModal(props) {
                 <Button
                   onClick={handleCreateTopic}
                   disabled={!validateTopicParams()}
-                  sx={modalCommonButtonStyle}
+                  className={dialogStyle.submit_btn}
                 >
                   Create
                 </Button>
               ) : (
-                <Button onClick={handleNext} sx={modalCommonButtonStyle}>
+                <Button onClick={handleNext} className={dialogStyle.submit_btn}>
                   Next
                 </Button>
               )}

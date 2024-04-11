@@ -10,14 +10,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useRef, useState } from "react";
 
 import { WaitingModal } from "../components/WaitingModal";
+import dialogStyle from "../cssModule/dialog.module.css";
 import { uploadSBOMFile } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
 function PreUploadModal(props) {
@@ -37,10 +36,10 @@ function PreUploadModal(props) {
     <Dialog fullWidth open={open} onClose={handleClose}>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography flexGrow={1} variant="inherit">
+          <Typography flexGrow={1} className={dialogStyle.dialog_title}>
             Upload SBOM File
           </Typography>
-          <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+          <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -62,10 +61,10 @@ function PreUploadModal(props) {
           </Box>
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Box sx={{ display: "flex", flexDirection: "row", mr: 1, mb: 1 }}>
+      <DialogActions className={dialogStyle.action_area}>
+        <Box>
           <Box sx={{ flex: "1 1 auto" }} />
-          <Button onClick={handleUpload} disabled={!groupName} sx={modalCommonButtonStyle}>
+          <Button onClick={handleUpload} disabled={!groupName} className={dialogStyle.submit_btn}>
             Upload
           </Button>
         </Box>

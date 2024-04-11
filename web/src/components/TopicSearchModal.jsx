@@ -16,13 +16,14 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { addDays } from "date-fns";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
+
+import dialogStyle from "../cssModule/dialog.module.css";
 
 export function TopicSearchModal(props) {
   const { show, onSearch, onCancel } = props;
@@ -262,49 +263,42 @@ export function TopicSearchModal(props) {
   return (
     <>
       <Dialog onClose={handleCancel} open={show} PaperProps={{ sx: { width: 700 } }}>
-        <>
-          <DialogTitle>
-            <Box alignItems="center" display="flex" flexDirection="row" sx={{ mb: -3 }}>
-              <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
-                Topic Search
-              </Typography>
-              <IconButton onClick={handleCancel} sx={{ color: grey[500] }}>
-                <CloseIcon />
-              </IconButton>
+        <DialogTitle>
+          <Box alignItems="center" display="flex" flexDirection="row" sx={{ mb: -3 }}>
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
+              Topic Search
+            </Typography>
+            <IconButton onClick={handleCancel}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+              <FormControlLabel
+                control={<Android12Switch checked={adModeChange} onChange={advancedChange} />}
+                label="Advanced Mode"
+              />
             </Box>
-          </DialogTitle>
-          <DialogContent>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-                <FormControlLabel
-                  control={<Android12Switch checked={adModeChange} onChange={advancedChange} />}
-                  label="Advanced Mode"
-                />
+            {titleForm}
+            {mispForm}
+            {adModeChange && (
+              <Box>
+                {dateForm}
+                {uuidForm}
+                {creatorForm}
               </Box>
-              {titleForm}
-              {mispForm}
-              {adModeChange && (
-                <Box>
-                  {dateForm}
-                  {uuidForm}
-                  {creatorForm}
-                </Box>
-              )}
-            </LocalizationProvider>
-          </DialogContent>
-          <DialogActions>
-            <Box display="flex">
-              <Button
-                variant="contained"
-                color="success"
-                sx={{ margin: 1, textTransform: "none" }}
-                onClick={handleSearch}
-              >
-                Search
-              </Button>
-            </Box>
-          </DialogActions>
-        </>
+            )}
+          </LocalizationProvider>
+        </DialogContent>
+        <DialogActions className={dialogStyle.action_area}>
+          <Box display="flex">
+            <Button className={dialogStyle.submit_btn} onClick={handleSearch}>
+              Search
+            </Button>
+          </Box>
+        </DialogActions>
       </Dialog>
     </>
   );

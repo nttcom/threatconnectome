@@ -9,11 +9,11 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import { TabPanel } from "../components/TabPanel";
+import dialogStyle from "../cssModule/dialog.module.css";
 import { a11yProps } from "../utils/func.js";
 
 import { ATeamAuthEditor } from "./ATeamAuthEditor";
@@ -29,13 +29,13 @@ export function ATeamSettingsModal(props) {
   const handleChangeTab = (_, newTab) => setTab(newTab);
 
   return (
-    <Dialog fullWidth onClose={handleClose} open={show} maxWidth="md">
+    <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
+          <Typography flexGrow={1} className={dialogStyle.dialog_title}>
             ATeam settings
           </Typography>
-          <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+          <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Box>

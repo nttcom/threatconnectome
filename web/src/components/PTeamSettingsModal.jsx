@@ -15,6 +15,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
+import dialogStyle from "../cssModule/dialog.module.css";
 import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
 import { a11yProps } from "../utils/func.js";
 
@@ -42,10 +43,10 @@ export function PTeamSettingsModal(props) {
   };
 
   return (
-    <Dialog fullWidth onClose={handleClose} open={show} maxWidth="md">
+    <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
+          <Typography flexGrow={1} className={dialogStyle.dialog_title}>
             PTeam settings
           </Typography>
           <IconButton onClick={handleClose} sx={{ color: grey[500] }}>

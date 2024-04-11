@@ -71,7 +71,7 @@ export function ATeamMemberMenu(props) {
           </MenuItem>
         )}
       </Menu>
-      <Dialog open={openAuth}>
+      <Dialog open={openAuth} onClose={() => setOpenAuth(false)}>
         <DialogContent>
           <ATeamAuthEditor
             userId={userId}
@@ -80,19 +80,17 @@ export function ATeamMemberMenu(props) {
           />
         </DialogContent>
       </Dialog>
-      <Dialog fullWidth open={openRemove}>
-        <DialogContent>
-          <ATeamMemberRemoveModal
-            userId={userId}
-            userName={userEmail}
-            ateamId={ateamId}
-            ateamName={ateam.ateam_name}
-            onClose={() => {
-              if (userId === userMe.user_id) dispatch(getUser()); // update user.ateams
-              setOpenRemove(false);
-            }}
-          />
-        </DialogContent>
+      <Dialog fullWidth open={openRemove} onClose={() => setOpenRemove(false)}>
+        <ATeamMemberRemoveModal
+          userId={userId}
+          userName={userEmail}
+          ateamId={ateamId}
+          ateamName={ateam.ateam_name}
+          onClose={() => {
+            if (userId === userMe.user_id) dispatch(getUser()); // update user.ateams
+            setOpenRemove(false);
+          }}
+        />
       </Dialog>
     </>
   );

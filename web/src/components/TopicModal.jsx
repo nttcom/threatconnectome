@@ -26,6 +26,7 @@ import React, { useEffect, useState } from "react";
 import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import {
   getPTeamSolvedTaggedTopicIds,
   getPTeamTagsSummary,
@@ -41,7 +42,7 @@ import {
   updateAction,
   deleteAction,
 } from "../utils/api";
-import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import { actionTypes } from "../utils/const";
 import { validateNotEmpty, validateUUID } from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
@@ -393,10 +394,10 @@ export function TopicModal(props) {
       >
         <DialogTitle>
           <Box alignItems="center" display="flex" flexDirection="row">
-            <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
               {presetTopicId ? "Edit Topic" : "Create Topic"}
             </Typography>
-            <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+            <IconButton onClick={handleClose}>
               <CloseIcon />
             </IconButton>
           </Box>
@@ -592,13 +593,13 @@ export function TopicModal(props) {
               <Button
                 disabled={activeStep === 0}
                 onClick={handleBackFlashsense}
-                sx={{ ...modalCommonButtonStyle, mr: 1 }}
+                className={dialogStyle.submit_btn}
               >
                 Back
               </Button>
               <Box sx={{ flex: "1 1 auto" }} />
               {isStepOptional(activeStep) && (
-                <Button onClick={handleSkipFlashsense} sx={{ ...modalCommonButtonStyle, mr: 1 }}>
+                <Button onClick={handleSkipFlashsense} className={dialogStyle.submit_btn}>
                   Skip
                 </Button>
               )}
@@ -610,7 +611,7 @@ export function TopicModal(props) {
                       : handleCreateTopic
                   }
                   disabled={errors?.length > 0}
-                  sx={modalCommonButtonStyle}
+                  className={dialogStyle.submit_btn}
                 >
                   {presetTopicId && topicId === presetTopicId ? "Update" : "Create"}
                 </Button>
@@ -618,7 +619,7 @@ export function TopicModal(props) {
                 <Button
                   onClick={handleFetchFlashsense}
                   disabled={!topicId}
-                  sx={modalCommonButtonStyle}
+                  className={dialogStyle.submit_btn}
                 >
                   Next
                 </Button>
