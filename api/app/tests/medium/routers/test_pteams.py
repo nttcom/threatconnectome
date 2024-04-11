@@ -26,6 +26,8 @@ from app.tests.medium.constants import (
     EXT_TAG1,
     EXT_TAG2,
     EXT_TAG3,
+    GROUP1,
+    GROUP2,
     PTEAM1,
     PTEAM2,
     PTEAM3,
@@ -33,6 +35,8 @@ from app.tests.medium.constants import (
     TAG1,
     TAG2,
     TAG3,
+    TARGET1,
+    TARGET2,
     TOPIC1,
     TOPIC2,
     TOPIC3,
@@ -40,14 +44,18 @@ from app.tests.medium.constants import (
     USER1,
     USER2,
     USER3,
+    VERSION1,
+    VERSION2,
 )
 from app.tests.medium.exceptions import HTTPError
+from app.tests.medium.util_test_user import TestUser
 from app.tests.medium.utils import (
     accept_pteam_invitation,
     accept_watching_request,
     assert_200,
     assert_204,
     compare_references,
+    compare_schemas,
     compare_tags,
     create_action,
     create_actionlog,
@@ -64,11 +72,727 @@ from app.tests.medium.utils import (
     headers,
     invite_to_pteam,
     schema_to_dict,
+    temporal_invalid_jsonl,
+    temporal_jsonl,
     to_datetime,
     upload_pteam_tags,
 )
 
 client = TestClient(app)
+
+
+class TestPostUploadTagsFile:
+
+    def test_returns_200_if_succeeded(self):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        valid_content = (
+            json.dumps(
+                {
+                    "tag_name": TAG1,
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": True,  # enable auto creating tag
+        }
+        with temporal_jsonl(valid_content) as tags_file:
+            files = {"file": tags_file}
+
+            response = client.post(url, headers=headers, files=files, params=params)
+            assert response.status_code == 200
+            ret = [schemas.ExtTagResponse(**x) for x in response.json()]
+
+        expected = [
+            schemas.ExtTagResponse(
+                **tag1.model_dump(),
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
+
+    def test_returns_404_if_invalid_pteam(self):
+        user1 = TestUser.create(USER1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        valid_content = (
+            json.dumps(
+                {
+                    "tag_name": tag1.tag_name,
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + "\n"
+        )
+
+        pteam_id = uuid4()  # random pteam_id
+        url = f"/pteams/{pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_jsonl(valid_content) as tags_file:
+            files = {"file": tags_file}
+
+            with pytest.raises(HTTPError, match=r"404: Not Found: No such pteam"):
+                response = client.post(url, headers=headers, files=files, params=params)
+                HTTPError.raise_from_response(response)
+
+    def test_returns_403_if_not_member(self):
+        user1 = TestUser.create(USER1)
+        user2 = TestUser.create(USER2)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        valid_content = (
+            json.dumps(
+                {
+                    "tag_name": tag1.tag_name,
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user2.access_token}",  # user2 -- not pteam1 member
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_jsonl(valid_content) as tags_file:
+            files = {"file": tags_file}
+
+            with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
+                response = client.post(url, headers=headers, files=files, params=params)
+                HTTPError.raise_from_response(response)
+
+    def test_returns_200_if_member(self):
+        user1 = TestUser.create(USER1)
+        user2 = TestUser.create(USER2)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        valid_content = (
+            json.dumps(
+                {
+                    "tag_name": tag1.tag_name,
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + "\n"
+        )
+        # user2 join to pteam1
+        invitation = user1.util.invite_to_pteam(pteam1)
+        user2.util.accept_pteam_invitation(invitation)
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user2.access_token}",  # user2 -- pteam1 member
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_jsonl(valid_content) as tags_file:
+            files = {"file": tags_file}
+
+            response = client.post(url, headers=headers, files=files, params=params)
+            assert response.status_code == 200
+            ret = [schemas.ExtTagResponse(**x) for x in response.json()]
+
+        expected = [
+            schemas.ExtTagResponse(
+                **tag1.model_dump(),
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
+
+    def test_returns_400_if_missing_group(self):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        valid_content = (
+            json.dumps(
+                {
+                    "tag_name": tag1.tag_name,
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            # "group": GROUP1,  # omit group
+            "force_mode": False,
+        }
+        with temporal_jsonl(valid_content) as tags_file:
+            files = {"file": tags_file}
+
+            with pytest.raises(HTTPError, match=r"400: Bad Request: Missing group"):
+                response = client.post(url, headers=headers, files=files, params=params)
+                HTTPError.raise_from_response(response)
+
+    def test_returns_400_if_wrong_extension(self):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        valid_content = (
+            json.dumps(
+                {
+                    "tag_name": tag1.tag_name,
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_invalid_jsonl(valid_content, suffix=".txt") as tags_file:  # wrong suffix
+            files = {"file": tags_file}
+
+            with pytest.raises(
+                HTTPError,
+                match=r"400: Bad Request: Please upload a file with .jsonl as extension",
+            ):
+                response = client.post(url, headers=headers, files=files, params=params)
+                HTTPError.raise_from_response(response)
+
+    def test_returns_400_if_empty_file(self):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        invalid_content = ""  # empty content
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_jsonl(invalid_content) as tags_file:
+            files = {"file": tags_file}
+
+            with pytest.raises(HTTPError, match=r"400: Bad Request: Upload file is empty"):
+                response = client.post(url, headers=headers, files=files, params=params)
+                HTTPError.raise_from_response(response)
+
+    def test_returns_400_if_not_json_content(self):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        invalid_content = (
+            json.dumps(
+                {
+                    "tag_name": tag1.tag_name,
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + ","  # this comma is redundant and causes parse error at loading as a json
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_jsonl(invalid_content) as tags_file:
+            files = {"file": tags_file}
+
+            with pytest.raises(HTTPError, match=r"400: Bad Request: Wrong file content"):
+                response = client.post(url, headers=headers, files=files, params=params)
+                HTTPError.raise_from_response(response)
+
+    def test_returns_400_if_missing_tag_name(self):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        user1.api.create_tag({"tag_name": TAG1})
+        invalid_content = (
+            json.dumps(
+                {
+                    # "tag_name": tag1.tag_name,  # omit tag_name
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_jsonl(invalid_content) as tags_file:
+            files = {"file": tags_file}
+
+            with pytest.raises(HTTPError, match=r"400: Bad Request: Missing tag_name"):
+                response = client.post(url, headers=headers, files=files, params=params)
+                HTTPError.raise_from_response(response)
+
+    def test_returns_400_if_missing_references(self):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        invalid_content = (
+            json.dumps(
+                {
+                    "tag_name": tag1.tag_name,
+                    # "references": [{"target": TARGET1, "version": VERSION1}],  # omit references
+                }
+            )
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_jsonl(invalid_content) as tags_file:
+            files = {"file": tags_file}
+
+            with pytest.raises(HTTPError, match=r"400: Bad Request: Missing references"):
+                response = client.post(url, headers=headers, files=files, params=params)
+                HTTPError.raise_from_response(response)
+
+    @pytest.mark.parametrize(
+        "target, version",
+        [
+            (None, VERSION1),
+            (TARGET1, None),
+            (None, None),
+        ],
+    )
+    def test_returns_400_if_missing_target_or_version(self, target, version):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        invalid_content = (
+            json.dumps(
+                {
+                    "tag_name": tag1.tag_name,
+                    "references": [
+                        {
+                            **({"target": target} if target else {}),  # omit if None
+                            **({"version": version} if version else {}),  # omit if None
+                        }
+                    ],
+                }
+            )
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_jsonl(invalid_content) as tags_file:
+            files = {"file": tags_file}
+
+            with pytest.raises(HTTPError, match=r"400: Bad Request: Missing target and|or version"):
+                response = client.post(url, headers=headers, files=files, params=params)
+                HTTPError.raise_from_response(response)
+
+    @pytest.mark.parametrize(
+        "target, version",
+        [
+            ("", VERSION1),
+            (TARGET1, ""),
+            ("", ""),  # occurrs at using UI, maybe...
+        ],
+    )
+    def test_returns_200_even_if_target_or_version_is_empty_string(self, target, version):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        valid_content = (
+            json.dumps(
+                {
+                    "tag_name": tag1.tag_name,
+                    "references": [{"target": target, "version": version}],  # empty string is ok
+                }
+            )
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_jsonl(valid_content) as tags_file:
+            files = {"file": tags_file}
+
+            response = client.post(url, headers=headers, files=files, params=params)
+            assert response.status_code == 200
+            ret = [schemas.ExtTagResponse(**x) for x in response.json()]
+
+        expected = [
+            schemas.ExtTagResponse(
+                **tag1.model_dump(),
+                references=[{"group": GROUP1, "target": target, "version": version}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
+
+    def test_returns_400_if_not_exist_tag_name(self):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        invalid_content = (
+            json.dumps(
+                {
+                    "tag_name": TAG1,  # not yet created
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": False,
+        }
+        with temporal_jsonl(invalid_content) as tags_file:
+            files = {"file": tags_file}
+
+            with pytest.raises(HTTPError, match=r"400: Bad Request: No such tags: "):
+                response = client.post(url, headers=headers, files=files, params=params)
+                HTTPError.raise_from_response(response)
+
+    def test_returns_200_on_force_mode_even_if_not_existing_tag(self):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        valid_content = (
+            json.dumps(
+                {
+                    "tag_name": TAG1,  # not yet created
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + "\n"
+        )
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": True,  # enable auto creating tag
+        }
+        with temporal_jsonl(valid_content) as tags_file:
+            files = {"file": tags_file}
+
+            response = client.post(url, headers=headers, files=files, params=params)
+            assert response.status_code == 200
+            ret = [schemas.ExtTagResponse(**x) for x in response.json()]
+
+        expected = [
+            schemas.ExtTagResponse(
+                tag_id=UUID(int=0),  # exclude
+                tag_name=TAG1,
+                parent_id=None,  # exclude
+                parent_name=None,  # exclude
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected, excludes=["tag_id", "parent_id", "parent_name"])
+
+    def test_returns_200_even_if_references_duplicated(self):
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        valid_content = (
+            json.dumps(
+                {
+                    "tag_name": TAG1,
+                    "references": [{"target": TARGET1, "version": VERSION1}],
+                }
+            )
+            + "\n"
+        )
+        valid_content += valid_content  # duplicate json line
+
+        url = f"/pteams/{pteam1.pteam_id}/upload_tags_file"
+        headers = {  # No Content-Type for upload
+            "Authorization": f"Bearer {user1.access_token}",
+            "accept": "application/json",
+        }
+        params = {
+            "group": GROUP1,
+            "force_mode": True,  # enable auto creating tag
+        }
+        with temporal_jsonl(valid_content) as tags_file:
+            files = {"file": tags_file}
+
+            response = client.post(url, headers=headers, files=files, params=params)
+            assert response.status_code == 200
+            ret = [schemas.ExtTagResponse(**x) for x in response.json()]
+
+        expected = [
+            schemas.ExtTagResponse(
+                **tag1.model_dump(),
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
+
+    def test_merges_groups(self):
+        #
+        # FIXME: this test should be moved to another file (not for endpoint response)
+        #
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+
+        line_data1 = {
+            "tag_name": tag1.tag_name,
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        line_data2 = {
+            "tag_name": tag1.tag_name,
+            "references": [{"target": TARGET2, "version": VERSION2}],
+        }
+
+        # upload for GROUP1
+        lines1 = [line_data1]
+        user1.util.upload_tags_file(pteam1, GROUP1, lines1)
+
+        # upload for GROUP2
+        lines2 = [line_data1, line_data2]
+        user1.util.upload_tags_file(pteam1, GROUP2, lines2)
+
+        # get the result
+        ret = user1.api.get_pteam_tags(pteam1.pteam_id)
+
+        expected = [
+            schemas.ExtTagResponse(
+                **tag1.model_dump(),
+                references=[],  # references should be compared as set
+            ),
+        ]
+        assert compare_schemas(ret, expected, excludes=["references"])
+        assert len(ret) == 1  # tag1
+        assert len(references := ret[0].references) == 3
+        assert {"group": GROUP1, "target": TARGET1, "version": VERSION1} in references
+        assert {"group": GROUP2, "target": TARGET1, "version": VERSION1} in references
+        assert {"group": GROUP2, "target": TARGET2, "version": VERSION2} in references
+
+    def test_is_effective(self):
+        #
+        # FIXME: this test should be moved to another file (not for endpoint response)
+        #
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+
+        line_data1 = {
+            "tag_name": tag1.tag_name,
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        lines = [line_data1]
+
+        user1.util.upload_tags_file(pteam1, GROUP1, lines)
+        ret = user1.api.get_pteam_tags(pteam1.pteam_id)
+
+        expected = [
+            schemas.ExtTagResponse(
+                **tag1.model_dump(),
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
+
+    def test_is_effective_by_member(self):
+        #
+        # FIXME: this test should be moved to another file (not for endpoint response)
+        #
+        user1 = TestUser.create(USER1)
+        user2 = TestUser.create(USER2)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+
+        line_data1 = {
+            "tag_name": tag1.tag_name,
+            "references": [{"target": TARGET1, "version": VERSION1}],
+        }
+        lines = [line_data1]
+
+        # user2 join to pteam1
+        invitation = user1.util.invite_to_pteam(pteam1)
+        user2.util.accept_pteam_invitation(invitation)
+
+        # test user2 can upload tags file
+        ret = user2.util.upload_tags_file(pteam1, GROUP1, lines)
+
+        expected = [
+            schemas.ExtTagResponse(
+                **tag1.model_dump(),
+                references=[{"group": GROUP1, "target": TARGET1, "version": VERSION1}],
+            ),
+        ]
+        assert compare_schemas(ret, expected)
+
+    def test_affects_topic_tag_status(self):
+        #
+        # FIXME: this test should be moved to another file (not for endpoint response)
+        #
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        topic1 = user1.api.create_topic(TOPIC1["topic_id"], TOPIC1)  # TAG1
+        fixed_version = "1.2.3"
+        insecure_version = "1.2.0"
+        action_request1 = {
+            **ACTION1,
+            "topic_id": topic1.topic_id,
+            "ext": {
+                "tags": [tag1.tag_name],
+                "vulnerable_versions": {tag1.tag_name: [f"< {fixed_version}"]},
+            },
+        }
+        user1.api.create_action(action_request1)
+
+        line_data1 = {
+            "tag_name": tag1.tag_name,
+            "references": [{"target": TARGET1, "version": insecure_version}],
+        }
+        lines = [line_data1]
+
+        user1.util.upload_tags_file(pteam1, GROUP1, lines)
+        ret = user1.api.get_pteam_topic_tag_status(pteam1.pteam_id, topic1.topic_id, tag1.tag_id)
+
+        expected = schemas.TopicStatusResponse(
+            status_id=None,
+            pteam_id=pteam1.pteam_id,
+            topic_id=topic1.topic_id,
+            tag_id=tag1.tag_id,
+            user_id=None,
+            topic_status=None,
+            created_at=None,
+            assingees=[],
+            note=None,
+            scheduled_at=None,
+            action_logs=[],
+        )
+        assert compare_schemas(ret, expected)
+
+    def test_triggers_auto_close(self):
+        #
+        # FIXME: this test should be moved to another file (not for endpoint response)
+        #
+        user1 = TestUser.create(USER1)
+        pteam1 = user1.api.create_pteam(PTEAM1)
+        tag1 = user1.api.create_tag({"tag_name": TAG1})
+        topic1 = user1.api.create_topic(TOPIC1["topic_id"], TOPIC1)  # TAG1
+        fixed_version = "1.2.3"
+        secure_version = "2.0.0"
+        action_request1 = {
+            **ACTION1,
+            "topic_id": topic1.topic_id,
+            "ext": {
+                "tags": [tag1.tag_name],
+                "vulnerable_versions": {tag1.tag_name: [f"< {fixed_version}"]},
+            },
+        }
+        action1 = user1.api.create_action(action_request1)
+
+        line_data1 = {
+            "tag_name": tag1.tag_name,
+            "references": [{"target": TARGET1, "version": secure_version}],
+        }
+        lines = [line_data1]
+
+        user1.util.upload_tags_file(pteam1, GROUP1, lines)
+        ret = user1.api.get_pteam_topic_tag_status(pteam1.pteam_id, topic1.topic_id, tag1.tag_id)
+
+        expected = schemas.TopicStatusResponse(
+            status_id=None,
+            pteam_id=pteam1.pteam_id,
+            topic_id=topic1.topic_id,
+            tag_id=tag1.tag_id,
+            user_id=SYSTEM_UUID,
+            topic_status=models.TopicStatusType.completed,
+            created_at=None,
+            assingees=[],
+            note="auto closed by system",
+            scheduled_at=None,
+            action_logs=[],
+        )
+        assert compare_schemas(ret, expected, excludes=["status_id", "created_at", "action_logs"])
+        assert len(ret.action_logs) == 1
+        expected_action_log1 = schemas.ActionLogResponse(
+            **action1.model_dump(),
+            logging_id=UUID(int=0),  # exclude
+            pteam_id=pteam1.pteam_id,
+            user_id=SYSTEM_UUID,
+            email=SYSTEM_EMAIL,
+            executed_at=datetime.now(),  # exclude
+        )
+        assert compare_schemas(
+            ret.action_logs[0],
+            expected_action_log1,
+            excludes=["logging_id", "executed_at", "created_at"],
+        )
 
 
 def test_get_pteams():

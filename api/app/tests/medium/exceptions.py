@@ -17,3 +17,7 @@ class HTTPError(Exception):
 
     def __str__(self) -> str:
         return f"{self.code}: {self.reason}: {self.detail}"
+
+    @classmethod
+    def raise_from_response(cls, response: Response):
+        raise HTTPError(response)

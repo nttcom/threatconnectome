@@ -2,11 +2,13 @@ import json
 import random
 import string
 import tempfile
+from contextlib import contextmanager
 from datetime import datetime
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, Generator, List, Optional, Sequence, Tuple, Union
 from uuid import UUID
 
 from fastapi.testclient import TestClient
+from pydantic import BaseModel
 
 from app import models, schemas
 from app.main import app
@@ -33,6 +35,58 @@ def assert_200(response) -> dict:
 def assert_204(response):
     if response.status_code != 204:
         raise HTTPError(response)
+
+
+@contextmanager
+def temporal_jsonl(file_content: str | list[dict]) -> Generator:  # raw data | data for JsonLines
+    with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
+        if file_content:
+            if isinstance(file_content, str):
+                tfile.write(file_content)
+            else:
+                for line in file_content:  # convert to json lines
+                    tfile.write(json.dumps(line) + "\n")
+        tfile.flush()
+        with open(tfile.name, "rb") as jsonl_file:
+            yield jsonl_file
+
+
+@contextmanager
+def temporal_invalid_jsonl(file_content: str, suffix: str = ".jsonl") -> Generator:
+    with tempfile.NamedTemporaryFile(mode="w+t", suffix=suffix) as tfile:
+        if file_content:
+            tfile.writelines(file_content)
+        tfile.flush()
+        with open(tfile.name, "rb") as ret_file:
+            yield ret_file
+
+
+def compare_schemas(
+    alpha: BaseModel | list[BaseModel] | None,
+    bravo: BaseModel | list[BaseModel] | None,
+    excludes: list[str] = [],
+) -> bool:
+    if [alpha, bravo] in [[None, None], [[], []]]:
+        return True
+    if (None in [alpha, bravo]) or ([] in [alpha, bravo]):
+        return False
+    if isinstance(alpha, list):
+        if not isinstance(bravo, list) or len(alpha) != len(bravo):
+            return False
+        for idx in range(len(alpha)):
+            if not compare_schemas(alpha[idx], bravo[idx], excludes=excludes):
+                return False
+        return True
+
+    vars_a = vars(alpha)
+    vars_b = vars(bravo)
+    keys = {*vars_a, *vars_b}
+    for key in keys:
+        if key in excludes:
+            continue
+        if vars_a.get(key) != vars_b.get(key):
+            return False
+    return True
 
 
 def schema_to_dict(data) -> dict:
