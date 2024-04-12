@@ -2720,9 +2720,7 @@ def test_upload_pteam_tags_file_with_wrong_content_format():
     pteam = create_pteam(USER1, PTEAM1)
 
     params = {"group": "threatconnectome", "force_mode": True}
-    tag_file = (
-        Path(__file__).resolve().parent / "upload_test" / "tag_with_wrong_format.jsonl"
-    )
+    tag_file = Path(__file__).resolve().parent / "upload_test" / "tag_with_wrong_format.jsonl"
     with open(tag_file, "rb") as tags:
         with pytest.raises(HTTPError, match=r"400: Bad Request: Wrong file content"):
             assert_200(
@@ -4269,9 +4267,7 @@ def test_upload_pteam_sbom_file_wrong_content_format():
     pteam = create_pteam(USER1, PTEAM1)
 
     params = {"group": "threatconnectome", "force_mode": True}
-    sbom_file = (
-        Path(__file__).resolve().parent / "upload_test" / "tag_with_wrong_format.json"
-    )
+    sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag_with_wrong_format.json"
     with open(sbom_file, "rb") as tags:
         with pytest.raises(HTTPError, match=r"400: Bad Request: Not supported file format"):
             assert_200(
