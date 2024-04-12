@@ -3,6 +3,8 @@ import tempfile
 from typing import Any, Dict, List, Optional, Tuple, Type
 
 import pytest
+from fastapi.testclient import TestClient
+
 from app import models, schemas
 from app.constants import (
     SYSTEM_EMAIL,
@@ -29,7 +31,6 @@ from app.tests.medium.utils import (
     headers,
     upload_pteam_tags,
 )
-from fastapi.testclient import TestClient
 
 client = TestClient(app)
 
