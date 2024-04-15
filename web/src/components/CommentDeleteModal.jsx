@@ -10,13 +10,13 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import { grey, red } from "@mui/material/colors";
+import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React from "react";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import { deleteATeamTopicComment as apiDeleteATeamTopicComment } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
 export function CommentDeleteModal(props) {
@@ -37,13 +37,13 @@ export function CommentDeleteModal(props) {
   };
 
   return (
-    <Dialog fullWidth onClose={onClose} open={Boolean(comment?.comment_id)}>
+    <Dialog open={Boolean(comment?.comment_id)} onClose={onClose} fullWidth>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
+          <Typography flexGrow={1} className={dialogStyle.dialog_title}>
             Confirm
           </Typography>
-          <IconButton onClick={onClose} sx={{ color: grey[500] }}>
+          <IconButton onClick={onClose}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -68,19 +68,8 @@ export function CommentDeleteModal(props) {
           </Typography>
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button color="primary" onClick={onClose} sx={{ ...modalCommonButtonStyle, mt: 1 }}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleAction}
-          sx={{
-            ...modalCommonButtonStyle,
-            color: red[700],
-            ml: 1,
-            mt: 1,
-          }}
-        >
+      <DialogActions className={dialogStyle.action_area}>
+        <Button onClick={handleAction} className={dialogStyle.delete_btn}>
           Delete
         </Button>
       </DialogActions>

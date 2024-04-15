@@ -1,8 +1,13 @@
-import { Search as SearchIcon, Upload as UploadIcon } from "@mui/icons-material";
+import {
+  Close as CloseIcon,
+  Search as SearchIcon,
+  Upload as UploadIcon,
+} from "@mui/icons-material";
 import {
   Box,
   Button,
   Checkbox,
+  IconButton,
   ListItem,
   ListItemButton,
   ListItemIcon,
@@ -16,9 +21,10 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FixedSizeList } from "react-window";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import { getTags } from "../slices/tags";
 import { createTag } from "../utils/api";
-import { modalCommonButtonStyle, commonButtonStyle } from "../utils/const";
+import { commonButtonStyle } from "../utils/const";
 
 export function TopicTagSelector(props) {
   const { currentSelectedIds, onCancel, onApply, sx } = props;
@@ -93,10 +99,16 @@ export function TopicTagSelector(props) {
   return (
     <Box sx={{ ...sx, display: "flex" }}>
       <Box display="flex" flexDirection="column">
-        <Typography fontWeight={900} mb={2}>
-          Select tags
-        </Typography>
-        <Box display="flex" flexDirection="row" alignItems="center">
+        <Box display="flex" flexDirection="row">
+          <Typography className={dialogStyle.dialog_title}>Select tags</Typography>
+          <Box flexGrow={1} />
+          {onCancel && (
+            <IconButton onClick={() => onCancel()}>
+              <CloseIcon />
+            </IconButton>
+          )}
+        </Box>
+        <Box display="flex" flexDirection="row" alignItems="center" sx={{ mt: 1 }}>
           <Box display="flex" flexGrow={1} />
           <SearchIcon sx={{ ml: 2 }} />
           <TextField
@@ -129,17 +141,12 @@ export function TopicTagSelector(props) {
         {(onApply || onCancel) && (
           <Box display="flex" flexDirection="row">
             <Box flexGrow={1} />
-            {onCancel && (
-              <Button onClick={() => onCancel()} sx={{ ...modalCommonButtonStyle, mr: 1 }}>
-                Cancel
-              </Button>
-            )}
             {onApply && (
               <Button
                 onClick={() => {
                   onApply(selectedIds);
                 }}
-                sx={{ ...modalCommonButtonStyle, mr: 1 }}
+                className={dialogStyle.submit_btn}
               >
                 Apply
               </Button>

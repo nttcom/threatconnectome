@@ -16,9 +16,9 @@ import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import { getUser } from "../slices/user";
 import { createPTeam } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 
 export function PTeamCreateModal(props) {
   const { open, onSetOpen, onCloseTeamSelector } = props;
@@ -68,7 +68,7 @@ export function PTeamCreateModal(props) {
       <Dialog fullWidth open={open} onClose={() => onSetOpen(false)}>
         <DialogTitle>
           <Box display="flex" flexDirection="row">
-            <Typography variant="h5">Create PTeam</Typography>
+            <Typography className={dialogStyle.dialog_title}>Create PTeam</Typography>
             <Box flexGrow={1} />
             <IconButton onClick={() => onSetOpen(false)}>
               <CloseIcon />
@@ -96,8 +96,8 @@ export function PTeamCreateModal(props) {
             ></TextField>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCreate} disabled={!pteamName} sx={modalCommonButtonStyle}>
+        <DialogActions className={dialogStyle.action_area}>
+          <Button onClick={handleCreate} disabled={!pteamName} className={dialogStyle.submit_btn}>
             Create
           </Button>
         </DialogActions>

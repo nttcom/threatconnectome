@@ -1,12 +1,21 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Close as CloseIcon } from "@mui/icons-material";
+import {
+  Box,
+  Button,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
+} from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch } from "react-redux";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import { getATeam } from "../slices/ateam";
 import { removeWatchingPTeam } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 
 export function ATeamWatchingStop(props) {
   const { watchingPteamId, watchingPteamName, ateamId, onClose } = props;
@@ -35,29 +44,39 @@ export function ATeamWatchingStop(props) {
 
   return (
     <>
-      <Typography variant="h5">Confirm</Typography>
-      <Box display="flex" alignItems="baseline" sx={{ my: 2 }}>
-        <Typography>Are you sure you want to stop watching </Typography>
-        <Typography
-          variant="h6"
-          noWrap
-          sx={{ fontWeight: "bold", textDecoration: "underline", mx: 1 }}
-        >
-          {watchingPteamName}
-        </Typography>
-        <Typography>?</Typography>
-      </Box>
-      <Box display="flex">
-        <Box flexGrow={1} />
-        {onClose && (
-          <Button onClick={onClose} sx={modalCommonButtonStyle}>
-            Cancel
+      <DialogTitle>
+        <Box alignItems="center" display="flex" flexDirection="row">
+          <Typography flexGrow={1} className={dialogStyle.dialog_title}>
+            Confirm
+          </Typography>
+          {onClose && (
+            <IconButton onClick={onClose}>
+              <CloseIcon />
+            </IconButton>
+          )}
+        </Box>
+      </DialogTitle>
+      <DialogContent>
+        <Box display="flex" alignItems="baseline" sx={{ my: 2 }}>
+          <Typography>Are you sure you want to stop watching </Typography>
+          <Typography
+            variant="h6"
+            noWrap
+            sx={{ fontWeight: "bold", textDecoration: "underline", mx: 1 }}
+          >
+            {watchingPteamName}
+          </Typography>
+          <Typography>?</Typography>
+        </Box>
+      </DialogContent>
+      <DialogActions className={dialogStyle.action_area}>
+        <Box display="flex">
+          <Box flexGrow={1} />
+          <Button onClick={handleRemove} className={dialogStyle.delete_btn}>
+            Stop
           </Button>
-        )}
-        <Button onClick={handleRemove} sx={{ ...modalCommonButtonStyle, ml: 1 }}>
-          Stop
-        </Button>
-      </Box>
+        </Box>
+      </DialogActions>
     </>
   );
 }

@@ -1,7 +1,12 @@
+import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
   Checkbox,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -15,7 +20,8 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
-import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import dialogStyle from "../cssModule/dialog.module.css";
+import { actionTypes } from "../utils/const";
 
 export function AnalysisActionGenerator(props) {
   const { text, tagIds, action, onGenerate, onEdit, onCancel } = props;
@@ -48,9 +54,9 @@ export function AnalysisActionGenerator(props) {
   );
 
   const cancelButton = onCancel ? (
-    <Button onClick={onCancel} sx={{ ...modalCommonButtonStyle }}>
-      Cancel
-    </Button>
+    <IconButton onClick={onCancel}>
+      <CloseIcon />
+    </IconButton>
   ) : (
     <></>
   );
@@ -285,8 +291,15 @@ export function AnalysisActionGenerator(props) {
 
   return (
     <>
-      <Box display="flex" flexDirection="column" flexGrow={1}>
-        <Typography variant="h6">{onEdit ? "Edit action" : "Create action"}</Typography>
+      <DialogTitle>
+        <Box alignItems="center" display="flex" flexDirection="row">
+          <Typography flexGrow={1} className={dialogStyle.dialog_title}>
+            {onEdit ? "Edit action" : "Create action"}
+          </Typography>
+          {cancelButton}
+        </Box>
+      </DialogTitle>
+      <DialogContent>
         {actionDescriptionEditor}
         <Typography sx={{ mt: 2 }}>
           {"Select artifact tags to which this action should be applied."}
@@ -297,9 +310,10 @@ export function AnalysisActionGenerator(props) {
             PTeams which this action reaches
           </Typography>
         </Box>
+      </DialogContent>
+      <DialogActions className={dialogStyle.action_area}>
         <Box display="flex" flexDirection="row" sx={{ mt: 1 }}>
           <Box flexGrow={1} />
-          {cancelButton}
           <Button
             disabled={buttonDisabled()}
             onClick={() => {
@@ -321,12 +335,12 @@ export function AnalysisActionGenerator(props) {
                 });
               }
             }}
-            sx={{ ...modalCommonButtonStyle, ml: 1 }}
+            className={dialogStyle.submit_btn}
           >
             {text}
           </Button>
         </Box>
-      </Box>
+      </DialogActions>
     </>
   );
 }

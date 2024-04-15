@@ -1,7 +1,9 @@
+import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
   Checkbox,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -15,7 +17,8 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
-import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import dialogStyle from "../cssModule/dialog.module.css";
+import { actionTypes } from "../utils/const";
 
 export function ActionGenerator(props) {
   const { text, tagIds, action, onGenerate, onEdit, onCancel } = props;
@@ -49,9 +52,9 @@ export function ActionGenerator(props) {
   );
 
   const cancelButton = onCancel ? (
-    <Button onClick={onCancel} sx={{ ...modalCommonButtonStyle }}>
-      Cancel
-    </Button>
+    <IconButton onClick={() => onCancel()}>
+      <CloseIcon />
+    </IconButton>
   ) : (
     <></>
   );
@@ -291,7 +294,13 @@ export function ActionGenerator(props) {
   return (
     <>
       <Box display="flex" flexDirection="column" flexGrow={1}>
-        <Typography variant="h6">{onEdit ? "Edit action" : "Create action"}</Typography>
+        <Box display="flex" flexDirection="row">
+          <Typography className={dialogStyle.dialog_title}>
+            {onEdit ? "Edit action" : "Create action"}
+          </Typography>
+          <Box flexGrow={1} />
+          {cancelButton}
+        </Box>
         {actionDescriptionEditor}
         <Typography sx={{ mt: 2 }}>
           {"Select artifact tags to which this action should be applied."}
@@ -299,7 +308,6 @@ export function ActionGenerator(props) {
         {tagsEditor}
         <Box display="flex" flexDirection="row" sx={{ mt: 1 }}>
           <Box flexGrow={1} />
-          {cancelButton}
           <Button
             disabled={buttonDisabled()}
             onClick={() => {
@@ -321,7 +329,7 @@ export function ActionGenerator(props) {
                 });
               }
             }}
-            sx={{ ...modalCommonButtonStyle, ml: 1 }}
+            className={dialogStyle.submit_btn}
           >
             {text}
           </Button>

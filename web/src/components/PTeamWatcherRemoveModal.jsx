@@ -1,12 +1,21 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Close as CloseIcon } from "@mui/icons-material";
+import {
+  Box,
+  Button,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
+} from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch } from "react-redux";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import { getPTeam } from "../slices/pteam";
 import { removeWatcherATeam } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 
 export function PTeamWatcherRemoveModal(props) {
   const { watcherAteamId, watcherAteamName, pteamId, onClose } = props;
@@ -35,29 +44,35 @@ export function PTeamWatcherRemoveModal(props) {
 
   return (
     <>
-      <Typography variant="h5">Confirm</Typography>
-      <Box display="flex" alignItems="baseline" sx={{ my: 2 }}>
-        <Typography>Are you sure you want to remove watcher </Typography>
-        <Typography
-          variant="h6"
-          noWrap
-          sx={{ fontWeight: "bold", textDecoration: "underline", mx: 1 }}
-        >
-          {watcherAteamName}
-        </Typography>
-        <Typography>?</Typography>
-      </Box>
-      <Box display="flex">
-        <Box flexGrow={1} />
-        {onClose && (
-          <Button onClick={onClose} sx={modalCommonButtonStyle}>
-            Cancel
-          </Button>
-        )}
-        <Button onClick={handleRemove} sx={{ ...modalCommonButtonStyle, ml: 1 }}>
+      <DialogTitle>
+        <Box display="flex" flexDirection="row">
+          <Typography className={dialogStyle.dialog_title}>Confirm</Typography>
+          <Box flexGrow={1} />
+          {onClose && (
+            <IconButton onClick={onClose}>
+              <CloseIcon />
+            </IconButton>
+          )}
+        </Box>
+      </DialogTitle>
+      <DialogContent>
+        <Box display="flex" alignItems="baseline" sx={{ my: 2 }}>
+          <Typography>Are you sure you want to remove watcher </Typography>
+          <Typography
+            variant="h6"
+            noWrap
+            sx={{ fontWeight: "bold", textDecoration: "underline", mx: 1 }}
+          >
+            {watcherAteamName}
+          </Typography>
+          <Typography>?</Typography>
+        </Box>
+      </DialogContent>
+      <DialogActions className={dialogStyle.action_area}>
+        <Button onClick={handleRemove} className={dialogStyle.delete_btn}>
           Remove
         </Button>
-      </Box>
+      </DialogActions>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { ArrowDropDown as ArrowDropDownIcon } from "@mui/icons-material";
+import { ArrowDropDown as ArrowDropDownIcon, Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -8,6 +8,7 @@ import {
   DialogTitle,
   ClickAwayListener,
   Grow,
+  IconButton,
   MenuItem,
   MenuList,
   Paper,
@@ -24,6 +25,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import {
   getPTeamSolvedTaggedTopicIds,
   getPTeamTagsSummary,
@@ -31,7 +33,7 @@ import {
   getPTeamUnsolvedTaggedTopicIds,
 } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
-import { topicStatusProps, modalCommonButtonStyle } from "../utils/const";
+import { topicStatusProps } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
 export function TopicStatusSelector(props) {
@@ -182,37 +184,40 @@ export function TopicStatusSelector(props) {
             </Grow>
           )}
         </Popper>
-        <Dialog onClose={handleHideDatepicker} open={datepickerOpen} fullWidth>
+        <Dialog open={datepickerOpen} onClose={handleHideDatepicker} fullWidth>
           <DialogTitle>
-            <Box alignItems="center" display="flex" flexGrow={1}>
-              <Typography flexGrow={1} variant="inherit">
+            <Box alignItems="center" display="flex" flexDirection="row">
+              <Typography flexGrow={1} className={dialogStyle.dialog_title}>
                 Set schedule
               </Typography>
+              <IconButton onClick={handleHideDatepicker}>
+                <CloseIcon />
+              </IconButton>
             </Box>
           </DialogTitle>
           <DialogContent>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DateTimePicker
-                inputFormat={dateFormat}
-                label="Schedule Date (future date)"
-                mask="____/__/__ __:__"
-                minDateTime={now}
-                value={schedule}
-                onChange={(newDate) => setSchedule(newDate)}
-                renderInput={(params) => (
-                  <TextField fullWidth margin="dense" required {...params} />
-                )}
-              />
-            </LocalizationProvider>
+            <Box sx={{ mt: 3 }}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DateTimePicker
+                  inputFormat={dateFormat}
+                  label="Schedule Date (future date)"
+                  mask="____/__/__ __:__"
+                  minDateTime={now}
+                  value={schedule}
+                  onChange={(newDate) => setSchedule(newDate)}
+                  renderInput={(params) => (
+                    <TextField fullWidth margin="dense" required {...params} />
+                  )}
+                  sx={{ width: "100%" }}
+                />
+              </LocalizationProvider>
+            </Box>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleHideDatepicker} sx={modalCommonButtonStyle}>
-              Cancel
-            </Button>
+          <DialogActions className={dialogStyle.action_area}>
             <Button
               onClick={handleUpdateSchedule}
               disabled={!isBefore(now, schedule)}
-              sx={modalCommonButtonStyle}
+              className={dialogStyle.submit_btn}
             >
               Schedule
             </Button>

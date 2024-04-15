@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogTitle,
   DialogActions,
-  Divider,
   IconButton,
   List,
   Switch,
@@ -22,6 +21,7 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import {
   getPTeamSolvedTaggedTopicIds,
   getPTeamTagsSummary,
@@ -30,7 +30,7 @@ import {
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { updateTopic, createAction, updateAction, deleteAction } from "../utils/api";
-import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import { actionTypes } from "../utils/const";
 import { parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import { ActionGenerator } from "./ActionGenerator";
@@ -258,18 +258,17 @@ export function PTeamEditAction(props) {
 
   return (
     <>
-      <Dialog open={open === true} fullWidth>
+      <Dialog open={open === true} onClose={handleClose} fullWidth>
         <DialogTitle>
           <Box alignItems="center" display="flex" flexDirection="row">
-            <Typography flexGrow={1} variant="inherit">
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
               Edit actions on this topic
             </Typography>
-            <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+            <IconButton onClick={handleClose}>
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
-        <Divider />
         <DialogContent>
           <>
             <Box flexDirection="row">
@@ -304,7 +303,7 @@ export function PTeamEditAction(props) {
                       width: "100%",
                       position: "relative",
                       overflow: "auto",
-                      maxHeight: 150,
+                      maxHeight: 200,
                     }}
                   >
                     {topicActions &&
@@ -341,12 +340,12 @@ export function PTeamEditAction(props) {
             </Box>
           </>
         </DialogContent>
-        <DialogActions>
-          <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
+        <DialogActions className={dialogStyle.action_area}>
+          <Box sx={{ display: "flex", flexDirection: "row" }}>
             <Button
               onClick={handleUpdateTopic}
               disabled={errors?.length > 0}
-              sx={modalCommonButtonStyle}
+              className={dialogStyle.submit_btn}
             >
               Update
             </Button>

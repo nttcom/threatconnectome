@@ -3,10 +3,8 @@ import {
   Box,
   Button,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   IconButton,
   TextField,
   Typography,
@@ -19,6 +17,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import {
   getPTeamSolvedTaggedTopicIds,
   getPTeamTagsSummary,
@@ -26,7 +25,6 @@ import {
   getPTeamUnsolvedTaggedTopicIds,
 } from "../slices/pteam";
 import { createActionLog, createTopicStatus } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 
 import { ActionTypeChip } from "./ActionTypeChip";
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -121,25 +119,24 @@ export function ReportCompletedActions(props) {
   };
 
   return (
-    <Dialog fullWidth onClose={handleClose} open={show}>
+    <Dialog open={show} onClose={handleClose} fullWidth>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           {activeStep === 0 && (
-            <Typography flexGrow={1} variant="inherit">
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
               Select the actions you have completed
             </Typography>
           )}
           {activeStep === 1 && (
-            <Typography flexGrow={1} variant="inherit">
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
               (Optional): Enter evidence of completion
             </Typography>
           )}
-          <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+          <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Box>
       </DialogTitle>
-      <Divider />
       <DialogContent>
         {activeStep === 0 && (
           <>
@@ -210,15 +207,13 @@ export function ReportCompletedActions(props) {
             />
           </>
         )}
-      </DialogContent>
-      <DialogActions>
         <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
-          <Box sx={{ flex: "1 1 auto" }} />
           {activeStep === 0 ? (
             <>
+              <Box sx={{ flex: "1 1 auto" }} />
               <Button
                 onClick={handleNext}
-                sx={modalCommonButtonStyle}
+                className={dialogStyle.submit_btn}
                 disabled={selectedAction.length === 0}
               >
                 {`Done ${selectedAction.length}`}
@@ -226,20 +221,22 @@ export function ReportCompletedActions(props) {
             </>
           ) : (
             <>
-              <Button onClick={handleBack} sx={modalCommonButtonStyle} disabled={activeStep === 0}>
+              <Button
+                onClick={handleBack}
+                className={dialogStyle.submit_btn}
+                disabled={activeStep === 0}
+                sx={{ ml: -2 }}
+              >
                 Back
               </Button>
-              <Button
-                color="success"
-                onClick={handleAction}
-                sx={{ textTransform: "none", fontWeight: "bold" }}
-              >
+              <Box sx={{ flex: "1 1 auto" }} />
+              <Button onClick={handleAction} className={dialogStyle.submit_btn}>
                 Submit
               </Button>
             </>
           )}
         </Box>
-      </DialogActions>
+      </DialogContent>
     </Dialog>
   );
 }
