@@ -239,27 +239,6 @@ class Account(Base):
     action_logs = relationship("ActionLog", back_populates="executed_by")
 
 
-class PTeamTagReference(Base):
-    __tablename__ = "pteamtagreference"
-
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    tag_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("tag.tag_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    group: Mapped[Str255] = mapped_column(primary_key=True, index=True)
-    target: Mapped[str] = mapped_column(primary_key=True)
-    version: Mapped[str] = mapped_column(primary_key=True)
-
-    pteam = relationship("PTeam", back_populates="references")
-    tag = relationship("Tag", back_populates="references")
-
-
 class Dependency(Base):
     __tablename__ = "dependency"
 
@@ -325,9 +304,6 @@ class PTeam(Base):
         secondaryjoin="Dependency.tag_id == Tag.tag_id",
         collection_class=set,  # avoid duplications
         viewonly=True,  # block updating via this relationship
-    )
-    references = relationship(
-        "PTeamTagReference", back_populates="pteam", cascade="all, delete-orphan"
     )
     services = relationship("Service", back_populates="pteam", cascade="all, delete-orphan")
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
@@ -546,9 +522,6 @@ class Tag(Base):
     parent_name: Mapped[Optional[str]] = mapped_column(ForeignKey("tag.tag_name"), index=True)
 
     topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
-    references = relationship(
-        "PTeamTagReference", back_populates="tag", cascade="all, delete-orphan"
-    )
     dependencies = relationship("Dependency", back_populates="tag", cascade="all, delete-orphan")
 
 
