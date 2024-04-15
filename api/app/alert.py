@@ -6,7 +6,6 @@ from uuid import UUID
 from email_validator import validate_email
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.sql.expression import func
 
 from app import models
 from app.constants import SYSTEM_EMAIL
@@ -72,20 +71,8 @@ def alert_new_topic(db: Session, topic_id: UUID | str) -> None:
         if not alert_by_slack and not alert_by_mail:
             continue  # no media enabled
 
-        groups_to_alert = db.execute(
-            select(
-                models.PTeamTagReference.tag_id,
-                func.array_agg(models.PTeamTagReference.group.distinct()).label("groups"),
-            )
-            .where(
-                models.PTeamTagReference.pteam_id == row.pteam_id,
-                models.PTeamTagReference.tag_id == row.tag_id,
-            )
-            .group_by(models.PTeamTagReference.tag_id)
-        ).all()
-        if not groups_to_alert:
-            continue  # something went wrong
-        groups = sorted(groups_to_alert[0].groups)
+        if not (groups := sorted([service.service_name for service in row.pteam.services])):
+            continue  # may not happen
 
         if alert_by_slack:
             try:

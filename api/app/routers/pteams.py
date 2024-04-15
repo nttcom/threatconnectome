@@ -13,6 +13,7 @@ from app.common import (
     check_pteam_membership,
     get_enabled_topics,
     get_or_create_topic_tag,
+    get_pteam_ext_tags,
     get_sorted_topics,
     get_tag_ids_with_parent_ids,
     pteamtag_try_auto_close_topic,
@@ -154,7 +155,7 @@ def get_pteam_groups(
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    groups = persistence.get_pteam_groups(db, pteam_id)
+    groups = [service.service_name for service in pteam.services]
 
     return {"groups": groups}
 
@@ -173,7 +174,7 @@ def get_pteam_tags(
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    return command.get_pteam_ext_tags(db, pteam)
+    return get_pteam_ext_tags(db, pteam)
 
 
 @router.get("/{pteam_id}/tags/summary", response_model=schemas.PTeamTagsSummary)
@@ -190,7 +191,7 @@ def get_pteam_tags_summary(
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    return command.get_pteamtags_summary(db, pteam)
+    return command.get_pteam_tags_summary(db, pteam)
 
 
 @router.get("/{pteam_id}/tags/{tag_id}/solved_topic_ids", response_model=schemas.PTeamTaggedTopics)
@@ -209,7 +210,7 @@ def get_pteam_tagged_solved_topic_ids(
         raise NOT_A_PTEAM_MEMBER
     if not (tag := persistence.get_tag_by_id(db, tag_id)):
         raise NO_SUCH_TAG
-    if tag not in {ref.tag for ref in pteam.references}:
+    if tag not in pteam.tags:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
     topic_ids = command.get_sorted_topic_ids_by_pteam_tag_and_status(db, pteam_id, tag_id, True)
@@ -241,7 +242,7 @@ def get_pteam_tagged_unsolved_topic_ids(
         raise NOT_A_PTEAM_MEMBER
     if not (tag := persistence.get_tag_by_id(db, tag_id)):
         raise NO_SUCH_TAG
-    if tag not in {ref.tag for ref in pteam.references}:
+    if tag not in pteam.tags:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
     topic_ids = command.get_sorted_topic_ids_by_pteam_tag_and_status(db, pteam_id, tag_id, False)
@@ -269,10 +270,9 @@ def get_pteam_topics(
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    pteam_tags = command.get_pteam_tags(db, pteam_id)
-    if not pteam_tags:
+    if not pteam.tags:
         return []
-    topic_tag_ids = get_tag_ids_with_parent_ids(pteam_tags)
+    topic_tag_ids = get_tag_ids_with_parent_ids(pteam.tags)
     return get_sorted_topics(
         get_enabled_topics(persistence.get_topics_by_tag_ids(db, topic_tag_ids))
     )
@@ -436,9 +436,6 @@ def get_pteam_auth(
     return response
 
 
-# FIXME!
-# following get_pteamtag() has no tests!!!
-#
 @router.get("/{pteam_id}/tags/{tag_id}", response_model=schemas.PTeamtagExtResponse)
 def get_pteamtag(
     pteam_id: UUID,
@@ -455,18 +452,20 @@ def get_pteamtag(
         raise NOT_A_PTEAM_MEMBER
     if not (tag := persistence.get_tag_by_id(db, tag_id)):
         raise NO_SUCH_TAG
-    if tag not in {ref.tag for ref in pteam.references}:
+    if tag not in pteam.tags:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
-    ptrs = persistence.get_pteam_tag_references_by_tag_id(db, pteam_id, tag_id)
-    references = [
-        {
-            "group": ptr.group,
-            "target": ptr.target,
-            "version": ptr.version,
-        }
-        for ptr in ptrs
-    ]
+    references = []
+    for service in pteam.services:
+        for dependency in service.dependencies:
+            if dependency.tag_id == str(tag_id):
+                references.append(
+                    {
+                        "group": service.service_name,
+                        "target": dependency.target,
+                        "version": dependency.version,
+                    }
+                )
 
     last_updated_at = command.get_last_updated_at_in_current_pteam_topic_tag_status(
         db, pteam_id, tag_id
@@ -541,22 +540,22 @@ def upload_pteam_sbom_file(
             detail=("Wrong file content"),
         ) from error
 
+    if not (service := next(filter(lambda x: x.service_name == group, pteam.services), None)):
+        service = models.Service(pteam_id=pteam_id, service_name=group)
+        pteam.services.append(service)
+        db.flush()
+
     try:
         json_lines = sbom_json_to_artifact_json_lines(jdata)
-        ret = apply_group_tags(
-            db,
-            pteam,
-            group,
-            json_lines,
-            auto_create_tags=force_mode,
-            auto_close=False,
+        apply_group_tags(
+            db, pteam, service, json_lines, auto_create_tags=force_mode, auto_close=False
         )
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
     db.commit()
 
-    return ret
+    return get_pteam_ext_tags(db, pteam)
 
 
 @router.post("/{pteam_id}/upload_tags_file", response_model=list[schemas.ExtTagResponse])
@@ -587,29 +586,43 @@ def upload_pteam_tags_file(
     for bline in file.file:
         json_lines.append(_json_loads(bline))
 
+    if not (service := next(filter(lambda x: x.service_name == group, pteam.services), None)):
+        service = models.Service(pteam_id=pteam_id, service_name=group)
+        pteam.services.append(service)
+        db.flush()
+
     try:
-        ret = apply_group_tags(
-            db, pteam, group, json_lines, auto_create_tags=force_mode, auto_close=True
+        apply_group_tags(
+            db, pteam, service, json_lines, auto_create_tags=force_mode, auto_close=True
         )
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
     db.commit()
 
-    return ret
+    return get_pteam_ext_tags(db, pteam)
 
 
 def apply_group_tags(
     db: Session,
     pteam: models.PTeam,
-    group: str,
+    service: models.Service,
     json_lines: list[dict],
     auto_create_tags=False,
     auto_close=False,
-) -> list[schemas.ExtTagResponse]:
+) -> None:
+    def _collect_versions_of_pteam_tags(pteam: models.PTeam) -> dict[str, set[str]]:
+        ret: dict[str, set[str]] = {}
+        for service in pteam.services:
+            for dependency in service.dependencies:
+                versions = ret.get(dependency.tag_id, set())
+                versions.add(dependency.version)
+                ret[dependency.tag_id] = versions
+        return ret
+
     # Check file format and get tag_names
     missing_tags = set()
-    new_pteam_tag_references_set: set[tuple[str, str, str]] = set()  # (tag_id, target, version)
+    new_dependencies_set: set[tuple[str, str, str]] = set()  # (tag_id, target, version)
     for line in json_lines:
         if not (_tag_name := line.get("tag_name")):
             raise ValueError("Missing tag_name")
@@ -624,53 +637,52 @@ def apply_group_tags(
                 missing_tags.add(_tag_name)
         if _tag:
             for ref in line.get("references", [{}]):
-                new_pteam_tag_references_set.add(
+                new_dependencies_set.add(
                     (_tag.tag_id, ref.get("target", ""), ref.get("version", ""))
                 )
     if missing_tags:
         raise ValueError(f"No such tags: {', '.join(sorted(missing_tags))}")
 
     if auto_close:
-        old_versions = command.get_pteam_reference_versions_of_each_tags(db, pteam.pteam_id)
+        old_versions = _collect_versions_of_pteam_tags(pteam)
 
-    # separate ptrs to keep, delete or create
-    for ptr in persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id):
-        if ptr.group != group:
-            continue  # do not touch if group does not match
-        if (item := (ptr.tag_id, ptr.target, ptr.version)) in new_pteam_tag_references_set:
-            new_pteam_tag_references_set.remove(item)  # already exists
+    # separate dependencis to keep, delete or create
+    obsoleted_dependencies = []
+    for dependency in service.dependencies:
+        if (
+            item := (dependency.tag_id, dependency.target, dependency.version)
+        ) in new_dependencies_set:
+            new_dependencies_set.remove(item)  # already exists
             continue
-        # delete obsoleted
-        persistence.delete_pteam_tag_reference(db, ptr)
-    # create new references
-    for [tag_id, target, version] in new_pteam_tag_references_set:
-        new_ptr = models.PTeamTagReference(
-            pteam_id=pteam.pteam_id,
-            group=group,
+        obsoleted_dependencies.append(dependency)
+    for obsoleted in obsoleted_dependencies:
+        service.dependencies.remove(obsoleted)
+    # create new dependencies
+    for [tag_id, target, version] in new_dependencies_set:
+        new_dependency = models.Dependency(
+            service_id=service.service_id,
             tag_id=tag_id,
-            target=target,
             version=version,
+            target=target,
         )
-        persistence.create_pteam_tag_reference(db, new_ptr)
+        service.dependencies.append(new_dependency)
+    db.flush()
 
     # try auto close if make sense
     if auto_close:
-        new_versions = command.get_pteam_reference_versions_of_each_tags(db, pteam.pteam_id)
-        ptrs = persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id)
-        if ptrs_for_auto_close := [
-            ptr
-            for ptr in ptrs
-            if new_versions.get(ptr.tag_id, set()) != old_versions.get(ptr.tag_id, set())
+        new_versions = _collect_versions_of_pteam_tags(pteam)
+        if tags_for_auto_close := [
+            tag
+            for tag in pteam.tags
+            if new_versions.get(tag.tag_id, set()) != old_versions.get(tag.tag_id, set())
         ]:
-            auto_close_by_pteamtags(db, [(pteam, ptr.tag) for ptr in ptrs_for_auto_close])
+            auto_close_by_pteamtags(db, [(pteam, tag) for tag in tags_for_auto_close])
 
     command.fix_current_status_by_pteam(db, pteam)
 
-    return command.get_pteam_ext_tags(db, pteam)
-
 
 @router.delete("/{pteam_id}/tags", status_code=status.HTTP_204_NO_CONTENT)
-def remove_pteamtags_by_group(
+def remove_pteam_tags_by_group(
     pteam_id: UUID,
     group: str = Query("", description="name of group(repository or product)"),
     current_user: models.Account = Depends(get_current_user),
@@ -684,8 +696,13 @@ def remove_pteamtags_by_group(
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    for ptr in persistence.get_pteam_tag_references_by_group(db, pteam_id, group):
-        persistence.delete_pteam_tag_reference(db, ptr)
+    if not (service := next(filter(lambda x: x.service_name == group, pteam.services), None)):
+        # do not raise error even if specified service does not exist
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    pteam.services.remove(service)
+    db.flush()
+    command.fix_current_status_by_pteam(db, pteam)
 
     db.commit()
 
@@ -740,9 +757,7 @@ def update_pteam(
         for invitation in persistence.get_pteam_invitations(db, pteam_id):
             persistence.delete_pteam_invitation(db, invitation)
     elif need_auto_close:
-        ptrs = persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id)
-        ptr_dict = {ptr.tag_id: ptr.tag for ptr in ptrs}  # pick only 1 tag for each tag_id
-        auto_close_by_pteamtags(db, [(pteam, tag) for tag in ptr_dict.values()])
+        auto_close_by_pteamtags(db, [(pteam, tag) for tag in pteam.tags])
 
     command.fix_current_status_by_pteam(db, pteam)
 
@@ -769,7 +784,7 @@ def get_pteam_topic_statuses_summary(
         raise NOT_A_PTEAM_MEMBER
     if not (tag := persistence.get_tag_by_id(db, tag_id)):
         raise NO_SUCH_TAG
-    if tag not in {ref.tag for ref in pteam.references}:
+    if tag not in pteam.tags:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
     return command.get_pteam_topic_statuses_summary(db, pteam, tag)
 
@@ -802,7 +817,7 @@ def set_pteam_topic_status(
 
     if not (tag := persistence.get_tag_by_id(db, tag_id)):
         raise NO_SUCH_TAG
-    if tag not in {ref.tag for ref in pteam.references}:
+    if tag not in pteam.tags:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
     if not command.check_tag_is_related_to_topic(db, tag, topic):
@@ -871,7 +886,7 @@ def get_pteam_topic_status(
         raise NO_SUCH_TOPIC
     if not (tag := persistence.get_tag_by_id(db, tag_id)):
         raise NO_SUCH_TAG
-    if tag not in {ref.tag for ref in pteam.references}:
+    if tag not in pteam.tags:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
     # TODO: should check pteam topic???
@@ -1115,7 +1130,7 @@ def fix_status_mismatch_tag(
         raise NOT_A_PTEAM_MEMBER
     if not (tag := persistence.get_tag_by_id(db, tag_id)):
         raise NO_SUCH_TAG
-    if tag not in {ref.tag for ref in pteam.references}:
+    if tag not in pteam.tags:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
 
     for topic in command.get_auto_close_triable_pteam_topics(db, pteam, tag):

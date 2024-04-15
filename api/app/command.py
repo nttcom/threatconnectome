@@ -6,7 +6,7 @@ from sqlalchemy import Row, and_, delete, false, func, literal_column, nullsfirs
 from sqlalchemy.dialects.postgresql import insert as psql_insert
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import models, schemas
 
 sortkey2orderby: Dict[schemas.TopicSortKey, list] = {
     schemas.TopicSortKey.THREAT_IMPACT: [
@@ -50,75 +50,45 @@ def workaround_delete_ateam_authority(db: Session, auth: models.ATeamAuthority) 
 def get_ateam_topic_statuses(
     db: Session, ateam_id: UUID | str, sort_key: schemas.TopicSortKey, search: str | None
 ):
-    subq = (
-        select(
-            models.ATeamPTeam.pteam_id.label("pteam_id"),
-            models.PTeam.pteam_name.label("pteam_name"),
-            models.PTeamTagReference.tag_id.label("tag_id"),
-        )
-        .distinct()
-        .join(
-            models.PTeam,
-            and_(
-                models.PTeam.pteam_id == models.ATeamPTeam.pteam_id,
-                models.ATeamPTeam.ateam_id == str(ateam_id),
-            ),
-        )
-        .join(
-            models.PTeamTagReference,
-            models.PTeamTagReference.pteam_id == models.ATeamPTeam.pteam_id,
-        )
-        .subquery()
-    )
-
     sort_rules = sortkey2orderby[sort_key] + [
-        models.TopicTag.topic_id,  # group by topic
+        models.Topic.topic_id,  # group by topic
         nullsfirst(models.PTeamTopicTagStatus.topic_status),  # worst state on array[0]
         models.PTeamTopicTagStatus.scheduled_at.desc(),  # latest on array[0] if worst is scheduled
-        subq.c.pteam_name,
+        models.PTeam.pteam_name,
         models.Tag.tag_name,
     ]
 
+    join_topic_rules = [models.Topic.topic_id == models.CurrentPTeamTopicTagStatus.topic_id]
+    if search:
+        join_topic_rules.append(models.Topic.title.icontains(search, autoescape=True))
+
     select_stmt = (
         select(
-            subq.c.pteam_id,
-            subq.c.pteam_name,
+            models.CurrentPTeamTopicTagStatus.topic_id,
+            models.CurrentPTeamTopicTagStatus.pteam_id,
+            models.PTeam.pteam_name,
             models.Tag,
-            models.TopicTag.topic_id,
             models.Topic.title,
             models.Topic.updated_at,
             models.Topic.threat_impact,
             models.PTeamTopicTagStatus,
         )
         .join(
-            models.Tag,
-            models.Tag.tag_id == subq.c.tag_id,
-        )
-        .join(
-            models.TopicTag,
-            models.TopicTag.tag_id.in_([models.Tag.tag_id, models.Tag.parent_id]),
-        )
-        .join(
-            models.Topic,
+            models.ATeamPTeam,
             and_(
-                models.Topic.title.icontains(search, autoescape=True) if search else true(),
-                models.Topic.disabled.is_(False),
-                models.Topic.topic_id == models.TopicTag.topic_id,
+                models.ATeamPTeam.ateam_id == str(ateam_id),
+                models.ATeamPTeam.pteam_id == models.CurrentPTeamTopicTagStatus.pteam_id,
             ),
         )
-        .outerjoin(
-            models.CurrentPTeamTopicTagStatus,
-            and_(
-                models.CurrentPTeamTopicTagStatus.pteam_id == subq.c.pteam_id,
-                models.CurrentPTeamTopicTagStatus.tag_id == subq.c.tag_id,
-                models.CurrentPTeamTopicTagStatus.topic_id == models.TopicTag.topic_id,
-            ),
-        )
+        .join(models.PTeam, models.PTeam.pteam_id == models.CurrentPTeamTopicTagStatus.pteam_id)
+        .join(models.Tag, models.Tag.tag_id == models.CurrentPTeamTopicTagStatus.tag_id)
+        .join(models.Topic, and_(*join_topic_rules))
         .outerjoin(
             models.PTeamTopicTagStatus,
+            models.PTeamTopicTagStatus.status_id == models.CurrentPTeamTopicTagStatus.status_id,
         )
+        .where(models.CurrentPTeamTopicTagStatus.topic_status != models.TopicStatusType.completed)
         .order_by(*sort_rules)
-        .distinct()
     )
 
     return db.execute(select_stmt).all()
@@ -163,36 +133,6 @@ def missing_ateam_admin(db: Session, ateam: models.ATeam) -> bool:
         ).first()
         is None
     )
-
-
-def get_pteam_tag_ids(db: Session, pteam_id: UUID | str) -> Sequence[str]:
-    return db.scalars(
-        select(models.PTeamTagReference.tag_id.distinct()).where(
-            models.PTeamTagReference.pteam_id == str(pteam_id)
-        )
-    ).all()
-
-
-def get_pteam_tags(db: Session, pteam_id: UUID | str) -> Sequence[models.Tag]:
-    return db.scalars(
-        select(models.Tag).where(
-            models.Tag.tag_id.in_(
-                select(models.PTeamTagReference.tag_id.distinct()).where(
-                    models.PTeamTagReference.pteam_id == str(pteam_id)
-                )
-            )
-        )
-    ).all()
-
-
-def get_pteam_tag_versions(db: Session, pteam_id: UUID | str, tag_id: UUID | str) -> Sequence[str]:
-    return db.scalars(
-        select(models.PTeamTagReference.version.distinct()).where(
-            models.PTeamTagReference.pteam_id == str(pteam_id),
-            models.PTeamTagReference.tag_id == str(tag_id),
-            models.PTeamTagReference.version != "",
-        )
-    ).all()
 
 
 def pick_actions_related_to_pteam_tag_from_topic(
@@ -292,15 +232,14 @@ def pick_pteam_tags_related_to_topic(
         )
         .exists()
     )
-    select_ptrs_related_to_topic_stmt = (
+    select_pteam_and_tag_stmt = (
         select(
-            models.PTeamTagReference.pteam_id,
-            models.PTeamTagReference.tag_id,
+            models.Service.service_id,
             models.PTeam,
             models.Tag,
         )
-        .distinct()
-        .join(models.Tag)
+        .join(models.Dependency, models.Dependency.service_id == models.Service.service_id)
+        .join(models.Tag, models.Tag.tag_id == models.Dependency.tag_id)
         .join(
             models.TopicTag,
             and_(
@@ -316,13 +255,14 @@ def pick_pteam_tags_related_to_topic(
             models.PTeam,
             and_(
                 models.PTeam.disabled.is_(False),
-                models.PTeamTagReference.pteam_id == models.PTeam.pteam_id,
+                models.PTeam.pteam_id == models.Service.pteam_id,
             ),
         )
+        .distinct()
     )
 
-    ptrs = db.execute(select_ptrs_related_to_topic_stmt).all()
-    return [(ptr.PTeam, ptr.Tag) for ptr in ptrs]
+    rows = db.execute(select_pteam_and_tag_stmt).all()
+    return [(row.PTeam, row.Tag) for row in rows]
 
 
 def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
@@ -402,35 +342,49 @@ def get_sorted_topic_ids_by_pteam_tag_and_status(
     ).all()
 
 
-def get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> list[schemas.ExtTagResponse]:
-    # TODO: should be moved to common
-    # Note: this is temporal placement. following get_pteamtags_summary() requires me.
+def _get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> list[schemas.ExtTagResponse]:
+    # Note: this is temporal placement. following get_pteam_tags_summary() requires me.
 
-    tmp_dict: dict[tuple[str, str], schemas.ExtTagResponse] = {}
-    ptrs = persistence.get_pteam_tag_references_by_pteam_id(db, pteam.pteam_id)
-    for ptr in ptrs:
-        key = (ptr.pteam_id, ptr.tag_id)
+    tmp_dict: dict[str, schemas.ExtTagResponse] = {}
+    rows = db.execute(
+        select(
+            models.Service.service_name,
+            models.Dependency.target,
+            models.Dependency.version,
+            models.Tag,
+        )
+        .join(
+            models.Dependency,
+            and_(
+                models.Service.pteam_id == pteam.pteam_id,
+                models.Service.service_id == models.Dependency.service_id,
+            ),
+        )
+        .join(models.Tag)
+    ).all()
+    for row in rows:
         tmp = tmp_dict.get(
-            key,
+            row.Tag.tag_id,
             schemas.ExtTagResponse(
-                tag_id=ptr.tag.tag_id,
-                tag_name=ptr.tag.tag_name,
-                parent_id=ptr.tag.parent_id,
-                parent_name=ptr.tag.parent_name,
+                tag_id=row.Tag.tag_id,
+                tag_name=row.Tag.tag_name,
+                parent_id=row.Tag.parent_id,
+                parent_name=row.Tag.parent_name,
                 references=[],
             ),
         )
-        tmp.references.append({"group": ptr.group, "target": ptr.target, "version": ptr.version})
-        tmp_dict[key] = tmp
-
+        tmp.references.append(
+            {"group": row.service_name, "target": row.target, "version": row.version}
+        )
+        tmp_dict[row.Tag.tag_id] = tmp
     return sorted(tmp_dict.values(), key=lambda x: x.tag_name)
 
 
-def get_pteamtags_summary(db: Session, pteam: models.PTeam) -> dict:
+def get_pteam_tags_summary(db: Session, pteam: models.PTeam) -> dict:
     # TODO: should be moved to common
 
     # get pteam ext tags
-    ext_tags = get_pteam_ext_tags(db, pteam)
+    ext_tags = _get_pteam_ext_tags(db, pteam)
 
     # count statuses for each tags. Note: tags which has no topic does not appear
     _counts = (
@@ -624,15 +578,23 @@ def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
         db.flush()
         return
 
+    pteam_tag_ids = (
+        select(models.Tag.tag_id.distinct())
+        .join(models.Dependency, models.Dependency.tag_id == models.Tag.tag_id)
+        .join(
+            models.Service,
+            and_(
+                models.Service.service_id == models.Dependency.service_id,
+                models.Service.pteam_id == pteam.pteam_id,
+            ),
+        )
+    )
+
     # remove untagged
     db.execute(
         delete(models.CurrentPTeamTopicTagStatus).where(
             models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
-            models.CurrentPTeamTopicTagStatus.tag_id.not_in(
-                select(models.PTeamTagReference.tag_id.distinct()).where(
-                    models.PTeamTagReference.pteam_id == pteam.pteam_id
-                )
-            ),
+            models.CurrentPTeamTopicTagStatus.tag_id.not_in(pteam_tag_ids),
         )
     )
 
@@ -642,11 +604,7 @@ def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
         .join(
             models.Tag,
             and_(
-                models.Tag.tag_id.in_(
-                    select(models.PTeamTagReference.tag_id.distinct()).where(
-                        models.PTeamTagReference.pteam_id == pteam.pteam_id
-                    )
-                ),
+                models.Tag.tag_id.in_(pteam_tag_ids),
                 or_(
                     models.TopicTag.tag_id == models.Tag.tag_id,
                     models.TopicTag.tag_id == models.Tag.parent_id,
@@ -754,7 +712,7 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
         return
 
     # remove untagged
-    current_related_tags = (
+    current_topic_tag_and_children_ids = (
         select(models.Tag.tag_id)
         .join(
             models.TopicTag,
@@ -771,7 +729,7 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
     db.execute(
         delete(models.CurrentPTeamTopicTagStatus).where(
             models.CurrentPTeamTopicTagStatus.topic_id == topic.topic_id,
-            models.CurrentPTeamTopicTagStatus.tag_id.not_in(current_related_tags),
+            models.CurrentPTeamTopicTagStatus.tag_id.not_in(current_topic_tag_and_children_ids),
         )
     )
 
@@ -779,7 +737,7 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
     pteam_tags = (
         select(
             models.Tag.tag_id,
-            models.PTeamTagReference.pteam_id,
+            models.Service.pteam_id,
         )
         .join(
             models.TopicTag,
@@ -792,13 +750,14 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
             ),
         )
         .join(
-            models.PTeamTagReference,
-            models.PTeamTagReference.tag_id == models.Tag.tag_id,
+            models.Dependency,
+            models.Dependency.tag_id == models.Tag.tag_id,
         )
+        .join(models.Service)
         .join(
             models.PTeam,
             and_(
-                models.PTeam.pteam_id == models.PTeamTagReference.pteam_id,
+                models.PTeam.pteam_id == models.Service.pteam_id,
                 models.PTeam.disabled.is_(False),
             ),
         )
@@ -874,21 +833,6 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
     )
 
     db.flush()
-
-
-def get_pteam_reference_versions_of_each_tags(
-    db: Session,
-    pteam_id: UUID | str,
-) -> dict[str, set[str]]:  # {tag_id: {version, ...}}
-    rows = db.execute(
-        select(
-            models.PTeamTagReference.tag_id,
-            func.array_agg(models.PTeamTagReference.version).label("versions"),
-        )
-        .where(models.PTeamTagReference.pteam_id == str(pteam_id))
-        .group_by(models.PTeamTagReference.tag_id)
-    )
-    return {row.tag_id: set(row.versions) for row in rows}
 
 
 def get_auto_close_triable_pteam_tags_and_topics(
@@ -1131,11 +1075,7 @@ def get_num_of_tags_by_tag_id_of_pteam_tag_reference(
     db: Session,
     tag_id: UUID,
 ) -> int:
-    return (
-        db.query(models.PTeamTagReference)
-        .filter(models.PTeamTagReference.tag_id == str(tag_id))
-        .count()
-    )
+    return db.query(models.Dependency).filter(models.Dependency.tag_id == str(tag_id)).count()
 
 
 def get_num_of_tags_by_tag_id_of_topic_tag(

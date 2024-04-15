@@ -3,8 +3,9 @@ import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, Union, cast
 
-from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text
+from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
+from sqlalchemy.sql.expression import join
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
 
@@ -238,25 +239,43 @@ class Account(Base):
     action_logs = relationship("ActionLog", back_populates="executed_by")
 
 
-class PTeamTagReference(Base):
-    __tablename__ = "pteamtagreference"
+class Dependency(Base):
+    __tablename__ = "dependency"
 
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
+    service_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("service.service_id", ondelete="CASCADE"), primary_key=True, index=True
     )
     tag_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("tag.tag_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
+        ForeignKey("tag.tag_id", ondelete="CASCADE"), primary_key=True, index=True
     )
-    group: Mapped[Str255] = mapped_column(primary_key=True, index=True)
-    target: Mapped[str] = mapped_column(primary_key=True)
     version: Mapped[str] = mapped_column(primary_key=True)
+    target: Mapped[str] = mapped_column(primary_key=True)
 
-    pteam = relationship("PTeam", back_populates="references")
-    tag = relationship("Tag", back_populates="references")
+    service = relationship("Service", back_populates="dependencies")
+    tag = relationship("Tag", back_populates="dependencies")
+
+
+class Service(Base):
+    __tablename__ = "service"
+    __tableargs__ = (
+        UniqueConstraint("pteam_id", "service_name", name="service_pteam_id_service_name_key"),
+    )
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.service_id:
+            self.service_id = str(uuid.uuid4())
+
+    service_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
+    )
+    service_name: Mapped[Str255]
+
+    pteam = relationship("PTeam", back_populates="services")
+    dependencies = relationship(
+        "Dependency", back_populates="service", cascade="all, delete-orphan"
+    )
 
 
 class PTeam(Base):
@@ -273,9 +292,20 @@ class PTeam(Base):
     alert_threat_impact: Mapped[Optional[int]]
     disabled: Mapped[bool] = mapped_column(default=False)
 
-    references = relationship(
-        "PTeamTagReference", back_populates="pteam", cascade="all, delete-orphan"
+    tags = relationship(  # PTeam - [Service - Dependency] - Tag
+        "Tag",  # right most table is Tag
+        # secondary table is a joined table -- Service.join(Dependency)
+        secondary=join(Service, Dependency, Service.service_id == Dependency.service_id),
+        # left join condition : for PTeam.join(SecondaryTable)
+        #   declare with string because PTeam table is not yet defined
+        primaryjoin="PTeam.pteam_id == Service.pteam_id",
+        # right join condition : for SecondaryTable.join(Tag)
+        #   declare with string because Tag table is not yet defined
+        secondaryjoin="Dependency.tag_id == Tag.tag_id",
+        collection_class=set,  # avoid duplications
+        viewonly=True,  # block updating via this relationship
     )
+    services = relationship("Service", back_populates="pteam", cascade="all, delete-orphan")
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
     invitations = relationship("PTeamInvitation", back_populates="pteam")
     ateams = relationship("ATeam", secondary=ATeamPTeam.__tablename__, back_populates="pteams")
@@ -492,9 +522,7 @@ class Tag(Base):
     parent_name: Mapped[Optional[str]] = mapped_column(ForeignKey("tag.tag_name"), index=True)
 
     topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
-    references = relationship(
-        "PTeamTagReference", back_populates="tag", cascade="all, delete-orphan"
-    )
+    dependencies = relationship("Dependency", back_populates="tag", cascade="all, delete-orphan")
 
 
 class MispTag(Base):
