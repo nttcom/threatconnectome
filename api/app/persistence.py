@@ -270,51 +270,6 @@ def delete_pteam_invitation(db: Session, invitation: models.PTeamInvitation) -> 
     db.flush()
 
 
-def create_pteam_tag_reference(db: Session, ptr: models.PTeamTagReference) -> None:
-    db.add(ptr)
-    db.flush()
-
-
-def delete_pteam_tag_reference(db: Session, ptr: models.PTeamTagReference):
-    db.delete(ptr)
-    db.flush()
-
-
-def get_pteam_tag_references_by_pteam_id(
-    db: Session,
-    pteam_id: UUID | str,
-) -> Sequence[models.PTeamTagReference]:
-    return db.scalars(
-        select(models.PTeamTagReference).where(models.PTeamTagReference.pteam_id == str(pteam_id))
-    ).all()
-
-
-def get_pteam_tag_references_by_tag_id(
-    db: Session,
-    pteam_id: UUID | str,
-    tag_id: UUID | str,
-) -> Sequence[models.PTeamTagReference]:
-    return db.scalars(
-        select(models.PTeamTagReference).where(
-            models.PTeamTagReference.pteam_id == str(pteam_id),
-            models.PTeamTagReference.tag_id == str(tag_id),
-        )
-    ).all()
-
-
-def get_pteam_tag_references_by_group(
-    db: Session,
-    pteam_id: UUID | str,
-    group: str,
-) -> Sequence[models.PTeamTagReference]:
-    return db.scalars(
-        select(models.PTeamTagReference).where(
-            models.PTeamTagReference.pteam_id == str(pteam_id),
-            models.PTeamTagReference.group == group,
-        )
-    ).all()
-
-
 ### PTeamAuthority # TODO: should obsolete direct access?
 
 
