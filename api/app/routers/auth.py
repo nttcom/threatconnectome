@@ -105,11 +105,3 @@ def refresh_access_token(request: RefreshTokenRequest) -> Token:
         token_type=data["token_type"],
         refresh_token=data["refresh_token"],
     )
-
-
-@router.get("/users/me", response_model=User)
-def read_users_me(current_user: Account = Depends(get_current_user)) -> Account:
-    """
-    Get current user's email.
-    """
-    return current_user
