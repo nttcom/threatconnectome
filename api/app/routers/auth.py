@@ -3,12 +3,10 @@ import os
 from typing import Dict
 
 import requests
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi import APIRouter, Form, HTTPException, status
 from pydantic import SecretStr
 
-from ..auth import get_current_user
-from ..models import Account
-from ..schemas import RefreshTokenRequest, Token, User
+from ..schemas import RefreshTokenRequest, Token
 
 router = APIRouter(
     prefix="/auth",
