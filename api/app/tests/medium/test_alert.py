@@ -251,7 +251,7 @@ def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_thr
 
 @pytest.mark.parametrize(
     "vulnerable_versions, expected",
-    [("< 1.0.0", False), ("< 2.0.0", True)],  # closed  # unclosed
+    [("< 1.0.0", False), ("< 2.0.0", True)],
 )
 def test_pick_alert_when_the_tag_is_not_auto_closed_and_remains_in_the_tag(
     testdb, vulnerable_versions, expected
