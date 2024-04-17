@@ -318,7 +318,7 @@ def test_pick_alert_when_the_tag_is_not_auto_closed_and_remains_in_the_tag(
     assert _find_expected(alert_targets, 0, child_tag11) == expected
 
 
-def test_alert_new_topic__by_mail(mocker) -> None:
+def test_alert_if_vulnerabilities_are_found_when_creating_topic(mocker) -> None:
     create_user(USER1)
     parent_tag1 = create_tag(USER1, "pkg1:info1:")
     child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
