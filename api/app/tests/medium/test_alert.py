@@ -318,6 +318,92 @@ def test_pick_alert_when_the_tag_is_not_auto_closed_and_remains_in_the_tag(
     assert _find_expected(alert_targets, 0, child_tag11) == expected
 
 
+@pytest.mark.parametrize(
+    "vulnerable_versions1, vulnerable_versions2, expected",
+    [("< 1.0.0", "< 2.0.0", True)],  # closed  # unclosed
+)
+def test_pick_alert_when_the_tag_with_and_without_auto_closed_and_remains_in_the_tag(
+    testdb, vulnerable_versions1, vulnerable_versions2, expected
+) -> None:
+    create_user(USER1)
+    parent_tag1 = create_tag(USER1, "pkg1:info1:")
+    child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
+    parent_tag2 = create_tag(USER1, "pkg2:info1:")
+    child_tag21 = create_tag(USER1, "pkg2:info1:mgr1")
+
+    def _gen_pteam_params(idx: int) -> dict:
+        return {
+            "pteam_name": f"pteam{idx}",
+            "alert_slack": {
+                "enable": True,
+                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            },
+            "alert_mail": {
+                "enable": True,
+                "address": f"account{idx}@example.com",
+            },
+            "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
+        }
+
+    def _gen_topic_params(tags: List[schemas.TagResponse]) -> dict:
+        topic_id = str(uuid4())
+        return {
+            "topic_id": topic_id,
+            "title": "test topic " + topic_id,
+            "abstract": "test abstract " + topic_id,
+            "threat_impact": 1,
+            "tags": [tag.tag_name for tag in tags],
+            "misp_tags": [],
+            "actions": [],
+        }
+
+    def _find_expected(
+        _targets: Sequence[models.CurrentPTeamTopicTagStatus],
+        idx: int,
+        tag: schemas.TagResponse,
+    ) -> bool:
+        return any(
+            _tgt.pteam.pteam_name == f"pteam{idx}" and _tgt.tag.tag_name == tag.tag_name
+            for _tgt in _targets
+        )
+
+    pteam0 = create_pteam(USER1, _gen_pteam_params(0))
+    ext_tags = {
+        child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")],
+        child_tag21.tag_name: [("api/Pipfile.lock", "1.0.0")],
+    }
+    upload_pteam_tags(USER1, pteam0.pteam_id, GROUP1, ext_tags)
+
+    action1_closable = {
+        "action": "action one",
+        "action_type": models.ActionType.elimination,
+        "recommended": True,
+        "ext": {
+            "tags": [child_tag11.tag_name],
+            "vulnerable_versions": {child_tag11.tag_name: [vulnerable_versions1]},  # closable
+        },
+    }
+    action2_unclosable = {
+        "action": "action two",
+        "action_type": models.ActionType.elimination,
+        "recommended": True,
+        "ext": {
+            "tags": [child_tag21.tag_name],
+            "vulnerable_versions": {child_tag21.tag_name: [vulnerable_versions2]},  # unclosable
+        },
+    }
+
+    # complex
+    topic = create_topic(
+        USER1,
+        _gen_topic_params([parent_tag1, parent_tag2]),
+        actions=[action1_closable, action2_unclosable],
+    )
+    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
+    assert len(alert_targets) == 1
+    assert _find_expected(alert_targets, 0, child_tag21) == expected  # alert only uncompleted
+
+
 def test_alert_if_vulnerabilities_are_found_when_creating_topic(mocker) -> None:
     create_user(USER1)
     parent_tag1 = create_tag(USER1, "pkg1:info1:")
