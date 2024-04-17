@@ -142,7 +142,8 @@ def test_pick_alert_when_the_matching_tag_exists_when_the_topic_is_created(testd
     assert _find_expected(alert_targets, 10, parent_tag2)
     assert _find_expected(alert_targets, 10, child_tag21)  # matches multiple
 
-    # topic4: has parent_tag1 + parent_tag2 --> alerted to parent_tag1, child_tag1*, parent_tag2, child_tag2*
+    # topic4: has parent_tag1 + parent_tag2
+    #   --> alerted to parent_tag1, child_tag1*, parent_tag2, child_tag2*
     topic = create_topic(USER1, _gen_topic_params([parent_tag1, parent_tag2]))
     alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
     assert len(alert_targets) == 15
@@ -198,7 +199,7 @@ def test_pick_alert_when_the_matching_tag_exists_when_the_topic_is_created(testd
         (4, 4, True),
     ],
 )
-def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_threat_impact_of_a_pteam(
+def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_threat_impact_of_pteam(
     testdb, alert_threat_impact, threshold, expected
 ) -> None:
     create_user(USER1)
