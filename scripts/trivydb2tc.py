@@ -522,6 +522,7 @@ def main() -> None:
             actions = [
                 {
                     **x,
+                    "action": x["action"][:1024],
                     "ext": {
                         "tags": list(x["ext"]["tags"]),
                         "vulnerable_versions": {
