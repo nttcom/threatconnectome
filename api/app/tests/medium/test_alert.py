@@ -36,21 +36,20 @@ class TestPTeamHasParentTag:
         create_user(USER1)
         self.parent_tag1 = create_tag(USER1, "pkg1:info1:")
 
-        def _gen_pteam_params() -> dict:
-            return {
-                "pteam_name": "pteam1",
-                "alert_slack": {
-                    "enable": True,
-                    "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
-                },
-                "alert_mail": {
-                    "enable": True,
-                    "address": "account1@example.com",
-                },
-                "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
-            }
+        pteam_params = {
+            "pteam_name": "pteam1",
+            "alert_slack": {
+                "enable": True,
+                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
+            },
+            "alert_mail": {
+                "enable": True,
+                "address": "account1@example.com",
+            },
+            "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
+        }
 
-        pteam = create_pteam(USER1, _gen_pteam_params())
+        pteam = create_pteam(USER1, pteam_params)
         ext_tags = {self.parent_tag1.tag_name: [("api/Pipfile.lock", "1.0.0")]}
         upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, ext_tags)
 
@@ -113,21 +112,20 @@ class TestPTeamHasChildTag:
         create_user(USER1)
         self.child_tag1 = create_tag(USER1, "pkg1:info1:mgr1")
 
-        def _gen_pteam_params() -> dict:
-            return {
-                "pteam_name": "pteam1",
-                "alert_slack": {
-                    "enable": True,
-                    "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
-                },
-                "alert_mail": {
-                    "enable": True,
-                    "address": "account1@example.com",
-                },
-                "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
-            }
+        pteam_params = {
+            "pteam_name": "pteam1",
+            "alert_slack": {
+                "enable": True,
+                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
+            },
+            "alert_mail": {
+                "enable": True,
+                "address": "account1@example.com",
+            },
+            "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
+        }
 
-        pteam = create_pteam(USER1, _gen_pteam_params())
+        pteam = create_pteam(USER1, pteam_params)
         ext_tags = {self.child_tag1.tag_name: [("api/Pipfile.lock", "1.0.0")]}
         upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, ext_tags)
 
@@ -214,19 +212,18 @@ def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_thr
     parent_tag1 = create_tag(USER1, "pkg1:info1:")
     child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
 
-    def _gen_pteam_params() -> dict:
-        return {
-            "pteam_name": "pteam1",
-            "alert_slack": {
-                "enable": True,
-                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
-            },
-            "alert_mail": {
-                "enable": True,
-                "address": "account1@example.com",
-            },
-            "alert_threat_impact": alert_threat_impact,
-        }
+    pteam_params = {
+        "pteam_name": "pteam1",
+        "alert_slack": {
+            "enable": True,
+            "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
+        },
+        "alert_mail": {
+            "enable": True,
+            "address": "account1@example.com",
+        },
+        "alert_threat_impact": alert_threat_impact,
+    }
 
     def _gen_topic_params(impact: int) -> dict:
         topic_id = str(uuid4())
@@ -247,7 +244,7 @@ def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_thr
         return any(_tgt.tag.tag_name == tag.tag_name for _tgt in _targets)
 
     # create pteam and upload pteam tags
-    pteam = create_pteam(USER1, _gen_pteam_params())
+    pteam = create_pteam(USER1, pteam_params)
     ext_tags = {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]}
     upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, ext_tags)
 
@@ -266,21 +263,20 @@ class TestTopicHasVersion:
         self.parent_tag2 = create_tag(USER1, "pkg2:info1:")
         self.child_tag21 = create_tag(USER1, "pkg2:info1:mgr1")
 
-        def _gen_pteam_params(idx: int) -> dict:
-            return {
-                "pteam_name": f"pteam{idx}",
-                "alert_slack": {
-                    "enable": True,
-                    "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
-                },
-                "alert_mail": {
-                    "enable": True,
-                    "address": f"account{idx}@example.com",
-                },
-                "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
-            }
+        pteam_params = {
+            "pteam_name": "pteam1",
+            "alert_slack": {
+                "enable": True,
+                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
+            },
+            "alert_mail": {
+                "enable": True,
+                "address": "account@example.com",
+            },
+            "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
+        }
 
-        self.pteam = create_pteam(USER1, _gen_pteam_params(0))
+        self.pteam = create_pteam(USER1, pteam_params)
 
     # common functions used in tests
     def _gen_topic_params(self, tags: List[schemas.TagResponse]) -> dict:
@@ -299,13 +295,9 @@ class TestTopicHasVersion:
     def _find_expected(
         self,
         _targets: Sequence[models.CurrentPTeamTopicTagStatus],
-        idx: int,
         tag: schemas.TagResponse,
     ) -> bool:
-        return any(
-            _tgt.pteam.pteam_name == f"pteam{idx}" and _tgt.tag.tag_name == tag.tag_name
-            for _tgt in _targets
-        )
+        return any(_tgt.tag.tag_name == tag.tag_name for _tgt in _targets)
 
     @pytest.mark.parametrize(
         "vulnerable_versions, expected",
@@ -333,7 +325,7 @@ class TestTopicHasVersion:
         # create topic and verification of alerts
         topic = create_topic(USER1, self._gen_topic_params([self.parent_tag1]), actions=[action])
         alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-        assert self._find_expected(alert_targets, 0, self.child_tag11) == expected
+        assert self._find_expected(alert_targets, self.child_tag11) == expected
 
     @pytest.mark.parametrize(
         "vulnerable_versions, expected",
@@ -361,7 +353,7 @@ class TestTopicHasVersion:
         # create topic and verification of alerts
         topic = create_topic(USER1, self._gen_topic_params([self.parent_tag1]), actions=[action])
         alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-        assert self._find_expected(alert_targets, 0, self.child_tag11) == expected
+        assert self._find_expected(alert_targets, self.child_tag11) == expected
 
     @pytest.mark.parametrize(
         "vulnerable_versions1, vulnerable_versions2, expected",
@@ -408,7 +400,7 @@ class TestTopicHasVersion:
         assert len(alert_targets) == 1
 
         # alert only uncompleted
-        assert self._find_expected(alert_targets, 0, self.child_tag21) == expected
+        assert self._find_expected(alert_targets, self.child_tag21) == expected
 
 
 def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) -> None:
