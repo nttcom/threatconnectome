@@ -90,19 +90,18 @@ class TestPTeamHasParentTag:
         assert self.check_tag_in_alert_target(alert_targets, self.parent_tag1) == expected
 
     @pytest.mark.parametrize(
-        "child_tag, expected",
+        "child_tag",
         # parent_tag: Tags used when creating topics
-        # expected: Ture if an alert is received, False if not
         [
-            ("pkg1:info1:mgr1", False),
+            ("pkg1:info1:mgr1"),
         ],
     )
     def test_it_should_not_alert_when_topic_with_related_childtag_is_created(
-        self, testdb, child_tag, expected
+        self, testdb, child_tag
     ):
         topic = create_topic(USER1, self._gen_topic_params(child_tag))
         alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-        assert self.check_tag_in_alert_target(alert_targets, self.parent_tag1) == expected
+        assert self.check_tag_in_alert_target(alert_targets, self.parent_tag1) is False
 
 
 class TestPTeamHasChildTag:
@@ -300,13 +299,13 @@ class TestTopicHasVersion:
         return any(_tgt.tag.tag_name == tag.tag_name for _tgt in _targets)
 
     @pytest.mark.parametrize(
-        "vulnerable_versions, expected",
+        "vulnerable_versions",
         # vulnerable_versions: Vulnerable versions when creating topics
         # expected: Ture if an alert is received, False if not
-        [("< 1.0.0", False)],
+        [("< 1.0.0")],
     )
     def test_it_should_not_alert_when_version_of_topic_is_lower_than_version_registered_in_pteam(
-        self, testdb, vulnerable_versions, expected
+        self, testdb, vulnerable_versions
     ):
         ext_tags = {
             self.child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")],
@@ -325,7 +324,7 @@ class TestTopicHasVersion:
         # create topic and verification of alerts
         topic = create_topic(USER1, self._gen_topic_params([self.parent_tag1]), actions=[action])
         alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-        assert self.check_tag_in_alert_target(alert_targets, self.child_tag11) == expected
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag11) is False
 
     @pytest.mark.parametrize(
         "vulnerable_versions, expected",
