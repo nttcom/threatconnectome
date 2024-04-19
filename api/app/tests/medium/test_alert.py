@@ -1,8 +1,8 @@
 from typing import List, Sequence
 from uuid import uuid4
 
+import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
 
 from app import models, schemas
 from app.alert import (
@@ -29,137 +29,200 @@ from app.tests.medium.utils import (
 client = TestClient(app)
 
 
-def test_pick_alert_target_for_new_topic__tags(testdb) -> None:
-    create_user(USER1)
-    parent_tag1 = create_tag(USER1, "pkg1:info1:")
-    child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
-    child_tag12 = create_tag(USER1, "pkg1:info1:mgr2")
-    parent_tag2 = create_tag(USER1, "pkg2:info1:")
-    child_tag21 = create_tag(USER1, "pkg2:info1:mgr1")
+class TestPTeamHasParentTag:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self):
+        # create pteam with parent_tag
+        create_user(USER1)
+        self.parent_tag1 = create_tag(USER1, "pkg1:info1:")
 
-    pteam_tags_patterns: List[List[schemas.TagResponse]] = [
-        [],  # 0
-        [parent_tag1],  # 1
-        [child_tag11],  # 2
-        [child_tag12],  # 3
-        [parent_tag2],  # 4
-        [child_tag21],  # 5
-        [parent_tag1, child_tag11],  # 6
-        [parent_tag1, parent_tag2],  # 7
-        [parent_tag1, child_tag21],  # 8
-        [parent_tag2, child_tag11],  # 9
-        [parent_tag2, child_tag21],  # 10
-        [parent_tag1],  # 11 (for disabled)
-    ]
-
-    def _gen_pteam_params(idx: int) -> dict:
-        return {
-            "pteam_name": f"pteam{idx}",
+        pteam_params = {
+            "pteam_name": "pteam1",
             "alert_slack": {
                 "enable": True,
-                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
             },
             "alert_mail": {
                 "enable": True,
-                "address": f"account{idx}@example.com",
+                "address": "account1@example.com",
             },
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
         }
 
-    def _gen_topic_params(tags: List[schemas.TagResponse]) -> dict:
+        pteam = create_pteam(USER1, pteam_params)
+        ext_tags = {self.parent_tag1.tag_name: [("api/Pipfile.lock", "1.0.0")]}
+        upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, ext_tags)
+
+    # common functions used in tests
+    def _gen_topic_params(self, tag: schemas.TagResponse) -> dict:
         topic_id = str(uuid4())
         return {
             "topic_id": topic_id,
             "title": "test topic " + topic_id,
             "abstract": "test abstract " + topic_id,
             "threat_impact": 1,
-            "tags": [tag.tag_name for tag in tags],
+            "tags": [tag],
             "misp_tags": [],
             "actions": [],
         }
 
-    def _find_expected(
+    # common functions used in tests
+    def check_tag_in_alert_target(
+        self,
         _targets: Sequence[models.CurrentPTeamTopicTagStatus],
-        idx: int,
         tag: schemas.TagResponse,
     ) -> bool:
-        return any(
-            _tgt.pteam.pteam_name == f"pteam{idx}" and _tgt.tag.tag_name == tag.tag_name
-            for _tgt in _targets
-        )
+        return any(_tgt.tag.tag_name == tag.tag_name for _tgt in _targets)
 
-    pteams: List[schemas.PTeamInfo] = []
-    for idx in range(len(pteam_tags_patterns)):
-        pteams.append(create_pteam(USER1, _gen_pteam_params(idx)))
-        if pteam_tags := pteam_tags_patterns[idx]:
-            ext_tags = {tag.tag_name: [("api/Pipfile.lock", "1.0.0")] for tag in pteam_tags}
-            upload_pteam_tags(USER1, pteams[idx].pteam_id, GROUP1, ext_tags)
-    # disable pteams[11]
-    db_pteam11 = testdb.execute(
-        select(models.PTeam).where(models.PTeam.pteam_id == str(pteams[11].pteam_id))
-    ).one()[0]
-    db_pteam11.disabled = True
-    testdb.add(db_pteam11)
-    testdb.commit()
+    @pytest.mark.parametrize(
+        "parent_tag, expected",
+        # parent_tag: Tags used when creating topics
+        # expected: Ture if an alert is received, False if not
+        [
+            ("pkg1:info1:", True),
+        ],
+    )
+    def test_it_should_alert_when_topic_with_same_parenttag_is_created(
+        self, testdb, parent_tag, expected
+    ):
+        topic = create_topic(USER1, self._gen_topic_params(parent_tag))
+        alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
+        assert self.check_tag_in_alert_target(alert_targets, self.parent_tag1) == expected
 
-    # topic0: no tags
-    topic = create_topic(USER1, _gen_topic_params([]))
-    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert alert_targets == []
-
-    # topic1: has parent_tag1  --> alerted to watching parent_tag1 or child_tag1*
-    topic = create_topic(USER1, _gen_topic_params([parent_tag1]))
-    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert len(alert_targets) == 8
-    assert _find_expected(alert_targets, 1, parent_tag1)
-    assert _find_expected(alert_targets, 2, child_tag11)
-    assert _find_expected(alert_targets, 3, child_tag12)
-    assert _find_expected(alert_targets, 6, parent_tag1)
-    assert _find_expected(alert_targets, 6, child_tag11)  # matches multiple
-    assert _find_expected(alert_targets, 7, parent_tag1)
-    assert _find_expected(alert_targets, 8, parent_tag1)
-    assert _find_expected(alert_targets, 9, child_tag11)
-
-    # topic2: has child_tag11  --> alerted to watching child_tag11
-    topic = create_topic(USER1, _gen_topic_params([child_tag11]))
-    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert len(alert_targets) == 3
-    assert _find_expected(alert_targets, 2, child_tag11)
-    assert _find_expected(alert_targets, 6, child_tag11)
-    assert _find_expected(alert_targets, 9, child_tag11)
-
-    # topic3: has child_tag12 + parent_tag2  --> alerted to child_tag12, parent_tag2, child_tag2*
-    topic = create_topic(USER1, _gen_topic_params([child_tag12, parent_tag2]))
-    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert len(alert_targets) == 8
-    assert _find_expected(alert_targets, 3, child_tag12)
-    assert _find_expected(alert_targets, 4, parent_tag2)
-    assert _find_expected(alert_targets, 5, child_tag21)
-    assert _find_expected(alert_targets, 7, parent_tag2)
-    assert _find_expected(alert_targets, 8, child_tag21)
-    assert _find_expected(alert_targets, 9, parent_tag2)
-    assert _find_expected(alert_targets, 10, parent_tag2)
-    assert _find_expected(alert_targets, 10, child_tag21)  # matches multiple
+    @pytest.mark.parametrize(
+        "child_tag",
+        # parent_tag: Tags used when creating topics
+        [
+            ("pkg1:info1:mgr1"),
+        ],
+    )
+    def test_it_should_not_alert_when_topic_with_related_childtag_is_created(
+        self, testdb, child_tag
+    ):
+        topic = create_topic(USER1, self._gen_topic_params(child_tag))
+        alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
+        assert self.check_tag_in_alert_target(alert_targets, self.parent_tag1) is False
 
 
-def test_pick_alert_target_for_new_topic__threshold(testdb) -> None:
+class TestPTeamHasChildTag:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self):
+        # create pteam with child_tag
+        create_user(USER1)
+        self.child_tag1 = create_tag(USER1, "pkg1:info1:mgr1")
+
+        pteam_params = {
+            "pteam_name": "pteam1",
+            "alert_slack": {
+                "enable": True,
+                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
+            },
+            "alert_mail": {
+                "enable": True,
+                "address": "account1@example.com",
+            },
+            "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
+        }
+
+        pteam = create_pteam(USER1, pteam_params)
+        ext_tags = {self.child_tag1.tag_name: [("api/Pipfile.lock", "1.0.0")]}
+        upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, ext_tags)
+
+    # common functions used in tests
+    def _gen_topic_params(self, tag: schemas.TagResponse) -> dict:
+        topic_id = str(uuid4())
+        return {
+            "topic_id": topic_id,
+            "title": "test topic " + topic_id,
+            "abstract": "test abstract " + topic_id,
+            "threat_impact": 1,
+            "tags": [tag],
+            "misp_tags": [],
+            "actions": [],
+        }
+
+    # common functions used in tests
+    def check_tag_in_alert_target(
+        self,
+        _targets: Sequence[models.CurrentPTeamTopicTagStatus],
+        tag: schemas.TagResponse,
+    ) -> bool:
+        return any(_tgt.tag.tag_name == tag.tag_name for _tgt in _targets)
+
+    @pytest.mark.parametrize(
+        "parent_tag, expected",
+        # parent_tag: Tags used when creating topics
+        # expected: Ture if an alert is received, False if not
+        [
+            ("pkg1:info1:", True),
+        ],
+    )
+    def test_it_should_alert_when_topic_with_related_parenttag_is_created(
+        self, testdb, parent_tag, expected
+    ):
+        topic = create_topic(USER1, self._gen_topic_params(parent_tag))
+        alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag1) == expected
+
+    @pytest.mark.parametrize(
+        "child_tag, expected",
+        # parent_tag: Tags used when creating topics
+        # expected: Ture if an alert is received, False if not
+        [
+            ("pkg1:info1:mgr1", True),
+        ],
+    )
+    def test_it_should_alert_when_topic_with_asme_childtag_is_created(
+        self, testdb, child_tag, expected
+    ):
+        topic = create_topic(USER1, self._gen_topic_params(child_tag))
+        alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag1) == expected
+
+
+@pytest.mark.parametrize(
+    "alert_threat_impact, threshold, expected",
+    # alert_threat_impact: pteam notification settings
+    # threshold:  threat value at topic creation
+    # expected: Ture if an alert is received, False if not
+    [
+        (1, 1, True),
+        (1, 2, False),
+        (1, 3, False),
+        (1, 4, False),
+        (2, 1, True),
+        (2, 2, True),
+        (2, 3, False),
+        (2, 4, False),
+        (3, 1, True),
+        (3, 2, True),
+        (3, 3, True),
+        (3, 4, False),
+        (4, 1, True),
+        (4, 2, True),
+        (4, 3, True),
+        (4, 4, True),
+    ],
+)
+def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_threat_impact_of_pteam(
+    testdb, alert_threat_impact, threshold, expected
+) -> None:
     create_user(USER1)
     parent_tag1 = create_tag(USER1, "pkg1:info1:")
     child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
 
-    def _gen_pteam_params(idx: int) -> dict:
-        return {
-            "pteam_name": f"pteam{idx}",
-            "alert_slack": {
-                "enable": True,
-                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
-            },
-            "alert_mail": {
-                "enable": True,
-                "address": f"account{idx}@example.com",
-            },
-            "alert_threat_impact": idx if idx in range(1, 5) else DEFAULT_ALERT_THREAT_IMPACT,
-        }
+    pteam_params = {
+        "pteam_name": "pteam1",
+        "alert_slack": {
+            "enable": True,
+            "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
+        },
+        "alert_mail": {
+            "enable": True,
+            "address": "account1@example.com",
+        },
+        "alert_threat_impact": alert_threat_impact,
+    }
 
     def _gen_topic_params(impact: int) -> dict:
         topic_id = str(uuid4())
@@ -173,82 +236,49 @@ def test_pick_alert_target_for_new_topic__threshold(testdb) -> None:
             "actions": [],
         }
 
-    def _find_expected(
+    def check_tag_in_alert_target(
         _targets: Sequence[models.CurrentPTeamTopicTagStatus],
-        idx: int,
         tag: schemas.TagResponse,
     ) -> bool:
-        return any(
-            _tgt.pteam.pteam_name == f"pteam{idx}" and _tgt.tag.tag_name == tag.tag_name
-            for _tgt in _targets
-        )
+        return any(_tgt.tag.tag_name == tag.tag_name for _tgt in _targets)
 
-    pteams: List[schemas.PTeamInfo] = []
-    for idx in range(0, 5):  # 0 for disabled
-        pteams.append(create_pteam(USER1, _gen_pteam_params(idx)))
-        ext_tags = {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]}
-        upload_pteam_tags(USER1, pteams[idx].pteam_id, GROUP1, ext_tags)
-    # disable pteams[0]
-    db_pteam0 = testdb.execute(
-        select(models.PTeam).where(models.PTeam.pteam_id == str(pteams[0].pteam_id))
-    ).one()[0]
-    db_pteam0.disabled = True
-    testdb.add(db_pteam0)
-    testdb.commit()
+    # create pteam and upload pteam tags
+    pteam = create_pteam(USER1, pteam_params)
+    ext_tags = {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]}
+    upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, ext_tags)
 
-    # topic0: threshold=1
-    topic = create_topic(USER1, _gen_topic_params(1))
+    # create topic and verification of alerts
+    topic = create_topic(USER1, _gen_topic_params(threshold))
     alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert len(alert_targets) == 4
-    assert _find_expected(alert_targets, 1, child_tag11)
-    assert _find_expected(alert_targets, 2, child_tag11)
-    assert _find_expected(alert_targets, 3, child_tag11)
-    assert _find_expected(alert_targets, 4, child_tag11)
-
-    # topic0: threshold=2
-    topic = create_topic(USER1, _gen_topic_params(2))
-    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert len(alert_targets) == 3
-    assert _find_expected(alert_targets, 2, child_tag11)
-    assert _find_expected(alert_targets, 3, child_tag11)
-    assert _find_expected(alert_targets, 4, child_tag11)
-
-    # topic0: threshold=3
-    topic = create_topic(USER1, _gen_topic_params(3))
-    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert len(alert_targets) == 2
-    assert _find_expected(alert_targets, 3, child_tag11)
-    assert _find_expected(alert_targets, 4, child_tag11)
-
-    # topic0: threshold=4
-    topic = create_topic(USER1, _gen_topic_params(4))
-    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert len(alert_targets) == 1
-    assert _find_expected(alert_targets, 4, child_tag11)
+    assert check_tag_in_alert_target(alert_targets, child_tag11) == expected
 
 
-def test_pick_alert_target_for_new_topic__auto_closed(testdb) -> None:
-    create_user(USER1)
-    parent_tag1 = create_tag(USER1, "pkg1:info1:")
-    child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
-    parent_tag2 = create_tag(USER1, "pkg2:info1:")
-    child_tag21 = create_tag(USER1, "pkg2:info1:mgr1")
+class TestTopicHasVersion:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self):
+        create_user(USER1)
+        self.parent_tag1 = create_tag(USER1, "pkg1:info1:")
+        self.child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
+        self.parent_tag2 = create_tag(USER1, "pkg2:info1:")
+        self.child_tag21 = create_tag(USER1, "pkg2:info1:mgr1")
 
-    def _gen_pteam_params(idx: int) -> dict:
-        return {
-            "pteam_name": f"pteam{idx}",
+        pteam_params = {
+            "pteam_name": "pteam1",
             "alert_slack": {
                 "enable": True,
-                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + "1",
             },
             "alert_mail": {
                 "enable": True,
-                "address": f"account{idx}@example.com",
+                "address": "account@example.com",
             },
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
         }
 
-    def _gen_topic_params(tags: List[schemas.TagResponse]) -> dict:
+        self.pteam = create_pteam(USER1, pteam_params)
+
+    # common functions used in tests
+    def _gen_topic_params(self, tags: List[schemas.TagResponse]) -> dict:
         topic_id = str(uuid4())
         return {
             "topic_id": topic_id,
@@ -260,65 +290,119 @@ def test_pick_alert_target_for_new_topic__auto_closed(testdb) -> None:
             "actions": [],
         }
 
-    def _find_expected(
+    # common functions used in tests
+    def check_tag_in_alert_target(
+        self,
         _targets: Sequence[models.CurrentPTeamTopicTagStatus],
-        idx: int,
         tag: schemas.TagResponse,
     ) -> bool:
-        return any(
-            _tgt.pteam.pteam_name == f"pteam{idx}" and _tgt.tag.tag_name == tag.tag_name
-            for _tgt in _targets
-        )
+        return any(_tgt.tag.tag_name == tag.tag_name for _tgt in _targets)
 
-    pteam0 = create_pteam(USER1, _gen_pteam_params(0))
-    ext_tags = {
-        child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")],
-        child_tag21.tag_name: [("api/Pipfile.lock", "1.0.0")],
-    }
-    upload_pteam_tags(USER1, pteam0.pteam_id, GROUP1, ext_tags)
-
-    action1_closable = {
-        "action": "action one",
-        "action_type": models.ActionType.elimination,
-        "recommended": True,
-        "ext": {
-            "tags": [child_tag11.tag_name],
-            "vulnerable_versions": {child_tag11.tag_name: ["< 1.0.0"]},  # closable
-        },
-    }
-    action2_unclosable = {
-        "action": "action two",
-        "action_type": models.ActionType.elimination,
-        "recommended": True,
-        "ext": {
-            "tags": [child_tag21.tag_name],
-            "vulnerable_versions": {child_tag21.tag_name: ["< 2.0.0"]},  # unclosable
-        },
-    }
-
-    # topic0: has parent_tag1 with closable action1
-    topic = create_topic(USER1, _gen_topic_params([parent_tag1]), actions=[action1_closable])
-    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert alert_targets == []
-
-    # topic1: has parent_tag2 with unclosable action2
-    topic = create_topic(USER1, _gen_topic_params([parent_tag2]), actions=[action2_unclosable])
-    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert len(alert_targets) == 1
-    assert _find_expected(alert_targets, 0, child_tag21)
-
-    # topic2: complex
-    topic = create_topic(
-        USER1,
-        _gen_topic_params([parent_tag1, parent_tag2]),
-        actions=[action1_closable, action2_unclosable],
+    @pytest.mark.parametrize(
+        "vulnerable_versions",
+        # vulnerable_versions: Vulnerable versions when creating topics
+        # expected: Ture if an alert is received, False if not
+        [("< 1.0.0")],
     )
-    alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert len(alert_targets) == 1
-    assert _find_expected(alert_targets, 0, child_tag21)  # alert only uncompleted
+    def test_it_should_not_alert_when_version_of_topic_is_lower_than_version_registered_in_pteam(
+        self, testdb, vulnerable_versions
+    ):
+        ext_tags = {
+            self.child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")],
+        }
+        upload_pteam_tags(USER1, self.pteam.pteam_id, GROUP1, ext_tags)
+        action = {
+            "action": "action one",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": [self.child_tag11.tag_name],
+                "vulnerable_versions": {self.child_tag11.tag_name: [vulnerable_versions]},
+            },
+        }
+
+        # create topic and verification of alerts
+        topic = create_topic(USER1, self._gen_topic_params([self.parent_tag1]), actions=[action])
+        alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag11) is False
+
+    @pytest.mark.parametrize(
+        "vulnerable_versions, expected",
+        # vulnerable_versions: Vulnerable versions when creating topics
+        # expected: Ture if an alert is received, False if not
+        [("< 2.0.0", True)],
+    )
+    def test_it_should_alert_when_version_of_topic_is_higher_than_version_registered_in_pteam(
+        self, testdb, vulnerable_versions, expected
+    ):
+        ext_tags = {
+            self.child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")],
+        }
+        upload_pteam_tags(USER1, self.pteam.pteam_id, GROUP1, ext_tags)
+        action = {
+            "action": "action one",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": [self.child_tag11.tag_name],
+                "vulnerable_versions": {self.child_tag11.tag_name: [vulnerable_versions]},
+            },
+        }
+
+        # create topic and verification of alerts
+        topic = create_topic(USER1, self._gen_topic_params([self.parent_tag1]), actions=[action])
+        alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag11) == expected
+
+    @pytest.mark.parametrize(
+        "vulnerable_versions1, vulnerable_versions2, expected",
+        # vulnerable_versions1: closed vulnerable versions
+        # vulnerable_versions2: unclosed vulnerable versions
+        # expected: Ture if an alert is received, False if not
+        [("< 1.0.0", "< 2.0.0", True)],
+    )
+    def test_it_should_alert_only_version_matched_tag_and_not_alert_unmattched(
+        self, testdb, vulnerable_versions1, vulnerable_versions2, expected
+    ):
+        ext_tags = {
+            self.child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")],
+            self.child_tag21.tag_name: [("api/Pipfile.lock", "1.0.0")],
+        }
+        upload_pteam_tags(USER1, self.pteam.pteam_id, GROUP1, ext_tags)
+
+        action1_closable = {
+            "action": "action one",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": [self.child_tag11.tag_name],
+                "vulnerable_versions": {self.child_tag11.tag_name: [vulnerable_versions1]},
+            },
+        }
+        action2_unclosable = {
+            "action": "action two",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": [self.child_tag21.tag_name],
+                "vulnerable_versions": {self.child_tag21.tag_name: [vulnerable_versions2]},
+            },
+        }
+
+        # complex
+        topic = create_topic(
+            USER1,
+            self._gen_topic_params([self.parent_tag1, self.parent_tag2]),
+            actions=[action1_closable, action2_unclosable],
+        )
+        alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
+        assert len(alert_targets) == 1
+
+        # alert only uncompleted
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag21) == expected
 
 
-def test_alert_new_topic__by_mail(mocker) -> None:
+def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) -> None:
     create_user(USER1)
     parent_tag1 = create_tag(USER1, "pkg1:info1:")
     child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
