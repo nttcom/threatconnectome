@@ -282,8 +282,13 @@ class Service(Base):
 class Threat(Base):
     __tablename__ = "threat"
     __tableargs__ = UniqueConstraint(
-        "aritfact_id", "service_id", "topic_id", name="aritfact_id_service_id_topic_id_key"
+        "tag_id", "service_id", "topic_id", name="tag_id_service_id_topic_id_key"
     )
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.threat_id:
+            self.threat_id = str(uuid.uuid4())
 
     threat_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     tag_id: Mapped[StrUUID] = mapped_column(
@@ -460,7 +465,7 @@ class Topic(Base):
     misp_tags = relationship(
         "MispTag", secondary=TopicMispTag.__tablename__, order_by="MispTag.tag_name"
     )
-    threat = relationship("Threat", back_populates="Topic", cascade="all, delete-orphan")
+    threat = relationship("Threat", back_populates="topic", cascade="all, delete-orphan")
 
 
 class TopicAction(Base):
