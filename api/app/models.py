@@ -276,6 +276,29 @@ class Service(Base):
     dependencies = relationship(
         "Dependency", back_populates="service", cascade="all, delete-orphan"
     )
+    threat = relationship("Threat", back_populates="service", cascade="all, delete-orphan")
+
+
+class Threat(Base):
+    __tablename__ = "threat"
+    __tableargs__ = UniqueConstraint(
+        "aritfact_id", "service_id", "topic_id", name="aritfact_id_service_id_topic_id_key"
+    )
+
+    threat_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    tag_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("tag.tag_id", ondelete="CASCADE"), index=True
+    )
+    service_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("service.service_id", ondelete="CASCADE"), index=True
+    )
+    topic_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("topic.topic_id", ondelete="CASCADE"), index=True
+    )
+
+    tag = relationship("Tag", back_populates="threat")
+    service = relationship("Service", back_populates="threat")
+    topic = relationship("Topic", back_populates="threat")
 
 
 class PTeam(Base):
@@ -437,6 +460,7 @@ class Topic(Base):
     misp_tags = relationship(
         "MispTag", secondary=TopicMispTag.__tablename__, order_by="MispTag.tag_name"
     )
+    threat = relationship("Threat", back_populates="Topic", cascade="all, delete-orphan")
 
 
 class TopicAction(Base):
@@ -523,6 +547,7 @@ class Tag(Base):
 
     topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
     dependencies = relationship("Dependency", back_populates="tag", cascade="all, delete-orphan")
+    threat = relationship("Threat", back_populates="tag", cascade="all, delete-orphan")
 
 
 class MispTag(Base):
