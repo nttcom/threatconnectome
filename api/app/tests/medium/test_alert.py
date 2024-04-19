@@ -67,7 +67,7 @@ class TestPTeamHasParentTag:
         }
 
     # common functions used in tests
-    def _find_expected(
+    def check_tag_in_alert_target(
         self,
         _targets: Sequence[models.CurrentPTeamTopicTagStatus],
         tag: schemas.TagResponse,
@@ -87,7 +87,7 @@ class TestPTeamHasParentTag:
     ):
         topic = create_topic(USER1, self._gen_topic_params(parent_tag))
         alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-        assert self._find_expected(alert_targets, self.parent_tag1) == expected
+        assert self.check_tag_in_alert_target(alert_targets, self.parent_tag1) == expected
 
     @pytest.mark.parametrize(
         "child_tag, expected",
@@ -102,7 +102,7 @@ class TestPTeamHasParentTag:
     ):
         topic = create_topic(USER1, self._gen_topic_params(child_tag))
         alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-        assert self._find_expected(alert_targets, self.parent_tag1) == expected
+        assert self.check_tag_in_alert_target(alert_targets, self.parent_tag1) == expected
 
 
 class TestPTeamHasChildTag:
@@ -143,7 +143,7 @@ class TestPTeamHasChildTag:
         }
 
     # common functions used in tests
-    def _find_expected(
+    def check_tag_in_alert_target(
         self,
         _targets: Sequence[models.CurrentPTeamTopicTagStatus],
         tag: schemas.TagResponse,
@@ -163,7 +163,7 @@ class TestPTeamHasChildTag:
     ):
         topic = create_topic(USER1, self._gen_topic_params(parent_tag))
         alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-        assert self._find_expected(alert_targets, self.child_tag1) == expected
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag1) == expected
 
     @pytest.mark.parametrize(
         "child_tag, expected",
@@ -178,7 +178,7 @@ class TestPTeamHasChildTag:
     ):
         topic = create_topic(USER1, self._gen_topic_params(child_tag))
         alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-        assert self._find_expected(alert_targets, self.child_tag1) == expected
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag1) == expected
 
 
 @pytest.mark.parametrize(
@@ -237,7 +237,7 @@ def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_thr
             "actions": [],
         }
 
-    def _find_expected(
+    def check_tag_in_alert_target(
         _targets: Sequence[models.CurrentPTeamTopicTagStatus],
         tag: schemas.TagResponse,
     ) -> bool:
@@ -251,7 +251,7 @@ def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_thr
     # create topic and verification of alerts
     topic = create_topic(USER1, _gen_topic_params(threshold))
     alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-    assert _find_expected(alert_targets, child_tag11) == expected
+    assert check_tag_in_alert_target(alert_targets, child_tag11) == expected
 
 
 class TestTopicHasVersion:
@@ -292,7 +292,7 @@ class TestTopicHasVersion:
         }
 
     # common functions used in tests
-    def _find_expected(
+    def check_tag_in_alert_target(
         self,
         _targets: Sequence[models.CurrentPTeamTopicTagStatus],
         tag: schemas.TagResponse,
@@ -325,7 +325,7 @@ class TestTopicHasVersion:
         # create topic and verification of alerts
         topic = create_topic(USER1, self._gen_topic_params([self.parent_tag1]), actions=[action])
         alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-        assert self._find_expected(alert_targets, self.child_tag11) == expected
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag11) == expected
 
     @pytest.mark.parametrize(
         "vulnerable_versions, expected",
@@ -353,7 +353,7 @@ class TestTopicHasVersion:
         # create topic and verification of alerts
         topic = create_topic(USER1, self._gen_topic_params([self.parent_tag1]), actions=[action])
         alert_targets = _pick_alert_targets_for_new_topic(testdb, topic.topic_id)
-        assert self._find_expected(alert_targets, self.child_tag11) == expected
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag11) == expected
 
     @pytest.mark.parametrize(
         "vulnerable_versions1, vulnerable_versions2, expected",
@@ -400,7 +400,7 @@ class TestTopicHasVersion:
         assert len(alert_targets) == 1
 
         # alert only uncompleted
-        assert self._find_expected(alert_targets, self.child_tag21) == expected
+        assert self.check_tag_in_alert_target(alert_targets, self.child_tag21) == expected
 
 
 def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) -> None:
