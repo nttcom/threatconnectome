@@ -32,7 +32,8 @@ def create_user(
     """
     user_info = verify_id_token(token)
     uid = user_info.uid
-    email = user_info.email
+    # Get email from auth provider data
+    email = user_info.provider_data[0].email
     if persistence.get_account_by_email(db, email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used")
 
