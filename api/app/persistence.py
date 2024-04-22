@@ -415,3 +415,20 @@ def create_topic(db: Session, topic: models.Topic):
 def delete_topic(db: Session, topic: models.Topic):
     db.delete(topic)
     db.flush()
+
+
+### Threat
+def create_threat(db: Session, ateam: models.Threat) -> None:
+    db.add(ateam)
+    db.flush()
+
+
+def delete_threat(db: Session, threat: models.Threat) -> None:
+    db.delete(threat)
+    db.flush()
+
+
+def get_threat(db: Session, threat_id: UUID | str) -> models.Threat | None:
+    return db.scalars(
+        select(models.Threat).where(models.Threat.threat_id == str(threat_id))
+    ).one_or_none()
