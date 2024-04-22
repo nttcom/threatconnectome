@@ -276,13 +276,13 @@ class Service(Base):
     dependencies = relationship(
         "Dependency", back_populates="service", cascade="all, delete-orphan"
     )
-    threat = relationship("Threat", back_populates="service", cascade="all, delete-orphan")
+    threats = relationship("Threat", back_populates="service", cascade="all, delete-orphan")
 
 
 class Threat(Base):
     __tablename__ = "threat"
     __tableargs__ = UniqueConstraint(
-        "tag_id", "service_id", "topic_id", name="tag_id_service_id_topic_id_key"
+        "tag_id", "service_id", "topic_id", name="threat_tag_id_service_id_topic_id_key"
     )
 
     def __init__(self, *args, **kwargs) -> None:
@@ -301,9 +301,9 @@ class Threat(Base):
         ForeignKey("topic.topic_id", ondelete="CASCADE"), index=True
     )
 
-    tag = relationship("Tag", back_populates="threat")
-    service = relationship("Service", back_populates="threat")
-    topic = relationship("Topic", back_populates="threat")
+    tag = relationship("Tag", back_populates="threats")
+    service = relationship("Service", back_populates="threats")
+    topic = relationship("Topic", back_populates="threats")
 
 
 class PTeam(Base):
@@ -465,7 +465,7 @@ class Topic(Base):
     misp_tags = relationship(
         "MispTag", secondary=TopicMispTag.__tablename__, order_by="MispTag.tag_name"
     )
-    threat = relationship("Threat", back_populates="topic", cascade="all, delete-orphan")
+    threats = relationship("Threat", back_populates="topic", cascade="all, delete-orphan")
 
 
 class TopicAction(Base):
@@ -552,7 +552,7 @@ class Tag(Base):
 
     topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
     dependencies = relationship("Dependency", back_populates="tag", cascade="all, delete-orphan")
-    threat = relationship("Threat", back_populates="tag", cascade="all, delete-orphan")
+    threats = relationship("Threat", back_populates="tag", cascade="all, delete-orphan")
 
 
 class MispTag(Base):

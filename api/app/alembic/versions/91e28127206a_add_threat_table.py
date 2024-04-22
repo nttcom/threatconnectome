@@ -1,8 +1,8 @@
-"""add threat table
+"""add_threat_table
 
-Revision ID: 81252764c348
+Revision ID: 91e28127206a
 Revises: b51315587b5d
-Create Date: 2024-04-19 09:23:29.274397
+Create Date: 2024-04-22 01:25:27.334815
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '81252764c348'
+revision = '91e28127206a'
 down_revision = 'b51315587b5d'
 branch_labels = None
 depends_on = None
