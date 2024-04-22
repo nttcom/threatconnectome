@@ -30,9 +30,20 @@ def create_user(
     """
     Create a user.
     """
-    decoded_token = verify_id_token(token)
-    uid = decoded_token["uid"]
-    email = decoded_token["email"]
+    user_info = verify_id_token(token)
+    uid = user_info.uid
+    email = user_info.email
+    # if user_info.email is empty, get email from auth provider data
+    if email is None:
+        if len(user_info.provider_data) > 0:
+            email = user_info.provider_data[0].email
+
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The requested Email information could not be retrieved.",
+        )
+
     if persistence.get_account_by_email(db, email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used")
 
