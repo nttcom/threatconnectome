@@ -38,7 +38,6 @@ def create_user(
         if len(user_info.provider_data) > 0:
             email = user_info.provider_data[0].email
 
-    email = user_info.provider_data[0].email
     if persistence.get_account_by_email(db, email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used")
 
