@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.main import app
-from app.tests.medium.constants import PTEAM1, TOPIC1, USER1
+from app.tests.medium.constants import PTEAM1, PTEAM2, TOPIC1, TOPIC2, USER1, USER2
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     assert_200,
@@ -33,12 +33,63 @@ def test_get_threat_no_data():
 
 def test_get_all_threats(testdb: Session):
     response1 = create_threat(testdb, USER1, PTEAM1, TOPIC1)
+    response2 = create_threat(testdb, USER2, PTEAM2, TOPIC2)
     data = assert_200(client.get("/threats", headers=headers))
-    assert len(data) == 1
-    assert data[0]["threat_id"] == str(response1.threat_id)
-    assert data[0]["tag_id"] == str(response1.tag_id)
-    assert data[0]["service_id"] == str(response1.service_id)
-    assert data[0]["topic_id"] == str(response1.topic_id)
+    assert len(data) == 2
+
+    if str(response1.threat_id) < str(response2.threat_id):
+        first_threat = response1
+        second_threat = response2
+    else:
+        first_threat = response2
+        second_threat = response1
+
+    assert data[0]["threat_id"] == str(first_threat.threat_id)
+    assert data[0]["tag_id"] == str(first_threat.tag_id)
+    assert data[0]["service_id"] == str(first_threat.service_id)
+    assert data[0]["topic_id"] == str(first_threat.topic_id)
+
+    assert data[1]["threat_id"] == str(second_threat.threat_id)
+    assert data[1]["tag_id"] == str(second_threat.tag_id)
+    assert data[1]["service_id"] == str(second_threat.service_id)
+    assert data[1]["topic_id"] == str(second_threat.topic_id)
+
+
+@pytest.mark.parametrize(
+    "exist_tag_id, exist_service_id, exist_topic_id, expected_len",
+    [
+        (False, False, False, 2),
+        (True, False, False, 2),  # 本ケースでは、tag_idは2件同一
+        (False, True, False, 1),
+        (False, False, True, 1),
+        (True, True, True, 1),
+    ],
+)
+def test_get_all_threats_with_param(
+    testdb: Session,
+    exist_tag_id: bool,
+    exist_service_id: bool,
+    exist_topic_id: bool,
+    expected_len: int,
+):
+    response1 = create_threat(testdb, USER1, PTEAM1, TOPIC1)
+    create_threat(testdb, USER2, PTEAM2, TOPIC2)
+    url: str = "/threats"
+    if exist_tag_id or exist_service_id or exist_topic_id:
+        url += "/?"
+    if exist_tag_id:
+        url += "tag_id=" + str(response1.tag_id)
+        if exist_service_id or exist_topic_id:
+            url += "&"
+    if exist_service_id:
+        url += "service_id=" + str(response1.service_id)
+        if exist_topic_id:
+            url += "&"
+    if exist_topic_id:
+        url += "topic_id=" + str(response1.topic_id)
+
+    data = assert_200(client.get(url, headers=headers))
+    assert len(data) == expected_len
 
 
 def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> schemas.ThreatResponse:
@@ -52,7 +103,7 @@ def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> sche
         data = assert_200(
             client.post(
                 f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
-                headers=file_upload_headers(USER1),
+                headers=file_upload_headers(user),
                 params=params,
                 files={"file": tags},
             )

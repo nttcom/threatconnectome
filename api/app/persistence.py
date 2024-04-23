@@ -446,7 +446,7 @@ def get_all_threats(
     if service_id:
         select_stmt = select_stmt.where(models.Threat.service_id == str(service_id))
     if topic_id:
-        select_stmt = select_stmt.where(models.Threat.service_id == str(service_id))
+        select_stmt = select_stmt.where(models.Threat.topic_id == str(topic_id))
 
     return db.scalars(select_stmt).all()
 
