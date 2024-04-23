@@ -432,3 +432,10 @@ def get_threat(db: Session, threat_id: UUID | str) -> models.Threat | None:
     return db.scalars(
         select(models.Threat).where(models.Threat.threat_id == str(threat_id))
     ).one_or_none()
+
+
+### Service
+def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | None:
+    return db.scalars(
+        select(models.Service).where(models.Service.service_id == str(service_id))
+    ).one_or_none()
