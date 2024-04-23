@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Sequence, Union
 from uuid import UUID
 
 from sqlalchemy import select
@@ -432,6 +432,23 @@ def get_threat(db: Session, threat_id: UUID | str) -> models.Threat | None:
     return db.scalars(
         select(models.Threat).where(models.Threat.threat_id == str(threat_id))
     ).one_or_none()
+
+
+def get_all_threats(
+    tag_id: Union[UUID, None],
+    service_id: Union[UUID, None],
+    topic_id: Union[UUID, None],
+    db: Session,
+) -> Sequence[models.Threat]:
+    select_stmt = select(models.Threat)
+    if tag_id:
+        select_stmt = select_stmt.where(models.Threat.tag_id == str(tag_id))
+    if service_id:
+        select_stmt = select_stmt.where(models.Threat.service_id == str(service_id))
+    if topic_id:
+        select_stmt = select_stmt.where(models.Threat.service_id == str(service_id))
+
+    return db.scalars(select_stmt).all()
 
 
 ### Service

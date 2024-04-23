@@ -1,3 +1,4 @@
+from typing import List, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -7,6 +8,34 @@ from app import models, persistence, schemas
 from app.database import get_db
 
 router = APIRouter(prefix="/threats", tags=["threats"])
+
+
+@router.get("", response_model=List[schemas.ThreatResponse])
+def get_threats(
+    tag_id: Union[UUID, None] = None,
+    service_id: Union[UUID, None] = None,
+    topic_id: Union[UUID, None] = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Get all threats sorted by service_id.
+    """
+    threats = persistence.get_all_threats(tag_id, service_id, topic_id, db)
+    return sorted(threats, key=lambda threat: threat.service_id)
+
+
+@router.get("/{threat_id}", response_model=schemas.ThreatResponse)
+def get_threat(
+    threat_id: UUID,
+    db: Session = Depends(get_db),
+):
+    """
+    Get a threat.
+    """
+    if not (threat := persistence.get_threat(db, threat_id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
+
+    return threat
 
 
 @router.post("", response_model=schemas.ThreatResponse)
