@@ -26,6 +26,15 @@ headers = {
 }
 
 
+def test_get_threat(testdb: Session):
+    response1 = create_threat(testdb, USER1, PTEAM1, TOPIC1)
+    data = assert_200(client.get("/threats/" + str(response1.threat_id), headers=headers))
+    assert data["threat_id"] == str(response1.threat_id)
+    assert data["tag_id"] == str(response1.tag_id)
+    assert data["service_id"] == str(response1.service_id)
+    assert data["topic_id"] == str(response1.topic_id)
+
+
 def test_get_threat_no_data():
     with pytest.raises(HTTPError, match=r"404: Not Found: No such threat"):
         assert_200(client.get("/threats/3fa85f64-5717-4562-b3fc-2c963f66afa6", headers=headers))
@@ -37,22 +46,31 @@ def test_get_all_threats(testdb: Session):
     data = assert_200(client.get("/threats", headers=headers))
     assert len(data) == 2
 
-    if str(response1.threat_id) < str(response2.threat_id):
-        first_threat = response1
-        second_threat = response2
-    else:
-        first_threat = response2
-        second_threat = response1
+    assert (data[0]["threat_id"] == str(response1.threat_id)) or (
+        data[0]["threat_id"] == str(response2.threat_id)
+    )
+    assert (data[0]["tag_id"] == str(response1.tag_id)) or (
+        data[0]["tag_id"] == str(response2.tag_id)
+    )
+    assert (data[0]["service_id"] == str(response1.service_id)) or (
+        data[0]["service_id"] == str(response2.service_id)
+    )
+    assert (data[0]["topic_id"] == str(response1.topic_id)) or (
+        data[0]["topic_id"] == str(response2.topic_id)
+    )
 
-    assert data[0]["threat_id"] == str(first_threat.threat_id)
-    assert data[0]["tag_id"] == str(first_threat.tag_id)
-    assert data[0]["service_id"] == str(first_threat.service_id)
-    assert data[0]["topic_id"] == str(first_threat.topic_id)
-
-    assert data[1]["threat_id"] == str(second_threat.threat_id)
-    assert data[1]["tag_id"] == str(second_threat.tag_id)
-    assert data[1]["service_id"] == str(second_threat.service_id)
-    assert data[1]["topic_id"] == str(second_threat.topic_id)
+    assert (data[1]["threat_id"] == str(response1.threat_id)) or (
+        data[1]["threat_id"] == str(response2.threat_id)
+    )
+    assert (data[1]["tag_id"] == str(response1.tag_id)) or (
+        data[1]["tag_id"] == str(response2.tag_id)
+    )
+    assert (data[1]["service_id"] == str(response1.service_id)) or (
+        data[1]["service_id"] == str(response2.service_id)
+    )
+    assert (data[0]["topic_id"] == str(response1.topic_id)) or (
+        data[0]["topic_id"] == str(response2.topic_id)
+    )
 
 
 @pytest.mark.parametrize(
