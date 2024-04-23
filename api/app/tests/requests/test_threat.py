@@ -68,8 +68,8 @@ def test_get_all_threats(testdb: Session):
     assert (data[1]["service_id"] == str(response1.service_id)) or (
         data[1]["service_id"] == str(response2.service_id)
     )
-    assert (data[0]["topic_id"] == str(response1.topic_id)) or (
-        data[0]["topic_id"] == str(response2.topic_id)
+    assert (data[1]["topic_id"] == str(response1.topic_id)) or (
+        data[1]["topic_id"] == str(response2.topic_id)
     )
 
 
