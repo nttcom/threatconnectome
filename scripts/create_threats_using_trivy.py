@@ -235,7 +235,7 @@ def main(args: argparse.Namespace) -> None:
         rows = db.execute(select(Dependency, Tag).join(Tag)).all()
 
     # create dict to map purl to dependencies
-    purl_to_dependency: dict[PackageURL, tuple[str, str]] = {}  # purl: (service_id, tag_id)
+    purl_to_dependency: dict[PackageURL, set[tuple[str, str]]] = {}  # purl: (service_id, tag_id)
     # Tag.tag_name can be the name given by trivy -- maybe better hint than purl. keep them
     purl_to_name: dict[PackageURL, str] = {}  # purl: pkg_name
     for row in rows:
@@ -247,7 +247,9 @@ def main(args: argparse.Namespace) -> None:
             # drop wrong components which cause trivy fatal error
             continue
         purl = PackageURL.from_string(f"pkg:{pkg_family}/{pkg_name}@{dependency.version}")  # FIXME
-        purl_to_dependency[purl] = (row.Dependency.service_id, row.Dependency.tag_id)
+        dependencies_set = purl_to_dependency.get(purl, set())
+        dependencies_set.add((row.Dependency.service_id, row.Dependency.tag_id))
+        purl_to_dependency[purl] = dependencies_set
         purl_to_name[purl] = pkg_name
 
     # create fake sbom file
@@ -296,8 +298,8 @@ def main(args: argparse.Namespace) -> None:
             if purl not in purl_to_dependency:  # something went wrong
                 print(f"WARN: cannot detect dependency for purl: {purl}", file=sys.stderr)
                 continue
-            [service_id, tag_id] = purl_to_dependency[purl]
-            threats.add((topic_id, service_id, tag_id))
+            for [service_id, tag_id] in purl_to_dependency[purl]:
+                threats.add((topic_id, service_id, tag_id))
 
     # connect to Threatconnectome and create threats
     tc_client = ThreatconnectomeClient(args.endpoint, args.refresh_token, retry_max=1)
