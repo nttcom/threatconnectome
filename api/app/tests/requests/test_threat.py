@@ -26,6 +26,44 @@ headers = {
 }
 
 
+def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> schemas.ThreatResponse:
+    create_user(user)
+    pteam1 = create_pteam(user, pteam)
+    topic1 = create_topic(user, topic)
+
+    params: Dict[str, Union[str, bool]] = {"group": "threatconnectome", "force_mode": True}
+    sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
+    with open(sbom_file, "rb") as tags:
+        data = assert_200(
+            client.post(
+                f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(user),
+                params=params,
+                files={"file": tags},
+            )
+        )
+
+    tag_id = data[0]["tag_id"]
+
+    service_id = testdb.scalars(
+        select(models.Service.service_id).where(
+            models.Service.pteam_id == str(pteam1.pteam_id),
+            models.Service.service_name == str(params["group"]),
+        )
+    ).one_or_none()
+
+    request = {
+        "tag_id": str(tag_id),
+        "service_id": str(service_id),
+        "topic_id": str(topic1.topic_id),
+    }
+    response = client.post("/threats", headers=headers, json=request)
+    if response.status_code != 200:
+        raise HTTPError(response)
+
+    return schemas.ThreatResponse(**response.json())
+
+
 def test_get_threat(testdb: Session):
     response1 = create_threat(testdb, USER1, PTEAM1, TOPIC1)
     data = assert_200(client.get("/threats/" + str(response1.threat_id), headers=headers))
@@ -110,10 +148,10 @@ def test_get_all_threats_with_param(
     assert len(data) == expected_len
 
 
-def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> schemas.ThreatResponse:
-    create_user(user)
-    pteam1 = create_pteam(user, pteam)
-    topic1 = create_topic(user, topic)
+def test_create_threat(testdb: Session):
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    topic1 = create_topic(USER1, TOPIC1)
 
     params: Dict[str, Union[str, bool]] = {"group": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
@@ -121,16 +159,14 @@ def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> sche
         data = assert_200(
             client.post(
                 f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
-                headers=file_upload_headers(user),
+                headers=file_upload_headers(USER1),
                 params=params,
                 files={"file": tags},
             )
         )
 
-    ##tag_idの取得
     tag_id = data[0]["tag_id"]
 
-    ##service_idの取得
     service_id = testdb.scalars(
         select(models.Service.service_id).where(
             models.Service.pteam_id == str(pteam1.pteam_id),
@@ -147,8 +183,17 @@ def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> sche
     if response.status_code != 200:
         raise HTTPError(response)
 
-    return schemas.ThreatResponse(**response.json())
+    threat = schemas.ThreatResponse(**response.json())
+
+    assert request["tag_id"] == str(threat.tag_id)
+    assert request["service_id"] == str(threat.service_id)
+    assert request["topic_id"] == str(threat.topic_id)
 
 
-def test_create_threat(testdb: Session):
-    create_threat(testdb, USER1, PTEAM1, TOPIC1)
+def test_delete_threat(testdb: Session):
+    threat = create_threat(testdb, USER1, PTEAM1, TOPIC1)
+    response = client.delete(f"/threats/{threat.threat_id}", headers=headers)
+    assert response.status_code == 204
+
+    data = assert_200(client.get("/threats", headers=headers))
+    assert len(data) == 0
