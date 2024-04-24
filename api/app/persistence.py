@@ -1,4 +1,4 @@
-from typing import Sequence, Union
+from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import select
@@ -418,8 +418,8 @@ def delete_topic(db: Session, topic: models.Topic):
 
 
 ### Threat
-def create_threat(db: Session, ateam: models.Threat) -> None:
-    db.add(ateam)
+def create_threat(db: Session, threat: models.Threat) -> None:
+    db.add(threat)
     db.flush()
 
 
@@ -428,17 +428,17 @@ def delete_threat(db: Session, threat: models.Threat) -> None:
     db.flush()
 
 
-def get_threat(db: Session, threat_id: UUID | str) -> models.Threat | None:
+def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None:
     return db.scalars(
         select(models.Threat).where(models.Threat.threat_id == str(threat_id))
     ).one_or_none()
 
 
 def get_all_threats(
-    tag_id: Union[UUID, None],
-    service_id: Union[UUID, None],
-    topic_id: Union[UUID, None],
     db: Session,
+    tag_id: UUID | None,
+    service_id: UUID | None,
+    topic_id: UUID | None,
 ) -> Sequence[models.Threat]:
     select_stmt = select(models.Threat)
     if tag_id:
