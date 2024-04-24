@@ -415,3 +415,44 @@ def create_topic(db: Session, topic: models.Topic):
 def delete_topic(db: Session, topic: models.Topic):
     db.delete(topic)
     db.flush()
+
+
+### Threat
+def create_threat(db: Session, threat: models.Threat) -> None:
+    db.add(threat)
+    db.flush()
+
+
+def delete_threat(db: Session, threat: models.Threat) -> None:
+    db.delete(threat)
+    db.flush()
+
+
+def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None:
+    return db.scalars(
+        select(models.Threat).where(models.Threat.threat_id == str(threat_id))
+    ).one_or_none()
+
+
+def get_all_threats(
+    db: Session,
+    tag_id: UUID | None,
+    service_id: UUID | None,
+    topic_id: UUID | None,
+) -> Sequence[models.Threat]:
+    select_stmt = select(models.Threat)
+    if tag_id:
+        select_stmt = select_stmt.where(models.Threat.tag_id == str(tag_id))
+    if service_id:
+        select_stmt = select_stmt.where(models.Threat.service_id == str(service_id))
+    if topic_id:
+        select_stmt = select_stmt.where(models.Threat.topic_id == str(topic_id))
+
+    return db.scalars(select_stmt).all()
+
+
+### Service
+def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | None:
+    return db.scalars(
+        select(models.Service).where(models.Service.service_id == str(service_id))
+    ).one_or_none()

@@ -553,3 +553,16 @@ class ATeamTopicCommentResponse(ORMModel):
     updated_at: Optional[datetime] = None
     comment: str
     email: str
+
+
+class ThreatResponse(ORMModel):
+    threat_id: UUID
+    tag_id: UUID
+    service_id: UUID
+    topic_id: UUID
+
+
+class ThreatRequest(ORMModel):
+    tag_id: UUID
+    service_id: UUID
+    topic_id: UUID
