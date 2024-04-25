@@ -18,8 +18,13 @@ def get_threats(
 ):
     """
     Get all threats sorted by service_id.
+
+    Query Params:
+    - **tag_id** (Optional) filter by specified tag_id. Default is None.
+    - **service_id** (Optional) filter by specified service_id. Default is None.
+    - **topic_id** (Optional) filter by specified topic_id. Default is None.
     """
-    threats = persistence.get_all_threats(db, tag_id, service_id, topic_id)
+    threats = persistence.search_threats(db, tag_id, service_id, topic_id)
     return threats
 
 

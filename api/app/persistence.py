@@ -434,7 +434,7 @@ def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None
     ).one_or_none()
 
 
-def get_all_threats(
+def search_threats(
     db: Session,
     tag_id: UUID | None,
     service_id: UUID | None,
