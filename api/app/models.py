@@ -257,7 +257,7 @@ class Dependency(Base):
 
 class Service(Base):
     __tablename__ = "service"
-    __tableargs__ = (
+    __table_args__ = (
         UniqueConstraint("pteam_id", "service_name", name="service_pteam_id_service_name_key"),
     )
 
@@ -281,8 +281,10 @@ class Service(Base):
 
 class Threat(Base):
     __tablename__ = "threat"
-    __tableargs__ = UniqueConstraint(
-        "tag_id", "service_id", "topic_id", name="threat_tag_id_service_id_topic_id_key"
+    __table_args__ = (
+        UniqueConstraint(
+            "tag_id", "service_id", "topic_id", name="threat_tag_id_service_id_topic_id_key"
+        ),
     )
 
     def __init__(self, *args, **kwargs) -> None:
