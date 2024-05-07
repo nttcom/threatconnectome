@@ -257,7 +257,7 @@ class Dependency(Base):
 
 class Service(Base):
     __tablename__ = "service"
-    __tableargs__ = (
+    __table_args__: tuple = (
         UniqueConstraint("pteam_id", "service_name", name="service_pteam_id_service_name_key"),
     )
 
