@@ -121,6 +121,27 @@ def test_get_tags():
     assert data[0]["tag_id"] == str(tag3.parent_id)
 
 
+def test_get_tag():
+    create_user(USER1)
+
+    str1 = "a1:a2:"
+    tag1 = create_tag(USER1, str1)
+    str2 = "b1:b2:b3"
+    tag2 = create_tag(USER1, str2)
+
+    data = assert_200(client.get("/tags/" + str(tag1.tag_id), headers=headers(USER1)))
+    assert data["tag_id"] == str(tag1.tag_id)
+    assert data["tag_name"] == str(tag1.tag_name)
+    assert data["parent_id"] == str(tag1.parent_id)
+    assert data["parent_name"] == str(tag1.parent_name)
+
+    data = assert_200(client.get("/tags/" + str(tag2.tag_id), headers=headers(USER1)))
+    assert data["tag_id"] == str(tag2.tag_id)
+    assert data["tag_name"] == str(tag2.tag_name)
+    assert data["parent_id"] == str(tag2.parent_id)
+    assert data["parent_name"] == str(tag2.parent_name)
+
+
 def test_delete_tag():
     create_user(USER1)
 
