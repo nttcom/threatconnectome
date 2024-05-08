@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Set, TypeAlias
+from typing import Any, TypeAlias
 
 from packaging.version import Version as PypiVersion
 from univers.debian import Version as DebianVersion
@@ -171,7 +171,7 @@ class VulnerableRange:
             kwargs["eq"] = gen_version_instance(package_family, _pick_heading_version(tmp[1]))
         return VulnerableRange(**kwargs)
 
-    def detect_matched(self, references: Set[ComparableVersion]) -> bool:
+    def detect_matched(self, references: set[ComparableVersion]) -> bool:
         """
         returns True if at least 1 reference matched with me, False otherwise.
         ValueError will be raised when failed to compare.

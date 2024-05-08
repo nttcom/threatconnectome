@@ -6,7 +6,7 @@ import os
 import sys
 from functools import partial
 from time import sleep
-from typing import Callable, Set
+from typing import Callable
 from uuid import UUID
 
 import requests
@@ -179,8 +179,8 @@ def _divide_tag_groups(tags: list[dict]) -> dict[str | None, list[str]]:
     return ret_dict
 
 
-def _pick_overlapped_pteam_tag_ids(topic_tags: list[dict], pteam_tags: list[dict]) -> Set[str]:
-    overlapped_pteam_tag_ids: Set[str] = set()
+def _pick_overlapped_pteam_tag_ids(topic_tags: list[dict], pteam_tags: list[dict]) -> set[str]:
+    overlapped_pteam_tag_ids: set[str] = set()
     topic_tag_groups = _divide_tag_groups(topic_tags)
     pteam_tag_groups = _divide_tag_groups(pteam_tags)
 
@@ -229,7 +229,7 @@ def main(args: argparse.Namespace) -> None:
 
     # process each topics
     pteam_watching_topics: dict[str, dict] = {}  # topic_id: topic
-    pteamtags_for_topics: dict[str, Set[str]] = {}  # topic_id: {pteamtag_id, ...}
+    pteamtags_for_topics: dict[str, set[str]] = {}  # topic_id: {pteamtag_id, ...}
     for topic_summary in related_topics:
         # get details of the topic
         topic = tc_client.get_topic(topic_summary["topic_id"])

@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from hashlib import md5
-from typing import Sequence, Set
+from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -269,7 +269,7 @@ def set_pteam_topic_status_internal(
 def _pick_vulnerable_version_strings_from_actions(
     actions: Sequence[models.TopicAction],
     tag: models.Tag,
-) -> Set[str]:
+) -> set[str]:
     tag_name = tag.tag_name
     parent_name = tag.parent_name
     vulnerable_versions = set()
@@ -279,7 +279,7 @@ def _pick_vulnerable_version_strings_from_actions(
             vulnerable_versions |= set(
                 action.ext.get("vulnerable_versions", {}).get(parent_name, [])
             )
-    result: Set[str] = set()
+    result: set[str] = set()
     for vulnerable_version in vulnerable_versions:
         result |= set(vulnerable_version.split("||"))
     return result

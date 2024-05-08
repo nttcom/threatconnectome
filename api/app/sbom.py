@@ -8,7 +8,6 @@ from typing import (
     NamedTuple,
     Optional,
     Pattern,
-    Set,
     Type,
     TypeAlias,
 )
@@ -33,8 +32,8 @@ class SBOMInfo(NamedTuple):
 @dataclass
 class Artifact:
     tag: str
-    targets: Set[tuple[str, str]] = field(init=False, repr=False, default_factory=set)
-    versions: Set[str] = field(init=False, repr=False, default_factory=set)  # for missing targets
+    targets: set[tuple[str, str]] = field(init=False, repr=False, default_factory=set)
+    versions: set[str] = field(init=False, repr=False, default_factory=set)  # for missing targets
 
     def to_json(self) -> dict:
         targets = self.targets if self.targets else {("", version) for version in self.versions}
@@ -76,7 +75,7 @@ class TrivyCDXParser(SBOMParser):
         properties: dict[str, Any]
         purl: PackageURL | None = field(init=False, repr=False)
         trivy_class: str | None = field(init=False, repr=False)
-        targets: Set[Target] = field(init=False, repr=False, default_factory=set)
+        targets: set[Target] = field(init=False, repr=False, default_factory=set)
 
         def __post_init__(self):
             if not self.bom_ref:
@@ -181,14 +180,14 @@ class TrivyCDXParser(SBOMParser):
                 error_message("Dopped component:", data)
 
         # parse dependencies
-        dependencies: dict[str, Set[str]] = {}
+        dependencies: dict[str, set[str]] = {}
         for dep in sbom.get("dependencies", []):
             if not (from_ := dep.get("ref")):
                 continue
             if to_ := dep.get("dependsOn"):
                 dependencies[from_] = set(to_)
 
-        def _recursive_get(ref_: str, current_: Set[str]) -> Set[str]:  # returns new refs only
+        def _recursive_get(ref_: str, current_: set[str]) -> set[str]:  # returns new refs only
             if ref_ in current_:
                 return set()  # nothing to add
             if not (children_ := dependencies.get(ref_)):

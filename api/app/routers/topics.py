@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from typing import Sequence, Set
+from typing import Sequence
 from uuid import UUID
 
 import requests
@@ -98,7 +98,7 @@ def search_topics(
     """
     keyword_for_empty = ""
 
-    fixed_tag_ids: Set[str | None] = set()
+    fixed_tag_ids: set[str | None] = set()
     if tag_names is not None:
         for tag_name in tag_names:
             if tag_name == keyword_for_empty:
@@ -108,7 +108,7 @@ def search_topics(
                 continue  # ignore wrong tag_name
             fixed_tag_ids.add(tag.tag_id)
 
-    fixed_misp_tag_ids: Set[str | None] = set()
+    fixed_misp_tag_ids: set[str | None] = set()
     if misp_tag_names is not None:
         for misp_tag_name in misp_tag_names:
             if misp_tag_name == keyword_for_empty:
@@ -134,7 +134,7 @@ def search_topics(
                 continue
             fixed_creator_ids.add(creator_id)
 
-    fixed_title_words: Set[str | None] = set()
+    fixed_title_words: set[str | None] = set()
     if title_words is not None:
         for title_word in title_words:
             if title_word == keyword_for_empty:
@@ -142,7 +142,7 @@ def search_topics(
                 continue
             fixed_title_words.add(title_word)
 
-    fixed_abstract_words: Set[str | None] = set()
+    fixed_abstract_words: set[str | None] = set()
     if abstract_words is not None:
         for abstract_word in abstract_words:
             if abstract_word == keyword_for_empty:
@@ -150,7 +150,7 @@ def search_topics(
                 continue
             fixed_abstract_words.add(abstract_word)
 
-    fixed_threat_impacts: Set[int] = set()
+    fixed_threat_impacts: set[int] = set()
     if threat_impacts is not None:
         for threat_impact in threat_impacts:
             try:

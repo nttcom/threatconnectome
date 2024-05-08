@@ -3,7 +3,7 @@ import json
 import os
 import re
 import sys
-from typing import Any, ClassVar, Pattern, Set
+from typing import Any, ClassVar, Pattern
 
 from cyclonedx.exception import MissingOptionalDependencyException
 from cyclonedx.schema import SchemaVersion
@@ -89,7 +89,7 @@ def _pick_prop(props_: list[dict[str, Any]], name_: str) -> str:
 class CDXComponents:
     replace_rules: list[tuple[Pattern, str]] = []
     skip_rules: list[Pattern] = []
-    components: dict[str, Set[tuple[str, str]]]  # {tag: {(version, target)}}
+    components: dict[str, set[tuple[str, str]]]  # {tag: {(version, target)}}
 
     def __init__(self, args: argparse.Namespace, jdata: dict):
         self.components = {}
@@ -203,7 +203,7 @@ class TrivyCDXComponents(CDXComponents):
                 )
                 args.hostname = ""
 
-        mgr2pkgs: dict[str, Set[str]] = {}
+        mgr2pkgs: dict[str, set[str]] = {}
         mgr_components: dict[str, TrivyCDXComponents.TrivyCDXComponent] = {}
         pkg_components: dict[str, TrivyCDXComponents.TrivyCDXComponent] = {}
         for dep in jdata.get("dependencies", []):

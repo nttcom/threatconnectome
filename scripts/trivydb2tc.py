@@ -10,7 +10,7 @@ from functools import partial
 from hashlib import md5
 from pathlib import Path
 from time import sleep
-from typing import Callable, Set
+from typing import Callable
 
 import requests
 from boltdb import BoltDB
@@ -455,7 +455,7 @@ def main() -> None:
     trivy_db = Path(args.trivy_db).expanduser()
     bdb = BoltDB(trivy_db)
 
-    vuln_dict: dict[str, dict[str, dict | Set]] = {}
+    vuln_dict: dict[str, dict[str, dict | set]] = {}
     with bdb.view() as txs:
         for repos, _ in txs.bucket():
             if repos in allow_list:
