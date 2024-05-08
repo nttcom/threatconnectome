@@ -121,25 +121,27 @@ def test_get_tags():
     assert data[0]["tag_id"] == str(tag3.parent_id)
 
 
-def test_get_tag():
+@pytest.mark.parametrize(
+    "tag_name",
+    ["a1:a2:", "b1:b2:b3"],
+)
+def test_it_should_return_tag_data_when_it_requested_existing_tagid(tag_name):
+    # Given
+    # 予めtagが作成されており
     create_user(USER1)
+    tag = create_tag(USER1, tag_name)
 
-    str1 = "a1:a2:"
-    tag1 = create_tag(USER1, str1)
-    str2 = "b1:b2:b3"
-    tag2 = create_tag(USER1, str2)
+    # When
+    # ユーザがtag_id を指定してリクエストした場合
+    response = client.get("/tags/" + str(tag.tag_id), headers=headers(USER1))
+    fetched_tag = response.json()
 
-    data = assert_200(client.get("/tags/" + str(tag1.tag_id), headers=headers(USER1)))
-    assert data["tag_id"] == str(tag1.tag_id)
-    assert data["tag_name"] == str(tag1.tag_name)
-    assert data["parent_id"] == str(tag1.parent_id)
-    assert data["parent_name"] == str(tag1.parent_name)
-
-    data = assert_200(client.get("/tags/" + str(tag2.tag_id), headers=headers(USER1)))
-    assert data["tag_id"] == str(tag2.tag_id)
-    assert data["tag_name"] == str(tag2.tag_name)
-    assert data["parent_id"] == str(tag2.parent_id)
-    assert data["parent_name"] == str(tag2.parent_name)
+    # Then
+    # 取得したデータには、タグ作成時と同じ情報が含まれている
+    assert fetched_tag["tag_id"] == str(tag.tag_id)
+    assert fetched_tag["tag_name"] == str(tag.tag_name)
+    assert fetched_tag["parent_id"] == str(tag.parent_id)
+    assert fetched_tag["parent_name"] == str(tag.parent_name)
 
 
 def test_delete_tag():
