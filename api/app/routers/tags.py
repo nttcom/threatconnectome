@@ -62,6 +62,21 @@ def search_tags(
     return filter(lambda x: any(word.lower() in x.tag_name.lower() for word in words), all_tags)
 
 
+@router.get("/{tag_id}", response_model=schemas.TagResponse)
+def get_tag(
+    tag_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get a tag.
+    """
+    if not (tag := persistence.get_tag_by_id(db, tag_id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
+
+    return tag
+
+
 @router.delete("/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_tag(
     tag_id: UUID,
