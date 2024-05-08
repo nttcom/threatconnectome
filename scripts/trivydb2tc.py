@@ -10,7 +10,7 @@ from functools import partial
 from hashlib import md5
 from pathlib import Path
 from time import sleep
-from typing import Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, List, Set, Tuple
 
 import requests
 from boltdb import BoltDB
@@ -359,7 +359,7 @@ def vuln_info(repos, txs):
     return vulns
 
 
-def solution_from_vuln(vuln) -> Tuple[Optional[str], Optional[str]]:
+def solution_from_vuln(vuln) -> Tuple[str | None, str | None]:
     if vuln["version_details"]:
         solution, vuln_vers = make_update_action(vuln["pkg_name"], vuln["version_details"])
         if solution:
@@ -402,7 +402,7 @@ def make_update_action(pkg_name, version_details: dict):
     return action, vulnerable_versions
 
 
-def _gen_action_id(topic_id: Union[uuid.UUID, str], tags: List[str], action: str) -> str:
+def _gen_action_id(topic_id: uuid.UUID | str, tags: List[str], action: str) -> str:
     random.seed(f"{topic_id}-{','.join(tags)}-{action}")
     return str(uuid.UUID(int=random.getrandbits(128), version=4))
 
@@ -455,7 +455,7 @@ def main() -> None:
     trivy_db = Path(args.trivy_db).expanduser()
     bdb = BoltDB(trivy_db)
 
-    vuln_dict: Dict[str, Dict[str, Union[Dict, Set]]] = {}
+    vuln_dict: Dict[str, Dict[str, Dict | Set]] = {}
     with bdb.view() as txs:
         for repos, _ in txs.bucket():
             if repos in allow_list:

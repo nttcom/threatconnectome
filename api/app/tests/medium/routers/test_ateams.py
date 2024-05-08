@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Union
+from typing import Dict, List
 from uuid import UUID
 
 import pytest
@@ -1913,7 +1913,7 @@ class TestGetTopicStatusWithQueryParams:
     default_offset: int = 0
     default_limit: int = 10
     default_sort_key: schemas.TopicSortKey = schemas.TopicSortKey.THREAT_IMPACT
-    default_search: Optional[str] = None
+    default_search: str | None = None
     # reusable resources
     pteam1: schemas.PTeamInfo
     ateam1: schemas.ATeamInfo
@@ -1933,12 +1933,12 @@ class TestGetTopicStatusWithQueryParams:
 
     def _get_summary(
         self,
-        offset: Optional[int] = None,
-        limit: Optional[int] = None,
-        search: Optional[str] = None,
-        sort_key: Optional[schemas.TopicSortKey] = None,
+        offset: int | None = None,
+        limit: int | None = None,
+        search: str | None = None,
+        sort_key: schemas.TopicSortKey | None = None,
     ) -> dict:
-        params: Dict[str, Union[str, int]] = {}
+        params: Dict[str, str | int] = {}
         if offset is not None:
             params["offset"] = offset
         if limit is not None:

@@ -3,7 +3,7 @@ import json
 import os
 import re
 import sys
-from typing import Any, ClassVar, Dict, List, Optional, Pattern, Set, Tuple
+from typing import Any, ClassVar, Dict, List, Pattern, Set, Tuple
 
 from cyclonedx.exception import MissingOptionalDependencyException
 from cyclonedx.schema import SchemaVersion
@@ -141,7 +141,7 @@ class TrivyCDXComponents(CDXComponents):
         raw_type: str  # library, application, or operating-system
         name: str  # pkgname, lockfile path (etc), or os family
         version: str
-        purl: Optional[PackageURL]
+        purl: PackageURL | None
         mgr_class: str  # lang-pkgs or os-pkgs: only managers know
         mgr_type: str  # detailed mgr name, such as pipenv, poetry...
 

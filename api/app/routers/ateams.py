@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -679,7 +679,7 @@ def get_topic_status(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),  # 10 is default perPage in web/src/pages/Analysis.jsx
     sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.THREAT_IMPACT),
-    search: Optional[str] = Query(None),
+    search: str | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

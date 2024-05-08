@@ -6,7 +6,7 @@ import os
 import sys
 from functools import partial
 from time import sleep
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable, List, Tuple
 from uuid import UUID
 
 import requests
@@ -92,7 +92,7 @@ class ThreatconnectomeClient:
                 _retry -= 1
             sleep(3)
 
-    def upload_tags_file(self, pteam_id: Union[UUID, str], group: str, data: Any, force: bool):
+    def upload_tags_file(self, pteam_id: UUID | str, group: str, data: Any, force: bool):
         params = {
             "group": group,
             "force_mode": force,
@@ -104,7 +104,7 @@ class ThreatconnectomeClient:
         response = self.retry_call(requests.post, url, params=params, files=files)
         return response.json()
 
-    def remove_pteamtags_by_group(self, pteam_id: Union[UUID, str], group: str):
+    def remove_pteamtags_by_group(self, pteam_id: UUID | str, group: str):
         url = f"{self.api_url}/pteams/{pteam_id}/tags"
         self.retry_call(requests.delete, url)
 

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi import Query as QueryParameter
@@ -43,7 +43,7 @@ def create_misp_tag(
 
 @router.get("/search", response_model=List[schemas.MispTagResponse])
 def search_misp_tags(
-    words: Optional[List[str]] = QueryParameter(None),
+    words: List[str] | None = QueryParameter(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

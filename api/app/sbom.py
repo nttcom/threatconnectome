@@ -30,7 +30,7 @@ class SBOMInfo(NamedTuple):
     spec_name: str
     spec_version: str
     tool_name: str
-    tool_version: Optional[str]
+    tool_version: str | None
 
 
 @dataclass
@@ -75,10 +75,10 @@ class TrivyCDXParser(SBOMParser):
         group: str
         name: str
         version: str
-        raw_purl: Optional[str]
+        raw_purl: str | None
         properties: Dict[str, Any]
-        purl: Optional[PackageURL] = field(init=False, repr=False)
-        trivy_class: Optional[str] = field(init=False, repr=False)
+        purl: PackageURL | None = field(init=False, repr=False)
+        trivy_class: str | None = field(init=False, repr=False)
         targets: Set[Target] = field(init=False, repr=False, default_factory=set)
 
         def __post_init__(self):
@@ -121,7 +121,7 @@ class TrivyCDXParser(SBOMParser):
                     return mgr_candidate
             return components_map.get(refs[0])
 
-        def to_tag(self, components_map: Dict[str, Any]) -> Optional[str]:
+        def to_tag(self, components_map: Dict[str, Any]) -> str | None:
             if not self.purl:
                 return None
             pkg_name = (
@@ -253,10 +253,10 @@ class SyftCDXParser(SBOMParser):
         group: str
         name: str
         version: str
-        raw_purl: Optional[str]
+        raw_purl: str | None
         properties: Dict[str, Any]
-        purl: Optional[PackageURL] = field(init=False, repr=False)
-        mgr_info: Optional[PkgMgrInfo] = field(init=False, repr=False)
+        purl: PackageURL | None = field(init=False, repr=False)
+        mgr_info: PkgMgrInfo | None = field(init=False, repr=False)
 
         # https://github.com/anchore/syft/blob/main/syft/pkg/cataloger/ * /cataloger.go
         # Note: pkg_mgr is not defined in syft. use the same value in trivy (if exists).
@@ -296,7 +296,7 @@ class SyftCDXParser(SBOMParser):
             self.purl = PackageURL.from_string(self.raw_purl) if self.raw_purl else None
             self.mgr_info = self._guess_mgr()
 
-        def _guess_mgr(self) -> Optional[PkgMgrInfo]:
+        def _guess_mgr(self) -> PkgMgrInfo | None:
             # https://github.com/anchore/syft/blob/main/syft/pkg/package.go#L24
             # we do not know which is the best to guess pkg_mgr...
             if not (location_0_path := self.properties.get("syft:location:0:path")):
@@ -314,7 +314,7 @@ class SyftCDXParser(SBOMParser):
                         return self.PkgMgrInfo(mgr_name, location_path)  # Eureka!
                 idx += 1
 
-        def to_tag(self) -> Optional[str]:
+        def to_tag(self) -> str | None:
             if not self.purl:
                 return None
             pkg_name = (
@@ -389,7 +389,7 @@ class SyftCDXParser(SBOMParser):
         return list(artifacts_map.values())
 
 
-def inspect_cyclonedx(sbom: SBOM) -> Tuple[str, Optional[str]]:  # tool_name, tool_version
+def inspect_cyclonedx(sbom: SBOM) -> Tuple[str, str | None]:  # tool_name, tool_version
     def _get_tool0(jdata_: dict) -> dict:
         # https://cyclonedx.org/docs/1.5/json/#metadata_tools
         tools_ = jdata_["metadata"]["tools"]
@@ -412,7 +412,7 @@ def inspect_cyclonedx(sbom: SBOM) -> Tuple[str, Optional[str]]:  # tool_name, to
         raise ValueError("Not supported CycloneDX format")
 
 
-def inspect_spdx(sbom: SBOM) -> Tuple[str, Optional[str]]:  # tool_name, tool_version
+def inspect_spdx(sbom: SBOM) -> Tuple[str, str | None]:  # tool_name, tool_version
     raise ValueError("SPDX is not yet supported")
 
 

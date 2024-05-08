@@ -1,6 +1,6 @@
 import json
 import tempfile
-from typing import Any, Dict, List, Optional, Tuple, Type
+from typing import Any, Dict, List, Tuple, Type
 
 import pytest
 from fastapi.testclient import TestClient
@@ -1027,7 +1027,7 @@ class TestAutoClose:
             return action
 
         @staticmethod
-        def gen_simple_ext(tag: str, vulnerables: Optional[List[str]]) -> dict:
+        def gen_simple_ext(tag: str, vulnerables: List[str] | None) -> dict:
             ext: Dict[str, Any] = {"tags": [tag]}
             if vulnerables is not None:
                 ext.update({"vulnerable_versions": {tag: vulnerables}})

@@ -3,7 +3,7 @@ import random
 import string
 import tempfile
 from datetime import datetime
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Sequence, Tuple
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -82,8 +82,8 @@ def create_pteam(user: dict, pteam: dict) -> schemas.PTeamInfo:
 
 def invite_to_pteam(
     user: dict,
-    pteam_id: Union[UUID, str],
-    auth: Optional[List[models.PTeamAuthEnum]] = None,
+    pteam_id: UUID | str,
+    auth: List[models.PTeamAuthEnum] | None = None,
 ) -> schemas.PTeamInvitationResponse:
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
@@ -158,8 +158,8 @@ def create_ateam(user: dict, ateam: dict) -> schemas.ATeamInfo:
 
 def invite_to_ateam(
     user: dict,
-    ateam_id: Union[UUID, str],
-    authes: Optional[List[models.ATeamAuthEnum]] = None,
+    ateam_id: UUID | str,
+    authes: List[models.ATeamAuthEnum] | None = None,
 ) -> schemas.ATeamInvitationResponse:
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
@@ -176,7 +176,7 @@ def invite_to_ateam(
 
 def create_watching_request(
     user: dict,
-    ateam_id: Union[UUID, str],
+    ateam_id: UUID | str,
 ) -> schemas.ATeamWatchingRequestResponse:
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
@@ -240,7 +240,7 @@ def create_misp_tag(user: dict, tag_name: str) -> schemas.MispTagResponse:
 def create_topic(
     user: dict,
     topic: dict,
-    actions: Optional[List[dict]] = None,
+    actions: List[dict] | None = None,
     auto_create_tags: bool = True,
 ) -> schemas.TopicCreateResponse:
     request = {**topic}
@@ -284,8 +284,8 @@ def search_topics(
 def create_action(
     user: dict,
     action: dict,
-    topic_id: Union[str, UUID],
-    ext: Optional[dict] = None,
+    topic_id: str | UUID,
+    ext: dict | None = None,
 ) -> schemas.ActionResponse:
     request: dict = {**action, "topic_id": str(topic_id)}
     if ext is not None:
@@ -300,7 +300,7 @@ def create_actionlog(
     topic_id: UUID,
     user_id: UUID,
     pteam_id: UUID,
-    executed_at: Optional[datetime],
+    executed_at: datetime | None,
 ) -> schemas.ActionLogResponse:
     request = {
         "action_id": str(action_id),

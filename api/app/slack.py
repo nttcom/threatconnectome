@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Sequence, Union
+from typing import Dict, List, Sequence
 from urllib.parse import quote_plus, urljoin
 
 from fastapi import HTTPException, status
@@ -61,7 +61,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
     threat_impact: int,
     groups: List[str],
 ):
-    blocks: List[Dict[str, Union[str, Dict[str, str], List[Dict[str, str]]]]]
+    blocks: List[Dict[str, str | Dict[str, str] | List[Dict[str, str]]]]
     blocks = _block_header(text=pteam_name)
     groups_name = ",".join(groups)
     blocks.extend(
@@ -97,7 +97,7 @@ def _create_blocks_for_ateam(
     action: str,
     action_type: str,
 ):
-    blocks: List[Dict[str, Union[str, Dict[str, str], List[Dict[str, str]]]]]
+    blocks: List[Dict[str, str | Dict[str, str] | List[Dict[str, str]]]]
     blocks = _block_header(text=ateam_name)
     blocks.extend(
         [

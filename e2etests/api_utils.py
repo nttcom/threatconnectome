@@ -1,12 +1,11 @@
 import json
 import os
 import tempfile
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from urllib.parse import urljoin
 from uuid import UUID
 
 import requests
-
 from exceptions import HTTPError
 
 base_url = os.getenv("BASE_URL", "http://localhost")
@@ -65,8 +64,8 @@ def create_pteam(user: dict, pteam: dict):
 def create_topic(
     user: dict,
     topic: dict,
-    actions: Optional[List[dict]] = None,
-    zone_names: Optional[List[str]] = None,
+    actions: List[dict] | None = None,
+    zone_names: List[str] | None = None,
 ):
     request = {**topic}
     if actions is not None:

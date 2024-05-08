@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -45,7 +45,7 @@ def create_tag(
 
 @router.get("/search", response_model=List[schemas.TagResponse])
 def search_tags(
-    words: Optional[List[str]] = QueryParameter(None),
+    words: List[str] | None = QueryParameter(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

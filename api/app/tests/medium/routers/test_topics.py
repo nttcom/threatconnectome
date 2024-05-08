@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from uuid import UUID, uuid4
 
 import pytest
@@ -527,7 +527,7 @@ def test_create_topic_actions__with_action_id():
     parent1 = create_tag(USER1, "alpha:alpha:")
     child11 = create_tag(USER1, "alpha:alpha:alpha1")
 
-    def _gen_action(action_id: Optional[UUID]) -> dict:
+    def _gen_action(action_id: UUID | None) -> dict:
         return {
             "action_id": str(action_id) if action_id else None,
             "action": f"action for {action_id}",
