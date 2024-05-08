@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -42,7 +41,7 @@ def _make_ateam_info(ateam: models.ATeam) -> schemas.ATeamInfo:
     )
 
 
-@router.get("", response_model=List[schemas.ATeamEntry])
+@router.get("", response_model=list[schemas.ATeamEntry])
 def get_ateams(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
 ):
@@ -255,10 +254,10 @@ def update_ateam(
     return ret
 
 
-@router.post("/{ateam_id}/authority", response_model=List[schemas.ATeamAuthResponse])
+@router.post("/{ateam_id}/authority", response_model=list[schemas.ATeamAuthResponse])
 def update_ateam_auth(
     ateam_id: UUID,
-    requests: List[schemas.ATeamAuthRequest],
+    requests: list[schemas.ATeamAuthRequest],
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -328,7 +327,7 @@ def update_ateam_auth(
     return response
 
 
-@router.get("/{ateam_id}/authority", response_model=List[schemas.ATeamAuthResponse])
+@router.get("/{ateam_id}/authority", response_model=list[schemas.ATeamAuthResponse])
 def get_ateam_auth(
     ateam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -357,7 +356,7 @@ def get_ateam_auth(
     return response
 
 
-@router.get("/{ateam_id}/members", response_model=List[schemas.UserResponse])
+@router.get("/{ateam_id}/members", response_model=list[schemas.UserResponse])
 def get_ateam_members(
     ateam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -465,7 +464,7 @@ def create_invitation(
     return ret
 
 
-@router.get("/{ateam_id}/invitation", response_model=List[schemas.ATeamInvitationResponse])
+@router.get("/{ateam_id}/invitation", response_model=list[schemas.ATeamInvitationResponse])
 def list_invitation(
     ateam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -533,7 +532,7 @@ def invited_ateam(invitation_id: UUID, db: Session = Depends(get_db)):
     return resp
 
 
-@router.get("/{ateam_id}/watching_pteams", response_model=List[schemas.PTeamEntry])
+@router.get("/{ateam_id}/watching_pteams", response_model=list[schemas.PTeamEntry])
 def get_watching_pteams(
     ateam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -606,7 +605,7 @@ def create_watching_request(
 
 
 @router.get(
-    "/{ateam_id}/watching_request", response_model=List[schemas.ATeamWatchingRequestResponse]
+    "/{ateam_id}/watching_request", response_model=list[schemas.ATeamWatchingRequestResponse]
 )
 def list_watching_request(
     ateam_id: UUID,
@@ -713,7 +712,7 @@ def get_topic_status(
     def _pick_pteam(pteams_, pteam_id_):
         return next(filter(lambda x: x["pteam_id"] == pteam_id_, pteams_), None)
 
-    summary: List[dict] = []
+    summary: list[dict] = []
     for row in rows:
         if (
             row.PTeamTopicTagStatus
@@ -777,7 +776,7 @@ def get_topic_status(
 
 
 @router.get(
-    "/{ateam_id}/topiccomment/{topic_id}", response_model=List[schemas.ATeamTopicCommentResponse]
+    "/{ateam_id}/topiccomment/{topic_id}", response_model=list[schemas.ATeamTopicCommentResponse]
 )
 def get_topic_comments(
     ateam_id: UUID,

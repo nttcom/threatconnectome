@@ -6,7 +6,6 @@ from typing import (
     Any,
     ClassVar,
     Dict,
-    List,
     NamedTuple,
     Optional,
     Pattern,
@@ -59,7 +58,7 @@ class Artifact:
 class SBOMParser(ABC):
     @classmethod
     @abstractmethod
-    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
+    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
         raise NotImplementedError()
 
 
@@ -95,7 +94,7 @@ class TrivyCDXParser(SBOMParser):
             #   syft sees /etc/os-release, but trivy sees /etc/redhat-release.
             #   if the contents differ, it causes distro mismatch.
             #   we fix the mismatch here as far as we found out.
-            fix_rules: List[Tuple[Pattern[str], str]] = [
+            fix_rules: list[Tuple[Pattern[str], str]] = [
                 (re.compile(r"^(centos-[0-9]+)\..+$"), r"\1"),
                 (re.compile(r"^(debian-[0-9]+)\..+$"), r"\1"),
             ]
@@ -106,7 +105,7 @@ class TrivyCDXParser(SBOMParser):
         @staticmethod
         def _find_pkg_mgr(
             components_map: Dict[str, "TrivyCDXParser.CDXComponent"],
-            refs: List[str],
+            refs: list[str],
         ) -> Optional["TrivyCDXParser.CDXComponent"]:
             if not refs:
                 return None
@@ -145,7 +144,7 @@ class TrivyCDXParser(SBOMParser):
             return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
 
     @classmethod
-    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
+    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
             or sbom_info.spec_version not in {"1.5"}
@@ -160,7 +159,7 @@ class TrivyCDXParser(SBOMParser):
         return actual_parse_func(sbom)
 
     @classmethod
-    def parse_func_1_5(cls, sbom: SBOM) -> List[Artifact]:
+    def parse_func_1_5(cls, sbom: SBOM) -> list[Artifact]:
         meta_component = sbom.get("metadata", {}).get("component")
         raw_components = sbom.get("components", [])
 
@@ -260,7 +259,7 @@ class SyftCDXParser(SBOMParser):
 
         # https://github.com/anchore/syft/blob/main/syft/pkg/cataloger/ * /cataloger.go
         # Note: pkg_mgr is not defined in syft. use the same value in trivy (if exists).
-        location_to_pkg_mgr: ClassVar[List[Tuple[str, Pattern[str]]]] = [
+        location_to_pkg_mgr: ClassVar[list[Tuple[str, Pattern[str]]]] = [
             ("conan", re.compile(r"conanfile\.txt$")),  # cpp
             ("conan", re.compile(r"conan\.lock$")),  # cpp
             ("pub", re.compile(r"pubspec\.lock$")),  # dart
@@ -331,7 +330,7 @@ class SyftCDXParser(SBOMParser):
             return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
 
     @classmethod
-    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
+    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
             or sbom_info.spec_version not in {"1.4", "1.5"}
@@ -347,7 +346,7 @@ class SyftCDXParser(SBOMParser):
         return actual_parse_func(sbom)
 
     @classmethod
-    def parse_func_1_4(cls, sbom: SBOM) -> List[Artifact]:
+    def parse_func_1_4(cls, sbom: SBOM) -> list[Artifact]:
         meta_component = sbom.get("metadata", {}).get("component")
         raw_components = sbom.get("components", [])
 
@@ -440,7 +439,7 @@ SBOM_PARSERS: Dict[Tuple[str, str], Type[SBOMParser]] = {
 }
 
 
-def sbom_json_to_artifact_json_lines(jdata: dict) -> List[dict]:
+def sbom_json_to_artifact_json_lines(jdata: dict) -> list[dict]:
     sbom: SBOM = jdata
     sbom_info = inspect_sbom(sbom)
     sbom_parser = SBOM_PARSERS.get((sbom_info.spec_name, sbom_info.tool_name))

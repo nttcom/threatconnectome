@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Sequence
+from typing import Dict, Sequence
 from urllib.parse import quote_plus, urljoin
 
 from fastapi import HTTPException, status
@@ -59,9 +59,9 @@ def create_slack_pteam_alert_blocks_for_new_topic(
     topic_id: str,
     title: str,
     threat_impact: int,
-    groups: List[str],
+    groups: list[str],
 ):
-    blocks: List[Dict[str, str | Dict[str, str] | List[Dict[str, str]]]]
+    blocks: list[Dict[str, str | Dict[str, str] | list[Dict[str, str]]]]
     blocks = _block_header(text=pteam_name)
     groups_name = ",".join(groups)
     blocks.extend(
@@ -97,7 +97,7 @@ def _create_blocks_for_ateam(
     action: str,
     action_type: str,
 ):
-    blocks: List[Dict[str, str | Dict[str, str] | List[Dict[str, str]]]]
+    blocks: list[Dict[str, str | Dict[str, str] | list[Dict[str, str]]]]
     blocks = _block_header(text=ateam_name)
     blocks.extend(
         [
@@ -133,7 +133,7 @@ def _create_blocks_for_ateam(
     return blocks
 
 
-def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> List[dict]:
+def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> list[dict]:
     if action.topic.disabled:
         return []
     select_stmt = (

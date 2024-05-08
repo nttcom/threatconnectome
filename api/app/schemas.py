@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List
+from typing import Dict
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -66,7 +66,7 @@ class ATeamEntry(ORMModel):
 class ATeamInfo(ATeamEntry):
     alert_slack: Slack
     alert_mail: Mail
-    pteams: List[PTeamEntry]
+    pteams: list[PTeamEntry]
 
 
 class UserResponse(ORMModel):
@@ -75,8 +75,8 @@ class UserResponse(ORMModel):
     email: str
     disabled: bool
     years: int
-    pteams: List[PTeamEntry]
-    ateams: List[ATeamEntry]
+    pteams: list[PTeamEntry]
+    ateams: list[ATeamEntry]
 
 
 class UserCreateRequest(ORMModel):
@@ -104,7 +104,7 @@ class TagRequest(ORMModel):
 
 
 class ExtTagRequest(TagRequest):
-    references: List[dict] | None = []
+    references: list[dict] | None = []
 
 
 class TagResponse(ORMModel):
@@ -115,21 +115,21 @@ class TagResponse(ORMModel):
 
 
 class ExtTagResponse(TagResponse):
-    references: List[dict] = []
+    references: list[dict] = []
 
 
 class PTeamGroupResponse(ORMModel):
-    groups: List[str] = []
+    groups: list[str] = []
 
 
 class PTeamtagRequest(ORMModel):
-    references: List[dict] | None = None
+    references: list[dict] | None = None
 
 
 class PTeamtagResponse(ORMModel):
     pteam_id: UUID
     tag_id: UUID
-    references: List[dict]
+    references: list[dict]
 
 
 class PTeamtagExtResponse(PTeamtagResponse):
@@ -170,12 +170,12 @@ class Topic(TopicEntry):
 
 
 class TopicResponse(Topic):
-    tags: List[TagResponse]
-    misp_tags: List[MispTagResponse]
+    tags: list[TagResponse]
+    misp_tags: list[MispTagResponse]
 
 
 class TopicCreateResponse(TopicResponse):
-    actions: List[ActionResponse]
+    actions: list[ActionResponse]
 
 
 class SearchTopicsResponse(ORMModel):
@@ -183,13 +183,13 @@ class SearchTopicsResponse(ORMModel):
     offset: int | None = None
     limit: int | None = None
     sort_key: TopicSortKey
-    topics: List[TopicEntry]
+    topics: list[TopicEntry]
 
 
 class TopicActionsResponse(ORMModel):
     topic_id: UUID
     pteam_id: UUID
-    actions: List[ActionResponse]
+    actions: list[ActionResponse]
 
 
 class ActionCreateRequest(ORMModel):
@@ -200,8 +200,8 @@ class ActionCreateRequest(ORMModel):
     recommended: bool = False
     ext: dict = {}
     # {
-    #   tags: List[str] = [],
-    #   vulnerable_versions: Dict[str, List[dict]] = {},  # see around auto-close for detail.
+    #   tags: list[str] = [],
+    #   vulnerable_versions: Dict[str, list[dict]] = {},  # see around auto-close for detail.
     # }
 
 
@@ -216,9 +216,9 @@ class TopicCreateRequest(ORMModel):
     title: str
     abstract: str
     threat_impact: int
-    tags: List[str] = []
-    misp_tags: List[str] = []
-    actions: List[ActionCreateRequest] = []
+    tags: list[str] = []
+    misp_tags: list[str] = []
+    actions: list[ActionCreateRequest] = []
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -227,8 +227,8 @@ class TopicUpdateRequest(ORMModel):
     title: str | None = None
     abstract: str | None = None
     threat_impact: int | None = None
-    tags: List[str] | None = None
-    misp_tags: List[str] | None = None
+    tags: list[str] | None = None
+    misp_tags: list[str] | None = None
     disabled: bool | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
@@ -237,7 +237,7 @@ class TopicUpdateRequest(ORMModel):
 class PTeamInfo(PTeamEntry):
     alert_slack: Slack
     alert_threat_impact: int
-    ateams: List[ATeamEntry]
+    ateams: list[ATeamEntry]
     alert_mail: Mail
 
     _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
@@ -280,24 +280,24 @@ class PTeamAuthInfo(ORMModel):
         name: str
         uuid: UUID
 
-    authorities: List[PTeamAuthEntry]
-    pseudo_uuids: List[PseudoUUID]
+    authorities: list[PTeamAuthEntry]
+    pseudo_uuids: list[PseudoUUID]
 
 
 class PTeamAuthRequest(ORMModel):
     user_id: UUID
-    authorities: List[PTeamAuthEnum]
+    authorities: list[PTeamAuthEnum]
 
 
 class PTeamAuthResponse(ORMModel):
     user_id: UUID
-    authorities: List[PTeamAuthEnum]
+    authorities: list[PTeamAuthEnum]
 
 
 class PTeamInvitationRequest(ORMModel):
     expiration: datetime
     limit_count: int | None = None
-    authorities: List[PTeamAuthEnum] | None = None  # require ADMIN for not-None
+    authorities: list[PTeamAuthEnum] | None = None  # require ADMIN for not-None
 
 
 class PTeamInvitationResponse(ORMModel):
@@ -306,7 +306,7 @@ class PTeamInvitationResponse(ORMModel):
     expiration: datetime
     limit_count: int | None = None  # None for unlimited
     used_count: int
-    authorities: List[PTeamAuthEnum]
+    authorities: list[PTeamAuthEnum]
 
 
 class PTeamInviterResponse(ORMModel):
@@ -344,24 +344,24 @@ class ATeamAuthInfo(ORMModel):
         name: str
         uuid: UUID
 
-    authorities: List[ATeamAuthEntry]
-    pseudo_uuids: List[PseudoUUID]
+    authorities: list[ATeamAuthEntry]
+    pseudo_uuids: list[PseudoUUID]
 
 
 class ATeamAuthRequest(ORMModel):
     user_id: UUID
-    authorities: List[ATeamAuthEnum]
+    authorities: list[ATeamAuthEnum]
 
 
 class ATeamAuthResponse(ORMModel):
     user_id: UUID
-    authorities: List[ATeamAuthEnum]
+    authorities: list[ATeamAuthEnum]
 
 
 class ATeamInvitationRequest(ORMModel):
     expiration: datetime
     limit_count: int | None = None  # None for unlimited
-    authorities: List[ATeamAuthEnum] | None = None  # require ADMIN for not-None
+    authorities: list[ATeamAuthEnum] | None = None  # require ADMIN for not-None
 
 
 class ATeamInvitationResponse(ORMModel):
@@ -370,7 +370,7 @@ class ATeamInvitationResponse(ORMModel):
     expiration: datetime
     limit_count: int | None = None
     used_count: int
-    authorities: List[ATeamAuthEnum]
+    authorities: list[ATeamAuthEnum]
 
 
 class ATeamInviterResponse(ORMModel):
@@ -429,8 +429,8 @@ class ActionLogRequest(ORMModel):
 
 class TopicStatusRequest(ORMModel):
     topic_status: TopicStatusType
-    logging_ids: List[UUID] = []
-    assignees: List[UUID] = []
+    logging_ids: list[UUID] = []
+    assignees: list[UUID] = []
     note: str | None = None
     scheduled_at: datetime | None = None
 
@@ -443,17 +443,17 @@ class TopicStatusResponse(ORMModel):
     user_id: UUID | None = None
     topic_status: TopicStatusType | None = None
     created_at: datetime | None = None
-    assignees: List[UUID] = []
+    assignees: list[UUID] = []
     note: str | None = None
     scheduled_at: datetime | None = None
-    action_logs: List[ActionLogResponse] = []
+    action_logs: list[ActionLogResponse] = []
 
 
 class PTeamTaggedTopics(ORMModel):
     pteam_id: UUID
     tag_id: UUID
     threat_impact_count: Dict[str, int]
-    topic_ids: List[UUID]
+    topic_ids: list[UUID]
 
 
 class PTeamTopicStatusSummary(ORMModel):
@@ -466,7 +466,7 @@ class PTeamTopicStatusSummary(ORMModel):
 
 class PTeamTopicStatusesSummary(ORMModel):
     tag_id: UUID
-    topics: List[PTeamTopicStatusSummary]
+    topics: list[PTeamTopicStatusSummary]
 
 
 class FsAction(ORMModel):
@@ -479,7 +479,7 @@ class FsAction(ORMModel):
 
 class FsTopicSummary(ORMModel):
     abstract: str
-    actions: List[FsAction]
+    actions: list[FsAction]
 
 
 class PTeamTagSummary(ExtTagResponse):
@@ -492,7 +492,7 @@ class PTeamTagSummary(ExtTagResponse):
 
 class PTeamTagsSummary(ORMModel):
     threat_impact_count: Dict[str, int]  # str(threat_impact): tags count
-    tags: List[PTeamTagSummary]
+    tags: list[PTeamTagSummary]
 
 
 class SlackCheckRequest(ORMModel):
@@ -512,14 +512,14 @@ class PTeamTopicTagStatusSimple(ORMModel):
     pteam_id: UUID
     tag: TagResponse
     topic_status: TopicStatusType
-    assignees: List[UUID] = []
+    assignees: list[UUID] = []
     scheduled_at: datetime | None = None
 
 
 class PTeamTopicStatuses(ORMModel):
     pteam_id: UUID
     pteam_name: str
-    statuses: List[PTeamTopicTagStatusSimple]
+    statuses: list[PTeamTopicTagStatusSimple]
 
 
 class ATeamTopicStatus(ORMModel):
@@ -528,7 +528,7 @@ class ATeamTopicStatus(ORMModel):
     threat_impact: int
     updated_at: datetime
     num_pteams: int
-    pteams: List[PTeamTopicStatuses]
+    pteams: list[PTeamTopicStatuses]
 
 
 class ATeamTopicStatusResponse(ORMModel):
@@ -537,7 +537,7 @@ class ATeamTopicStatusResponse(ORMModel):
     limit: int | None = None
     search: str | None = None
     sort_key: str
-    topic_statuses: List[ATeamTopicStatus]
+    topic_statuses: list[ATeamTopicStatus]
 
 
 class ATeamTopicCommentRequest(ORMModel):

@@ -1,7 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Dict, List, cast
+from typing import Dict, cast
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
@@ -72,13 +72,13 @@ class PTeamAuthIntFlag(enum.IntFlag):
     FREE_TEMPLATE = 0
 
     @classmethod
-    def from_enums(cls, datas: List[PTeamAuthEnum]):
+    def from_enums(cls, datas: list[PTeamAuthEnum]):
         result = 0
         for data in datas:
             result |= 1 << data.to_int()
         return PTeamAuthIntFlag(result)
 
-    def to_enums(self) -> List[PTeamAuthEnum]:
+    def to_enums(self) -> list[PTeamAuthEnum]:
         result = []
         for data in list(PTeamAuthEnum):
             if self & 1 << data.to_int():
@@ -128,13 +128,13 @@ class ATeamAuthIntFlag(enum.IntFlag):
     FREE_TEMPLATE = 0
 
     @classmethod
-    def from_enums(cls, datas: List[ATeamAuthEnum]):
+    def from_enums(cls, datas: list[ATeamAuthEnum]):
         result = 0
         for data in datas:
             result |= 1 << data.to_int()
         return ATeamAuthIntFlag(result)
 
-    def to_enums(self) -> List[ATeamAuthEnum]:
+    def to_enums(self) -> list[ATeamAuthEnum]:
         result = []
         for data in list(ATeamAuthEnum):
             if self & 1 << data.to_int():
@@ -162,8 +162,8 @@ class Base(DeclarativeBase):
             StrUUID: String(36),
             Str255: String(255),
             dict: JSON,
-            List[dict]: ARRAY(JSON),
-            List[StrUUID]: ARRAY(String(36)),
+            list[dict]: ARRAY(JSON),
+            list[StrUUID]: ARRAY(String(36)),
         }
     )
 
@@ -478,8 +478,8 @@ class PTeamTopicTagStatus(Base):
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     topic_status: Mapped[TopicStatusType]
     note: Mapped[str | None]
-    logging_ids: Mapped[List[StrUUID]] = mapped_column(default=[])
-    assignees: Mapped[List[StrUUID]] = mapped_column(default=[])
+    logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
+    assignees: Mapped[list[StrUUID]] = mapped_column(default=[])
     scheduled_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
 

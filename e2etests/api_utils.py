@@ -1,7 +1,7 @@
 import json
 import os
 import tempfile
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 from urllib.parse import urljoin
 from uuid import UUID
 
@@ -64,8 +64,8 @@ def create_pteam(user: dict, pteam: dict):
 def create_topic(
     user: dict,
     topic: dict,
-    actions: List[dict] | None = None,
-    zone_names: List[str] | None = None,
+    actions: list[dict] | None = None,
+    zone_names: list[str] | None = None,
 ):
     request = {**topic}
     if actions is not None:
@@ -87,7 +87,7 @@ def upload_pteam_tags(
     user: dict,
     pteam_id: UUID | str,
     group: str,
-    ext_tags: Dict[str, List[Tuple[str, str]]],  # {tag: [(target, version), ...]}
+    ext_tags: Dict[str, list[Tuple[str, str]]],  # {tag: [(target, version), ...]}
     force_mode: bool = True,
 ) -> dict:
     params = {"group": group, "force_mode": str(force_mode)}

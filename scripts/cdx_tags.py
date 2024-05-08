@@ -3,7 +3,7 @@ import json
 import os
 import re
 import sys
-from typing import Any, ClassVar, Dict, List, Pattern, Set, Tuple
+from typing import Any, ClassVar, Dict, Pattern, Set, Tuple
 
 from cyclonedx.exception import MissingOptionalDependencyException
 from cyclonedx.schema import SchemaVersion
@@ -14,9 +14,9 @@ REP_DELIMITER = "__>>__"
 SUPPORTED_TOOLS = ["syft", "trivy"]
 
 
-ARGUMENTS: List[Tuple[str, dict]] = []
+ARGUMENTS: list[Tuple[str, dict]] = []
 
-OPTIONS: List[Tuple[str, str, dict]] = [
+OPTIONS: list[Tuple[str, str, dict]] = [
     (
         "-i",
         "--infile",
@@ -82,13 +82,13 @@ OPTIONS: List[Tuple[str, str, dict]] = [
 ]
 
 
-def _pick_prop(props_: List[Dict[str, Any]], name_: str) -> str:
+def _pick_prop(props_: list[Dict[str, Any]], name_: str) -> str:
     return (next(filter(lambda x: x.get("name") == name_, props_), None) or {}).get("value") or ""
 
 
 class CDXComponents:
-    replace_rules: List[Tuple[Pattern, str]] = []
-    skip_rules: List[Pattern] = []
+    replace_rules: list[Tuple[Pattern, str]] = []
+    skip_rules: list[Pattern] = []
     components: Dict[str, Set[Tuple[str, str]]]  # {tag: {(version, target)}}
 
     def __init__(self, args: argparse.Namespace, jdata: dict):
@@ -113,7 +113,7 @@ class CDXComponents:
                 print(f"Error: Invalid -s option: {skip_rule}", file=sys.stderr)
                 sys.exit(2)
 
-    def list_tags(self) -> List[dict]:
+    def list_tags(self) -> list[dict]:
         return sorted(
             [
                 {
@@ -183,7 +183,7 @@ class TrivyCDXComponents(CDXComponents):
         #   syft sees /etc/os-release, but trivy sees /etc/redhat-release.
         #   if the contents differ, it causes distro mismatch.
         #   we fix the mismatch here as far as we found out.
-        fix_rules: List[Tuple[Pattern[str], str]] = [
+        fix_rules: list[Tuple[Pattern[str], str]] = [
             (re.compile(r"^(centos-[0-9]+)\..+$"), r"\1"),
             (re.compile(r"^(debian-[0-9]+)\..+$"), r"\1"),
         ]
@@ -267,7 +267,7 @@ class TrivyCDXComponents(CDXComponents):
 
 class SyftCDXComponents(CDXComponents):
     # https://github.com/anchore/syft/blob/main/syft/pkg/type.go
-    supported_pkg_types: ClassVar[List[str]] = [
+    supported_pkg_types: ClassVar[list[str]] = [
         # 'UnknownPackage',
         "alpm",
         "apk",
@@ -292,7 +292,7 @@ class SyftCDXComponents(CDXComponents):
         "rpm",
         "rust-crate",
     ]
-    os_pkg_types: ClassVar[List[str]] = [
+    os_pkg_types: ClassVar[list[str]] = [
         "alpm",
         "apk",
         "deb",
@@ -303,7 +303,7 @@ class SyftCDXComponents(CDXComponents):
     # https://github.com/anchore/syft/blob/main/syft/pkg/cataloger/ * /cataloger.go
     # Note:
     #   pkg_mgr is not defined in syft. use the same value in trivy (if exists).
-    location_to_pkg_mgr: ClassVar[List[Tuple[str, Pattern[str]]]] = [
+    location_to_pkg_mgr: ClassVar[list[Tuple[str, Pattern[str]]]] = [
         ("conan", re.compile(r"conanfile\.txt$")),  # cpp
         ("conan", re.compile(r"conan\.lock$")),  # cpp
         ("pub", re.compile(r"pubspec\.lock$")),  # dart
@@ -332,7 +332,7 @@ class SyftCDXComponents(CDXComponents):
     ]
 
     @classmethod
-    def _resolve_pkg_mgr(cls, locations: List[str]) -> str:
+    def _resolve_pkg_mgr(cls, locations: list[str]) -> str:
         if not locations or not locations[0]:
             return ""
         tgt = os.path.basename(locations[0])
@@ -348,7 +348,7 @@ class SyftCDXComponents(CDXComponents):
         return target
 
     @staticmethod
-    def _pick_locations(props_: List[Dict[str, str]]) -> List[str]:
+    def _pick_locations(props_: list[Dict[str, str]]) -> list[str]:
         loc_regex = re.compile("^syft:location:[0-9]+:path$")
         return [prop_["value"] for prop_ in props_ if loc_regex.match(prop_["name"])]
 

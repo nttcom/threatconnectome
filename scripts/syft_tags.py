@@ -4,7 +4,7 @@ import argparse
 import json
 import re
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, Tuple
 
 from packageurl import PackageURL
 
@@ -75,7 +75,7 @@ def main() -> None:
     args.syftresult.close()
     json_contents = json.loads(syft_result)
 
-    replace_rules: List[Tuple] = []
+    replace_rules: list[Tuple] = []
     for rep_rule in args.replace_rules or []:
         try:
             rep_regex, replaced = rep_rule.rsplit(REP_DELIMITER, 1)

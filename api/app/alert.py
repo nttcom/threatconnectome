@@ -1,5 +1,5 @@
 import os
-from typing import List, Sequence, Tuple
+from typing import Sequence, Tuple
 from urllib.parse import urljoin
 from uuid import UUID
 
@@ -126,7 +126,7 @@ def create_mail_alert_for_new_topic(
     pteam_id: UUID | str,
     tag_name: str,  # should be pteamtag, not topictag
     tag_id: UUID | str,  # should be pteamtag, not topictag
-    groups: List[str],
+    groups: list[str],
 ) -> Tuple[str, str]:  # subject, body
     threat_impact_label = {
         1: "Immediate",

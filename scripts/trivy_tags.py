@@ -4,7 +4,7 @@ import argparse
 import json
 import re
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, Tuple
 
 lang_package_managers = {
     # packager manager: package location
@@ -106,7 +106,7 @@ def main() -> None:
     metadata = json_contents.get("Metadata")
     results = json_contents.get("Results")
 
-    replace_rules: List[Tuple] = []
+    replace_rules: list[Tuple] = []
     for rep_rule in args.replace_rules or []:
         try:
             rep_regex, replaced = rep_rule.rsplit(REP_DELIMITER, 1)

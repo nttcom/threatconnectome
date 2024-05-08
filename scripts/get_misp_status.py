@@ -6,7 +6,7 @@ import os
 import sys
 from functools import partial
 from time import sleep
-from typing import Callable, Dict, List, Set, Tuple
+from typing import Callable, Dict, Set, Tuple
 from uuid import UUID
 
 import requests
@@ -96,7 +96,7 @@ class ThreatconnectomeClient:
                 _retry -= 1
             sleep(3)
 
-    def get_pteam_tags(self, pteam_id: UUID | str) -> List[dict]:
+    def get_pteam_tags(self, pteam_id: UUID | str) -> list[dict]:
         url = f"{self.api_url}/pteams/{pteam_id}/tags"
         response = self.retry_call(requests.get, url)
         return response.json()
@@ -127,7 +127,7 @@ class ThreatconnectomeClient:
         return response.json()
 
 
-ARGUMENTS: List[Tuple[str, dict]] = [
+ARGUMENTS: list[Tuple[str, dict]] = [
     (
         "pteam_id",
         {
@@ -141,7 +141,7 @@ ARGUMENTS: List[Tuple[str, dict]] = [
         },
     ),
 ]
-OPTIONS: List[Tuple[str, str, dict]] = [
+OPTIONS: list[Tuple[str, str, dict]] = [
     (
         "-e",
         "--endpoint",
@@ -168,8 +168,8 @@ def trace_message(*args, **kwargs):
     sys.stderr.flush()
 
 
-def _divide_tag_groups(tags: List[dict]) -> Dict[str | None, List[str]]:
-    ret_dict: Dict[str | None, List[str]] = {}  # {parent_id: [tag_ids]}
+def _divide_tag_groups(tags: list[dict]) -> Dict[str | None, list[str]]:
+    ret_dict: Dict[str | None, list[str]] = {}  # {parent_id: [tag_ids]}
     for tag in tags:
         tag_id = tag["tag_id"]
         parent_id = tag["parent_id"]
@@ -179,7 +179,7 @@ def _divide_tag_groups(tags: List[dict]) -> Dict[str | None, List[str]]:
     return ret_dict
 
 
-def _pick_overlapped_pteam_tag_ids(topic_tags: List[dict], pteam_tags: List[dict]) -> Set[str]:
+def _pick_overlapped_pteam_tag_ids(topic_tags: list[dict], pteam_tags: list[dict]) -> Set[str]:
     overlapped_pteam_tag_ids: Set[str] = set()
     topic_tag_groups = _divide_tag_groups(topic_tags)
     pteam_tag_groups = _divide_tag_groups(pteam_tags)
@@ -250,7 +250,7 @@ def main(args: argparse.Namespace) -> None:
 
     # get topic statuses for each pteam tags
     solved_topic_tags = []
-    unsolved_topic_statuses: Dict[str, List[dict]] = {}  # topic_id: [status, ...]
+    unsolved_topic_statuses: Dict[str, list[dict]] = {}  # topic_id: [status, ...]
     for topic_id, pteam_tag_ids in pteamtags_for_topics.items():
         statuses = []
         for pteam_tag_id in pteam_tag_ids:

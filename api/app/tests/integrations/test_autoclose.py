@@ -1,6 +1,6 @@
 import json
 import tempfile
-from typing import Any, Dict, List, Tuple, Type
+from typing import Any, Dict, Tuple, Type
 
 import pytest
 from fastapi.testclient import TestClient
@@ -89,13 +89,13 @@ def test_auto_close_topic():
     }
 
     def _extract_ext_tags(
-        _ext_tags: List[dict],
+        _ext_tags: list[dict],
     ) -> Tuple[
-        Dict[str, dict[str, List[Tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
-        Dict[str, List[dict]],  # {tag: [references,...]}
+        Dict[str, dict[str, list[Tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        Dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
-        _tag_to_refs_list: Dict[str, List[dict]] = {}
+        _group_to_tags: Dict[str, Dict[str, list[Tuple[str, str]]]] = {}
+        _tag_to_refs_list: Dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
@@ -302,13 +302,13 @@ def test_auto_close_topic__parent():
     }
 
     def _extract_ext_tags(
-        _ext_tags: List[dict],
+        _ext_tags: list[dict],
     ) -> Tuple[
-        Dict[str, dict[str, List[Tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
-        Dict[str, List[dict]],  # {tag: [references,...]}
+        Dict[str, dict[str, list[Tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        Dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
-        _tag_to_refs_list: Dict[str, List[dict]] = {}
+        _group_to_tags: Dict[str, Dict[str, list[Tuple[str, str]]]] = {}
+        _tag_to_refs_list: Dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
@@ -582,13 +582,13 @@ def test_auto_close_by_pteamtags():
     )
 
     def _extract_ext_tags(
-        _ext_tags: List[dict],
+        _ext_tags: list[dict],
     ) -> Tuple[
-        Dict[str, dict[str, List[Tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
-        Dict[str, List[dict]],  # {tag: [references,...]}
+        Dict[str, dict[str, list[Tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        Dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
-        _tag_to_refs_list: Dict[str, List[dict]] = {}
+        _group_to_tags: Dict[str, Dict[str, list[Tuple[str, str]]]] = {}
+        _tag_to_refs_list: Dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
@@ -1027,7 +1027,7 @@ class TestAutoClose:
             return action
 
         @staticmethod
-        def gen_simple_ext(tag: str, vulnerables: List[str] | None) -> dict:
+        def gen_simple_ext(tag: str, vulnerables: list[str] | None) -> dict:
             ext: Dict[str, Any] = {"tags": [tag]}
             if vulnerables is not None:
                 ext.update({"vulnerable_versions": {tag: vulnerables}})

@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -14,7 +13,7 @@ from app.database import get_db
 router = APIRouter(prefix="/tags", tags=["tags"])
 
 
-@router.get("", response_model=List[schemas.TagResponse])
+@router.get("", response_model=list[schemas.TagResponse])
 def get_tags(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
 ):
@@ -43,9 +42,9 @@ def create_tag(
     return tag
 
 
-@router.get("/search", response_model=List[schemas.TagResponse])
+@router.get("/search", response_model=list[schemas.TagResponse])
 def search_tags(
-    words: List[str] | None = QueryParameter(None),
+    words: list[str] | None = QueryParameter(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

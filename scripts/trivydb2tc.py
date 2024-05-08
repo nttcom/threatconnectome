@@ -10,7 +10,7 @@ from functools import partial
 from hashlib import md5
 from pathlib import Path
 from time import sleep
-from typing import Callable, Dict, List, Set, Tuple
+from typing import Callable, Dict, Set, Tuple
 
 import requests
 from boltdb import BoltDB
@@ -402,7 +402,7 @@ def make_update_action(pkg_name, version_details: dict):
     return action, vulnerable_versions
 
 
-def _gen_action_id(topic_id: uuid.UUID | str, tags: List[str], action: str) -> str:
+def _gen_action_id(topic_id: uuid.UUID | str, tags: list[str], action: str) -> str:
     random.seed(f"{topic_id}-{','.join(tags)}-{action}")
     return str(uuid.UUID(int=random.getrandbits(128), version=4))
 

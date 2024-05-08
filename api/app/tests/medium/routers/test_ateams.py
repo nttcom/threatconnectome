@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict
 from uuid import UUID
 
 import pytest
@@ -928,7 +928,7 @@ def test_get_members():
     invitation = invite_to_ateam(USER1, ateam1.ateam_id)
     accept_ateam_invitation(USER2, invitation.invitation_id)
 
-    def _find_user(user_list: List[dict], user_id: UUID) -> dict:
+    def _find_user(user_list: list[dict], user_id: UUID) -> dict:
         return [user for user in user_list if UUID(user["user_id"]) == user_id][0]
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/members", headers=headers(USER1)))
@@ -1102,7 +1102,7 @@ def test_get_watching_pteams():
     watching_request1 = create_watching_request(USER1, ateam1.ateam_id)
     accept_watching_request(USER1, watching_request1.request_id, pteam1.pteam_id)
 
-    def _find_pteam(pteam_list: List[dict], pteam_id: UUID) -> dict:
+    def _find_pteam(pteam_list: list[dict], pteam_id: UUID) -> dict:
         return [pteam for pteam in pteam_list if UUID(pteam["pteam_id"]) == pteam_id][0]
 
     data = assert_200(
