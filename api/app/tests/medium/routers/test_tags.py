@@ -123,7 +123,7 @@ def test_get_tags():
 
 @pytest.mark.parametrize(
     "tag_name",
-    ["a1:a2:", "b1:b2:b3"],
+    ["a1:a2", "b1:b2:b3", "c1:c2:"],
 )
 def test_it_should_return_tag_data_when_it_requested_existing_tagid(tag_name):
     # Given
@@ -138,10 +138,10 @@ def test_it_should_return_tag_data_when_it_requested_existing_tagid(tag_name):
 
     # Then
     # 取得したデータには、タグ作成時と同じ情報が含まれている
-    assert fetched_tag["tag_id"] == str(tag.tag_id)
-    assert fetched_tag["tag_name"] == str(tag.tag_name)
-    assert fetched_tag["parent_id"] == str(tag.parent_id)
-    assert fetched_tag["parent_name"] == str(tag.parent_name)
+    assert str(fetched_tag["tag_id"]) == str(tag.tag_id)
+    assert str(fetched_tag["tag_name"]) == str(tag.tag_name)
+    assert str(fetched_tag["parent_id"]) == str(tag.parent_id)
+    assert str(fetched_tag["parent_name"]) == str(tag.parent_name)
 
 
 def test_delete_tag():
