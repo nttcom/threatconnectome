@@ -25,7 +25,7 @@ class TestComparableVersion:
     class TestExtDebianVersion(_TestVersion):
         @pytest.mark.parametrize(
             "version_string, expected",
-            # expected: Union[Tuple[int, str, str], str] -- (epoch, upstream, revision) or exception
+            # expected: Union[tuple[int, str, str], str] -- (epoch, upstream, revision) or exception
             [
                 # might be tested in univers.
                 # for details, see https://manpages.debian.org/jessie/dpkg-dev/deb-version.5.en.html
@@ -146,7 +146,7 @@ class TestComparableVersion:
     class TestPypiVersion(_TestVersion):
         @pytest.mark.parametrize(
             "version_string, expected",
-            # expected: Union[Tuple[int, int, int, tuple], str]
+            # expected: Union[tuple[int, int, int, tuple], str]
             #           -- (epoch,release,pre,post,dev,local) or exception
             [
                 # might be tested in packaging version.
@@ -255,7 +255,7 @@ class TestComparableVersion:
     class TestSemverVersion(_TestVersion):
         @pytest.mark.parametrize(
             "version_string, expected",
-            # expected: Union[Tuple[int, int, int, tuple], str]
+            # expected: Union[tuple[int, int, int, tuple], str]
             #           -- (major, minor, patch, prerelease) or exception
             [
                 # might be tested in univers.
@@ -345,7 +345,7 @@ class TestComparableVersion:
     class TestNpmVersion(_TestVersion):
         @pytest.mark.parametrize(
             "version_string, expected",
-            # expected: Union[Tuple[int, int, int, tuple], str]
+            # expected: Union[tuple[int, int, int, tuple], str]
             #           -- (major, minor, patch, prerelease) or exception
             [
                 # other cases are tested in TestSemverVersion

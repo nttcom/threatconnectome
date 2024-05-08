@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Sequence
+from typing import Sequence
 from urllib.parse import quote_plus, urljoin
 
 from fastapi import HTTPException, status
@@ -43,7 +43,7 @@ def _block_header(text: str):
     ]
 
 
-def send_slack(url: str, blocks: Sequence[Dict]):
+def send_slack(url: str, blocks: Sequence[dict]):
     try:
         webhook = WebhookClient(url)
         return webhook.send(text=blocks[0]["text"]["text"], blocks=blocks)
@@ -61,7 +61,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
     threat_impact: int,
     groups: list[str],
 ):
-    blocks: list[Dict[str, str | Dict[str, str] | list[Dict[str, str]]]]
+    blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
     blocks = _block_header(text=pteam_name)
     groups_name = ",".join(groups)
     blocks.extend(
@@ -97,7 +97,7 @@ def _create_blocks_for_ateam(
     action: str,
     action_type: str,
 ):
-    blocks: list[Dict[str, str | Dict[str, str] | list[Dict[str, str]]]]
+    blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
     blocks = _block_header(text=ateam_name)
     blocks.extend(
         [

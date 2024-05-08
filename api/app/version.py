@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Set, TypeAlias
+from typing import Any, Set, TypeAlias
 
 from packaging.version import Version as PypiVersion
 from univers.debian import Version as DebianVersion
@@ -158,7 +158,7 @@ class VulnerableRange:
                 raise ValueError("Invalid version string: (empty)")
             return found_string
 
-        kwargs: Dict[str, ComparableVersion] = {}
+        kwargs: dict[str, ComparableVersion] = {}
         if len(tmp := re.split(r">= *", vulnerable_string, maxsplit=1)) > 1:
             kwargs["ge"] = gen_version_instance(package_family, _pick_heading_version(tmp[1]))
         if len(tmp := re.split(r">(?![=]) *", vulnerable_string, maxsplit=1)) > 1:

@@ -2,7 +2,6 @@ import json
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Tuple
 from uuid import UUID, uuid4
 
 import pytest
@@ -2819,12 +2818,12 @@ def test_update_pteam_tags_summary__update_topic_status():
 
     def _extract_ext_tags(
         _ext_tags: list[dict],
-    ) -> Tuple[
-        Dict[str, dict[str, list[Tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
-        Dict[str, list[dict]],  # {tag: [references,...]}
+    ) -> tuple[
+        dict[str, dict[str, list[tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: Dict[str, Dict[str, list[Tuple[str, str]]]] = {}
-        _tag_to_refs_list: Dict[str, list[dict]] = {}
+        _group_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        _tag_to_refs_list: dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
@@ -3020,12 +3019,12 @@ def test_update_pteam_tags_summary__update_topic():
 
     def _extract_ext_tags(
         _ext_tags: list[dict],
-    ) -> Tuple[
-        Dict[str, dict[str, list[Tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
-        Dict[str, list[dict]],  # {tag: [references,...]}
+    ) -> tuple[
+        dict[str, dict[str, list[tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: Dict[str, Dict[str, list[Tuple[str, str]]]] = {}
-        _tag_to_refs_list: Dict[str, list[dict]] = {}
+        _group_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        _tag_to_refs_list: dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:

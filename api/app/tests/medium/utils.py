@@ -3,7 +3,7 @@ import random
 import string
 import tempfile
 from datetime import datetime
-from typing import Dict, Sequence, Tuple
+from typing import Sequence
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -114,7 +114,7 @@ def upload_pteam_tags(
     user: dict,
     pteam_id: UUID | str,
     group: str,
-    ext_tags: Dict[str, list[Tuple[str, str]]],  # {tag: [(target, version), ...]}
+    ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
     force_mode: bool = True,
 ) -> list[schemas.ExtTagResponse]:
     params = {"group": group, "force_mode": str(force_mode)}

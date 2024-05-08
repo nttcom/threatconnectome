@@ -1,7 +1,6 @@
 import json
 import os
 import tempfile
-from typing import Dict, Tuple
 from urllib.parse import urljoin
 from uuid import UUID
 
@@ -87,7 +86,7 @@ def upload_pteam_tags(
     user: dict,
     pteam_id: UUID | str,
     group: str,
-    ext_tags: Dict[str, list[Tuple[str, str]]],  # {tag: [(target, version), ...]}
+    ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
     force_mode: bool = True,
 ) -> dict:
     params = {"group": group, "force_mode": str(force_mode)}

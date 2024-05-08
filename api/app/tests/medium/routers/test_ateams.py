@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Dict
 from uuid import UUID
 
 import pytest
@@ -1938,7 +1937,7 @@ class TestGetTopicStatusWithQueryParams:
         search: str | None = None,
         sort_key: schemas.TopicSortKey | None = None,
     ) -> dict:
-        params: Dict[str, str | int] = {}
+        params: dict[str, str | int] = {}
         if offset is not None:
             params["offset"] = offset
         if limit is not None:

@@ -6,7 +6,7 @@ import os
 import sys
 from functools import partial
 from time import sleep
-from typing import Callable, Dict, Set, Tuple
+from typing import Callable, Set
 from uuid import UUID
 
 import requests
@@ -127,7 +127,7 @@ class ThreatconnectomeClient:
         return response.json()
 
 
-ARGUMENTS: list[Tuple[str, dict]] = [
+ARGUMENTS: list[tuple[str, dict]] = [
     (
         "pteam_id",
         {
@@ -141,7 +141,7 @@ ARGUMENTS: list[Tuple[str, dict]] = [
         },
     ),
 ]
-OPTIONS: list[Tuple[str, str, dict]] = [
+OPTIONS: list[tuple[str, str, dict]] = [
     (
         "-e",
         "--endpoint",
@@ -168,8 +168,8 @@ def trace_message(*args, **kwargs):
     sys.stderr.flush()
 
 
-def _divide_tag_groups(tags: list[dict]) -> Dict[str | None, list[str]]:
-    ret_dict: Dict[str | None, list[str]] = {}  # {parent_id: [tag_ids]}
+def _divide_tag_groups(tags: list[dict]) -> dict[str | None, list[str]]:
+    ret_dict: dict[str | None, list[str]] = {}  # {parent_id: [tag_ids]}
     for tag in tags:
         tag_id = tag["tag_id"]
         parent_id = tag["parent_id"]
@@ -228,8 +228,8 @@ def main(args: argparse.Namespace) -> None:
             offset += 100
 
     # process each topics
-    pteam_watching_topics: Dict[str, dict] = {}  # topic_id: topic
-    pteamtags_for_topics: Dict[str, Set[str]] = {}  # topic_id: {pteamtag_id, ...}
+    pteam_watching_topics: dict[str, dict] = {}  # topic_id: topic
+    pteamtags_for_topics: dict[str, Set[str]] = {}  # topic_id: {pteamtag_id, ...}
     for topic_summary in related_topics:
         # get details of the topic
         topic = tc_client.get_topic(topic_summary["topic_id"])
@@ -250,7 +250,7 @@ def main(args: argparse.Namespace) -> None:
 
     # get topic statuses for each pteam tags
     solved_topic_tags = []
-    unsolved_topic_statuses: Dict[str, list[dict]] = {}  # topic_id: [status, ...]
+    unsolved_topic_statuses: dict[str, list[dict]] = {}  # topic_id: [status, ...]
     for topic_id, pteam_tag_ids in pteamtags_for_topics.items():
         statuses = []
         for pteam_tag_id in pteam_tag_ids:

@@ -8,12 +8,12 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 from time import sleep
-from typing import Callable, Tuple
+from typing import Callable
 from uuid import UUID
 
 import requests
 
-ARGUMENTS: list[Tuple[str, dict]] = [  # arg_name, options
+ARGUMENTS: list[tuple[str, dict]] = [  # arg_name, options
     (
         "url",
         {"metavar": "API_BASE_URL", "type": str, "help": "API BASE URL of Threatconnectome"},
@@ -43,7 +43,7 @@ ARGUMENTS: list[Tuple[str, dict]] = [  # arg_name, options
         },
     ),
 ]
-OPTIONS: list[Tuple[str, str, dict]] = [  # short_name, long_name, options
+OPTIONS: list[tuple[str, str, dict]] = [  # short_name, long_name, options
     (
         "-t",
         "--token",

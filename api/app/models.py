@@ -1,7 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Dict, cast
+from typing import cast
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
@@ -27,7 +27,7 @@ class PTeamAuthEnum(str, enum.Enum):
     TOPIC_STATUS = "topic_status"
 
     @classmethod
-    def info(cls) -> Dict[str, Dict[str, int | str]]:
+    def info(cls) -> dict[str, dict[str, int | str]]:
         return {
             "admin": {
                 "int": 0,
@@ -91,7 +91,7 @@ class ATeamAuthEnum(str, enum.Enum):
     INVITE = "invite"
 
     @classmethod
-    def info(cls) -> Dict[str, Dict[str, int | str]]:
+    def info(cls) -> dict[str, dict[str, int | str]]:
         return {
             "admin": {
                 "int": 0,

@@ -1,6 +1,5 @@
 from datetime import datetime
 from enum import Enum
-from typing import Dict
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -452,7 +451,7 @@ class TopicStatusResponse(ORMModel):
 class PTeamTaggedTopics(ORMModel):
     pteam_id: UUID
     tag_id: UUID
-    threat_impact_count: Dict[str, int]
+    threat_impact_count: dict[str, int]
     topic_ids: list[UUID]
 
 
@@ -485,13 +484,13 @@ class FsTopicSummary(ORMModel):
 class PTeamTagSummary(ExtTagResponse):
     threat_impact: int | None = None
     updated_at: datetime | None = None
-    status_count: Dict[str, int]
+    status_count: dict[str, int]
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
 
 class PTeamTagsSummary(ORMModel):
-    threat_impact_count: Dict[str, int]  # str(threat_impact): tags count
+    threat_impact_count: dict[str, int]  # str(threat_impact): tags count
     tags: list[PTeamTagSummary]
 
 

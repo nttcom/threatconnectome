@@ -6,7 +6,7 @@ import os
 import sys
 from functools import partial
 from time import sleep
-from typing import Any, Callable, Tuple
+from typing import Any, Callable
 from uuid import UUID
 
 import requests
@@ -109,7 +109,7 @@ class ThreatconnectomeClient:
         self.retry_call(requests.delete, url)
 
 
-ARGUMENTS: list[Tuple[str, dict]] = [
+ARGUMENTS: list[tuple[str, dict]] = [
     (
         "pteam_id",
         {
@@ -123,7 +123,7 @@ ARGUMENTS: list[Tuple[str, dict]] = [
         },
     ),
 ]
-OPTIONS: list[Tuple[str, str, dict]] = [
+OPTIONS: list[tuple[str, str, dict]] = [
     (
         "-e",
         "--endpoint",

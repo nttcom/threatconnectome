@@ -1,12 +1,12 @@
 import argparse
 import json
 import sys
-from typing import Dict, Set, Tuple
+from typing import Set
 
 REP_DELIMITER = "__>>__"
 SUPPORTED_TOOLS = {"GitHub.com-Dependency-Graph"}
-ARGUMENTS: list[Tuple[str, dict]] = []  # arg_name, options
-OPTIONS: list[Tuple[str, str, dict]] = [  # short_name, long_name, options
+ARGUMENTS: list[tuple[str, dict]] = []  # arg_name, options
+OPTIONS: list[tuple[str, str, dict]] = [  # short_name, long_name, options
     (
         "-i",
         "--infile",
@@ -56,7 +56,7 @@ class GitHubSPDXParser:
             system_message("Warn: Cannot detect SPDX Version")
 
     def list_tags(self) -> list[dict]:
-        tag_versions: Dict[str, Set[str]] = {}  # [tag: {versions,...}]
+        tag_versions: dict[str, Set[str]] = {}  # [tag: {versions,...}]
         for pkg in self.json_data.get("packages", []):
             try:
                 if not (external_refs := pkg.get("externalRefs")):
