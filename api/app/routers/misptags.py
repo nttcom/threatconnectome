@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi import Query as QueryParameter
 from sqlalchemy.orm import Session
@@ -11,7 +9,7 @@ from app.database import get_db
 router = APIRouter(prefix="/misp_tags", tags=["misp_tags"])
 
 
-@router.get("", response_model=List[schemas.MispTagResponse])
+@router.get("", response_model=list[schemas.MispTagResponse])
 def get_misp_tags(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
 ):
@@ -41,9 +39,9 @@ def create_misp_tag(
     return misp_tag
 
 
-@router.get("/search", response_model=List[schemas.MispTagResponse])
+@router.get("/search", response_model=list[schemas.MispTagResponse])
 def search_misp_tags(
-    words: Optional[List[str]] = QueryParameter(None),
+    words: list[str] | None = QueryParameter(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

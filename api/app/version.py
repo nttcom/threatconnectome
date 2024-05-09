@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional, Set, TypeAlias, Union
+from typing import Any, TypeAlias
 
 from packaging.version import Version as PypiVersion
 from univers.debian import Version as DebianVersion
@@ -108,7 +108,7 @@ class ExtPypiVersion(PypiVersion):
 #   - required implemented __gt__, __ge__, __lt__, __le__.
 #     Note: __eq__ cannot be used to compare versions. use >= and <= instead.
 #   - may raise ValueError on errors.
-ComparableVersion: TypeAlias = Union[ExtDebianVersion, ExtPypiVersion, SemverVersion]
+ComparableVersion: TypeAlias = ExtDebianVersion | ExtPypiVersion | SemverVersion
 
 
 def gen_version_instance(
@@ -129,11 +129,11 @@ def gen_version_instance(
 
 @dataclass(frozen=True, kw_only=True)
 class VulnerableRange:
-    eq: Optional[ComparableVersion] = None
-    ge: Optional[ComparableVersion] = None
-    gt: Optional[ComparableVersion] = None
-    le: Optional[ComparableVersion] = None
-    lt: Optional[ComparableVersion] = None
+    eq: ComparableVersion | None = None
+    ge: ComparableVersion | None = None
+    gt: ComparableVersion | None = None
+    le: ComparableVersion | None = None
+    lt: ComparableVersion | None = None
 
     def __post_init__(self):
         classes = {attr.__class__ for attr in [self.eq, self.ge, self.gt, self.le, self.lt] if attr}
@@ -158,7 +158,7 @@ class VulnerableRange:
                 raise ValueError("Invalid version string: (empty)")
             return found_string
 
-        kwargs: Dict[str, ComparableVersion] = {}
+        kwargs: dict[str, ComparableVersion] = {}
         if len(tmp := re.split(r">= *", vulnerable_string, maxsplit=1)) > 1:
             kwargs["ge"] = gen_version_instance(package_family, _pick_heading_version(tmp[1]))
         if len(tmp := re.split(r">(?![=]) *", vulnerable_string, maxsplit=1)) > 1:
@@ -171,7 +171,7 @@ class VulnerableRange:
             kwargs["eq"] = gen_version_instance(package_family, _pick_heading_version(tmp[1]))
         return VulnerableRange(**kwargs)
 
-    def detect_matched(self, references: Set[ComparableVersion]) -> bool:
+    def detect_matched(self, references: set[ComparableVersion]) -> bool:
         """
         returns True if at least 1 reference matched with me, False otherwise.
         ValueError will be raised when failed to compare.

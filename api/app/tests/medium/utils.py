@@ -3,7 +3,7 @@ import random
 import string
 import tempfile
 from datetime import datetime
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Sequence
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -82,8 +82,8 @@ def create_pteam(user: dict, pteam: dict) -> schemas.PTeamInfo:
 
 def invite_to_pteam(
     user: dict,
-    pteam_id: Union[UUID, str],
-    auth: Optional[List[models.PTeamAuthEnum]] = None,
+    pteam_id: UUID | str,
+    auth: list[models.PTeamAuthEnum] | None = None,
 ) -> schemas.PTeamInvitationResponse:
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
@@ -114,9 +114,9 @@ def upload_pteam_tags(
     user: dict,
     pteam_id: UUID | str,
     group: str,
-    ext_tags: Dict[str, List[Tuple[str, str]]],  # {tag: [(target, version), ...]}
+    ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
     force_mode: bool = True,
-) -> List[schemas.ExtTagResponse]:
+) -> list[schemas.ExtTagResponse]:
     params = {"group": group, "force_mode": str(force_mode)}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
         for tag_name, etags in ext_tags.items():
@@ -136,7 +136,7 @@ def upload_pteam_tags(
     return [schemas.ExtTagResponse(**item) for item in data]
 
 
-def get_pteam_tags(user: dict, pteam_id: str) -> List[schemas.ExtTagResponse]:
+def get_pteam_tags(user: dict, pteam_id: str) -> list[schemas.ExtTagResponse]:
     data = assert_200(client.get(f"/pteams/{pteam_id}/tags", headers=headers(user)))
     return [schemas.ExtTagResponse(**item) for item in data]
 
@@ -158,8 +158,8 @@ def create_ateam(user: dict, ateam: dict) -> schemas.ATeamInfo:
 
 def invite_to_ateam(
     user: dict,
-    ateam_id: Union[UUID, str],
-    authes: Optional[List[models.ATeamAuthEnum]] = None,
+    ateam_id: UUID | str,
+    authes: list[models.ATeamAuthEnum] | None = None,
 ) -> schemas.ATeamInvitationResponse:
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
@@ -176,7 +176,7 @@ def invite_to_ateam(
 
 def create_watching_request(
     user: dict,
-    ateam_id: Union[UUID, str],
+    ateam_id: UUID | str,
 ) -> schemas.ATeamWatchingRequestResponse:
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
@@ -240,7 +240,7 @@ def create_misp_tag(user: dict, tag_name: str) -> schemas.MispTagResponse:
 def create_topic(
     user: dict,
     topic: dict,
-    actions: Optional[List[dict]] = None,
+    actions: list[dict] | None = None,
     auto_create_tags: bool = True,
 ) -> schemas.TopicCreateResponse:
     request = {**topic}
@@ -284,8 +284,8 @@ def search_topics(
 def create_action(
     user: dict,
     action: dict,
-    topic_id: Union[str, UUID],
-    ext: Optional[dict] = None,
+    topic_id: str | UUID,
+    ext: dict | None = None,
 ) -> schemas.ActionResponse:
     request: dict = {**action, "topic_id": str(topic_id)}
     if ext is not None:
@@ -300,7 +300,7 @@ def create_actionlog(
     topic_id: UUID,
     user_id: UUID,
     pteam_id: UUID,
-    executed_at: Optional[datetime],
+    executed_at: datetime | None,
 ) -> schemas.ActionLogResponse:
     request = {
         "action_id": str(action_id),
@@ -334,7 +334,7 @@ def compare_tags(
     return [_to_tuple(t1) for t1 in tags1] == [_to_tuple(t2) for t2 in tags2]
 
 
-def compare_references(refs1: List[dict], refs2: List[dict]) -> bool:
+def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     def _to_tuple_set(refs):
         return {(ref.get("group"), ref.get("target"), ref.get("version")) for ref in refs}
 

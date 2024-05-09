@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Dict
 
 import requests
 from fastapi import APIRouter, Form, HTTPException, status
@@ -47,7 +46,7 @@ def login_for_access_token(username: str = Form(), password: SecretStr = Form())
             headers={"WWW-Authenticate": "Bearer"},
         ) from firebase_timeout
 
-    data: Dict = resp.json()
+    data: dict = resp.json()
     if not resp.ok:
         error_message: str = data["error"]["message"]
         raise HTTPException(
@@ -90,7 +89,7 @@ def refresh_access_token(request: RefreshTokenRequest) -> Token:
             headers={"WWW-Authenticate": "Bearer"},
         ) from firebase_timeout
 
-    data: Dict = resp.json()
+    data: dict = resp.json()
     if not resp.ok:
         error_message: str = data["error"]["message"]
         raise HTTPException(

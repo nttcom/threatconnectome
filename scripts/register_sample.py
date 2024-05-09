@@ -8,12 +8,12 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 from time import sleep
-from typing import Callable, List, Tuple, Union
+from typing import Callable
 from uuid import UUID
 
 import requests
 
-ARGUMENTS: List[Tuple[str, dict]] = [  # arg_name, options
+ARGUMENTS: list[tuple[str, dict]] = [  # arg_name, options
     (
         "url",
         {"metavar": "API_BASE_URL", "type": str, "help": "API BASE URL of Threatconnectome"},
@@ -43,7 +43,7 @@ ARGUMENTS: List[Tuple[str, dict]] = [  # arg_name, options
         },
     ),
 ]
-OPTIONS: List[Tuple[str, str, dict]] = [  # short_name, long_name, options
+OPTIONS: list[tuple[str, str, dict]] = [  # short_name, long_name, options
     (
         "-t",
         "--token",
@@ -146,7 +146,7 @@ class ThreatconnectomeClient:
 
     def create_watching_request(
         self,
-        ateam_id: Union[UUID, str],
+        ateam_id: UUID | str,
     ) -> dict:
         api_endpoint = f"{self.api_url}/ateams/{ateam_id}/watching_request"
         request = {
@@ -157,9 +157,7 @@ class ThreatconnectomeClient:
         response = self.retry_call(requests.post, api_endpoint, json=request)
         return response.json()
 
-    def accept_watching_request(
-        self, request_id: Union[UUID, str], pteam_id: Union[UUID, str]
-    ) -> dict:
+    def accept_watching_request(self, request_id: UUID | str, pteam_id: UUID | str) -> dict:
         api_endpoint = f"{self.api_url}/ateams/apply_watching_request"
         print(f"Post {api_endpoint}")
         request = {
@@ -169,7 +167,7 @@ class ThreatconnectomeClient:
         response = self.retry_call(requests.post, api_endpoint, json=request)
         return response.json()
 
-    def upload_tags_file(self, pteam_id: Union[UUID, str], file, group: str):
+    def upload_tags_file(self, pteam_id: UUID | str, file, group: str):
         api_endpoint = f"{self.api_url}/pteams/{pteam_id}/upload_tags_file"
         print(f"Post {api_endpoint}")
         response = requests.post(

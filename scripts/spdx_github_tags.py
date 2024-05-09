@@ -1,12 +1,11 @@
 import argparse
 import json
 import sys
-from typing import Dict, List, Set, Tuple
 
 REP_DELIMITER = "__>>__"
 SUPPORTED_TOOLS = {"GitHub.com-Dependency-Graph"}
-ARGUMENTS: List[Tuple[str, dict]] = []  # arg_name, options
-OPTIONS: List[Tuple[str, str, dict]] = [  # short_name, long_name, options
+ARGUMENTS: list[tuple[str, dict]] = []  # arg_name, options
+OPTIONS: list[tuple[str, str, dict]] = [  # short_name, long_name, options
     (
         "-i",
         "--infile",
@@ -55,8 +54,8 @@ class GitHubSPDXParser:
         except (KeyError, TypeError, IndexError):
             system_message("Warn: Cannot detect SPDX Version")
 
-    def list_tags(self) -> List[dict]:
-        tag_versions: Dict[str, Set[str]] = {}  # [tag: {versions,...}]
+    def list_tags(self) -> list[dict]:
+        tag_versions: dict[str, set[str]] = {}  # [tag: {versions,...}]
         for pkg in self.json_data.get("packages", []):
             try:
                 if not (external_refs := pkg.get("externalRefs")):
@@ -75,7 +74,7 @@ class GitHubSPDXParser:
                     system_message(f"Warn: Ambiguous package managers for {pkg_name}")
                 pkg_info = pkg_managers[0]["referenceLocator"].split(":", 1)[1].split("/", 1)[0]
                 tag: str = f"{pkg_name}:{pkg_info}:"
-                versions_set: Set[str] = tag_versions.get(tag, set())
+                versions_set: set[str] = tag_versions.get(tag, set())
                 versions_set.add(pkg_version)
                 tag_versions[tag] = versions_set
             except (KeyError, TypeError, IndexError):

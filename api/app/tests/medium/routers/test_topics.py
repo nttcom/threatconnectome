@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID, uuid4
 
 import pytest
@@ -458,7 +457,7 @@ def test_create_topic_actions():
     child11 = create_tag(USER1, "alpha:alpha:alpha1")
     child21 = create_tag(USER1, "bravo:bravo:bravo1")
 
-    def _gen_topic(tags: List[str], actions: List[dict]) -> dict:
+    def _gen_topic(tags: list[str], actions: list[dict]) -> dict:
         return {
             **TOPIC1,
             "topic_id": str(uuid4()),
@@ -466,7 +465,7 @@ def test_create_topic_actions():
             "actions": actions,
         }
 
-    def _gen_action(tags: List[str]) -> dict:
+    def _gen_action(tags: list[str]) -> dict:
         return {
             "action_id": None,
             "action": "action " + str(uuid4()),
@@ -527,7 +526,7 @@ def test_create_topic_actions__with_action_id():
     parent1 = create_tag(USER1, "alpha:alpha:")
     child11 = create_tag(USER1, "alpha:alpha:alpha1")
 
-    def _gen_action(action_id: Optional[UUID]) -> dict:
+    def _gen_action(action_id: UUID | None) -> dict:
         return {
             "action_id": str(action_id) if action_id else None,
             "action": f"action for {action_id}",
@@ -536,7 +535,7 @@ def test_create_topic_actions__with_action_id():
             "ext": {"tags": [child11.tag_name]},
         }
 
-    def _gen_topic(tags: List[str], actions: List[dict]) -> dict:
+    def _gen_topic(tags: list[str], actions: list[dict]) -> dict:
         return {
             **TOPIC1,
             "topic_id": str(uuid4()),
