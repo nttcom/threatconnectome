@@ -6,7 +6,6 @@ from typing import (
     Any,
     ClassVar,
     NamedTuple,
-    Optional,
     Pattern,
     Type,
     TypeAlias,
@@ -103,7 +102,7 @@ class TrivyCDXParser(SBOMParser):
         def _find_pkg_mgr(
             components_map: dict[str, "TrivyCDXParser.CDXComponent"],
             refs: list[str],
-        ) -> Optional["TrivyCDXParser.CDXComponent"]:
+        ) -> "TrivyCDXParser.CDXComponent" | None:
             if not refs:
                 return None
             if len(refs) == 1:
