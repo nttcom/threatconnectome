@@ -102,7 +102,7 @@ class TrivyCDXParser(SBOMParser):
         def _find_pkg_mgr(
             components_map: dict[str, "TrivyCDXParser.CDXComponent"],
             refs: list[str],
-        ) -> "TrivyCDXParser.CDXComponent" | None:
+        ) -> "TrivyCDXParser.CDXComponent | None":
             if not refs:
                 return None
             if len(refs) == 1:
