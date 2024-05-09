@@ -2,7 +2,6 @@ import json
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Tuple
 from uuid import UUID, uuid4
 
 import pytest
@@ -2399,7 +2398,7 @@ def test_upload_pteam_tags_file():
             return False
         return compare_references(_tag1["references"], _tag1["references"])
 
-    def _compare_responsed_tags(_tags1: List[dict], _tags2: List[dict]) -> bool:
+    def _compare_responsed_tags(_tags1: list[dict], _tags2: list[dict]) -> bool:
         if not isinstance(_tags1, list) or not isinstance(_tags2, list):
             return False
         if len(_tags1) != len(_tags2):
@@ -2525,7 +2524,7 @@ def test_upload_pteam_tags_file__complex():
             return False
         return compare_references(_tag1["references"], _tag1["references"])
 
-    def _compare_responsed_tags(_tags1: List[dict], _tags2: List[dict]) -> bool:
+    def _compare_responsed_tags(_tags1: list[dict], _tags2: list[dict]) -> bool:
         if not isinstance(_tags1, list) or not isinstance(_tags2, list):
             return False
         if len(_tags1) != len(_tags2):
@@ -2818,13 +2817,13 @@ def test_update_pteam_tags_summary__update_topic_status():
     pteam1 = create_pteam(USER1, PTEAM1)
 
     def _extract_ext_tags(
-        _ext_tags: List[dict],
-    ) -> Tuple[
-        Dict[str, dict[str, List[Tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
-        Dict[str, List[dict]],  # {tag: [references,...]}
+        _ext_tags: list[dict],
+    ) -> tuple[
+        dict[str, dict[str, list[tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
-        _tag_to_refs_list: Dict[str, List[dict]] = {}
+        _group_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        _tag_to_refs_list: dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
@@ -2843,7 +2842,7 @@ def test_update_pteam_tags_summary__update_topic_status():
                 _tag_to_refs_list[_tag_name] = _refs_dict
         return _group_to_tags, _tag_to_refs_list
 
-    def _sorted_tags(_tags: List[dict]) -> List[dict]:
+    def _sorted_tags(_tags: list[dict]) -> list[dict]:
         return sorted(
             _tags,
             key=lambda x: (
@@ -3019,13 +3018,13 @@ def test_update_pteam_tags_summary__update_topic():
     pteam3 = create_pteam(USER1, PTEAM3)
 
     def _extract_ext_tags(
-        _ext_tags: List[dict],
-    ) -> Tuple[
-        Dict[str, dict[str, List[Tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
-        Dict[str, List[dict]],  # {tag: [references,...]}
+        _ext_tags: list[dict],
+    ) -> tuple[
+        dict[str, dict[str, list[tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
-        _tag_to_refs_list: Dict[str, List[dict]] = {}
+        _group_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        _tag_to_refs_list: dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
@@ -3044,7 +3043,7 @@ def test_update_pteam_tags_summary__update_topic():
                 _tag_to_refs_list[_tag_name] = _refs_dict
         return _group_to_tags, _tag_to_refs_list
 
-    def _sorted_tags(_tags: List[dict]) -> List[dict]:
+    def _sorted_tags(_tags: list[dict]) -> list[dict]:
         return sorted(
             _tags,
             key=lambda x: (

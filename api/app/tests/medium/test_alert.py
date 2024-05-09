@@ -1,4 +1,4 @@
-from typing import List, Sequence
+from typing import Sequence
 from uuid import uuid4
 
 import pytest
@@ -278,7 +278,7 @@ class TestTopicHasVersion:
         self.pteam = create_pteam(USER1, pteam_params)
 
     # common functions used in tests
-    def _gen_topic_params(self, tags: List[schemas.TagResponse]) -> dict:
+    def _gen_topic_params(self, tags: list[schemas.TagResponse]) -> dict:
         topic_id = str(uuid4())
         return {
             "topic_id": topic_id,
@@ -421,7 +421,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
             "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
         }
 
-    def _gen_topic_params(tags: List[schemas.TagResponse]) -> dict:
+    def _gen_topic_params(tags: list[schemas.TagResponse]) -> dict:
         topic_id = str(uuid4())
         return {
             "topic_id": topic_id,

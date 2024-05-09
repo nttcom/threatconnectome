@@ -1,4 +1,3 @@
-from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -14,7 +13,7 @@ from app.database import get_db
 router = APIRouter(prefix="/tags", tags=["tags"])
 
 
-@router.get("", response_model=List[schemas.TagResponse])
+@router.get("", response_model=list[schemas.TagResponse])
 def get_tags(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
 ):
@@ -43,9 +42,9 @@ def create_tag(
     return tag
 
 
-@router.get("/search", response_model=List[schemas.TagResponse])
+@router.get("/search", response_model=list[schemas.TagResponse])
 def search_tags(
-    words: Optional[List[str]] = QueryParameter(None),
+    words: list[str] | None = QueryParameter(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -60,6 +59,21 @@ def search_tags(
 
     # Otherwise, search for tags that match the provided words.
     return filter(lambda x: any(word.lower() in x.tag_name.lower() for word in words), all_tags)
+
+
+@router.get("/{tag_id}", response_model=schemas.TagResponse)
+def get_tag(
+    tag_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get a tag.
+    """
+    if not (tag := persistence.get_tag_by_id(db, tag_id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
+
+    return tag
 
 
 @router.delete("/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)

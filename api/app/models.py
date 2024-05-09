@@ -1,7 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional, Union, cast
+from typing import cast
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
@@ -27,7 +27,7 @@ class PTeamAuthEnum(str, enum.Enum):
     TOPIC_STATUS = "topic_status"
 
     @classmethod
-    def info(cls) -> Dict[str, Dict[str, Union[int, str]]]:
+    def info(cls) -> dict[str, dict[str, int | str]]:
         return {
             "admin": {
                 "int": 0,
@@ -72,13 +72,13 @@ class PTeamAuthIntFlag(enum.IntFlag):
     FREE_TEMPLATE = 0
 
     @classmethod
-    def from_enums(cls, datas: List[PTeamAuthEnum]):
+    def from_enums(cls, datas: list[PTeamAuthEnum]):
         result = 0
         for data in datas:
             result |= 1 << data.to_int()
         return PTeamAuthIntFlag(result)
 
-    def to_enums(self) -> List[PTeamAuthEnum]:
+    def to_enums(self) -> list[PTeamAuthEnum]:
         result = []
         for data in list(PTeamAuthEnum):
             if self & 1 << data.to_int():
@@ -91,7 +91,7 @@ class ATeamAuthEnum(str, enum.Enum):
     INVITE = "invite"
 
     @classmethod
-    def info(cls) -> Dict[str, Dict[str, Union[int, str]]]:
+    def info(cls) -> dict[str, dict[str, int | str]]:
         return {
             "admin": {
                 "int": 0,
@@ -128,13 +128,13 @@ class ATeamAuthIntFlag(enum.IntFlag):
     FREE_TEMPLATE = 0
 
     @classmethod
-    def from_enums(cls, datas: List[ATeamAuthEnum]):
+    def from_enums(cls, datas: list[ATeamAuthEnum]):
         result = 0
         for data in datas:
             result |= 1 << data.to_int()
         return ATeamAuthIntFlag(result)
 
-    def to_enums(self) -> List[ATeamAuthEnum]:
+    def to_enums(self) -> list[ATeamAuthEnum]:
         result = []
         for data in list(ATeamAuthEnum):
             if self & 1 << data.to_int():
@@ -162,8 +162,8 @@ class Base(DeclarativeBase):
             StrUUID: String(36),
             Str255: String(255),
             dict: JSON,
-            List[dict]: ARRAY(JSON),
-            List[StrUUID]: ARRAY(String(36)),
+            list[dict]: ARRAY(JSON),
+            list[StrUUID]: ARRAY(String(36)),
         }
     )
 
@@ -226,10 +226,10 @@ class Account(Base):
     __tablename__ = "account"
 
     user_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    uid: Mapped[Optional[str]] = mapped_column(unique=True)  # UID on Firebase
-    email: Mapped[Optional[Str255]]
+    uid: Mapped[str | None] = mapped_column(unique=True)  # UID on Firebase
+    email: Mapped[Str255 | None]
     disabled: Mapped[bool] = mapped_column(default=False)
-    years: Mapped[Optional[int]]
+    years: Mapped[int | None]
 
     pteams = relationship("PTeam", secondary=PTeamAccount.__tablename__, back_populates="members")
     ateams = relationship("ATeam", secondary=ATeamAccount.__tablename__, back_populates="members")
@@ -257,7 +257,7 @@ class Dependency(Base):
 
 class Service(Base):
     __tablename__ = "service"
-    __table_args__ = (
+    __table_args__: tuple = (
         UniqueConstraint("pteam_id", "service_name", name="service_pteam_id_service_name_key"),
     )
 
@@ -319,7 +319,7 @@ class PTeam(Base):
     pteam_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     pteam_name: Mapped[Str255]
     contact_info: Mapped[Str255]
-    alert_threat_impact: Mapped[Optional[int]]
+    alert_threat_impact: Mapped[int | None]
     disabled: Mapped[bool] = mapped_column(default=False)
 
     tags = relationship(  # PTeam - [Service - Dependency] - Tag
@@ -508,10 +508,10 @@ class PTeamTopicTagStatus(Base):
     tag_id: Mapped[StrUUID] = mapped_column(ForeignKey("tag.tag_id"), index=True)
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     topic_status: Mapped[TopicStatusType]
-    note: Mapped[Optional[str]]
-    logging_ids: Mapped[List[StrUUID]] = mapped_column(default=[])
-    assignees: Mapped[List[StrUUID]] = mapped_column(default=[])
-    scheduled_at: Mapped[Optional[datetime]]
+    note: Mapped[str | None]
+    logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
+    assignees: Mapped[list[StrUUID]] = mapped_column(default=[])
+    scheduled_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
 
 
@@ -527,12 +527,12 @@ class CurrentPTeamTopicTagStatus(Base):
         index=True,
     )
     tag_id: Mapped[StrUUID] = mapped_column(ForeignKey("tag.tag_id"), primary_key=True, index=True)
-    status_id: Mapped[Optional[StrUUID]] = mapped_column(
+    status_id: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("pteamtopictagstatus.status_id"), index=True
     )
-    topic_status: Mapped[Optional[TopicStatusType]]
-    threat_impact: Mapped[Optional[int]]
-    updated_at: Mapped[Optional[datetime]]
+    topic_status: Mapped[TopicStatusType | None]
+    threat_impact: Mapped[int | None]
+    updated_at: Mapped[datetime | None]
 
     pteam = relationship("PTeam")
     topic = relationship("Topic")
@@ -549,8 +549,8 @@ class Tag(Base):
 
     tag_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     tag_name: Mapped[str] = mapped_column(unique=True)
-    parent_id: Mapped[Optional[StrUUID]] = mapped_column(ForeignKey("tag.tag_id"), index=True)
-    parent_name: Mapped[Optional[str]] = mapped_column(ForeignKey("tag.tag_name"), index=True)
+    parent_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("tag.tag_id"), index=True)
+    parent_name: Mapped[str | None] = mapped_column(ForeignKey("tag.tag_name"), index=True)
 
     topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
     dependencies = relationship("Dependency", back_populates="tag", cascade="all, delete-orphan")
@@ -585,7 +585,7 @@ class ActionLog(Base):
     action: Mapped[str]  # snapshot: don't update even if TopicAction is modified.
     action_type: Mapped[ActionType]
     recommended: Mapped[bool]  # snapshot: don't update even if TopicAction is modified.
-    user_id: Mapped[Optional[StrUUID]] = mapped_column(ForeignKey("account.user_id"), index=True)
+    user_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("account.user_id"), index=True)
     pteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("pteam.pteam_id"), index=True)
     email: Mapped[Str255]  # snapshot: don't set ForeignKey.
     executed_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
@@ -606,7 +606,7 @@ class PTeamInvitation(Base):
     pteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("pteam.pteam_id"), index=True)
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     expiration: Mapped[datetime]
-    limit_count: Mapped[Optional[int]]  # None for unlimited
+    limit_count: Mapped[int | None]  # None for unlimited
     used_count: Mapped[int] = mapped_column(server_default="0")
     authority: Mapped[int]  # PTeamAuthIntFlag
 
@@ -626,7 +626,7 @@ class ATeamInvitation(Base):
     ateam_id: Mapped[StrUUID] = mapped_column(ForeignKey("ateam.ateam_id"), index=True)
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     expiration: Mapped[datetime]
-    limit_count: Mapped[Optional[int]]  # None for unlimited
+    limit_count: Mapped[int | None]  # None for unlimited
     used_count: Mapped[int] = mapped_column(server_default="0")
     authority: Mapped[int]  # ATeamAuthIntFlag
 
@@ -646,7 +646,7 @@ class ATeamWatchingRequest(Base):
     ateam_id: Mapped[StrUUID] = mapped_column(ForeignKey("ateam.ateam_id"), index=True)
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     expiration: Mapped[datetime]
-    limit_count: Mapped[Optional[int]]  # None for unlimited
+    limit_count: Mapped[int | None]  # None for unlimited
     used_count: Mapped[int] = mapped_column(server_default="0")
 
     ateam = relationship("ATeam", back_populates="watching_requests")
@@ -668,5 +668,5 @@ class ATeamTopicComment(Base):
     ateam_id: Mapped[StrUUID] = mapped_column(ForeignKey("ateam.ateam_id"), index=True)
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-    updated_at: Mapped[Optional[datetime]]
+    updated_at: Mapped[datetime | None]
     comment: Mapped[str]

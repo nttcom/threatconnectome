@@ -121,6 +121,29 @@ def test_get_tags():
     assert data[0]["tag_id"] == str(tag3.parent_id)
 
 
+@pytest.mark.parametrize(
+    "tag_name",
+    ["a1:a2", "b1:b2:b3", "c1:c2:"],
+)
+def test_it_should_return_tag_data_when_it_requested_existing_tagid(tag_name):
+    # Given
+    # 予めtagが作成されており
+    create_user(USER1)
+    tag = create_tag(USER1, tag_name)
+
+    # When
+    # ユーザがtag_id を指定してリクエストした場合
+    response = client.get("/tags/" + str(tag.tag_id), headers=headers(USER1))
+    fetched_tag = response.json()
+
+    # Then
+    # 取得したデータには、タグ作成時と同じ情報が含まれている
+    assert str(fetched_tag["tag_id"]) == str(tag.tag_id)
+    assert str(fetched_tag["tag_name"]) == str(tag.tag_name)
+    assert str(fetched_tag["parent_id"]) == str(tag.parent_id)
+    assert str(fetched_tag["parent_name"]) == str(tag.parent_name)
+
+
 def test_delete_tag():
     create_user(USER1)
 

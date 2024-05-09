@@ -1,4 +1,3 @@
-from typing import List, Optional
 from uuid import UUID, uuid4
 
 import pytest
@@ -42,7 +41,7 @@ def test_create_action__tags():
     def _get_action_by_id(action: dict) -> dict:
         return assert_200(client.get(f"/actions/{action['action_id']}", headers=headers(USER1)))
 
-    def _get_pteam_actions(pteam: schemas.PTeamInfo, topic: schemas.TopicResponse) -> List[dict]:
+    def _get_pteam_actions(pteam: schemas.PTeamInfo, topic: schemas.TopicResponse) -> list[dict]:
         data = assert_200(
             client.get(
                 f"/topics/{topic.topic_id}/actions/pteam/{pteam.pteam_id}",
@@ -51,7 +50,7 @@ def test_create_action__tags():
         )
         return data.get("actions", [])
 
-    def _cmp_actions(req: Optional[dict], resp: dict) -> bool:
+    def _cmp_actions(req: dict | None, resp: dict) -> bool:
         if not req:
             return False
         for key, val in req.items():
@@ -63,7 +62,7 @@ def test_create_action__tags():
                     return False
         return True
 
-    def _find_action(actions: List[dict], target: dict) -> Optional[dict]:
+    def _find_action(actions: list[dict], target: dict) -> dict | None:
         return next(filter(lambda x: _cmp_actions(x, target), actions), {})
 
     ## topic1: not tagged
@@ -161,7 +160,7 @@ def test_create_action__with_action_id():
     def _get_action_by_id(action_id: str) -> dict:
         return assert_200(client.get(f"/actions/{action_id}", headers=headers(USER1)))
 
-    def _get_pteam_actions(pteam: schemas.PTeamInfo, topic: schemas.TopicResponse) -> List[dict]:
+    def _get_pteam_actions(pteam: schemas.PTeamInfo, topic: schemas.TopicResponse) -> list[dict]:
         data = assert_200(
             client.get(
                 f"/topics/{topic.topic_id}/actions/pteam/{pteam.pteam_id}",
@@ -170,7 +169,7 @@ def test_create_action__with_action_id():
         )
         return data.get("actions", [])
 
-    def _cmp_actions(req: Optional[dict], resp: dict) -> bool:
+    def _cmp_actions(req: dict | None, resp: dict) -> bool:
         if not req:
             return False
         for key, val in req.items():
@@ -178,7 +177,7 @@ def test_create_action__with_action_id():
                 return False
         return True
 
-    def _find_action(actions: List[dict], target: dict) -> Optional[dict]:
+    def _find_action(actions: list[dict], target: dict) -> dict | None:
         return next(filter(lambda x: _cmp_actions(x, target), actions), {})
 
     topic1 = create_topic(USER1, {**TOPIC1, "actions": []})
@@ -242,7 +241,7 @@ def test_update_action():
     def _get_action_by_id(action: dict) -> dict:
         return assert_200(client.get(f"/actions/{action['action_id']}", headers=headers(USER1)))
 
-    def _get_pteam_actions(pteam: schemas.PTeamInfo, topic: schemas.TopicResponse) -> List[dict]:
+    def _get_pteam_actions(pteam: schemas.PTeamInfo, topic: schemas.TopicResponse) -> list[dict]:
         data = assert_200(
             client.get(
                 f"/topics/{topic.topic_id}/actions/pteam/{pteam.pteam_id}",
@@ -251,7 +250,7 @@ def test_update_action():
         )
         return data.get("actions", [])
 
-    def _cmp_actions(req: Optional[dict], resp: dict) -> bool:
+    def _cmp_actions(req: dict | None, resp: dict) -> bool:
         if not req:
             return False
         for key, val in req.items():
@@ -263,7 +262,7 @@ def test_update_action():
                     return False
         return True
 
-    def _find_action(actions: List[dict], target: dict) -> Optional[dict]:
+    def _find_action(actions: list[dict], target: dict) -> dict | None:
         return next(filter(lambda x: _cmp_actions(x, target), actions), {})
 
     ## topic1: not tagged
@@ -519,7 +518,7 @@ def test_delete_action():
     def _get_action_by_id(action: dict) -> dict:
         return assert_200(client.get(f"/actions/{action['action_id']}", headers=headers(USER1)))
 
-    def _get_pteam_actions(pteam: schemas.PTeamInfo, topic: schemas.TopicResponse) -> List[dict]:
+    def _get_pteam_actions(pteam: schemas.PTeamInfo, topic: schemas.TopicResponse) -> list[dict]:
         data = assert_200(
             client.get(
                 f"/topics/{topic.topic_id}/actions/pteam/{pteam.pteam_id}",
@@ -528,7 +527,7 @@ def test_delete_action():
         )
         return data.get("actions", [])
 
-    def _cmp_actions(req: Optional[dict], resp: dict) -> bool:
+    def _cmp_actions(req: dict | None, resp: dict) -> bool:
         if not req:
             return False
         for key, val in req.items():
@@ -540,7 +539,7 @@ def test_delete_action():
                     return False
         return True
 
-    def _find_action(actions: List[dict], target: dict) -> Optional[dict]:
+    def _find_action(actions: list[dict], target: dict) -> dict | None:
         return next(filter(lambda x: _cmp_actions(x, target), actions), {})
 
     ## topic1: not tagged

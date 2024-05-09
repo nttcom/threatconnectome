@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -33,11 +33,11 @@ def get_firebase_credentials():
 def verify_id_token(
     token: HTTPAuthorizationCredentials = Depends(token_scheme),
     firebase_credentials=Depends(get_firebase_credentials),
-) -> Dict[str, Any]:
+) -> auth.UserRecord:
     if firebase_credentials is None or token is None:
         raise credentials_exception
     try:
-        decoded_token: Dict[str, Any] = auth.verify_id_token(token.credentials, check_revoked=True)
+        decoded_token: dict[str, Any] = auth.verify_id_token(token.credentials, check_revoked=True)
     except auth.ExpiredIdTokenError as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -61,23 +61,23 @@ def verify_id_token(
     except (auth.InvalidIdTokenError, ValueError) as error:
         raise credentials_exception from error
 
+    user_info = auth.get_user(decoded_token["uid"])
+
     # check email verified if not using firebase emulator
     emulator_host = os.getenv("FIREBASE_AUTH_EMULATOR_HOST", "")
-    if emulator_host == "":
-        user_info = auth.get_user(decoded_token["uid"])
-        if user_info.email_verified is False:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Email is not verified. Try logging in on UI and verify email.",
-            )
+    if emulator_host == "" and user_info.email_verified is False:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Email is not verified. Try logging in on UI and verify email.",
+        )
 
-    return decoded_token
+    return user_info
 
 
 def get_current_user(
-    decoded_token: Dict[str, Any] = Depends(verify_id_token), db: Session = Depends(get_db)
+    user_info: auth.UserRecord = Depends(verify_id_token), db: Session = Depends(get_db)
 ) -> Account:
-    user = persistence.get_account_by_firebase_uid(db, decoded_token["uid"])
+    user = persistence.get_account_by_firebase_uid(db, user_info.uid)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Sequence
+from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import Row, and_, delete, false, func, literal_column, nullsfirst, or_, select, true
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 
-sortkey2orderby: Dict[schemas.TopicSortKey, list] = {
+sortkey2orderby: dict[schemas.TopicSortKey, list] = {
     schemas.TopicSortKey.THREAT_IMPACT: [
         models.Topic.threat_impact,
         models.Topic.updated_at.desc(),
