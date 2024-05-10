@@ -30,6 +30,8 @@ def upgrade() -> None:
     op.create_table('ticket',
     sa.Column('ticket_id', sa.String(length=36), nullable=False),
     sa.Column('threat_id', sa.String(length=36), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('ssvc_deployer_priority', sa.Enum('IMMEDIATE', 'OUT_OF_CYCLE', 'SCHEDULED', 'DEFER', name='ssvcdeployerpriorityenum'), nullable=True),
     sa.ForeignKeyConstraint(['threat_id'], ['threat.threat_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('ticket_id')
@@ -38,6 +40,7 @@ def upgrade() -> None:
     op.create_table('alert',
     sa.Column('alert_id', sa.String(length=36), nullable=False),
     sa.Column('ticket_id', sa.String(length=36), nullable=True),
+    sa.Column('alerted_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('alert_content', sa.Text(), nullable=True),
     sa.ForeignKeyConstraint(['ticket_id'], ['ticket.ticket_id'], ),
     sa.PrimaryKeyConstraint('alert_id')
