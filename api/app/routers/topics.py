@@ -298,6 +298,7 @@ def create_topic(
 
     # create topic core
     now = datetime.now()
+
     topic = models.Topic(
         topic_id=str(topic_id),
         title=fixed_title,
@@ -309,6 +310,8 @@ def create_topic(
         content_fingerprint=calculate_topic_content_fingerprint(
             fixed_title, fixed_abstract, data.threat_impact, data.tags
         ),
+        safety_impact=data.safety_impact,
+        hint_for_action=data.hint_for_action,
     )
     # fix relations
     topic.tags = [requested_tags[tag_name] for tag_name in set(data.tags)]

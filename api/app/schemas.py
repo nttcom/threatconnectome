@@ -8,7 +8,9 @@ from app.constants import DEFAULT_ALERT_THREAT_IMPACT
 from app.models import (
     ActionType,
     ATeamAuthEnum,
+    ExploitationEnum,
     PTeamAuthEnum,
+    SafetyImpactEnum,
     TopicStatusType,
 )
 
@@ -164,6 +166,10 @@ class Topic(TopicEntry):
     created_by: UUID
     created_at: datetime
     disabled: bool
+    safety_impact: SafetyImpactEnum | None
+    exploitation: ExploitationEnum | None
+    automatable: bool | None
+    hint_for_action: str | None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -218,6 +224,10 @@ class TopicCreateRequest(ORMModel):
     tags: list[str] = []
     misp_tags: list[str] = []
     actions: list[ActionCreateRequest] = []
+    safety_impact: SafetyImpactEnum | None
+    exploitation: ExploitationEnum | None
+    automatable: bool | None
+    hint_for_action: str | None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
