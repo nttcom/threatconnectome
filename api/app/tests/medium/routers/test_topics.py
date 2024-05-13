@@ -71,6 +71,10 @@ def test_create_topic():
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in topic1.misp_tags]
     assert ACTION1["action"] in [a.action for a in topic1.actions]
     assert ACTION2["action"] in [a.action for a in topic1.actions]
+    assert topic1.safety_impact == TOPIC1["safety_impact"]
+    assert topic1.exploitation == TOPIC1["exploitation"]
+    assert topic1.automatable == TOPIC1["automatable"]
+    assert topic1.hint_for_action ==  TOPIC1["hint_for_action"]
 
 
 def test_create_topic__with_new_tags():
@@ -188,6 +192,10 @@ def test_get_topic():
     assert responsed_topic.updated_at == topic1.updated_at
     assert TOPIC1["tags"][0] in [t.tag_name for t in responsed_topic.tags]
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in responsed_topic.misp_tags]
+    assert responsed_topic.safety_impact == TOPIC1["safety_impact"]
+    assert responsed_topic.exploitation == TOPIC1["exploitation"]
+    assert responsed_topic.automatable == TOPIC1["automatable"]
+    assert responsed_topic.hint_for_action ==  TOPIC1["hint_for_action"]
     # actions are removed from TopicResponse.
     # use 'GET /topics/{tid}/actions/pteam/{pid}' to get actions.
 
@@ -713,6 +721,10 @@ class TestSearchTopics:
                 "abstract": "",
                 "threat_impact": 1,
                 **params,
+                "safety_impact": "catastrophic",
+                "exploitation": "active",
+                "automatable": True,
+                "hint_for_action": "",
             }
             return create_topic(user, minimal_topic)
 
