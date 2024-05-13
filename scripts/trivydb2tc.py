@@ -575,7 +575,6 @@ def main() -> None:
 
     for topic_id, topic in topics.items():
         if topic_id not in existing_topics:  # new topic
-            print(topic["safety_impact"])
             tc_client.create_topic(topic_id, topic)
             continue
 
