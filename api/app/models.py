@@ -287,8 +287,6 @@ class Dependency(Base):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        if not self.dependency_mission_impact:
-            self.dependency_mission_impact = MissionImpactEnum.MISSION_FAILURE
 
     service_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("service.service_id", ondelete="CASCADE"), primary_key=True, index=True
@@ -298,8 +296,8 @@ class Dependency(Base):
     )
     version: Mapped[str] = mapped_column(primary_key=True)
     target: Mapped[str] = mapped_column(primary_key=True)
-    dependency_mission_impact: Mapped[MissionImpactEnum] = mapped_column(
-        server_default=MissionImpactEnum.MISSION_FAILURE
+    dependency_mission_impact: Mapped[MissionImpactEnum | None] = mapped_column(
+        server_default=None, nullable=True
     )
 
     service = relationship("Service", back_populates="dependencies")
