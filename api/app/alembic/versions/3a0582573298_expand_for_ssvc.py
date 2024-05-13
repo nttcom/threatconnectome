@@ -46,7 +46,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('alert_id')
     )
     op.create_index(op.f('ix_alert_ticket_id'), 'alert', ['ticket_id'], unique=False)
-    op.add_column('dependency', sa.Column('dependency_mission_impact', mission_impact_enum, server_default='MISSION_FAILURE', nullable=False))
+    op.add_column('dependency', sa.Column('dependency_mission_impact', mission_impact_enum, server_default=None, nullable=True))
     op.add_column('service', sa.Column('exposure', exposure_enum, server_default='OPEN', nullable=False))
     op.add_column('service', sa.Column('service_mission_impact', mission_impact_enum, server_default='MISSION_FAILURE', nullable=False))
     op.add_column('topic', sa.Column('safety_impact', safety_impact_enum, server_default='CATASTROPHIC', nullable=False))
