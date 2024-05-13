@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import models, persistence, schemas, ticket
 from app.database import get_db
 
 router = APIRouter(prefix="/threats", tags=["threats"])
@@ -50,6 +50,7 @@ def create_threat(
 
     threat = models.Threat(**data.model_dump())
     persistence.create_threat(db, threat)
+    ticket.create_ticket(db, threat)
     db.commit()
 
     return threat
