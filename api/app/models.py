@@ -5,7 +5,7 @@ from typing import cast
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
-from sqlalchemy.sql.expression import join
+from sqlalchemy.sql.expression import join, text
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
 
@@ -149,6 +149,49 @@ class TopicStatusType(str, enum.Enum):
     completed = "completed"
 
 
+class ExploitationEnum(str, enum.Enum):
+    # https://certcc.github.io/SSVC/ssvc-calc/
+    # https://certcc.github.io/SSVC/reference/decision_points/exploitation/
+    ACTIVE = "active"
+    POC = "poc"
+    NONE = "none"
+
+
+class ExposureEnum(str, enum.Enum):
+    # https://certcc.github.io/SSVC/reference/decision_points/system_exposure/
+    OPEN = "open"
+    CONTROLLED = "controlled"
+    SMALL = "small"
+
+
+class SafetyImpactEnum(str, enum.Enum):
+    # https://certcc.github.io/SSVC/ssvc-calc/
+    # https://certcc.github.io/SSVC/reference/decision_points/safety_impact/#situated-safety-impact
+    CATASTROPHIC = "catastrophic"
+    HAZARDOUS = "hazardous"
+    MAJOR = "major"
+    MINOR = "minor"
+    NONE = "none"
+
+
+class MissionImpactEnum(str, enum.Enum):
+    # https://certcc.github.io/SSVC/ssvc-calc/
+    # https://certcc.github.io/SSVC/reference/decision_points/mission_impact/
+    MISSION_FAILURE = "mission_failure"
+    MEF_FAILURE = "mef_failure"
+    CRIPPLED = "crippled"
+    DEGRADED = "degraded"
+    NONE = "none"
+
+
+class SSVCDeployerPriorityEnum(str, enum.Enum):
+    # https://certcc.github.io/SSVC/howto/deployer_tree/#deployer-decision-outcomes
+    IMMEDIATE = "immediate"
+    OUT_OF_CYCLE = "out_of_cycle"
+    SCHEDULED = "scheduled"
+    DEFER = "defer"
+
+
 # Base class
 
 StrUUID = Annotated[str, 36]
@@ -242,6 +285,11 @@ class Account(Base):
 class Dependency(Base):
     __tablename__ = "dependency"
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.dependency_mission_impact:
+            self.dependency_mission_impact = MissionImpactEnum.MISSION_FAILURE
+
     service_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("service.service_id", ondelete="CASCADE"), primary_key=True, index=True
     )
@@ -250,6 +298,9 @@ class Dependency(Base):
     )
     version: Mapped[str] = mapped_column(primary_key=True)
     target: Mapped[str] = mapped_column(primary_key=True)
+    dependency_mission_impact: Mapped[MissionImpactEnum] = mapped_column(
+        server_default=MissionImpactEnum.MISSION_FAILURE
+    )
 
     service = relationship("Service", back_populates="dependencies")
     tag = relationship("Tag", back_populates="dependencies")
@@ -265,12 +316,20 @@ class Service(Base):
         super().__init__(*args, **kwargs)
         if not self.service_id:
             self.service_id = str(uuid.uuid4())
+        if not self.exposure:
+            self.exposure = ExposureEnum.OPEN
+        if not self.service_mission_impact:
+            self.service_mission_impact = MissionImpactEnum.MISSION_FAILURE
 
     service_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     pteam_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
     )
     service_name: Mapped[Str255]
+    exposure: Mapped[ExposureEnum] = mapped_column(server_default=ExposureEnum.OPEN)
+    service_mission_impact: Mapped[MissionImpactEnum] = mapped_column(
+        server_default=MissionImpactEnum.MISSION_FAILURE
+    )
 
     pteam = relationship("PTeam", back_populates="services")
     dependencies = relationship(
@@ -306,6 +365,50 @@ class Threat(Base):
     tag = relationship("Tag", back_populates="threats")
     service = relationship("Service", back_populates="threats")
     topic = relationship("Topic", back_populates="threats")
+    ticket = relationship("Ticket", back_populates="threat")
+
+
+class Ticket(Base):
+    __tablename__ = "ticket"
+
+    def __init__(self, *args, **kwargs) -> None:
+        now = datetime.now()
+        super().__init__(*args, **kwargs)
+        if not self.ticket_id:
+            self.ticket_id = str(uuid.uuid4())
+        if not self.created_at:
+            self.created_at = now
+        if not self.updated_at:
+            self.updated_at = now
+
+    ticket_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    threat_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
+
+    threat = relationship("Threat", back_populates="ticket")
+
+
+class Alert(Base):
+    __tablename__ = "alert"
+
+    def __init__(self, *args, **kwargs) -> None:
+        now = datetime.now()
+        super().__init__(*args, **kwargs)
+        if not self.alert_id:
+            self.alert_id = str(uuid.uuid4())
+        if not self.alerted_at:
+            self.alerted_at = now
+
+    alert_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    ticket_id: Mapped[StrUUID | None] = mapped_column(
+        ForeignKey("ticket.ticket_id"), index=True, nullable=True
+    )
+    alerted_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    alert_content: Mapped[str | None] = mapped_column(nullable=True)  # WORKAROUND
 
 
 class PTeam(Base):
@@ -445,12 +548,18 @@ class ATeamSlack(Base):
 
 
 class Topic(Base):
+    __tablename__ = "topic"
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if not self.topic_id:
             self.topic_id = str(uuid.uuid4())
-
-    __tablename__ = "topic"
+        if not self.safety_impact:
+            self.safety_impact = SafetyImpactEnum.CATASTROPHIC
+        if not self.exploitation:
+            self.exploitation = ExploitationEnum.ACTIVE
+        if not self.automatable:
+            self.automatable = True
 
     topic_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     title: Mapped[Str255]
@@ -461,6 +570,12 @@ class Topic(Base):
     updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     content_fingerprint: Mapped[str]
     disabled: Mapped[bool] = mapped_column(default=False)
+    safety_impact: Mapped[SafetyImpactEnum] = mapped_column(
+        server_default=SafetyImpactEnum.CATASTROPHIC
+    )
+    exploitation: Mapped[ExploitationEnum] = mapped_column(server_default=ExploitationEnum.ACTIVE)
+    automatable: Mapped[bool] = mapped_column(server_default=text("TRUE"))
+    hint_for_action: Mapped[str | None] = mapped_column(nullable=True)  # WORKAROUND
 
     actions = relationship("TopicAction", back_populates="topic", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary=TopicTag.__tablename__, order_by="Tag.tag_name")
