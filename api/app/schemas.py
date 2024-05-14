@@ -239,6 +239,10 @@ class TopicUpdateRequest(ORMModel):
     tags: list[str] | None = None
     misp_tags: list[str] | None = None
     disabled: bool | None = None
+    safety_impact: SafetyImpactEnum | None = None
+    exploitation: ExploitationEnum | None = None
+    automatable: bool | None = None
+    hint_for_action: str | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 

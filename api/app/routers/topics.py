@@ -398,6 +398,14 @@ def update_topic(
         topic.threat_impact = data.threat_impact
     if data.disabled is not None:
         topic.disabled = data.disabled
+    if data.safety_impact is not None:
+        topic.safety_impact = data.safety_impact
+    if data.exploitation is not None:
+        topic.exploitation = data.exploitation
+    if data.automatable is not None:
+        topic.automatable = data.automatable
+    if data.hint_for_action is not None:
+        topic.hint_for_action = data.hint_for_action
 
     if need_update_content_fingerprint:
         topic.content_fingerprint = calculate_topic_content_fingerprint(
