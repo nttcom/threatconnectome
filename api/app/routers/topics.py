@@ -298,7 +298,6 @@ def create_topic(
 
     # create topic core
     now = datetime.now()
-
     topic = models.Topic(
         topic_id=str(topic_id),
         title=fixed_title,
@@ -311,6 +310,8 @@ def create_topic(
             fixed_title, fixed_abstract, data.threat_impact, data.tags
         ),
         safety_impact=data.safety_impact,
+        exploitation=data.exploitation,
+        automatable=data.automatable,
         hint_for_action=data.hint_for_action,
     )
     # fix relations

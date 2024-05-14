@@ -224,10 +224,10 @@ class TopicCreateRequest(ORMModel):
     tags: list[str] = []
     misp_tags: list[str] = []
     actions: list[ActionCreateRequest] = []
-    safety_impact: SafetyImpactEnum | None
-    exploitation: ExploitationEnum | None
-    automatable: bool | None
-    hint_for_action: str | None
+    safety_impact: SafetyImpactEnum | None = None
+    exploitation: ExploitationEnum | None = None
+    automatable: bool | None = None
+    hint_for_action: str | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 

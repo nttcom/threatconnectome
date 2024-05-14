@@ -558,8 +558,6 @@ def main() -> None:
                 "misp_tags": misp_tags,
                 "actions": actions,
                 "safety_impact": safety_impact.get(severity, "none"),
-                "exploitation": "active",
-                "automatable": True,
                 "hint_for_action": vuln_content["fix_vers"],
             }
 
