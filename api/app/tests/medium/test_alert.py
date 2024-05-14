@@ -64,6 +64,10 @@ class TestPTeamHasParentTag:
             "tags": [tag],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     # common functions used in tests
@@ -139,6 +143,10 @@ class TestPTeamHasChildTag:
             "tags": [tag],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     # common functions used in tests
@@ -234,6 +242,10 @@ def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_thr
             "tags": [parent_tag1.tag_name],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     def check_tag_in_alert_target(
@@ -288,6 +300,10 @@ class TestTopicHasVersion:
             "tags": [tag.tag_name for tag in tags],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     # common functions used in tests
@@ -431,6 +447,10 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
             "tags": [tag.tag_name for tag in tags],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     def _find_expected(

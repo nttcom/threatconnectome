@@ -98,6 +98,10 @@ def test_pick_alert_targets__disabled(testdb):
             "tags": [parent_tag1.tag_name],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     def _select_topic(topic: schemas.TopicCreateResponse) -> models.Topic:
