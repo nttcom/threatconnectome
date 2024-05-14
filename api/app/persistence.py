@@ -451,8 +451,26 @@ def search_threats(
     return db.scalars(select_stmt).all()
 
 
+### Ticket
+def create_ticket(db: Session, ticket: models.Ticket) -> None:
+    db.add(ticket)
+    db.flush()
+
+
 ### Service
 def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | None:
     return db.scalars(
         select(models.Service).where(models.Service.service_id == str(service_id))
+    ).one_or_none()
+
+
+### Dependency
+def get_dependency_from_service_id_and_tag_id(
+    db: Session, service_id: str, tag_id: str
+) -> models.Dependency | None:
+    return db.scalars(
+        select(models.Dependency).where(
+            models.Dependency.service_id == str(service_id),
+            models.Dependency.tag_id == str(tag_id),
+        )
     ).one_or_none()

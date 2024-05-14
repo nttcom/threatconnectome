@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.main import app
+from app.tests.common import threat_utils
 from app.tests.medium.constants import PTEAM1, PTEAM2, TOPIC1, TOPIC2, USER1, USER2
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
@@ -26,52 +27,14 @@ headers = {
 }
 
 
-def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> schemas.ThreatResponse:
-    create_user(user)
-    pteam1 = create_pteam(user, pteam)
-    topic1 = create_topic(user, topic)
-
-    params: Dict[str, Union[str, bool]] = {"group": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
-    with open(sbom_file, "rb") as tags:
-        data = assert_200(
-            client.post(
-                f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
-                headers=file_upload_headers(user),
-                params=params,
-                files={"file": tags},
-            )
-        )
-
-    tag_id = data[0]["tag_id"]
-
-    service_id = testdb.scalars(
-        select(models.Service.service_id).where(
-            models.Service.pteam_id == str(pteam1.pteam_id),
-            models.Service.service_name == str(params["group"]),
-        )
-    ).one_or_none()
-
-    request = {
-        "tag_id": str(tag_id),
-        "service_id": str(service_id),
-        "topic_id": str(topic1.topic_id),
-    }
-    response = client.post("/threats", headers=headers, json=request)
-    if response.status_code != 200:
-        raise HTTPError(response)
-
-    return schemas.ThreatResponse(**response.json())
-
-
 @pytest.fixture
 def threat1(testdb: Session) -> schemas.ThreatResponse:
-    return create_threat(testdb, USER1, PTEAM1, TOPIC1)
+    return threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1)
 
 
 @pytest.fixture
 def threat2(testdb: Session) -> schemas.ThreatResponse:
-    return create_threat(testdb, USER2, PTEAM2, TOPIC2)
+    return threat_utils.create_threat(testdb, USER2, PTEAM2, TOPIC2)
 
 
 def test_get_threat(threat1: schemas.ThreatResponse, threat2: schemas.ThreatResponse):

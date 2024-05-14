@@ -1,9 +1,10 @@
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import models, persistence, schemas, ssvc
 from app.database import get_db
 
 router = APIRouter(prefix="/threats", tags=["threats"])
@@ -48,8 +49,27 @@ def create_threat(
     if service is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
 
-    threat = models.Threat(**data.model_dump())
+    threat = models.Threat(
+        tag_id=str(data.tag_id),
+        service_id=str(data.service_id),
+        topic_id=str(data.topic_id),
+    )
     persistence.create_threat(db, threat)
+
+    topic = threat.topic
+    if topic and topic.hint_for_action:
+        now = datetime.now()
+        dependency = persistence.get_dependency_from_service_id_and_tag_id(
+            db, service.service_id, tag.tag_id
+        )
+        ticket = models.Ticket(
+            threat_id=str(threat.threat_id),
+            created_at=now,
+            updated_at=now,
+            ssvc_deployer_priority=ssvc.calculate_ssvc_deployer_priority(threat, dependency),
+        )
+        persistence.create_ticket(db, ticket)
+
     db.commit()
 
     return threat
