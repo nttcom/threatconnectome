@@ -464,22 +464,13 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
     ).one_or_none()
 
 
-def get_mission_impact(
-    db: Session, tag_id: UUID | str, service_id: UUID | str
-) -> models.MissionImpactEnum | None:
-
-    dependency_mission_impact = db.scalars(
-        select(models.Dependency.dependency_mission_impact).where(
+### Dependency
+def get_dependency_from_service_id_and_tag_id(
+    db: Session, service_id: str, tag_id: str
+) -> models.Dependency | None:
+    return db.scalars(
+        select(models.Dependency).where(
             models.Dependency.service_id == str(service_id),
             models.Dependency.tag_id == str(tag_id),
-        )
-    ).one_or_none()
-
-    if dependency_mission_impact:
-        return dependency_mission_impact
-
-    return db.scalars(
-        select(models.Service.service_mission_impact).where(
-            models.Service.service_id == str(service_id)
         )
     ).one_or_none()
