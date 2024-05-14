@@ -74,7 +74,7 @@ def test_create_topic():
     assert topic1.safety_impact == TOPIC1["safety_impact"]
     assert topic1.exploitation == TOPIC1["exploitation"]
     assert topic1.automatable == TOPIC1["automatable"]
-    assert topic1.hint_for_action ==  TOPIC1["hint_for_action"]
+    assert topic1.hint_for_action == TOPIC1["hint_for_action"]
 
 
 def test_create_topic__with_new_tags():
@@ -195,7 +195,7 @@ def test_get_topic():
     assert responsed_topic.safety_impact == TOPIC1["safety_impact"]
     assert responsed_topic.exploitation == TOPIC1["exploitation"]
     assert responsed_topic.automatable == TOPIC1["automatable"]
-    assert responsed_topic.hint_for_action ==  TOPIC1["hint_for_action"]
+    assert responsed_topic.hint_for_action == TOPIC1["hint_for_action"]
     # actions are removed from TopicResponse.
     # use 'GET /topics/{tid}/actions/pteam/{pid}' to get actions.
 
@@ -236,6 +236,10 @@ def test_update_topic():
         "threat_impact": 2,
         "tags": [tag1.tag_name],
         "misp_tags": ["tlp:white"],
+        "safety_impact": "hazardous",
+        "exploitation": "poc",
+        "automatable": False,
+        "hint_for_action": "2.9.3",
     }
     response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
 
@@ -253,6 +257,14 @@ def test_update_topic():
     assert TOPIC1["misp_tags"][0] not in [
         misp_tag.tag_name for misp_tag in responsed_topic.misp_tags
     ]
+    assert responsed_topic.safety_impact == request["safety_impact"]
+    assert responsed_topic.safety_impact != TOPIC1["safety_impact"]
+    assert responsed_topic.exploitation == request["exploitation"]
+    assert responsed_topic.exploitation != TOPIC1["exploitation"]
+    assert responsed_topic.automatable == request["automatable"]
+    assert responsed_topic.automatable != TOPIC1["automatable"]
+    assert responsed_topic.hint_for_action == request["hint_for_action"]
+    assert responsed_topic.hint_for_action != TOPIC1["hint_for_action"]
 
 
 def test_update_topic__with_new_tags():
