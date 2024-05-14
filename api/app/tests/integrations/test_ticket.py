@@ -27,7 +27,7 @@ headers = {
 }
 
 
-def test_create_threat_without_ticket(testdb: Session):
+def test_ticket_should_not_be_created_when_topic_has_not_hint_for_action(testdb: Session):
     threat = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1)
 
     ticket = testdb.scalars(
@@ -36,7 +36,7 @@ def test_create_threat_without_ticket(testdb: Session):
     assert ticket is None
 
 
-def test_create_ticket(testdb: Session):
+def test_ticket_should_be_created_when_topic_has_hint_for_action(testdb: Session):
     # Given
     # Topic has been created with hint_for_action.
     create_user(USER1)
