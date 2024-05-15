@@ -206,12 +206,11 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
 
     tmp_title = f"{topic.title}: {alert.alert_content or '(no alert content)'}"  # WORKAROUND
     tmp_threat_impact = {  # WORKAROUND
-        models.SafetyImpactEnum.CATASTROPHIC: 1,
-        models.SafetyImpactEnum.HAZARDOUS: 2,
-        models.SafetyImpactEnum.MAJOR: 3,
-        models.SafetyImpactEnum.MINOR: 3,
-        models.SafetyImpactEnum.NONE: 4,
-    }.get(topic.safety_impact, 4)
+        models.SSVCDeployerPriorityEnum.IMMEDIATE: 1,
+        models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
+        models.SSVCDeployerPriorityEnum.SCHEDULED: 3,
+        models.SSVCDeployerPriorityEnum.DEFER: 4,
+    }.get(ticket.ssvc_deployer_priority, 4)
 
     if alert_by_slack:
         try:
