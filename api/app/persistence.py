@@ -436,9 +436,9 @@ def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None
 
 def search_threats(
     db: Session,
-    tag_id: UUID | None,
-    service_id: UUID | None,
-    topic_id: UUID | None,
+    tag_id: UUID | str | None,
+    service_id: UUID | str | None,
+    topic_id: UUID | str | None,
 ) -> Sequence[models.Threat]:
     select_stmt = select(models.Threat)
     if tag_id:
@@ -474,3 +474,22 @@ def get_dependency_from_service_id_and_tag_id(
             models.Dependency.tag_id == str(tag_id),
         )
     ).one_or_none()
+
+
+### Alert
+
+
+def get_alert_by_id(db: Session, alert_id: UUID | str) -> models.Alert | None:
+    return db.scalars(
+        select(models.Alert).where(models.Alert.alert_id == str(alert_id))
+    ).one_or_none()
+
+
+def create_alert(db: Session, alert: models.Alert) -> None:
+    db.add(alert)
+    db.flush()
+
+
+def delete_alert(db: Session, alert: models.Alert) -> None:
+    db.delete(alert)
+    db.flush()

@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from typing import Sequence
 from urllib.parse import urljoin
 from uuid import UUID
@@ -150,3 +151,95 @@ def create_mail_alert_for_new_topic(
         ]
     )
     return subject, body
+
+
+def create_alert_from_ticket_if_meet_threshold(ticket: models.Ticket) -> models.Alert | None:
+    # abort if deployer_priofiry is not yet calclated
+    if ticket.ssvc_deployer_priority is None:
+        return None
+    if not (
+        int_priority := {
+            models.SSVCDeployerPriorityEnum.IMMEDIATE: 1,
+            models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
+            models.SSVCDeployerPriorityEnum.SCHEDULED: 3,
+            models.SSVCDeployerPriorityEnum.DEFER: 4,
+        }.get(ticket.ssvc_deployer_priority)
+    ):
+        raise ValueError(f"Invalid SSVCDeployerPriority: {ticket.ssvc_deployer_priority}")
+
+    service = ticket.threat.service
+    pteam = service.pteam
+    topic = ticket.threat.topic
+
+    # WORKAROUND
+    # use pteam.alert_threat_impact as threshold for alert.
+    # threshold should be defined in pteam and/or service.
+    int_threshold = pteam.alert_threat_impact or 4
+    if int_priority > int_threshold:
+        return None
+
+    now = datetime.now()
+    alert_content = topic.hint_for_action  # WORKAROUND
+    alert = models.Alert(
+        ticket_id=ticket.ticket_id,
+        alerted_at=now,
+        alert_content=alert_content,
+    )
+
+    return alert
+
+
+def send_alert_to_pteam(alert: models.Alert) -> None:
+    if not (ticket := alert.ticket):  # this alert is orphan, no info to send to.
+        return
+    threat = ticket.threat
+    tag = threat.tag
+    topic = threat.topic
+    service = threat.service
+    pteam = service.pteam
+
+    # check alert settings
+    alert_by_slack = pteam.alert_slack.enable and pteam.alert_slack.webhook_url
+    alert_by_mail = _ready_alert_by_email() and pteam.alert_mail.enable and pteam.alert_mail.address
+    if not alert_by_slack and not alert_by_mail:
+        return None
+
+    tmp_title = f"{topic.title}: {alert.alert_content or '(no alert content)'}"  # WORKAROUND
+    tmp_threat_impact = {  # WORKAROUND
+        models.SafetyImpactEnum.CATASTROPHIC: 1,
+        models.SafetyImpactEnum.HAZARDOUS: 2,
+        models.SafetyImpactEnum.MAJOR: 3,
+        models.SafetyImpactEnum.MINOR: 3,
+        models.SafetyImpactEnum.NONE: 4,
+    }.get(topic.safety_impact, 4)
+
+    if alert_by_slack:
+        try:
+            slack_message_blocks = create_slack_pteam_alert_blocks_for_new_topic(
+                pteam.pteam_id,
+                pteam.pteam_name,
+                tag.tag_id,
+                tag.tag_name,
+                topic.topic_id,
+                tmp_title,  # WORKAROUND
+                tmp_threat_impact,  # WORKAROUND
+                [service.service_name],  # WORKAROUND
+            )
+            send_slack(pteam.alert_slack.webhook_url, slack_message_blocks)
+        except Exception:
+            pass
+
+    if alert_by_mail:
+        try:
+            mail_subject, mail_body = create_mail_alert_for_new_topic(
+                tmp_title,  # WORKAROUND
+                tmp_threat_impact,  # WORKAROUND
+                pteam.pteam_name,
+                pteam.pteam_id,
+                tag.tag_name,
+                tag.tag_id,
+                [service.service_name],  # WORKAROUND
+            )
+            send_email(pteam.alert_mail.address, SYSTEM_EMAIL, mail_subject, mail_body)
+        except Exception:
+            pass
