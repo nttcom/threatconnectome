@@ -7,6 +7,10 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.main import app
+from app.models import (
+    ExploitationEnum,
+    SafetyImpactEnum,
+)
 from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
@@ -161,6 +165,42 @@ def test_create_wrong_threat_level_topic():
     _topic["threat_impact"] = -1
     with pytest.raises(HTTPError, match="422: Unprocessable Entity"):
         create_topic(USER1, _topic)
+
+
+def test_create_wrong_safety_impact_topic():
+    create_user(USER1)
+    _topic = TOPIC1.copy()
+    _topic["safety_impact"] = "test"
+    with pytest.raises(HTTPError, match="422: Unprocessable Entity"):
+        create_topic(USER1, _topic)
+
+
+def test_create_wrong_exploitation_topic():
+    create_user(USER1)
+    _topic = TOPIC1.copy()
+    _topic["exploitation"] = "test"
+    with pytest.raises(HTTPError, match="422: Unprocessable Entity"):
+        create_topic(USER1, _topic)
+
+
+def test_create_topic_default_value_when_registered_empty():
+    create_user(USER1)
+    _topic = TOPIC1.copy()
+    del _topic["safety_impact"]
+    del _topic["exploitation"]
+    del _topic["automatable"]
+    del _topic["hint_for_action"]
+
+    topic1 = create_topic(
+        USER1,
+        _topic,
+        actions=[ACTION1, ACTION2],
+    )
+
+    assert topic1.safety_impact == SafetyImpactEnum.CATASTROPHIC
+    assert topic1.exploitation == ExploitationEnum.ACTIVE
+    assert topic1.automatable is True
+    assert topic1.hint_for_action is None
 
 
 def test_create_too_long_action():
