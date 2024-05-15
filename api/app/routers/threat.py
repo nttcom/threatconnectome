@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas, ssvc
+from app.alert import create_alert_from_ticket_if_meet_threshold, send_alert_to_pteam
 from app.database import get_db
 
 router = APIRouter(prefix="/threats", tags=["threats"])
@@ -69,6 +70,10 @@ def create_threat(
             ssvc_deployer_priority=ssvc.calculate_ssvc_deployer_priority(threat, dependency),
         )
         persistence.create_ticket(db, ticket)
+
+        if alert := create_alert_from_ticket_if_meet_threshold(ticket):
+            persistence.create_alert(db, alert)
+            send_alert_to_pteam(alert)
 
     db.commit()
 

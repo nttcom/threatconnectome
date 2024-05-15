@@ -36,7 +36,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['threat_id'], ['threat.threat_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('ticket_id')
     )
-    op.create_index(op.f('ix_ticket_threat_id'), 'ticket', ['threat_id'], unique=False)
+    op.create_index(op.f('ix_ticket_threat_id'), 'ticket', ['threat_id'], unique=True)
     op.create_table('alert',
     sa.Column('alert_id', sa.String(length=36), nullable=False),
     sa.Column('ticket_id', sa.String(length=36), nullable=True),
@@ -45,7 +45,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['ticket_id'], ['ticket.ticket_id'], ),
     sa.PrimaryKeyConstraint('alert_id')
     )
-    op.create_index(op.f('ix_alert_ticket_id'), 'alert', ['ticket_id'], unique=False)
+    op.create_index(op.f('ix_alert_ticket_id'), 'alert', ['ticket_id'], unique=True)
     op.add_column('dependency', sa.Column('dependency_mission_impact', mission_impact_enum, server_default=None, nullable=True))
     op.add_column('service', sa.Column('exposure', exposure_enum, server_default='OPEN', nullable=False))
     op.add_column('service', sa.Column('service_mission_impact', mission_impact_enum, server_default='MISSION_FAILURE', nullable=False))
