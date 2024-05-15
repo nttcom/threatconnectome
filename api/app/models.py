@@ -381,7 +381,7 @@ class Ticket(Base):
 
     ticket_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     threat_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True
+        ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True, unique=True
     )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
@@ -404,7 +404,7 @@ class Alert(Base):
 
     alert_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     ticket_id: Mapped[StrUUID | None] = mapped_column(
-        ForeignKey("ticket.ticket_id"), index=True, nullable=True
+        ForeignKey("ticket.ticket_id"), index=True, nullable=True, unique=True
     )
     alerted_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     alert_content: Mapped[str | None] = mapped_column(nullable=True)  # WORKAROUND
