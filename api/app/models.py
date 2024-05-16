@@ -363,7 +363,7 @@ class Threat(Base):
     tag = relationship("Tag", back_populates="threats")
     service = relationship("Service", back_populates="threats")
     topic = relationship("Topic", back_populates="threats")
-    ticket = relationship("Ticket", back_populates="threat")
+    ticket = relationship("Ticket", back_populates="threat", cascade="all, delete")
 
 
 class Ticket(Base):
