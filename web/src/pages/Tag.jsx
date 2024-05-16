@@ -1,4 +1,5 @@
-import { Box, Divider, Tab, Tabs, Typography } from "@mui/material";
+import { Box, Divider, Tab, Tabs, Typography, Chip } from "@mui/material";
+import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -100,18 +101,33 @@ export function Tag() {
 
   const handleTabChange = (event, value) => setTabValue(value);
 
+  const sample_service = "webapp-frontend";
+
   return (
     <>
       <Box alignItems="center" display="flex" flexDirection="row" mt={3} mb={3}>
         <Box display="flex" flexDirection="column" flexGrow={1}>
-          <Box display="flex" alignItems="center">
+          <Box>
+            <Chip
+              label={sample_service}
+              variant="outlined"
+              sx={{
+                borderRadius: "2px",
+                border: `1px solid ${grey[700]}`,
+                borderLeft: `5px solid ${grey[700]}`,
+                mr: 1,
+                mb: 1,
+              }}
+            />
+          </Box>
+          <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
               {tagDict.tag_name}
             </Typography>
             <PTeamTagLabel tagId={tagId} />
           </Box>
-          <UUIDTypography>{tagId}</UUIDTypography>
-          <Typography mt={1} mr={1} mb={1} variant="caption">
+          <Typography mr={1} mb={1} variant="caption">
+            <UUIDTypography sx={{ mr: 2 }}>{tagId}</UUIDTypography>
             {`Updated ${calcTimestampDiff(pteamtag.last_updated_at)}`}
           </Typography>
           <TagReferences references={pteamtag.references} />

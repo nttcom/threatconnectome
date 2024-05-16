@@ -1,4 +1,4 @@
-import { Box, Chip } from "@mui/material";
+import { Tabs, Tab } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,6 +12,8 @@ export function PTeamGroupChip() {
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const groups = useSelector((state) => state.pteam.groups);
 
+  const [value, setValue] = React.useState(0);
+
   useEffect(() => {
     if (!pteamId) return;
     if (!groups) {
@@ -23,6 +25,10 @@ export function PTeamGroupChip() {
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const selectedGroup = params.get("group") ?? "";
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
 
   const handleSelectGroup = (group) => {
     if (group === selectedGroup) {
@@ -36,27 +42,29 @@ export function PTeamGroupChip() {
 
   return (
     <>
-      <Box>
+      <Tabs
+        value={value}
+        onChange={handleChange}
+        variant="scrollable"
+        scrollButtons="auto"
+        aria-label="scrollable auto tabs example"
+      >
         {groups &&
           groups.map((group) => (
-            <Chip
+            <Tab
               key={group}
               label={group}
-              variant={group === selectedGroup ? "" : "outlined"}
-              sx={{
-                mt: 1,
-                borderRadius: "2px",
-                border: `1px solid ${grey[300]}`,
-                borderLeft: `5px solid ${grey[300]}`,
-                mr: 1,
-                background: group === selectedGroup ? grey[400] : "",
-              }}
               onClick={() => {
                 handleSelectGroup(group);
               }}
+              sx={{
+                textTransform: "none",
+                border: `1px solid ${grey[300]}`,
+                borderRadius: "0.5rem 0.5rem 0 0",
+              }}
             />
           ))}
-      </Box>
+      </Tabs>
     </>
   );
 }
