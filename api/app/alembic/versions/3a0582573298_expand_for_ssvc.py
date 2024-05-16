@@ -42,7 +42,7 @@ def upgrade() -> None:
     sa.Column('ticket_id', sa.String(length=36), nullable=True),
     sa.Column('alerted_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('alert_content', sa.Text(), nullable=True),
-    sa.ForeignKeyConstraint(['ticket_id'], ['ticket.ticket_id'], ),
+    sa.ForeignKeyConstraint(['ticket_id'], ['ticket.ticket_id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('alert_id')
     )
     op.create_index(op.f('ix_alert_ticket_id'), 'alert', ['ticket_id'], unique=True)
