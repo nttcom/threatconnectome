@@ -389,6 +389,52 @@ class Ticket(Base):
 
     threat = relationship("Threat", back_populates="ticket")
     alert = relationship("Alert", back_populates="ticket")
+    ticket_statuses = relationship(
+        "TicketStatus", back_populates="ticket", cascade="all, delete-orphan"
+    )
+    curent_ticket_status = relationship("CurrentTicketStatus", back_populates="ticket")
+
+
+class TicketStatus(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        now = datetime.now()
+        super().__init__(*args, **kwargs)
+        if not self.status_id:
+            self.status_id = str(uuid.uuid4())
+        if not self.created_at:
+            self.created_at = now
+
+    __tablename__ = "ticketstatus"
+
+    status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    ticket_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True
+    )
+    topic_status: Mapped[TopicStatusType]
+    note: Mapped[str | None]
+    logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
+    assignees: Mapped[list[StrUUID]] = mapped_column(default=[])
+    scheduled_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+
+    ticket = relationship("Ticket", back_populates="ticket_statuses")
+
+
+class CurrentTicketStatus(Base):
+    __tablename__ = "currentticketstatus"
+
+    current_status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    ticket_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True, unique=True
+    )
+    status_id: Mapped[StrUUID | None] = mapped_column(
+        ForeignKey("pteamtopictagstatus.status_id"), index=True
+    )
+    topic_status: Mapped[TopicStatusType | None]
+    threat_impact: Mapped[int | None]
+    updated_at: Mapped[datetime | None]
+
+    ticket = relationship("Ticket", back_populates="curent_ticket_status")
 
 
 class Alert(Base):
