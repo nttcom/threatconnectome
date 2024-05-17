@@ -7,6 +7,10 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.main import app
+from app.models import (
+    ExploitationEnum,
+    SafetyImpactEnum,
+)
 from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
@@ -161,6 +165,54 @@ def test_create_wrong_threat_level_topic():
     _topic["threat_impact"] = -1
     with pytest.raises(HTTPError, match="422: Unprocessable Entity"):
         create_topic(USER1, _topic)
+
+
+def test_it_should_return_422_when_use_try_to_create_wrong_safety_impact_topic():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    _topic["safety_impact"] = "test"
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.status_code == 422
+
+
+def test_it_should_return_422_when_use_try_to_create_wrong_exploitation_topic():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    _topic["exploitation"] = "test"
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.status_code == 422
+
+
+def test_default_value_is_set_when_ssvc_related_value_is_empty_in_creation():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    del _topic["safety_impact"]
+    del _topic["exploitation"]
+    del _topic["automatable"]
+    del _topic["hint_for_action"]
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.status_code == 200
+
+    responsed_topic = schemas.TopicCreateResponse(**response.json())
+    assert responsed_topic.safety_impact == SafetyImpactEnum.CATASTROPHIC
+    assert responsed_topic.exploitation == ExploitationEnum.ACTIVE
+    assert responsed_topic.automatable is True
+    assert responsed_topic.hint_for_action is None
 
 
 def test_create_too_long_action():
