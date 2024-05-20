@@ -1,33 +1,32 @@
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Union
 
 from fastapi.testclient import TestClient
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import models, persistence, schemas
 from app.main import app
 from app.tests.common import threat_utils
-from app.tests.medium.constants import PTEAM1, TOPIC1, USER1
+from app.tests.medium.constants import ACTION1, PTEAM1, TAG4, TOPIC1, USER1
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     assert_200,
     create_pteam,
-    create_topic,
     create_user,
     file_upload_headers,
+    headers,
 )
 
 client = TestClient(app)
 
-headers = {
+header_threat = {
     "accept": "application/json",
     "Content-Type": "application/json",
 }
 
 
-def test_ticket_should_not_be_created_when_topic_has_not_hint_for_action(testdb: Session):
+def test_ticket_should_not_be_created_when_topic_action_does_not_exist(testdb: Session):
     threat = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1)
 
     ticket = testdb.scalars(
@@ -36,20 +35,16 @@ def test_ticket_should_not_be_created_when_topic_has_not_hint_for_action(testdb:
     assert ticket is None
 
 
-def test_ticket_should_be_created_when_topic_has_hint_for_action(testdb: Session):
+def test_ticket_should_be_created_when_topic_action_exist_and_both_action_and_tag_have_child_tags(
+    testdb: Session,
+):
     # Given
-    # Topic has been created with hint_for_action.
+    # Topic has been created with topic action table.
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    topic1 = create_topic(USER1, TOPIC1)
-    testdb.execute(
-        update(models.Topic)
-        .where(models.Topic.topic_id == str(topic1.topic_id))
-        .values(hint_for_action="hint1 for test")
-    )
 
     # Uploaded sbom file.
-    params: Dict[str, Union[str, bool]] = {"group": "threatconnectome", "force_mode": True}
+    params: dict[str, str | bool] = {"group": "threatconnectome", "force_mode": True}
     sbom_file = (
         Path(__file__).resolve().parent.parent
         / "common"
@@ -57,7 +52,7 @@ def test_ticket_should_be_created_when_topic_has_hint_for_action(testdb: Session
         / "test_syft_cyclonedx.json"
     )
     with open(sbom_file, "rb") as tags:
-        data = assert_200(
+        assert_200(
             client.post(
                 f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
                 headers=file_upload_headers(USER1),
@@ -66,9 +61,32 @@ def test_ticket_should_be_created_when_topic_has_hint_for_action(testdb: Session
             )
         )
 
-    # Create post threats request.
-    tag_id = data[0]["tag_id"]
+    # create topic and topic action table
+    action = {
+        **ACTION1,
+        "ext": {
+            "tags": [TAG4],
+            "vulnerable_versions": {
+                TAG4: ["<0.30"],
+            },
+        },
+    }
 
+    topic = {
+        **TOPIC1,
+        "tags": [TAG4],
+        "actions": [action],
+    }
+
+    request = {**topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{topic["topic_id"]}', headers=headers(USER1), json=request)
+
+    assert response.status_code == 200
+    responsed_topic = schemas.TopicCreateResponse(**response.json())
+
+    # Create post threats request.
     service_id = testdb.scalars(
         select(models.Service.service_id).where(
             models.Service.pteam_id == str(pteam1.pteam_id),
@@ -76,15 +94,18 @@ def test_ticket_should_be_created_when_topic_has_hint_for_action(testdb: Session
         )
     ).one_or_none()
 
+    tag = persistence.get_tag_by_name(testdb, TAG4)
+    assert tag
+
     request = {
-        "tag_id": str(tag_id),
+        "tag_id": str(tag.tag_id),
         "service_id": str(service_id),
-        "topic_id": str(topic1.topic_id),
+        "topic_id": str(responsed_topic.topic_id),
     }
 
     # When
     # Post threats request.
-    response = client.post("/threats", headers=headers, json=request)
+    response = client.post("/threats", headers=header_threat, json=request)
     if response.status_code != 200:
         raise HTTPError(response)
 

@@ -23,6 +23,7 @@ USER3 = {
 TAG1 = "alpha:alpha2:alpha3"
 TAG2 = "bravo:bravo2:bravo3"
 TAG3 = "charlie:charlie2:charlie3"
+TAG4 = "axios:npm:npm"
 GROUP1 = "Threatconnectome"
 GROUP2 = "RepoA"
 REF1 = [
