@@ -5,10 +5,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import models, schemas
 from app.main import app
 from app.tests.common import threat_utils
-from app.tests.medium.constants import ACTION1, PTEAM1, TAG4, TOPIC1, USER1
+from app.tests.medium.constants import ACTION1, PTEAM1, TOPIC1, USER1
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     assert_200,
@@ -52,7 +52,7 @@ def test_ticket_should_be_created_when_topic_action_exist_and_both_action_and_ta
         / "test_syft_cyclonedx.json"
     )
     with open(sbom_file, "rb") as tags:
-        assert_200(
+        data = assert_200(
             client.post(
                 f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
                 headers=file_upload_headers(USER1),
@@ -62,19 +62,21 @@ def test_ticket_should_be_created_when_topic_action_exist_and_both_action_and_ta
         )
 
     # create topic and topic action table
+    tag_name_of_upload_sbom_file = data[0]["tag_name"]
+
     action = {
         **ACTION1,
         "ext": {
-            "tags": [TAG4],
+            "tags": [tag_name_of_upload_sbom_file],
             "vulnerable_versions": {
-                TAG4: ["<0.30"],
+                tag_name_of_upload_sbom_file: ["<0.30"],
             },
         },
     }
 
     topic = {
         **TOPIC1,
-        "tags": [TAG4],
+        "tags": [tag_name_of_upload_sbom_file],
         "actions": [action],
     }
 
@@ -94,11 +96,8 @@ def test_ticket_should_be_created_when_topic_action_exist_and_both_action_and_ta
         )
     ).one_or_none()
 
-    tag = persistence.get_tag_by_name(testdb, TAG4)
-    assert tag
-
     request = {
-        "tag_id": str(tag.tag_id),
+        "tag_id": str(data[0]["tag_id"]),
         "service_id": str(service_id),
         "topic_id": str(responsed_topic.topic_id),
     }
