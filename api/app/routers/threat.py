@@ -68,7 +68,7 @@ def create_threat(
                 continue
             action_tag_names_set |= set(action_tag_names)
 
-        exit_related_action: bool = False
+        exist_related_action: bool = False
         for action_tag_name in action_tag_names_set:
             tag_by_action = persistence.get_tag_by_name(db, action_tag_name)
             if (
@@ -76,10 +76,10 @@ def create_threat(
                 and tag_by_action
                 and (tag_by_action.tag_id == tag.tag_id or tag_by_action.tag_id == tag.parent_id)
             ):
-                exit_related_action = True
+                exist_related_action = True
                 break
 
-        if exit_related_action:
+        if exist_related_action:
             dependency = persistence.get_dependency_from_service_id_and_tag_id(
                 db, service.service_id, tag.tag_id
             )
