@@ -57,23 +57,38 @@ def create_threat(
     )
     persistence.create_threat(db, threat)
 
-    topic = threat.topic
-    if topic and topic.hint_for_action:
-        now = datetime.now()
-        dependency = persistence.get_dependency_from_service_id_and_tag_id(
-            db, service.service_id, tag.tag_id
-        )
-        ticket = models.Ticket(
-            threat_id=str(threat.threat_id),
-            created_at=now,
-            updated_at=now,
-            ssvc_deployer_priority=ssvc.calculate_ssvc_deployer_priority(threat, dependency),
-        )
-        persistence.create_ticket(db, ticket)
+    actions = persistence.get_actions_by_topic_id(db, data.topic_id)
 
-        if alert := create_alert_from_ticket_if_meet_threshold(ticket):
-            persistence.create_alert(db, alert)
-            send_alert_to_pteam(alert)
+    if actions:
+        for action in actions:
+            action_tag_names = action.ext.get("tags")
+            assert action_tag_names
+            for action_tag_name in action_tag_names:
+                tag_by_action = persistence.get_tag_by_name(db, action_tag_name)
+                if (
+                    threat.topic
+                    and tag_by_action
+                    and (
+                        tag_by_action.tag_id == tag.tag_id or tag_by_action.tag_id == tag.parent_id
+                    )
+                ):
+                    now = datetime.now()
+                    dependency = persistence.get_dependency_from_service_id_and_tag_id(
+                        db, service.service_id, tag.tag_id
+                    )
+                    ticket = models.Ticket(
+                        threat_id=str(threat.threat_id),
+                        created_at=now,
+                        updated_at=now,
+                        ssvc_deployer_priority=ssvc.calculate_ssvc_deployer_priority(
+                            threat, dependency
+                        ),
+                    )
+                    persistence.create_ticket(db, ticket)
+
+                    if alert := create_alert_from_ticket_if_meet_threshold(ticket):
+                        persistence.create_alert(db, alert)
+                        send_alert_to_pteam(alert)
 
     db.commit()
 
