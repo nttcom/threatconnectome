@@ -107,6 +107,7 @@ def threat_data(testdb: Session) -> dict:
     ticket = testdb.scalars(
         select(models.Ticket).where(models.Ticket.threat_id == str(threat.threat_id))
     ).one_or_none()
+    assert ticket is not None
 
     return {
         "ticket_id": ticket.ticket_id,
