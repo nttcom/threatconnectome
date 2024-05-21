@@ -363,7 +363,7 @@ class Threat(Base):
     tag = relationship("Tag", back_populates="threats")
     service = relationship("Service", back_populates="threats")
     topic = relationship("Topic", back_populates="threats")
-    ticket = relationship("Ticket", back_populates="threat", cascade="all, delete")
+    ticket = relationship("Ticket", uselist=False, back_populates="threat", cascade="all, delete")
 
 
 class Ticket(Base):
@@ -388,14 +388,16 @@ class Ticket(Base):
     ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
 
     threat = relationship("Threat", back_populates="ticket")
-    alert = relationship("Alert", back_populates="ticket")
+    alert = relationship("Alert", uselist=False, back_populates="ticket")
     ticket_statuses = relationship(
-        "TicketStatus", back_populates="ticket", cascade="all, delete-orphan"
+        "TicketStatus", uselist=False, back_populates="ticket", cascade="all, delete-orphan"
     )
     curent_ticket_status = relationship("CurrentTicketStatus", back_populates="ticket")
 
 
 class TicketStatus(Base):
+    __tablename__ = "ticketstatus"
+
     def __init__(self, *args, **kwargs) -> None:
         now = datetime.now()
         super().__init__(*args, **kwargs)
@@ -403,8 +405,6 @@ class TicketStatus(Base):
             self.status_id = str(uuid.uuid4())
         if not self.created_at:
             self.created_at = now
-
-    __tablename__ = "ticketstatus"
 
     status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     ticket_id: Mapped[StrUUID] = mapped_column(
@@ -423,12 +423,17 @@ class TicketStatus(Base):
 class CurrentTicketStatus(Base):
     __tablename__ = "currentticketstatus"
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.current_status_id:
+            self.current_status_id = str(uuid.uuid4())
+
     current_status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     ticket_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True, unique=True
     )
     status_id: Mapped[StrUUID | None] = mapped_column(
-        ForeignKey("pteamtopictagstatus.status_id"), index=True
+        ForeignKey("ticketstatus.status_id"), index=True
     )
     topic_status: Mapped[TopicStatusType | None]
     threat_impact: Mapped[int | None]

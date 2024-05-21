@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas
+from app import command, models, persistence, schemas, ticket_manager
 from app.auth import get_current_user
 from app.common import (
     auto_close_by_pteamtags,
@@ -859,6 +859,7 @@ def set_pteam_topic_status(
             )
 
     ret = set_pteam_topic_status_internal(db, current_user, pteam, topic, tag, data)
+    ticket_manager.set_ticket_statuses(db, current_user, pteam, topic, tag, data)
 
     db.commit()
 
