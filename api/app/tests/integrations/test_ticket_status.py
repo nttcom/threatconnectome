@@ -82,35 +82,13 @@ def threat_data(testdb: Session) -> dict:
     }
     upload_pteam_tags(USER1, pteam1.pteam_id, group_name, refs0)
 
-    # set topic_status
-    json_data1 = {
-        "topic_status": "acknowledged",
-        "note": "acknowledged",
-        "assignees": [str(x.user_id) for x in [user1, user2]],
-        "scheduled_at": str(datetime(2024, 6, 1)),
-    }
-    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data1)
-
-    json_data2 = {
-        "topic_status": "scheduled",
-        "note": "scheduled",
-        "assignees": [str(x.user_id) for x in [user1, user2]],
-        "scheduled_at": str(datetime(2024, 6, 2)),
-    }
-    create_topicstatus(USER2, pteam1.pteam_id, topic1.topic_id, tag1.tag_id, json_data2)
-
-    # When
-    # update topics
-    put_topics_request = {"disabled": True}
-    client.put(f"/topics/{topic1.topic_id}", headers=headers(USER1), json=put_topics_request)
-
-    ticket = testdb.scalars(
+    ticket_id: str = ""
+    if ticket := testdb.scalars(
         select(models.Ticket).where(models.Ticket.threat_id == str(threat.threat_id))
-    ).one_or_none()
-    assert ticket is not None
-
+    ).one_or_none():
+        ticket_id = str(ticket.ticket_id)
     return {
-        "ticket_id": ticket.ticket_id,
+        "ticket_id": ticket_id,
         "tag_id": tag1.tag_id,
         "service_id": service_id,
         "topic_id": topic1.topic_id,
@@ -119,9 +97,7 @@ def threat_data(testdb: Session) -> dict:
     }
 
 
-def test_PTeamTopicTagStatus_equals_TicketStatus_when_create_topicstatus2(
-    testdb: Session, threat_data: dict
-):
+def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict):
     # When
     # set topic_status
     json_data1 = {
@@ -145,68 +121,50 @@ def test_PTeamTopicTagStatus_equals_TicketStatus_when_create_topicstatus2(
     )
 
     # Then
-    # table data of PTeamTopicTagStatus and TicketStatus is equal
-    pteam_topic_tag_status_list = testdb.scalars(
-        select(models.PTeamTopicTagStatus).where(
-            models.PTeamTopicTagStatus.pteam_id == str(threat_data["pteam_id"]),
-            models.PTeamTopicTagStatus.topic_id == str(threat_data["topic_id"]),
-            models.PTeamTopicTagStatus.tag_id == str(threat_data["tag_id"]),
-        )
-    ).all()
-
+    # check TicketStatus
     ticket_statuses_list = testdb.scalars(
         select(models.TicketStatus).where(
             models.TicketStatus.ticket_id == str(threat_data["ticket_id"])
         )
     ).all()
 
-    assert len(pteam_topic_tag_status_list) == len(ticket_statuses_list)
+    assert len(ticket_statuses_list) == 3
 
     for statuses_index in range(len(ticket_statuses_list)):
-        old_status = pteam_topic_tag_status_list[statuses_index]
-        new_status = ticket_statuses_list[statuses_index]
+        status = ticket_statuses_list[statuses_index]
+        if status.note == "auto closed by system":
+            assert status.topic_status == models.TopicStatusType.completed
+            assert len(status.logging_ids) == 1
+            assert len(status.assignees) == 0
+            assert status.scheduled_at is None
+        elif status.note == "acknowledged":
+            assert status.topic_status == models.TopicStatusType.acknowledged
+            assert len(status.logging_ids) == 0
+            assert len(status.assignees) == 2
+            for assignees_index in range(len(status.assignees)):
+                assert status.assignees[assignees_index] in threat_data["assignees"]
+                assert status.scheduled_at == datetime(2024, 6, 1)
+        elif status.note == "scheduled":
+            assert status.topic_status == models.TopicStatusType.scheduled
+            assert len(status.logging_ids) == 0
+            assert len(status.assignees) == 2
+            for assignees_index in range(len(status.assignees)):
+                assert status.assignees[assignees_index] in threat_data["assignees"]
+                assert status.scheduled_at == datetime(2024, 6, 2)
 
-        assert old_status.topic_status == new_status.topic_status
-
-        assert old_status.note == new_status.note
-
-        assert len(old_status.logging_ids) == len(new_status.logging_ids)
-        for logging_ids_index in range(len(new_status.logging_ids)):
-            assert (
-                old_status.logging_ids[logging_ids_index]
-                == new_status.logging_ids[logging_ids_index]
-            )
-
-        assert len(old_status.assignees) == len(new_status.assignees)
-        for assignees_index in range(len(new_status.assignees)):
-            assert old_status.assignees[assignees_index] == new_status.assignees[assignees_index]
-
-        assert old_status.scheduled_at == new_status.scheduled_at
-
-    # table data of CurrentPTeamTopicTagStatus and CurrentTicketStatus is equal
-    current_pteam_topic_tag_status = testdb.scalars(
-        select(models.CurrentPTeamTopicTagStatus).where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(threat_data["pteam_id"]),
-            models.CurrentPTeamTopicTagStatus.topic_id == str(threat_data["topic_id"]),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(threat_data["tag_id"]),
-        )
-    ).one_or_none()
-
+    # check CurrentTicketStatus
     current_tcket_status = testdb.scalars(
         select(models.CurrentTicketStatus).where(
             models.CurrentTicketStatus.ticket_id == str(threat_data["ticket_id"])
         )
     ).one_or_none()
 
-    assert current_pteam_topic_tag_status is not None
     assert current_tcket_status is not None
-    assert current_pteam_topic_tag_status.topic_status == current_tcket_status.topic_status
-    assert current_pteam_topic_tag_status.threat_impact == current_tcket_status.threat_impact
+    assert current_tcket_status.topic_status == models.TopicStatusType.scheduled
+    assert current_tcket_status.threat_impact == 1
 
 
-def test_PTeamTopicTagStatus_equals_TicketStatus_when_auto_close(
-    testdb: Session, threat_data: dict
-):
+def test_TicketStatus_when_auto_close(testdb: Session, threat_data: dict):
     # Given
     # set topic_status
     json_data1 = {
@@ -230,66 +188,51 @@ def test_PTeamTopicTagStatus_equals_TicketStatus_when_auto_close(
     )
 
     # When
-    # update topics
-    put_topics_request = {"disabled": True}
+    # topics disabled update True to False
     topic_id = threat_data["topic_id"]
+    put_topics_request = {"disabled": True}
+    client.put(f"/topics/{topic_id}", headers=headers(USER1), json=put_topics_request)
+    put_topics_request = {"disabled": False}
     client.put(f"/topics/{topic_id}", headers=headers(USER1), json=put_topics_request)
 
     # Then
-    # table data of PTeamTopicTagStatus and TicketStatus is equal
-    pteam_topic_tag_status_list = testdb.scalars(
-        select(models.PTeamTopicTagStatus).where(
-            models.PTeamTopicTagStatus.pteam_id == str(threat_data["pteam_id"]),
-            models.PTeamTopicTagStatus.topic_id == str(threat_data["topic_id"]),
-            models.PTeamTopicTagStatus.tag_id == str(threat_data["tag_id"]),
-        )
-    ).all()
-
+    # check TicketStatus
     ticket_statuses_list = testdb.scalars(
         select(models.TicketStatus).where(
             models.TicketStatus.ticket_id == str(threat_data["ticket_id"])
         )
     ).all()
 
-    assert len(pteam_topic_tag_status_list) == len(ticket_statuses_list)
-
+    assert len(ticket_statuses_list) == 4
     for statuses_index in range(len(ticket_statuses_list)):
-        old_status = pteam_topic_tag_status_list[statuses_index]
-        new_status = ticket_statuses_list[statuses_index]
+        status = ticket_statuses_list[statuses_index]
+        if status.note == "auto closed by system":
+            assert status.topic_status == models.TopicStatusType.completed
+            assert len(status.logging_ids) == 1
+            assert len(status.assignees) == 0
+            assert status.scheduled_at is None
+        elif status.note == "acknowledged":
+            assert status.topic_status == models.TopicStatusType.acknowledged
+            assert len(status.logging_ids) == 0
+            assert len(status.assignees) == 2
+            for assignees_index in range(len(status.assignees)):
+                assert status.assignees[assignees_index] in threat_data["assignees"]
+                assert status.scheduled_at == datetime(2024, 6, 1)
+        elif status.note == "scheduled":
+            assert status.topic_status == models.TopicStatusType.scheduled
+            assert len(status.logging_ids) == 0
+            assert len(status.assignees) == 2
+            for assignees_index in range(len(status.assignees)):
+                assert status.assignees[assignees_index] in threat_data["assignees"]
+                assert status.scheduled_at == datetime(2024, 6, 2)
 
-        assert old_status.topic_status == new_status.topic_status
-
-        assert old_status.note == new_status.note
-
-        assert len(old_status.logging_ids) == len(new_status.logging_ids)
-        for logging_ids_index in range(len(new_status.logging_ids)):
-            assert (
-                old_status.logging_ids[logging_ids_index]
-                == new_status.logging_ids[logging_ids_index]
-            )
-
-        assert len(old_status.assignees) == len(new_status.assignees)
-        for assignees_index in range(len(new_status.assignees)):
-            assert old_status.assignees[assignees_index] == new_status.assignees[assignees_index]
-
-        assert old_status.scheduled_at == new_status.scheduled_at
-
-    # table data of CurrentPTeamTopicTagStatus and CurrentTicketStatus is equal
-    current_pteam_topic_tag_status = testdb.scalars(
-        select(models.CurrentPTeamTopicTagStatus).where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(threat_data["pteam_id"]),
-            models.CurrentPTeamTopicTagStatus.topic_id == str(threat_data["topic_id"]),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(threat_data["tag_id"]),
+    # check CurrentTicketStatus
+    current_tcket_status = testdb.scalars(
+        select(models.CurrentTicketStatus).where(
+            models.CurrentTicketStatus.ticket_id == str(threat_data["ticket_id"])
         )
     ).one_or_none()
 
-    assert current_pteam_topic_tag_status is None
-
-    # TODO 本来current_tcket_statusもNoneになるべきだが、
-    # fix_current_status_by_topic()のTicket対応が未実装のため、assertも保留とする
-    # current_tcket_status = testdb.scalars(
-    #     select(models.CurrentTicketStatus).where(
-    #         models.CurrentTicketStatus.ticket_id == str(ticket.ticket_id)
-    #     )
-    # ).one_or_none()
-    # assert current_tcket_status is None
+    assert current_tcket_status is not None
+    assert current_tcket_status.topic_status == models.TopicStatusType.completed
+    assert current_tcket_status.threat_impact == 1
