@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
-from app.ssvc import calculate_ssvc_deployer_priority
 from app.version import (
     PackageFamily,
     VulnerableRange,
@@ -392,43 +391,46 @@ def auto_close_by_topic(db: Session, topic: models.Topic):
         pteamtag_try_auto_close_topic(db, pteam, tag, topic)
 
 
-def create_ticket_from_threat_if_meet_condition(
-    db: Session,
-    threat: models.Threat,
-) -> models.Ticket | None:
-    actions = persistence.get_actions_by_topic_id(db, threat.topic_id)
+def threat_meets_condition_to_create_ticket(db: Session, threat: models.Threat) -> bool:
+    if not (actions := persistence.get_actions_by_topic_id(db, threat.topic_id)):
+        return False
     tag = threat.tag
-    now = datetime.now()
     action_tag_names_set: set = set()
 
-    if actions:
-        for action in actions:
-            action_tag_names = action.ext.get("tags")
-            if action_tag_names is None:
-                continue
-            action_tag_names_set |= set(action_tag_names)
+    for action in actions:
+        action_tag_names = action.ext.get("tags")
+        if action_tag_names is None:
+            continue
+        action_tag_names_set |= set(action_tag_names)
 
-        exist_related_action: bool = False
-        for action_tag_name in action_tag_names_set:
-            tag_by_action = persistence.get_tag_by_name(db, action_tag_name)
-            if (
-                threat.topic
-                and tag_by_action
-                and (tag_by_action.tag_id == tag.tag_id or tag_by_action.tag_id == tag.parent_id)
-            ):
-                exist_related_action = True
-                break
+    for action_tag_name in action_tag_names_set:
+        tag_by_action = persistence.get_tag_by_name(db, action_tag_name)
+        if (
+            threat.topic
+            and tag_by_action
+            and (tag_by_action.tag_id == tag.tag_id or tag_by_action.tag_id == tag.parent_id)
+        ):
+            return True
+    return False
 
-        if exist_related_action:
-            dependency = persistence.get_dependency_from_service_id_and_tag_id(
-                db, threat.service.service_id, tag.tag_id
-            )
-            ticket = models.Ticket(
-                threat_id=str(threat.threat_id),
-                created_at=now,
-                updated_at=now,
-                ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat, dependency),
-            )
-            return ticket
 
-    return None
+def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
+    # abort if deployer_priofiry is not yet calclated
+    if ticket.ssvc_deployer_priority is None:
+        return False
+    if not (
+        int_priority := {
+            models.SSVCDeployerPriorityEnum.IMMEDIATE: 1,
+            models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
+            models.SSVCDeployerPriorityEnum.SCHEDULED: 3,
+            models.SSVCDeployerPriorityEnum.DEFER: 4,
+        }.get(ticket.ssvc_deployer_priority)
+    ):
+        raise ValueError(f"Invalid SSVCDeployerPriority: {ticket.ssvc_deployer_priority}")
+
+    # WORKAROUND
+    # use pteam.alert_threat_impact as threshold for alert.
+    # threshold should be defined in pteam and/or service.
+    pteam = ticket.threat.service.pteam
+    int_threshold = pteam.alert_threat_impact or 4
+    return int_priority <= int_threshold
