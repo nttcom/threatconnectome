@@ -69,7 +69,7 @@ def test_ticket_should_be_created_when_topic_action_exist_and_both_action_and_ta
         "ext": {
             "tags": [tag_name_of_upload_sbom_file],
             "vulnerable_versions": {
-                tag_name_of_upload_sbom_file: ["<0.30"],
+                tag_name_of_upload_sbom_file: ["<0"],  # trigger auto close
             },
         },
     }
