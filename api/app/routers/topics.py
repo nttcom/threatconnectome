@@ -10,7 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
-from app.alert import alert_new_topic
+from app.alert import alert_new_topic, send_alert_to_pteam
 from app.auth import get_current_user, token_scheme
 from app.common import (
     auto_close_by_topic,
@@ -20,8 +20,11 @@ from app.common import (
     get_enabled_topics,
     get_or_create_misp_tag,
     get_sorted_topics,
+    threat_meets_condition_to_create_ticket,
+    ticket_meets_condition_to_create_alert,
 )
 from app.database import get_db
+from app.ssvc import calculate_ssvc_deployer_priority
 
 router = APIRouter(prefix="/topics", tags=["topics"])
 
@@ -231,6 +234,34 @@ def get_topic(
     return topic
 
 
+def _create_threats_from_topic(db: Session, topic: models.Topic) -> Sequence[models.Threat]:
+    now = datetime.now()
+    threats: list[models.Threat] = []
+    for dependency in topic.dependencies_via_tag:
+        if dependency.service.pteam.disabled:  # skip if disabled PTeam
+            continue
+        if not (
+            current_status := persistence.get_current_pteam_topic_tag_status(
+                db, dependency.service.pteam_id, topic.topic_id, dependency.tag_id
+            )
+        ):
+            continue  # may not happen
+        if current_status.topic_status == models.TopicStatusType.completed or (
+            current_status.topic_status == models.TopicStatusType.scheduled
+            and current_status.raw_status
+            and current_status.raw_status.scheduled_at > now
+        ):
+            continue  # skip if already closed or scheduled at future
+        threat = models.Threat(
+            tag_id=dependency.tag_id,
+            service_id=dependency.service_id,
+            topic_id=topic.topic_id,
+        )
+        threats.append(threat)
+
+    return threats
+
+
 @router.post("/{topic_id}", response_model=schemas.TopicCreateResponse)
 def create_topic(
     topic_id: UUID,
@@ -334,6 +365,31 @@ def create_topic(
 
     auto_close_by_topic(db, topic)
     command.fix_current_status_by_topic(db, topic)
+
+    if not topic.disabled:
+        for threat in _create_threats_from_topic(db, topic):
+            if persistence.search_threats(db, threat.tag_id, threat.service_id, threat.topic_id):
+                continue  # skip if already exists
+            persistence.create_threat(db, threat)
+            if threat_meets_condition_to_create_ticket(db, threat):
+                dependency = persistence.get_dependency_from_service_id_and_tag_id(
+                    db, threat.service_id, threat.tag_id
+                )
+                ticket = models.Ticket(
+                    threat_id=threat.threat_id,
+                    created_at=now,
+                    updated_at=now,
+                    ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat, dependency),
+                )
+                persistence.create_ticket(db, ticket)
+                if ticket_meets_condition_to_create_alert(ticket):
+                    alert = models.Alert(
+                        ticket_id=ticket.ticket_id,
+                        alerted_at=now,
+                        alert_content=data.hint_for_action,
+                    )
+                    persistence.create_alert(db, alert)
+                    send_alert_to_pteam(alert)
 
     db.commit()
 

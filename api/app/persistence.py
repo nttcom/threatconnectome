@@ -473,7 +473,7 @@ def get_dependency_from_service_id_and_tag_id(
             models.Dependency.service_id == str(service_id),
             models.Dependency.tag_id == str(tag_id),
         )
-    ).one_or_none()
+    ).first()  # FIXME: WORKAROUND to avoid getting multiple row
 
 
 ### Alert

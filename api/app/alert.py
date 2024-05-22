@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 from typing import Sequence
 from urllib.parse import urljoin
 from uuid import UUID
@@ -151,42 +150,6 @@ def create_mail_alert_for_new_topic(
         ]
     )
     return subject, body
-
-
-def create_alert_from_ticket_if_meet_threshold(ticket: models.Ticket) -> models.Alert | None:
-    # abort if deployer_priofiry is not yet calclated
-    if ticket.ssvc_deployer_priority is None:
-        return None
-    if not (
-        int_priority := {
-            models.SSVCDeployerPriorityEnum.IMMEDIATE: 1,
-            models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
-            models.SSVCDeployerPriorityEnum.SCHEDULED: 3,
-            models.SSVCDeployerPriorityEnum.DEFER: 4,
-        }.get(ticket.ssvc_deployer_priority)
-    ):
-        raise ValueError(f"Invalid SSVCDeployerPriority: {ticket.ssvc_deployer_priority}")
-
-    service = ticket.threat.service
-    pteam = service.pteam
-    topic = ticket.threat.topic
-
-    # WORKAROUND
-    # use pteam.alert_threat_impact as threshold for alert.
-    # threshold should be defined in pteam and/or service.
-    int_threshold = pteam.alert_threat_impact or 4
-    if int_priority > int_threshold:
-        return None
-
-    now = datetime.now()
-    alert_content = topic.hint_for_action  # WORKAROUND
-    alert = models.Alert(
-        ticket_id=ticket.ticket_id,
-        alerted_at=now,
-        alert_content=alert_content,
-    )
-
-    return alert
 
 
 def send_alert_to_pteam(alert: models.Alert) -> None:

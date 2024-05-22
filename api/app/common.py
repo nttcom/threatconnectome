@@ -389,3 +389,48 @@ def auto_close_by_topic(db: Session, topic: models.Topic):
         return
     for pteam, tag in command.pick_pteam_tags_related_to_topic(db, topic):
         pteamtag_try_auto_close_topic(db, pteam, tag, topic)
+
+
+def threat_meets_condition_to_create_ticket(db: Session, threat: models.Threat) -> bool:
+    if not (actions := persistence.get_actions_by_topic_id(db, threat.topic_id)):
+        return False
+    tag = threat.tag
+    action_tag_names_set: set = set()
+
+    for action in actions:
+        action_tag_names = action.ext.get("tags")
+        if action_tag_names is None:
+            continue
+        action_tag_names_set |= set(action_tag_names)
+
+    for action_tag_name in action_tag_names_set:
+        tag_by_action = persistence.get_tag_by_name(db, action_tag_name)
+        if (
+            threat.topic
+            and tag_by_action
+            and (tag_by_action.tag_id == tag.tag_id or tag_by_action.tag_id == tag.parent_id)
+        ):
+            return True
+    return False
+
+
+def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
+    # abort if deployer_priofiry is not yet calclated
+    if ticket.ssvc_deployer_priority is None:
+        return False
+    if not (
+        int_priority := {
+            models.SSVCDeployerPriorityEnum.IMMEDIATE: 1,
+            models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
+            models.SSVCDeployerPriorityEnum.SCHEDULED: 3,
+            models.SSVCDeployerPriorityEnum.DEFER: 4,
+        }.get(ticket.ssvc_deployer_priority)
+    ):
+        raise ValueError(f"Invalid SSVCDeployerPriority: {ticket.ssvc_deployer_priority}")
+
+    # WORKAROUND
+    # use pteam.alert_threat_impact as threshold for alert.
+    # threshold should be defined in pteam and/or service.
+    pteam = ticket.threat.service.pteam
+    int_threshold = pteam.alert_threat_impact or 4
+    return int_priority <= int_threshold

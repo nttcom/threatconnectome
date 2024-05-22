@@ -5,7 +5,7 @@ from typing import cast
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
-from sqlalchemy.sql.expression import join, text
+from sqlalchemy.sql.expression import join, outerjoin, text
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
 
@@ -594,6 +594,24 @@ class ATeamSlack(Base):
     ateam: Mapped[ATeam] = relationship(back_populates="alert_slack")
 
 
+class Tag(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.tag_id:
+            self.tag_id = str(uuid.uuid4())
+
+    __tablename__ = "tag"
+
+    tag_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    tag_name: Mapped[str] = mapped_column(unique=True)
+    parent_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("tag.tag_id"), index=True)
+    parent_name: Mapped[str | None] = mapped_column(ForeignKey("tag.tag_name"), index=True)
+
+    topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
+    dependencies = relationship("Dependency", back_populates="tag", cascade="all, delete-orphan")
+    threats = relationship("Threat", back_populates="tag", cascade="all, delete-orphan")
+
+
 class Topic(Base):
     __tablename__ = "topic"
 
@@ -630,6 +648,14 @@ class Topic(Base):
         "MispTag", secondary=TopicMispTag.__tablename__, order_by="MispTag.tag_name"
     )
     threats = relationship("Threat", back_populates="topic", cascade="all, delete-orphan")
+    dependencies_via_tag = relationship(  # dependencies which have one of topic tag (or child)
+        Dependency,  # Topic - [TopicTag - Tag] - Dependency
+        secondary=outerjoin(TopicTag, Tag, TopicTag.tag_id.in_([Tag.tag_id, Tag.parent_id])),
+        primaryjoin="Topic.topic_id == TopicTag.topic_id",
+        secondaryjoin="Tag.tag_id == Dependency.tag_id",
+        collection_class=set,
+        viewonly=True,
+    )
 
 
 class TopicAction(Base):
@@ -699,24 +725,7 @@ class CurrentPTeamTopicTagStatus(Base):
     pteam = relationship("PTeam")
     topic = relationship("Topic")
     tag = relationship("Tag")
-
-
-class Tag(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.tag_id:
-            self.tag_id = str(uuid.uuid4())
-
-    __tablename__ = "tag"
-
-    tag_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    tag_name: Mapped[str] = mapped_column(unique=True)
-    parent_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("tag.tag_id"), index=True)
-    parent_name: Mapped[str | None] = mapped_column(ForeignKey("tag.tag_name"), index=True)
-
-    topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
-    dependencies = relationship("Dependency", back_populates="tag", cascade="all, delete-orphan")
-    threats = relationship("Threat", back_populates="tag", cascade="all, delete-orphan")
+    raw_status = relationship(PTeamTopicTagStatus, viewonly=True)
 
 
 class MispTag(Base):
