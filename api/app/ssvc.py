@@ -5,11 +5,11 @@ def calculate_ssvc_deployer_priority(
     threat: models.Threat, dependency: models.Dependency | None
 ) -> models.SSVCDeployerPriorityEnum | None:
     topic = threat.topic
-    service = threat.service
+    service = threat.dependency.service
     exploitation = topic.exploitation
     exposure = service.exposure
     automatable = topic.automatable
-    mission_impact = calculate_mission_impact(threat.service, dependency)
+    mission_impact = calculate_mission_impact(threat.dependency.service, dependency)
     safety_impact = topic.safety_impact
     # TODO Calculation not implemented.
     return (

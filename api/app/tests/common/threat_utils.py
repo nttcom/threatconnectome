@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import models, persistence, schemas
 from app.main import app
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
@@ -50,13 +50,17 @@ def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> sche
         )
     ).one_or_none()
 
-    request = {
-        "tag_id": str(tag_id),
-        "service_id": str(service_id),
-        "topic_id": str(topic1.topic_id),
-    }
-    response = client.post("/threats", headers=headers, json=request)
-    if response.status_code != 200:
-        raise HTTPError(response)
+    dependency = persistence.get_dependency_from_service_id_and_tag_id(
+        testdb, str(service_id), str(tag_id)
+    )
+
+    if dependency:
+        request = {
+            "dependency_id": str(dependency.dependency_id),
+            "topic_id": str(topic1.topic_id),
+        }
+        response = client.post("/threats", headers=headers, json=request)
+        if response.status_code != 200:
+            raise HTTPError(response)
 
     return schemas.ThreatResponse(**response.json())

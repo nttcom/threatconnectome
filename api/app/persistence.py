@@ -436,15 +436,12 @@ def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None
 
 def search_threats(
     db: Session,
-    tag_id: UUID | str | None,
-    service_id: UUID | str | None,
+    dependency_id: UUID | str | None,
     topic_id: UUID | str | None,
 ) -> Sequence[models.Threat]:
     select_stmt = select(models.Threat)
-    if tag_id:
-        select_stmt = select_stmt.where(models.Threat.tag_id == str(tag_id))
-    if service_id:
-        select_stmt = select_stmt.where(models.Threat.service_id == str(service_id))
+    if dependency_id:
+        select_stmt = select_stmt.where(models.Threat.dependency_id == str(dependency_id))
     if topic_id:
         select_stmt = select_stmt.where(models.Threat.topic_id == str(topic_id))
 
@@ -503,6 +500,12 @@ def get_dependency_from_service_id_and_tag_id(
             models.Dependency.tag_id == str(tag_id),
         )
     ).first()  # FIXME: WORKAROUND to avoid getting multiple row
+
+
+def get_dependency_by_id(db: Session, dependency_id: UUID | str) -> models.Dependency | None:
+    return db.scalars(
+        select(models.Dependency).where(models.Dependency.dependency_id == str(dependency_id))
+    ).one_or_none()
 
 
 ### Alert

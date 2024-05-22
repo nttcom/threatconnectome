@@ -30,6 +30,11 @@ def upgrade() -> None:
     )
     op.drop_constraint("dependency_pkey", table_name="dependency")
     op.create_primary_key("dependency_pkey", "dependency", ["dependency_id"])
+    op.create_unique_constraint(
+        "dependency_service_id_tag_id_version_target_key",
+        "dependency",
+        ["service_id", "tag_id", "version", "target"],
+    )
 
     op.drop_index(op.f("ix_alert_ticket_id"), table_name="alert")
     op.drop_table("alert")
@@ -109,7 +114,7 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
             ["status_id"],
-            ["pteamtopictagstatus.status_id"],
+            ["ticketstatus.status_id"],
         ),
         sa.ForeignKeyConstraint(["ticket_id"], ["ticket.ticket_id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("current_status_id"),
@@ -224,7 +229,7 @@ def downgrade() -> None:
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
             ["status_id"],
-            ["pteamtopictagstatus.status_id"],
+            ["ticketstatus.status_id"],
         ),
         sa.ForeignKeyConstraint(["ticket_id"], ["ticket.ticket_id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("current_status_id"),
@@ -253,6 +258,9 @@ def downgrade() -> None:
     )
     op.create_index(op.f("ix_alert_ticket_id"), "alert", ["ticket_id"], unique=True)
 
+    op.drop_constraint(
+        "dependency_service_id_tag_id_version_target_key", "dependency", type_="unique"
+    )
     op.drop_constraint("dependency_pkey", "dependency", type_="primary")
     op.create_primary_key(
         "dependency_pkey", "dependency", ["service_id", "tag_id", "version", "target"]

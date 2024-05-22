@@ -18,8 +18,7 @@ router = APIRouter(prefix="/threats", tags=["threats"])
 
 @router.get("", response_model=list[schemas.ThreatResponse])
 def get_threats(
-    tag_id: UUID | None = Query(None),
-    service_id: UUID | None = Query(None),
+    dependency_id: UUID | None = Query(None),
     topic_id: UUID | None = Query(None),
     db: Session = Depends(get_db),
 ):
@@ -31,7 +30,7 @@ def get_threats(
     - **service_id** (Optional) filter by specified service_id. Default is None.
     - **topic_id** (Optional) filter by specified topic_id. Default is None.
     """
-    threats = persistence.search_threats(db, tag_id, service_id, topic_id)
+    threats = persistence.search_threats(db, dependency_id, topic_id)
     return threats
 
 
@@ -41,11 +40,11 @@ def create_threat(
     db: Session = Depends(get_db),
 ):
     now = datetime.now()
-    tag = persistence.get_tag_by_id(db, data.tag_id)
+    dependency = persistence.get_dependency_by_id(db, data.dependency_id)
     topic = persistence.get_topic_by_id(db, data.topic_id)
-    service = persistence.get_service_by_id(db, data.service_id)
-    if tag is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
+
+    if dependency is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such dependency")
 
     if topic is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
@@ -53,28 +52,24 @@ def create_threat(
     if topic.disabled is True:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
 
-    if service is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
-
-    if persistence.search_threats(db, data.tag_id, data.service_id, data.topic_id):
+    if persistence.search_threats(db, data.dependency_id, data.topic_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Threat already exists")
 
     threat = models.Threat(
-        tag_id=str(data.tag_id),
-        service_id=str(data.service_id),
+        dependency_id=str(data.dependency_id),
         topic_id=str(data.topic_id),
     )
     persistence.create_threat(db, threat)
 
     if threat_meets_condition_to_create_ticket(db, threat):
-        dependency = persistence.get_dependency_from_service_id_and_tag_id(
-            db, threat.service_id, threat.tag_id
-        )
+        # dependency = persistence.get_dependency_from_service_id_and_tag_id(
+        #     db, threat.dependency.service_id, threat.dependency.tag_id
+        # )
         ticket = models.Ticket(
             threat_id=threat.threat_id,
             created_at=now,
             updated_at=now,
-            ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat, dependency),
+            ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat, threat.dependency),
         )
         persistence.create_ticket(db, ticket)
         if ticket_meets_condition_to_create_alert(ticket):

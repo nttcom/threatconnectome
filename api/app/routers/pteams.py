@@ -541,7 +541,7 @@ def upload_pteam_sbom_file(
         ) from error
 
     if not (service := next(filter(lambda x: x.service_name == group, pteam.services), None)):
-        service = models.Service(pteam_id=pteam_id, service_name=group)
+        service = models.Service(pteam_id=str(pteam_id), service_name=group)
         pteam.services.append(service)
         db.flush()
 

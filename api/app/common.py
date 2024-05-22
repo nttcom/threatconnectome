@@ -396,7 +396,7 @@ def auto_close_by_topic(db: Session, topic: models.Topic):
 def threat_meets_condition_to_create_ticket(db: Session, threat: models.Threat) -> bool:
     if not (actions := persistence.get_actions_by_topic_id(db, threat.topic_id)):
         return False
-    tag = threat.tag
+    tag = threat.dependency.tag
     action_tag_names_set: set = set()
 
     for action in actions:
@@ -433,6 +433,6 @@ def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
     # WORKAROUND
     # use pteam.alert_threat_impact as threshold for alert.
     # threshold should be defined in pteam and/or service.
-    pteam = ticket.threat.service.pteam
+    pteam = ticket.threat.dependency.service.pteam
     int_threshold = pteam.alert_threat_impact or 4
     return int_priority <= int_threshold
