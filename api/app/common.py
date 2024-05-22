@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
+from app.ssvc import calculate_ssvc_deployer_priority
 from app.version import (
     PackageFamily,
     VulnerableRange,
@@ -389,3 +390,45 @@ def auto_close_by_topic(db: Session, topic: models.Topic):
         return
     for pteam, tag in command.pick_pteam_tags_related_to_topic(db, topic):
         pteamtag_try_auto_close_topic(db, pteam, tag, topic)
+
+
+def create_ticket_from_threat_if_meet_condition(
+    db: Session,
+    threat: models.Threat,
+) -> models.Ticket | None:
+    actions = persistence.get_actions_by_topic_id(db, threat.topic_id)
+    tag = threat.tag
+    now = datetime.now()
+    action_tag_names_set: set = set()
+
+    if actions:
+        for action in actions:
+            action_tag_names = action.ext.get("tags")
+            if action_tag_names is None:
+                continue
+            action_tag_names_set |= set(action_tag_names)
+
+        exist_related_action: bool = False
+        for action_tag_name in action_tag_names_set:
+            tag_by_action = persistence.get_tag_by_name(db, action_tag_name)
+            if (
+                threat.topic
+                and tag_by_action
+                and (tag_by_action.tag_id == tag.tag_id or tag_by_action.tag_id == tag.parent_id)
+            ):
+                exist_related_action = True
+                break
+
+        if exist_related_action:
+            dependency = persistence.get_dependency_from_service_id_and_tag_id(
+                db, threat.service.service_id, tag.tag_id
+            )
+            ticket = models.Ticket(
+                threat_id=str(threat.threat_id),
+                created_at=now,
+                updated_at=now,
+                ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat, dependency),
+            )
+            return ticket
+
+    return None

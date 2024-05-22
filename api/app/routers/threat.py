@@ -1,11 +1,11 @@
-from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas, ssvc
+from app import models, persistence, schemas
 from app.alert import create_alert_from_ticket_if_meet_threshold, send_alert_to_pteam
+from app.common import create_ticket_from_threat_if_meet_condition
 from app.database import get_db
 
 router = APIRouter(prefix="/threats", tags=["threats"])
@@ -50,6 +50,9 @@ def create_threat(
     if service is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
 
+    if persistence.search_threats(db, data.tag_id, data.service_id, data.topic_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Threat already exists")
+
     threat = models.Threat(
         tag_id=str(data.tag_id),
         service_id=str(data.service_id),
@@ -57,43 +60,11 @@ def create_threat(
     )
     persistence.create_threat(db, threat)
 
-    actions = persistence.get_actions_by_topic_id(db, data.topic_id)
-    now = datetime.now()
-    action_tag_names_set: set = set()
-
-    if actions:
-        for action in actions:
-            action_tag_names = action.ext.get("tags")
-            if action_tag_names is None:
-                continue
-            action_tag_names_set |= set(action_tag_names)
-
-        exist_related_action: bool = False
-        for action_tag_name in action_tag_names_set:
-            tag_by_action = persistence.get_tag_by_name(db, action_tag_name)
-            if (
-                threat.topic
-                and tag_by_action
-                and (tag_by_action.tag_id == tag.tag_id or tag_by_action.tag_id == tag.parent_id)
-            ):
-                exist_related_action = True
-                break
-
-        if exist_related_action:
-            dependency = persistence.get_dependency_from_service_id_and_tag_id(
-                db, service.service_id, tag.tag_id
-            )
-            ticket = models.Ticket(
-                threat_id=str(threat.threat_id),
-                created_at=now,
-                updated_at=now,
-                ssvc_deployer_priority=ssvc.calculate_ssvc_deployer_priority(threat, dependency),
-            )
-            persistence.create_ticket(db, ticket)
-
-            if alert := create_alert_from_ticket_if_meet_threshold(ticket):
-                persistence.create_alert(db, alert)
-                send_alert_to_pteam(alert)
+    if ticket := create_ticket_from_threat_if_meet_condition(db, threat):
+        persistence.create_ticket(db, ticket)
+        if alert := create_alert_from_ticket_if_meet_threshold(ticket):
+            persistence.create_alert(db, alert)
+            send_alert_to_pteam(alert)
 
     db.commit()
 
