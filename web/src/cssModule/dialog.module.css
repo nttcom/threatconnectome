@@ -19,6 +19,15 @@
     }
 }
 
+.delete_bg_btn.delete_bg_btn {
+    background-color: #e53935;
+    color: white;
+    text-transform: none;
+    &:hover {
+        background-color: #c62828;
+    }
+}
+
 .action_area.action_area {
     margin-right: 1%;
     margin-bottom: 1%;

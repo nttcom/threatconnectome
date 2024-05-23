@@ -23,6 +23,7 @@ import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamAutoClose } from "./PTeamAutoClose";
 import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
 import { PTeamNotificationSetting } from "./PTeamNotificationSetting";
+import { PTeamServiceDelete } from "./PTeamServiceDelete";
 import { SBOMDropArea } from "./SBOMDropArea";
 
 export function PTeamSettingsModal(props) {
@@ -59,9 +60,10 @@ export function PTeamSettingsModal(props) {
           <Tabs aria-label="tabs" onChange={handleChangeTab} value={tab}>
             <Tab label="General" {...a11yProps(0)} />
             <Tab label="Notification" {...a11yProps(1)} />
-            <Tab label="Authorities" {...a11yProps(2)} />
+            <Tab label="Authority" {...a11yProps(2)} />
             <Tab label="Upload" {...a11yProps(3)} />
             <Tab label="Auto Close" {...a11yProps(4)} />
+            <Tab label="Service" {...a11yProps(5)} />
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
@@ -78,6 +80,9 @@ export function PTeamSettingsModal(props) {
         </TabPanel>
         <TabPanel index={4} value={tab}>
           <PTeamAutoClose />
+        </TabPanel>
+        <TabPanel index={5} value={tab}>
+          <PTeamServiceDelete />
         </TabPanel>
       </DialogContent>
     </Dialog>
