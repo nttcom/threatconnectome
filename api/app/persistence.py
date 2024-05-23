@@ -457,6 +457,35 @@ def create_ticket(db: Session, ticket: models.Ticket) -> None:
     db.flush()
 
 
+### TicketStatus
+def create_ticket_status(
+    db: Session,
+    status: models.TicketStatus,
+) -> None:
+    db.add(status)
+    db.flush()
+
+
+### CurrentTicketStatus
+def create_current_ticket_status(
+    db: Session,
+    status: models.CurrentTicketStatus,
+) -> None:
+    db.add(status)
+    db.flush()
+
+
+def get_current_ticket_status(
+    db: Session,
+    ticket_id: UUID | str,
+) -> models.CurrentTicketStatus | None:
+    return db.scalars(
+        select(models.CurrentTicketStatus).where(
+            models.CurrentTicketStatus.ticket_id == str(ticket_id),
+        )
+    ).one_or_none()
+
+
 ### Service
 def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | None:
     return db.scalars(

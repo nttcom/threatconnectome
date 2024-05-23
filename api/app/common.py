@@ -6,7 +6,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas
+from app import command, models, persistence, schemas, ticket_manager
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 from app.version import (
     PackageFamily,
@@ -315,18 +315,20 @@ def _complete_topic(
         persistence.create_action_log(db, action_log)
         logging_ids.append(action_log.logging_id)
 
+    topicStatusRequest = schemas.TopicStatusRequest(
+        topic_status=models.TopicStatusType.completed,
+        logging_ids=list(map(UUID, logging_ids)),
+        note="auto closed by system",
+    )
     set_pteam_topic_status_internal(
         db,
         system_account,
         pteam,
         topic,
         tag,
-        schemas.TopicStatusRequest(
-            topic_status=models.TopicStatusType.completed,
-            logging_ids=list(map(UUID, logging_ids)),
-            note="auto closed by system",
-        ),
+        topicStatusRequest,
     )
+    ticket_manager.set_ticket_statuses(db, system_account, pteam, topic, tag, topicStatusRequest)
 
 
 def pteamtag_try_auto_close_topic(
