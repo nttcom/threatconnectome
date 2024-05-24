@@ -62,9 +62,6 @@ def create_threat(
     persistence.create_threat(db, threat)
 
     if threat_meets_condition_to_create_ticket(db, threat):
-        # dependency = persistence.get_dependency_from_service_id_and_tag_id(
-        #     db, threat.dependency.service_id, threat.dependency.tag_id
-        # )
         ticket = models.Ticket(
             threat_id=threat.threat_id,
             created_at=now,
