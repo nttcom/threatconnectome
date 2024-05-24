@@ -92,6 +92,9 @@ export const autoClose = async (pteamId) => axios.post(`/pteams/${pteamId}/fix_s
 export const autoCloseTag = async (pteamId, tagId) =>
   axios.post(`/pteams/${pteamId}/tags/${tagId}/fix_status_mismatch`);
 
+export const deletePTeamService = async (pteamId, service) =>
+  axios.delete(`/pteams/${pteamId}/tags`, { params: { group: service } });
+
 // ateams
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);
 
