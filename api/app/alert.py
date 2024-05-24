@@ -156,9 +156,9 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
     if not (ticket := alert.ticket):  # this alert is orphan, no info to send to.
         return
     threat = ticket.threat
-    tag = threat.tag
+    tag = threat.dependency.tag
     topic = threat.topic
-    service = threat.service
+    service = threat.dependency.service
     pteam = service.pteam
 
     # check alert settings

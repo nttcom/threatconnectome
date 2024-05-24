@@ -570,12 +570,10 @@ class ATeamTopicCommentResponse(ORMModel):
 
 class ThreatResponse(ORMModel):
     threat_id: UUID
-    tag_id: UUID
-    service_id: UUID
+    dependency_id: UUID
     topic_id: UUID
 
 
 class ThreatRequest(ORMModel):
-    tag_id: UUID
-    service_id: UUID
+    dependency_id: UUID
     topic_id: UUID

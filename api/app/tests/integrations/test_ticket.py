@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import models, persistence, schemas
 from app.main import app
 from app.tests.common import threat_utils
 from app.tests.medium.constants import ACTION1, PTEAM1, TOPIC1, USER1
@@ -96,11 +96,15 @@ def test_ticket_should_be_created_when_topic_action_exist_and_both_action_and_ta
         )
     ).one_or_none()
 
-    request = {
-        "tag_id": str(data[0]["tag_id"]),
-        "service_id": str(service_id),
-        "topic_id": str(responsed_topic.topic_id),
-    }
+    dependency = persistence.get_dependency_from_service_id_and_tag_id(
+        testdb, str(service_id), data[0]["tag_id"]
+    )
+
+    if dependency:
+        request = {
+            "dependency_id": str(dependency.dependency_id),
+            "topic_id": str(responsed_topic.topic_id),
+        }
 
     # When
     # Post threats request.

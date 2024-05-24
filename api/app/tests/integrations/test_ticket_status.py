@@ -25,7 +25,6 @@ from app.tests.medium.utils import (
     create_user,
     headers,
     invite_to_pteam,
-    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -67,20 +66,25 @@ def threat_data(testdb: Session) -> dict:
         )
     )
 
+    # create dependency
+    dependency_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Dependency).values(
+            dependency_id=dependency_id,
+            service_id=service_id,
+            tag_id=str(tag1.tag_id),
+            version="1.0",
+            target="Pipfile.lock",
+        )
+    )
+
     # create threat
     request = {
-        "tag_id": str(tag1.tag_id),
-        "service_id": str(service_id),
+        "dependency_id": str(dependency_id),
         "topic_id": str(topic1.topic_id),
     }
     response = client.post("/threats", headers=header_threat, json=request)
     threat = schemas.ThreatResponse(**response.json())
-
-    # upload pteam_tags
-    refs0 = {
-        TAG1: [("fake target 1", "1.2.3")],
-    }
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_name, refs0)
 
     ticket_id: str = ""
     if ticket := testdb.scalars(
@@ -128,7 +132,7 @@ def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict
         )
     ).all()
 
-    assert len(ticket_statuses_list) == 3
+    assert len(ticket_statuses_list) == 2
 
     for statuses_index in range(len(ticket_statuses_list)):
         status = ticket_statuses_list[statuses_index]
@@ -203,7 +207,7 @@ def test_TicketStatus_when_auto_close(testdb: Session, threat_data: dict):
         )
     ).all()
 
-    assert len(ticket_statuses_list) == 4
+    assert len(ticket_statuses_list) == 3
     for statuses_index in range(len(ticket_statuses_list)):
         status = ticket_statuses_list[statuses_index]
         if status.note == "auto closed by system":

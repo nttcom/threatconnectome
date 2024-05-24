@@ -253,8 +253,7 @@ def _create_threats_from_topic(db: Session, topic: models.Topic) -> Sequence[mod
         ):
             continue  # skip if already closed or scheduled at future
         threat = models.Threat(
-            tag_id=dependency.tag_id,
-            service_id=dependency.service_id,
+            dependency_id=dependency.dependency_id,
             topic_id=topic.topic_id,
         )
         threats.append(threat)
@@ -368,12 +367,16 @@ def create_topic(
 
     if not topic.disabled:
         for threat in _create_threats_from_topic(db, topic):
-            if persistence.search_threats(db, threat.tag_id, threat.service_id, threat.topic_id):
+            if persistence.search_threats(
+                db,
+                threat.dependency_id,
+                threat.topic_id,
+            ):
                 continue  # skip if already exists
             persistence.create_threat(db, threat)
             if threat_meets_condition_to_create_ticket(db, threat):
                 dependency = persistence.get_dependency_from_service_id_and_tag_id(
-                    db, threat.service_id, threat.tag_id
+                    db, threat.dependency.service_id, threat.dependency.tag.tag_id
                 )
                 ticket = models.Ticket(
                     threat_id=threat.threat_id,

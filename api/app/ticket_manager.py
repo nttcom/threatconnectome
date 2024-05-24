@@ -14,11 +14,12 @@ def set_ticket_statuses(
     topicStatusRequest: schemas.TopicStatusRequest,
 ) -> None:
     for service in pteam.services:
-        for threat in persistence.search_threats(
-            db, tag.tag_id, service.service_id, topic.topic_id
-        ):
-            if ticket := threat.ticket:
-                set_ticket_status(db, current_user, topic, ticket, topicStatusRequest)
+        for dependency in service.dependencies:
+            if dependency.tag_id != tag.tag_id:
+                continue
+            for threat in persistence.search_threats(db, dependency.dependency_id, topic.topic_id):
+                if ticket := threat.ticket:
+                    set_ticket_status(db, current_user, topic, ticket, topicStatusRequest)
 
 
 def set_ticket_status(
