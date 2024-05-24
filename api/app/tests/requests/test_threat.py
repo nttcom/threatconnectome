@@ -91,18 +91,16 @@ def test_get_all_threats_with_param(
     threat1: schemas.ThreatResponse,
     threat2: schemas.ThreatResponse,
 ):
-
-    url: str = "/threats"
-    if exist_dependency_id or exist_topic_id:
-        url += "/?"
+    params = {}
     if exist_dependency_id:
-        url += "dependency_id=" + str(threat1.dependency_id)
-        if exist_topic_id:
-            url += "&"
+        params["dependency_id"] = str(threat1.dependency_id)
     if exist_topic_id:
-        url += "topic_id=" + str(threat1.topic_id)
+        params["topic_id"] = str(threat1.topic_id)
 
-    data = assert_200(client.get(url, headers=headers))
+    response = client.get("/threats", headers=headers, params=params)
+    if response.status_code != 200:
+        raise HTTPError(response)
+    data = response.json()
     assert len(data) == expected_len
 
 
