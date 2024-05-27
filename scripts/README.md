@@ -68,7 +68,7 @@ osv-scanner -r --json threatconnectome > osv-result.json
 
 1. Script Download
 
-Please access `https://github.com/nttcom-ic/threatconnectome/blob/main/scripts/trivy_tags.py`, click the `Raw` button, and save the contents as trivy_tags.py.
+Please access `https://github.com/nttcom/threatconnectome/blob/main/scripts/trivy_tags.py`, click the `Raw` button, and save the contents as trivy_tags.py.
 
 2. Run a full scan on all directories
 
@@ -209,6 +209,7 @@ python cdx_tags.py [Options]
 ```
 
 The available options are as follow:
+
 - -i / --infile: Specifies the input file. If not specified, read from standard input.
 - -o / --outfile: Specifies the output file. If not specified, the file is written to standard output.
 - -t / --tool: Specifies the tool to use. Supported tools are "syft" and "trivy". If not specified, auto-detection is attempted.

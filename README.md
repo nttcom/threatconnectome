@@ -46,7 +46,7 @@ Teams registerd in demo environment as following:
 ## :gear: Installation
 
 ```
-git clone https://github.com/nttcom-ic/threatconnectome.git
+git clone https://github.com/nttcom/threatconnectome.git
 ```
 
 ### Set up environment variables
