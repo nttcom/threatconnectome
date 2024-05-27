@@ -6,11 +6,11 @@ def calculate_ssvc_deployer_priority(
 ) -> models.SSVCDeployerPriorityEnum | None:
     topic = threat.topic
     service = threat.dependency.service
-    exploitation = topic.exploitation
-    exposure = service.exposure
-    automatable = topic.automatable
-    mission_impact = calculate_mission_impact(threat.dependency.service, dependency)
-    safety_impact = topic.safety_impact
+    exploitation = topic.exploitation  # noqa: F841
+    exposure = service.exposure  # noqa: F841
+    automatable = topic.automatable  # noqa: F841
+    mission_impact = calculate_mission_impact(threat.dependency.service, dependency)  # noqa: F841
+    safety_impact = topic.safety_impact  # noqa: F841
     # TODO Calculation not implemented.
 
     if threat.topic.threat_impact == 1:
@@ -21,9 +21,8 @@ def calculate_ssvc_deployer_priority(
         ssvc_deployer_priority = models.SSVCDeployerPriorityEnum.SCHEDULED
     elif threat.topic.threat_impact == 4:
         ssvc_deployer_priority = models.SSVCDeployerPriorityEnum.DEFER
-
-    if exploitation and exposure and automatable and mission_impact and safety_impact:
-        pass
+    else:
+        ssvc_deployer_priority = models.SSVCDeployerPriorityEnum.IMMEDIATE
 
     return ssvc_deployer_priority
 
