@@ -134,8 +134,6 @@ def _create_blocks_for_ateam(
 
 
 def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> list[dict]:
-    if action.topic.disabled:
-        return []
     select_stmt = (
         select(
             models.ATeamPTeam.ateam_id,
@@ -145,7 +143,6 @@ def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> li
         .join(
             models.CurrentPTeamTopicTagStatus,
             and_(
-                # Note: disabled pteam has no records on CurrentPTeamTopicTagStatus
                 models.CurrentPTeamTopicTagStatus.topic_id == action.topic_id,
                 models.CurrentPTeamTopicTagStatus.pteam_id == models.ATeamPTeam.pteam_id,
             ),

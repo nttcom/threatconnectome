@@ -46,7 +46,7 @@ def create_log(
     The format of `executed_at` is ISO-8601.
     In linux, you can check it with `date --iso-8601=seconds`.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, data.pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, data.pteam_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such pteam")
     if not check_pteam_membership(db, pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
@@ -54,7 +54,7 @@ def create_log(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
     if not check_pteam_membership(db, pteam, user):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam member")
-    if not (topic := persistence.get_topic_by_id(db, data.topic_id)) or topic.disabled:
+    if not (persistence.get_topic_by_id(db, data.topic_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
     if str(data.topic_id) not in command.get_pteam_topic_ids(db, data.pteam_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam topic")

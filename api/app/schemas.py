@@ -55,7 +55,6 @@ class PTeamEntry(ORMModel):
     pteam_id: UUID
     pteam_name: str
     contact_info: str
-    disabled: bool
 
 
 class ATeamEntry(ORMModel):
@@ -165,7 +164,6 @@ class Topic(TopicEntry):
     threat_impact: int
     created_by: UUID
     created_at: datetime
-    disabled: bool
     safety_impact: SafetyImpactEnum | None
     exploitation: ExploitationEnum | None
     automatable: bool | None
@@ -238,7 +236,6 @@ class TopicUpdateRequest(ORMModel):
     threat_impact: int | None = None
     tags: list[str] | None = None
     misp_tags: list[str] | None = None
-    disabled: bool | None = None
     safety_impact: SafetyImpactEnum | None = None
     exploitation: ExploitationEnum | None = None
     automatable: bool | None = None
@@ -275,7 +272,6 @@ class PTeamUpdateRequest(ORMModel):
     contact_info: str | None = None
     alert_slack: Slack | None = None
     alert_threat_impact: int | None = None
-    disabled: bool | None = None
     alert_mail: Mail | None = None
 
     _threat_impact_range = field_validator("alert_threat_impact", mode="before")(

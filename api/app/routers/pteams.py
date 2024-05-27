@@ -11,7 +11,6 @@ from app.common import (
     auto_close_by_pteamtags,
     check_pteam_auth,
     check_pteam_membership,
-    get_enabled_topics,
     get_or_create_topic_tag,
     get_pteam_ext_tags,
     get_sorted_topics,
@@ -150,7 +149,7 @@ def get_pteam_groups(
     """
     Get groups of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -169,7 +168,7 @@ def get_pteam_tags(
     """
     Get tags of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -186,7 +185,7 @@ def get_pteam_tags_summary(
     """
     Get summary of the pteam tags.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -204,7 +203,7 @@ def get_pteam_tagged_solved_topic_ids(
     """
     Get tagged and solved topic id list of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -236,7 +235,7 @@ def get_pteam_tagged_unsolved_topic_ids(
     """
     Get tagged and unsolved topic id list of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -265,7 +264,7 @@ def get_pteam_topics(
     """
     Get topics of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -273,9 +272,7 @@ def get_pteam_topics(
     if not pteam.tags:
         return []
     topic_tag_ids = get_tag_ids_with_parent_ids(pteam.tags)
-    return get_sorted_topics(
-        get_enabled_topics(persistence.get_topics_by_tag_ids(db, topic_tag_ids))
-    )
+    return get_sorted_topics(persistence.get_topics_by_tag_ids(db, topic_tag_ids))
 
 
 @router.post("", response_model=schemas.PTeamInfo)
@@ -420,7 +417,7 @@ def get_pteam_auth(
       - 00000000-0000-0000-0000-0000cafe0001 : pteam member
       - 00000000-0000-0000-0000-0000cafe0002 : not pteam member
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
 
     if current_user in pteam.members:  # member can get all authorities
@@ -446,7 +443,7 @@ def get_pteamtag(
     """
     Get detals of the pteam tag with last updated date.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -524,7 +521,7 @@ def upload_pteam_sbom_file(
     """
     upload sbom file
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -572,7 +569,7 @@ def upload_pteam_tags_file(
 
     Format of file content must be JSON Lines.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -691,7 +688,7 @@ def remove_pteam_tags_by_group(
     """
     Remove pteam tags filtered by group.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -739,27 +736,14 @@ def update_pteam(
             webhook_url="",
         )
 
-    need_auto_close = data.disabled is False and pteam.disabled is True
-
     if data.pteam_name is not None:
         pteam.pteam_name = data.pteam_name
     if data.contact_info is not None:
         pteam.contact_info = data.contact_info
     if data.alert_threat_impact is not None:
         pteam.alert_threat_impact = data.alert_threat_impact
-    if data.disabled is not None:
-        pteam.disabled = data.disabled
     if data.alert_mail is not None:
         pteam.alert_mail = models.PTeamMail(**data.alert_mail.__dict__)
-    db.flush()
-
-    if pteam.disabled:
-        for invitation in persistence.get_pteam_invitations(db, pteam_id):
-            persistence.delete_pteam_invitation(db, invitation)
-    elif need_auto_close:
-        auto_close_by_pteamtags(db, [(pteam, tag) for tag in pteam.tags])
-
-    command.fix_current_status_by_pteam(db, pteam)
 
     db.commit()
 
@@ -778,7 +762,7 @@ def get_pteam_topic_statuses_summary(
     """
     Get current status summary of all pteam topics.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -803,7 +787,7 @@ def set_pteam_topic_status(
     """
     Set topic status of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -879,11 +863,11 @@ def get_pteam_topic_status(
     """
     Get the current status (or None) of the pteam topic.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+    if not persistence.get_topic_by_id(db, topic_id):
         raise NO_SUCH_TOPIC
     if not (tag := persistence.get_tag_by_id(db, tag_id)):
         raise NO_SUCH_TAG
@@ -916,7 +900,7 @@ def get_pteam_members(
     """
     Get members of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -933,7 +917,7 @@ def delete_member(
     """
     User leaves the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if current_user.user_id != str(user_id) and not check_pteam_auth(
         db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN
@@ -971,7 +955,7 @@ def create_invitation(
     """
     Create a new pteam invitation token.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
         raise NOT_HAVE_AUTH
@@ -1019,7 +1003,7 @@ def list_invitations(
     """
     list effective invitations.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
         raise NOT_HAVE_AUTH
@@ -1043,7 +1027,7 @@ def delete_invitation(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
         raise NOT_HAVE_AUTH
@@ -1068,7 +1052,7 @@ def get_pteam_watchers(
     """
     Get watching pteams of the ateam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -1086,7 +1070,7 @@ def remove_watcher_ateam(
     """
     Remove ateam from watchers list.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
         raise NOT_HAVE_AUTH
@@ -1105,7 +1089,7 @@ def fix_status_mismatch(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
@@ -1125,7 +1109,7 @@ def fix_status_mismatch_tag(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER

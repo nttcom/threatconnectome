@@ -114,10 +114,6 @@ def get_sorted_topics(topics: Sequence[models.Topic]) -> Sequence[models.Topic]:
     )
 
 
-def get_enabled_topics(topics: Sequence[models.Topic]) -> Sequence[models.Topic]:
-    return list(filter(lambda t: t.disabled is False, topics))
-
-
 def _pick_parent_tag(tag_name: str) -> str | None:
     if len(tag_name.split(":", 2)) == 3:  # supported format
         return tag_name.rsplit(":", 1)[0] + ":"  # trim the right most field
@@ -337,9 +333,6 @@ def pteamtag_try_auto_close_topic(
     tag: models.Tag,  # should be bound to pteam, not to topic
     topic: models.Topic,
 ):
-    if topic.disabled or pteam.disabled:
-        return
-
     try:
         # pick unique reference versions to compare. (omit empty -- maybe added on WebUI)
         reference_versions = {
@@ -380,15 +373,11 @@ def pteamtag_try_auto_close_topic(
 
 def auto_close_by_pteamtags(db: Session, pteamtags: Sequence[tuple[models.PTeam, models.Tag]]):
     for pteam, tag in pteamtags:
-        if pteam.disabled:
-            continue
         for topic in command.pick_topics_related_to_pteam_tag(db, pteam, tag):
             pteamtag_try_auto_close_topic(db, pteam, tag, topic)
 
 
 def auto_close_by_topic(db: Session, topic: models.Topic):
-    if topic.disabled:
-        return
     for pteam, tag in command.pick_pteam_tags_related_to_topic(db, topic):
         pteamtag_try_auto_close_topic(db, pteam, tag, topic)
 

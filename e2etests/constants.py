@@ -81,11 +81,6 @@ PTEAM3 = {
     "pteam_name": "pteam charlie",
     "contact_info": "charlie@ml.com",
 }
-PTEAM4 = {
-    "pteam_name": "pteam delta",
-    "contact_info": "",
-    "disabled": False,
-}
 ATEAM1 = {
     "ateam_name": "ateam a-one",
     "contact_info": "a-one@ml.com",

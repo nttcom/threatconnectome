@@ -30,9 +30,6 @@ def _pick_alert_targets_for_new_topic(
     db: Session,
     topic_id: UUID | str,
 ) -> Sequence[models.CurrentPTeamTopicTagStatus]:
-    # Note:
-    #   process auto-close and fix-current-status beforehand, and
-    #   disabled topics and pteams are excluded from CurrentPTeamTopicTagStatus table.
     return db.scalars(
         select(models.CurrentPTeamTopicTagStatus)
         .options(

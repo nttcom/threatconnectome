@@ -49,9 +49,6 @@ def create_threat(
     if topic is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
 
-    if topic.disabled is True:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
-
     if persistence.search_threats(db, data.dependency_id, data.topic_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Threat already exists")
 

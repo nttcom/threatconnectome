@@ -18,7 +18,6 @@ from app.tests.medium.constants import (
     TOPIC1,
     USER1,
 )
-from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     assert_200,
     assert_204,
@@ -1060,34 +1059,6 @@ class TestAutoClose:
                 self.action1 = topic1.actions[0]
                 self.topic1 = topic1
 
-            def test_update_topic__to_enable(self) -> None:
-                request = {"disabled": True}
-                assert_200(
-                    client.put(
-                        f"/topics/{self.topic1.topic_id}", headers=headers(USER1), json=request
-                    )
-                )
-
-                pteam1 = create_pteam(USER1, PTEAM1)
-                refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
-                upload_pteam_tags(USER1, pteam1.pteam_id, "group1", refs0)
-                with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
-                    self.util.get_topic_status(pteam1, self.topic1, self.tag1)
-
-                # test auto-close triggerd when topic enabled
-                request = {"disabled": False}
-                assert_200(
-                    client.put(
-                        f"/topics/{self.topic1.topic_id}", headers=headers(USER1), json=request
-                    )
-                )
-
-                status = self.util.get_topic_status(pteam1, self.topic1, self.tag1)
-                assert status.topic_status == models.TopicStatusType.completed
-                assert len(status.action_logs) == 1
-                log0 = status.action_logs[0]
-                assert log0.action_id == self.action1.action_id
-
     class TestEndpointActions:
         class TestOnCreateAction:
             util: Type
@@ -1230,55 +1201,8 @@ class TestAutoClose:
             # TODO: implement or move tests here
 
         class TestOnUpdatePTeam:
-            util: Type
-            pteam1: schemas.PTeamInfo
-            tag1: schemas.TagResponse
-
-            @pytest.fixture(scope="function", autouse=True)
-            def common_setup(self):
-                self.util = TestAutoClose._Util
-                create_user(USER1)
-                self.tag1 = create_tag(USER1, TAG1)
-                self.pteam1 = create_pteam(USER1, PTEAM1)
-                refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
-                upload_pteam_tags(USER1, self.pteam1.pteam_id, "group1", refs0)
-
-            def test_update_pteam__to_enable(self) -> None:
-                request = {
-                    "disabled": True,
-                }
-                assert_200(
-                    client.put(
-                        f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=request
-                    )
-                )
-
-                topic1 = create_topic(
-                    USER1,
-                    {
-                        **TOPIC1,
-                        "tags": [TAG1],
-                        "actions": [self.util.gen_action_dict()],
-                    },
-                )
-                action1 = topic1.actions[0]
-
-                with pytest.raises(HTTPError, match=r"404: Not Found: No such pteam"):
-                    status = self.util.get_topic_status(self.pteam1, topic1, self.tag1)
-
-                # test auto-close triggerd when pteam enabled
-                request = {"disabled": False}
-                assert_200(
-                    client.put(
-                        f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=request
-                    )
-                )
-
-                status = self.util.get_topic_status(self.pteam1, topic1, self.tag1)
-                assert status.topic_status == models.TopicStatusType.completed
-                assert len(status.action_logs) == 1
-                log0 = status.action_logs[0]
-                assert log0.action_id == action1.action_id
+            pass  # see other test_auto_close*
+            # TODO: implement or move tests here
 
         class TestOnAddPTeamTag:
             pass  # see test_auto_close__on_add_pteamtag*
