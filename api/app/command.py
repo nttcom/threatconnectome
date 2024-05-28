@@ -196,7 +196,6 @@ def pick_topics_related_to_pteam_tag(
     select_topic_stmt = select(models.Topic).join(
         models.TopicTag,
         and_(
-            models.Topic.disabled.is_(False),
             models.TopicTag.tag_id.in_([tag.tag_id, tag.parent_id]),
             models.TopicTag.topic_id == models.Topic.topic_id,
             ~already_completed_or_scheduled_stmt,
@@ -211,8 +210,6 @@ def pick_pteam_tags_related_to_topic(
     db: Session,
     topic: models.Topic,
 ) -> Sequence[tuple[models.PTeam, models.Tag]]:
-    if topic.disabled:
-        return []
     now = datetime.now()
     already_completed_or_scheduled_stmt = (
         select(models.CurrentPTeamTopicTagStatus)
@@ -251,13 +248,7 @@ def pick_pteam_tags_related_to_topic(
                 ~already_completed_or_scheduled_stmt,
             ),
         )
-        .join(
-            models.PTeam,
-            and_(
-                models.PTeam.disabled.is_(False),
-                models.PTeam.pteam_id == models.Service.pteam_id,
-            ),
-        )
+        .join(models.PTeam, models.PTeam.pteam_id == models.Service.pteam_id)
         .distinct()
     )
 
@@ -478,13 +469,7 @@ def get_pteam_topic_statuses_summary(db: Session, pteam: models.PTeam, tag: mode
         .join(
             models.TopicTag, models.TopicTag.tag_id.in_([models.Tag.tag_id, models.Tag.parent_id])
         )
-        .join(
-            models.Topic,
-            and_(
-                models.Topic.disabled.is_(False),
-                models.Topic.topic_id == models.TopicTag.topic_id,
-            ),
-        )
+        .join(models.Topic, models.Topic.topic_id == models.TopicTag.topic_id)
         .outerjoin(
             models.CurrentPTeamTopicTagStatus,
             and_(
@@ -571,13 +556,6 @@ def pteam_topic_tag_status_to_response(
 
 
 def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
-    if pteam.disabled:
-        db.query(models.CurrentPTeamTopicTagStatus).filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id
-        ).delete()
-        db.flush()
-        return
-
     pteam_tag_ids = (
         select(models.Tag.tag_id.distinct())
         .join(models.Dependency, models.Dependency.tag_id == models.Tag.tag_id)
@@ -611,13 +589,7 @@ def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
                 ),
             ),
         )
-        .join(
-            models.Topic,
-            and_(
-                models.Topic.topic_id == models.TopicTag.topic_id,
-                models.Topic.disabled.is_(False),
-            ),
-        )
+        .join(models.Topic, models.Topic.topic_id == models.TopicTag.topic_id)
         .distinct()
         .subquery()
     )
@@ -704,13 +676,6 @@ def fix_current_status_by_deleted_topic(db: Session, topic_id: UUID | str):
 
 
 def fix_current_status_by_topic(db: Session, topic: models.Topic):
-    if topic.disabled:
-        db.query(models.CurrentPTeamTopicTagStatus).filter(
-            models.CurrentPTeamTopicTagStatus.topic_id == topic.topic_id
-        ).delete()
-        db.flush()
-        return
-
     # remove untagged
     current_topic_tag_and_children_ids = (
         select(models.Tag.tag_id)
@@ -754,13 +719,7 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
             models.Dependency.tag_id == models.Tag.tag_id,
         )
         .join(models.Service)
-        .join(
-            models.PTeam,
-            and_(
-                models.PTeam.pteam_id == models.Service.pteam_id,
-                models.PTeam.disabled.is_(False),
-            ),
-        )
+        .join(models.PTeam, models.PTeam.pteam_id == models.Service.pteam_id)
         .distinct()
         .subquery()
     )
@@ -1019,9 +978,10 @@ def search_topics_internal(
         search_by_updated_after_stmt,
     ]
     filter_topics_stmt = and_(
-        models.Topic.disabled.is_(False),
+        true(),
         *search_conditions,
     )
+    filter_topics_stmt = and_(*search_conditions)
 
     # join tables only if required
     select_topics_stmt = select(models.Topic)

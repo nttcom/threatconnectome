@@ -27,7 +27,6 @@ from app.tests.medium.constants import (
     PTEAM1,
     PTEAM2,
     PTEAM3,
-    PTEAM4,
     TAG1,
     TAG2,
     TAG3,
@@ -1899,44 +1898,6 @@ def test_get_pteam_topics():
     assert {x["tag_name"] for x in data[0]["misp_tags"]} == set(TOPIC1["misp_tags"])
 
 
-def test_get_pteam_topics_with_topic_disabled():
-    create_user(USER1)
-    create_tag(USER1, TAG1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    # add tag1 to pteam1
-    group_x = "group_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER1))
-    assert response.status_code == 200
-    assert response.json() == []
-
-    create_topic(USER1, TOPIC1, actions=[ACTION2, ACTION1])  # TAG1
-    create_topic(USER1, TOPIC2, actions=[ACTION2, ACTION1])  # TAG1
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 2
-    assert data[0]["topic_id"] == str(TOPIC1["topic_id"])
-    assert data[1]["topic_id"] == str(TOPIC2["topic_id"])
-
-    request = {"disabled": True}
-    response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
-
-    assert response.status_code == 200
-    responsed_topic = schemas.TopicResponse(**response.json())
-    assert responsed_topic.disabled is True
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 1
-    assert data[0]["topic_id"] == str(TOPIC2["topic_id"])
-
-
 def test_get_pteam_topics__by_not_member():
     create_user(USER1)
     create_user(USER2)
@@ -3537,87 +3498,10 @@ def test_get_pteam_tagged_topic_ids():
     assert unsolved2.threat_impact_count == {"1": 1, "2": 1, "3": 0, "4": 0}
 
 
-def test_disable_pteam():
+def test_summary_of_pteam(testdb):
+    # pteam1 has topic1 with tag1
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    pteam4 = create_pteam(USER1, PTEAM4)
-    request = {"disabled": True}
-    updated_response = client.put(
-        f"/pteams/{pteam4.pteam_id}", headers=headers(USER1), json=request
-    )
-    assert updated_response.status_code == 200
-    updated_pteam = schemas.PTeamInfo(**updated_response.json())
-    assert updated_pteam.disabled is True
-
-    pteams_response = client.get("/pteams", headers=headers(USER1))
-    assert pteams_response.status_code == 200
-    pteams_data = pteams_response.json()
-    assert len(pteams_data) == 2
-    for pteam in pteams_data:
-        assert (UUID(pteam["pteam_id"]) == pteam1.pteam_id and pteam["disabled"] is False) or (
-            UUID(pteam["pteam_id"]) == pteam4.pteam_id and pteam["disabled"] is True
-        )
-
-    pteam_response = client.get(f"/pteams/{pteam4.pteam_id}", headers=headers(USER1))
-    assert pteam_response.status_code == 200
-    pteam_data = pteam_response.json()
-    assert pteam_data["pteam_id"] == str(pteam4.pteam_id)
-    assert pteam_data["pteam_name"] == PTEAM4["pteam_name"]
-    assert pteam_data["alert_slack"]["webhook_url"] == PTEAM4["alert_slack"]["webhook_url"]
-    assert pteam_data["disabled"] is True
-
-    user_response = client.get("/users/me", headers=headers(USER1))
-    assert user_response.status_code == 200
-    data = user_response.json()
-    assert data["email"] == USER1["email"]
-    assert data["disabled"] == USER1["disabled"]
-    assert data["years"] == USER1["years"]
-    assert len(data["pteams"]) == 2
-    for pteam in data["pteams"]:
-        assert (UUID(pteam["pteam_id"]) == pteam1.pteam_id and pteam["disabled"] is False) or (
-            UUID(pteam["pteam_id"]) == pteam4.pteam_id and pteam["disabled"] is True
-        )
-
-
-def test_delete_disabled_pteam_invitation():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM4)
-    # create invitation
-    invite_to_pteam(USER1, pteam.pteam_id)
-    # list invitations
-    invitation_response1 = client.get(
-        f"/pteams/{pteam.pteam_id}/invitation", headers=headers(USER1)
-    )
-    assert invitation_response1.status_code == 200
-    invitation_data1 = invitation_response1.json()
-    assert len(invitation_data1) == 1
-    # disbale pteam
-    disable_request = {"disabled": True}
-    disable_response = client.put(
-        f"/pteams/{pteam.pteam_id}", headers=headers(USER1), json=disable_request
-    )
-    assert disable_response.status_code == 200
-
-    # enable pteam
-    enable_request = {"disabled": False}
-    enable_response = client.put(
-        f"/pteams/{pteam.pteam_id}", headers=headers(USER1), json=enable_request
-    )
-    assert enable_response.status_code == 200
-    # list invitations again
-    invitation_response2 = client.get(
-        f"/pteams/{pteam.pteam_id}/invitation", headers=headers(USER1)
-    )
-    assert invitation_response2.status_code == 200
-    invitation_data2 = invitation_response2.json()
-    assert len(invitation_data2) == 0
-
-
-def test_summary_of_disabled_pteam(testdb):
-    # pteam1 has topic1 with tag1, while pteam4 has topic4 with tag3.
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    pteam4 = create_pteam(USER1, PTEAM4)
     create_topic(USER1, TOPIC1)  # TAG1
     topic4 = create_topic(USER1, TOPIC4)  # TAG3
     tag3 = topic4.tags[0]
@@ -3625,33 +3509,7 @@ def test_summary_of_disabled_pteam(testdb):
     group_x = "group_x"
 
     refs1 = {TAG1: [("fake target", "fake version")]}
-    refs3 = {TAG3: [("fake target", "fake version")]}
     upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs1)
-    upload_pteam_tags(USER1, pteam4.pteam_id, group_x, refs3)
-
-    # test that tagsummary is updated when pteam4 is not disabled
-    assert (
-        testdb.query(models.CurrentPTeamTopicTagStatus)
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam4.pteam_id),
-            models.CurrentPTeamTopicTagStatus.topic_id == str(topic4.topic_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag3.tag_id),
-        )
-        .all()
-    )
-
-    # disable pteam4
-    request = {"disabled": True}
-    assert_200(client.put(f"/pteams/{pteam4.pteam_id}", headers=headers(USER1), json=request))
-    assert (
-        testdb.query(models.CurrentPTeamTopicTagStatus)
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam4.pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag3.tag_id),
-        )
-        .all()
-        == []
-    )
 
     # test that tagsummary is not updated when creating topic3 with tag1 and tag3
     create_topic(USER1, TOPIC3)  # TAG1 & TAG3
@@ -3661,15 +3519,6 @@ def test_summary_of_disabled_pteam(testdb):
         TAG3: [("fake target", "fake version")],
     }
     upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs_x)
-    assert (
-        testdb.query(models.CurrentPTeamTopicTagStatus)
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam4.pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag3.tag_id),
-        )
-        .all()
-        == []
-    )
     assert (
         testdb.query(models.CurrentPTeamTopicTagStatus)
         .filter(
@@ -3694,15 +3543,6 @@ def test_summary_of_disabled_pteam(testdb):
             tag4 = tag
     refs_y = {tag4.tag_name: [("fake target", "fake version")]}
     upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs_y)
-    assert (
-        testdb.query(models.CurrentPTeamTopicTagStatus)
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam4.pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag4.tag_id),
-        )
-        .all()
-        == []
-    )
     assert (
         testdb.query(models.CurrentPTeamTopicTagStatus)
         .filter(

@@ -483,7 +483,6 @@ class PTeam(Base):
     pteam_name: Mapped[Str255]
     contact_info: Mapped[Str255]
     alert_threat_impact: Mapped[int | None]
-    disabled: Mapped[bool] = mapped_column(default=False)
 
     tags = relationship(  # PTeam - [Service - Dependency] - Tag
         "Tag",  # right most table is Tag
@@ -646,7 +645,6 @@ class Topic(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     content_fingerprint: Mapped[str]
-    disabled: Mapped[bool] = mapped_column(default=False)
     safety_impact: Mapped[SafetyImpactEnum] = mapped_column(
         server_default=SafetyImpactEnum.CATASTROPHIC
     )

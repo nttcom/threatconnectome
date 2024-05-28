@@ -74,12 +74,6 @@ PTEAM3 = {
     "contact_info": "charlie@ml.com",
     "alert_slack": {"enable": True, "webhook_url": ""},
 }
-PTEAM4 = {
-    "pteam_name": "pteam delta",
-    "contact_info": "",
-    "alert_slack": {"enable": True, "webhook_url": ""},
-    "disabled": False,
-}
 ATEAM1 = {
     "ateam_name": "ateam a-one",
     "contact_info": "a-one@ml.com",

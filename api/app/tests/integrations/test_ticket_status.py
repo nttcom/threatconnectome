@@ -108,7 +108,7 @@ def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict
         "topic_status": "acknowledged",
         "note": "acknowledged",
         "assignees": threat_data["assignees"],
-        "scheduled_at": str(datetime(2024, 6, 1)),
+        "scheduled_at": str(datetime(2024, 5, 1)),
     }
     create_topicstatus(
         USER1, threat_data["pteam_id"], threat_data["topic_id"], threat_data["tag_id"], json_data1
@@ -118,7 +118,7 @@ def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict
         "topic_status": "scheduled",
         "note": "scheduled",
         "assignees": threat_data["assignees"],
-        "scheduled_at": str(datetime(2024, 6, 2)),
+        "scheduled_at": str(datetime(2024, 5, 2)),
     }
     create_topicstatus(
         USER2, threat_data["pteam_id"], threat_data["topic_id"], threat_data["tag_id"], json_data2
@@ -147,14 +147,14 @@ def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict
             assert len(status.assignees) == 2
             for assignees_index in range(len(status.assignees)):
                 assert status.assignees[assignees_index] in threat_data["assignees"]
-                assert status.scheduled_at == datetime(2024, 6, 1)
+                assert status.scheduled_at == datetime(2024, 5, 1)
         elif status.note == "scheduled":
             assert status.topic_status == models.TopicStatusType.scheduled
             assert len(status.logging_ids) == 0
             assert len(status.assignees) == 2
             for assignees_index in range(len(status.assignees)):
                 assert status.assignees[assignees_index] in threat_data["assignees"]
-                assert status.scheduled_at == datetime(2024, 6, 2)
+                assert status.scheduled_at == datetime(2024, 5, 2)
 
     # check CurrentTicketStatus
     current_tcket_status = testdb.scalars(
@@ -175,7 +175,7 @@ def test_TicketStatus_when_auto_close(testdb: Session, threat_data: dict):
         "topic_status": "acknowledged",
         "note": "acknowledged",
         "assignees": threat_data["assignees"],
-        "scheduled_at": str(datetime(2024, 6, 1)),
+        "scheduled_at": str(datetime(2024, 5, 1)),
     }
     create_topicstatus(
         USER1, threat_data["pteam_id"], threat_data["topic_id"], threat_data["tag_id"], json_data1
@@ -185,19 +185,16 @@ def test_TicketStatus_when_auto_close(testdb: Session, threat_data: dict):
         "topic_status": "scheduled",
         "note": "scheduled",
         "assignees": threat_data["assignees"],
-        "scheduled_at": str(datetime(2024, 6, 2)),
+        "scheduled_at": str(datetime(2024, 5, 2)),
     }
     create_topicstatus(
         USER2, threat_data["pteam_id"], threat_data["topic_id"], threat_data["tag_id"], json_data2
     )
 
     # When
-    # topics disabled update True to False
-    topic_id = threat_data["topic_id"]
-    put_topics_request = {"disabled": True}
-    client.put(f"/topics/{topic_id}", headers=headers(USER1), json=put_topics_request)
-    put_topics_request = {"disabled": False}
-    client.put(f"/topics/{topic_id}", headers=headers(USER1), json=put_topics_request)
+    # pteam fix_status_mismatch
+    pteam_id = threat_data["pteam_id"]
+    client.post(f"/pteams/{pteam_id}/fix_status_mismatch", headers=headers(USER1))
 
     # Then
     # check TicketStatus
@@ -221,14 +218,14 @@ def test_TicketStatus_when_auto_close(testdb: Session, threat_data: dict):
             assert len(status.assignees) == 2
             for assignees_index in range(len(status.assignees)):
                 assert status.assignees[assignees_index] in threat_data["assignees"]
-                assert status.scheduled_at == datetime(2024, 6, 1)
+                assert status.scheduled_at == datetime(2024, 5, 1)
         elif status.note == "scheduled":
             assert status.topic_status == models.TopicStatusType.scheduled
             assert len(status.logging_ids) == 0
             assert len(status.assignees) == 2
             for assignees_index in range(len(status.assignees)):
                 assert status.assignees[assignees_index] in threat_data["assignees"]
-                assert status.scheduled_at == datetime(2024, 6, 2)
+                assert status.scheduled_at == datetime(2024, 5, 2)
 
     # check CurrentTicketStatus
     current_tcket_status = testdb.scalars(
