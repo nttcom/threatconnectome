@@ -466,6 +466,9 @@ def update_topic(
 
     db.flush()
 
+    if tags_updated:
+        auto_close_by_topic(db, topic)
+
     command.fix_current_status_by_topic(db, topic)
 
     db.commit()
