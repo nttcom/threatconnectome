@@ -977,6 +977,10 @@ def search_topics_internal(
         search_by_updated_before_stmt,
         search_by_updated_after_stmt,
     ]
+    filter_topics_stmt = and_(
+        true(),
+        *search_conditions,
+    )
     filter_topics_stmt = and_(*search_conditions)
 
     # join tables only if required
