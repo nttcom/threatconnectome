@@ -57,9 +57,6 @@ def test_get_threat(threat1: schemas.ThreatResponse, threat2: schemas.ThreatResp
     assert data["dependency_id"] == str(threat1.dependency_id)
     assert data["topic_id"] == str(threat1.topic_id)
 
-    response = client.get("/threats", headers=header_threat)
-    print(response.json())
-
 
 def test_get_threat_no_data():
     with pytest.raises(HTTPError, match=r"404: Not Found: No such threat"):
