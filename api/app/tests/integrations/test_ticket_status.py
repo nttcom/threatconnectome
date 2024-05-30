@@ -6,8 +6,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy import insert, select
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import models, persistence, schemas
+from app.common import threat_meets_condition_to_create_ticket
 from app.main import app
+from app.ssvc import calculate_ssvc_deployer_priority
 from app.tests.medium.constants import (
     ACTION1,
     PTEAM1,
@@ -79,16 +81,37 @@ def threat_data(testdb: Session) -> dict:
     )
 
     # create threat
-    request = {
-        "dependency_id": str(dependency_id),
-        "topic_id": str(topic1.topic_id),
-    }
-    response = client.post("/threats", headers=header_threat, json=request)
-    threat = schemas.ThreatResponse(**response.json())
+    threat = models.Threat(
+        dependency_id=str(dependency_id),
+        topic_id=str(topic1.topic_id),
+    )
+    persistence.create_threat(testdb, threat)
+
+    # create ticket
+    now = datetime.now()
+    if threat_meets_condition_to_create_ticket(testdb, threat):
+        _ticket = models.Ticket(
+            threat_id=threat.threat_id,
+            created_at=now,
+            updated_at=now,
+            ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat, threat.dependency),
+        )
+        persistence.create_ticket(testdb, _ticket)
+
+    testdb.commit()
+
+    # get threat_id
+    threats = persistence.search_threats(testdb, dependency_id, topic1.topic_id)
+    for _threat in threats:
+        threat_data = schemas.ThreatResponse(
+            threat_id=uuid.UUID(_threat.threat_id),
+            dependency_id=uuid.UUID(_threat.dependency_id),
+            topic_id=uuid.UUID(_threat.topic_id),
+        )
 
     ticket_id: str = ""
     if ticket := testdb.scalars(
-        select(models.Ticket).where(models.Ticket.threat_id == str(threat.threat_id))
+        select(models.Ticket).where(models.Ticket.threat_id == str(threat_data.threat_id))
     ).one_or_none():
         ticket_id = str(ticket.ticket_id)
     return {
