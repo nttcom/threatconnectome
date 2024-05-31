@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Dict, Union
+from uuid import UUID
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select
@@ -7,28 +8,25 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
 from app.main import app
-from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     assert_200,
     create_pteam,
-    create_topic,
     create_user,
     file_upload_headers,
+    headers,
 )
 
 client = TestClient(app)
 
-headers = {
-    "accept": "application/json",
-    "Content-Type": "application/json",
-}
 
-
-def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> schemas.ThreatResponse:
+def create_threat(
+    testdb: Session, user: dict, pteam: dict, topic: dict, action: dict | None
+) -> schemas.ThreatResponse:
     create_user(user)
     pteam1 = create_pteam(user, pteam)
-    topic1 = create_topic(user, topic)
 
+    # Uploaded sbom file.
+    # Create tag, service and dependency table
     params: Dict[str, Union[str, bool]] = {"group": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
@@ -43,6 +41,43 @@ def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> sche
 
     tag_id = data[0]["tag_id"]
 
+    # Create topic and topicaction table
+    tag_name_of_upload_sbom_file = data[0]["tag_name"]
+
+    if action:
+        action = {
+            **action,
+            "ext": {
+                "tags": [tag_name_of_upload_sbom_file],
+                "vulnerable_versions": {
+                    tag_name_of_upload_sbom_file: [
+                        "<100"
+                    ],  # Prevent auto close from being executed
+                },
+            },
+        }
+
+        topic = {
+            **topic,
+            "tags": [tag_name_of_upload_sbom_file],
+            "actions": [action],
+        }
+
+    else:
+        topic = {
+            **topic,
+            "tags": [tag_name_of_upload_sbom_file],
+        }
+
+    request = {**topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{topic["topic_id"]}', headers=headers(user), json=request)
+
+    assert response.status_code == 200
+    responsed_topic = schemas.TopicCreateResponse(**response.json())
+
+    # Saerch threat table
     service_id = testdb.scalars(
         select(models.Service.service_id).where(
             models.Service.pteam_id == str(pteam1.pteam_id),
@@ -55,12 +90,17 @@ def create_threat(testdb: Session, user: dict, pteam: dict, topic: dict) -> sche
     )
 
     if dependency:
-        request = {
-            "dependency_id": str(dependency.dependency_id),
-            "topic_id": str(topic1.topic_id),
-        }
-        response = client.post("/threats", headers=headers, json=request)
-        if response.status_code != 200:
-            raise HTTPError(response)
+        threats = persistence.search_threats(
+            testdb, str(dependency.dependency_id), str(responsed_topic.topic_id)
+        )
 
-    return schemas.ThreatResponse(**response.json())
+        assert threats
+
+        for threat in threats:
+            response_threat = schemas.ThreatResponse(
+                threat_id=UUID(threat.threat_id),
+                dependency_id=UUID(threat.dependency_id),
+                topic_id=UUID(threat.topic_id),
+            )
+
+    return response_threat
