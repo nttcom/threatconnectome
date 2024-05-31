@@ -55,7 +55,7 @@ from app.tests.medium.utils import (
     create_user,
     create_watching_request,
     file_upload_headers,
-    get_pteam_groups,
+    get_pteam_services,
     get_pteam_tags,
     headers,
     invite_to_pteam,
@@ -307,49 +307,49 @@ def test_update_pteam_empty_data():
     assert data["alert_threat_impact"] == 3
 
 
-def test_get_pteam_groups():
+def test_get_pteam_services():
     create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
     pteam2 = create_pteam(USER1, PTEAM2)
     create_tag(USER1, TAG1)
 
-    # no groups at created pteam
-    groups1 = get_pteam_groups(USER1, pteam1.pteam_id)
-    groups2 = get_pteam_groups(USER1, pteam2.pteam_id)
-    assert groups1.groups == groups2.groups == []
+    # no services at created pteam
+    services1 = get_pteam_services(USER1, pteam1.pteam_id)
+    services2 = get_pteam_services(USER1, pteam2.pteam_id)
+    assert services1.services == services2.services == []
 
     refs0 = {TAG1: [("fake target", "fake version")]}
 
-    # add group x to pteam1
-    group_x = "group_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    # add service x to pteam1
+    service_x = "service_x"
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
-    groups1a = get_pteam_groups(USER1, pteam1.pteam_id)
-    groups2a = get_pteam_groups(USER1, pteam2.pteam_id)
-    assert groups1a.groups == [group_x]
-    assert groups2a.groups == []
+    services1a = get_pteam_services(USER1, pteam1.pteam_id)
+    services2a = get_pteam_services(USER1, pteam2.pteam_id)
+    assert services1a.services == [service_x]
+    assert services2a.services == []
 
-    # add group y to pteam2
-    group_y = "group_y"
-    upload_pteam_tags(USER1, pteam2.pteam_id, group_y, refs0)
+    # add grserviceoup y to pteam2
+    service_y = "service_y"
+    upload_pteam_tags(USER1, pteam2.pteam_id, service_y, refs0)
 
-    groups1b = get_pteam_groups(USER1, pteam1.pteam_id)
-    groups2b = get_pteam_groups(USER1, pteam2.pteam_id)
-    assert groups1b.groups == [group_x]
-    assert groups2b.groups == [group_y]
+    services1b = get_pteam_services(USER1, pteam1.pteam_id)
+    services2b = get_pteam_services(USER1, pteam2.pteam_id)
+    assert services1b.services == [service_x]
+    assert services2b.services == [service_y]
 
-    # add group y to pteam1
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_y, refs0)
+    # add service y to pteam1
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_y, refs0)
 
-    groups1c = get_pteam_groups(USER1, pteam1.pteam_id)
-    groups2c = get_pteam_groups(USER1, pteam2.pteam_id)
-    assert set(groups1c.groups) == {group_x, group_y}
-    assert groups2c.groups == [group_y]
+    services1c = get_pteam_services(USER1, pteam1.pteam_id)
+    services2c = get_pteam_services(USER1, pteam2.pteam_id)
+    assert set(services1c.services) == {service_x, service_y}
+    assert services2c.services == [service_y]
 
-    # only members get groups
+    # only members get services
     with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
-        get_pteam_groups(USER2, pteam1.pteam_id)
+        get_pteam_services(USER2, pteam1.pteam_id)
 
 
 def test_get_pteam_tags():
@@ -364,12 +364,12 @@ def test_get_pteam_tags():
     assert etags0 == []
 
     # add tag1 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs1 = {tag1.tag_name: [("fake target", "fake version")]}
     expected_ref1 = [
-        {"group": group_x, "target": "fake target", "version": "fake version"},
+        {"service": service_x, "target": "fake target", "version": "fake version"},
     ]
-    etags1a = upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs1)
+    etags1a = upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs1)
 
     assert len(etags1a) == 1
     assert compare_tags(etags1a, [tag1])
@@ -381,12 +381,12 @@ def test_get_pteam_tags():
     assert compare_references(etags1b[0].references, expected_ref1)
 
     # add tag2 to pteam1
-    group_y = "group_y"
+    service_y = "service_y"
     refs2 = {tag2.tag_name: [("fake target 2", "fake version 2")]}
     expected_ref2 = [
-        {"group": group_y, "target": "fake target 2", "version": "fake version 2"},
+        {"service": service_y, "target": "fake target 2", "version": "fake version 2"},
     ]
-    etags2a = upload_pteam_tags(USER1, pteam1.pteam_id, group_y, refs2)
+    etags2a = upload_pteam_tags(USER1, pteam1.pteam_id, service_y, refs2)
 
     assert len(etags2a) == 2
     assert compare_tags(etags2a, sorted([tag1, tag2], key=lambda x: x.tag_name))
@@ -1576,12 +1576,12 @@ def test_set_pteam_topic_status():
     topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.parent_name, tag3.parent_name]})
 
     # add tag1 + tag2 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {
         TAG1: [("fake target 1", "fake version 1")],
         TAG2: [("fake target 2", "fake version 2")],
     }
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     # set topicstatus
     json_data = {
@@ -1617,9 +1617,9 @@ def test_set_pteam_topic_status__not_specify_assignee():
     topic1 = create_topic(USER1, TOPIC1)  # TAG1
 
     # add tag1 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     # set topicstatus
     json_data = {"topic_status": "acknowledged", "note": "acknowledged", "assignees": []}
@@ -1642,9 +1642,9 @@ def test_set_pteam_topic_status__to_complete():
     action1 = topic1.actions[0]
 
     # add tag1 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     # create actionlogs
     actionlog1 = create_actionlog(
@@ -1680,9 +1680,9 @@ def test_set_pteam_topic_status__invalid_actionlog():
     topic1 = create_topic(USER1, TOPIC1)  # TAG1
 
     # add tag1 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     # set topicstatus
     json_data = {
@@ -1701,9 +1701,9 @@ def test_set_pteam_topic_status__with_unselectable_status():
     topic1 = create_topic(USER1, TOPIC1)
 
     # add tag1 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     json_data = {"topic_status": "alerted", "note": "alerted"}
     with pytest.raises(HTTPError, match=r"400: Bad Request: Wrong topic status"):
@@ -1719,14 +1719,14 @@ def test_set_pteam_topic_status__parent():
     pteam1 = create_pteam(USER1, PTEAM1)
 
     # add tags to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {
         tag_aaa.tag_name: [("", "")],
         tag_bbb.tag_name: [("", "")],
         tag_ccc.parent_name: [("", "")],
         tag_ddd.parent_name: [("", "")],
     }
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     def _tags_summary() -> dict:
         return assert_200(
@@ -1870,9 +1870,9 @@ def test_get_pteam_topics():
     accept_pteam_invitation(USER2, invitation.invitation_id)
 
     # add tag1 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     response = client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER2))
     assert response.status_code == 200
@@ -1905,9 +1905,9 @@ def test_get_pteam_topics__by_not_member():
     pteam1 = create_pteam(USER1, PTEAM1)
 
     # add tag1 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     response = client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER2))
     assert response.status_code == 403
@@ -1921,9 +1921,9 @@ def test_get_pteam_topic_status():
     topic1 = create_topic(USER1, TOPIC1)  # TAG1
 
     # add tag1 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     set_request = {
         "topic_status": models.TopicStatusType.acknowledged,
@@ -1957,9 +1957,9 @@ def test_get_pteam_topic_status__by_not_member():
     topic1 = create_topic(USER1, TOPIC1)  # TAG1
 
     # add tag1 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     response = client.get(
         f"/pteams/{pteam1.pteam_id}/topicstatus/{topic1.topic_id}/{tag1.tag_id}",
@@ -1975,9 +1975,9 @@ def test_get_pteam_topic_statuses_summary():
     pteam1 = create_pteam(USER1, PTEAM1)
 
     # add tag1 to pteam1
-    group_x = "group_x"
+    service_x = "service_x"
     refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     # no topics
     response = client.get(
@@ -2150,12 +2150,12 @@ def test_get_pteam_topic_statuses_summary__parent():
     pteam1 = create_pteam(USER1, PTEAM1)
 
     # add tags to pteam1
-    group_tc = "Threatconnectome"
-    group_fs = "Flashsense"
+    service_tc = "Threatconnectome"
+    service_fs = "Flashsense"
     refs0 = {tag1.tag_name: [("api/Pipfile.lock", "1.3")]}
     refs1 = {tag1.tag_name: [("api2/Pipfile.lock", "1.4")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_tc, refs0)
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_fs, refs1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_tc, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_fs, refs1)
 
     # no topics
     data = assert_200(
@@ -2366,7 +2366,7 @@ def test_upload_pteam_tags_file():
             return False
         return all(_compare_ext_tags(_tags1[_idx], _tags2[_idx]) for _idx in range(len(_tags1)))
 
-    params = {"group": "threatconnectome", "force_mode": True}
+    params = {"service": "threatconnectome", "force_mode": True}
 
     # upload a line
     lines = [
@@ -2381,7 +2381,7 @@ def test_upload_pteam_tags_file():
     assert "teststring" in tags
     assert compare_references(
         tags["teststring"]["references"],
-        [{"group": params["group"], "target": "api/Pipfile.lock", "version": "1.0"}],
+        [{"service": params["service"], "target": "api/Pipfile.lock", "version": "1.0"}],
     )
 
     # upload 2 lines
@@ -2399,13 +2399,13 @@ def test_upload_pteam_tags_file():
     assert "test1" in tags
     assert compare_references(
         tags["teststring"]["references"],
-        [{"group": params["group"], "target": "api/Pipfile.lock", "version": "1.0"}],
+        [{"service": params["service"], "target": "api/Pipfile.lock", "version": "1.0"}],
     )
     assert compare_references(
         tags["test1"]["references"],
         [
-            {"group": params["group"], "target": "api/Pipfile.lock", "version": "1.0"},
-            {"group": params["group"], "target": "api3/Pipfile.lock", "version": "0.1"},
+            {"service": params["service"], "target": "api/Pipfile.lock", "version": "1.0"},
+            {"service": params["service"], "target": "api3/Pipfile.lock", "version": "0.1"},
         ],
     )
 
@@ -2424,13 +2424,13 @@ def test_upload_pteam_tags_file():
     assert "test1" in tags
     assert compare_references(
         tags["teststring"]["references"],
-        [{"group": params["group"], "target": "api/Pipfile.lock", "version": "1.0"}],
+        [{"service": params["service"], "target": "api/Pipfile.lock", "version": "1.0"}],
     )
     assert compare_references(
         tags["test1"]["references"],
         [
-            {"group": params["group"], "target": "api/Pipfile.lock", "version": "1.0"},
-            {"group": params["group"], "target": "api3/Pipfile.lock", "version": "0.1"},
+            {"service": params["service"], "target": "api/Pipfile.lock", "version": "1.0"},
+            {"service": params["service"], "target": "api3/Pipfile.lock", "version": "0.1"},
         ],
     )
 
@@ -2442,7 +2442,7 @@ def test_upload_pteam_tags_file():
     assert "alpha:alpha2:alpha3" in tags
     assert compare_references(
         tags["alpha:alpha2:alpha3"]["references"],
-        [{"group": params["group"], "target": "", "version": ""}],
+        [{"service": params["service"], "target": "", "version": ""}],
     )
     assert tags["alpha:alpha2:alpha3"]["tag_id"] == str(tag1.tag_id)  # already existed tag
 
@@ -2453,8 +2453,8 @@ def test_upload_pteam_tags_file__complex():
     tag_bbb = create_tag(USER1, "b:b:b")
     pteam1 = create_pteam(USER1, {**PTEAM1, "tags": []})
 
-    group_a = {"group": "group-a", "force_mode": True}
-    group_b = {"group": "group-b", "force_mode": True}
+    service_a = {"service": "service-a", "force_mode": True}
+    service_b = {"service": "service-b", "force_mode": True}
 
     def _eval_upload_tags_file(lines_, params_) -> dict:
         with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
@@ -2520,18 +2520,18 @@ def test_upload_pteam_tags_file__complex():
     }
     assert _compare_summaries(summary, summary_exp0)
 
-    # add a:a:a as group-a
+    # add a:a:a as service-a
     lines = [
         {
             "tag_name": tag_aaa.tag_name,
             "references": [{"target": "target1", "version": "1.0"}],
         },
     ]
-    data = _eval_upload_tags_file(lines, group_a)
+    data = _eval_upload_tags_file(lines, service_a)
     exp1 = {
         **schema_to_dict(tag_aaa),
         "references": [
-            {"target": "target1", "version": "1.0", "group": "group-a"},
+            {"target": "target1", "version": "1.0", "service": "service-a"},
         ],
     }
     assert _compare_responsed_tags(data, [exp1])
@@ -2549,7 +2549,7 @@ def test_upload_pteam_tags_file__complex():
     }
     assert _compare_summaries(summary, summary_exp1)
 
-    # add b:b:b as group-b
+    # add b:b:b as service-b
     lines = [
         {
             "tag_name": tag_bbb.tag_name,
@@ -2559,12 +2559,12 @@ def test_upload_pteam_tags_file__complex():
             ],
         }
     ]
-    data = _eval_upload_tags_file(lines, group_b)
+    data = _eval_upload_tags_file(lines, service_b)
     exp2 = {
         **schema_to_dict(tag_bbb),
         "references": [
-            {"target": "target2", "version": "1.0", "group": "group-b"},
-            {"target": "target2", "version": "1.1", "group": "group-b"},
+            {"target": "target2", "version": "1.0", "service": "service-b"},
+            {"target": "target2", "version": "1.1", "service": "service-b"},
         ],
     }
     assert _compare_responsed_tags(data, [exp1, exp2])
@@ -2588,7 +2588,7 @@ def test_upload_pteam_tags_file__complex():
     }
     assert _compare_summaries(summary, summary_exp2)
 
-    # update group-a with b:b:b, without a:a:a
+    # update service-a with b:b:b, without a:a:a
     lines = [
         {
             "tag_name": tag_bbb.tag_name,
@@ -2597,12 +2597,12 @@ def test_upload_pteam_tags_file__complex():
             ],
         }
     ]
-    data = _eval_upload_tags_file(lines, group_a)
+    data = _eval_upload_tags_file(lines, service_a)
     exp3 = {
         **schema_to_dict(tag_bbb),
         "references": [
             *exp2["references"],
-            {"target": "target1", "version": "1.2", "group": "group-a"},
+            {"target": "target1", "version": "1.2", "service": "service-a"},
         ],
     }
     assert _compare_responsed_tags(data, [exp3])
@@ -2625,7 +2625,7 @@ def test_upload_pteam_tags_file_with_empty_file():
     create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
 
-    params = {"group": "threatconnectome", "force_mode": True}
+    params = {"service": "threatconnectome", "force_mode": True}
     tag_file = Path(__file__).resolve().parent / "upload_test" / "empty.jsonl"
     with open(tag_file, "rb") as tags:
         response = client.post(
@@ -2643,7 +2643,7 @@ def test_upload_pteam_tags_file_with_wrong_filename():
     create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
 
-    params = {"group": "threatconnectome", "force_mode": True}
+    params = {"service": "threatconnectome", "force_mode": True}
     tag_file = Path(__file__).resolve().parent / "upload_test" / "tag.txt"
     with open(tag_file, "rb") as tags:
         response = client.post(
@@ -2661,7 +2661,7 @@ def test_upload_pteam_tags_file_without_tag_name():
     create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
 
-    params = {"group": "threatconnectome", "force_mode": True}
+    params = {"service": "threatconnectome", "force_mode": True}
     tag_file = Path(__file__).resolve().parent / "upload_test" / "no_tag_key.jsonl"
     with open(tag_file, "rb") as tags:
         response = client.post(
@@ -2679,7 +2679,7 @@ def test_upload_pteam_tags_file_with_wrong_content_format():
     create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
 
-    params = {"group": "threatconnectome", "force_mode": True}
+    params = {"service": "threatconnectome", "force_mode": True}
     tag_file = Path(__file__).resolve().parent / "upload_test" / "tag_with_wrong_format.jsonl"
     with open(tag_file, "rb") as tags:
         with pytest.raises(HTTPError, match=r"400: Bad Request: Wrong file content"):
@@ -2720,8 +2720,8 @@ def test_get_pteam_tags_summary():
         tag2.tag_name: [("fake target 2", "fake version 2")],
         tag3.tag_name: [("fake target 3", "fake version 3")],
     }
-    group_x = "group_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs0)
+    service_x = "service_x"
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
 
     summary = assert_200(
         client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
@@ -2734,7 +2734,9 @@ def test_get_pteam_tags_summary():
         [
             {
                 "tag_name": key,
-                "references": [{"group": group_x, "target": v[0], "version": v[1]} for v in value],
+                "references": [
+                    {"service": service_x, "target": v[0], "version": v[1]} for v in value
+                ],
             }
             for key, value in refs0.items()
         ],
@@ -2780,28 +2782,28 @@ def test_update_pteam_tags_summary__update_topic_status():
     def _extract_ext_tags(
         _ext_tags: list[dict],
     ) -> tuple[
-        dict[str, dict[str, list[tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        dict[str, dict[str, list[tuple[str, str]]]],  # {service: {tag: [(refs tuple)...]}}
         dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        _service_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
         _tag_to_refs_list: dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
-                _group = _ref["group"]
+                _service = _ref["service"]
                 _target = _ref.get("target", "")
                 _version = _ref.get("version", "")
 
-                _tag_to_refs_dict = _group_to_tags.get(_group, {})
+                _tag_to_refs_dict = _service_to_tags.get(_service, {})
                 _refs_tuples = _tag_to_refs_dict.get(_tag_name, [])
                 _refs_tuples.append((_target, _version))
                 _tag_to_refs_dict[_tag_name] = _refs_tuples
-                _group_to_tags[_group] = _tag_to_refs_dict
+                _service_to_tags[_service] = _tag_to_refs_dict
 
                 _refs_dict = _tag_to_refs_list.get(_tag_name, [])
-                _refs_dict.append({"group": _group, "target": _target, "version": _version})
+                _refs_dict.append({"service": _service, "target": _target, "version": _version})
                 _tag_to_refs_list[_tag_name] = _refs_dict
-        return _group_to_tags, _tag_to_refs_list
+        return _service_to_tags, _tag_to_refs_list
 
     def _sorted_tags(_tags: list[dict]) -> list[dict]:
         return sorted(
@@ -2845,8 +2847,8 @@ def test_update_pteam_tags_summary__update_topic_status():
         )
 
     req_tags, resp_tags = _extract_ext_tags([EXT_TAG1, EXT_TAG2, EXT_TAG3])
-    for group, refs in req_tags.items():
-        upload_pteam_tags(USER1, pteam1.pteam_id, group, refs)
+    for service, refs in req_tags.items():
+        upload_pteam_tags(USER1, pteam1.pteam_id, service, refs)
 
     summary = assert_200(
         client.get(f"/pteams/{pteam1.pteam_id}/tags/summary", headers=headers(USER1))
@@ -2981,28 +2983,28 @@ def test_update_pteam_tags_summary__update_topic():
     def _extract_ext_tags(
         _ext_tags: list[dict],
     ) -> tuple[
-        dict[str, dict[str, list[tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        dict[str, dict[str, list[tuple[str, str]]]],  # {service: {tag: [(refs tuple)...]}}
         dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        _service_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
         _tag_to_refs_list: dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
-                _group = _ref["group"]
+                _service = _ref["service"]
                 _target = _ref.get("target", "")
                 _version = _ref.get("version", "")
 
-                _tag_to_refs_dict = _group_to_tags.get(_group, {})
+                _tag_to_refs_dict = _service_to_tags.get(_service, {})
                 _refs_tuples = _tag_to_refs_dict.get(_tag_name, [])
                 _refs_tuples.append((_target, _version))
                 _tag_to_refs_dict[_tag_name] = _refs_tuples
-                _group_to_tags[_group] = _tag_to_refs_dict
+                _service_to_tags[_service] = _tag_to_refs_dict
 
                 _refs_dict = _tag_to_refs_list.get(_tag_name, [])
-                _refs_dict.append({"group": _group, "target": _target, "version": _version})
+                _refs_dict.append({"service": _service, "target": _target, "version": _version})
                 _tag_to_refs_list[_tag_name] = _refs_dict
-        return _group_to_tags, _tag_to_refs_list
+        return _service_to_tags, _tag_to_refs_list
 
     def _sorted_tags(_tags: list[dict]) -> list[dict]:
         return sorted(
@@ -3050,12 +3052,12 @@ def test_update_pteam_tags_summary__update_topic():
     req_tags2, resp_tags2 = _extract_ext_tags([EXT_TAG2])
     req_tags3, resp_tags3 = _extract_ext_tags([EXT_TAG3])
 
-    for group, refs in req_tags1.items():
-        upload_pteam_tags(USER1, pteam1.pteam_id, group, refs)
-    for group, refs in req_tags2.items():
-        upload_pteam_tags(USER1, pteam2.pteam_id, group, refs)
-    for group, refs in req_tags3.items():
-        upload_pteam_tags(USER1, pteam3.pteam_id, group, refs)
+    for service, refs in req_tags1.items():
+        upload_pteam_tags(USER1, pteam1.pteam_id, service, refs)
+    for service, refs in req_tags2.items():
+        upload_pteam_tags(USER1, pteam2.pteam_id, service, refs)
+    for service, refs in req_tags3.items():
+        upload_pteam_tags(USER1, pteam3.pteam_id, service, refs)
 
     # no topics
 
@@ -3402,7 +3404,7 @@ def test_get_pteam_tagged_topic_ids():
 
     # add tag1 to pteam1
     refs0 = {tag1.tag_name: [("fake target", "fake version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, "fake group", refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, "fake service", refs0)
 
     # user2 become a member
     p_invitation = invite_to_pteam(USER1, pteam1.pteam_id)
@@ -3451,7 +3453,7 @@ def test_get_pteam_tagged_topic_ids():
         tag1.tag_name: [("fake target", "fake version")],
         tag2.tag_name: [("fake target", "fake version")],
     }
-    upload_pteam_tags(USER1, pteam1.pteam_id, "fake group", refs1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, "fake service", refs1)
 
     solved2 = _get_topics(USER2, pteam1, tag2, True)
     assert solved2.topic_ids == []
@@ -3484,7 +3486,7 @@ def test_get_pteam_tagged_topic_ids():
 
     # delete tag1 from pteam1
     refs2 = {tag2.tag_name: [("fake target", "fake version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, "fake group", refs2)
+    upload_pteam_tags(USER1, pteam1.pteam_id, "fake service", refs2)
 
     with pytest.raises(HTTPError, match=r"404: Not Found: No such pteam tag"):
         _get_topics(USER2, pteam1, tag1, True)
@@ -3506,10 +3508,10 @@ def test_summary_of_pteam(testdb):
     topic4 = create_topic(USER1, TOPIC4)  # TAG3
     tag3 = topic4.tags[0]
 
-    group_x = "group_x"
+    service_x = "service_x"
 
     refs1 = {TAG1: [("fake target", "fake version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs1)
 
     # test that tagsummary is not updated when creating topic3 with tag1 and tag3
     create_topic(USER1, TOPIC3)  # TAG1 & TAG3
@@ -3518,7 +3520,7 @@ def test_summary_of_pteam(testdb):
         TAG1: [("fake target", "fake version")],
         TAG3: [("fake target", "fake version")],
     }
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs_x)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs_x)
     assert (
         testdb.query(models.CurrentPTeamTopicTagStatus)
         .filter(
@@ -3542,7 +3544,7 @@ def test_summary_of_pteam(testdb):
         if tag.tag_id != tag3.tag_id:
             tag4 = tag
     refs_y = {tag4.tag_name: [("fake target", "fake version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group_x, refs_y)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs_y)
     assert (
         testdb.query(models.CurrentPTeamTopicTagStatus)
         .filter(
@@ -3553,25 +3555,25 @@ def test_summary_of_pteam(testdb):
     )
 
 
-def test_remove_pteamtags_by_group():
+def test_remove_pteamtags_by_service():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    group1 = "threatconnectome"
-    group2 = "flashsense"
+    service1 = "threatconnectome"
+    service2 = "flashsense"
 
     refs0 = {TAG1: [("fake target", "fake version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, group1, refs0)
-    response2 = upload_pteam_tags(USER1, pteam1.pteam_id, group2, refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, service1, refs0)
+    response2 = upload_pteam_tags(USER1, pteam1.pteam_id, service2, refs0)
 
     for tag in response2:
         for reference in tag.references:
-            assert reference["group"] in [group1, group2]
+            assert reference["service"] in [service1, service2]
 
     assert_204(
         client.delete(
             f"/pteams/{pteam1.pteam_id}/tags",
             headers=headers(USER1),
-            params={"group": group1},
+            params={"service": service1},
         )
     )
     tag_summary = assert_200(
@@ -3579,8 +3581,8 @@ def test_remove_pteamtags_by_group():
     )
     for tag in tag_summary["tags"]:
         for reference in tag["references"]:
-            assert reference["group"] != group1
-            assert reference["group"] == group2
+            assert reference["service"] != service1
+            assert reference["service"] == service2
 
 
 def test_get_watchers():
@@ -3668,7 +3670,7 @@ def test_fix_status_mismatch(testdb: Session):
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.1",  # not vulnerable
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             }
         ],
     }
@@ -3679,7 +3681,7 @@ def test_fix_status_mismatch(testdb: Session):
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.0",  # vulnerable
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             }
         ],
     }
@@ -3713,7 +3715,7 @@ def test_fix_status_mismatch(testdb: Session):
             "actions": [action1, action2],
         },
     )
-    params = {"group": "threatconnectome"}
+    params = {"service": "threatconnectome"}
 
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tags_file:
         tags_file.writelines(json.dumps(ext_tag1) + "\n")  # none -> not vulnerable
@@ -3809,7 +3811,7 @@ def test_fix_status_mismatch_tag(testdb: Session):
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.1",  # not vulnerable
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             }
         ],
     }
@@ -3820,7 +3822,7 @@ def test_fix_status_mismatch_tag(testdb: Session):
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.1",  # not vulnerable
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             }
         ],
     }
@@ -3854,7 +3856,7 @@ def test_fix_status_mismatch_tag(testdb: Session):
             "actions": [action1, action2],
         },
     )
-    params = {"group": "threatconnectome"}
+    params = {"service": "threatconnectome"}
 
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tags_file:
         tags_file.writelines(json.dumps(ext_tag1) + "\n")  # none -> not vulnerable
@@ -4016,7 +4018,7 @@ def test_upload_pteam_sbom_file_with_syft():
     # To avoid multiple rows error, pteam2 is created for test
     create_pteam(USER1, PTEAM2)
 
-    params = {"group": "threatconnectome", "force_mode": True}
+    params = {"service": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
         data = assert_200(
@@ -4030,9 +4032,9 @@ def test_upload_pteam_sbom_file_with_syft():
     tags = {tag["tag_name"]: tag for tag in data}
     assert "axios:npm:npm" in tags
     assert {
-        (r["target"], r["version"], r["group"]) for r in tags["axios:npm:npm"]["references"]
+        (r["target"], r["version"], r["service"]) for r in tags["axios:npm:npm"]["references"]
     } == {
-        ("/package-lock.json", "1.6.7", params["group"]),
+        ("/package-lock.json", "1.6.7", params["service"]),
     }
 
 
@@ -4042,7 +4044,7 @@ def test_upload_pteam_sbom_file_with_trivy():
     # To avoid multiple rows error, pteam2 is created for test
     create_pteam(USER1, PTEAM2)
 
-    params = {"group": "threatconnectome", "force_mode": True}
+    params = {"service": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
         data = assert_200(
@@ -4056,10 +4058,10 @@ def test_upload_pteam_sbom_file_with_trivy():
     tags = {tag["tag_name"]: tag for tag in data}
     assert "axios:npm:npm" in tags
     assert {
-        (r["target"], r["version"], r["group"]) for r in tags["axios:npm:npm"]["references"]
+        (r["target"], r["version"], r["service"]) for r in tags["axios:npm:npm"]["references"]
     } == {
-        ("package-lock.json", "1.6.7", params["group"]),
-        (".", "1.6.7", params["group"]),
+        ("package-lock.json", "1.6.7", params["service"]),
+        (".", "1.6.7", params["service"]),
     }
 
 
@@ -4067,7 +4069,7 @@ def test_upload_pteam_sbom_file_with_empty_file():
     create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
 
-    params = {"group": "threatconnectome", "force_mode": True}
+    params = {"service": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "empty.json"
     with open(sbom_file, "rb") as tags:
         response = client.post(
@@ -4086,7 +4088,7 @@ def test_upload_pteam_sbom_file_with_wrong_filename():
     create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
 
-    params = {"group": "threatconnectome", "force_mode": True}
+    params = {"service": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag.txt"
     with open(sbom_file, "rb") as tags:
         response = client.post(
@@ -4105,7 +4107,7 @@ def test_upload_pteam_sbom_file_wrong_content_format():
     create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
 
-    params = {"group": "threatconnectome", "force_mode": True}
+    params = {"service": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag_with_wrong_format.json"
     with open(sbom_file, "rb") as tags:
         with pytest.raises(HTTPError, match=r"400: Bad Request: Not supported file format"):

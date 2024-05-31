@@ -97,19 +97,19 @@ def test_get_all_threats(testdb: Session):
     topic2 = create_topic(USER1, {**TOPIC2, "tags": [tag2.parent_name]}, actions=[action2])
 
     # create service
-    group1_name = "group_x"
+    service1_name = "service_x"
     service1_id = str(uuid.uuid4())
     testdb.execute(
         insert(models.Service).values(
-            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=group1_name
+            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=service1_name
         )
     )
 
-    group2_name = "group_y"
+    service2_name = "service_y"
     service2_id = str(uuid.uuid4())
     testdb.execute(
         insert(models.Service).values(
-            service_id=service2_id, pteam_id=pteam1.pteam_id, service_name=group2_name
+            service_id=service2_id, pteam_id=pteam1.pteam_id, service_name=service2_name
         )
     )
 
@@ -221,19 +221,19 @@ def test_get_all_threats_with_param(
     topic2 = create_topic(USER1, {**TOPIC2, "tags": [tag2.parent_name]}, actions=[action2])
 
     # create service
-    group1_name = "group_x"
+    service1_name = "service_x"
     service1_id = str(uuid.uuid4())
     testdb.execute(
         insert(models.Service).values(
-            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=group1_name
+            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=service1_name
         )
     )
 
-    group2_name = "group_y"
+    service2_name = "service_y"
     service2_id = str(uuid.uuid4())
     testdb.execute(
         insert(models.Service).values(
-            service_id=service2_id, pteam_id=pteam1.pteam_id, service_name=group2_name
+            service_id=service2_id, pteam_id=pteam1.pteam_id, service_name=service2_name
         )
     )
 
@@ -294,7 +294,7 @@ def test_create_threat(testdb: Session):
 
     # Uploaded sbom file.
     # Create tag, service and dependency table
-    params: Dict[str, str | bool] = {"group": "threatconnectome", "force_mode": True}
+    params: Dict[str, str | bool] = {"service": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
         data = assert_200(
@@ -339,7 +339,7 @@ def test_create_threat(testdb: Session):
     service_id = testdb.scalars(
         select(models.Service.service_id).where(
             models.Service.pteam_id == str(pteam1.pteam_id),
-            models.Service.service_name == str(params["group"]),
+            models.Service.service_name == str(params["service"]),
         )
     ).one_or_none()
 

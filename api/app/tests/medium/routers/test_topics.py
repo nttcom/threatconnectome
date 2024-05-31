@@ -16,11 +16,11 @@ from app.tests.medium.constants import (
     ACTION2,
     ACTION3,
     ATEAM1,
-    GROUP1,
     MISPTAG1,
     MISPTAG2,
     MISPTAG3,
     PTEAM1,
+    SERVICE1,
     TAG1,
     TAG2,
     TAG3,
@@ -370,7 +370,7 @@ def test_delete_topic(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     etags = upload_pteam_tags(
-        USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
+        USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
     )
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     create_actionlog(

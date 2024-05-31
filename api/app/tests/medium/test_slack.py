@@ -11,9 +11,9 @@ from app.slack import (
 from app.tests.medium.constants import (
     ACTION1,
     ATEAM1,
-    GROUP1,
     PTEAM1,
     SAMPLE_SLACK_WEBHOOK_URL,
+    SERVICE1,
     TAG1,
     TOPIC1,
     USER1,
@@ -39,7 +39,7 @@ def test_alert_new_topics__auto_closed(testdb):
         USER1, {**PTEAM1, "alert_slack": {"enable": True, "webhook_url": SAMPLE_SLACK_WEBHOOK_URL}}
     )
     refs0 = {tag1.tag_name: [("test/target1", "1.0")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, "test group", refs0)
+    upload_pteam_tags(USER1, pteam1.pteam_id, "test service", refs0)
 
     action1 = {
         "action": "update testpkg to version 1.0",
@@ -82,7 +82,9 @@ def test_alert_ateam(testdb):
     ateam = create_ateam(USER1, ATEAM1_WITH_SLACK_WEBHOOK_URL)
     watching_request = create_watching_request(USER1, ateam.ateam_id)
     accept_watching_request(USER1, watching_request.request_id, pteam.pteam_id)
-    upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(
+        USER1, pteam.pteam_id, SERVICE1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
+    )
     topic = create_topic(USER1, TOPIC1, actions=[])
     create_action(USER1, ACTION1, topic_id=topic.topic_id)
     action = testdb.query(models.TopicAction).first()

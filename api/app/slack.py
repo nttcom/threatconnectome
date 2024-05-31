@@ -59,11 +59,11 @@ def create_slack_pteam_alert_blocks_for_new_topic(
     topic_id: str,
     title: str,
     threat_impact: int,
-    groups: list[str],
+    services: list[str],
 ):
     blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
     blocks = _block_header(text=pteam_name)
-    groups_name = ",".join(groups)
+    services_name = ",".join(services)
     blocks.extend(
         [
             {
@@ -74,7 +74,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
                         [
                             f"*<{TAG_URL}{str(tag_id)}?pteamId={pteam_id}|{tag_name}>*",
                             f"*{title}*",
-                            f"*{groups_name}*",
+                            f"*{services_name}*",
                             THREAT_IMPACT_LABEL[threat_impact],
                         ]
                     ),

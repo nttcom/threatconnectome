@@ -118,8 +118,8 @@ class ExtTagResponse(TagResponse):
     references: list[dict] = []
 
 
-class PTeamGroupResponse(ORMModel):
-    groups: list[str] = []
+class PTeamServiceResponse(ORMModel):
+    services: list[str] = []
 
 
 class PTeamtagRequest(ORMModel):

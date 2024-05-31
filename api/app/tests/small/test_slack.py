@@ -18,7 +18,7 @@ def test_create_blocks_for_pteam():
         "topic_id": "b1f74d1f-9360-4a8d-86ac-3cf5dd20c75c",
         "title": "test_title1",
         "threat_impact": 1,
-        "groups": ["test1_group", "test2_group"],
+        "services": ["test1_service", "test2_service"],
     }
 
     blocks = create_slack_pteam_alert_blocks_for_new_topic(**notification_data)
@@ -27,7 +27,7 @@ def test_create_blocks_for_pteam():
     assert tag_page_url in blocks[2]["text"]["text"]
     assert notification_data["title"] in blocks[2]["text"]["text"]
     assert THREAT_IMPACT_LABEL[notification_data["threat_impact"]] in blocks[2]["text"]["text"]
-    assert notification_data["groups"][0] in blocks[2]["text"]["text"]
+    assert notification_data["services"][0] in blocks[2]["text"]["text"]
 
 
 def test_create_blocks_for_ateam():
