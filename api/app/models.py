@@ -217,7 +217,9 @@ class Base(DeclarativeBase):
 class PTeamAccount(Base):
     __tablename__ = "pteamaccount"
 
-    pteam_id = mapped_column(ForeignKey("pteam.pteam_id"), primary_key=True, index=True)
+    pteam_id = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
     user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
 
 
@@ -232,7 +234,9 @@ class ATeamPTeam(Base):
     __tablename__ = "ateampteam"
 
     ateam_id = mapped_column(ForeignKey("ateam.ateam_id"), primary_key=True, index=True)
-    pteam_id = mapped_column(ForeignKey("pteam.pteam_id"), primary_key=True, index=True)
+    pteam_id = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
 
 
 class TopicTag(Base):
@@ -537,7 +541,7 @@ class PTeamAuthority(Base):
     __tablename__ = "pteamauthority"
 
     pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id"), primary_key=True, index=True
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
     )
     user_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("account.user_id"), primary_key=True, index=True
@@ -699,7 +703,9 @@ class PTeamTopicTagStatus(Base):
     __tablename__ = "pteamtopictagstatus"
 
     status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    pteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("pteam.pteam_id"), index=True)
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
+    )
     topic_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("topic.topic_id", ondelete="CASCADE"), index=True
     )
@@ -717,7 +723,7 @@ class CurrentPTeamTopicTagStatus(Base):
     __tablename__ = "currentpteamtopictagstatus"
 
     pteam_id: Mapped[StrUUID] = mapped_column(
-        "pteam_id", ForeignKey("pteam.pteam_id"), primary_key=True, index=True
+        "pteam_id", ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
     )
     topic_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("topic.topic_id", ondelete="CASCADE"),
@@ -767,7 +773,9 @@ class ActionLog(Base):
     action_type: Mapped[ActionType]
     recommended: Mapped[bool]  # snapshot: don't update even if TopicAction is modified.
     user_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("account.user_id"), index=True)
-    pteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("pteam.pteam_id"), index=True)
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
+    )
     email: Mapped[Str255]  # snapshot: don't set ForeignKey.
     executed_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
@@ -784,7 +792,9 @@ class PTeamInvitation(Base):
     __tablename__ = "pteaminvitation"
 
     invitation_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    pteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("pteam.pteam_id"), index=True)
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
+    )
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     expiration: Mapped[datetime]
     limit_count: Mapped[int | None]  # None for unlimited
