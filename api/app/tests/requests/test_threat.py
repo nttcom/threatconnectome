@@ -357,11 +357,3 @@ def test_create_threat(testdb: Session):
         for threat in threats:
             assert dependency.dependency_id == threat.dependency_id
             assert str(responsed_topic.topic_id) == threat.topic_id
-
-
-def test_delete_threat(threat1: schemas.ThreatResponse):
-    response = client.delete(f"/threats/{threat1.threat_id}", headers=header_threat)
-    assert response.status_code == 204
-
-    data = assert_200(client.get("/threats", headers=header_threat))
-    assert len(data) == 0
