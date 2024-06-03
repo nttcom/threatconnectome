@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
-import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
+import { getPTeamServices, getPTeamTagsSummary } from "../slices/pteam";
 import { a11yProps } from "../utils/func.js";
 
 import { PTeamAuthEditor } from "./PTeamAuthEditor";
@@ -39,7 +39,7 @@ export function PTeamSettingsModal(props) {
 
   const handleSBOMUploaded = () => {
     dispatch(getPTeamTagsSummary(pteamId));
-    dispatch(getPTeamGroups(pteamId));
+    dispatch(getPTeamServices(pteamId));
   };
 
   return (

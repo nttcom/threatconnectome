@@ -45,12 +45,12 @@ export function TagReferences(props) {
               </TableHead>
               <TableBody>
                 {references.map((ref) => (
-                  <TableRow key={ref.group + "-" + ref.target}>
+                  <TableRow key={ref.service + "-" + ref.target}>
                     <TableCell component="th" scope="row">
                       {ref.target}
                     </TableCell>
                     <TableCell>{ref.version}</TableCell>
-                    <TableCell>{ref.group}</TableCell>
+                    <TableCell>{ref.service}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

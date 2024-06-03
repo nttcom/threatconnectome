@@ -4,31 +4,31 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
-import { getPTeamGroups } from "../slices/pteam";
+import { getPTeamServices } from "../slices/pteam";
 
-export function PTeamGroupChip() {
+export function PTeamServiceChip() {
   const dispatch = useDispatch();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const groups = useSelector((state) => state.pteam.groups);
+  const services = useSelector((state) => state.pteam.services);
 
   useEffect(() => {
     if (!pteamId) return;
-    if (!groups) {
-      dispatch(getPTeamGroups(pteamId));
+    if (!services) {
+      dispatch(getPTeamServices(pteamId));
     }
-  }, [pteamId, groups, dispatch]);
+  }, [pteamId, services, dispatch]);
 
   const location = useLocation();
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
-  const selectedGroup = params.get("group") ?? "";
+  const selectedService = params.get("service") ?? "";
 
-  const handleSelectGroup = (group) => {
-    if (group === selectedGroup) {
-      params.delete("group");
+  const handleSelectService = (service) => {
+    if (service === selectedService) {
+      params.delete("service");
     } else {
-      params.set("group", group);
+      params.set("service", service);
       params.set("page", 1); // reset page
     }
     navigate(location.pathname + "?" + params.toString());
@@ -37,22 +37,22 @@ export function PTeamGroupChip() {
   return (
     <>
       <Box>
-        {groups &&
-          groups.map((group) => (
+        {services &&
+          services.map((service) => (
             <Chip
-              key={group}
-              label={group}
-              variant={group === selectedGroup ? "" : "outlined"}
+              key={service}
+              label={service}
+              variant={service === selectedService ? "" : "outlined"}
               sx={{
                 mt: 1,
                 borderRadius: "2px",
                 border: `1px solid ${grey[300]}`,
                 borderLeft: `5px solid ${grey[300]}`,
                 mr: 1,
-                background: group === selectedGroup ? grey[400] : "",
+                background: service === selectedService ? grey[400] : "",
               }}
               onClick={() => {
-                handleSelectGroup(group);
+                handleSelectService(service);
               }}
             />
           ))}
