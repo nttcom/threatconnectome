@@ -11,9 +11,13 @@ from app.common import (
     auto_close_by_pteamtags,
     check_pteam_auth,
     check_pteam_membership,
+    count_service_solved_tickets_per_threat_impact,
+    count_service_unsolved_tickets_per_threat_impact,
     get_or_create_topic_tag,
     get_pteam_ext_tags,
+    get_sorted_solved_ticket_ids_by_service_tag_and_status,
     get_sorted_topics,
+    get_sorted_unsolved_ticket_ids_by_service_tag_and_status,
     get_tag_ids_with_parent_ids,
     pteamtag_try_auto_close_topic,
     set_pteam_topic_status_internal,
@@ -281,19 +285,13 @@ def get_service_tagged_ticket_ids(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service tag")
 
     ## sovled
-    ticket_ids_soloved = command.get_sorted_ticket_ids_by_service_tag_and_status(
-        service, tag_id, True
-    )
-    threat_impact_count_soloved = command.count_service_tickets_per_threat_impact(
-        service, tag_id, True
-    )
+    ticket_ids_soloved = get_sorted_solved_ticket_ids_by_service_tag_and_status(service, tag_id)
+    threat_impact_count_soloved = count_service_solved_tickets_per_threat_impact(service, tag_id)
 
     ## unsovled
-    ticket_ids_unsoloved = command.get_sorted_ticket_ids_by_service_tag_and_status(
-        service, tag_id, False
-    )
-    threat_impact_count_unsoloved = command.count_service_tickets_per_threat_impact(
-        service, tag_id, False
+    ticket_ids_unsoloved = get_sorted_unsolved_ticket_ids_by_service_tag_and_status(service, tag_id)
+    threat_impact_count_unsoloved = count_service_unsolved_tickets_per_threat_impact(
+        service, tag_id
     )
 
     return {
