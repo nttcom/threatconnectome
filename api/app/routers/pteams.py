@@ -141,25 +141,6 @@ def get_pteam(
     return pteam
 
 
-@router.get("/{pteam_id}/groups", response_model=schemas.PTeamGroupResponse)  # TODO: remove me
-def get_pteam_groups(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get groups of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    groups = [service.service_name for service in pteam.services]
-
-    return {"groups": groups}
-
-
 @router.get("/{pteam_id}/services", response_model=list[schemas.PTeamServiceResponse])
 def get_pteam_services(
     pteam_id: UUID,
@@ -560,7 +541,7 @@ def get_pteamtag(
             if dependency.tag_id == str(tag_id):
                 references.append(
                     {
-                        "group": service.service_name,
+                        "service": service.service_name,
                         "target": dependency.target,
                         "version": dependency.version,
                     }
@@ -615,7 +596,7 @@ def _json_loads(s: str | bytes | bytearray):
 def upload_pteam_sbom_file(
     pteam_id: UUID,
     file: UploadFile,
-    group: str = Query("", description="name of group(repository or product)"),
+    service: str = Query("", description="name of service(repository or product)"),
     force_mode: bool = Query(False, description="if true, create unexist tags"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -627,8 +608,8 @@ def upload_pteam_sbom_file(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not group:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing group")
+    if not service:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
     _check_file_extention(file, ".json")
     _check_empty_file(file)
     try:
@@ -639,15 +620,17 @@ def upload_pteam_sbom_file(
             detail=("Wrong file content"),
         ) from error
 
-    if not (service := next(filter(lambda x: x.service_name == group, pteam.services), None)):
-        service = models.Service(pteam_id=str(pteam_id), service_name=group)
-        pteam.services.append(service)
+    if not (
+        service_model := next(filter(lambda x: x.service_name == service, pteam.services), None)
+    ):
+        service_model = models.Service(pteam_id=str(pteam_id), service_name=service)
+        pteam.services.append(service_model)
         db.flush()
 
     try:
         json_lines = sbom_json_to_artifact_json_lines(jdata)
-        apply_group_tags(
-            db, pteam, service, json_lines, auto_create_tags=force_mode, auto_close=False
+        apply_service_tags(
+            db, pteam, service_model, json_lines, auto_create_tags=force_mode, auto_close=False
         )
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
@@ -661,7 +644,7 @@ def upload_pteam_sbom_file(
 def upload_pteam_tags_file(
     pteam_id: UUID,
     file: UploadFile,
-    group: str = Query("", description="name of group(repository or product)"),
+    service: str = Query("", description="name of service(repository or product)"),
     force_mode: bool = Query(False, description="if true, create unexist tags"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -675,8 +658,8 @@ def upload_pteam_tags_file(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not group:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing group")
+    if not service:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
     _check_file_extention(file, ".jsonl")
     _check_empty_file(file)
 
@@ -685,14 +668,16 @@ def upload_pteam_tags_file(
     for bline in file.file:
         json_lines.append(_json_loads(bline))
 
-    if not (service := next(filter(lambda x: x.service_name == group, pteam.services), None)):
-        service = models.Service(pteam_id=pteam_id, service_name=group)
-        pteam.services.append(service)
+    if not (
+        service_model := next(filter(lambda x: x.service_name == service, pteam.services), None)
+    ):
+        service_model = models.Service(pteam_id=pteam_id, service_name=service)
+        pteam.services.append(service_model)
         db.flush()
 
     try:
-        apply_group_tags(
-            db, pteam, service, json_lines, auto_create_tags=force_mode, auto_close=True
+        apply_service_tags(
+            db, pteam, service_model, json_lines, auto_create_tags=force_mode, auto_close=True
         )
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
@@ -702,7 +687,7 @@ def upload_pteam_tags_file(
     return get_pteam_ext_tags(db, pteam)
 
 
-def apply_group_tags(
+def apply_service_tags(
     db: Session,
     pteam: models.PTeam,
     service: models.Service,
@@ -781,25 +766,27 @@ def apply_group_tags(
 
 
 @router.delete("/{pteam_id}/tags", status_code=status.HTTP_204_NO_CONTENT)
-def remove_pteam_tags_by_group(
+def remove_pteam_tags_by_service(
     pteam_id: UUID,
-    group: str = Query("", description="name of group(repository or product)"),
+    service: str = Query("", description="name of service(repository or product)"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Remove pteam tags filtered by group.
+    Remove pteam tags filtered by service.
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    if not (service := next(filter(lambda x: x.service_name == group, pteam.services), None)):
+    if not (
+        service_model := next(filter(lambda x: x.service_name == service, pteam.services), None)
+    ):
         # do not raise error even if specified service does not exist
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-    pteam.services.remove(service)
+    pteam.services.remove(service_model)
     db.flush()
     command.fix_current_status_by_pteam(db, pteam)
 

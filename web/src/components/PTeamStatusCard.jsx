@@ -109,23 +109,23 @@ StatusRatioGraph.propTypes = {
   threatImpact: PropTypes.number,
 };
 
-function GroupChips(props) {
+function ServiceChips(props) {
   const { references } = props;
-  const unduplicatedGroups = [...new Set(references.map((ref) => ref.group))].filter(
-    (group) => group !== "",
+  const unduplicatedServices = [...new Set(references.map((ref) => ref.service))].filter(
+    (service) => service !== "",
   );
 
   const location = useLocation();
   const navigate = useNavigate();
 
   const params = new URLSearchParams(location.search);
-  const selectedGroup = params.get("group") ?? "";
+  const selectedService = params.get("service") ?? "";
 
-  const handleSelectGroup = (group) => {
-    if (group === selectedGroup) {
-      params.delete("group");
+  const handleSelectService = (service) => {
+    if (service === selectedService) {
+      params.delete("service");
     } else {
-      params.set("group", group);
+      params.set("service", service);
       params.set("page", 1); // reset page
     }
     navigate(location.pathname + "?" + params.toString());
@@ -133,14 +133,14 @@ function GroupChips(props) {
 
   return (
     <Box sx={{ overflowX: "auto", whiteSpace: "nowrap" }}>
-      {unduplicatedGroups.map((group) => (
+      {unduplicatedServices.map((service) => (
         <Chip
-          key={group}
-          label={group}
-          variant={group === selectedGroup ? "" : "outlined"}
+          key={service}
+          label={service}
+          variant={service === selectedService ? "" : "outlined"}
           size="small"
           onClick={(event) => {
-            handleSelectGroup(group);
+            handleSelectService(service);
             event.stopPropagation(); // avoid propagation of click event to parent
           }}
           sx={{
@@ -152,12 +152,12 @@ function GroupChips(props) {
     </Box>
   );
 }
-GroupChips.propTypes = {
+ServiceChips.propTypes = {
   references: PropTypes.arrayOf(
     PropTypes.shape({
       target: PropTypes.string,
       version: PropTypes.string,
-      group: PropTypes.string,
+      service: PropTypes.string,
     }),
   ).isRequired,
 };
@@ -184,7 +184,7 @@ export function PTeamStatusCard(props) {
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
           {tag.tag_name}
         </Typography>
-        <GroupChips references={tag.references}></GroupChips>
+        <ServiceChips references={tag.references}></ServiceChips>
       </TableCell>
       <TableCell align="right" style={{ width: "30%" }}>
         <Box display="flex" flexDirection="column">

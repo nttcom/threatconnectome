@@ -61,7 +61,7 @@ export function AnalysisTopic(props) {
   const [tab, setTab] = useState(0);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [listHeight, setListHeight] = useState(0);
-  const [groupsDict, setGroupsDict] = useState({});
+  const [servicesDict, setServicesDict] = useState({});
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionExpanded, setActionExpanded] = useState(false);
 
@@ -91,33 +91,33 @@ export function AnalysisTopic(props) {
     }
   }, []);
 
-  const groupsDictKey = (pteamId, tagId) => `${pteamId}:${tagId}`;
+  const servicesDictKey = (pteamId, tagId) => `${pteamId}:${tagId}`;
 
   useEffect(() => {
     if (!targetTopic.pteams?.length > 0) return;
 
-    async function fetchPTeamTagGroups() {
-      const newDict = { ...groupsDict };
+    async function fetchPTeamTagServices() {
+      const newDict = { ...servicesDict };
       let needUpdate = false;
       // targetTopic: schemas.ATeamTopicStatus  see api/app/schemas.py for detail
       for (const pteam of targetTopic.pteams) {
         for (const item of pteam.statuses) {
-          const key = groupsDictKey(pteam.pteam_id, item.tag.tag_id);
+          const key = servicesDictKey(pteam.pteam_id, item.tag.tag_id);
           if (newDict[key]) continue;
           await apiGetPTeamTag(pteam.pteam_id, item.tag.tag_id).then((response) => {
             // response.data: schemas.ExtTagResponse
-            // pick group from each reference:
-            //   {"references": [{"target": x, "version": y, "group": z}]}
-            const groups = new Set(response.data.references?.map((ref) => ref.group) ?? []);
-            newDict[key] = [...groups].sort();
+            // pick service from each reference:
+            //   {"references": [{"target": x, "version": y, "service": z}]}
+            const services = new Set(response.data.references?.map((ref) => ref.service) ?? []);
+            newDict[key] = [...services].sort();
           });
           needUpdate = true;
         }
       }
-      if (needUpdate) setGroupsDict(newDict); // explicit update to force re-render
+      if (needUpdate) setServicesDict(newDict); // explicit update to force re-render
     }
 
-    fetchPTeamTagGroups();
+    fetchPTeamTagServices();
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [targetTopic.topic_id]);
 
@@ -244,7 +244,7 @@ export function AnalysisTopic(props) {
                   <TableRow>
                     <TableCell sx={{ width: "30%", fontWeight: 900 }}>PTEAM NAME</TableCell>
                     <TableCell sx={{ fontWeight: 900 }}>TARGET ARTIFACT</TableCell>
-                    <TableCell sx={{ fontWeight: 900 }}>TARGET ARTIFACT GROUP</TableCell>
+                    <TableCell sx={{ fontWeight: 900 }}>TARGET ARTIFACT SERVICE</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -273,10 +273,11 @@ export function AnalysisTopic(props) {
                         </TableCell>
                         <TableCell align="left">
                           {(
-                            groupsDict[groupsDictKey(pteam.pteam_id, topicStatus.tag.tag_id)] ?? []
-                          ).map((group, index) => (
+                            servicesDict[servicesDictKey(pteam.pteam_id, topicStatus.tag.tag_id)] ??
+                            []
+                          ).map((service, index) => (
                             <Typography key={index} sx={{ overflowWrap: "anywhere" }}>
-                              {group}
+                              {service}
                             </Typography>
                           ))}
                         </TableCell>

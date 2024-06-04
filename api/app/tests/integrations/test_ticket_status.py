@@ -60,11 +60,11 @@ def threat_data(testdb: Session) -> dict:
     topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.parent_name]}, actions=[action])
 
     # create service
-    group_name = "group_x"
+    service_name = "service_x"
     service_id = str(uuid.uuid4())
     testdb.execute(
         insert(models.Service).values(
-            service_id=service_id, pteam_id=pteam1.pteam_id, service_name=group_name
+            service_id=service_id, pteam_id=pteam1.pteam_id, service_name=service_name
         )
     )
 
