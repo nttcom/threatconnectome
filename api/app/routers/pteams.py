@@ -38,6 +38,7 @@ NO_SUCH_ATEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No 
 NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
 NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
 NO_SUCH_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
+NO_SUCH_SERVICE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
 
 
 @router.get("", response_model=list[schemas.PTeamEntry])
@@ -252,6 +253,64 @@ def get_pteam_tagged_unsolved_topic_ids(
         "tag_id": tag_id,
         "threat_impact_count": threat_impact_count,
         "topic_ids": topic_ids,
+    }
+
+
+@router.get(
+    "/{pteam_id}/services/{service_id}/tags/{tag_id}/topic_ids",
+    response_model=schemas.ServiceTaggedTopicsSolvedUnsolved,
+)
+def get_service_tagged_topic_ids(
+    pteam_id: UUID,
+    service_id: UUID,
+    tag_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (service := persistence.get_service_by_id(db, service_id)):
+        raise NO_SUCH_SERVICE
+    if service.pteam_id != str(pteam_id):
+        raise NO_SUCH_SERVICE
+    if not persistence.get_tag_by_id(db, tag_id):
+        raise NO_SUCH_TAG
+    if not persistence.get_dependency_from_service_id_and_tag_id(db, str(service_id), str(tag_id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service tag")
+
+    ## sovled
+    topic_ids_soloved = command.get_sorted_ticket_ids_by_service_tag_and_status(
+        service, tag_id, True
+    )
+    threat_impact_count_soloved = command.count_service_topics_per_threat_impact(
+        service, tag_id, True
+    )
+
+    ## unsovled
+    topic_ids_unsoloved = command.get_sorted_ticket_ids_by_service_tag_and_status(
+        service, tag_id, False
+    )
+    threat_impact_count_unsoloved = command.count_service_topics_per_threat_impact(
+        service, tag_id, False
+    )
+
+    return {
+        "solved": {
+            "pteam_id": pteam_id,
+            "service_id": service_id,
+            "tag_id": tag_id,
+            "threat_impact_count": threat_impact_count_soloved,
+            "topic_ids": topic_ids_soloved,
+        },
+        "unsolved": {
+            "pteam_id": pteam_id,
+            "service_id": service_id,
+            "tag_id": tag_id,
+            "threat_impact_count": threat_impact_count_unsoloved,
+            "topic_ids": topic_ids_unsoloved,
+        },
     }
 
 

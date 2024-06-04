@@ -573,3 +573,16 @@ class ThreatResponse(ORMModel):
 class ThreatRequest(ORMModel):
     dependency_id: UUID
     topic_id: UUID
+
+
+class ServiceTaggedTopics(ORMModel):
+    pteam_id: UUID
+    service_id: UUID
+    tag_id: UUID
+    threat_impact_count: dict[str, int]
+    topic_ids: list[UUID]
+
+
+class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
+    solved: ServiceTaggedTopics
+    unsolved: ServiceTaggedTopics
