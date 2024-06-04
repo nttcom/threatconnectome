@@ -402,9 +402,11 @@ class Ticket(Base):
     threat = relationship("Threat", back_populates="ticket")
     alert = relationship("Alert", uselist=False, back_populates="ticket")
     ticket_statuses = relationship(
-        "TicketStatus", uselist=False, back_populates="ticket", cascade="all, delete-orphan"
+        "TicketStatus", uselist=False, back_populates="ticket", cascade="all, delete"
     )
-    curent_ticket_status = relationship("CurrentTicketStatus", back_populates="ticket")
+    current_ticket_status: Mapped["CurrentTicketStatus"] = relationship(
+        "CurrentTicketStatus", uselist=False, back_populates="ticket", cascade="all, delete"
+    )
 
 
 class TicketStatus(Base):
@@ -451,7 +453,7 @@ class CurrentTicketStatus(Base):
     threat_impact: Mapped[int | None]
     updated_at: Mapped[datetime | None]
 
-    ticket = relationship("Ticket", back_populates="curent_ticket_status")
+    ticket = relationship("Ticket", back_populates="current_ticket_status")
 
 
 class Alert(Base):
