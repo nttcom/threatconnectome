@@ -284,7 +284,7 @@ def get_service_tagged_ticket_ids(
     ticket_ids_soloved = command.get_sorted_ticket_ids_by_service_tag_and_status(
         service, tag_id, True
     )
-    threat_impact_count_soloved = command.count_service_topics_per_threat_impact(
+    threat_impact_count_soloved = command.count_service_tickets_per_threat_impact(
         service, tag_id, True
     )
 
@@ -292,7 +292,7 @@ def get_service_tagged_ticket_ids(
     ticket_ids_unsoloved = command.get_sorted_ticket_ids_by_service_tag_and_status(
         service, tag_id, False
     )
-    threat_impact_count_unsoloved = command.count_service_topics_per_threat_impact(
+    threat_impact_count_unsoloved = command.count_service_tickets_per_threat_impact(
         service, tag_id, False
     )
 
