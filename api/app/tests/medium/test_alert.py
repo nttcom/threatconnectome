@@ -12,8 +12,8 @@ from app.alert import (
 from app.constants import DEFAULT_ALERT_THREAT_IMPACT, SYSTEM_EMAIL
 from app.main import app
 from app.tests.medium.constants import (
-    GROUP1,
     SAMPLE_SLACK_WEBHOOK_URL,
+    SERVICE1,
     USER1,
 )
 from app.tests.medium.utils import (
@@ -51,7 +51,7 @@ class TestPTeamHasParentTag:
 
         pteam = create_pteam(USER1, pteam_params)
         ext_tags = {self.parent_tag1.tag_name: [("api/Pipfile.lock", "1.0.0")]}
-        upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, ext_tags)
+        upload_pteam_tags(USER1, pteam.pteam_id, SERVICE1, ext_tags)
 
     # common functions used in tests
     def _gen_topic_params(self, tag: schemas.TagResponse) -> dict:
@@ -64,6 +64,10 @@ class TestPTeamHasParentTag:
             "tags": [tag],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     # common functions used in tests
@@ -126,7 +130,7 @@ class TestPTeamHasChildTag:
 
         pteam = create_pteam(USER1, pteam_params)
         ext_tags = {self.child_tag1.tag_name: [("api/Pipfile.lock", "1.0.0")]}
-        upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, ext_tags)
+        upload_pteam_tags(USER1, pteam.pteam_id, SERVICE1, ext_tags)
 
     # common functions used in tests
     def _gen_topic_params(self, tag: schemas.TagResponse) -> dict:
@@ -139,6 +143,10 @@ class TestPTeamHasChildTag:
             "tags": [tag],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     # common functions used in tests
@@ -234,6 +242,10 @@ def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_thr
             "tags": [parent_tag1.tag_name],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     def check_tag_in_alert_target(
@@ -245,7 +257,7 @@ def test_pick_alert_when_the_threat_impact_of_a_topic_is_less_than_the_alert_thr
     # create pteam and upload pteam tags
     pteam = create_pteam(USER1, pteam_params)
     ext_tags = {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]}
-    upload_pteam_tags(USER1, pteam.pteam_id, GROUP1, ext_tags)
+    upload_pteam_tags(USER1, pteam.pteam_id, SERVICE1, ext_tags)
 
     # create topic and verification of alerts
     topic = create_topic(USER1, _gen_topic_params(threshold))
@@ -288,6 +300,10 @@ class TestTopicHasVersion:
             "tags": [tag.tag_name for tag in tags],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     # common functions used in tests
@@ -310,7 +326,7 @@ class TestTopicHasVersion:
         ext_tags = {
             self.child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")],
         }
-        upload_pteam_tags(USER1, self.pteam.pteam_id, GROUP1, ext_tags)
+        upload_pteam_tags(USER1, self.pteam.pteam_id, SERVICE1, ext_tags)
         action = {
             "action": "action one",
             "action_type": models.ActionType.elimination,
@@ -338,7 +354,7 @@ class TestTopicHasVersion:
         ext_tags = {
             self.child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")],
         }
-        upload_pteam_tags(USER1, self.pteam.pteam_id, GROUP1, ext_tags)
+        upload_pteam_tags(USER1, self.pteam.pteam_id, SERVICE1, ext_tags)
         action = {
             "action": "action one",
             "action_type": models.ActionType.elimination,
@@ -368,7 +384,7 @@ class TestTopicHasVersion:
             self.child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")],
             self.child_tag21.tag_name: [("api/Pipfile.lock", "1.0.0")],
         }
-        upload_pteam_tags(USER1, self.pteam.pteam_id, GROUP1, ext_tags)
+        upload_pteam_tags(USER1, self.pteam.pteam_id, SERVICE1, ext_tags)
 
         action1_closable = {
             "action": "action one",
@@ -431,6 +447,10 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
             "tags": [tag.tag_name for tag in tags],
             "misp_tags": [],
             "actions": [],
+            "safety_impact": "catastrophic",
+            "exploitation": "active",
+            "automatable": True,
+            "hint_for_action": "",
         }
 
     def _find_expected(
@@ -445,7 +465,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
 
     pteam0 = create_pteam(USER1, _gen_pteam_params(0))
     ext_tags = {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]}
-    upload_pteam_tags(USER1, pteam0.pteam_id, GROUP1, ext_tags)
+    upload_pteam_tags(USER1, pteam0.pteam_id, SERVICE1, ext_tags)
 
     # topic0: no tags
     send_email = mocker.patch("app.alert.send_email")
@@ -464,7 +484,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
         pteam0.pteam_id,
         child_tag11.tag_name,  # pteamtag, not topictag
         child_tag11.tag_id,  # pteamtag, not topictag
-        [GROUP1],
+        [SERVICE1],
     )
     send_email.assert_called_once()
     send_email.assert_called_with(exp_to_email, exp_from_email, exp_subject, exp_body)
@@ -490,7 +510,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
         pteam0.pteam_id,
         child_tag11.tag_name,  # pteamtag, not topictag
         child_tag11.tag_id,  # pteamtag, not topictag
-        [GROUP1],
+        [SERVICE1],
     )
     send_email.assert_called_once()
     send_email.assert_called_with(exp_to_email, exp_from_email, exp_subject, exp_body)

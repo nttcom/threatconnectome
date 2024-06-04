@@ -59,11 +59,11 @@ def create_slack_pteam_alert_blocks_for_new_topic(
     topic_id: str,
     title: str,
     threat_impact: int,
-    groups: list[str],
+    services: list[str],
 ):
     blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
     blocks = _block_header(text=pteam_name)
-    groups_name = ",".join(groups)
+    services_name = ",".join(services)
     blocks.extend(
         [
             {
@@ -74,7 +74,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
                         [
                             f"*<{TAG_URL}{str(tag_id)}?pteamId={pteam_id}|{tag_name}>*",
                             f"*{title}*",
-                            f"*{groups_name}*",
+                            f"*{services_name}*",
                             THREAT_IMPACT_LABEL[threat_impact],
                         ]
                     ),
@@ -134,8 +134,6 @@ def _create_blocks_for_ateam(
 
 
 def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> list[dict]:
-    if action.topic.disabled:
-        return []
     select_stmt = (
         select(
             models.ATeamPTeam.ateam_id,
@@ -145,7 +143,6 @@ def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> li
         .join(
             models.CurrentPTeamTopicTagStatus,
             and_(
-                # Note: disabled pteam has no records on CurrentPTeamTopicTagStatus
                 models.CurrentPTeamTopicTagStatus.topic_id == action.topic_id,
                 models.CurrentPTeamTopicTagStatus.pteam_id == models.ATeamPTeam.pteam_id,
             ),

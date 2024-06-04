@@ -9,9 +9,9 @@ from app.main import app
 from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
-    GROUP1,
     PTEAM1,
     PTEAM2,
+    SERVICE1,
     TAG1,
     TOPIC1,
     TOPIC2,
@@ -37,7 +37,7 @@ client = TestClient(app)
 def test_create_log():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     now = datetime.now()
@@ -63,7 +63,7 @@ def test_create_log__with_wrong_params():
     user1 = create_user(USER1)
     user2 = create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     topic2_data = {**TOPIC2, "tags": ["fake tag"]}
@@ -112,7 +112,7 @@ def test_create_log__with_wrong_params():
 def test_get_logs():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]
     action2 = topic1.actions[1]
@@ -135,7 +135,7 @@ def test_get_logs():
 def test_get_logs__members_only():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     actionlog1 = create_actionlog(
@@ -143,7 +143,7 @@ def test_get_logs__members_only():
     )
     user2 = create_user(USER2)
     pteam2 = create_pteam(USER2, PTEAM2)
-    upload_pteam_tags(USER2, pteam2.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(USER2, pteam2.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     actionlog2 = create_actionlog(
         USER2, action1.action_id, topic1.topic_id, user2.user_id, pteam2.pteam_id, None
     )
@@ -190,7 +190,7 @@ def test_get_logs__members_only():
 def test_get_topic_logs():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]
     action2 = topic1.actions[1]

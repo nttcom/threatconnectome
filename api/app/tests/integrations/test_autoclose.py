@@ -18,7 +18,6 @@ from app.tests.medium.constants import (
     TOPIC1,
     USER1,
 )
-from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     assert_200,
     assert_204,
@@ -44,9 +43,9 @@ def test_auto_close_topic():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.3",
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
-            {"target": "api2/Pipfile.lock", "version": "1.4", "group": "Flashsense"},
+            {"target": "api2/Pipfile.lock", "version": "1.4", "service": "Flashsense"},
         ],
     }
     tag2 = create_tag(USER1, "test:tag:bravo")
@@ -56,9 +55,9 @@ def test_auto_close_topic():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.2.5",
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
-            {"target": "api2/Pipfile.lock", "version": "3.0.0", "group": "Threatconnectome"},
+            {"target": "api2/Pipfile.lock", "version": "3.0.0", "service": "Threatconnectome"},
         ],
     }
     tag3 = create_tag(USER1, "test:tag:charlie")
@@ -68,11 +67,11 @@ def test_auto_close_topic():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.0",
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
             {
                 "target": "api/Pipfile.lock",  # version is None
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
         ],
     }
@@ -83,7 +82,7 @@ def test_auto_close_topic():
             {
                 "target": "",
                 "version": "",
-                "group": "fake group",
+                "service": "fake service",
             },
         ],  # fake references
     }
@@ -91,33 +90,33 @@ def test_auto_close_topic():
     def _extract_ext_tags(
         _ext_tags: list[dict],
     ) -> tuple[
-        dict[str, dict[str, list[tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        dict[str, dict[str, list[tuple[str, str]]]],  # {service: {tag: [(refs tuple)...]}}
         dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        _service_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
         _tag_to_refs_list: dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
-                _group = _ref["group"]
+                _service = _ref["service"]
                 _target = _ref.get("target", "")
                 _version = _ref.get("version", "")
 
-                _tag_to_refs_dict = _group_to_tags.get(_group, {})
+                _tag_to_refs_dict = _service_to_tags.get(_service, {})
                 _refs_tuples = _tag_to_refs_dict.get(_tag_name, [])
                 _refs_tuples.append((_target, _version))
                 _tag_to_refs_dict[_tag_name] = _refs_tuples
-                _group_to_tags[_group] = _tag_to_refs_dict
+                _service_to_tags[_service] = _tag_to_refs_dict
 
                 _refs_dict = _tag_to_refs_list.get(_tag_name, [])
-                _refs_dict.append({"group": _group, "target": _target, "version": _version})
+                _refs_dict.append({"service": _service, "target": _target, "version": _version})
                 _tag_to_refs_list[_tag_name] = _refs_dict
-        return _group_to_tags, _tag_to_refs_list
+        return _service_to_tags, _tag_to_refs_list
 
     pteam1 = create_pteam(USER1, PTEAM1)
     req_tags, resp_tags = _extract_ext_tags([ext_tag1, ext_tag2, ext_tag3, ext_tag4])
-    for group, refs in req_tags.items():
-        upload_pteam_tags(USER1, pteam1.pteam_id, group, refs)
+    for service, refs in req_tags.items():
+        upload_pteam_tags(USER1, pteam1.pteam_id, service, refs)
 
     action1 = {
         "action": "update alpha to version 1.3.1.",
@@ -257,9 +256,9 @@ def test_auto_close_topic__parent():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.3",
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
-            {"target": "api2/Pipfile.lock", "version": "1.4", "group": "Flashsense"},
+            {"target": "api2/Pipfile.lock", "version": "1.4", "service": "Flashsense"},
         ],
     }
     tag2 = create_tag(USER1, "test:tag2:bravo")
@@ -269,9 +268,9 @@ def test_auto_close_topic__parent():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.2.5",
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
-            {"target": "api2/Pipfile.lock", "version": "3.0.0", "group": "Threatconnectome"},
+            {"target": "api2/Pipfile.lock", "version": "3.0.0", "service": "Threatconnectome"},
         ],
     }
     tag3 = create_tag(USER1, "test:tag3:charlie")
@@ -281,11 +280,11 @@ def test_auto_close_topic__parent():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.0",
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
             {
                 "target": "api/Pipfile.lock",  # version is None
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
         ],
     }
@@ -296,7 +295,7 @@ def test_auto_close_topic__parent():
             {
                 "target": "",
                 "version": "",
-                "group": "fake group",
+                "service": "fake service",
             },
         ],  # fake references
     }
@@ -304,33 +303,33 @@ def test_auto_close_topic__parent():
     def _extract_ext_tags(
         _ext_tags: list[dict],
     ) -> tuple[
-        dict[str, dict[str, list[tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        dict[str, dict[str, list[tuple[str, str]]]],  # {service: {tag: [(refs tuple)...]}}
         dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        _service_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
         _tag_to_refs_list: dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
-                _group = _ref["group"]
+                _service = _ref["service"]
                 _target = _ref.get("target", "")
                 _version = _ref.get("version", "")
 
-                _tag_to_refs_dict = _group_to_tags.get(_group, {})
+                _tag_to_refs_dict = _service_to_tags.get(_service, {})
                 _refs_tuples = _tag_to_refs_dict.get(_tag_name, [])
                 _refs_tuples.append((_target, _version))
                 _tag_to_refs_dict[_tag_name] = _refs_tuples
-                _group_to_tags[_group] = _tag_to_refs_dict
+                _service_to_tags[_service] = _tag_to_refs_dict
 
                 _refs_dict = _tag_to_refs_list.get(_tag_name, [])
-                _refs_dict.append({"group": _group, "target": _target, "version": _version})
+                _refs_dict.append({"service": _service, "target": _target, "version": _version})
                 _tag_to_refs_list[_tag_name] = _refs_dict
-        return _group_to_tags, _tag_to_refs_list
+        return _service_to_tags, _tag_to_refs_list
 
     pteam1 = create_pteam(USER1, PTEAM1)
     req_tags, resp_tags = _extract_ext_tags([ext_tag1, ext_tag2, ext_tag3, ext_tag4])
-    for group, refs in req_tags.items():
-        upload_pteam_tags(USER1, pteam1.pteam_id, group, refs)
+    for service, refs in req_tags.items():
+        upload_pteam_tags(USER1, pteam1.pteam_id, service, refs)
 
     action1 = {
         "action": "update alpha to version 1.3.1.",
@@ -475,9 +474,9 @@ def test_auto_close_by_pteamtags():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.3",
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
-            {"target": "api2/Pipfile.lock", "version": "1.4", "group": "Flashsense"},
+            {"target": "api2/Pipfile.lock", "version": "1.4", "service": "Flashsense"},
         ],
     }
     tag2 = create_tag(USER1, "test:tag:bravo")
@@ -487,9 +486,9 @@ def test_auto_close_by_pteamtags():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.2.5",
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
-            {"target": "api2/Pipfile.lock", "version": "3.0.0", "group": "Threatconnectome"},
+            {"target": "api2/Pipfile.lock", "version": "3.0.0", "service": "Threatconnectome"},
         ],
     }
     tag3 = create_tag(USER1, "test:tag:charlie")
@@ -499,11 +498,11 @@ def test_auto_close_by_pteamtags():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.0",
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
             {
                 "target": "api/Pipfile.lock",  # version is None
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             },
         ],
     }
@@ -514,7 +513,7 @@ def test_auto_close_by_pteamtags():
             {
                 "target": "",
                 "version": "",
-                "group": "fake group",
+                "service": "fake service",
             },
         ],
     }
@@ -584,34 +583,34 @@ def test_auto_close_by_pteamtags():
     def _extract_ext_tags(
         _ext_tags: list[dict],
     ) -> tuple[
-        dict[str, dict[str, list[tuple[str, str]]]],  # {group: {tag: [(refs tuple)...]}}
+        dict[str, dict[str, list[tuple[str, str]]]],  # {service: {tag: [(refs tuple)...]}}
         dict[str, list[dict]],  # {tag: [references,...]}
     ]:
-        _group_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
+        _service_to_tags: dict[str, dict[str, list[tuple[str, str]]]] = {}
         _tag_to_refs_list: dict[str, list[dict]] = {}
         for _ext_tag in _ext_tags:
             _tag_name = _ext_tag["tag_name"]
             for _ref in _ext_tag["references"]:
-                _group = _ref["group"]
+                _service = _ref["service"]
                 _target = _ref.get("target", "")
                 _version = _ref.get("version", "")
 
-                _tag_to_refs_dict = _group_to_tags.get(_group, {})
+                _tag_to_refs_dict = _service_to_tags.get(_service, {})
                 _refs_tuples = _tag_to_refs_dict.get(_tag_name, [])
                 _refs_tuples.append((_target, _version))
                 _tag_to_refs_dict[_tag_name] = _refs_tuples
-                _group_to_tags[_group] = _tag_to_refs_dict
+                _service_to_tags[_service] = _tag_to_refs_dict
 
                 _refs_dict = _tag_to_refs_list.get(_tag_name, [])
-                _refs_dict.append({"group": _group, "target": _target, "version": _version})
+                _refs_dict.append({"service": _service, "target": _target, "version": _version})
                 _tag_to_refs_list[_tag_name] = _refs_dict
-        return _group_to_tags, _tag_to_refs_list
+        return _service_to_tags, _tag_to_refs_list
 
     # create pteam after creating topic
     pteam1 = create_pteam(USER1, PTEAM1)
     req_tags, resp_tags = _extract_ext_tags([ext_tag1, ext_tag2, ext_tag3, ext_tag4])
-    for group, refs in req_tags.items():
-        upload_pteam_tags(USER1, pteam1.pteam_id, group, refs)
+    for service, refs in req_tags.items():
+        upload_pteam_tags(USER1, pteam1.pteam_id, service, refs)
 
     def actionlogs_find(logs_, target_):
         keys = ["action", "action_type", "recommended"]
@@ -690,7 +689,7 @@ def test_auto_close__on_upload_pteam_tags_file():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.1",  # not vulnerable
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             }
         ],
     }
@@ -701,7 +700,7 @@ def test_auto_close__on_upload_pteam_tags_file():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.0",  # vulnerable
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             }
         ],
     }
@@ -735,7 +734,7 @@ def test_auto_close__on_upload_pteam_tags_file():
             "actions": [action1, action2],
         },
     )
-    params = {"group": "threatconnectome"}
+    params = {"service": "threatconnectome"}
     # first time
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tags_file:
         tags_file.writelines(json.dumps(ext_tag1) + "\n")  # none -> not vulnerable
@@ -847,7 +846,7 @@ def test_auto_close__on_upload_pteam_tags_file__parent():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.1",  # not vulnerable
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             }
         ],
     }
@@ -858,7 +857,7 @@ def test_auto_close__on_upload_pteam_tags_file__parent():
             {
                 "target": "api/Pipfile.lock",
                 "version": "1.0",  # vulnerable
-                "group": "Threatconnectome",
+                "service": "Threatconnectome",
             }
         ],
     }
@@ -892,7 +891,7 @@ def test_auto_close__on_upload_pteam_tags_file__parent():
             "actions": [action1, action2],
         },
     )
-    params = {"group": "threatconnectome"}
+    params = {"service": "threatconnectome"}
     # first time
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tags_file:
         tags_file.writelines(json.dumps(ext_tag1) + "\n")  # none -> not vulnerable
@@ -1060,34 +1059,6 @@ class TestAutoClose:
                 self.action1 = topic1.actions[0]
                 self.topic1 = topic1
 
-            def test_update_topic__to_enable(self) -> None:
-                request = {"disabled": True}
-                assert_200(
-                    client.put(
-                        f"/topics/{self.topic1.topic_id}", headers=headers(USER1), json=request
-                    )
-                )
-
-                pteam1 = create_pteam(USER1, PTEAM1)
-                refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
-                upload_pteam_tags(USER1, pteam1.pteam_id, "group1", refs0)
-                with pytest.raises(HTTPError, match=r"404: Not Found: No such topic"):
-                    self.util.get_topic_status(pteam1, self.topic1, self.tag1)
-
-                # test auto-close triggerd when topic enabled
-                request = {"disabled": False}
-                assert_200(
-                    client.put(
-                        f"/topics/{self.topic1.topic_id}", headers=headers(USER1), json=request
-                    )
-                )
-
-                status = self.util.get_topic_status(pteam1, self.topic1, self.tag1)
-                assert status.topic_status == models.TopicStatusType.completed
-                assert len(status.action_logs) == 1
-                log0 = status.action_logs[0]
-                assert log0.action_id == self.action1.action_id
-
     class TestEndpointActions:
         class TestOnCreateAction:
             util: Type
@@ -1103,7 +1074,7 @@ class TestAutoClose:
                 self.tag2 = create_tag(USER1, TAG2)
                 self.pteam1 = create_pteam(USER1, PTEAM1)
                 refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
-                upload_pteam_tags(USER1, self.pteam1.pteam_id, "group1", refs0)
+                upload_pteam_tags(USER1, self.pteam1.pteam_id, "service1", refs0)
                 self.topic1 = create_topic(
                     USER1,
                     {
@@ -1182,7 +1153,7 @@ class TestAutoClose:
                 self.tag2 = create_tag(USER1, TAG2)
                 self.pteam1 = create_pteam(USER1, PTEAM1)
                 refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
-                upload_pteam_tags(USER1, self.pteam1.pteam_id, "group1", refs0)
+                upload_pteam_tags(USER1, self.pteam1.pteam_id, "service1", refs0)
                 self.topic1 = create_topic(
                     USER1,
                     {
@@ -1230,55 +1201,8 @@ class TestAutoClose:
             # TODO: implement or move tests here
 
         class TestOnUpdatePTeam:
-            util: Type
-            pteam1: schemas.PTeamInfo
-            tag1: schemas.TagResponse
-
-            @pytest.fixture(scope="function", autouse=True)
-            def common_setup(self):
-                self.util = TestAutoClose._Util
-                create_user(USER1)
-                self.tag1 = create_tag(USER1, TAG1)
-                self.pteam1 = create_pteam(USER1, PTEAM1)
-                refs0 = {self.tag1.tag_name: [("Pipfile.lock", "2.1")]}
-                upload_pteam_tags(USER1, self.pteam1.pteam_id, "group1", refs0)
-
-            def test_update_pteam__to_enable(self) -> None:
-                request = {
-                    "disabled": True,
-                }
-                assert_200(
-                    client.put(
-                        f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=request
-                    )
-                )
-
-                topic1 = create_topic(
-                    USER1,
-                    {
-                        **TOPIC1,
-                        "tags": [TAG1],
-                        "actions": [self.util.gen_action_dict()],
-                    },
-                )
-                action1 = topic1.actions[0]
-
-                with pytest.raises(HTTPError, match=r"404: Not Found: No such pteam"):
-                    status = self.util.get_topic_status(self.pteam1, topic1, self.tag1)
-
-                # test auto-close triggerd when pteam enabled
-                request = {"disabled": False}
-                assert_200(
-                    client.put(
-                        f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=request
-                    )
-                )
-
-                status = self.util.get_topic_status(self.pteam1, topic1, self.tag1)
-                assert status.topic_status == models.TopicStatusType.completed
-                assert len(status.action_logs) == 1
-                log0 = status.action_logs[0]
-                assert log0.action_id == action1.action_id
+            pass  # see other test_auto_close*
+            # TODO: implement or move tests here
 
         class TestOnAddPTeamTag:
             pass  # see test_auto_close__on_add_pteamtag*

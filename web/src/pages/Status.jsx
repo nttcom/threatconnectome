@@ -29,11 +29,11 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
-import { PTeamGroupChip } from "../components/PTeamGroupChip";
 import { PTeamLabel } from "../components/PTeamLabel";
+import { PTeamServiceChip } from "../components/PTeamServiceChip";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
-import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
+import { getPTeamServices, getPTeamTagsSummary } from "../slices/pteam";
 import { noPTeamMessage, threatImpactName, threatImpactProps } from "../utils/const";
 const threatImpactCountMax = 99999;
 
@@ -87,7 +87,7 @@ export function Status() {
 
   const params = new URLSearchParams(location.search);
   const searchWord = params.get("word")?.trim().toLowerCase() ?? "";
-  const selectedGroup = params.get("group") ?? "";
+  const selectedService = params.get("service") ?? "";
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const searchMenuOpen = Boolean(anchorEl);
@@ -101,7 +101,7 @@ export function Status() {
 
   const handleSBOMUploaded = () => {
     dispatch(getPTeamTagsSummary(pteamId));
-    dispatch(getPTeamGroups(pteamId));
+    dispatch(getPTeamServices(pteamId));
   };
 
   const iFilter = [0, 1, 2, 3].reduce(
@@ -118,7 +118,7 @@ export function Status() {
         ? true // show all if selected none
         : iFilter[parseInt(tag.threat_impact ?? 4) - 1]) && // show only selected
       (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)) &&
-      (selectedGroup === "" || tag.references.some((ref) => ref.group === selectedGroup)),
+      (selectedService === "" || tag.references.some((ref) => ref.service === selectedService)),
   );
 
   let tmp;
@@ -267,7 +267,7 @@ export function Status() {
         <PTeamLabel defaultTabIndex={0} />
         <Box flexGrow={1} />
       </Box>
-      <PTeamGroupChip />
+      <PTeamServiceChip />
       {summary.tags.length === 0 ? (
         <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
       ) : (

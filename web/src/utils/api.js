@@ -72,13 +72,13 @@ export const getPTeamTopicActions = async (pteamId, topicId) =>
 export const removeWatcherATeam = async (pteamId, ateamId) =>
   axios.delete(`/pteams/${pteamId}/watchers/${ateamId}`);
 
-export const getPTeamGroups = async (pteamId) => axios.get(`/pteams/${pteamId}/groups`);
+export const getPTeamServices = async (pteamId) => axios.get(`/pteams/${pteamId}/services`);
 
-export const uploadSBOMFile = async (pteamId, group, file, forceMode = true) => {
+export const uploadSBOMFile = async (pteamId, service, file, forceMode = true) => {
   const formData = new FormData();
   formData.append("file", file);
   const paramData = {
-    group: group,
+    service: service,
     force_mode: forceMode,
   };
   return axios.post(`/pteams/${pteamId}/upload_sbom_file`, formData, {

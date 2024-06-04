@@ -11,6 +11,7 @@ from app.routers import (
     misptags,
     pteams,
     tags,
+    threat,
     topics,
     users,
 )
@@ -47,6 +48,7 @@ def create_app():
     app.include_router(tags.router)
     app.include_router(topics.router)
     app.include_router(users.router)
+    app.include_router(threat.router)
 
     # setup firebase
     cred = setup_firebase_auth()

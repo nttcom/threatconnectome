@@ -113,11 +113,11 @@ def accept_pteam_invitation(user: dict, invitation_id: UUID) -> schemas.PTeamInf
 def upload_pteam_tags(
     user: dict,
     pteam_id: UUID | str,
-    group: str,
+    service: str,
     ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
     force_mode: bool = True,
 ) -> list[schemas.ExtTagResponse]:
-    params = {"group": group, "force_mode": str(force_mode)}
+    params = {"service": service, "force_mode": str(force_mode)}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
         for tag_name, etags in ext_tags.items():
             assert all(len(etag) == 2 and None not in etag for etag in etags)  # check test code
@@ -141,9 +141,9 @@ def get_pteam_tags(user: dict, pteam_id: str) -> list[schemas.ExtTagResponse]:
     return [schemas.ExtTagResponse(**item) for item in data]
 
 
-def get_pteam_groups(user: dict, pteam_id: str) -> schemas.PTeamGroupResponse:
-    data = assert_200(client.get(f"/pteams/{pteam_id}/groups", headers=headers(user)))
-    return schemas.PTeamGroupResponse(**data)
+def get_pteam_services(user: dict, pteam_id: str) -> schemas.PTeamServiceResponse:
+    data = assert_200(client.get(f"/pteams/{pteam_id}/services", headers=headers(user)))
+    return schemas.PTeamServiceResponse(**data)
 
 
 def create_ateam(user: dict, ateam: dict) -> schemas.ATeamInfo:
@@ -336,7 +336,7 @@ def compare_tags(
 
 def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     def _to_tuple_set(refs):
-        return {(ref.get("group"), ref.get("target"), ref.get("version")) for ref in refs}
+        return {(ref.get("service"), ref.get("target"), ref.get("version")) for ref in refs}
 
     if not isinstance(refs1, list) or not isinstance(refs2, list):
         return False

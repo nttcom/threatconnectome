@@ -6,7 +6,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas
+from app import command, models, persistence, schemas, ticket_manager
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 from app.version import (
     PackageFamily,
@@ -114,10 +114,6 @@ def get_sorted_topics(topics: Sequence[models.Topic]) -> Sequence[models.Topic]:
     )
 
 
-def get_enabled_topics(topics: Sequence[models.Topic]) -> Sequence[models.Topic]:
-    return list(filter(lambda t: t.disabled is False, topics))
-
-
 def _pick_parent_tag(tag_name: str) -> str | None:
     if len(tag_name.split(":", 2)) == 3:  # supported format
         return tag_name.rsplit(":", 1)[0] + ":"  # trim the right most field
@@ -200,7 +196,7 @@ def get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> Sequence[schemas.Ext
             )
             ext_tag.references.append(
                 {
-                    "group": service.service_name,
+                    "service": service.service_name,
                     "target": dependency.target,
                     "version": dependency.version,
                 }
@@ -315,18 +311,20 @@ def _complete_topic(
         persistence.create_action_log(db, action_log)
         logging_ids.append(action_log.logging_id)
 
+    topicStatusRequest = schemas.TopicStatusRequest(
+        topic_status=models.TopicStatusType.completed,
+        logging_ids=list(map(UUID, logging_ids)),
+        note="auto closed by system",
+    )
     set_pteam_topic_status_internal(
         db,
         system_account,
         pteam,
         topic,
         tag,
-        schemas.TopicStatusRequest(
-            topic_status=models.TopicStatusType.completed,
-            logging_ids=list(map(UUID, logging_ids)),
-            note="auto closed by system",
-        ),
+        topicStatusRequest,
     )
+    ticket_manager.set_ticket_statuses(db, system_account, pteam, topic, tag, topicStatusRequest)
 
 
 def pteamtag_try_auto_close_topic(
@@ -335,9 +333,6 @@ def pteamtag_try_auto_close_topic(
     tag: models.Tag,  # should be bound to pteam, not to topic
     topic: models.Topic,
 ):
-    if topic.disabled or pteam.disabled:
-        return
-
     try:
         # pick unique reference versions to compare. (omit empty -- maybe added on WebUI)
         reference_versions = {
@@ -378,14 +373,55 @@ def pteamtag_try_auto_close_topic(
 
 def auto_close_by_pteamtags(db: Session, pteamtags: Sequence[tuple[models.PTeam, models.Tag]]):
     for pteam, tag in pteamtags:
-        if pteam.disabled:
-            continue
         for topic in command.pick_topics_related_to_pteam_tag(db, pteam, tag):
             pteamtag_try_auto_close_topic(db, pteam, tag, topic)
 
 
 def auto_close_by_topic(db: Session, topic: models.Topic):
-    if topic.disabled:
-        return
     for pteam, tag in command.pick_pteam_tags_related_to_topic(db, topic):
         pteamtag_try_auto_close_topic(db, pteam, tag, topic)
+
+
+def threat_meets_condition_to_create_ticket(db: Session, threat: models.Threat) -> bool:
+    if not (actions := persistence.get_actions_by_topic_id(db, threat.topic_id)):
+        return False
+    tag = threat.dependency.tag
+    action_tag_names_set: set = set()
+
+    for action in actions:
+        action_tag_names = action.ext.get("tags")
+        if action_tag_names is None:
+            continue
+        action_tag_names_set |= set(action_tag_names)
+
+    for action_tag_name in action_tag_names_set:
+        tag_by_action = persistence.get_tag_by_name(db, action_tag_name)
+        if (
+            threat.topic
+            and tag_by_action
+            and (tag_by_action.tag_id == tag.tag_id or tag_by_action.tag_id == tag.parent_id)
+        ):
+            return True
+    return False
+
+
+def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
+    # abort if deployer_priofiry is not yet calclated
+    if ticket.ssvc_deployer_priority is None:
+        return False
+    if not (
+        int_priority := {
+            models.SSVCDeployerPriorityEnum.IMMEDIATE: 1,
+            models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
+            models.SSVCDeployerPriorityEnum.SCHEDULED: 3,
+            models.SSVCDeployerPriorityEnum.DEFER: 4,
+        }.get(ticket.ssvc_deployer_priority)
+    ):
+        raise ValueError(f"Invalid SSVCDeployerPriority: {ticket.ssvc_deployer_priority}")
+
+    # WORKAROUND
+    # use pteam.alert_threat_impact as threshold for alert.
+    # threshold should be defined in pteam and/or service.
+    pteam = ticket.threat.dependency.service.pteam
+    int_threshold = pteam.alert_threat_impact or 4
+    return int_priority <= int_threshold

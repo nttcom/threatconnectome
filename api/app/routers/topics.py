@@ -10,18 +10,20 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
-from app.alert import alert_new_topic
+from app.alert import alert_new_topic, send_alert_to_pteam
 from app.auth import get_current_user, token_scheme
 from app.common import (
     auto_close_by_topic,
     calculate_topic_content_fingerprint,
     check_pteam_membership,
     check_topic_action_tags_integrity,
-    get_enabled_topics,
     get_or_create_misp_tag,
     get_sorted_topics,
+    threat_meets_condition_to_create_ticket,
+    ticket_meets_condition_to_create_alert,
 )
 from app.database import get_db
+from app.ssvc import calculate_ssvc_deployer_priority
 
 router = APIRouter(prefix="/topics", tags=["topics"])
 
@@ -46,7 +48,7 @@ def get_topics(
         }
         return hashlib.md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
     """
-    return get_sorted_topics(get_enabled_topics(persistence.get_all_topics(db)))
+    return get_sorted_topics(persistence.get_all_topics(db))
 
 
 @router.get("/search", response_model=schemas.SearchTopicsResponse)
@@ -225,10 +227,35 @@ def get_topic(
     """
     Get a topic.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):
         raise NO_SUCH_TOPIC
 
     return topic
+
+
+def _create_threats_from_topic(db: Session, topic: models.Topic) -> Sequence[models.Threat]:
+    now = datetime.now()
+    threats: list[models.Threat] = []
+    for dependency in topic.dependencies_via_tag:
+        if not (
+            current_status := persistence.get_current_pteam_topic_tag_status(
+                db, dependency.service.pteam_id, topic.topic_id, dependency.tag_id
+            )
+        ):
+            continue  # may not happen
+        if current_status.topic_status == models.TopicStatusType.completed or (
+            current_status.topic_status == models.TopicStatusType.scheduled
+            and current_status.raw_status
+            and current_status.raw_status.scheduled_at > now
+        ):
+            continue  # skip if already closed or scheduled at future
+        threat = models.Threat(
+            dependency_id=dependency.dependency_id,
+            topic_id=topic.topic_id,
+        )
+        threats.append(threat)
+
+    return threats
 
 
 @router.post("/{topic_id}", response_model=schemas.TopicCreateResponse)
@@ -309,6 +336,10 @@ def create_topic(
         content_fingerprint=calculate_topic_content_fingerprint(
             fixed_title, fixed_abstract, data.threat_impact, data.tags
         ),
+        safety_impact=data.safety_impact,
+        exploitation=data.exploitation,
+        automatable=data.automatable,
+        hint_for_action=data.hint_for_action,
     )
     # fix relations
     topic.tags = [requested_tags[tag_name] for tag_name in set(data.tags)]
@@ -331,6 +362,34 @@ def create_topic(
     auto_close_by_topic(db, topic)
     command.fix_current_status_by_topic(db, topic)
 
+    for threat in _create_threats_from_topic(db, topic):
+        if persistence.search_threats(
+            db,
+            threat.dependency_id,
+            threat.topic_id,
+        ):
+            continue  # skip if already exists
+        persistence.create_threat(db, threat)
+        if threat_meets_condition_to_create_ticket(db, threat):
+            dependency = persistence.get_dependency_from_service_id_and_tag_id(
+                db, threat.dependency.service_id, threat.dependency.tag.tag_id
+            )
+            ticket = models.Ticket(
+                threat_id=threat.threat_id,
+                created_at=now,
+                updated_at=now,
+                ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat, dependency),
+            )
+            persistence.create_ticket(db, ticket)
+            if ticket_meets_condition_to_create_alert(ticket):
+                alert = models.Alert(
+                    ticket_id=ticket.ticket_id,
+                    alerted_at=now,
+                    alert_content=data.hint_for_action,
+                )
+                persistence.create_alert(db, alert)
+                send_alert_to_pteam(alert)
+
     db.commit()
 
     alert_new_topic(db, topic.topic_id)
@@ -348,7 +407,7 @@ def update_topic(
     """
     Update a topic.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)):  # ignore disabled
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):
         raise NO_SUCH_TOPIC
     if topic.created_by != current_user.user_id:
         raise HTTPException(
@@ -377,9 +436,6 @@ def update_topic(
         or data.threat_impact not in {None, topic.threat_impact}
         or tags_updated
     )
-    # Note: since the causes which prevent auto-close can be removed,
-    #       not only adding but also deleting should trigger auto-close
-    need_auto_close = (data.disabled is False and topic.disabled is True) or tags_updated
 
     # Update topic attributes
     if new_tags is not None:
@@ -392,8 +448,14 @@ def update_topic(
         topic.abstract = new_abstract
     if data.threat_impact is not None:
         topic.threat_impact = data.threat_impact
-    if data.disabled is not None:
-        topic.disabled = data.disabled
+    if data.safety_impact is not None:
+        topic.safety_impact = data.safety_impact
+    if data.exploitation is not None:
+        topic.exploitation = data.exploitation
+    if data.automatable is not None:
+        topic.automatable = data.automatable
+    if data.hint_for_action is not None:
+        topic.hint_for_action = data.hint_for_action
 
     if need_update_content_fingerprint:
         topic.content_fingerprint = calculate_topic_content_fingerprint(
@@ -404,8 +466,9 @@ def update_topic(
 
     db.flush()
 
-    if need_auto_close:
+    if tags_updated:
         auto_close_by_topic(db, topic)
+
     command.fix_current_status_by_topic(db, topic)
 
     db.commit()
@@ -422,7 +485,7 @@ def delete_topic(
     """
     Delete a topic and related records except actionlog.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):
         raise NO_SUCH_TOPIC
 
     if topic.created_by != current_user.user_id:
@@ -449,9 +512,9 @@ def get_pteam_topic_actions(
     """
     Get actions list of the topic for specified pteam.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+    if not (persistence.get_topic_by_id(db, topic_id)):
         raise NO_SUCH_TOPIC
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
     if not check_pteam_membership(db, pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
@@ -475,7 +538,7 @@ def get_user_topic_actions(
     """
     Get actions list of the topic for current user.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+    if not persistence.get_topic_by_id(db, topic_id):
         raise NO_SUCH_TOPIC
 
     # Note: no limitations currently, thus return all topic actions
