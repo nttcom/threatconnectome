@@ -260,7 +260,7 @@ def get_pteam_tagged_unsolved_topic_ids(
     "/{pteam_id}/services/{service_id}/tags/{tag_id}/topic_ids",
     response_model=schemas.ServiceTaggedTopicsSolvedUnsolved,
 )
-def get_service_tagged_topic_ids(
+def get_service_tagged_ticket_ids(
     pteam_id: UUID,
     service_id: UUID,
     tag_id: UUID,
@@ -281,7 +281,7 @@ def get_service_tagged_topic_ids(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service tag")
 
     ## sovled
-    topic_ids_soloved = command.get_sorted_ticket_ids_by_service_tag_and_status(
+    ticket_ids_soloved = command.get_sorted_ticket_ids_by_service_tag_and_status(
         service, tag_id, True
     )
     threat_impact_count_soloved = command.count_service_topics_per_threat_impact(
@@ -289,7 +289,7 @@ def get_service_tagged_topic_ids(
     )
 
     ## unsovled
-    topic_ids_unsoloved = command.get_sorted_ticket_ids_by_service_tag_and_status(
+    ticket_ids_unsoloved = command.get_sorted_ticket_ids_by_service_tag_and_status(
         service, tag_id, False
     )
     threat_impact_count_unsoloved = command.count_service_topics_per_threat_impact(
@@ -302,14 +302,14 @@ def get_service_tagged_topic_ids(
             "service_id": service_id,
             "tag_id": tag_id,
             "threat_impact_count": threat_impact_count_soloved,
-            "topic_ids": topic_ids_soloved,
+            "ticket_ids": ticket_ids_soloved,
         },
         "unsolved": {
             "pteam_id": pteam_id,
             "service_id": service_id,
             "tag_id": tag_id,
             "threat_impact_count": threat_impact_count_unsoloved,
-            "topic_ids": topic_ids_unsoloved,
+            "ticket_ids": ticket_ids_unsoloved,
         },
     }
 
