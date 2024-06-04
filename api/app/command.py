@@ -333,7 +333,7 @@ def get_sorted_topic_ids_by_pteam_tag_and_status(
     ).all()
 
 
-def count_service_topics_per_threat_impact(
+def count_service_tickets_per_threat_impact(
     service: models.Service,
     tag_id: UUID | str,
     is_solved: bool,
