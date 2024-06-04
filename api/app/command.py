@@ -401,13 +401,8 @@ def get_sorted_ticket_ids_by_service_tag_and_status(
             for _curent_ticket in threat.ticket.curent_ticket_status:
                 if is_solved and _curent_ticket.topic_status == _completed:
                     current_ticket_statuses.append(_curent_ticket)
-                elif not is_solved and (
-                    _curent_ticket.topic_status != _completed or _curent_ticket is None
-                ):
-                    if not _curent_ticket:
-                        ticket_ids.append(threat.ticket.ticket_id)
-                    else:
-                        current_ticket_statuses.append(_curent_ticket)
+                elif not is_solved and _curent_ticket.topic_status != _completed:
+                    current_ticket_statuses.append(_curent_ticket)
 
     current_ticket_statuses_sort = sorted(
         current_ticket_statuses,
