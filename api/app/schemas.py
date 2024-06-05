@@ -119,10 +119,6 @@ class ExtTagResponse(TagResponse):
 
 
 class PTeamServiceResponse(ORMModel):
-    services: list[str] = []
-
-
-class PTeamServiceResponse(ORMModel):
     service_name: str
     service_id: UUID
 
@@ -594,3 +590,16 @@ class ThreatResponse(ORMModel):
 class ThreatRequest(ORMModel):
     dependency_id: UUID
     topic_id: UUID
+
+
+class ServiceTaggedTopics(ORMModel):
+    pteam_id: UUID
+    service_id: UUID
+    tag_id: UUID
+    threat_impact_count: dict[str, int]
+    ticket_ids: list[UUID]
+
+
+class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
+    solved: ServiceTaggedTopics
+    unsolved: ServiceTaggedTopics

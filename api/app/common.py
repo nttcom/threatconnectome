@@ -425,3 +425,123 @@ def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
     pteam = ticket.threat.dependency.service.pteam
     int_threshold = pteam.alert_threat_impact or 4
     return int_priority <= int_threshold
+
+
+def count_service_solved_tickets_per_threat_impact(
+    service: models.Service,
+    tag_id: UUID | str,
+) -> dict[str, int]:
+    _completed = models.TopicStatusType.completed
+    threat_counts_rows: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+
+    for dependency in service.dependencies:
+        if dependency.tag_id != str(tag_id):
+            continue
+        for threat in dependency.threats:
+            if not threat.ticket:
+                continue
+
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status == _completed:
+                threat_imapct_str = str(_curent_ticket.threat_impact)
+                threat_counts_rows[threat_imapct_str] += 1
+
+    return threat_counts_rows
+
+
+def count_service_unsolved_tickets_per_threat_impact(
+    service: models.Service,
+    tag_id: UUID | str,
+) -> dict[str, int]:
+    _completed = models.TopicStatusType.completed
+    threat_counts_rows: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+
+    for dependency in service.dependencies:
+        if dependency.tag_id != str(tag_id):
+            continue
+        for threat in dependency.threats:
+            if not threat.ticket:
+                continue
+
+            # When a ticket exists but current_ticket_status does not exist,
+            # it is treated as unsolved.
+            if not threat.ticket.current_ticket_status:
+                threat_counts_rows["1"] += 1
+
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status != _completed:
+                threat_imapct_str = str(_curent_ticket.threat_impact)
+                threat_counts_rows[threat_imapct_str] += 1
+
+    return threat_counts_rows
+
+
+def get_sorted_solved_ticket_ids_by_service_tag_and_status(
+    service: models.Service,
+    tag_id: UUID | str,
+) -> Sequence[str]:
+    _completed = models.TopicStatusType.completed
+
+    current_ticket_statuses: list[models.CurrentTicketStatus] = []
+    ticket_ids: list = []
+
+    for dependency in service.dependencies:
+        if dependency.tag_id != str(tag_id):
+            continue
+        for threat in dependency.threats:
+            if not threat.ticket:
+                continue
+
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status == _completed:
+                current_ticket_statuses.append(_curent_ticket)
+
+    current_ticket_statuses_sort = sorted(
+        current_ticket_statuses,
+        key=lambda current_ticket_status: (
+            current_ticket_status.threat_impact,
+            current_ticket_status.updated_at,
+        ),
+    )
+    for current_ticket_statu_sort in current_ticket_statuses_sort:
+        ticket_ids.append(current_ticket_statu_sort.ticket_id)
+
+    return ticket_ids
+
+
+def get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
+    service: models.Service,
+    tag_id: UUID | str,
+) -> Sequence[str]:
+    _completed = models.TopicStatusType.completed
+
+    current_ticket_statuses: list[models.CurrentTicketStatus] = []
+    ticket_ids: list = []
+
+    for dependency in service.dependencies:
+        if dependency.tag_id != str(tag_id):
+            continue
+        for threat in dependency.threats:
+            if not threat.ticket:
+                continue
+
+            # When a ticket exists but current_ticket_status does not exist,
+            # it is treated as unsolved.
+            if not threat.ticket.current_ticket_status:
+                ticket_ids.append(threat.ticket.ticket_id)
+
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status != _completed:
+                current_ticket_statuses.append(_curent_ticket)
+
+    current_ticket_statuses_sort = sorted(
+        current_ticket_statuses,
+        key=lambda current_ticket_status: (
+            current_ticket_status.threat_impact,
+            current_ticket_status.updated_at,
+        ),
+    )
+    for current_ticket_statu_sort in current_ticket_statuses_sort:
+        ticket_ids.append(current_ticket_statu_sort.ticket_id)
+
+    return ticket_ids
