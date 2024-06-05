@@ -27,7 +27,7 @@ def create_threat(
 
     # Uploaded sbom file.
     # Create tag, service and dependency table
-    params: Dict[str, Union[str, bool]] = {"group": "threatconnectome", "force_mode": True}
+    params: Dict[str, Union[str, bool]] = {"service": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
         data = assert_200(
@@ -81,7 +81,7 @@ def create_threat(
     service_id = testdb.scalars(
         select(models.Service.service_id).where(
             models.Service.pteam_id == str(pteam1.pteam_id),
-            models.Service.service_name == str(params["group"]),
+            models.Service.service_name == str(params["service"]),
         )
     ).one_or_none()
 

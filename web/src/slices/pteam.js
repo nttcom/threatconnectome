@@ -12,7 +12,7 @@ import {
   getPTeamTopicActions as apiGetPTeamTopicActions,
   getPTeamTopicStatus as apiGetPTeamTopicStatus,
   getPTeamTopicStatusesSummary as apiGetPTeamTopicStatusesSummary,
-  getPTeamGroups as apiGetPTeamGroups,
+  getPTeamServices as apiGetPTeamServices,
 } from "../utils/api";
 
 export const getPTeam = createAsyncThunk(
@@ -131,11 +131,11 @@ export const getPTeamTopicActions = createAsyncThunk(
     })),
 );
 
-export const getPTeamGroups = createAsyncThunk(
-  "pteam/getPTeamGroups",
+export const getPTeamServices = createAsyncThunk(
+  "pteam/getPTeamServices",
   async (pteamId) =>
-    await apiGetPTeamGroups(pteamId).then((response) => ({
-      groups: response.data.groups,
+    await apiGetPTeamServices(pteamId).then((response) => ({
+      services: response.data.services,
       pteamId: pteamId,
     })),
 );
@@ -152,7 +152,7 @@ const _initialState = {
   taggedTopics: {},
   topicStatus: {},
   topicActions: {},
-  groups: undefined,
+  services: undefined,
 };
 
 const pteamSlice = createSlice({
@@ -240,9 +240,9 @@ const pteamSlice = createSlice({
           [action.payload.topicId]: action.payload.actions,
         },
       }))
-      .addCase(getPTeamGroups.fulfilled, (state, action) => ({
+      .addCase(getPTeamServices.fulfilled, (state, action) => ({
         ...state,
-        groups: action.payload.groups,
+        services: action.payload.services,
       }));
   },
 });

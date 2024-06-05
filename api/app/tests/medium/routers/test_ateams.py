@@ -11,11 +11,11 @@ from app.main import app
 from app.tests.medium.constants import (
     ATEAM1,
     ATEAM2,
-    GROUP1,
-    GROUP2,
     PTEAM1,
     PTEAM2,
     SAMPLE_SLACK_WEBHOOK_URL,
+    SERVICE1,
+    SERVICE2,
     TAG1,
     TAG2,
     TAG3,
@@ -1474,12 +1474,12 @@ def test_get_topic_status():
     tag1 = create_tag(USER1, TAG1)
     tag2 = create_tag(USER1, TAG2)
     pteam1 = create_pteam(USER1, PTEAM1)
-    upload_pteam_tags(USER1, pteam1.pteam_id, GROUP1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     pteam2 = create_pteam(USER1, PTEAM2)
     upload_pteam_tags(
         USER1,
         pteam2.pteam_id,
-        GROUP2,
+        SERVICE2,
         {
             TAG1: [("Pipfile.lock", "1.0.0")],
             TAG2: [("Pipfile.lock", "1.0.0")],
@@ -1926,7 +1926,7 @@ class TestGetTopicStatusWithQueryParams:
         create_tag(USER1, TAG1)
         self.pteam1 = create_pteam(USER1, PTEAM1)
         upload_pteam_tags(
-            USER1, self.pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
+            USER1, self.pteam1.pteam_id, SERVICE1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
         )
         self.ateam1 = create_ateam(USER1, ATEAM1)
 

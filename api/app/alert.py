@@ -68,7 +68,7 @@ def alert_new_topic(db: Session, topic_id: UUID | str) -> None:
         if not alert_by_slack and not alert_by_mail:
             continue  # no media enabled
 
-        if not (groups := sorted([service.service_name for service in row.pteam.services])):
+        if not (services := sorted([service.service_name for service in row.pteam.services])):
             continue  # may not happen
 
         if alert_by_slack:
@@ -81,7 +81,7 @@ def alert_new_topic(db: Session, topic_id: UUID | str) -> None:
                     row.topic.topic_id,
                     row.topic.title,
                     row.topic.threat_impact,
-                    groups,
+                    services,
                 )
                 send_slack(row.pteam.alert_slack.webhook_url, slack_message_blocks)
             except Exception:
@@ -96,7 +96,7 @@ def alert_new_topic(db: Session, topic_id: UUID | str) -> None:
                     row.pteam.pteam_id,
                     row.tag.tag_name,
                     row.tag.tag_id,
-                    groups,
+                    services,
                 )
                 send_email(row.pteam.alert_mail.address, SYSTEM_EMAIL, mail_subject, mail_body)
             except Exception:
@@ -123,7 +123,7 @@ def create_mail_alert_for_new_topic(
     pteam_id: UUID | str,
     tag_name: str,  # should be pteamtag, not topictag
     tag_id: UUID | str,  # should be pteamtag, not topictag
-    groups: list[str],
+    services: list[str],
 ) -> tuple[str, str]:  # subject, body
     threat_impact_label = {
         1: "Immediate",
@@ -140,7 +140,7 @@ def create_mail_alert_for_new_topic(
             f"ThreatImpact: {threat_impact_label}",
             "",
             f"PTeam: {pteam_name}",
-            f"Groups: {', '.join(groups)}",
+            f"Services: {', '.join(services)}",
             f"Artifact: {tag_name}",
             "",
             f"<a href={_pteam_tag_page_link(pteam_id, tag_id)}>Link to Artifact page</a>",

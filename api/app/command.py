@@ -51,7 +51,7 @@ def get_ateam_topic_statuses(
     db: Session, ateam_id: UUID | str, sort_key: schemas.TopicSortKey, search: str | None
 ):
     sort_rules = sortkey2orderby[sort_key] + [
-        models.Topic.topic_id,  # group by topic
+        models.Topic.topic_id,  # service by topic
         nullsfirst(models.PTeamTopicTagStatus.topic_status),  # worst state on array[0]
         models.PTeamTopicTagStatus.scheduled_at.desc(),  # latest on array[0] if worst is scheduled
         models.PTeam.pteam_name,
@@ -365,7 +365,7 @@ def _get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> list[schemas.ExtTag
             ),
         )
         tmp.references.append(
-            {"group": row.service_name, "target": row.target, "version": row.version}
+            {"service": row.service_name, "target": row.target, "version": row.version}
         )
         tmp_dict[row.Tag.tag_id] = tmp
     return sorted(tmp_dict.values(), key=lambda x: x.tag_name)

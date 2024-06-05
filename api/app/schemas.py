@@ -118,8 +118,13 @@ class ExtTagResponse(TagResponse):
     references: list[dict] = []
 
 
-class PTeamGroupResponse(ORMModel):
-    groups: list[str] = []
+class PTeamServiceResponse(ORMModel):
+    services: list[str] = []
+
+
+class PTeamServiceResponse(ORMModel):
+    service_name: str
+    service_id: UUID
 
 
 class PTeamtagRequest(ORMModel):
@@ -247,6 +252,7 @@ class TopicUpdateRequest(ORMModel):
 class PTeamInfo(PTeamEntry):
     alert_slack: Slack
     alert_threat_impact: int
+    services: list[PTeamServiceResponse]
     ateams: list[ATeamEntry]
     alert_mail: Mail
 
@@ -502,6 +508,21 @@ class PTeamTagSummary(ExtTagResponse):
 class PTeamTagsSummary(ORMModel):
     threat_impact_count: dict[str, int]  # str(threat_impact): tags count
     tags: list[PTeamTagSummary]
+
+
+class PTeamServiceTagsSummary(ORMModel):
+    class PTeamServiceTagSummary(ORMModel):
+        tag_id: UUID
+        tag_name: str
+        parent_id: UUID | None
+        parent_name: str | None
+        references: list[dict]
+        threat_impact: int | None
+        updated_at: datetime | None
+        status_count: dict[str, int]  # TopicStatusType.value: tickets count
+
+    threat_impact_count: dict[str, int]  # str(threat_impact): tags count
+    tags: list[PTeamServiceTagSummary]
 
 
 class SlackCheckRequest(ORMModel):

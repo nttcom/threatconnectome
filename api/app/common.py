@@ -196,7 +196,7 @@ def get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> Sequence[schemas.Ext
             )
             ext_tag.references.append(
                 {
-                    "group": service.service_name,
+                    "service": service.service_name,
                     "target": dependency.target,
                     "version": dependency.version,
                 }
