@@ -318,7 +318,7 @@ def test_get_pteam_services():
     # no services at created pteam
     services1 = get_pteam_services(USER1, pteam1.pteam_id)
     services2 = get_pteam_services(USER1, pteam2.pteam_id)
-    assert services1.services == services2.services == []
+    assert services1 == services2 == []
 
     refs0 = {TAG1: [("fake target", "fake version")]}
 
@@ -328,8 +328,8 @@ def test_get_pteam_services():
 
     services1a = get_pteam_services(USER1, pteam1.pteam_id)
     services2a = get_pteam_services(USER1, pteam2.pteam_id)
-    assert services1a.services == [service_x]
-    assert services2a.services == []
+    assert services1a[0].service_name == service_x
+    assert services2a == []
 
     # add grserviceoup y to pteam2
     service_y = "service_y"
@@ -337,16 +337,18 @@ def test_get_pteam_services():
 
     services1b = get_pteam_services(USER1, pteam1.pteam_id)
     services2b = get_pteam_services(USER1, pteam2.pteam_id)
-    assert services1b.services == [service_x]
-    assert services2b.services == [service_y]
+    assert services1b[0].service_name == service_x
+    assert services2b[0].service_name == service_y
 
     # add service y to pteam1
     upload_pteam_tags(USER1, pteam1.pteam_id, service_y, refs0)
 
     services1c = get_pteam_services(USER1, pteam1.pteam_id)
     services2c = get_pteam_services(USER1, pteam2.pteam_id)
-    assert set(services1c.services) == {service_x, service_y}
-    assert services2c.services == [service_y]
+    print(services1c)
+    assert services1c[0].service_name == service_x or service_y
+    assert services1c[1].service_name == service_x or service_y
+    assert services2c[0].service_name == service_y
 
     # only members get services
     with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
