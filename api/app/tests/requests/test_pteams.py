@@ -3519,12 +3519,12 @@ def test_get_service_tagged_ticket_ids(testdb):
     )
 
     # create current_ticket_status table
-    response = assert_200(
-        client.get(
-            f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
-            headers=headers(USER1),
-        )
+    response = client.get(
+        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
+        headers=headers(USER1),
     )
+    assert response.status_code == 200
+    response = response.json()
 
     # solved
     assert response["solved"]["pteam_id"] == ticket_response["pteam_id"]
@@ -3561,13 +3561,12 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_id(testdb):
 
     # with wrong pteam_id
     pteam_id = str(uuid4())
-    with pytest.raises(HTTPError, match=r"404: Not Found: No such pteam"):
-        assert_200(
-            client.get(
-                f"/pteams/{pteam_id}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
-                headers=headers(USER1),
-            )
-        )
+    response = client.get(
+        f"/pteams/{pteam_id}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
+        headers=headers(USER1),
+    )
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No such pteam"}
 
 
 def test_service_tagged_ticket_ids_with_wrong_pteam_member(testdb):
@@ -3590,13 +3589,12 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_member(testdb):
 
     # with wrong pteam member
     create_user(USER2)
-    with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
-        assert_200(
-            client.get(
-                f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
-                headers=headers(USER2),
-            )
-        )
+    response = client.get(
+        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
+        headers=headers(USER2),
+    )
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Not a pteam member"}
 
 
 def test_service_tagged_ticket_ids_with_wrong_service_id(testdb):
@@ -3619,13 +3617,12 @@ def test_service_tagged_ticket_ids_with_wrong_service_id(testdb):
 
     # with wrong service_id
     service_id = str(uuid4())
-    with pytest.raises(HTTPError, match=r"404: Not Found: No such service"):
-        assert_200(
-            client.get(
-                f"/pteams/{ticket_response['pteam_id']}/services/{service_id}/tags/{ticket_response['tag_id']}/ticket_ids",
-                headers=headers(USER1),
-            )
-        )
+    response = client.get(
+        f"/pteams/{ticket_response['pteam_id']}/services/{service_id}/tags/{ticket_response['tag_id']}/ticket_ids",
+        headers=headers(USER1),
+    )
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No such service"}
 
 
 def test_service_tagged_ticket_ids_with_service_not_in_pteam(testdb):
@@ -3648,13 +3645,12 @@ def test_service_tagged_ticket_ids_with_service_not_in_pteam(testdb):
     )
 
     # with service not in pteam
-    with pytest.raises(HTTPError, match=r"404: Not Found: No such service"):
-        assert_200(
-            client.get(
-                f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response2['service_id']}/tags/{ticket_response1['tag_id']}/ticket_ids",
-                headers=headers(USER1),
-            )
-        )
+    response = client.get(
+        f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response2['service_id']}/tags/{ticket_response1['tag_id']}/ticket_ids",
+        headers=headers(USER1),
+    )
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No such service"}
 
 
 def test_service_tagged_tikcet_ids_with_wrong_tag_id(testdb):
@@ -3677,13 +3673,12 @@ def test_service_tagged_tikcet_ids_with_wrong_tag_id(testdb):
 
     # with wrong tag_id
     tag_id = str(uuid4())
-    with pytest.raises(HTTPError, match=r"404: Not Found: No such tag"):
-        assert_200(
-            client.get(
-                f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{tag_id}/ticket_ids",
-                headers=headers(USER1),
-            )
-        )
+    response = client.get(
+        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{tag_id}/ticket_ids",
+        headers=headers(USER1),
+    )
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No such tag"}
 
 
 def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
@@ -3707,13 +3702,12 @@ def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
     # with valid but not service tag
     str1 = "a1:a2:a3"
     tag = create_tag(USER1, str1)
-    with pytest.raises(HTTPError, match=r"404: Not Found: No such service tag"):
-        assert_200(
-            client.get(
-                f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response1['service_id']}/tags/{tag.tag_id}/ticket_ids",
-                headers=headers(USER1),
-            )
-        )
+    response = client.get(
+        f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response1['service_id']}/tags/{tag.tag_id}/ticket_ids",
+        headers=headers(USER1),
+    )
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No such service tag"}
 
 
 def test_summary_of_pteam(testdb):
