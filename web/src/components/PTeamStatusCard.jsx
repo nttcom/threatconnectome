@@ -1,9 +1,8 @@
-import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
+import { Box, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React from "react";
-import { useLocation, useNavigate } from "react-router";
 
 import { topicStatusProps } from "../utils/const";
 import { calcTimestampDiff } from "../utils/func";
@@ -109,59 +108,6 @@ StatusRatioGraph.propTypes = {
   threatImpact: PropTypes.number,
 };
 
-function ServiceChips(props) {
-  const { references } = props;
-  const unduplicatedServices = [...new Set(references.map((ref) => ref.service))].filter(
-    (service) => service !== "",
-  );
-
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const params = new URLSearchParams(location.search);
-  const selectedService = params.get("service") ?? "";
-
-  const handleSelectService = (service) => {
-    if (service === selectedService) {
-      params.delete("service");
-    } else {
-      params.set("service", service);
-      params.set("page", 1); // reset page
-    }
-    navigate(location.pathname + "?" + params.toString());
-  };
-
-  return (
-    <Box sx={{ overflowX: "auto", whiteSpace: "nowrap" }}>
-      {unduplicatedServices.map((service) => (
-        <Chip
-          key={service}
-          label={service}
-          variant={service === selectedService ? "" : "outlined"}
-          size="small"
-          onClick={(event) => {
-            handleSelectService(service);
-            event.stopPropagation(); // avoid propagation of click event to parent
-          }}
-          sx={{
-            textTransform: "none",
-            marginRight: "5px",
-          }}
-        />
-      ))}
-    </Box>
-  );
-}
-ServiceChips.propTypes = {
-  references: PropTypes.arrayOf(
-    PropTypes.shape({
-      target: PropTypes.string,
-      version: PropTypes.string,
-      service: PropTypes.string,
-    }),
-  ).isRequired,
-};
-
 export function PTeamStatusCard(props) {
   const { onHandleClick, tag } = props;
 
@@ -184,7 +130,6 @@ export function PTeamStatusCard(props) {
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
           {tag.tag_name}
         </Typography>
-        <ServiceChips references={tag.references}></ServiceChips>
       </TableCell>
       <TableCell align="right" style={{ width: "30%" }}>
         <Box display="flex" flexDirection="column">
