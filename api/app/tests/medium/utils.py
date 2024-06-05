@@ -141,9 +141,9 @@ def get_pteam_tags(user: dict, pteam_id: str) -> list[schemas.ExtTagResponse]:
     return [schemas.ExtTagResponse(**item) for item in data]
 
 
-def get_pteam_services(user: dict, pteam_id: str) -> schemas.PTeamServiceResponse:
+def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceResponse]:
     data = assert_200(client.get(f"/pteams/{pteam_id}/services", headers=headers(user)))
-    return schemas.PTeamServiceResponse(**data)
+    return [schemas.PTeamServiceResponse(**item) for item in data]
 
 
 def create_ateam(user: dict, ateam: dict) -> schemas.ATeamInfo:

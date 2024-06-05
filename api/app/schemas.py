@@ -119,10 +119,6 @@ class ExtTagResponse(TagResponse):
 
 
 class PTeamServiceResponse(ORMModel):
-    services: list[str] = []
-
-
-class PTeamServiceResponse(ORMModel):
     service_name: str
     service_id: UUID
 
