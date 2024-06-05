@@ -25,15 +25,20 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import { PTeamLabel } from "../components/PTeamLabel";
-import { PTeamServiceChip } from "../components/PTeamServiceChip";
+import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
-import { getPTeamServices, getPTeamTagsSummary } from "../slices/pteam";
+import {
+  getPTeam,
+  getPTeamServiceTagsSummary,
+  getPTeamTagsSummary,
+  setPTeamId,
+} from "../slices/pteam";
 import { noPTeamMessage, threatImpactName, threatImpactProps } from "../utils/const";
 const threatImpactCountMax = 99999;
 
@@ -87,22 +92,77 @@ export function Status() {
 
   const params = new URLSearchParams(location.search);
   const searchWord = params.get("word")?.trim().toLowerCase() ?? "";
-  const selectedService = params.get("service") ?? "";
+
+  const pteamId = params.get("pteamId");
+  const serviceId = params.get("serviceId");
+
+  const user = useSelector((state) => state.user.user);
+  const pteam = useSelector((state) => state.pteam.pteam);
+  const summaries = useSelector((state) => state.pteam.serviceTagsSummaries);
+
+  const summary = summaries[serviceId];
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const searchMenuOpen = Boolean(anchorEl);
 
-  const user = useSelector((state) => state.user.user);
-  const pteamId = useSelector((state) => state.pteam.pteamId); // dispatched by App or PTeamSelector
-  const summary = useSelector((state) => state.pteam.tagsSummary); // dispatched by App
+  useEffect(() => {
+    if (!user.user_id) return; // wait login completed
+    if (!pteamId) return; // wait fixed by App
+    if (!pteam) {
+      dispatch(getPTeam(pteamId));
+      return;
+    }
+    if (pteam && pteam.pteam_id !== pteamId) {
+      // for the case pteam switched. -- looks redundant but necessary, uhmm...
+      dispatch(setPTeamId(pteamId));
+      return;
+    }
+    if (summary) return; // Ready!
+
+    if (!serviceId) {
+      if (pteam.services.length === 0) return; // nothing to do any more.
+      // no service selected. force selecting one of services -- the first one
+      const newParams = new URLSearchParams();
+      newParams.set("pteamId", pteamId);
+      newParams.set("serviceId", pteam.services[0].service_id);
+      navigate(location.pathname + "?" + newParams.toString());
+      return;
+    } else if (!pteam.services.find((service) => service.service_id === serviceId)) {
+      alert("Invalid serviceId!");
+      const newParams = new URLSearchParams();
+      newParams.set("pteamId", pteamId);
+      navigate("/?" + newParams.toString());
+      return;
+    }
+    dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [user.user_id, pteamId, pteam, pteamId, serviceId]);
 
   if (!pteamId) return <>{noPTeamMessage}</>;
-  else if (!user || !summary) return <>Now loading...</>;
+  if (!user.user_id || !pteamId || !pteam) {
+    return <>Now loading...</>;
+  }
 
   const handleSBOMUploaded = () => {
     dispatch(getPTeamTagsSummary(pteamId));
-    dispatch(getPTeamServices(pteamId));
+    dispatch(getPTeam(pteamId));
   };
+
+  if (!serviceId) {
+    if (pteam.services.length === 0) {
+      return (
+        <>
+          <Box display="flex" flexDirection="row">
+            <PTeamLabel defaultTabIndex={0} />
+            <Box flexGrow={1} />
+          </Box>
+          <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+        </>
+      );
+    }
+  }
+
+  if (!summary) return <>Now loading ServiceTagsSummary...</>;
 
   const iFilter = [0, 1, 2, 3].reduce(
     (ret, idx) => ({
@@ -117,8 +177,7 @@ export function Status() {
       (Object.values(iFilter).every((val) => !val)
         ? true // show all if selected none
         : iFilter[parseInt(tag.threat_impact ?? 4) - 1]) && // show only selected
-      (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)) &&
-      (selectedService === "" || tag.references.some((ref) => ref.service === selectedService)),
+      (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)),
   );
 
   let tmp;
@@ -163,6 +222,13 @@ export function Status() {
       <Box flexGrow={1} />
     </Box>
   );
+
+  const handleChangeService = (serviceId) => {
+    const newParams = new URLSearchParams();
+    newParams.set("pteamId", pteamId);
+    newParams.set("serviceId", serviceId);
+    navigate(location.pathname + "?" + newParams.toString());
+  };
 
   const handleSearchWord = (word) => {
     params.set("word", word);
@@ -267,46 +333,44 @@ export function Status() {
         <PTeamLabel defaultTabIndex={0} />
         <Box flexGrow={1} />
       </Box>
-      <PTeamServiceChip />
-      {summary.tags.length === 0 ? (
-        <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
-      ) : (
-        <>
-          <Box display="flex" mt={2}>
-            {filterRow}
-            <Box flexGrow={1} />
-            <Box mb={0.5}>
-              <SearchField word={searchWord} onApply={handleSearchWord} />
-              <IconButton
-                id="basic-button"
-                aria-controls={searchMenuOpen ? "basic-menu" : undefined}
-                aria-haspopup="true"
-                aria-expanded={searchMenuOpen ? "true" : undefined}
-                onClick={handleClick}
-                size="small"
-                sx={{ mt: 1.5 }}
-              >
-                {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
-              </IconButton>
-              {ThreatImpactMenu}
-            </Box>
-          </Box>
-          <TableContainer component={Paper} sx={{ mt: 0.5 }}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableBody>
-                {targetTags.map((tag) => (
-                  <PTeamStatusCard
-                    key={tag.tag_id}
-                    onHandleClick={() => handleNavigateTag(tag.tag_id)}
-                    tag={tag}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {targetTags.length > 3 && filterRow}
-        </>
-      )}
+      <PTeamServiceTabs
+        services={pteam.services}
+        currentServiceId={serviceId}
+        onChangeService={handleChangeService}
+      />
+      <Box display="flex" mt={2}>
+        {filterRow}
+        <Box flexGrow={1} />
+        <Box mb={0.5}>
+          <SearchField word={searchWord} onApply={handleSearchWord} />
+          <IconButton
+            id="basic-button"
+            aria-controls={searchMenuOpen ? "basic-menu" : undefined}
+            aria-haspopup="true"
+            aria-expanded={searchMenuOpen ? "true" : undefined}
+            onClick={handleClick}
+            size="small"
+            sx={{ mt: 1.5 }}
+          >
+            {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
+          </IconButton>
+          {ThreatImpactMenu}
+        </Box>
+      </Box>
+      <TableContainer component={Paper} sx={{ mt: 0.5 }}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableBody>
+            {targetTags.map((tag) => (
+              <PTeamStatusCard
+                key={tag.tag_id}
+                onHandleClick={() => handleNavigateTag(tag.tag_id)}
+                tag={tag}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      {targetTags.length > 3 && filterRow}
     </>
   );
 }
