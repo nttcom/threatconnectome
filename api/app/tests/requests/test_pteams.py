@@ -17,6 +17,7 @@ from app.constants import (
     ZERO_FILLED_UUID,
 )
 from app.main import app
+from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
@@ -3498,6 +3499,221 @@ def test_get_pteam_tagged_topic_ids():
     unsolved2 = _get_topics(USER2, pteam1, tag2, False)
     assert unsolved2.topic_ids == [topic3.topic_id, topic2.topic_id]
     assert unsolved2.threat_impact_count == {"1": 1, "2": 1, "3": 0, "4": 0}
+
+
+def test_get_service_tagged_ticket_ids(testdb):
+    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+
+    json_data = {
+        "topic_status": "acknowledged",
+        "note": "string",
+        "assignees": [],
+        "scheduled_at": str(datetime.now()),
+    }
+    create_topicstatus(
+        USER1,
+        ticket_response["pteam_id"],
+        ticket_response["topic_id"],
+        ticket_response["tag_id"],
+        json_data,
+    )
+
+    # create current_ticket_status table
+    response = assert_200(
+        client.get(
+            f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
+            headers=headers(USER1),
+        )
+    )
+
+    # solved
+    assert response["solved"]["pteam_id"] == ticket_response["pteam_id"]
+    assert response["solved"]["service_id"] == ticket_response["service_id"]
+    assert response["solved"]["tag_id"] == ticket_response["tag_id"]
+    assert response["solved"]["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 0}
+    assert response["solved"]["ticket_ids"] == []
+
+    # unsolved
+    assert response["unsolved"]["pteam_id"] == ticket_response["pteam_id"]
+    assert response["unsolved"]["service_id"] == ticket_response["service_id"]
+    assert response["unsolved"]["tag_id"] == ticket_response["tag_id"]
+    assert response["unsolved"]["threat_impact_count"] == {"1": 1, "2": 0, "3": 0, "4": 0}
+    assert ticket_response["ticket_id"] in response["unsolved"]["ticket_ids"]
+
+
+def test_service_tagged_ticket_ids_with_wrong_pteam_id(testdb):
+    # create current_ticket_status table
+    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+
+    json_data = {
+        "topic_status": "acknowledged",
+        "note": "string",
+        "assignees": [],
+        "scheduled_at": str(datetime.now()),
+    }
+    create_topicstatus(
+        USER1,
+        ticket_response["pteam_id"],
+        ticket_response["topic_id"],
+        ticket_response["tag_id"],
+        json_data,
+    )
+
+    # with wrong pteam_id
+    pteam_id = str(uuid4())
+    with pytest.raises(HTTPError, match=r"404: Not Found: No such pteam"):
+        assert_200(
+            client.get(
+                f"/pteams/{pteam_id}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
+                headers=headers(USER1),
+            )
+        )
+
+
+def test_service_tagged_ticket_ids_with_wrong_pteam_member(testdb):
+    # create current_ticket_status table
+    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+
+    json_data = {
+        "topic_status": "acknowledged",
+        "note": "string",
+        "assignees": [],
+        "scheduled_at": str(datetime.now()),
+    }
+    create_topicstatus(
+        USER1,
+        ticket_response["pteam_id"],
+        ticket_response["topic_id"],
+        ticket_response["tag_id"],
+        json_data,
+    )
+
+    # with wrong pteam member
+    create_user(USER2)
+    with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
+        assert_200(
+            client.get(
+                f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
+                headers=headers(USER2),
+            )
+        )
+
+
+def test_service_tagged_ticket_ids_with_wrong_service_id(testdb):
+    # create current_ticket_status table
+    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+
+    json_data = {
+        "topic_status": "acknowledged",
+        "note": "string",
+        "assignees": [],
+        "scheduled_at": str(datetime.now()),
+    }
+    create_topicstatus(
+        USER1,
+        ticket_response["pteam_id"],
+        ticket_response["topic_id"],
+        ticket_response["tag_id"],
+        json_data,
+    )
+
+    # with wrong service_id
+    service_id = str(uuid4())
+    with pytest.raises(HTTPError, match=r"404: Not Found: No such service"):
+        assert_200(
+            client.get(
+                f"/pteams/{ticket_response['pteam_id']}/services/{service_id}/tags/{ticket_response['tag_id']}/ticket_ids",
+                headers=headers(USER1),
+            )
+        )
+
+
+def test_service_tagged_ticket_ids_with_service_not_in_pteam(testdb):
+    # create current_ticket_status table
+    ticket_response1 = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+    ticket_response2 = ticket_utils.create_ticket(testdb, USER2, PTEAM2, TOPIC2, ACTION2)
+
+    json_data = {
+        "topic_status": "acknowledged",
+        "note": "string",
+        "assignees": [],
+        "scheduled_at": str(datetime.now()),
+    }
+    create_topicstatus(
+        USER1,
+        ticket_response1["pteam_id"],
+        ticket_response1["topic_id"],
+        ticket_response1["tag_id"],
+        json_data,
+    )
+
+    # with service not in pteam
+    with pytest.raises(HTTPError, match=r"404: Not Found: No such service"):
+        assert_200(
+            client.get(
+                f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response2['service_id']}/tags/{ticket_response1['tag_id']}/ticket_ids",
+                headers=headers(USER1),
+            )
+        )
+
+
+def test_service_tagged_tikcet_ids_with_wrong_tag_id(testdb):
+    # create current_ticket_status table
+    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+
+    json_data = {
+        "topic_status": "acknowledged",
+        "note": "string",
+        "assignees": [],
+        "scheduled_at": str(datetime.now()),
+    }
+    create_topicstatus(
+        USER1,
+        ticket_response["pteam_id"],
+        ticket_response["topic_id"],
+        ticket_response["tag_id"],
+        json_data,
+    )
+
+    # with wrong tag_id
+    tag_id = str(uuid4())
+    with pytest.raises(HTTPError, match=r"404: Not Found: No such tag"):
+        assert_200(
+            client.get(
+                f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{tag_id}/ticket_ids",
+                headers=headers(USER1),
+            )
+        )
+
+
+def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
+    # create current_ticket_status table
+    ticket_response1 = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+
+    json_data = {
+        "topic_status": "acknowledged",
+        "note": "string",
+        "assignees": [],
+        "scheduled_at": str(datetime.now()),
+    }
+    create_topicstatus(
+        USER1,
+        ticket_response1["pteam_id"],
+        ticket_response1["topic_id"],
+        ticket_response1["tag_id"],
+        json_data,
+    )
+
+    # with valid but not service tag
+    str1 = "a1:a2:a3"
+    tag = create_tag(USER1, str1)
+    with pytest.raises(HTTPError, match=r"404: Not Found: No such service tag"):
+        assert_200(
+            client.get(
+                f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response1['service_id']}/tags/{tag.tag_id}/ticket_ids",
+                headers=headers(USER1),
+            )
+        )
 
 
 def test_summary_of_pteam(testdb):

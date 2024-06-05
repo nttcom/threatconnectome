@@ -343,7 +343,7 @@ def get_pteam_tagged_unsolved_topic_ids(
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/tags/{tag_id}/topic_ids",
+    "/{pteam_id}/services/{service_id}/tags/{tag_id}/ticket_ids",
     response_model=schemas.ServiceTaggedTopicsSolvedUnsolved,
 )
 def get_service_tagged_ticket_ids(

@@ -441,10 +441,10 @@ def count_service_solved_tickets_per_threat_impact(
             if not threat.ticket:
                 continue
 
-            for _curent_ticket in threat.ticket.curent_ticket_status:
-                if _curent_ticket.topic_status == _completed:
-                    threat_imapct_str = str(_curent_ticket.threat_impact)
-                    threat_counts_rows[threat_imapct_str] += 1
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status == _completed:
+                threat_imapct_str = str(_curent_ticket.threat_impact)
+                threat_counts_rows[threat_imapct_str] += 1
 
     return threat_counts_rows
 
@@ -463,15 +463,15 @@ def count_service_unsolved_tickets_per_threat_impact(
             if not threat.ticket:
                 continue
 
-            # When a ticket exists but curent_ticket_status does not exist,
+            # When a ticket exists but current_ticket_status does not exist,
             # it is treated as unsolved.
-            if not threat.ticket.curent_ticket_status:
+            if not threat.ticket.current_ticket_status:
                 threat_counts_rows["1"] += 1
 
-            for _curent_ticket in threat.ticket.curent_ticket_status:
-                if _curent_ticket.topic_status != _completed:
-                    threat_imapct_str = str(_curent_ticket.threat_impact)
-                    threat_counts_rows[threat_imapct_str] += 1
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status != _completed:
+                threat_imapct_str = str(_curent_ticket.threat_impact)
+                threat_counts_rows[threat_imapct_str] += 1
 
     return threat_counts_rows
 
@@ -492,9 +492,9 @@ def get_sorted_solved_ticket_ids_by_service_tag_and_status(
             if not threat.ticket:
                 continue
 
-            for _curent_ticket in threat.ticket.curent_ticket_status:
-                if _curent_ticket.topic_status == _completed:
-                    current_ticket_statuses.append(_curent_ticket)
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status == _completed:
+                current_ticket_statuses.append(_curent_ticket)
 
     current_ticket_statuses_sort = sorted(
         current_ticket_statuses,
@@ -525,14 +525,14 @@ def get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
             if not threat.ticket:
                 continue
 
-            # When a ticket exists but curent_ticket_status does not exist,
+            # When a ticket exists but current_ticket_status does not exist,
             # it is treated as unsolved.
-            if not threat.ticket.curent_ticket_status:
+            if not threat.ticket.current_ticket_status:
                 ticket_ids.append(threat.ticket.ticket_id)
 
-            for _curent_ticket in threat.ticket.curent_ticket_status:
-                if _curent_ticket.topic_status != _completed:
-                    current_ticket_statuses.append(_curent_ticket)
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status != _completed:
+                current_ticket_statuses.append(_curent_ticket)
 
     current_ticket_statuses_sort = sorted(
         current_ticket_statuses,
