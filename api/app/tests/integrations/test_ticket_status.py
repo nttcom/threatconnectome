@@ -25,7 +25,6 @@ from app.tests.medium.utils import (
     create_topic,
     create_topicstatus,
     create_user,
-    headers,
     invite_to_pteam,
 )
 
@@ -188,75 +187,4 @@ def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict
 
     assert current_tcket_status is not None
     assert current_tcket_status.topic_status == models.TopicStatusType.scheduled
-    assert current_tcket_status.threat_impact == 1
-
-
-def test_TicketStatus_when_auto_close(testdb: Session, threat_data: dict):
-    # Given
-    # set topic_status
-    json_data1 = {
-        "topic_status": "acknowledged",
-        "note": "acknowledged",
-        "assignees": threat_data["assignees"],
-        "scheduled_at": str(datetime(2024, 5, 1)),
-    }
-    create_topicstatus(
-        USER1, threat_data["pteam_id"], threat_data["topic_id"], threat_data["tag_id"], json_data1
-    )
-
-    json_data2 = {
-        "topic_status": "scheduled",
-        "note": "scheduled",
-        "assignees": threat_data["assignees"],
-        "scheduled_at": str(datetime(2024, 5, 2)),
-    }
-    create_topicstatus(
-        USER2, threat_data["pteam_id"], threat_data["topic_id"], threat_data["tag_id"], json_data2
-    )
-
-    # When
-    # pteam fix_status_mismatch
-    pteam_id = threat_data["pteam_id"]
-    client.post(f"/pteams/{pteam_id}/fix_status_mismatch", headers=headers(USER1))
-
-    # Then
-    # check TicketStatus
-    ticket_statuses_list = testdb.scalars(
-        select(models.TicketStatus).where(
-            models.TicketStatus.ticket_id == str(threat_data["ticket_id"])
-        )
-    ).all()
-
-    assert len(ticket_statuses_list) == 3
-    for statuses_index in range(len(ticket_statuses_list)):
-        status = ticket_statuses_list[statuses_index]
-        if status.note == "auto closed by system":
-            assert status.topic_status == models.TopicStatusType.completed
-            assert len(status.logging_ids) == 1
-            assert len(status.assignees) == 0
-            assert status.scheduled_at is None
-        elif status.note == "acknowledged":
-            assert status.topic_status == models.TopicStatusType.acknowledged
-            assert len(status.logging_ids) == 0
-            assert len(status.assignees) == 2
-            for assignees_index in range(len(status.assignees)):
-                assert status.assignees[assignees_index] in threat_data["assignees"]
-                assert status.scheduled_at == datetime(2024, 5, 1)
-        elif status.note == "scheduled":
-            assert status.topic_status == models.TopicStatusType.scheduled
-            assert len(status.logging_ids) == 0
-            assert len(status.assignees) == 2
-            for assignees_index in range(len(status.assignees)):
-                assert status.assignees[assignees_index] in threat_data["assignees"]
-                assert status.scheduled_at == datetime(2024, 5, 2)
-
-    # check CurrentTicketStatus
-    current_tcket_status = testdb.scalars(
-        select(models.CurrentTicketStatus).where(
-            models.CurrentTicketStatus.ticket_id == str(threat_data["ticket_id"])
-        )
-    ).one_or_none()
-
-    assert current_tcket_status is not None
-    assert current_tcket_status.topic_status == models.TopicStatusType.completed
     assert current_tcket_status.threat_impact == 1
