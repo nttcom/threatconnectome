@@ -10,6 +10,7 @@ from app import models, persistence, schemas
 from app.common import threat_meets_condition_to_create_ticket
 from app.main import app
 from app.ssvc import calculate_ssvc_deployer_priority
+from app.tests.common import threat_utils
 from app.tests.medium.constants import (
     ACTION1,
     PTEAM1,
@@ -187,4 +188,27 @@ def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict
 
     assert current_tcket_status is not None
     assert current_tcket_status.topic_status == models.TopicStatusType.scheduled
+    assert current_tcket_status.threat_impact == 1
+
+
+def test_CurrentTicketStatus_when_create_threat(testdb: Session):
+    # When
+    threat = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+
+    # Then
+    # check CurrentTicketStatus
+    ticket = testdb.scalars(
+        select(models.Ticket).where(models.Ticket.threat_id == str(threat.threat_id))
+    ).one_or_none()
+    assert ticket is not None
+
+    current_tcket_status = testdb.scalars(
+        select(models.CurrentTicketStatus).where(
+            models.CurrentTicketStatus.ticket_id == str(ticket.ticket_id)
+        )
+    ).one_or_none()
+
+    assert current_tcket_status is not None
+    assert current_tcket_status.status_id is None
+    assert current_tcket_status.topic_status == models.TopicStatusType.alerted
     assert current_tcket_status.threat_impact == 1
