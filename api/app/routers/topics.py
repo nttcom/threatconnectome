@@ -367,7 +367,7 @@ def create_topic(
         ):
             continue  # skip if already exists
         persistence.create_threat(db, threat)
-        ticket_manager.create_ticket(db, threat, data.hint_for_action)
+        ticket_manager.create_ticket(db, threat)
 
     db.commit()
 

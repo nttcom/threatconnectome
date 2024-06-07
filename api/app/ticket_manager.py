@@ -11,7 +11,7 @@ from app.common import (
 from app.ssvc import calculate_ssvc_deployer_priority
 
 
-def create_ticket(db: Session, threat: models.Threat, alert_content: str | None):
+def create_ticket(db: Session, threat: models.Threat):
     if not threat_meets_condition_to_create_ticket(db, threat):
         return
 
@@ -42,7 +42,7 @@ def create_ticket(db: Session, threat: models.Threat, alert_content: str | None)
         alert = models.Alert(
             ticket_id=ticket.ticket_id,
             alerted_at=now,
-            alert_content=alert_content,
+            alert_content=threat.topic.hint_for_action,
         )
         persistence.create_alert(db, alert)
         send_alert_to_pteam(alert)
