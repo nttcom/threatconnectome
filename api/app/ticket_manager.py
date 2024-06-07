@@ -3,6 +3,49 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
+from app.alert import send_alert_to_pteam
+from app.common import (
+    threat_meets_condition_to_create_ticket,
+    ticket_meets_condition_to_create_alert,
+)
+from app.ssvc import calculate_ssvc_deployer_priority
+
+
+def create_ticket(db: Session, threat: models.Threat):
+    if not threat_meets_condition_to_create_ticket(db, threat):
+        return
+
+    # create Ticket
+    dependency = persistence.get_dependency_from_service_id_and_tag_id(
+        db, threat.dependency.service_id, threat.dependency.tag.tag_id
+    )
+    now = datetime.now()
+    ticket = models.Ticket(
+        threat_id=threat.threat_id,
+        created_at=now,
+        updated_at=now,
+        ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat, dependency),
+    )
+    persistence.create_ticket(db, ticket)
+
+    # create CurrentTicketStatus without TicketStatus
+    current_status = models.CurrentTicketStatus(
+        ticket_id=ticket.ticket_id,
+        status_id=None,
+        topic_status=models.TopicStatusType.alerted,
+        threat_impact=threat.topic.threat_impact,
+        updated_at=threat.topic.updated_at,
+    )
+    persistence.create_current_ticket_status(db, current_status)
+
+    if ticket_meets_condition_to_create_alert(ticket):
+        alert = models.Alert(
+            ticket_id=ticket.ticket_id,
+            alerted_at=now,
+            alert_content=threat.topic.hint_for_action,
+        )
+        persistence.create_alert(db, alert)
+        send_alert_to_pteam(alert)
 
 
 def set_ticket_statuses(

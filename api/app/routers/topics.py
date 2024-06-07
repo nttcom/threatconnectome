@@ -9,8 +9,8 @@ from fastapi.responses import Response
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas
-from app.alert import alert_new_topic, send_alert_to_pteam
+from app import command, models, persistence, schemas, ticket_manager
+from app.alert import alert_new_topic
 from app.auth import get_current_user, token_scheme
 from app.common import (
     auto_close_by_topic,
@@ -19,11 +19,8 @@ from app.common import (
     check_topic_action_tags_integrity,
     get_or_create_misp_tag,
     get_sorted_topics,
-    threat_meets_condition_to_create_ticket,
-    ticket_meets_condition_to_create_alert,
 )
 from app.database import get_db
-from app.ssvc import calculate_ssvc_deployer_priority
 
 router = APIRouter(prefix="/topics", tags=["topics"])
 
@@ -370,25 +367,7 @@ def create_topic(
         ):
             continue  # skip if already exists
         persistence.create_threat(db, threat)
-        if threat_meets_condition_to_create_ticket(db, threat):
-            dependency = persistence.get_dependency_from_service_id_and_tag_id(
-                db, threat.dependency.service_id, threat.dependency.tag.tag_id
-            )
-            ticket = models.Ticket(
-                threat_id=threat.threat_id,
-                created_at=now,
-                updated_at=now,
-                ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat, dependency),
-            )
-            persistence.create_ticket(db, ticket)
-            if ticket_meets_condition_to_create_alert(ticket):
-                alert = models.Alert(
-                    ticket_id=ticket.ticket_id,
-                    alerted_at=now,
-                    alert_content=data.hint_for_action,
-                )
-                persistence.create_alert(db, alert)
-                send_alert_to_pteam(alert)
+        ticket_manager.create_ticket(db, threat)
 
     db.commit()
 

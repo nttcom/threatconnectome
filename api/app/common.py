@@ -6,7 +6,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas, ticket_manager
+from app import command, models, persistence, schemas
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 from app.version import (
     PackageFamily,
@@ -324,7 +324,6 @@ def _complete_topic(
         tag,
         topicStatusRequest,
     )
-    ticket_manager.set_ticket_statuses(db, system_account, pteam, topic, tag, topicStatusRequest)
 
 
 def pteamtag_try_auto_close_topic(
