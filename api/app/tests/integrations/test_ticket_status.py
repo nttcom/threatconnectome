@@ -156,15 +156,10 @@ def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict
     ).all()
 
     assert len(ticket_statuses_list) == 2
-
     for statuses_index in range(len(ticket_statuses_list)):
         status = ticket_statuses_list[statuses_index]
-        if status.note == "auto closed by system":
-            assert status.topic_status == models.TopicStatusType.completed
-            assert len(status.logging_ids) == 1
-            assert len(status.assignees) == 0
-            assert status.scheduled_at is None
-        elif status.note == "acknowledged":
+        if status.note == "acknowledged":
+            assert status.user_id == threat_data["assignees"][0]
             assert status.topic_status == models.TopicStatusType.acknowledged
             assert len(status.logging_ids) == 0
             assert len(status.assignees) == 2
@@ -172,6 +167,7 @@ def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict
                 assert status.assignees[assignees_index] in threat_data["assignees"]
                 assert status.scheduled_at == datetime(2024, 5, 1)
         elif status.note == "scheduled":
+            assert status.user_id == threat_data["assignees"][1]
             assert status.topic_status == models.TopicStatusType.scheduled
             assert len(status.logging_ids) == 0
             assert len(status.assignees) == 2

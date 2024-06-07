@@ -83,6 +83,7 @@ def set_ticket_status(
         assignees = list(map(str, topicStatusRequest.assignees))
     new_status = models.TicketStatus(
         ticket_id=ticket.ticket_id,
+        user_id=current_user.user_id,
         topic_status=topicStatusRequest.topic_status,
         note=topicStatusRequest.note,
         logging_ids=list(map(str, set(topicStatusRequest.logging_ids))),

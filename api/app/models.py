@@ -424,6 +424,7 @@ class TicketStatus(Base):
     ticket_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True
     )
+    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     topic_status: Mapped[TopicStatusType]
     note: Mapped[str | None]
     logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
