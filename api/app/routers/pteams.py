@@ -919,7 +919,7 @@ def get_pteam_topic_statuses_summary(
 
 
 @router.post(
-    "/{pteam_id}/topicstatus/{topic_id}/{tag_id}", response_model=schemas.TopicStatusResponse
+    "/{pteam_id}/topicstatus/{topic_id}/{tag_id}", response_model=schemas.PTeamTopicStatusResponse
 )
 def set_pteam_topic_status(
     pteam_id: UUID,
@@ -996,7 +996,7 @@ def set_pteam_topic_status(
 
 
 @router.get(
-    "/{pteam_id}/topicstatus/{topic_id}/{tag_id}", response_model=schemas.TopicStatusResponse
+    "/{pteam_id}/topicstatus/{topic_id}/{tag_id}", response_model=schemas.PTeamTopicStatusResponse
 )
 def get_pteam_topic_status(
     pteam_id: UUID,

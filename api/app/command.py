@@ -534,13 +534,13 @@ def get_last_updated_at_in_current_pteam_topic_tag_status(
 def pteam_topic_tag_status_to_response(
     db: Session,
     status: models.PTeamTopicTagStatus,
-) -> schemas.TopicStatusResponse:
+) -> schemas.PTeamTopicStatusResponse:
     actionlogs = db.scalars(
         select(models.ActionLog)
         .where(func.array_position(status.logging_ids, models.ActionLog.logging_id).is_not(None))
         .order_by(models.ActionLog.executed_at.desc())
     ).all()
-    return schemas.TopicStatusResponse(
+    return schemas.PTeamTopicStatusResponse(
         status_id=UUID(status.status_id),
         topic_id=UUID(status.topic_id),
         pteam_id=UUID(status.pteam_id),

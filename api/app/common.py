@@ -213,7 +213,7 @@ def set_pteam_topic_status_internal(
     topic: models.Topic,
     tag: models.Tag,  # should be PTeamTag, not TopicTag
     data: schemas.TopicStatusRequest,
-) -> schemas.TopicStatusResponse | None:
+) -> schemas.PTeamTopicStatusResponse | None:
     current_status = persistence.get_current_pteam_topic_tag_status(
         db, pteam.pteam_id, topic.topic_id, tag.tag_id
     )
