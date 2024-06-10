@@ -1,5 +1,7 @@
 from datetime import datetime
+from uuid import UUID
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
@@ -48,7 +50,7 @@ def create_ticket(db: Session, threat: models.Threat):
         send_alert_to_pteam(alert)
 
 
-def set_ticket_statuses(
+def set_ticket_statuses_in_pteam(
     db: Session,
     current_user: models.Account,
     pteam: models.PTeam,
@@ -57,12 +59,36 @@ def set_ticket_statuses(
     topicStatusRequest: schemas.TopicStatusRequest,
 ) -> None:
     for service in pteam.services:
-        for dependency in service.dependencies:
-            if dependency.tag_id != tag.tag_id:
-                continue
-            for threat in persistence.search_threats(db, dependency.dependency_id, topic.topic_id):
-                if ticket := threat.ticket:
-                    set_ticket_status(db, current_user, topic, ticket, topicStatusRequest)
+        set_ticket_statuses_in_service(db, current_user, service, topic, tag, topicStatusRequest)
+
+
+def set_ticket_statuses_in_service(
+    db: Session,
+    current_user: models.Account,
+    service: models.Service,
+    topic: models.Topic,
+    tag: models.Tag,  # should be PTeamTag, not TopicTag
+    topicStatusRequest: schemas.TopicStatusRequest,
+) -> schemas.TopicStatusResponse | None:
+    firstest_updated_at: datetime | None = None
+    firstest_status: models.TicketStatus | None = None
+
+    for dependency in service.dependencies:
+        if dependency.tag_id != tag.tag_id:
+            continue
+        for threat in persistence.search_threats(db, dependency.dependency_id, topic.topic_id):
+            if ticket := threat.ticket:
+                updated_at, ticket_status = set_ticket_status(
+                    db, current_user, topic, ticket, topicStatusRequest
+                )
+                if firstest_status is None or (
+                    firstest_updated_at is not None
+                    and updated_at is not None
+                    and updated_at < firstest_updated_at
+                ):
+                    firstest_status = ticket_status
+
+    return ticket_status_to_response(db, firstest_status) if firstest_status is not None else None
 
 
 def set_ticket_status(
@@ -71,7 +97,7 @@ def set_ticket_status(
     topic: models.Topic,
     ticket: models.Ticket,
     topicStatusRequest: schemas.TopicStatusRequest,
-) -> None:
+) -> tuple[datetime | None, models.TicketStatus]:
     current_status = persistence.get_current_ticket_status(db, ticket.ticket_id)
     if (
         (current_status is None or current_status.topic_status == models.TopicStatusType.alerted)
@@ -109,4 +135,35 @@ def set_ticket_status(
     current_status.updated_at = (
         None if new_status.topic_status == models.TopicStatusType.completed else topic.updated_at
     )
+
     db.flush()
+
+    return current_status.updated_at, new_status
+
+
+def ticket_status_to_response(
+    db: Session,
+    status: models.TicketStatus,
+) -> schemas.TopicStatusResponse:
+    threat = status.ticket.threat
+    dependency = threat.dependency
+    service = dependency.service
+    actionlogs = db.scalars(
+        select(models.ActionLog)
+        .where(func.array_position(status.logging_ids, models.ActionLog.logging_id).is_not(None))
+        .order_by(models.ActionLog.executed_at.desc())
+    ).all()
+    return schemas.TopicStatusResponse(
+        status_id=UUID(status.status_id),
+        topic_id=UUID(threat.topic.topic_id),
+        pteam_id=UUID(service.pteam.pteam_id),
+        service_id=UUID(service.service_id),
+        tag_id=UUID(dependency.tag.tag_id),
+        user_id=UUID(status.user_id),
+        topic_status=status.topic_status,
+        created_at=status.created_at,
+        assignees=list(map(UUID, status.assignees)),
+        note=status.note,
+        scheduled_at=status.scheduled_at,
+        action_logs=[schemas.ActionLogResponse(**log.__dict__) for log in actionlogs],
+    )

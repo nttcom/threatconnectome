@@ -402,7 +402,7 @@ class Ticket(Base):
     threat = relationship("Threat", back_populates="ticket")
     alert = relationship("Alert", uselist=False, back_populates="ticket")
     ticket_statuses = relationship(
-        "TicketStatus", uselist=False, back_populates="ticket", cascade="all, delete"
+        "TicketStatus", back_populates="ticket", cascade="all, delete"
     )
     current_ticket_status: Mapped["CurrentTicketStatus"] = relationship(
         "CurrentTicketStatus", uselist=False, back_populates="ticket", cascade="all, delete"

@@ -22,6 +22,7 @@ from app.tests.medium.constants import (
 from app.tests.medium.utils import (
     accept_pteam_invitation,
     create_pteam,
+    create_service_topicstatus,
     create_tag,
     create_topic,
     create_topicstatus,
@@ -124,7 +125,7 @@ def threat_data(testdb: Session) -> dict:
     }
 
 
-def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict):
+def test_TicketStatus_when_create_pteam_topicstatus(testdb: Session, threat_data: dict):
     # When
     # set topic_status
     json_data1 = {
@@ -145,6 +146,79 @@ def test_TicketStatus_when_create_topicstatus(testdb: Session, threat_data: dict
     }
     create_topicstatus(
         USER2, threat_data["pteam_id"], threat_data["topic_id"], threat_data["tag_id"], json_data2
+    )
+
+    # Then
+    # check TicketStatus
+    ticket_statuses_list = testdb.scalars(
+        select(models.TicketStatus).where(
+            models.TicketStatus.ticket_id == str(threat_data["ticket_id"])
+        )
+    ).all()
+
+    assert len(ticket_statuses_list) == 2
+    for statuses_index in range(len(ticket_statuses_list)):
+        status = ticket_statuses_list[statuses_index]
+        if status.note == "acknowledged":
+            assert status.user_id == threat_data["assignees"][0]
+            assert status.topic_status == models.TopicStatusType.acknowledged
+            assert len(status.logging_ids) == 0
+            assert len(status.assignees) == 2
+            for assignees_index in range(len(status.assignees)):
+                assert status.assignees[assignees_index] in threat_data["assignees"]
+                assert status.scheduled_at == datetime(2024, 5, 1)
+        elif status.note == "scheduled":
+            assert status.user_id == threat_data["assignees"][1]
+            assert status.topic_status == models.TopicStatusType.scheduled
+            assert len(status.logging_ids) == 0
+            assert len(status.assignees) == 2
+            for assignees_index in range(len(status.assignees)):
+                assert status.assignees[assignees_index] in threat_data["assignees"]
+                assert status.scheduled_at == datetime(2024, 5, 2)
+
+    # check CurrentTicketStatus
+    current_tcket_status = testdb.scalars(
+        select(models.CurrentTicketStatus).where(
+            models.CurrentTicketStatus.ticket_id == str(threat_data["ticket_id"])
+        )
+    ).one_or_none()
+
+    assert current_tcket_status is not None
+    assert current_tcket_status.topic_status == models.TopicStatusType.scheduled
+    assert current_tcket_status.threat_impact == 1
+
+
+def test_TicketStatus_when_create_service_topicstatus(testdb: Session, threat_data: dict):
+    # When
+    # set topic_status
+    json_data1 = {
+        "topic_status": "acknowledged",
+        "note": "acknowledged",
+        "assignees": threat_data["assignees"],
+        "scheduled_at": str(datetime(2024, 5, 1)),
+    }
+    create_service_topicstatus(
+        USER1,
+        threat_data["pteam_id"],
+        threat_data["service_id"],
+        threat_data["topic_id"],
+        threat_data["tag_id"],
+        json_data1,
+    )
+
+    json_data2 = {
+        "topic_status": "scheduled",
+        "note": "scheduled",
+        "assignees": threat_data["assignees"],
+        "scheduled_at": str(datetime(2024, 5, 2)),
+    }
+    create_service_topicstatus(
+        USER2,
+        threat_data["pteam_id"],
+        threat_data["service_id"],
+        threat_data["topic_id"],
+        threat_data["tag_id"],
+        json_data2,
     )
 
     # Then
