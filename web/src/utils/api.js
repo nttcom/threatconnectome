@@ -48,6 +48,9 @@ export const getPTeamSolvedTaggedTopicIds = async (pteamId, tagId) =>
 export const getPTeamUnsolvedTaggedTopicIds = async (pteamId, tagId) =>
   axios.get(`/pteams/${pteamId}/tags/${tagId}/unsolved_topic_ids`);
 
+export const getPTeamServiceTaggedTicketIds = async (pteamId, serviceId, tagId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/${tagId}/ticket_ids`);
+
 export const createPTeamInvitation = async (pteamId, data) =>
   axios.post(`/pteams/${pteamId}/invitation`, data);
 

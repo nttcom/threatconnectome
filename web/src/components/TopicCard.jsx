@@ -49,7 +49,7 @@ import { UUIDTypography } from "./UUIDTypography";
 import { WarningTooltip } from "./WarningTooltip";
 
 export function TopicCard(props) {
-  const { pteamId, topicId, currentTagId, pteamtag } = props;
+  const { pteamId, topicId, currentTagId, serviceId, pteamtag } = props;
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
@@ -254,6 +254,7 @@ export function TopicCard(props) {
           presetTagId={currentTagId}
           presetParentTagId={currentTagDict.parent_id}
           presetActions={pteamTopicActions[topicId]}
+          serviceId={serviceId}
         />
       </Box>
       <Divider />
@@ -496,6 +497,7 @@ export function TopicCard(props) {
             show={actionModalOpen}
             topicId={topicId}
             topicActions={topicActions}
+            serviceId={serviceId}
           />
           <PTeamEditAction
             open={pteamActionModalOpen}
@@ -506,6 +508,7 @@ export function TopicCard(props) {
             presetActions={pteamTopicActions[topicId]}
             currentTagDict={currentTagDict}
             pteamtag={pteamtag}
+            serviceId={serviceId}
           />
         </Box>
         <Divider flexItem={true} orientation="vertical" />
@@ -537,7 +540,7 @@ export function TopicCard(props) {
               </Typography>
               <Box display="flex" flexDirection="column">
                 <Box display="flex" alignItems="center">
-                  <TopicStatusSelector pteamId={pteamId} topicId={topicId} />
+                  <TopicStatusSelector pteamId={pteamId} topicId={topicId} serviceId={serviceId} />
                   {(ttStatus.topic_status ?? "alerted") === "alerted" && (
                     <WarningTooltip message="No one has acknowledged this topic" />
                   )}
@@ -582,5 +585,6 @@ TopicCard.propTypes = {
   pteamId: PropTypes.string.isRequired,
   topicId: PropTypes.string.isRequired,
   currentTagId: PropTypes.string.isRequired,
+  serviceId: PropTypes.string.isRequired,
   pteamtag: PropTypes.object.isRequired,
 };

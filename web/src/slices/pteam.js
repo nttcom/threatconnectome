@@ -7,6 +7,7 @@ import {
   getPTeamMembers as apiGetPTeamMembers,
   getPTeamSolvedTaggedTopicIds as apiGetPTeamSolvedTaggedTopicIds,
   getPTeamUnsolvedTaggedTopicIds as apiGetPTeamUnsolvedTaggedTopicIds,
+  getPTeamServiceTaggedTicketIds as apiGetPTeamServiceTaggedTicketIds,
   getPTeamTag as apiGetPTeamTag,
   getPTeamTagsSummary as apiGetPTeamTagsSummary,
   getPTeamTopicActions as apiGetPTeamTopicActions,
@@ -89,6 +90,19 @@ export const getPTeamUnsolvedTaggedTopicIds = createAsyncThunk(
       tagId: data.tagId,
       data: response.data,
     })),
+);
+
+export const getPTeamServiceTaggedTicketIds = createAsyncThunk(
+  "pteam/getPTeamServiceTaggedTicketIds",
+  async (data) =>
+    await apiGetPTeamServiceTaggedTicketIds(data.pteamId, data.serviceId, data.tagId).then(
+      (response) => ({
+        pteamId: data.pteamId,
+        serviceId: data.serviceId,
+        tagId: data.tagId,
+        data: response.data,
+      }),
+    ),
 );
 
 export const getPTeamTagsSummary = createAsyncThunk(
@@ -204,23 +218,34 @@ const pteamSlice = createSlice({
           [action.payload.tagId]: action.payload.data,
         },
       }))
-      .addCase(getPTeamSolvedTaggedTopicIds.fulfilled, (state, action) => ({
+      // .addCase(getPTeamSolvedTaggedTopicIds.fulfilled, (state, action) => ({
+      //   ...state,
+      //   taggedTopics: {
+      //     ...state.taggedTopics,
+      //     [action.payload.tagId]: {
+      //       ...state.taggedTopics[action.payload.tagId],
+      //       solved: action.payload.data,
+      //     },
+      //   },
+      // }))
+      // .addCase(getPTeamUnsolvedTaggedTopicIds.fulfilled, (state, action) => ({
+      //   ...state,
+      //   taggedTopics: {
+      //     ...state.taggedTopics,
+      //     [action.payload.tagId]: {
+      //       ...state.taggedTopics[action.payload.tagId],
+      //       unsolved: action.payload.data,
+      //     },
+      //   },
+      // }))
+      .addCase(getPTeamServiceTaggedTicketIds.fulfilled, (state, action) => ({
         ...state,
         taggedTopics: {
           ...state.taggedTopics,
           [action.payload.tagId]: {
             ...state.taggedTopics[action.payload.tagId],
-            solved: action.payload.data,
-          },
-        },
-      }))
-      .addCase(getPTeamUnsolvedTaggedTopicIds.fulfilled, (state, action) => ({
-        ...state,
-        taggedTopics: {
-          ...state.taggedTopics,
-          [action.payload.tagId]: {
-            ...state.taggedTopics[action.payload.tagId],
-            unsolved: action.payload.data,
+            solved: action.payload.data.solved,
+            unsolved: action.payload.data.unsolved,
           },
         },
       }))

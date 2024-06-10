@@ -3,19 +3,14 @@ import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import { PTeamTagLabel } from "../components/PTeamTagLabel.jsx";
 import { PTeamTaggedTopics } from "../components/PTeamTaggedTopics";
 import { TabPanel } from "../components/TabPanel";
 import { TagReferences } from "../components/TagReferences";
 import { UUIDTypography } from "../components/UUIDTypography";
-import {
-  getPTeamMembers,
-  getPTeamTag,
-  getPTeamSolvedTaggedTopicIds,
-  getPTeamUnsolvedTaggedTopicIds,
-} from "../slices/pteam";
+import { getPTeamMembers, getPTeamTag, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
 import { a11yProps, calcTimestampDiff } from "../utils/func.js";
 
 export function Tag() {
@@ -29,12 +24,15 @@ export function Tag() {
   const pteamtags = useSelector((state) => state.pteam.pteamtags);
   const taggedTopics = useSelector((state) => state.pteam.taggedTopics);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
+  const pteam = useSelector((state) => state.pteam.pteam);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const { enqueueSnackbar } = useSnackbar();
   const { tagId } = useParams();
+  const params = new URLSearchParams(useLocation().search);
+  const serviceId = params.get("serviceId");
 
   useEffect(() => {
     if (!pteamId || !tagId) return;
@@ -45,12 +43,13 @@ export function Tag() {
   }, [pteamId, tagId]);
 
   useEffect(() => {
-    if (!loadTopicList || !pteamId || !tagId) return;
+    if (!loadTopicList || !pteamId || !tagId || !serviceId) return;
     setLoadTopicList(false);
-    dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
-    dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
+    dispatch(
+      getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
+    );
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [loadTopicList, pteamId, tagId]);
+  }, [loadTopicList, pteamId, tagId, serviceId]);
 
   useEffect(() => {
     if (!pteamId || !tagId) return;
@@ -94,14 +93,14 @@ export function Tag() {
     return <>Now loading...</>;
   }
 
-  const numSolved = taggedTopics[tagId].solved?.topic_ids?.length ?? 0;
-  const numUnsolved = taggedTopics[tagId].unsolved?.topic_ids?.length ?? 0;
+  const numSolved = taggedTopics[tagId].solved?.topic_ticket_ids?.length ?? 0;
+  const numUnsolved = taggedTopics[tagId].unsolved?.topic_ticket_ids?.length ?? 0;
+
   const pteamtag = pteamtags[tagId];
   const tagDict = allTags.find((tag) => tag.tag_id === tagId);
+  const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
 
   const handleTabChange = (event, value) => setTabValue(value);
-
-  const sample_service = "webapp-frontend";
 
   return (
     <>
@@ -109,7 +108,7 @@ export function Tag() {
         <Box display="flex" flexDirection="column" flexGrow={1}>
           <Box>
             <Chip
-              label={sample_service}
+              label={serviceDict.service_name}
               variant="outlined"
               sx={{
                 borderRadius: "2px",
@@ -130,7 +129,7 @@ export function Tag() {
             <UUIDTypography sx={{ mr: 2 }}>{tagId}</UUIDTypography>
             {`Updated ${calcTimestampDiff(pteamtag.last_updated_at)}`}
           </Typography>
-          <TagReferences references={pteamtag.references} />
+          <TagReferences references={pteamtag.references} serviceDict={serviceDict} />
         </Box>
       </Box>
       <Divider />
@@ -142,10 +141,22 @@ export function Tag() {
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>
-          <PTeamTaggedTopics pteamId={pteamId} tagId={tagId} isSolved={false} pteamtag={pteamtag} />
+          <PTeamTaggedTopics
+            pteamId={pteamId}
+            tagId={tagId}
+            serviceId={serviceDict.service_id}
+            isSolved={false}
+            pteamtag={pteamtag}
+          />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
-          <PTeamTaggedTopics pteamId={pteamId} tagId={tagId} isSolved={true} pteamtag={pteamtag} />
+          <PTeamTaggedTopics
+            pteamId={pteamId}
+            tagId={tagId}
+            serviceId={serviceDict.service_id}
+            isSolved={true}
+            pteamtag={pteamtag}
+          />
         </TabPanel>
       </Box>
     </>

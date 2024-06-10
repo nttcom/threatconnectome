@@ -19,10 +19,9 @@ import { useParams } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
-  getPTeamSolvedTaggedTopicIds,
   getPTeamTagsSummary,
   getPTeamTopicStatus,
-  getPTeamUnsolvedTaggedTopicIds,
+  getPTeamServiceTaggedTicketIds,
 } from "../slices/pteam";
 import { createActionLog, createTopicStatus } from "../utils/api";
 
@@ -32,7 +31,7 @@ import { RecommendedStar } from "./RecommendedStar";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function ReportCompletedActions(props) {
-  const { onConfirm, onSetShow, show, topicId, topicActions } = props;
+  const { onConfirm, onSetShow, show, topicId, topicActions, serviceId } = props;
 
   const [note, setNote] = useState("");
   const [selectedAction, setSelectedAction] = useState([]);
@@ -74,8 +73,9 @@ export function ReportCompletedActions(props) {
       setNote("");
       dispatch(getPTeamTagsSummary(pteamId));
       dispatch(getPTeamTopicStatus({ pteamId: pteamId, topicId: topicId, tagId: tagId }));
-      dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
-      dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
+      dispatch(
+        getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
+      );
       enqueueSnackbar("Set topicstatus 'completed' succeeded", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`Operation failed: ${error}`, { variant: "error" });
@@ -247,4 +247,5 @@ ReportCompletedActions.propTypes = {
   show: PropTypes.bool.isRequired,
   topicId: PropTypes.string.isRequired,
   topicActions: PropTypes.array.isRequired,
+  serviceId: PropTypes.string.isRequired,
 };
