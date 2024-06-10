@@ -432,6 +432,7 @@ def count_service_solved_tickets_per_threat_impact(
 ) -> dict[str, int]:
     _completed = models.TopicStatusType.completed
     threat_counts_rows: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+    prev_topic_id: set = set()
 
     for dependency in service.dependencies:
         if dependency.tag_id != str(tag_id):
@@ -441,9 +442,10 @@ def count_service_solved_tickets_per_threat_impact(
                 continue
 
             _curent_ticket = threat.ticket.current_ticket_status
-            if _curent_ticket.topic_status == _completed:
+            if _curent_ticket.topic_status == _completed and threat.topic_id not in prev_topic_id:
                 threat_imapct_str = str(_curent_ticket.threat_impact)
                 threat_counts_rows[threat_imapct_str] += 1
+                prev_topic_id.add(threat.topic_id)
 
     return threat_counts_rows
 
@@ -454,6 +456,7 @@ def count_service_unsolved_tickets_per_threat_impact(
 ) -> dict[str, int]:
     _completed = models.TopicStatusType.completed
     threat_counts_rows: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+    prev_topic_id: set = set()
 
     for dependency in service.dependencies:
         if dependency.tag_id != str(tag_id):
@@ -462,15 +465,11 @@ def count_service_unsolved_tickets_per_threat_impact(
             if not threat.ticket:
                 continue
 
-            # When a ticket exists but current_ticket_status does not exist,
-            # it is treated as unsolved.
-            if not threat.ticket.current_ticket_status:
-                threat_counts_rows["1"] += 1
-
             _curent_ticket = threat.ticket.current_ticket_status
-            if _curent_ticket.topic_status != _completed:
+            if _curent_ticket.topic_status != _completed and threat.topic_id not in prev_topic_id:
                 threat_imapct_str = str(_curent_ticket.threat_impact)
                 threat_counts_rows[threat_imapct_str] += 1
+                prev_topic_id.add(threat.topic_id)
 
     return threat_counts_rows
 
@@ -478,11 +477,10 @@ def count_service_unsolved_tickets_per_threat_impact(
 def get_sorted_solved_ticket_ids_by_service_tag_and_status(
     service: models.Service,
     tag_id: UUID | str,
-) -> Sequence[str]:
+) -> list[dict]:
     _completed = models.TopicStatusType.completed
-
-    current_ticket_statuses: list[models.CurrentTicketStatus] = []
-    ticket_ids: list = []
+    topic_ticket_ids: list[dict] = []
+    topic_ticket_ids_dict: dict = {}
 
     for dependency in service.dependencies:
         if dependency.tag_id != str(tag_id):
@@ -493,29 +491,32 @@ def get_sorted_solved_ticket_ids_by_service_tag_and_status(
 
             _curent_ticket = threat.ticket.current_ticket_status
             if _curent_ticket.topic_status == _completed:
-                current_ticket_statuses.append(_curent_ticket)
+                topic_ticket_ids.append(
+                    {"topic_id": threat.topic_id, "ticket_id": _curent_ticket.ticket_id}
+                )
 
-    current_ticket_statuses_sort = sorted(
-        current_ticket_statuses,
-        key=lambda current_ticket_status: (
-            current_ticket_status.threat_impact,
-            current_ticket_status.updated_at,
-        ),
-    )
-    for current_ticket_statu_sort in current_ticket_statuses_sort:
-        ticket_ids.append(current_ticket_statu_sort.ticket_id)
+    for _topic_ticket_id in topic_ticket_ids:
+        if _topic_ticket_id["topic_id"] not in topic_ticket_ids_dict:
+            topic_ticket_ids_dict[_topic_ticket_id["topic_id"]] = {
+                "topic_id": _topic_ticket_id["topic_id"],
+                "ticket_ids": [],
+            }
+        topic_ticket_ids_dict[_topic_ticket_id["topic_id"]]["ticket_ids"].append(
+            _topic_ticket_id["ticket_id"]
+        )
 
-    return ticket_ids
+    result = list(topic_ticket_ids_dict.values())
+
+    return result
 
 
 def get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
     service: models.Service,
     tag_id: UUID | str,
-) -> Sequence[str]:
+) -> list[dict]:
     _completed = models.TopicStatusType.completed
-
-    current_ticket_statuses: list[models.CurrentTicketStatus] = []
-    ticket_ids: list = []
+    topic_ticket_ids: list[dict] = []
+    topic_ticket_ids_dict: dict = {}
 
     for dependency in service.dependencies:
         if dependency.tag_id != str(tag_id):
@@ -524,23 +525,22 @@ def get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
             if not threat.ticket:
                 continue
 
-            # When a ticket exists but current_ticket_status does not exist,
-            # it is treated as unsolved.
-            if not threat.ticket.current_ticket_status:
-                ticket_ids.append(threat.ticket.ticket_id)
-
             _curent_ticket = threat.ticket.current_ticket_status
             if _curent_ticket.topic_status != _completed:
-                current_ticket_statuses.append(_curent_ticket)
+                topic_ticket_ids.append(
+                    {"topic_id": threat.topic_id, "ticket_id": _curent_ticket.ticket_id}
+                )
 
-    current_ticket_statuses_sort = sorted(
-        current_ticket_statuses,
-        key=lambda current_ticket_status: (
-            current_ticket_status.threat_impact,
-            current_ticket_status.updated_at,
-        ),
-    )
-    for current_ticket_statu_sort in current_ticket_statuses_sort:
-        ticket_ids.append(current_ticket_statu_sort.ticket_id)
+    for _topic_ticket_id in topic_ticket_ids:
+        if _topic_ticket_id["topic_id"] not in topic_ticket_ids_dict:
+            topic_ticket_ids_dict[_topic_ticket_id["topic_id"]] = {
+                "topic_id": _topic_ticket_id["topic_id"],
+                "ticket_ids": [],
+            }
+        topic_ticket_ids_dict[_topic_ticket_id["topic_id"]]["ticket_ids"].append(
+            _topic_ticket_id["ticket_id"]
+        )
 
-    return ticket_ids
+    result = list(topic_ticket_ids_dict.values())
+
+    return result

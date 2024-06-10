@@ -597,7 +597,7 @@ class ServiceTaggedTopics(ORMModel):
     service_id: UUID
     tag_id: UUID
     threat_impact_count: dict[str, int]
-    ticket_ids: list[UUID]
+    topic_ticket_ids: list[dict]
 
 
 class ServiceTaggedTopicsSolvedUnsolved(ORMModel):

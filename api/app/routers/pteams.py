@@ -367,11 +367,15 @@ def get_service_tagged_ticket_ids(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service tag")
 
     ## sovled
-    ticket_ids_soloved = get_sorted_solved_ticket_ids_by_service_tag_and_status(service, tag_id)
+    topic_ticket_ids_soloved = get_sorted_solved_ticket_ids_by_service_tag_and_status(
+        service, tag_id
+    )
     threat_impact_count_soloved = count_service_solved_tickets_per_threat_impact(service, tag_id)
 
     ## unsovled
-    ticket_ids_unsoloved = get_sorted_unsolved_ticket_ids_by_service_tag_and_status(service, tag_id)
+    topic_ticket_ids_unsoloved = get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
+        service, tag_id
+    )
     threat_impact_count_unsoloved = count_service_unsolved_tickets_per_threat_impact(
         service, tag_id
     )
@@ -382,14 +386,14 @@ def get_service_tagged_ticket_ids(
             "service_id": service_id,
             "tag_id": tag_id,
             "threat_impact_count": threat_impact_count_soloved,
-            "ticket_ids": ticket_ids_soloved,
+            "topic_ticket_ids": topic_ticket_ids_soloved,
         },
         "unsolved": {
             "pteam_id": pteam_id,
             "service_id": service_id,
             "tag_id": tag_id,
             "threat_impact_count": threat_impact_count_unsoloved,
-            "ticket_ids": ticket_ids_unsoloved,
+            "topic_ticket_ids": topic_ticket_ids_unsoloved,
         },
     }
 
