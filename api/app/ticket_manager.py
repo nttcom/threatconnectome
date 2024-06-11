@@ -68,7 +68,8 @@ def set_ticket_statuses_in_service(
     tag: models.Tag,  # should be PTeamTag, not TopicTag
     topicStatusRequest: schemas.TopicStatusRequest,
 ) -> schemas.TopicStatusResponse | None:
-    firstest_status: models.TicketStatus | None = None
+    oldest_status: models.TicketStatus | None = None
+    oldest_updated_at: datetime | None = None
 
     for dependency in service.dependencies:
         if dependency.tag_id != tag.tag_id:
@@ -79,16 +80,15 @@ def set_ticket_statuses_in_service(
             updated_at, ticket_status = set_ticket_status(
                 db, current_user, topic, ticket, topicStatusRequest
             )
-            if (
-                firstest_status is None
-                or updated_at < firstest_status.current_ticket_status.updated_at
+            if oldest_status is None or (
+                oldest_updated_at is not None
+                and updated_at is not None
+                and updated_at < oldest_updated_at
             ):
-                firstest_status = ticket_status
+                oldest_status = ticket_status
 
     return (
-        command.ticket_status_to_response(db, firstest_status)
-        if firstest_status is not None
-        else None
+        command.ticket_status_to_response(db, oldest_status) if oldest_status is not None else None
     )
 
 
