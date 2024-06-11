@@ -157,24 +157,21 @@ def test_TicketStatus_when_create_pteam_topicstatus(testdb: Session, threat_data
     ).all()
 
     assert len(ticket_statuses_list) == 2
-    for statuses_index in range(len(ticket_statuses_list)):
-        status = ticket_statuses_list[statuses_index]
+    for status in ticket_statuses_list:
         if status.note == "acknowledged":
             assert status.user_id == threat_data["assignees"][0]
             assert status.topic_status == models.TopicStatusType.acknowledged
             assert len(status.logging_ids) == 0
             assert len(status.assignees) == 2
-            for assignees_index in range(len(status.assignees)):
-                assert status.assignees[assignees_index] in threat_data["assignees"]
-                assert status.scheduled_at == datetime(2024, 5, 1)
+            assert all(assignee in threat_data["assignees"] for assignee in status.assignees)
+            assert status.scheduled_at == datetime(2024, 5, 1)
         elif status.note == "scheduled":
             assert status.user_id == threat_data["assignees"][1]
             assert status.topic_status == models.TopicStatusType.scheduled
             assert len(status.logging_ids) == 0
             assert len(status.assignees) == 2
-            for assignees_index in range(len(status.assignees)):
-                assert status.assignees[assignees_index] in threat_data["assignees"]
-                assert status.scheduled_at == datetime(2024, 5, 2)
+            assert all(assignee in threat_data["assignees"] for assignee in status.assignees)
+            assert status.scheduled_at == datetime(2024, 5, 2)
 
     # check CurrentTicketStatus
     current_tcket_status = testdb.scalars(
@@ -230,24 +227,21 @@ def test_TicketStatus_when_create_service_topicstatus(testdb: Session, threat_da
     ).all()
 
     assert len(ticket_statuses_list) == 2
-    for statuses_index in range(len(ticket_statuses_list)):
-        status = ticket_statuses_list[statuses_index]
+    for status in ticket_statuses_list:
         if status.note == "acknowledged":
             assert status.user_id == threat_data["assignees"][0]
             assert status.topic_status == models.TopicStatusType.acknowledged
             assert len(status.logging_ids) == 0
             assert len(status.assignees) == 2
-            for assignees_index in range(len(status.assignees)):
-                assert status.assignees[assignees_index] in threat_data["assignees"]
-                assert status.scheduled_at == datetime(2024, 5, 1)
+            assert all(assignee in threat_data["assignees"] for assignee in status.assignees)
+            assert status.scheduled_at == datetime(2024, 5, 1)
         elif status.note == "scheduled":
             assert status.user_id == threat_data["assignees"][1]
             assert status.topic_status == models.TopicStatusType.scheduled
             assert len(status.logging_ids) == 0
             assert len(status.assignees) == 2
-            for assignees_index in range(len(status.assignees)):
-                assert status.assignees[assignees_index] in threat_data["assignees"]
-                assert status.scheduled_at == datetime(2024, 5, 2)
+            assert all(assignee in threat_data["assignees"] for assignee in status.assignees)
+            assert status.scheduled_at == datetime(2024, 5, 2)
 
     # check CurrentTicketStatus
     current_tcket_status = testdb.scalars(
