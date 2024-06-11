@@ -16,8 +16,8 @@ export function PTeamTagAutoClose(props) {
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
 
+  const pteamId = useSelector((state) => state.pteam.pteamId);
   const params = new URLSearchParams(useLocation().search);
-  const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
   const handleSave = async () => {
