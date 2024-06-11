@@ -3534,14 +3534,17 @@ def test_get_service_tagged_ticket_ids(testdb):
     assert response["solved"]["service_id"] == ticket_response["service_id"]
     assert response["solved"]["tag_id"] == ticket_response["tag_id"]
     assert response["solved"]["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 0}
-    assert response["solved"]["ticket_ids"] == []
+    assert response["solved"]["topic_ticket_ids"] == []
 
     # unsolved
     assert response["unsolved"]["pteam_id"] == ticket_response["pteam_id"]
     assert response["unsolved"]["service_id"] == ticket_response["service_id"]
     assert response["unsolved"]["tag_id"] == ticket_response["tag_id"]
     assert response["unsolved"]["threat_impact_count"] == {"1": 1, "2": 0, "3": 0, "4": 0}
-    assert ticket_response["ticket_id"] in response["unsolved"]["ticket_ids"]
+    assert (
+        ticket_response["ticket_id"] in response["unsolved"]["topic_ticket_ids"][0]["ticket_ids"][0]
+    )
+    assert response["unsolved"]["topic_ticket_ids"][0]["topic_id"] == ticket_response["topic_id"]
 
 
 def test_service_tagged_ticket_ids_with_wrong_pteam_id(testdb):

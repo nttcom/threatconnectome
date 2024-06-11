@@ -23,10 +23,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
-  getPTeamSolvedTaggedTopicIds,
   getPTeamTagsSummary,
   getPTeamTopicActions,
-  getPTeamUnsolvedTaggedTopicIds,
+  getPTeamServiceTaggedTicketIds,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { updateTopic, createAction, updateAction, deleteAction } from "../utils/api";
@@ -46,6 +45,7 @@ export function PTeamEditAction(props) {
     presetActions,
     currentTagDict,
     pteamtag,
+    serviceId,
   } = props;
 
   const [errors, setErrors] = useState([]);
@@ -144,8 +144,13 @@ export function PTeamEditAction(props) {
     // update only if needed
     if (pteamId && presetTagId) {
       await Promise.all([
-        dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
-        dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
+        dispatch(
+          getPTeamServiceTaggedTicketIds({
+            pteamId: pteamId,
+            serviceId: serviceId,
+            tagId: presetTagId,
+          }),
+        ),
       ]);
     }
   };
@@ -390,4 +395,5 @@ PTeamEditAction.propTypes = {
   ),
   currentTagDict: PropTypes.object.isRequired,
   pteamtag: PropTypes.object.isRequired,
+  serviceId: PropTypes.string,
 };

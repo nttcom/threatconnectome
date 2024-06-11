@@ -27,17 +27,16 @@ import { useParams } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
-  getPTeamSolvedTaggedTopicIds,
   getPTeamTagsSummary,
   getPTeamTopicStatus,
-  getPTeamUnsolvedTaggedTopicIds,
+  getPTeamServiceTaggedTicketIds,
 } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
 import { topicStatusProps } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
 export function TopicStatusSelector(props) {
-  const { pteamId, topicId } = props;
+  const { pteamId, topicId, serviceId } = props;
 
   const [open, setOpen] = useState(false);
   const [selectableItems, setSelectableItems] = useState([]);
@@ -87,8 +86,13 @@ export function TopicStatusSelector(props) {
           dispatch(getPTeamTagsSummary(pteamId));
         }
         if (ttStatus.topic_status === "completed") {
-          dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
-          dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
+          dispatch(
+            getPTeamServiceTaggedTicketIds({
+              pteamId: pteamId,
+              serviceId: serviceId,
+              tagId: tagId,
+            }),
+          );
         }
         enqueueSnackbar("Change topic status succeeded", { variant: "success" });
       })
@@ -231,4 +235,5 @@ export function TopicStatusSelector(props) {
 TopicStatusSelector.propTypes = {
   pteamId: PropTypes.string.isRequired,
   topicId: PropTypes.string.isRequired,
+  serviceId: PropTypes.string.isRequired,
 };

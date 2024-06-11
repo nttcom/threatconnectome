@@ -28,10 +28,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
-  getPTeamSolvedTaggedTopicIds,
   getPTeamTagsSummary,
   getPTeamTopicActions,
-  getPTeamUnsolvedTaggedTopicIds,
+  getPTeamServiceTaggedTicketIds,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import {
@@ -54,7 +53,15 @@ import { TopicTagSelector } from "./TopicTagSelector";
 const steps = ["Import Flashsense", "Create topic"];
 
 export function TopicModal(props) {
-  const { open, onSetOpen, presetTopicId, presetTagId, presetParentTagId, presetActions } = props;
+  const {
+    open,
+    onSetOpen,
+    presetTopicId,
+    presetTagId,
+    presetParentTagId,
+    presetActions,
+    serviceId,
+  } = props;
 
   const [errors, setErrors] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
@@ -167,8 +174,13 @@ export function TopicModal(props) {
     // update only if needed
     if (pteamId && presetTagId) {
       await Promise.all([
-        dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
-        dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
+        dispatch(
+          getPTeamServiceTaggedTicketIds({
+            pteamId: pteamId,
+            serviceId: serviceId,
+            tagId: presetTagId,
+          }),
+        ),
       ]);
     }
   };
@@ -322,8 +334,13 @@ export function TopicModal(props) {
 
   const handleDeleteTopic = () => {
     if (presetTagId) {
-      dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId }));
-      dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId }));
+      dispatch(
+        getPTeamServiceTaggedTicketIds({
+          pteamId: pteamId,
+          serviceId: serviceId,
+          tagId: presetTagId,
+        }),
+      );
     }
   };
 
@@ -682,4 +699,5 @@ TopicModal.propTypes = {
       }),
     }),
   ),
+  serviceId: PropTypes.string.isRequired,
 };
