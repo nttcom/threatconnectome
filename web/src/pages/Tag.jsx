@@ -19,7 +19,6 @@ export function Tag() {
   const [loadPTeamTag, setLoadPTeamTag] = useState(false);
   const [loadTopicList, setLoadTopicList] = useState(false);
 
-  const pteamId = useSelector((state) => state.pteam.pteamId);
   const members = useSelector((state) => state.pteam.members);
   const pteamtags = useSelector((state) => state.pteam.pteamtags);
   const taggedTopics = useSelector((state) => state.pteam.taggedTopics);
@@ -32,6 +31,7 @@ export function Tag() {
   const { enqueueSnackbar } = useSnackbar();
   const { tagId } = useParams();
   const params = new URLSearchParams(useLocation().search);
+  const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
   useEffect(() => {
