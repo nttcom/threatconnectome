@@ -2,14 +2,14 @@ from app import models
 
 
 def calculate_ssvc_deployer_priority(
-    threat: models.Threat, dependency: models.Dependency | None
+    threat: models.Threat,
 ) -> models.SSVCDeployerPriorityEnum | None:
     topic = threat.topic
     service = threat.dependency.service
     exploitation = topic.exploitation  # noqa: F841
     exposure = service.exposure  # noqa: F841
     automatable = topic.automatable  # noqa: F841
-    mission_impact = calculate_mission_impact(threat.dependency.service, dependency)  # noqa: F841
+    mission_impact = calculate_mission_impact(threat.dependency)  # noqa: F841
     safety_impact = topic.safety_impact  # noqa: F841
     # TODO Calculation not implemented.
 
@@ -28,9 +28,8 @@ def calculate_ssvc_deployer_priority(
 
 
 def calculate_mission_impact(
-    service: models.Service,
-    dependency: models.Dependency | None,
+    dependency: models.Dependency,
 ) -> models.MissionImpactEnum | None:
     if dependency and dependency.dependency_mission_impact:
         return dependency.dependency_mission_impact
-    return service.service_mission_impact
+    return dependency.service.service_mission_impact

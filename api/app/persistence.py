@@ -418,6 +418,8 @@ def delete_topic(db: Session, topic: models.Topic):
 
 
 ### Threat
+
+
 def create_threat(db: Session, threat: models.Threat) -> None:
     db.add(threat)
     db.flush()
@@ -449,12 +451,21 @@ def search_threats(
 
 
 ### Ticket
+
+
 def create_ticket(db: Session, ticket: models.Ticket) -> None:
     db.add(ticket)
     db.flush()
 
 
+def delete_ticket(db: Session, ticket: models.Ticket) -> None:
+    db.delete(ticket)
+    db.flush()
+
+
 ### TicketStatus
+
+
 def create_ticket_status(
     db: Session,
     status: models.TicketStatus,
@@ -464,6 +475,8 @@ def create_ticket_status(
 
 
 ### CurrentTicketStatus
+
+
 def create_current_ticket_status(
     db: Session,
     status: models.CurrentTicketStatus,
@@ -484,6 +497,8 @@ def get_current_ticket_status(
 
 
 ### Service
+
+
 def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | None:
     return db.scalars(
         select(models.Service).where(models.Service.service_id == str(service_id))
@@ -491,6 +506,8 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
 
 
 ### Dependency
+
+
 def get_dependency_from_service_id_and_tag_id(
     db: Session, service_id: str, tag_id: str
 ) -> models.Dependency | None:

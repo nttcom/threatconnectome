@@ -108,7 +108,7 @@ class ExtPypiVersion(PypiVersion):
 #   - required implemented __gt__, __ge__, __lt__, __le__.
 #     Note: __eq__ cannot be used to compare versions. use >= and <= instead.
 #   - may raise ValueError on errors.
-ComparableVersion: TypeAlias = ExtDebianVersion | ExtPypiVersion | SemverVersion
+ComparableVersion: TypeAlias = ExtDebianVersion | ExtPypiVersion | SemverVersion | GolangVersion
 
 
 def gen_version_instance(
