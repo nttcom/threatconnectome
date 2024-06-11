@@ -53,12 +53,15 @@ export const getPTeamInvited = async (tokenId) => axios.get(`/pteams/invitation/
 export const applyPTeamInvitation = async (tokenId) =>
   axios.post("/pteams/apply_invitation", { invitation_id: tokenId });
 
-export const createTopicStatus = async (pteamId, topicId, tagId, data) => {
-  return axios.post(`/pteams/${pteamId}/topicstatus/${topicId}/${tagId}`, data);
+export const createTopicStatus = async (pteamId, serviceId, topicId, tagId, data) => {
+  return axios.post(
+    `/pteams/${pteamId}/services/${serviceId}/topicstatus/${topicId}/${tagId}`,
+    data,
+  );
 };
 
-export const getPTeamTopicStatus = async (pteamId, topicId, tagId) =>
-  axios.get(`/pteams/${pteamId}/topicstatus/${topicId}/${tagId}`);
+export const getTopicStatus = async (pteamId, serviceId, topicId, tagId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/topicstatus/${topicId}/${tagId}`);
 
 export const getPTeamTopicStatusesSummary = async (pteamId, tagId) =>
   axios.get(`/pteams/${pteamId}/topicstatusessummary/${tagId}`);

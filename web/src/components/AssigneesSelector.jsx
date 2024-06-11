@@ -5,11 +5,11 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import { getPTeamTagsSummary, getPTeamTopicStatus } from "../slices/pteam";
+import { getPTeamTagsSummary, getTopicStatus } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
 
 export function AssigneesSelector(props) {
-  const { pteamId, topicId } = props;
+  const { pteamId, topicId, serviceId } = props;
 
   const { tagId } = useParams();
   const members = useSelector((state) => state.pteam.members); // dispatched by parent
@@ -21,16 +21,16 @@ export function AssigneesSelector(props) {
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
-    if (!topicStatus[topicId]?.[tagId] || !members) return;
+    if (!topicStatus[serviceId]?.[topicId]?.[tagId] || !members) return;
     setAssignees(
-      (topicStatus[topicId][tagId].assignees ?? []).map(
+      (topicStatus[serviceId][topicId][tagId].assignees ?? []).map(
         (user_id) => members[user_id]?.email ?? "(unknown)",
       ),
     );
-  }, [members, tagId, pteamId, topicId, topicStatus]);
+  }, [members, tagId, pteamId, serviceId, topicId, topicStatus]);
 
   const handleApply = async () => {
-    const ttStatus = topicStatus[topicId][tagId];
+    const ttStatus = topicStatus[serviceId][topicId][tagId];
     const latestUserIds = [...(ttStatus.assignees ?? [])].sort();
     const userIds = Object.values(members)
       .filter((member) => assignees.includes(member.email))
@@ -38,7 +38,7 @@ export function AssigneesSelector(props) {
       .sort();
     if (JSON.stringify(userIds) === JSON.stringify(latestUserIds)) return; // not modified
 
-    await createTopicStatus(pteamId, topicId, tagId, {
+    await createTopicStatus(pteamId, serviceId, topicId, tagId, {
       topic_status: ttStatus.topic_status ?? "acknowledged",
       logging_ids: ttStatus.logging_ids ?? [],
       assignees: userIds,
@@ -47,7 +47,14 @@ export function AssigneesSelector(props) {
     })
       .then(() => {
         dispatch(getPTeamTagsSummary(pteamId));
-        dispatch(getPTeamTopicStatus({ pteamId: pteamId, topicId: topicId, tagId: tagId }));
+        dispatch(
+          getTopicStatus({
+            pteamId: pteamId,
+            serviceId: serviceId,
+            topicId: topicId,
+            tagId: tagId,
+          }),
+        );
         enqueueSnackbar("Change assignees succeeded", { variant: "success" });
       })
       .catch((error) => {
@@ -66,7 +73,7 @@ export function AssigneesSelector(props) {
     setAssignees(typeof value === "string" ? value.split(",") : value);
   };
 
-  if (!topicStatus[topicId]?.[tagId] || !members) return <></>;
+  if (!topicStatus[serviceId]?.[topicId]?.[tagId] || !members) return <></>;
 
   return (
     <>
@@ -106,4 +113,5 @@ export function AssigneesSelector(props) {
 AssigneesSelector.propTypes = {
   pteamId: PropTypes.string.isRequired,
   topicId: PropTypes.string.isRequired,
+  serviceId: PropTypes.string.isRequired,
 };

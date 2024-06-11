@@ -20,7 +20,7 @@ import { useParams } from "react-router-dom";
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
   getPTeamTagsSummary,
-  getPTeamTopicStatus,
+  getTopicStatus,
   getPTeamServiceTaggedTicketIds,
 } from "../slices/pteam";
 import { createActionLog, createTopicStatus } from "../utils/api";
@@ -63,7 +63,7 @@ export function ReportCompletedActions(props) {
             }),
         ),
       );
-      await createTopicStatus(pteamId, topicId, tagId, {
+      await createTopicStatus(pteamId, serviceId, topicId, tagId, {
         topic_status: "completed",
         logging_ids: actionLogs.map((log) => log.logging_id),
         note: note.trim() || null,
@@ -72,7 +72,9 @@ export function ReportCompletedActions(props) {
       onConfirm();
       setNote("");
       dispatch(getPTeamTagsSummary(pteamId));
-      dispatch(getPTeamTopicStatus({ pteamId: pteamId, topicId: topicId, tagId: tagId }));
+      dispatch(
+        getTopicStatus({ pteamId: pteamId, serviceId: serviceId, topicId: topicId, tagId: tagId }),
+      );
       dispatch(
         getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
       );

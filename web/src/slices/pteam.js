@@ -9,7 +9,7 @@ import {
   getPTeamTag as apiGetPTeamTag,
   getPTeamTagsSummary as apiGetPTeamTagsSummary,
   getPTeamTopicActions as apiGetPTeamTopicActions,
-  getPTeamTopicStatus as apiGetPTeamTopicStatus,
+  getTopicStatus as apiGetTopicStatus,
   getPTeamTopicStatusesSummary as apiGetPTeamTopicStatusesSummary,
   getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
 } from "../utils/api";
@@ -102,15 +102,18 @@ export const getPTeamTopicStatusesSummary = createAsyncThunk(
     })),
 );
 
-export const getPTeamTopicStatus = createAsyncThunk(
-  "pteam/getPTeamTopicStatus",
+export const getTopicStatus = createAsyncThunk(
+  "pteam/getTopicStatus",
   async (data) =>
-    await apiGetPTeamTopicStatus(data.pteamId, data.topicId, data.tagId).then((response) => ({
-      data: response.data || {},
-      pteamId: data.pteamId,
-      topicId: data.topicId,
-      tagId: data.tagId,
-    })),
+    await apiGetTopicStatus(data.pteamId, data.serviceId, data.topicId, data.tagId).then(
+      (response) => ({
+        data: response.data || {},
+        pteamId: data.pteamId,
+        serviceId: data.serviceId,
+        topicId: data.topicId,
+        tagId: data.tagId,
+      }),
+    ),
 );
 
 export const getPTeamTopicActions = createAsyncThunk(
@@ -207,13 +210,16 @@ const pteamSlice = createSlice({
           },
         },
       }))
-      .addCase(getPTeamTopicStatus.fulfilled, (state, action) => ({
+      .addCase(getTopicStatus.fulfilled, (state, action) => ({
         ...state,
         topicStatus: {
           ...state.topicStatus,
-          [action.payload.topicId]: {
-            ...state.topicStatus[action.payload.topicId],
-            [action.payload.tagId]: action.payload.data,
+          [action.payload.serviceId]: {
+            ...state.topicStatus[action.payload.serviceId],
+            [action.payload.topicId]: {
+              ...state.topicStatus[action.payload.topicId],
+              [action.payload.tagId]: action.payload.data,
+            },
           },
         },
       }))
