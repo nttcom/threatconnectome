@@ -555,6 +555,34 @@ def pteam_topic_tag_status_to_response(
     )
 
 
+def ticket_status_to_response(
+    db: Session,
+    status: models.TicketStatus,
+) -> schemas.TopicStatusResponse:
+    threat = status.ticket.threat
+    dependency = threat.dependency
+    service = dependency.service
+    actionlogs = db.scalars(
+        select(models.ActionLog)
+        .where(func.array_position(status.logging_ids, models.ActionLog.logging_id).is_not(None))
+        .order_by(models.ActionLog.executed_at.desc())
+    ).all()
+    return schemas.TopicStatusResponse(
+        status_id=UUID(status.status_id),
+        topic_id=UUID(threat.topic.topic_id),
+        pteam_id=UUID(service.pteam.pteam_id),
+        service_id=UUID(service.service_id),
+        tag_id=UUID(dependency.tag.tag_id),
+        user_id=UUID(status.user_id),
+        topic_status=status.topic_status,
+        created_at=status.created_at,
+        assignees=list(map(UUID, status.assignees)),
+        note=status.note,
+        scheduled_at=status.scheduled_at,
+        action_logs=[schemas.ActionLogResponse(**log.__dict__) for log in actionlogs],
+    )
+
+
 def fix_current_status_by_pteam(db: Session, pteam: models.PTeam):
     pteam_tag_ids = (
         select(models.Tag.tag_id.distinct())

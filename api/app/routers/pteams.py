@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
@@ -426,7 +425,6 @@ def get_service_topic_status(
     if tag not in pteam.tags:
         raise NO_SUCH_PTEAM_TAG
 
-    firstest_updated_at: datetime | None = None
     firstest_status: models.TicketStatus | None = None
     for dependency in service.dependencies:
         if dependency.tag_id != str(tag_id):
@@ -436,19 +434,16 @@ def get_service_topic_status(
                 continue
             if not (current_ticket_status := ticket.current_ticket_status):
                 continue
-            for ticket_status in ticket.ticket_statuses:
-                if ticket_status.status_id != current_ticket_status.status_id:
-                    continue
 
-                if firstest_status is None or (
-                    firstest_updated_at is not None
-                    and current_ticket_status.updated_at is not None
-                    and current_ticket_status.updated_at < firstest_updated_at
+            if ticket_status := current_ticket_status.ticket_status:
+                if (
+                    firstest_status is None
+                    or ticket_status.updated_at < firstest_status.current_ticket_status.updated_at
                 ):
                     firstest_status = ticket_status
 
     return (
-        ticket_manager.ticket_status_to_response(db, firstest_status)
+        command.ticket_status_to_response(db, firstest_status)
         if firstest_status is not None
         else {
             "pteam_id": pteam_id,

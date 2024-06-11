@@ -1,10 +1,8 @@
 from datetime import datetime
-from uuid import UUID
 
-from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import command, models, persistence, schemas
 from app.alert import send_alert_to_pteam
 from app.common import (
     threat_meets_condition_to_create_ticket,
@@ -70,25 +68,28 @@ def set_ticket_statuses_in_service(
     tag: models.Tag,  # should be PTeamTag, not TopicTag
     topicStatusRequest: schemas.TopicStatusRequest,
 ) -> schemas.TopicStatusResponse | None:
-    firstest_updated_at: datetime | None = None
     firstest_status: models.TicketStatus | None = None
 
     for dependency in service.dependencies:
         if dependency.tag_id != tag.tag_id:
             continue
         for threat in persistence.search_threats(db, dependency.dependency_id, topic.topic_id):
-            if ticket := threat.ticket:
-                updated_at, ticket_status = set_ticket_status(
-                    db, current_user, topic, ticket, topicStatusRequest
-                )
-                if firstest_status is None or (
-                    firstest_updated_at is not None
-                    and updated_at is not None
-                    and updated_at < firstest_updated_at
-                ):
-                    firstest_status = ticket_status
+            if not (ticket := threat.ticket):
+                continue
+            updated_at, ticket_status = set_ticket_status(
+                db, current_user, topic, ticket, topicStatusRequest
+            )
+            if (
+                firstest_status is None
+                or updated_at < firstest_status.current_ticket_status.updated_at
+            ):
+                firstest_status = ticket_status
 
-    return ticket_status_to_response(db, firstest_status) if firstest_status is not None else None
+    return (
+        command.ticket_status_to_response(db, firstest_status)
+        if firstest_status is not None
+        else None
+    )
 
 
 def set_ticket_status(
@@ -139,31 +140,3 @@ def set_ticket_status(
     db.flush()
 
     return current_status.updated_at, new_status
-
-
-def ticket_status_to_response(
-    db: Session,
-    status: models.TicketStatus,
-) -> schemas.TopicStatusResponse:
-    threat = status.ticket.threat
-    dependency = threat.dependency
-    service = dependency.service
-    actionlogs = db.scalars(
-        select(models.ActionLog)
-        .where(func.array_position(status.logging_ids, models.ActionLog.logging_id).is_not(None))
-        .order_by(models.ActionLog.executed_at.desc())
-    ).all()
-    return schemas.TopicStatusResponse(
-        status_id=UUID(status.status_id),
-        topic_id=UUID(threat.topic.topic_id),
-        pteam_id=UUID(service.pteam.pteam_id),
-        service_id=UUID(service.service_id),
-        tag_id=UUID(dependency.tag.tag_id),
-        user_id=UUID(status.user_id),
-        topic_status=status.topic_status,
-        created_at=status.created_at,
-        assignees=list(map(UUID, status.assignees)),
-        note=status.note,
-        scheduled_at=status.scheduled_at,
-        action_logs=[schemas.ActionLogResponse(**log.__dict__) for log in actionlogs],
-    )
