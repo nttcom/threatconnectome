@@ -1000,14 +1000,14 @@ class TestAutoClose:
             pteam: schemas.PTeamInfo,
             topic: schemas.Topic,
             tag: schemas.TagResponse,
-        ) -> schemas.TopicStatusResponse:
+        ) -> schemas.PTeamTopicStatusResponse:
             data = assert_200(
                 client.get(
                     f"/pteams/{pteam.pteam_id}/topicstatus/{topic.topic_id}/{tag.tag_id}",
                     headers=headers(USER1),
                 )
             )
-            return schemas.TopicStatusResponse(**data)
+            return schemas.PTeamTopicStatusResponse(**data)
 
         @staticmethod
         def gen_action_dict(**kwargs) -> dict:

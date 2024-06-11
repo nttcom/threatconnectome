@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import command, models, persistence, schemas
 from app.alert import send_alert_to_pteam
 from app.common import (
     threat_meets_condition_to_create_ticket,
@@ -48,7 +48,7 @@ def create_ticket(db: Session, threat: models.Threat):
         send_alert_to_pteam(alert)
 
 
-def set_ticket_statuses(
+def set_ticket_statuses_in_pteam(
     db: Session,
     current_user: models.Account,
     pteam: models.PTeam,
@@ -57,12 +57,39 @@ def set_ticket_statuses(
     topicStatusRequest: schemas.TopicStatusRequest,
 ) -> None:
     for service in pteam.services:
-        for dependency in service.dependencies:
-            if dependency.tag_id != tag.tag_id:
+        set_ticket_statuses_in_service(db, current_user, service, topic, tag, topicStatusRequest)
+
+
+def set_ticket_statuses_in_service(
+    db: Session,
+    current_user: models.Account,
+    service: models.Service,
+    topic: models.Topic,
+    tag: models.Tag,  # should be PTeamTag, not TopicTag
+    topicStatusRequest: schemas.TopicStatusRequest,
+) -> schemas.TopicStatusResponse | None:
+    oldest_status: models.TicketStatus | None = None
+    oldest_updated_at: datetime | None = None
+
+    for dependency in service.dependencies:
+        if dependency.tag_id != tag.tag_id:
+            continue
+        for threat in persistence.search_threats(db, dependency.dependency_id, topic.topic_id):
+            if not (ticket := threat.ticket):
                 continue
-            for threat in persistence.search_threats(db, dependency.dependency_id, topic.topic_id):
-                if ticket := threat.ticket:
-                    set_ticket_status(db, current_user, topic, ticket, topicStatusRequest)
+            updated_at, ticket_status = set_ticket_status(
+                db, current_user, topic, ticket, topicStatusRequest
+            )
+            if oldest_status is None or (
+                oldest_updated_at is not None
+                and updated_at is not None
+                and updated_at < oldest_updated_at
+            ):
+                oldest_status = ticket_status
+
+    return (
+        command.ticket_status_to_response(db, oldest_status) if oldest_status is not None else None
+    )
 
 
 def set_ticket_status(
@@ -71,7 +98,7 @@ def set_ticket_status(
     topic: models.Topic,
     ticket: models.Ticket,
     topicStatusRequest: schemas.TopicStatusRequest,
-) -> None:
+) -> tuple[datetime | None, models.TicketStatus]:
     current_status = persistence.get_current_ticket_status(db, ticket.ticket_id)
     if (
         (current_status is None or current_status.topic_status == models.TopicStatusType.alerted)
@@ -109,4 +136,7 @@ def set_ticket_status(
     current_status.updated_at = (
         None if new_status.topic_status == models.TopicStatusType.completed else topic.updated_at
     )
+
     db.flush()
+
+    return current_status.updated_at, new_status

@@ -347,7 +347,7 @@ def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
 
 def create_topicstatus(
     user: dict, pteam_id: UUID, topic_id: UUID, tag_id: UUID, json: dict
-) -> schemas.TopicStatusResponse:
+) -> schemas.PTeamTopicStatusResponse:
     response = assert_200(
         client.post(
             f"/pteams/{pteam_id}/topicstatus/{topic_id}/{tag_id}",
@@ -355,7 +355,18 @@ def create_topicstatus(
             json=json,
         )
     )
-    return schemas.TopicStatusResponse(**response)
+    return schemas.PTeamTopicStatusResponse(**response)
+
+
+def create_service_topicstatus(
+    user: dict, pteam_id: UUID, service_id: UUID, topic_id: UUID, tag_id: UUID, json: dict
+) -> schemas.TopicStatusResponse:
+    response = client.post(
+        f"/pteams/{pteam_id}/services/{service_id}/topicstatus/{topic_id}/{tag_id}",
+        headers=headers(user),
+        json=json,
+    )
+    return schemas.TopicStatusResponse(**response.json())
 
 
 def common_put(user: dict, api_path: str, **kwargs) -> dict:

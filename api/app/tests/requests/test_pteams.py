@@ -17,7 +17,7 @@ from app.constants import (
     ZERO_FILLED_UUID,
 )
 from app.main import app
-from app.tests.common import ticket_utils
+from app.tests.common import threat_utils, ticket_utils
 from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
@@ -50,6 +50,7 @@ from app.tests.medium.utils import (
     create_actionlog,
     create_ateam,
     create_pteam,
+    create_service_topicstatus,
     create_tag,
     create_topic,
     create_topicstatus,
@@ -4515,3 +4516,76 @@ class TestGetPTeamServiceTagsSummary:
                 },
             }
         ]
+
+
+def test_get_service_topic_status_without_ticket_status(testdb: Session):
+    threat = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+    dependency = (
+        testdb.query(models.Dependency)
+        .filter(
+            models.Dependency.dependency_id == str(threat.dependency_id),
+        )
+        .one()
+    )
+    pteam_id = dependency.service.pteam.pteam_id
+    service_id = UUID(dependency.service.service_id)
+    tag_id = UUID(dependency.tag.tag_id)
+
+    response = client.get(
+        f"/pteams/{pteam_id}/services/{service_id}/topicstatus/{threat.topic_id}/{tag_id}",
+        headers=headers(USER1),
+    )
+    assert response.status_code == 200
+    responsed_topicstatuses = response.json()
+    assert responsed_topicstatuses["pteam_id"] == str(pteam_id)
+    assert responsed_topicstatuses["service_id"] == str(service_id)
+    assert responsed_topicstatuses["topic_id"] == str(threat.topic_id)
+    assert responsed_topicstatuses["tag_id"] == str(tag_id)
+    assert responsed_topicstatuses["user_id"] is None
+    assert responsed_topicstatuses["topic_status"] is None
+    assert responsed_topicstatuses["note"] is None
+
+
+def test_get_service_topic_status_with_ticket_status(testdb: Session):
+    threat = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+    dependency = (
+        testdb.query(models.Dependency)
+        .filter(
+            models.Dependency.dependency_id == str(threat.dependency_id),
+        )
+        .one()
+    )
+    pteam_id = dependency.service.pteam.pteam_id
+    service_id = UUID(dependency.service.service_id)
+    tag_id = UUID(dependency.tag.tag_id)
+
+    set_request = {
+        "topic_status": models.TopicStatusType.acknowledged,
+        "logging_ids": [],
+        "assignees": [],
+        "note": f"acknowledged by {USER1['email']}",
+        "scheduled_at": None,
+    }
+    create_service_topicstatus(
+        USER1,
+        pteam_id,
+        service_id,
+        threat.topic_id,
+        tag_id,
+        set_request,
+    )
+
+    # get topicstatuses
+    response = client.get(
+        f"/pteams/{pteam_id}/services/{service_id}/topicstatus/{threat.topic_id}/{tag_id}",
+        headers=headers(USER1),
+    )
+    assert response.status_code == 200
+    responsed_topicstatuses = response.json()
+    assert responsed_topicstatuses["pteam_id"] == str(pteam_id)
+    assert responsed_topicstatuses["service_id"] == str(service_id)
+    assert responsed_topicstatuses["topic_id"] == str(threat.topic_id)
+    assert responsed_topicstatuses["tag_id"] == str(tag_id)
+    assert responsed_topicstatuses["user_id"] is not None
+    assert responsed_topicstatuses["topic_status"] == set_request["topic_status"]
+    assert responsed_topicstatuses["note"] == set_request["note"]
