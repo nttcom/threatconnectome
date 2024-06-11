@@ -373,9 +373,7 @@ class Threat(Base):
 
     topic = relationship("Topic", back_populates="threats")
     ticket = relationship("Ticket", uselist=False, back_populates="threat", cascade="all, delete")
-    dependency = relationship(
-        "Dependency", uselist=False, back_populates="threats", cascade="all, delete"
-    )
+    dependency = relationship("Dependency", uselist=False, back_populates="threats")
 
 
 class Ticket(Base):
