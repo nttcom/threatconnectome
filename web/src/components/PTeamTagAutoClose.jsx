@@ -2,7 +2,7 @@ import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import { WaitingModal } from "../components/WaitingModal";
