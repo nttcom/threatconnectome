@@ -2,14 +2,11 @@ import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { useLocation } from "react-router-dom";
 
 import { WaitingModal } from "../components/WaitingModal";
-import {
-  getPTeamSolvedTaggedTopicIds,
-  getPTeamUnsolvedTaggedTopicIds,
-  getPTeamTagsSummary,
-} from "../slices/pteam";
+import { getPTeamServiceTaggedTicketIds, getPTeamTagsSummary } from "../slices/pteam";
 import { autoCloseTag } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
 
@@ -19,15 +16,22 @@ export function PTeamTagAutoClose(props) {
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
 
-  const pteamId = useSelector((state) => state.pteam.pteamId);
+  const params = new URLSearchParams(useLocation().search);
+  const pteamId = params.get("pteamId");
+  const serviceId = params.get("serviceId");
 
   const handleSave = async () => {
     setIsOpenWaitingModal(true);
     await autoCloseTag(pteamId, tagId)
       .then(() => {
         enqueueSnackbar("Auto Close Accepted", { variant: "success" });
-        dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
-        dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
+        dispatch(
+          getPTeamServiceTaggedTicketIds({
+            pteamId: pteamId,
+            serviceId: serviceId,
+            tagId: tagId,
+          }),
+        );
         dispatch(getPTeamTagsSummary(pteamId));
         // TODO: topic.status is changed when a autocolse button is pressed.
       })
