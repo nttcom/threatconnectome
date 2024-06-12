@@ -10,6 +10,7 @@ from app.auth import get_current_user
 from app.common import (
     auto_close_by_topic,
     check_topic_action_tags_integrity,
+    fix_threats_for_topic,
 )
 from app.database import get_db
 
@@ -66,7 +67,8 @@ def create_action(
     topic.actions.append(action)
     db.flush()
 
-    auto_close_by_topic(db, action.topic)
+    fix_threats_for_topic(db, action.topic)
+    auto_close_by_topic(db, action.topic)  # TODO remove
 
     db.commit()
 
@@ -146,7 +148,7 @@ def delete_action(
     persistence.delete_action(db, action)
 
     # try auto close because deleted action could block closing
-    auto_close_by_topic(db, topic)
+    auto_close_by_topic(db, topic)  # TODO remove
 
     db.commit()
 

@@ -47,5 +47,5 @@ def test_calculate_mission_impact(
     )
     service.dependencies.append(dependency)
 
-    mission_impact = ssvc.calculate_mission_impact(service, dependency)
+    mission_impact = ssvc.calculate_mission_impact(dependency)
     assert mission_impact == expected_mission_impact

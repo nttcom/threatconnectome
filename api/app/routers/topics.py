@@ -9,14 +9,14 @@ from fastapi.responses import Response
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas, ticket_manager
-from app.alert import alert_new_topic
+from app import command, models, persistence, schemas
 from app.auth import get_current_user, token_scheme
 from app.common import (
     auto_close_by_topic,
     calculate_topic_content_fingerprint,
     check_pteam_membership,
     check_topic_action_tags_integrity,
+    fix_threats_for_topic,
     get_or_create_misp_tag,
     get_sorted_topics,
 )
@@ -230,31 +230,6 @@ def get_topic(
     return topic
 
 
-def _create_threats_from_topic(db: Session, topic: models.Topic) -> Sequence[models.Threat]:
-    now = datetime.now()
-    threats: list[models.Threat] = []
-    for dependency in topic.dependencies_via_tag:
-        if not (
-            current_status := persistence.get_current_pteam_topic_tag_status(
-                db, dependency.service.pteam_id, topic.topic_id, dependency.tag_id
-            )
-        ):
-            continue  # may not happen
-        if current_status.topic_status == models.TopicStatusType.completed or (
-            current_status.topic_status == models.TopicStatusType.scheduled
-            and current_status.raw_status
-            and current_status.raw_status.scheduled_at > now
-        ):
-            continue  # skip if already closed or scheduled at future
-        threat = models.Threat(
-            dependency_id=dependency.dependency_id,
-            topic_id=topic.topic_id,
-        )
-        threats.append(threat)
-
-    return threats
-
-
 @router.post("/{topic_id}", response_model=schemas.TopicCreateResponse)
 def create_topic(
     topic_id: UUID,
@@ -356,22 +331,12 @@ def create_topic(
 
     persistence.create_topic(db, topic)
 
-    auto_close_by_topic(db, topic)
-    command.fix_current_status_by_topic(db, topic)
+    fix_threats_for_topic(db, topic)
 
-    for threat in _create_threats_from_topic(db, topic):
-        if persistence.search_threats(
-            db,
-            threat.dependency_id,
-            threat.topic_id,
-        ):
-            continue  # skip if already exists
-        persistence.create_threat(db, threat)
-        ticket_manager.create_ticket(db, threat)
+    auto_close_by_topic(db, topic)  # TODO remove
+    command.fix_current_status_by_topic(db, topic)  # TODO remove
 
     db.commit()
-
-    alert_new_topic(db, topic.topic_id)
 
     return topic
 
@@ -446,9 +411,10 @@ def update_topic(
     db.flush()
 
     if tags_updated:
-        auto_close_by_topic(db, topic)
+        fix_threats_for_topic(db, topic)
+        auto_close_by_topic(db, topic)  # TODO remove
 
-    command.fix_current_status_by_topic(db, topic)
+    command.fix_current_status_by_topic(db, topic)  # TODO remove
 
     db.commit()
 
@@ -474,7 +440,7 @@ def delete_topic(
         )
 
     persistence.delete_topic(db, topic)
-    command.fix_current_status_by_deleted_topic(db, topic.topic_id)
+    command.fix_current_status_by_deleted_topic(db, topic.topic_id)  # TODO remove
 
     db.commit()
 

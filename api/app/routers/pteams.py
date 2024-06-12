@@ -14,6 +14,7 @@ from app.common import (
     check_pteam_membership,
     count_service_solved_tickets_per_threat_impact,
     count_service_unsolved_tickets_per_threat_impact,
+    fix_threats_for_dependency,
     get_or_create_topic_tag,
     get_pteam_ext_tags,
     get_sorted_solved_ticket_ids_by_service_tag_and_status,
@@ -963,10 +964,12 @@ def apply_service_tags(
             target=target,
         )
         service.dependencies.append(new_dependency)
+        db.flush()
+        fix_threats_for_dependency(db, new_dependency)
     db.flush()
 
     # try auto close if make sense
-    if auto_close:
+    if auto_close:  # TODO remove
         new_versions = _collect_versions_of_pteam_tags(pteam)
         if tags_for_auto_close := [
             tag
@@ -975,7 +978,7 @@ def apply_service_tags(
         ]:
             auto_close_by_pteamtags(db, [(pteam, tag) for tag in tags_for_auto_close])
 
-    command.fix_current_status_by_pteam(db, pteam)
+    command.fix_current_status_by_pteam(db, pteam)  # TODO remove
 
 
 @router.delete("/{pteam_id}/tags", status_code=status.HTTP_204_NO_CONTENT)
@@ -1001,7 +1004,7 @@ def remove_pteam_tags_by_service(
 
     pteam.services.remove(service_model)
     db.flush()
-    command.fix_current_status_by_pteam(db, pteam)
+    command.fix_current_status_by_pteam(db, pteam)  # TODO remove
 
     db.commit()
 

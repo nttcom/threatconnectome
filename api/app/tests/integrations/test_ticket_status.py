@@ -95,7 +95,7 @@ def threat_data(testdb: Session) -> dict:
             threat_id=threat.threat_id,
             created_at=now,
             updated_at=now,
-            ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat, threat.dependency),
+            ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat),
         )
         persistence.create_ticket(testdb, _ticket)
 
