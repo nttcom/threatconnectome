@@ -33,12 +33,7 @@ import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
-import {
-  getPTeam,
-  getPTeamServiceTagsSummary,
-  getPTeamTagsSummary,
-  setPTeamId,
-} from "../slices/pteam";
+import { getPTeam, getPTeamServiceTagsSummary, setPTeamId } from "../slices/pteam";
 import { noPTeamMessage, threatImpactName, threatImpactProps } from "../utils/const";
 const threatImpactCountMax = 99999;
 
@@ -144,7 +139,6 @@ export function Status() {
   }
 
   const handleSBOMUploaded = () => {
-    dispatch(getPTeamTagsSummary(pteamId));
     dispatch(getPTeam(pteamId));
   };
 

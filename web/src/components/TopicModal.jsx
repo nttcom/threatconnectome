@@ -27,11 +27,7 @@ import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import {
-  getPTeamTagsSummary,
-  getPTeamTopicActions,
-  getPTeamServiceTaggedTicketIds,
-} from "../slices/pteam";
+import { getPTeamTopicActions, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import {
   createTopic,
@@ -168,7 +164,6 @@ export function TopicModal(props) {
     // fix topic state
     await Promise.all([
       dispatch(getTopic(topicId)),
-      dispatch(getPTeamTagsSummary(pteamId)),
       dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
     ]);
     // update only if needed

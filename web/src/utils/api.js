@@ -36,8 +36,6 @@ export const getPTeamAuth = async (pteamId) => axios.get(`/pteams/${pteamId}/aut
 export const updatePTeamAuth = async (pteamId, data) =>
   axios.post(`/pteams/${pteamId}/authority`, data);
 
-export const getPTeamTagsSummary = async (pteamId) => axios.get(`/pteams/${pteamId}/tags/summary`);
-
 export const getPTeamTag = async (pteamId, tagId) => axios.get(`/pteams/${pteamId}/tags/${tagId}`);
 
 export const getPTeamTopics = async (pteamId) => axios.get(`/pteams/${pteamId}/topics`);
