@@ -693,7 +693,7 @@ def fix_threats_for_dependency(db: Session, dependency: models.Dependency):
         # collect TopicActions
         topic_actions: list[models.TopicAction] = []
         for topic in tag.topics:
-            topic.actions.extend(topic.actions)
+            topic_actions.extend(topic.actions)
 
         # collect VulnerableRanges for each topics from TopicAction
         vulnerable_range_strings_dict: dict[str, set[str]] = {}  # topic_id: range strings
