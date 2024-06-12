@@ -22,11 +22,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import {
-  getPTeamTagsSummary,
-  getPTeamTopicActions,
-  getPTeamServiceTaggedTicketIds,
-} from "../slices/pteam";
+import { getPTeamTopicActions, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { updateTopic, createAction, updateAction, deleteAction } from "../utils/api";
 import { actionTypes } from "../utils/const";
@@ -138,7 +134,6 @@ export function PTeamEditAction(props) {
     // fix topic state
     await Promise.all([
       dispatch(getTopic(topicId)),
-      dispatch(getPTeamTagsSummary(pteamId)),
       dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
     ]);
     // update only if needed

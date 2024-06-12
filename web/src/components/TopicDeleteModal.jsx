@@ -13,10 +13,8 @@ import { red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { getPTeamTagsSummary } from "../slices/pteam";
 import { deleteTopic } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
 
@@ -25,9 +23,6 @@ export function TopicDeleteModal(props) {
   const [open, setOpen] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
-
-  const pteamId = useSelector((state) => state.pteam.pteamId);
-  const dispatch = useDispatch();
 
   const operationError = (error) => {
     const resp = error.response ?? { status: "???", statusText: error.toString() };
@@ -40,7 +35,6 @@ export function TopicDeleteModal(props) {
     deleteTopic(topicId)
       .then(async () => {
         await Promise.all([
-          dispatch(getPTeamTagsSummary(pteamId)),
           onDelete && onDelete(),
           enqueueSnackbar("delete topic succeeded", { variant: "success" }),
         ]);

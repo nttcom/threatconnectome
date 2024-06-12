@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import { WaitingModal } from "../components/WaitingModal";
-import { getPTeamServiceTaggedTicketIds, getPTeamTagsSummary } from "../slices/pteam";
+import { getPTeamServiceTaggedTicketIds } from "../slices/pteam";
 import { autoCloseTag } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
 
@@ -32,7 +32,6 @@ export function PTeamTagAutoClose(props) {
             tagId: tagId,
           }),
         );
-        dispatch(getPTeamTagsSummary(pteamId));
         // TODO: topic.status is changed when a autocolse button is pressed.
       })
       .catch((error) => {
