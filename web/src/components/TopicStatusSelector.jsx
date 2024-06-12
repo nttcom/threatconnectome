@@ -26,11 +26,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import {
-  getPTeamTagsSummary,
-  getTopicStatus,
-  getPTeamServiceTaggedTicketIds,
-} from "../slices/pteam";
+import { getTopicStatus, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
 import { topicStatusProps } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
@@ -83,7 +79,6 @@ export function TopicStatusSelector(props) {
       .then(() => {
         if (selectedStatus !== ttStatus.topicStatus) {
           dispatch(getTopicStatus({ pteamId: pteamId, topicId: topicId, tagId: tagId }));
-          dispatch(getPTeamTagsSummary(pteamId));
         }
         if (ttStatus.topic_status === "completed") {
           dispatch(

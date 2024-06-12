@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import { getPTeamTagsSummary, getTopicStatus } from "../slices/pteam";
+import { getTopicStatus } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
 
 export function AssigneesSelector(props) {
@@ -46,7 +46,6 @@ export function AssigneesSelector(props) {
       scheduled_at: ttStatus.scheduled_at,
     })
       .then(() => {
-        dispatch(getPTeamTagsSummary(pteamId));
         dispatch(
           getTopicStatus({
             pteamId: pteamId,

@@ -18,11 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import {
-  getPTeamTagsSummary,
-  getTopicStatus,
-  getPTeamServiceTaggedTicketIds,
-} from "../slices/pteam";
+import { getTopicStatus, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
 import { createActionLog, createTopicStatus } from "../utils/api";
 
 import { ActionTypeChip } from "./ActionTypeChip";
@@ -71,7 +67,6 @@ export function ReportCompletedActions(props) {
       handleClose();
       onConfirm();
       setNote("");
-      dispatch(getPTeamTagsSummary(pteamId));
       dispatch(
         getTopicStatus({ pteamId: pteamId, serviceId: serviceId, topicId: topicId, tagId: tagId }),
       );

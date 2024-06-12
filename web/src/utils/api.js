@@ -36,8 +36,6 @@ export const getPTeamAuth = async (pteamId) => axios.get(`/pteams/${pteamId}/aut
 export const updatePTeamAuth = async (pteamId, data) =>
   axios.post(`/pteams/${pteamId}/authority`, data);
 
-export const getPTeamTagsSummary = async (pteamId) => axios.get(`/pteams/${pteamId}/tags/summary`);
-
 export const getPTeamTag = async (pteamId, tagId) => axios.get(`/pteams/${pteamId}/tags/${tagId}`);
 
 export const getPTeamTopics = async (pteamId) => axios.get(`/pteams/${pteamId}/topics`);
@@ -87,11 +85,6 @@ export const uploadSBOMFile = async (pteamId, service, file, forceMode = true) =
     params: paramData,
   });
 };
-
-export const autoClose = async (pteamId) => axios.post(`/pteams/${pteamId}/fix_status_mismatch`);
-
-export const autoCloseTag = async (pteamId, tagId) =>
-  axios.post(`/pteams/${pteamId}/tags/${tagId}/fix_status_mismatch`);
 
 // ateams
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);
