@@ -5,17 +5,22 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
-import { PTeamTagLabel } from "../components/PTeamTagLabel.jsx";
 import { PTeamTaggedTopics } from "../components/PTeamTaggedTopics";
 import { TabPanel } from "../components/TabPanel";
 import { TagReferences } from "../components/TagReferences";
 import { UUIDTypography } from "../components/UUIDTypography";
-import { getPTeamMembers, getPTeamTag, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
+import {
+  getPTeam,
+  getPTeamMembers,
+  getPTeamTag,
+  getPTeamServiceTaggedTicketIds,
+} from "../slices/pteam";
 import { a11yProps, calcTimestampDiff } from "../utils/func.js";
 
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
   const [loadMembers, setLoadMembers] = useState(false);
+  const [loadPTeam, setLoadPTeam] = useState(false);
   const [loadPTeamTag, setLoadPTeamTag] = useState(false);
   const [loadTopicList, setLoadTopicList] = useState(false);
 
@@ -39,8 +44,18 @@ export function Tag() {
     if (!loadTopicList && taggedTopics[tagId] === undefined) {
       setLoadTopicList(true);
     }
+    if (!loadPTeam && pteam === undefined) {
+      setLoadPTeam(true);
+    }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pteamId, tagId]);
+
+  useEffect(() => {
+    if (!pteamId || !loadPTeam) return;
+    setLoadPTeam(false);
+    dispatch(getPTeam(pteamId));
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [loadPTeam, pteamId]);
 
   useEffect(() => {
     if (!loadTopicList || !pteamId || !tagId || !serviceId) return;
@@ -89,7 +104,7 @@ export function Tag() {
     }
   }, [dispatch, loadMembers, pteamId]);
 
-  if (!allTags || !pteamId || !taggedTopics[tagId] || !pteamtags[tagId]) {
+  if (!allTags || !pteamId || !pteam || !taggedTopics[tagId] || !pteamtags[tagId]) {
     return <>Now loading...</>;
   }
 
@@ -123,7 +138,6 @@ export function Tag() {
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
               {tagDict.tag_name}
             </Typography>
-            <PTeamTagLabel tagId={tagId} />
           </Box>
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{tagId}</UUIDTypography>

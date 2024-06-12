@@ -83,11 +83,6 @@ export const uploadSBOMFile = async (pteamId, service, file, forceMode = true) =
   });
 };
 
-export const autoClose = async (pteamId) => axios.post(`/pteams/${pteamId}/fix_status_mismatch`);
-
-export const autoCloseTag = async (pteamId, tagId) =>
-  axios.post(`/pteams/${pteamId}/tags/${tagId}/fix_status_mismatch`);
-
 // ateams
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);
 
