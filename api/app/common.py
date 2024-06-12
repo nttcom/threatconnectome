@@ -590,6 +590,12 @@ def create_ticket_internal(
 def fix_threats_for_topic(db: Session, topic: models.Topic):
     now = datetime.now()
 
+    # remove threats which lost related dependency -- for the case Topic.tags updated
+    valid_dependency_ids = {dependency.dependency_id for dependency in topic.dependencies_via_tag}
+    for threat in topic.threats:
+        if threat.dependency_id not in valid_dependency_ids:
+            persistence.delete_threat(db, threat)
+
     # collect VulnerableRanges for each tags from TopicAction
     vulnerable_range_strings_dict: dict[str, set[str]] = {}  # tag_name: range strings
     for action in topic.actions:
