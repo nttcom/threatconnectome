@@ -626,7 +626,13 @@ class Tag(Base):
     parent_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("tag.tag_id"), index=True)
     parent_name: Mapped[str | None] = mapped_column(ForeignKey("tag.tag_name"), index=True)
 
-    topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
+    topics = relationship(
+        "Topic",
+        secondary=TopicTag.__tablename__,
+        primaryjoin="TopicTag.tag_id.in_([Tag.tag_id, Tag.parent_id])",
+        collection_class=set,
+        viewonly=True,
+    )
     dependencies = relationship("Dependency", back_populates="tag", cascade="all, delete-orphan")
 
 
