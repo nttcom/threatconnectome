@@ -430,6 +430,26 @@ def get_service_topic_status(
     if tag not in pteam.tags:
         raise NO_SUCH_PTEAM_TAG
 
+    oldest_status = get_oldest_status(service, topic_id, tag_id, db)
+
+    return (
+        command.ticket_status_to_response(db, oldest_status)
+        if oldest_status is not None
+        else {
+            "pteam_id": pteam_id,
+            "service_id": service_id,
+            "topic_id": topic_id,
+            "tag_id": tag_id,
+        }
+    )
+
+
+def get_oldest_status(
+    service: models.Service,
+    topic_id: UUID,
+    tag_id: UUID,
+    db: Session = Depends(get_db),
+):
     oldest_status: models.TicketStatus | None = None
     oldest_updated_at: datetime | None = None
     for dependency in service.dependencies:
@@ -449,17 +469,9 @@ def get_service_topic_status(
                 and current_ticket_status.updated_at < oldest_updated_at
             ):
                 oldest_status = ticket_status
+                oldest_updated_at = current_ticket_status.updated_at
 
-    return (
-        command.ticket_status_to_response(db, oldest_status)
-        if oldest_status is not None
-        else {
-            "pteam_id": pteam_id,
-            "service_id": service_id,
-            "topic_id": topic_id,
-            "tag_id": tag_id,
-        }
-    )
+    return oldest_status
 
 
 @router.post(

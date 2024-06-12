@@ -86,6 +86,7 @@ def set_ticket_statuses_in_service(
                 and updated_at < oldest_updated_at
             ):
                 oldest_status = ticket_status
+                oldest_updated_at = updated_at
 
     return (
         command.ticket_status_to_response(db, oldest_status) if oldest_status is not None else None
