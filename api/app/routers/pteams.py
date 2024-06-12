@@ -213,14 +213,6 @@ def get_pteam_service_tags_summary(
         for threat in dependency.threats:
             if not (ticket := threat.ticket):  # ignore threats if not have ticket
                 continue
-            topic = threat.topic
-            if (
-                tag_summary["threat_impact"] is None
-                or tag_summary["threat_impact"] > topic.threat_impact
-            ):
-                tag_summary["threat_impact"] = topic.threat_impact
-            if tag_summary["updated_at"] is None or tag_summary["updated_at"] < topic.updated_at:
-                tag_summary["updated_at"] = topic.updated_at
             fixed_ticket_status = (
                 models.TopicStatusType.alerted
                 if (
@@ -229,7 +221,18 @@ def get_pteam_service_tags_summary(
                 )
                 else current_ticket_status.topic_status
             )
+            if fixed_ticket_status == models.TopicStatusType.completed:
+                continue
+
             tag_summary["status_count"][fixed_ticket_status] += 1
+            topic = threat.topic
+            if (
+                tag_summary["threat_impact"] is None
+                or tag_summary["threat_impact"] > topic.threat_impact
+            ):
+                tag_summary["threat_impact"] = topic.threat_impact
+            if tag_summary["updated_at"] is None or tag_summary["updated_at"] < topic.updated_at:
+                tag_summary["updated_at"] = topic.updated_at
 
     # count tags threat_impact
     threat_impact_count: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
