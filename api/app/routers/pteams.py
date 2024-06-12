@@ -221,10 +221,10 @@ def get_pteam_service_tags_summary(
                 )
                 else current_ticket_status.topic_status
             )
+            tag_summary["status_count"][fixed_ticket_status] += 1
             if fixed_ticket_status == models.TopicStatusType.completed:
                 continue
 
-            tag_summary["status_count"][fixed_ticket_status] += 1
             topic = threat.topic
             if (
                 tag_summary["threat_impact"] is None
