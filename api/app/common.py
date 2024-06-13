@@ -504,7 +504,7 @@ def get_sorted_solved_ticket_ids_by_service_tag_and_status(
                     topic_ticket_ids_dict[threat.topic_id] = tmp_topic_ticket_ids_dict
                 tmp_topic_ticket_ids_dict["ticket_ids"].append(_curent_ticket.ticket_id)
 
-    # The contents of topic_ticket_ids_list are as follows
+    # The contents of topic_ticket_ids are as follows
     # [{
     #   "topic_id":xxxxx,
     #   "topic_threat_impact":xxxxx,
@@ -561,7 +561,7 @@ def get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
                     topic_ticket_ids_dict[threat.topic_id] = tmp_topic_ticket_ids_dict
                 tmp_topic_ticket_ids_dict["ticket_ids"].append(_curent_ticket.ticket_id)
 
-    # The contents of topic_ticket_ids_list are as follows
+    # The contents of topic_ticket_ids are as follows
     # [{
     #   "topic_id":xxxxx,
     #   "topic_threat_impact":xxxxx,
