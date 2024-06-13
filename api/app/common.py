@@ -483,31 +483,52 @@ def get_sorted_solved_ticket_ids_by_service_tag_and_status(
     _completed = models.TopicStatusType.completed
     topic_ticket_ids: list[dict] = []
     topic_ticket_ids_dict: dict = {}
+    result: list = []
 
+    # Search for topic_id and ticket_id corresponding to service_id and tag_id
     for dependency in service.dependencies:
         if dependency.tag_id != str(tag_id):
             continue
         for threat in dependency.threats:
             if not threat.ticket:
                 continue
-
             _curent_ticket = threat.ticket.current_ticket_status
-            if _curent_ticket.topic_status == _completed:
-                topic_ticket_ids.append(
-                    {"topic_id": threat.topic_id, "ticket_id": _curent_ticket.ticket_id}
-                )
+            if _curent_ticket.topic_status != _completed:
+                if (
+                    tmp_topic_ticket_ids_dict := topic_ticket_ids_dict.get(threat.topic_id)
+                ) is None:
+                    tmp_topic_ticket_ids_dict = {
+                        "topic_id": threat.topic_id,
+                        "topic_threat_impact": threat.topic.threat_impact,
+                        "topic_updated_at": threat.topic.updated_at,
+                        "ticket_ids": [],
+                    }
+                    topic_ticket_ids_dict[threat.topic_id] = tmp_topic_ticket_ids_dict
+                tmp_topic_ticket_ids_dict["ticket_ids"].append(_curent_ticket.ticket_id)
 
-    for _topic_ticket_id in topic_ticket_ids:
-        if _topic_ticket_id["topic_id"] not in topic_ticket_ids_dict:
-            topic_ticket_ids_dict[_topic_ticket_id["topic_id"]] = {
-                "topic_id": _topic_ticket_id["topic_id"],
-                "ticket_ids": [],
-            }
-        topic_ticket_ids_dict[_topic_ticket_id["topic_id"]]["ticket_ids"].append(
-            _topic_ticket_id["ticket_id"]
-        )
+    # The contents of topic_ticket_ids are as follows
+    # [{
+    #   "topic_id":xxxxx,
+    #   "topic_threat_impact":xxxxx,
+    #   "topic_updated_at":xxxxx,
+    #   "ticket_ids":[xxxxx,xxxxx,xxxxx]
+    # }]
+    topic_ticket_ids = list(topic_ticket_ids_dict.values())
 
-    result = list(topic_ticket_ids_dict.values())
+    # Sort topic_id according to threat_impact and updated_at
+    topic_ticket_ids_sorted = sorted(
+        topic_ticket_ids,
+        key=lambda x: (
+            x["topic_threat_impact"],
+            -(_dt.timestamp() if (_dt := x["topic_updated_at"]) else 0),
+        ),
+    )
+
+    # delete topic_threat_impact and topic_updated_at
+    for _ in topic_ticket_ids_sorted:
+        del _["topic_threat_impact"]
+        del _["topic_updated_at"]
+        result.append(_)
 
     return result
 
@@ -519,31 +540,52 @@ def get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
     _completed = models.TopicStatusType.completed
     topic_ticket_ids: list[dict] = []
     topic_ticket_ids_dict: dict = {}
+    result: list = []
 
+    # Search for topic_id and ticket_id corresponding to service_id and tag_id
     for dependency in service.dependencies:
         if dependency.tag_id != str(tag_id):
             continue
         for threat in dependency.threats:
             if not threat.ticket:
                 continue
-
             _curent_ticket = threat.ticket.current_ticket_status
             if _curent_ticket.topic_status != _completed:
-                topic_ticket_ids.append(
-                    {"topic_id": threat.topic_id, "ticket_id": _curent_ticket.ticket_id}
-                )
+                if (
+                    tmp_topic_ticket_ids_dict := topic_ticket_ids_dict.get(threat.topic_id)
+                ) is None:
+                    tmp_topic_ticket_ids_dict = {
+                        "topic_id": threat.topic_id,
+                        "topic_threat_impact": threat.topic.threat_impact,
+                        "topic_updated_at": threat.topic.updated_at,
+                        "ticket_ids": [],
+                    }
+                    topic_ticket_ids_dict[threat.topic_id] = tmp_topic_ticket_ids_dict
+                tmp_topic_ticket_ids_dict["ticket_ids"].append(_curent_ticket.ticket_id)
 
-    for _topic_ticket_id in topic_ticket_ids:
-        if _topic_ticket_id["topic_id"] not in topic_ticket_ids_dict:
-            topic_ticket_ids_dict[_topic_ticket_id["topic_id"]] = {
-                "topic_id": _topic_ticket_id["topic_id"],
-                "ticket_ids": [],
-            }
-        topic_ticket_ids_dict[_topic_ticket_id["topic_id"]]["ticket_ids"].append(
-            _topic_ticket_id["ticket_id"]
-        )
+    # The contents of topic_ticket_ids are as follows
+    # [{
+    #   "topic_id":xxxxx,
+    #   "topic_threat_impact":xxxxx,
+    #   "topic_updated_at":xxxxx,
+    #   "ticket_ids":[xxxxx,xxxxx,xxxxx]
+    # }]
+    topic_ticket_ids = list(topic_ticket_ids_dict.values())
 
-    result = list(topic_ticket_ids_dict.values())
+    # Sort topic_id according to threat_impact and updated_at
+    topic_ticket_ids_sorted = sorted(
+        topic_ticket_ids,
+        key=lambda x: (
+            x["topic_threat_impact"],
+            -(_dt.timestamp() if (_dt := x["topic_updated_at"]) else 0),
+        ),
+    )
+
+    # delete topic_threat_impact and topic_updated_at
+    for _ in topic_ticket_ids_sorted:
+        del _["topic_threat_impact"]
+        del _["topic_updated_at"]
+        result.append(_)
 
     return result
 
