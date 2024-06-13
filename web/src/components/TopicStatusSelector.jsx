@@ -26,7 +26,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { getPTeamTopicStatus, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
+import { getTopicStatus, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
 import { topicStatusProps } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
@@ -52,8 +52,8 @@ export function TopicStatusSelector(props) {
 
   useEffect(() => {
     if (!pteamId || !topicId) return;
-    if (!topicStatus[topicId]?.[tagId]) return; // resolved by parent
-    const ttStatus = topicStatus[topicId][tagId];
+    if (!topicStatus[serviceId]?.[topicId]?.[tagId]) return; // resolved by parent
+    const ttStatus = topicStatus[serviceId][topicId][tagId];
     const current = ttStatus.topic_status ?? "alerted";
     const items = [
       { display: "Acknowledge", rawStatus: "acknowledged", disabled: current === "acknowledged" },
@@ -65,11 +65,11 @@ export function TopicStatusSelector(props) {
         ? dateTimeFormat(ttStatus.scheduled_at)
         : null,
     );
-  }, [tagId, pteamId, topicId, topicStatus]);
+  }, [tagId, pteamId, serviceId, topicId, topicStatus]);
 
   const modifyTopicStatus = async (selectedStatus) => {
-    const ttStatus = topicStatus[topicId][tagId];
-    await createTopicStatus(pteamId, topicId, tagId, {
+    const ttStatus = topicStatus[serviceId][topicId][tagId];
+    await createTopicStatus(pteamId, serviceId, topicId, tagId, {
       topic_status: selectedStatus,
       logging_ids: ttStatus.logging_ids ?? [],
       assignees: ttStatus.assignees ?? [],
@@ -78,7 +78,7 @@ export function TopicStatusSelector(props) {
     })
       .then(() => {
         if (selectedStatus !== ttStatus.topicStatus) {
-          dispatch(getPTeamTopicStatus({ pteamId: pteamId, topicId: topicId, tagId: tagId }));
+          dispatch(getTopicStatus({ pteamId: pteamId, topicId: topicId, tagId: tagId }));
         }
         if (ttStatus.topic_status === "completed") {
           dispatch(
@@ -120,8 +120,9 @@ export function TopicStatusSelector(props) {
   };
 
   return (() => {
-    if (!pteamId || !topicId || !topics[topicId] || !topicStatus[topicId]?.[tagId]) return <></>;
-    const ttStatus = topicStatus[topicId][tagId];
+    if (!pteamId || !topicId || !topics[topicId] || !topicStatus[serviceId]?.[topicId]?.[tagId])
+      return <></>;
+    const ttStatus = topicStatus[serviceId][topicId][tagId];
     const currentStatus = ttStatus.topic_status ?? "alerted";
 
     const handleHideDatepicker = () => {
