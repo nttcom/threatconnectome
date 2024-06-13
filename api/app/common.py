@@ -516,9 +516,9 @@ def get_sorted_solved_ticket_ids_by_service_tag_and_status(
     # Sort topic_id according to threat_impact and updated_at
     topic_ticket_ids_sorted = sorted(
         topic_ticket_ids,
-        key=lambda topic_ticket_ids: (
-            topic_ticket_ids["topic_threat_impact"],
-            -(_dt.timestamp() if (_dt := topic_ticket_ids["topic_updated_at"]) else 0),
+        key=lambda x: (
+            x["topic_threat_impact"],
+            -(_dt.timestamp() if (_dt := x["topic_updated_at"]) else 0),
         ),
     )
 
@@ -573,9 +573,9 @@ def get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
     # Sort topic_id according to threat_impact and updated_at
     topic_ticket_ids_sorted = sorted(
         topic_ticket_ids,
-        key=lambda topic_ticket_ids: (
-            topic_ticket_ids["topic_threat_impact"],
-            -(_dt.timestamp() if (_dt := topic_ticket_ids["topic_updated_at"]) else 0),
+        key=lambda x: (
+            x["topic_threat_impact"],
+            -(_dt.timestamp() if (_dt := x["topic_updated_at"]) else 0),
         ),
     )
 
