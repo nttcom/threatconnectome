@@ -130,6 +130,7 @@ TOPIC4 = {
     "actions": [],
     "safety_impact": "hazardous",
     "exploitation": "active",
+    "automatable": True,
 }
 ACTION1 = {
     "action": "action one",
