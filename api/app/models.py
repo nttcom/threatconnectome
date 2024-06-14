@@ -663,7 +663,6 @@ class Topic(Base):
     )
     exploitation: Mapped[ExploitationEnum] = mapped_column(server_default=ExploitationEnum.ACTIVE)
     automatable: Mapped[bool] = mapped_column(server_default=text("TRUE"))
-    hint_for_action: Mapped[str | None] = mapped_column(nullable=True)  # WORKAROUND
 
     actions = relationship("TopicAction", back_populates="topic", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary=TopicTag.__tablename__, order_by="Tag.tag_name")
