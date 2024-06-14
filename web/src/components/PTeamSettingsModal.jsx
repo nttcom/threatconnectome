@@ -75,7 +75,7 @@ export function PTeamSettingsModal(props) {
         <TabPanel index={3} value={tab}>
           <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
         </TabPanel>
-        <TabPanel index={5} value={tab}>
+        <TabPanel index={4} value={tab}>
           <PTeamServiceDelete />
         </TabPanel>
       </DialogContent>

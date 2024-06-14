@@ -14,14 +14,14 @@ import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import styles from "../cssModule/dialog.module.css";
-import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
+import { getPTeam } from "../slices/pteam";
 import { deletePTeamService } from "../utils/api.js";
 
 export function PTeamServiceDelete() {
   const [checked, setChecked] = useState([]);
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const services = useSelector((state) => state.pteam.groups);
+  const services = useSelector((state) => state.pteam.pteam.services);
 
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
@@ -41,8 +41,7 @@ export function PTeamServiceDelete() {
 
   const handleDeleteService = async () => {
     function onSuccess(success) {
-      dispatch(getPTeamTagsSummary(pteamId));
-      dispatch(getPTeamGroups(pteamId));
+      dispatch(getPTeam(pteamId));
       enqueueSnackbar("Remove service succeeded", { variant: "success" });
     }
     function onError(error) {
@@ -69,20 +68,20 @@ export function PTeamServiceDelete() {
         }}
       >
         {services.map((service) => {
-          const labelId = `checkbox-list-label-${service}`;
+          const labelId = `checkbox-list-label-${service.service_name}`;
           return (
-            <ListItem key={service} disablePadding>
-              <ListItemButton role={undefined} onClick={handleToggle(service)} dense>
+            <ListItem key={service.service_name} disablePadding>
+              <ListItemButton role={undefined} onClick={handleToggle(service.service_name)} dense>
                 <ListItemIcon>
                   <Checkbox
                     edge="start"
-                    checked={checked.indexOf(service) !== -1}
+                    checked={checked.indexOf(service.service_name) !== -1}
                     tabIndex={-1}
                     disableRipple
                     inputProps={{ "aria-labelledby": labelId }}
                   />
                 </ListItemIcon>
-                <ListItemText id={labelId} primary={service} />
+                <ListItemText id={labelId} primary={service.service_name} />
               </ListItemButton>
             </ListItem>
           );
