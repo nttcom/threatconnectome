@@ -493,7 +493,7 @@ def get_sorted_solved_ticket_ids_by_service_tag_and_status(
             if not threat.ticket:
                 continue
             _curent_ticket = threat.ticket.current_ticket_status
-            if _curent_ticket.topic_status != _completed:
+            if _curent_ticket.topic_status == _completed:
                 if (
                     tmp_topic_ticket_ids_dict := topic_ticket_ids_dict.get(threat.topic_id)
                 ) is None:
@@ -621,7 +621,7 @@ def create_ticket_internal(
         alert = models.Alert(
             ticket_id=ticket.ticket_id,
             alerted_at=now,
-            alert_content=threat.topic.hint_for_action,
+            alert_content="",  # alert_content is not used
         )
         persistence.create_alert(db, alert)
         send_alert_to_pteam(alert)

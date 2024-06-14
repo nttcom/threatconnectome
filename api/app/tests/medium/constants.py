@@ -95,7 +95,6 @@ TOPIC1 = {
     "safety_impact": "catastrophic",
     "exploitation": "active",
     "automatable": True,
-    "hint_for_action": "",
 }
 TOPIC2 = {
     "topic_id": uuid4(),
@@ -108,7 +107,6 @@ TOPIC2 = {
     "safety_impact": "hazardous",
     "exploitation": "active",
     "automatable": True,
-    "hint_for_action": "",
 }
 TOPIC3 = {
     "topic_id": uuid4(),
@@ -121,7 +119,6 @@ TOPIC3 = {
     "safety_impact": "catastrophic",
     "exploitation": "active",
     "automatable": True,
-    "hint_for_action": "",
 }
 TOPIC4 = {
     "topic_id": uuid4(),
@@ -134,7 +131,6 @@ TOPIC4 = {
     "safety_impact": "hazardous",
     "exploitation": "active",
     "automatable": True,
-    "hint_for_action": "",
 }
 ACTION1 = {
     "action": "action one",

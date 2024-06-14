@@ -68,7 +68,6 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
             "safety_impact": "catastrophic",
             "exploitation": "active",
             "automatable": True,
-            "hint_for_action": "",
         }
 
     def _find_expected(

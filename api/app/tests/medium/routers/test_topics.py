@@ -75,7 +75,6 @@ def test_create_topic():
     assert topic1.safety_impact == TOPIC1["safety_impact"]
     assert topic1.exploitation == TOPIC1["exploitation"]
     assert topic1.automatable == TOPIC1["automatable"]
-    assert topic1.hint_for_action == TOPIC1["hint_for_action"]
 
 
 def test_create_topic__with_new_tags():
@@ -197,7 +196,6 @@ def test_default_value_is_set_when_ssvc_related_value_is_empty_in_creation():
     del _topic["safety_impact"]
     del _topic["exploitation"]
     del _topic["automatable"]
-    del _topic["hint_for_action"]
 
     request = {**_topic}
     del request["topic_id"]
@@ -209,7 +207,6 @@ def test_default_value_is_set_when_ssvc_related_value_is_empty_in_creation():
     assert responsed_topic.safety_impact == SafetyImpactEnum.CATASTROPHIC
     assert responsed_topic.exploitation == ExploitationEnum.ACTIVE
     assert responsed_topic.automatable is True
-    assert responsed_topic.hint_for_action is None
 
 
 def test_create_too_long_action():
@@ -244,7 +241,6 @@ def test_get_topic():
     assert responsed_topic.safety_impact == TOPIC1["safety_impact"]
     assert responsed_topic.exploitation == TOPIC1["exploitation"]
     assert responsed_topic.automatable == TOPIC1["automatable"]
-    assert responsed_topic.hint_for_action == TOPIC1["hint_for_action"]
     # actions are removed from TopicResponse.
     # use 'GET /topics/{tid}/actions/pteam/{pid}' to get actions.
 
@@ -288,7 +284,6 @@ def test_update_topic():
         "safety_impact": "hazardous",
         "exploitation": "poc",
         "automatable": False,
-        "hint_for_action": "2.9.3",
     }
     response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
 
@@ -312,8 +307,6 @@ def test_update_topic():
     assert responsed_topic.exploitation != TOPIC1["exploitation"]
     assert responsed_topic.automatable == request["automatable"]
     assert responsed_topic.automatable != TOPIC1["automatable"]
-    assert responsed_topic.hint_for_action == request["hint_for_action"]
-    assert responsed_topic.hint_for_action != TOPIC1["hint_for_action"]
 
 
 def test_update_topic__with_new_tags():
@@ -763,7 +756,6 @@ class TestSearchTopics:
                 "safety_impact": "catastrophic",
                 "exploitation": "active",
                 "automatable": True,
-                "hint_for_action": "",
             }
             return create_topic(user, minimal_topic)
 
