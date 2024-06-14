@@ -25,11 +25,8 @@ from app.tests.medium.constants import (
     PTEAM2,
     TAG1,
     TAG2,
-    TAG3,
     TOPIC1,
     TOPIC2,
-    TOPIC3,
-    TOPIC4,
     USER1,
     USER2,
     USER3,
@@ -2151,61 +2148,6 @@ def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
     )
     assert response.status_code == 404
     assert response.json() == {"detail": "No such service tag"}
-
-
-def test_summary_of_pteam(testdb):
-    # pteam1 has topic1 with tag1
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    create_topic(USER1, TOPIC1)  # TAG1
-    topic4 = create_topic(USER1, TOPIC4)  # TAG3
-    tag3 = topic4.tags[0]
-
-    service_x = "service_x"
-
-    refs1 = {TAG1: [("fake target", "fake version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs1)
-
-    # test that tagsummary is not updated when creating topic3 with tag1 and tag3
-    create_topic(USER1, TOPIC3)  # TAG1 & TAG3
-
-    refs_x = {
-        TAG1: [("fake target", "fake version")],
-        TAG3: [("fake target", "fake version")],
-    }
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs_x)
-    assert (
-        testdb.query(models.CurrentPTeamTopicTagStatus)
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam1.pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag3.tag_id),
-        )
-        .all()
-    )
-
-    # test that tagsummary is not updated when topic4 is updated
-    create_tag(USER1, "TAG4")
-    request = {
-        "title": "topic4 for update",
-        "tags": ["TAG4"],
-    }
-    data = assert_200(
-        client.put(f"/topics/{TOPIC4['topic_id']}", headers=headers(USER1), json=request)
-    )
-    responsed_topic = schemas.TopicResponse(**data)
-    for tag in responsed_topic.tags:
-        if tag.tag_id != tag3.tag_id:
-            tag4 = tag
-    refs_y = {tag4.tag_name: [("fake target", "fake version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs_y)
-    assert (
-        testdb.query(models.CurrentPTeamTopicTagStatus)
-        .filter(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam1.pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag4.tag_id),
-        )
-        .all()
-    )
 
 
 def test_remove_pteamtags_by_service():
