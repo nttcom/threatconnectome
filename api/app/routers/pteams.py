@@ -286,68 +286,6 @@ def get_pteam_tags_summary(
     return command.get_pteam_tags_summary(db, pteam)
 
 
-@router.get("/{pteam_id}/tags/{tag_id}/solved_topic_ids", response_model=schemas.PTeamTaggedTopics)
-def get_pteam_tagged_solved_topic_ids(
-    pteam_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get tagged and solved topic id list of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    topic_ids = command.get_sorted_topic_ids_by_pteam_tag_and_status(db, pteam_id, tag_id, True)
-    threat_impact_count = command.count_pteam_topics_per_threat_impact(db, pteam_id, tag_id, True)
-
-    return {
-        "pteam_id": pteam_id,
-        "tag_id": tag_id,
-        "topic_ids": topic_ids,
-        "threat_impact_count": threat_impact_count,
-    }
-
-
-@router.get(
-    "/{pteam_id}/tags/{tag_id}/unsolved_topic_ids", response_model=schemas.PTeamTaggedTopics
-)
-def get_pteam_tagged_unsolved_topic_ids(
-    pteam_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get tagged and unsolved topic id list of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    topic_ids = command.get_sorted_topic_ids_by_pteam_tag_and_status(db, pteam_id, tag_id, False)
-    threat_impact_count = command.count_pteam_topics_per_threat_impact(db, pteam_id, tag_id, False)
-
-    return {
-        "pteam_id": pteam_id,
-        "tag_id": tag_id,
-        "threat_impact_count": threat_impact_count,
-        "topic_ids": topic_ids,
-    }
-
-
 @router.get(
     "/{pteam_id}/services/{service_id}/tags/{tag_id}/ticket_ids",
     response_model=schemas.ServiceTaggedTopicsSolvedUnsolved,
