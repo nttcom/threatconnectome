@@ -493,7 +493,7 @@ def get_sorted_solved_ticket_ids_by_service_tag_and_status(
             if not threat.ticket:
                 continue
             _curent_ticket = threat.ticket.current_ticket_status
-            if _curent_ticket.topic_status != _completed:
+            if _curent_ticket.topic_status == _completed:
                 if (
                     tmp_topic_ticket_ids_dict := topic_ticket_ids_dict.get(threat.topic_id)
                 ) is None:
