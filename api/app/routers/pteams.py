@@ -268,23 +268,6 @@ def get_pteam_tags(
     return get_pteam_ext_tags(db, pteam)
 
 
-@router.get("/{pteam_id}/tags/summary", response_model=schemas.PTeamTagsSummary)
-def get_pteam_tags_summary(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get summary of the pteam tags.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    return command.get_pteam_tags_summary(db, pteam)
-
-
 @router.get(
     "/{pteam_id}/services/{service_id}/tags/{tag_id}/ticket_ids",
     response_model=schemas.ServiceTaggedTopicsSolvedUnsolved,
