@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas, ticket_manager
 from app.auth import get_current_user
 from app.common import (
-    auto_close_by_pteamtags,
     check_pteam_auth,
     check_pteam_membership,
     count_service_solved_tickets_per_threat_impact,
@@ -765,9 +764,7 @@ def upload_pteam_sbom_file(
 
     try:
         json_lines = sbom_json_to_artifact_json_lines(jdata)
-        apply_service_tags(
-            db, pteam, service_model, json_lines, auto_create_tags=force_mode, auto_close=False
-        )
+        apply_service_tags(db, pteam, service_model, json_lines, auto_create_tags=force_mode)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
@@ -812,9 +809,7 @@ def upload_pteam_tags_file(
         db.flush()
 
     try:
-        apply_service_tags(
-            db, pteam, service_model, json_lines, auto_create_tags=force_mode, auto_close=True
-        )
+        apply_service_tags(db, pteam, service_model, json_lines, auto_create_tags=force_mode)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
@@ -829,17 +824,7 @@ def apply_service_tags(
     service: models.Service,
     json_lines: list[dict],
     auto_create_tags=False,
-    auto_close=False,
 ) -> None:
-    def _collect_versions_of_pteam_tags(pteam: models.PTeam) -> dict[str, set[str]]:
-        ret: dict[str, set[str]] = {}
-        for service in pteam.services:
-            for dependency in service.dependencies:
-                versions = ret.get(dependency.tag_id, set())
-                versions.add(dependency.version)
-                ret[dependency.tag_id] = versions
-        return ret
-
     # Check file format and get tag_names
     missing_tags = set()
     new_dependencies_set: set[tuple[str, str, str]] = set()  # (tag_id, target, version)
@@ -862,9 +847,6 @@ def apply_service_tags(
                 )
     if missing_tags:
         raise ValueError(f"No such tags: {', '.join(sorted(missing_tags))}")
-
-    if auto_close:
-        old_versions = _collect_versions_of_pteam_tags(pteam)
 
     # separate dependencis to keep, delete or create
     obsoleted_dependencies = []
@@ -890,18 +872,6 @@ def apply_service_tags(
         fix_threats_for_dependency(db, new_dependency)
     db.flush()
 
-    # try auto close if make sense
-    if auto_close:  # TODO remove
-        new_versions = _collect_versions_of_pteam_tags(pteam)
-        if tags_for_auto_close := [
-            tag
-            for tag in pteam.tags
-            if new_versions.get(tag.tag_id, set()) != old_versions.get(tag.tag_id, set())
-        ]:
-            auto_close_by_pteamtags(db, [(pteam, tag) for tag in tags_for_auto_close])
-
-    command.fix_current_status_by_pteam(db, pteam)  # TODO remove
-
 
 @router.delete("/{pteam_id}/tags", status_code=status.HTTP_204_NO_CONTENT)
 def remove_pteam_tags_by_service(
@@ -925,8 +895,6 @@ def remove_pteam_tags_by_service(
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     pteam.services.remove(service_model)
-    db.flush()
-    command.fix_current_status_by_pteam(db, pteam)  # TODO remove
 
     db.commit()
 

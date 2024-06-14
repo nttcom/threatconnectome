@@ -5,7 +5,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import models
-from app.constants import SYSTEM_UUID
 
 ### Account
 
@@ -22,12 +21,6 @@ def get_account_by_id(db: Session, user_id: UUID | str) -> models.Account | None
 
 def get_account_by_email(db: Session, email: str) -> models.Account | None:
     return db.scalars(select(models.Account).where(models.Account.email == email)).first()
-
-
-def get_system_account(db: Session) -> models.Account:
-    return db.scalars(
-        select(models.Account).where(models.Account.user_id == str(SYSTEM_UUID))
-    ).one()
 
 
 def create_account(db: Session, account: models.Account) -> None:
@@ -297,23 +290,7 @@ def create_pteam_authority(db: Session, auth: models.PTeamAuthority) -> None:
     db.flush()
 
 
-### PTeamTopicTagStatus
-
-
-def create_pteam_topic_tag_status(db: Session, status: models.PTeamTopicTagStatus) -> None:
-    db.add(status)
-    db.flush()
-
-
 ### CurrentPTeamTopicTagStatus
-
-
-def create_current_pteam_topic_tag_status(
-    db: Session,
-    status: models.CurrentPTeamTopicTagStatus,
-) -> None:
-    db.add(status)
-    db.flush()
 
 
 def get_current_pteam_topic_tag_status(
