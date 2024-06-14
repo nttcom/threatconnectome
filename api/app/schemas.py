@@ -168,7 +168,6 @@ class Topic(TopicEntry):
     safety_impact: SafetyImpactEnum | None
     exploitation: ExploitationEnum | None
     automatable: bool | None
-    hint_for_action: str | None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -226,7 +225,6 @@ class TopicCreateRequest(ORMModel):
     safety_impact: SafetyImpactEnum | None = None
     exploitation: ExploitationEnum | None = None
     automatable: bool | None = None
-    hint_for_action: str | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -240,7 +238,6 @@ class TopicUpdateRequest(ORMModel):
     safety_impact: SafetyImpactEnum | None = None
     exploitation: ExploitationEnum | None = None
     automatable: bool | None = None
-    hint_for_action: str | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 

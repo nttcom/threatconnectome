@@ -311,7 +311,6 @@ def create_topic(
         safety_impact=data.safety_impact,
         exploitation=data.exploitation,
         automatable=data.automatable,
-        hint_for_action=data.hint_for_action,
     )
     # fix relations
     topic.tags = [requested_tags[tag_name] for tag_name in set(data.tags)]
@@ -398,8 +397,6 @@ def update_topic(
         topic.exploitation = data.exploitation
     if data.automatable is not None:
         topic.automatable = data.automatable
-    if data.hint_for_action is not None:
-        topic.hint_for_action = data.hint_for_action
 
     if need_update_content_fingerprint:
         topic.content_fingerprint = calculate_topic_content_fingerprint(

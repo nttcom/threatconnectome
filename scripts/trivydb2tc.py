@@ -558,7 +558,6 @@ def main() -> None:
                 "misp_tags": misp_tags,
                 "actions": actions,
                 "safety_impact": safety_impact.get(severity, "none"),
-                "hint_for_action": vuln_content["fix_vers"],
             }
 
     tc_client = ThreatconnectomeClient(args.url, refresh_token, retry_max=3)

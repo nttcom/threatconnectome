@@ -621,7 +621,7 @@ def create_ticket_internal(
         alert = models.Alert(
             ticket_id=ticket.ticket_id,
             alerted_at=now,
-            alert_content=threat.topic.hint_for_action,
+            alert_content="",  # alert_content is not used
         )
         persistence.create_alert(db, alert)
         send_alert_to_pteam(alert)
