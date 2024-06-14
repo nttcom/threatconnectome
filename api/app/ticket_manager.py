@@ -5,18 +5,6 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 
 
-def set_ticket_statuses_in_pteam(
-    db: Session,
-    current_user: models.Account,
-    pteam: models.PTeam,
-    topic: models.Topic,
-    tag: models.Tag,  # should be PTeamTag, not TopicTag
-    topicStatusRequest: schemas.TopicStatusRequest,
-) -> None:
-    for service in pteam.services:
-        set_ticket_statuses_in_service(db, current_user, service, topic, tag, topicStatusRequest)
-
-
 def set_ticket_statuses_in_service(
     db: Session,
     current_user: models.Account,

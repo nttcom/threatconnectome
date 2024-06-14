@@ -22,7 +22,6 @@ from app.common import (
     get_sorted_unsolved_ticket_ids_by_service_tag_and_status,
     get_tag_ids_with_parent_ids,
     pteamtag_try_auto_close_topic,
-    set_pteam_topic_status_internal,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db
@@ -1017,124 +1016,6 @@ def get_pteam_topic_statuses_summary(
     if tag not in pteam.tags:
         raise NO_SUCH_PTEAM_TAG
     return command.get_pteam_topic_statuses_summary(db, pteam, tag)
-
-
-@router.post(
-    "/{pteam_id}/topicstatus/{topic_id}/{tag_id}", response_model=schemas.PTeamTopicStatusResponse
-)
-def set_pteam_topic_status(
-    pteam_id: UUID,
-    topic_id: UUID,
-    tag_id: UUID,
-    data: schemas.TopicStatusRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Set topic status of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    # TODO: should check pteam auth: topic_status
-
-    if not (topic := persistence.get_topic_by_id(db, topic_id)):
-        raise NO_SUCH_TOPIC
-    # TODO: should check pteam topic???
-    # TODO: should check topic tag?? -- should care about parent&child
-
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    if not command.check_tag_is_related_to_topic(db, tag, topic):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tag mismatch")
-
-    if data.topic_status not in {
-        models.TopicStatusType.acknowledged,
-        models.TopicStatusType.scheduled,
-        models.TopicStatusType.completed,
-    }:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
-
-    for logging_id_ in data.logging_ids:
-        if not (log := persistence.get_action_log_by_id(db, logging_id_)):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No such actionlog",
-            )
-        if log.pteam_id != str(pteam_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Not an actionlog for the pteam",
-            )
-        if log.topic_id != str(topic_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Not an actionlog for the topic",
-            )
-    for assignee in data.assignees:
-        if not (a_user := persistence.get_account_by_id(db, assignee)):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No such user",
-            )
-        if not check_pteam_membership(db, pteam, a_user):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Not a pteam member",
-            )
-
-    ret = set_pteam_topic_status_internal(db, current_user, pteam, topic, tag, data)
-    ticket_manager.set_ticket_statuses_in_pteam(db, current_user, pteam, topic, tag, data)
-
-    db.commit()
-
-    return ret
-
-
-@router.get(
-    "/{pteam_id}/topicstatus/{topic_id}/{tag_id}", response_model=schemas.PTeamTopicStatusResponse
-)
-def get_pteam_topic_status(
-    pteam_id: UUID,
-    topic_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get the current status (or None) of the pteam topic.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    # TODO: should check pteam topic???
-    # TODO: should check topic tag?? -- should care about parent&child
-
-    current_row = persistence.get_current_pteam_topic_tag_status(db, pteam_id, topic_id, tag_id)
-    if current_row is None or current_row.status_id is None:
-        # should not happen if request is right
-        return {
-            "pteam_id": pteam_id,
-            "topic_id": topic_id,
-            "tag_id": tag_id,
-        }
-
-    status_row = persistence.get_pteam_topic_tag_status_by_id(db, current_row.status_id)
-    assert status_row
-    return command.pteam_topic_tag_status_to_response(db, status_row)
 
 
 @router.get("/{pteam_id}/members", response_model=list[schemas.UserResponse])

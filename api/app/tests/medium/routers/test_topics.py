@@ -20,7 +20,6 @@ from app.tests.medium.constants import (
     MISPTAG2,
     MISPTAG3,
     PTEAM1,
-    SERVICE1,
     TAG1,
     TAG2,
     TAG3,
@@ -43,14 +42,12 @@ from app.tests.medium.utils import (
     create_pteam,
     create_tag,
     create_topic,
-    create_topicstatus,
     create_user,
     create_watching_request,
     headers,
     random_string,
     search_topics,
     update_topic,
-    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -369,9 +366,6 @@ def test_update_topic_not_creater():
 def test_delete_topic(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    etags = upload_pteam_tags(
-        USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
-    )
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     create_actionlog(
         USER1,
@@ -381,14 +375,6 @@ def test_delete_topic(testdb: Session):
         pteam1.pteam_id,
         datetime.now(),
     )
-
-    json_data = {
-        "topic_status": "acknowledged",
-        "note": "acknowledged",
-        "assignees": [str(user1.user_id)],
-        "scheduled_at": str(datetime(2023, 6, 1)),
-    }
-    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, etags[0].tag_id, json_data)
 
     # delete topic
     response = client.delete(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1))

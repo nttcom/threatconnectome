@@ -305,17 +305,6 @@ def create_pteam_topic_tag_status(db: Session, status: models.PTeamTopicTagStatu
     db.flush()
 
 
-def get_pteam_topic_tag_status_by_id(
-    db: Session,
-    status_id: UUID | str,
-) -> models.PTeamTopicTagStatus | None:
-    return db.scalars(
-        select(models.PTeamTopicTagStatus).where(
-            models.PTeamTopicTagStatus.status_id == str(status_id)
-        )
-    ).one_or_none()
-
-
 ### CurrentPTeamTopicTagStatus
 
 
