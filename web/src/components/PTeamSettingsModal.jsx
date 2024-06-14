@@ -22,6 +22,7 @@ import { a11yProps } from "../utils/func.js";
 import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
 import { PTeamNotificationSetting } from "./PTeamNotificationSetting";
+import { PTeamServiceDelete } from "./PTeamServiceDelete";
 import { SBOMDropArea } from "./SBOMDropArea";
 
 export function PTeamSettingsModal(props) {
@@ -59,6 +60,7 @@ export function PTeamSettingsModal(props) {
             <Tab label="Notification" {...a11yProps(1)} />
             <Tab label="Authorities" {...a11yProps(2)} />
             <Tab label="Upload" {...a11yProps(3)} />
+            <Tab label="Service" {...a11yProps(5)} />
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
@@ -72,6 +74,9 @@ export function PTeamSettingsModal(props) {
         </TabPanel>
         <TabPanel index={3} value={tab}>
           <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+        </TabPanel>
+        <TabPanel index={5} value={tab}>
+          <PTeamServiceDelete />
         </TabPanel>
       </DialogContent>
     </Dialog>

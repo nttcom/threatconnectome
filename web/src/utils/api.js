@@ -86,6 +86,9 @@ export const uploadSBOMFile = async (pteamId, service, file, forceMode = true) =
   });
 };
 
+export const deletePTeamService = async (pteamId, service) =>
+  axios.delete(`/pteams/${pteamId}/tags`, { params: { group: service } });
+
 // ateams
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);
 
