@@ -21,7 +21,6 @@ from app.common import (
     get_sorted_topics,
     get_sorted_unsolved_ticket_ids_by_service_tag_and_status,
     get_tag_ids_with_parent_ids,
-    pteamtag_try_auto_close_topic,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db
@@ -1191,46 +1190,3 @@ def remove_watcher_ateam(
         db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.post("/{pteam_id}/fix_status_mismatch")
-def fix_status_mismatch(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    for tag, topic in command.get_auto_close_triable_pteam_tags_and_topics(db, pteam):
-        pteamtag_try_auto_close_topic(db, pteam, tag, topic)
-
-    db.commit()
-
-    return Response(status_code=status.HTTP_200_OK)
-
-
-@router.post("/{pteam_id}/tags/{tag_id}/fix_status_mismatch")
-def fix_status_mismatch_tag(
-    pteam_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    for topic in command.get_auto_close_triable_pteam_topics(db, pteam, tag):
-        pteamtag_try_auto_close_topic(db, pteam, tag, topic)
-
-    db.commit()
-
-    return Response(status_code=status.HTTP_200_OK)

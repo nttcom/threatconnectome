@@ -643,62 +643,6 @@ def fix_current_status_by_topic(db: Session, topic: models.Topic):
     db.flush()
 
 
-def get_auto_close_triable_pteam_tags_and_topics(
-    db: Session,
-    pteam: models.PTeam,
-) -> list[tuple[models.Tag, models.Topic]]:
-    rows = db.scalars(
-        select(models.CurrentPTeamTopicTagStatus)
-        .outerjoin(models.PTeamTopicTagStatus)
-        .where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
-            or_(
-                models.CurrentPTeamTopicTagStatus.topic_status.in_(
-                    [
-                        models.TopicStatusType.alerted,
-                        models.TopicStatusType.acknowledged,
-                    ]
-                ),
-                and_(
-                    models.PTeamTopicTagStatus.topic_status == models.TopicStatusType.scheduled,
-                    models.PTeamTopicTagStatus.scheduled_at < datetime.now(),
-                ),
-            ),
-        )
-    ).all()
-
-    return [(row.tag, row.topic) for row in rows]
-
-
-def get_auto_close_triable_pteam_topics(
-    db: Session,
-    pteam: models.PTeam,
-    tag: models.Tag,  # should be PTeamTag, not TopicTag
-) -> list[models.Topic]:
-    rows = db.scalars(
-        select(models.CurrentPTeamTopicTagStatus)
-        .outerjoin(models.PTeamTopicTagStatus)
-        .where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
-            models.CurrentPTeamTopicTagStatus.tag_id == tag.tag_id,
-            or_(
-                models.CurrentPTeamTopicTagStatus.topic_status.in_(
-                    [
-                        models.TopicStatusType.alerted,
-                        models.TopicStatusType.acknowledged,
-                    ]
-                ),
-                and_(
-                    models.PTeamTopicTagStatus.topic_status == models.TopicStatusType.scheduled,
-                    models.PTeamTopicTagStatus.scheduled_at < datetime.now(),
-                ),
-            ),
-        )
-    ).all()
-
-    return [row.topic for row in rows]
-
-
 def search_topics_internal(
     db: Session,
     offset: int = 0,
