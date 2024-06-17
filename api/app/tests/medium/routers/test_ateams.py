@@ -1539,18 +1539,17 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC1["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic1.updated_at
     assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    pteam = topic_statuses[0]["pteams"][0]
-    assert UUID(pteam["pteam_id"]) == pteam1.pteam_id
-    assert pteam["pteam_name"] == PTEAM1["pteam_name"]
-    pteam_statuses = pteam["statuses"]
-    assert len(pteam_statuses) == 1
-    assert UUID(pteam_statuses[0]["topic_id"]) == topic1.topic_id
-    assert UUID(pteam_statuses[0]["pteam_id"]) == pteam1.pteam_id
-    assert pteam_statuses[0]["tag"] == schema_to_dict(tag1)
-    assert pteam_statuses[0]["topic_status"] == models.TopicStatusType.alerted
-    assert pteam_statuses[0]["assignees"] == []
-    assert pteam_statuses[0]["scheduled_at"] is None
+    assert len(topic_statuses[0]["pteam_statuses"]) == 1
+    pteam_status = topic_statuses[0]["pteam_statuses"][0]
+    assert UUID(pteam_status["pteam_id"]) == pteam1.pteam_id
+    assert pteam_status["pteam_name"] == PTEAM1["pteam_name"]
+    service_statuses = pteam_status["service_statuses"]
+    assert len(service_statuses) == 1
+    assert service_statuses[0]["service_name"] == SERVICE1
+    assert service_statuses[0]["tag"] == schema_to_dict(tag1)
+    assert service_statuses[0]["topic_status"] == models.TopicStatusType.alerted
+    assert service_statuses[0]["assignees"] == []
+    assert service_statuses[0]["scheduled_at"] is None
 
     # ack
     request = {
@@ -1568,18 +1567,17 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC1["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic1.updated_at
     assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    pteam = topic_statuses[0]["pteams"][0]
-    assert UUID(pteam["pteam_id"]) == pteam1.pteam_id
-    assert pteam["pteam_name"] == PTEAM1["pteam_name"]
-    pteam_statuses = pteam["statuses"]
-    assert len(pteam_statuses) == 1
-    assert UUID(pteam_statuses[0]["topic_id"]) == topic1.topic_id
-    assert UUID(pteam_statuses[0]["pteam_id"]) == pteam1.pteam_id
-    assert pteam_statuses[0]["tag"] == schema_to_dict(tag1)
-    assert pteam_statuses[0]["topic_status"] == models.TopicStatusType.acknowledged
-    assert set(map(UUID, pteam_statuses[0]["assignees"])) == set([user1.user_id])
-    assert pteam_statuses[0]["scheduled_at"] is None
+    assert len(topic_statuses[0]["pteam_statuses"]) == 1
+    pteam_status = topic_statuses[0]["pteam_statuses"][0]
+    assert UUID(pteam_status["pteam_id"]) == pteam1.pteam_id
+    assert pteam_status["pteam_name"] == PTEAM1["pteam_name"]
+    service_statuses = pteam_status["service_statuses"]
+    assert len(service_statuses) == 1
+    assert service_statuses[0]["service_name"] == SERVICE1
+    assert service_statuses[0]["tag"] == schema_to_dict(tag1)
+    assert service_statuses[0]["topic_status"] == models.TopicStatusType.acknowledged
+    assert set(map(UUID, service_statuses[0]["assignees"])) == set([user1.user_id])
+    assert service_statuses[0]["scheduled_at"] is None
 
     # schedule
     request = {
@@ -1599,17 +1597,16 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC1["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic1.updated_at
     assert topic_statuses[0]["num_pteams"] == 1
-    pteam = topic_statuses[0]["pteams"][0]
-    assert UUID(pteam["pteam_id"]) == pteam1.pteam_id
-    assert pteam["pteam_name"] == PTEAM1["pteam_name"]
-    pteam_statuses = pteam["statuses"]
-    assert len(pteam_statuses) == 1
-    assert UUID(pteam_statuses[0]["topic_id"]) == topic1.topic_id
-    assert UUID(pteam_statuses[0]["pteam_id"]) == pteam1.pteam_id
-    assert pteam_statuses[0]["tag"] == schema_to_dict(tag1)
-    assert pteam_statuses[0]["topic_status"] == models.TopicStatusType.scheduled
-    assert set(map(UUID, pteam_statuses[0]["assignees"])) == set([user1.user_id, user2.user_id])
-    assert datetime.fromisoformat(pteam_statuses[0]["scheduled_at"]) == datetime.fromisoformat(
+    pteam_status = topic_statuses[0]["pteam_statuses"][0]
+    assert UUID(pteam_status["pteam_id"]) == pteam1.pteam_id
+    assert pteam_status["pteam_name"] == PTEAM1["pteam_name"]
+    service_statuses = pteam_status["service_statuses"]
+    assert len(service_statuses) == 1
+    assert service_statuses[0]["service_name"] == SERVICE1
+    assert service_statuses[0]["tag"] == schema_to_dict(tag1)
+    assert service_statuses[0]["topic_status"] == models.TopicStatusType.scheduled
+    assert set(map(UUID, service_statuses[0]["assignees"])) == set([user1.user_id, user2.user_id])
+    assert datetime.fromisoformat(service_statuses[0]["scheduled_at"]) == datetime.fromisoformat(
         request["scheduled_at"]
     )
 
@@ -1651,44 +1648,44 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC1["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic1.updated_at
     assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    assert UUID(topic_statuses[0]["pteams"][0]["pteam_id"]) == pteam2.pteam_id
-    assert topic_statuses[0]["pteams"][0]["pteam_name"] == PTEAM2["pteam_name"]
-    assert len(topic_statuses[0]["pteams"][0]["statuses"]) == 1
-    assert UUID(topic_statuses[0]["pteams"][0]["statuses"][0]["topic_id"]) == topic1.topic_id
-    assert UUID(topic_statuses[0]["pteams"][0]["statuses"][0]["pteam_id"]) == pteam2.pteam_id
-    assert topic_statuses[0]["pteams"][0]["statuses"][0]["tag"] == schema_to_dict(tag1)
+    assert len(topic_statuses[0]["pteam_statuses"]) == 1
+    assert UUID(topic_statuses[0]["pteam_statuses"][0]["pteam_id"]) == pteam2.pteam_id
+    assert topic_statuses[0]["pteam_statuses"][0]["pteam_name"] == PTEAM2["pteam_name"]
+    assert len(topic_statuses[0]["pteam_statuses"][0]["service_statuses"]) == 1
+    assert topic_statuses[0]["pteam_statuses"][0]["service_statuses"][0]["tag"] == schema_to_dict(
+        tag1
+    )
     assert (
-        topic_statuses[0]["pteams"][0]["statuses"][0]["topic_status"]
+        topic_statuses[0]["pteam_statuses"][0]["service_statuses"][0]["topic_status"]
         == models.TopicStatusType.alerted
     )
-    assert topic_statuses[0]["pteams"][0]["statuses"][0]["assignees"] == []
-    assert topic_statuses[0]["pteams"][0]["statuses"][0]["scheduled_at"] is None
+    assert topic_statuses[0]["pteam_statuses"][0]["service_statuses"][0]["assignees"] == []
+    assert topic_statuses[0]["pteam_statuses"][0]["service_statuses"][0]["scheduled_at"] is None
     # topic2
     assert UUID(topic_statuses[1]["topic_id"]) == topic2.topic_id
     assert topic_statuses[1]["title"] == TOPIC2["title"]
     assert topic_statuses[1]["threat_impact"] == TOPIC2["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[1]["updated_at"]) == topic2.updated_at
     assert topic_statuses[1]["num_pteams"] == 2
-    assert len(topic_statuses[1]["pteams"]) == 2
-    tmp1 = _pick_pteam(topic_statuses[1]["pteams"], pteam1.pteam_id)
+    assert len(topic_statuses[1]["pteam_statuses"]) == 2
+    tmp1 = _pick_pteam(topic_statuses[1]["pteam_statuses"], pteam1.pteam_id)
     assert tmp1
-    assert len(tmp1["statuses"]) == 1
+    assert len(tmp1["service_statuses"]) == 1
     # stXYZ = topicX + pteamY + tagZ
-    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211
     assert st211["topic_status"] == models.TopicStatusType.alerted
     assert st211["assignees"] == []
     assert st211["scheduled_at"] is None
-    tmp2 = _pick_pteam(topic_statuses[1]["pteams"], pteam2.pteam_id)
+    tmp2 = _pick_pteam(topic_statuses[1]["pteam_statuses"], pteam2.pteam_id)
     assert tmp2
-    assert len(tmp2["statuses"]) == 2
-    tmp221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert len(tmp2["service_statuses"]) == 2
+    tmp221 = _pick_tag(tmp2["service_statuses"], tag1.tag_id)
     assert tmp221
     assert tmp221["topic_status"] == models.TopicStatusType.alerted
     assert tmp221["assignees"] == []
     assert tmp221["scheduled_at"] is None
-    tmp222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    tmp222 = _pick_tag(tmp2["service_statuses"], tag2.tag_id)
     assert tmp222
     assert tmp222["topic_status"] == models.TopicStatusType.alerted
     assert tmp222["assignees"] == []
@@ -1710,23 +1707,23 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
     assert topic_statuses[0]["num_pteams"] == 2
-    assert len(topic_statuses[0]["pteams"]) == 2
-    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert len(topic_statuses[0]["pteam_statuses"]) == 2
+    tmp1 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam1.pteam_id)
     assert tmp1
-    assert len(tmp1["statuses"]) == 1
-    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert len(tmp1["service_statuses"]) == 1
+    st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211
     assert st211["topic_status"] == models.TopicStatusType.alerted
     assert st211["assignees"] == []
     assert st211["scheduled_at"] is None
-    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    tmp2 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam2.pteam_id)
     assert tmp2
-    assert len(tmp2["statuses"]) == 2
-    st221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert len(tmp2["service_statuses"]) == 2
+    st221 = _pick_tag(tmp2["service_statuses"], tag1.tag_id)
     assert st221["topic_status"] == models.TopicStatusType.alerted
     assert st221["assignees"] == []
     assert st221["scheduled_at"] is None
-    st222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    st222 = _pick_tag(tmp2["service_statuses"], tag2.tag_id)
     assert st222["topic_status"] == models.TopicStatusType.alerted
     assert st222["assignees"] == []
     assert st222["scheduled_at"] is None
@@ -1747,25 +1744,25 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
     assert topic_statuses[0]["num_pteams"] == 2
-    assert len(topic_statuses[0]["pteams"]) == 2
-    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert len(topic_statuses[0]["pteam_statuses"]) == 2
+    tmp1 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam1.pteam_id)
     assert tmp1
-    assert len(tmp1["statuses"]) == 1
-    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert len(tmp1["service_statuses"]) == 1
+    st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211
     assert st211["topic_status"] == models.TopicStatusType.alerted
     assert st211["assignees"] == []
     assert st211["scheduled_at"] is None
-    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    tmp2 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam2.pteam_id)
     assert tmp2
-    assert len(tmp2["statuses"]) == 2
-    assert tmp2["statuses"][0]["topic_status"] == models.TopicStatusType.alerted  # worst first
-    assert tmp2["statuses"][1]["topic_status"] == models.TopicStatusType.acknowledged
-    st221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert len(tmp2["service_statuses"]) == 2  # worst status first
+    assert tmp2["service_statuses"][0]["topic_status"] == models.TopicStatusType.alerted
+    assert tmp2["service_statuses"][1]["topic_status"] == models.TopicStatusType.acknowledged
+    st221 = _pick_tag(tmp2["service_statuses"], tag1.tag_id)
     assert st221["topic_status"] == models.TopicStatusType.acknowledged
     assert st221["assignees"] == list(map(str, [user1.user_id]))
     assert st221["scheduled_at"] is None
-    st222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    st222 = _pick_tag(tmp2["service_statuses"], tag2.tag_id)
     assert st222["topic_status"] == models.TopicStatusType.alerted
     assert st222["assignees"] == []
     assert st222["scheduled_at"] is None
@@ -1787,27 +1784,27 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
     assert topic_statuses[0]["num_pteams"] == 2
-    assert len(topic_statuses[0]["pteams"]) == 2
-    assert UUID(topic_statuses[0]["pteams"][0]["pteam_id"]) == pteam1.pteam_id  # worst first
-    assert UUID(topic_statuses[0]["pteams"][1]["pteam_id"]) == pteam2.pteam_id
-    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert len(topic_statuses[0]["pteam_statuses"]) == 2  # worst status first
+    assert UUID(topic_statuses[0]["pteam_statuses"][0]["pteam_id"]) == pteam1.pteam_id
+    assert UUID(topic_statuses[0]["pteam_statuses"][1]["pteam_id"]) == pteam2.pteam_id
+    tmp1 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam1.pteam_id)
     assert tmp1
-    assert len(tmp1["statuses"]) == 1
-    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert len(tmp1["service_statuses"]) == 1
+    st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211
     assert st211["topic_status"] == models.TopicStatusType.alerted
     assert st211["assignees"] == []
     assert st211["scheduled_at"] is None
-    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    tmp2 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam2.pteam_id)
     assert tmp2
-    assert len(tmp2["statuses"]) == 2
-    assert tmp2["statuses"][0]["topic_status"] == models.TopicStatusType.acknowledged  # worst first
-    assert tmp2["statuses"][1]["topic_status"] == models.TopicStatusType.scheduled
-    st221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert len(tmp2["service_statuses"]) == 2  # worst status first
+    assert tmp2["service_statuses"][0]["topic_status"] == models.TopicStatusType.acknowledged
+    assert tmp2["service_statuses"][1]["topic_status"] == models.TopicStatusType.scheduled
+    st221 = _pick_tag(tmp2["service_statuses"], tag1.tag_id)
     assert st221["topic_status"] == models.TopicStatusType.acknowledged
     assert st221["assignees"] == list(map(str, [user1.user_id]))
     assert st221["scheduled_at"] is None
-    st222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    st222 = _pick_tag(tmp2["service_statuses"], tag2.tag_id)
     assert st222["topic_status"] == models.TopicStatusType.scheduled
     assert st222["assignees"] == []
     assert datetime.fromisoformat(st222["scheduled_at"]) == datetime.fromisoformat(
@@ -1831,29 +1828,29 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
     assert topic_statuses[0]["num_pteams"] == 2
-    assert len(topic_statuses[0]["pteams"]) == 2
-    assert UUID(topic_statuses[0]["pteams"][0]["pteam_id"]) == pteam2.pteam_id  # worst first
-    assert UUID(topic_statuses[0]["pteams"][1]["pteam_id"]) == pteam1.pteam_id
-    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert len(topic_statuses[0]["pteam_statuses"]) == 2  # worst status first
+    assert UUID(topic_statuses[0]["pteam_statuses"][0]["pteam_id"]) == pteam2.pteam_id
+    assert UUID(topic_statuses[0]["pteam_statuses"][1]["pteam_id"]) == pteam1.pteam_id
+    tmp1 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam1.pteam_id)
     assert tmp1
-    assert len(tmp1["statuses"]) == 1
-    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert len(tmp1["service_statuses"]) == 1
+    st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211
     assert st211["topic_status"] == models.TopicStatusType.scheduled
     assert st211["assignees"] == []
     assert datetime.fromisoformat(st211["scheduled_at"]) == datetime.fromisoformat(
         request["scheduled_at"]
     )
-    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    tmp2 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam2.pteam_id)
     assert tmp2
-    assert len(tmp2["statuses"]) == 2
-    assert tmp2["statuses"][0]["topic_status"] == models.TopicStatusType.acknowledged  # worst first
-    assert tmp2["statuses"][1]["topic_status"] == models.TopicStatusType.scheduled
-    st221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert len(tmp2["service_statuses"]) == 2  # worst status first
+    assert tmp2["service_statuses"][0]["topic_status"] == models.TopicStatusType.acknowledged
+    assert tmp2["service_statuses"][1]["topic_status"] == models.TopicStatusType.scheduled
+    st221 = _pick_tag(tmp2["service_statuses"], tag1.tag_id)
     assert st221["topic_status"] == models.TopicStatusType.acknowledged
     assert st221["assignees"] == list(map(str, [user1.user_id]))
     assert st221["scheduled_at"] is None
-    st222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    st222 = _pick_tag(tmp2["service_statuses"], tag2.tag_id)
     assert st222["topic_status"] == models.TopicStatusType.scheduled
     assert st222["assignees"] == []
 
@@ -1873,20 +1870,20 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
     assert topic_statuses[0]["num_pteams"] == 2
-    assert len(topic_statuses[0]["pteams"]) == 2
-    assert UUID(topic_statuses[0]["pteams"][0]["pteam_id"]) == pteam1.pteam_id  # later first(12/31)
-    assert UUID(topic_statuses[0]["pteams"][1]["pteam_id"]) == pteam2.pteam_id  # (3000/1/1)
-    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert len(topic_statuses[0]["pteam_statuses"]) == 2  # later updated first(12/31)
+    assert UUID(topic_statuses[0]["pteam_statuses"][0]["pteam_id"]) == pteam1.pteam_id
+    assert UUID(topic_statuses[0]["pteam_statuses"][1]["pteam_id"]) == pteam2.pteam_id  # (3000/1/1)
+    tmp1 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam1.pteam_id)
     assert tmp1
-    assert len(tmp1["statuses"]) == 1
-    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert len(tmp1["service_statuses"]) == 1
+    st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211
     assert st211["topic_status"] == models.TopicStatusType.scheduled
     assert st211["assignees"] == []
-    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    tmp2 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam2.pteam_id)
     assert tmp2
-    assert len(tmp2["statuses"]) == 1
-    st222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    assert len(tmp2["service_statuses"]) == 1
+    st222 = _pick_tag(tmp2["service_statuses"], tag2.tag_id)
     assert st222["topic_status"] == models.TopicStatusType.scheduled
     assert st222["assignees"] == []
 
@@ -1906,11 +1903,11 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
     assert topic_statuses[0]["num_pteams"] == 1
-    assert len(topic_statuses[0]["pteams"]) == 1
-    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert len(topic_statuses[0]["pteam_statuses"]) == 1
+    tmp1 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam1.pteam_id)
     assert tmp1
-    assert len(tmp1["statuses"]) == 1
-    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert len(tmp1["service_statuses"]) == 1
+    st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211["topic_status"] == models.TopicStatusType.scheduled
     assert st211["assignees"] == []
 
@@ -1930,19 +1927,19 @@ def test_get_topic_status():
     assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
     assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
     assert topic_statuses[0]["num_pteams"] == 2
-    assert len(topic_statuses[0]["pteams"]) == 2
-    assert UUID(topic_statuses[0]["pteams"][0]["pteam_id"]) == pteam2.pteam_id  # worst first
-    assert UUID(topic_statuses[0]["pteams"][1]["pteam_id"]) == pteam1.pteam_id
-    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert len(topic_statuses[0]["pteam_statuses"]) == 2  # worst status first
+    assert UUID(topic_statuses[0]["pteam_statuses"][0]["pteam_id"]) == pteam2.pteam_id
+    assert UUID(topic_statuses[0]["pteam_statuses"][1]["pteam_id"]) == pteam1.pteam_id
+    tmp1 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam1.pteam_id)
     assert tmp1
-    assert len(tmp1["statuses"]) == 1
-    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert len(tmp1["service_statuses"]) == 1
+    st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211["topic_status"] == models.TopicStatusType.scheduled
     assert st211["assignees"] == []
-    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    tmp2 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam2.pteam_id)
     assert tmp2
-    assert len(tmp2["statuses"]) == 1
-    st221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert len(tmp2["service_statuses"]) == 1
+    st221 = _pick_tag(tmp2["service_statuses"], tag1.tag_id)
     assert st221["topic_status"] == models.TopicStatusType.acknowledged
     assert st221["assignees"] == []
 
