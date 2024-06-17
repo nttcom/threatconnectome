@@ -531,19 +531,19 @@ class FsServerInfo(ORMModel):
     api_url: str
 
 
-class TicketStatusSimple(ORMModel):
-    topic_id: UUID
-    pteam_id: UUID
+class ServiceTopicStatus(ORMModel):
+    service_id: UUID
+    service_name: str
     tag: TagResponse
     topic_status: TopicStatusType
     assignees: list[UUID] = []
     scheduled_at: datetime | None = None
 
 
-class PTeamTopicStatuses(ORMModel):
+class PTeamTopicStatus(ORMModel):
     pteam_id: UUID
     pteam_name: str
-    statuses: list[TicketStatusSimple]
+    service_statuses: list[ServiceTopicStatus]
 
 
 class ATeamTopicStatus(ORMModel):
@@ -552,7 +552,7 @@ class ATeamTopicStatus(ORMModel):
     threat_impact: int
     updated_at: datetime
     num_pteams: int
-    pteams: list[PTeamTopicStatuses]
+    pteam_statuses: list[PTeamTopicStatus]
 
 
 class ATeamTopicStatusResponse(ORMModel):
