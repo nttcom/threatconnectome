@@ -27,7 +27,11 @@ import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { getPTeamTopicActions, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
+import {
+  getPTeamTopicActions,
+  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTagsSummary,
+} from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import {
   createTopic,
@@ -165,6 +169,7 @@ export function TopicModal(props) {
     await Promise.all([
       dispatch(getTopic(topicId)),
       dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
+      dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
     ]);
     // update only if needed
     if (pteamId && presetTagId) {
@@ -651,6 +656,7 @@ export function TopicModal(props) {
                     topicId={presetTopicId}
                     onSetOpenTopicModal={onSetOpen}
                     onDelete={handleDeleteTopic}
+                    serviceId={serviceId}
                   />
                 </Box>
               </Box>
