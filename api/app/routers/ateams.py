@@ -706,7 +706,6 @@ def get_topic_status(
     rows = command.get_ateam_topic_statuses(db, ateam_id, sort_key, search)
 
     # Caution:
-    #   rows includes completed. (how can i filter by query???)
     #   rows is already sorted by query based on query params. keep the order.
 
     def _pick_pteam(pteams_, pteam_id_):
