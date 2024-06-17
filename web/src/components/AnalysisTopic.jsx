@@ -45,7 +45,6 @@ import { getActions, getTopic } from "../slices/topics";
 import {
   createATeamTopicComment as apiCreateATeamTopicComment,
   getATeamTopicComments as apiGetATeamTopicComments,
-  getPTeamTag as apiGetPTeamTag,
   updateATeamTopicComment as apiUpdateATeamTopicComment,
 } from "../utils/api";
 import { rootPrefix, threatImpactName } from "../utils/const";
@@ -61,7 +60,6 @@ export function AnalysisTopic(props) {
   const [tab, setTab] = useState(0);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [listHeight, setListHeight] = useState(0);
-  const [servicesDict, setServicesDict] = useState({});
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionExpanded, setActionExpanded] = useState(false);
 
@@ -90,36 +88,6 @@ export function AnalysisTopic(props) {
       setListHeight(topicListElem.offsetHeight);
     }
   }, []);
-
-  const servicesDictKey = (pteamId, tagId) => `${pteamId}:${tagId}`;
-
-  useEffect(() => {
-    if (!targetTopic.pteams?.length > 0) return;
-
-    async function fetchPTeamTagServices() {
-      const newDict = { ...servicesDict };
-      let needUpdate = false;
-      // targetTopic: schemas.ATeamTopicStatus  see api/app/schemas.py for detail
-      for (const pteam of targetTopic.pteams) {
-        for (const item of pteam.statuses) {
-          const key = servicesDictKey(pteam.pteam_id, item.tag.tag_id);
-          if (newDict[key]) continue;
-          await apiGetPTeamTag(pteam.pteam_id, item.tag.tag_id).then((response) => {
-            // response.data: schemas.ExtTagResponse
-            // pick service from each reference:
-            //   {"references": [{"target": x, "version": y, "service": z}]}
-            const services = new Set(response.data.references?.map((ref) => ref.service) ?? []);
-            newDict[key] = [...services].sort();
-          });
-          needUpdate = true;
-        }
-      }
-      if (needUpdate) setServicesDict(newDict); // explicit update to force re-render
-    }
-
-    fetchPTeamTagServices();
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [targetTopic.topic_id]);
 
   const operationError = (error) =>
     enqueueSnackbar(
@@ -167,16 +135,17 @@ export function AnalysisTopic(props) {
       .catch((error) => operationError(error));
   };
 
-  const pteamLinkURL = (pteam) => {
+  const pteamLinkURL = (pteamId) => {
     const tmpParams = new URLSearchParams();
-    tmpParams.set("pteamId", pteam.pteam_id);
+    tmpParams.set("pteamId", pteamId);
     return `${rootPrefix}/?` + tmpParams.toString();
   };
 
-  const pteamTagLinkURL = (pteam, tag) => {
+  const pteamServiceTagLinkURL = (pteamId, serviceId, tagId) => {
     const tmpParams = new URLSearchParams();
-    tmpParams.set("pteamId", pteam.pteam_id);
-    return `${rootPrefix}/tags/${tag.tag_id}?` + tmpParams.toString();
+    tmpParams.set("pteamId", pteamId);
+    tmpParams.set("serviceId", serviceId);
+    return `${rootPrefix}/tags/${tagId}?` + tmpParams.toString();
   };
   const topicDetail = topics?.[targetTopic.topic_id];
   const topicActions = actions?.[targetTopic.topic_id];
@@ -199,8 +168,9 @@ export function AnalysisTopic(props) {
     {},
   );
 
-  const warningMessageForPTeam = (pteam) =>
-    `Contact the unresponsive team: ${pteamContactInfoDict[pteam.pteam_id]}`;
+  const warningMessageForPTeam = (pteamId) =>
+    `Contact the unresponsive team: ${pteamContactInfoDict[pteamId]}`;
+  const sortedStatuses = targetTopic.pteam_statuses ?? [];
 
   return (
     <>
@@ -248,38 +218,41 @@ export function AnalysisTopic(props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {targetTopic.pteams.map((pteam) =>
-                    pteam.statuses.map((topicStatus, index) => (
+                  {sortedStatuses.map((pteamStatus) =>
+                    pteamStatus.service_statuses.map((serviceStatus) => (
                       <TableRow
                         sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                        key={index}
+                        key={serviceStatus.service_id}
                       >
                         <TableCell sx={{ overflowWrap: "anywhere" }}>
-                          <Link href={pteamLinkURL(pteam)} color="inherit">
-                            {pteam.pteam_name}
+                          <Link href={pteamLinkURL(pteamStatus.pteam_id)} color="inherit">
+                            {pteamStatus.pteam_name}
                           </Link>
-                          {topicStatus.topic_status === "alerted" && (
-                            <WarningTooltip message={warningMessageForPTeam(pteam)} />
+                          {serviceStatus.topic_status === "alerted" && (
+                            <WarningTooltip
+                              message={warningMessageForPTeam(pteamStatus.pteam_id)}
+                            />
                           )}
                         </TableCell>
                         <TableCell align="left">
-                          <Link href={pteamTagLinkURL(pteam, topicStatus.tag)}>
+                          <Link
+                            href={pteamServiceTagLinkURL(
+                              pteamStatus.pteam_id,
+                              serviceStatus.service_id,
+                              serviceStatus.tag.tag_id,
+                            )}
+                          >
                             <Chip
-                              label={topicStatus.tag.tag_name}
+                              label={serviceStatus.tag.tag_name}
                               sx={{ borderRadius: "3px", marginleft: "15px" }}
                               size="small"
                             />
                           </Link>
                         </TableCell>
                         <TableCell align="left">
-                          {(
-                            servicesDict[servicesDictKey(pteam.pteam_id, topicStatus.tag.tag_id)] ??
-                            []
-                          ).map((service, index) => (
-                            <Typography key={index} sx={{ overflowWrap: "anywhere" }}>
-                              {service}
-                            </Typography>
-                          ))}
+                          <Typography sx={{ overflowWrap: "anywhere" }}>
+                            {serviceStatus.service_name}
+                          </Typography>
                         </TableCell>
                       </TableRow>
                     )),
