@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from app import models, persistence, schemas
 from app.auth import get_current_user
 from app.common import (
-    auto_close_by_topic,
     check_topic_action_tags_integrity,
     fix_threats_for_topic,
 )
@@ -68,7 +67,6 @@ def create_action(
     db.flush()
 
     fix_threats_for_topic(db, action.topic)
-    auto_close_by_topic(db, action.topic)  # TODO remove
 
     db.commit()
 
@@ -144,11 +142,7 @@ def delete_action(
     if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
 
-    topic = action.topic
     persistence.delete_action(db, action)
-
-    # try auto close because deleted action could block closing
-    auto_close_by_topic(db, topic)  # TODO remove
 
     db.commit()
 

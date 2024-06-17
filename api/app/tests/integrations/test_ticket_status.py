@@ -25,7 +25,6 @@ from app.tests.medium.utils import (
     create_service_topicstatus,
     create_tag,
     create_topic,
-    create_topicstatus,
     create_user,
     invite_to_pteam,
 )
@@ -134,8 +133,13 @@ def test_TicketStatus_when_create_pteam_topicstatus(testdb: Session, threat_data
         "assignees": threat_data["assignees"],
         "scheduled_at": str(datetime(2024, 5, 1)),
     }
-    create_topicstatus(
-        USER1, threat_data["pteam_id"], threat_data["topic_id"], threat_data["tag_id"], json_data1
+    create_service_topicstatus(
+        USER1,
+        threat_data["pteam_id"],
+        threat_data["service_id"],
+        threat_data["topic_id"],
+        threat_data["tag_id"],
+        json_data1,
     )
 
     json_data2 = {
@@ -144,8 +148,13 @@ def test_TicketStatus_when_create_pteam_topicstatus(testdb: Session, threat_data
         "assignees": threat_data["assignees"],
         "scheduled_at": str(datetime(2024, 5, 2)),
     }
-    create_topicstatus(
-        USER2, threat_data["pteam_id"], threat_data["topic_id"], threat_data["tag_id"], json_data2
+    create_service_topicstatus(
+        USER2,
+        threat_data["pteam_id"],
+        threat_data["service_id"],
+        threat_data["topic_id"],
+        threat_data["tag_id"],
+        json_data2,
     )
 
     # Then

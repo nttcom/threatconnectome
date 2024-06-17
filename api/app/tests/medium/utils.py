@@ -345,19 +345,6 @@ def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     return _to_tuple_set(refs1) == _to_tuple_set(refs2)
 
 
-def create_topicstatus(
-    user: dict, pteam_id: UUID, topic_id: UUID, tag_id: UUID, json: dict
-) -> schemas.PTeamTopicStatusResponse:
-    response = assert_200(
-        client.post(
-            f"/pteams/{pteam_id}/topicstatus/{topic_id}/{tag_id}",
-            headers=headers(user),
-            json=json,
-        )
-    )
-    return schemas.PTeamTopicStatusResponse(**response)
-
-
 def create_service_topicstatus(
     user: dict, pteam_id: UUID, service_id: UUID, topic_id: UUID, tag_id: UUID, json: dict
 ) -> schemas.TopicStatusResponse:

@@ -12,7 +12,6 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 from app.auth import get_current_user, token_scheme
 from app.common import (
-    auto_close_by_topic,
     calculate_topic_content_fingerprint,
     check_pteam_membership,
     check_topic_action_tags_integrity,
@@ -332,9 +331,6 @@ def create_topic(
 
     fix_threats_for_topic(db, topic)
 
-    auto_close_by_topic(db, topic)  # TODO remove
-    command.fix_current_status_by_topic(db, topic)  # TODO remove
-
     db.commit()
 
     return topic
@@ -409,9 +405,6 @@ def update_topic(
 
     if tags_updated:
         fix_threats_for_topic(db, topic)
-        auto_close_by_topic(db, topic)  # TODO remove
-
-    command.fix_current_status_by_topic(db, topic)  # TODO remove
 
     db.commit()
 
@@ -437,7 +430,6 @@ def delete_topic(
         )
 
     persistence.delete_topic(db, topic)
-    command.fix_current_status_by_deleted_topic(db, topic.topic_id)  # TODO remove
 
     db.commit()
 

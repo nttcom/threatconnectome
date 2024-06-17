@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas, ticket_manager
 from app.auth import get_current_user
 from app.common import (
-    auto_close_by_pteamtags,
     check_pteam_auth,
     check_pteam_membership,
     count_service_solved_tickets_per_threat_impact,
@@ -21,8 +20,6 @@ from app.common import (
     get_sorted_topics,
     get_sorted_unsolved_ticket_ids_by_service_tag_and_status,
     get_tag_ids_with_parent_ids,
-    pteamtag_try_auto_close_topic,
-    set_pteam_topic_status_internal,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db
@@ -267,85 +264,6 @@ def get_pteam_tags(
         raise NOT_A_PTEAM_MEMBER
 
     return get_pteam_ext_tags(db, pteam)
-
-
-@router.get("/{pteam_id}/tags/summary", response_model=schemas.PTeamTagsSummary)
-def get_pteam_tags_summary(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get summary of the pteam tags.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    return command.get_pteam_tags_summary(db, pteam)
-
-
-@router.get("/{pteam_id}/tags/{tag_id}/solved_topic_ids", response_model=schemas.PTeamTaggedTopics)
-def get_pteam_tagged_solved_topic_ids(
-    pteam_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get tagged and solved topic id list of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    topic_ids = command.get_sorted_topic_ids_by_pteam_tag_and_status(db, pteam_id, tag_id, True)
-    threat_impact_count = command.count_pteam_topics_per_threat_impact(db, pteam_id, tag_id, True)
-
-    return {
-        "pteam_id": pteam_id,
-        "tag_id": tag_id,
-        "topic_ids": topic_ids,
-        "threat_impact_count": threat_impact_count,
-    }
-
-
-@router.get(
-    "/{pteam_id}/tags/{tag_id}/unsolved_topic_ids", response_model=schemas.PTeamTaggedTopics
-)
-def get_pteam_tagged_unsolved_topic_ids(
-    pteam_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get tagged and unsolved topic id list of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    topic_ids = command.get_sorted_topic_ids_by_pteam_tag_and_status(db, pteam_id, tag_id, False)
-    threat_impact_count = command.count_pteam_topics_per_threat_impact(db, pteam_id, tag_id, False)
-
-    return {
-        "pteam_id": pteam_id,
-        "tag_id": tag_id,
-        "threat_impact_count": threat_impact_count,
-        "topic_ids": topic_ids,
-    }
 
 
 @router.get(
@@ -846,9 +764,7 @@ def upload_pteam_sbom_file(
 
     try:
         json_lines = sbom_json_to_artifact_json_lines(jdata)
-        apply_service_tags(
-            db, pteam, service_model, json_lines, auto_create_tags=force_mode, auto_close=False
-        )
+        apply_service_tags(db, pteam, service_model, json_lines, auto_create_tags=force_mode)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
@@ -893,9 +809,7 @@ def upload_pteam_tags_file(
         db.flush()
 
     try:
-        apply_service_tags(
-            db, pteam, service_model, json_lines, auto_create_tags=force_mode, auto_close=True
-        )
+        apply_service_tags(db, pteam, service_model, json_lines, auto_create_tags=force_mode)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
@@ -910,17 +824,7 @@ def apply_service_tags(
     service: models.Service,
     json_lines: list[dict],
     auto_create_tags=False,
-    auto_close=False,
 ) -> None:
-    def _collect_versions_of_pteam_tags(pteam: models.PTeam) -> dict[str, set[str]]:
-        ret: dict[str, set[str]] = {}
-        for service in pteam.services:
-            for dependency in service.dependencies:
-                versions = ret.get(dependency.tag_id, set())
-                versions.add(dependency.version)
-                ret[dependency.tag_id] = versions
-        return ret
-
     # Check file format and get tag_names
     missing_tags = set()
     new_dependencies_set: set[tuple[str, str, str]] = set()  # (tag_id, target, version)
@@ -943,9 +847,6 @@ def apply_service_tags(
                 )
     if missing_tags:
         raise ValueError(f"No such tags: {', '.join(sorted(missing_tags))}")
-
-    if auto_close:
-        old_versions = _collect_versions_of_pteam_tags(pteam)
 
     # separate dependencis to keep, delete or create
     obsoleted_dependencies = []
@@ -971,18 +872,6 @@ def apply_service_tags(
         fix_threats_for_dependency(db, new_dependency)
     db.flush()
 
-    # try auto close if make sense
-    if auto_close:  # TODO remove
-        new_versions = _collect_versions_of_pteam_tags(pteam)
-        if tags_for_auto_close := [
-            tag
-            for tag in pteam.tags
-            if new_versions.get(tag.tag_id, set()) != old_versions.get(tag.tag_id, set())
-        ]:
-            auto_close_by_pteamtags(db, [(pteam, tag) for tag in tags_for_auto_close])
-
-    command.fix_current_status_by_pteam(db, pteam)  # TODO remove
-
 
 @router.delete("/{pteam_id}/tags", status_code=status.HTTP_204_NO_CONTENT)
 def remove_pteam_tags_by_service(
@@ -1006,8 +895,6 @@ def remove_pteam_tags_by_service(
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     pteam.services.remove(service_model)
-    db.flush()
-    command.fix_current_status_by_pteam(db, pteam)  # TODO remove
 
     db.commit()
 
@@ -1079,124 +966,6 @@ def get_pteam_topic_statuses_summary(
     if tag not in pteam.tags:
         raise NO_SUCH_PTEAM_TAG
     return command.get_pteam_topic_statuses_summary(db, pteam, tag)
-
-
-@router.post(
-    "/{pteam_id}/topicstatus/{topic_id}/{tag_id}", response_model=schemas.PTeamTopicStatusResponse
-)
-def set_pteam_topic_status(
-    pteam_id: UUID,
-    topic_id: UUID,
-    tag_id: UUID,
-    data: schemas.TopicStatusRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Set topic status of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    # TODO: should check pteam auth: topic_status
-
-    if not (topic := persistence.get_topic_by_id(db, topic_id)):
-        raise NO_SUCH_TOPIC
-    # TODO: should check pteam topic???
-    # TODO: should check topic tag?? -- should care about parent&child
-
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    if not command.check_tag_is_related_to_topic(db, tag, topic):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tag mismatch")
-
-    if data.topic_status not in {
-        models.TopicStatusType.acknowledged,
-        models.TopicStatusType.scheduled,
-        models.TopicStatusType.completed,
-    }:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
-
-    for logging_id_ in data.logging_ids:
-        if not (log := persistence.get_action_log_by_id(db, logging_id_)):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No such actionlog",
-            )
-        if log.pteam_id != str(pteam_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Not an actionlog for the pteam",
-            )
-        if log.topic_id != str(topic_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Not an actionlog for the topic",
-            )
-    for assignee in data.assignees:
-        if not (a_user := persistence.get_account_by_id(db, assignee)):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No such user",
-            )
-        if not check_pteam_membership(db, pteam, a_user):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Not a pteam member",
-            )
-
-    ret = set_pteam_topic_status_internal(db, current_user, pteam, topic, tag, data)
-    ticket_manager.set_ticket_statuses_in_pteam(db, current_user, pteam, topic, tag, data)
-
-    db.commit()
-
-    return ret
-
-
-@router.get(
-    "/{pteam_id}/topicstatus/{topic_id}/{tag_id}", response_model=schemas.PTeamTopicStatusResponse
-)
-def get_pteam_topic_status(
-    pteam_id: UUID,
-    topic_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get the current status (or None) of the pteam topic.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    # TODO: should check pteam topic???
-    # TODO: should check topic tag?? -- should care about parent&child
-
-    current_row = persistence.get_current_pteam_topic_tag_status(db, pteam_id, topic_id, tag_id)
-    if current_row is None or current_row.status_id is None:
-        # should not happen if request is right
-        return {
-            "pteam_id": pteam_id,
-            "topic_id": topic_id,
-            "tag_id": tag_id,
-        }
-
-    status_row = persistence.get_pteam_topic_tag_status_by_id(db, current_row.status_id)
-    assert status_row
-    return command.pteam_topic_tag_status_to_response(db, status_row)
 
 
 @router.get("/{pteam_id}/members", response_model=list[schemas.UserResponse])
@@ -1389,46 +1158,3 @@ def remove_watcher_ateam(
         db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.post("/{pteam_id}/fix_status_mismatch")
-def fix_status_mismatch(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    for tag, topic in command.get_auto_close_triable_pteam_tags_and_topics(db, pteam):
-        pteamtag_try_auto_close_topic(db, pteam, tag, topic)
-
-    db.commit()
-
-    return Response(status_code=status.HTTP_200_OK)
-
-
-@router.post("/{pteam_id}/tags/{tag_id}/fix_status_mismatch")
-def fix_status_mismatch_tag(
-    pteam_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    for topic in command.get_auto_close_triable_pteam_topics(db, pteam, tag):
-        pteamtag_try_auto_close_topic(db, pteam, tag, topic)
-
-    db.commit()
-
-    return Response(status_code=status.HTTP_200_OK)

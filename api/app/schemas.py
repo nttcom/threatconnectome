@@ -443,20 +443,6 @@ class TopicStatusRequest(ORMModel):
     scheduled_at: datetime | None = None
 
 
-class PTeamTopicStatusResponse(ORMModel):
-    status_id: UUID | None = None  # None is the case no status is set yet
-    topic_id: UUID
-    pteam_id: UUID
-    tag_id: UUID
-    user_id: UUID | None = None
-    topic_status: TopicStatusType | None = None
-    created_at: datetime | None = None
-    assignees: list[UUID] = []
-    note: str | None = None
-    scheduled_at: datetime | None = None
-    action_logs: list[ActionLogResponse] = []
-
-
 class TopicStatusResponse(ORMModel):
     status_id: UUID | None = None  # None is the case no status is set yet
     topic_id: UUID
