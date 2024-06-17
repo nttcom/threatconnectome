@@ -714,11 +714,6 @@ def get_topic_status(
 
     summary: list[dict] = []
     for row in rows:
-        if (
-            row.PTeamTopicTagStatus
-            and row.PTeamTopicTagStatus.topic_status == models.TopicStatusType.completed
-        ):
-            continue  # filter completed
         if len(summary) == 0 or summary[-1]["topic_id"] != row.topic_id:
             summary.append(
                 {
@@ -745,15 +740,13 @@ def get_topic_status(
         _pteam["statuses"].append(
             {
                 **(
-                    row.PTeamTopicTagStatus.__dict__
-                    if row.PTeamTopicTagStatus
-                    else {
-                        "topic_id": row.topic_id,
-                        "pteam_id": row.pteam_id,
-                        "topic_status": models.TopicStatusType.alerted,
-                    }
+                    row.TicketStatus.__dict__
+                    if row.TicketStatus
+                    else {"topic_status": models.TopicStatusType.alerted}
                 ),
-                # extended data not included in PTeamTopicTagStatus
+                # extended data not included in TicketStatus
+                "topic_id": row.topic_id,
+                "pteam_id": row.pteam_id,
                 "tag": row.Tag,
             }
         )

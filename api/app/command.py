@@ -51,42 +51,49 @@ def get_ateam_topic_statuses(
 ):
     sort_rules = sortkey2orderby[sort_key] + [
         models.Topic.topic_id,  # service by topic
-        nullsfirst(models.PTeamTopicTagStatus.topic_status),  # worst state on array[0]
-        models.PTeamTopicTagStatus.scheduled_at.desc(),  # latest on array[0] if worst is scheduled
+        nullsfirst(models.CurrentTicketStatus.topic_status),  # worst state on array[0]
+        models.TicketStatus.scheduled_at.desc(),  # latest on array[0] if worst is scheduled
         models.PTeam.pteam_name,
         models.Tag.tag_name,
     ]
 
-    join_topic_rules = [models.Topic.topic_id == models.CurrentPTeamTopicTagStatus.topic_id]
+    join_topic_rules = [models.Topic.topic_id == models.Threat.topic_id]
     if search:
         join_topic_rules.append(models.Topic.title.icontains(search, autoescape=True))
 
     select_stmt = (
         select(
-            models.CurrentPTeamTopicTagStatus.topic_id,
-            models.CurrentPTeamTopicTagStatus.pteam_id,
+            models.ATeamPTeam.ateam_id,
+            models.PTeam.pteam_id,
             models.PTeam.pteam_name,
             models.Tag,
+            models.Topic.topic_id,
             models.Topic.title,
             models.Topic.updated_at,
             models.Topic.threat_impact,
-            models.PTeamTopicTagStatus,
+            models.TicketStatus,
         )
         .join(
-            models.ATeamPTeam,
+            models.PTeam,
             and_(
                 models.ATeamPTeam.ateam_id == str(ateam_id),
-                models.ATeamPTeam.pteam_id == models.CurrentPTeamTopicTagStatus.pteam_id,
+                models.ATeamPTeam.pteam_id == models.PTeam.pteam_id,
             ),
         )
-        .join(models.PTeam, models.PTeam.pteam_id == models.CurrentPTeamTopicTagStatus.pteam_id)
-        .join(models.Tag, models.Tag.tag_id == models.CurrentPTeamTopicTagStatus.tag_id)
+        .join(models.Service)
+        .join(models.Dependency)
+        .join(models.Tag)
+        .join(models.Threat)
         .join(models.Topic, and_(*join_topic_rules))
-        .outerjoin(
-            models.PTeamTopicTagStatus,
-            models.PTeamTopicTagStatus.status_id == models.CurrentPTeamTopicTagStatus.status_id,
+        .join(models.Ticket)
+        .join(
+            models.CurrentTicketStatus,
+            and_(
+                models.CurrentTicketStatus.ticket_id == models.Ticket.ticket_id,
+                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
+            ),
         )
-        .where(models.CurrentPTeamTopicTagStatus.topic_status != models.TopicStatusType.completed)
+        .outerjoin(models.TicketStatus)
         .order_by(*sort_rules)
     )
 

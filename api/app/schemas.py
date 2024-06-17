@@ -531,7 +531,7 @@ class FsServerInfo(ORMModel):
     api_url: str
 
 
-class PTeamTopicTagStatusSimple(ORMModel):
+class TicketStatusSimple(ORMModel):
     topic_id: UUID
     pteam_id: UUID
     tag: TagResponse
@@ -543,7 +543,7 @@ class PTeamTopicTagStatusSimple(ORMModel):
 class PTeamTopicStatuses(ORMModel):
     pteam_id: UUID
     pteam_name: str
-    statuses: list[PTeamTopicTagStatusSimple]
+    statuses: list[TicketStatusSimple]
 
 
 class ATeamTopicStatus(ORMModel):
