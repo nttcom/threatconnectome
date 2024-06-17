@@ -12,9 +12,13 @@ from app.tests.medium.constants import (
     ATEAM1,
     ATEAM2,
     PTEAM1,
+    PTEAM2,
     SAMPLE_SLACK_WEBHOOK_URL,
     SERVICE1,
+    SERVICE2,
     TAG1,
+    TAG2,
+    TAG3,
     TOPIC1,
     TOPIC2,
     TOPIC3,
@@ -31,6 +35,7 @@ from app.tests.medium.utils import (
     assert_200,
     create_ateam,
     create_pteam,
+    create_service_topicstatus,
     create_tag,
     create_topic,
     create_user,
@@ -38,6 +43,7 @@ from app.tests.medium.utils import (
     headers,
     invite_to_ateam,
     invite_to_pteam,
+    schema_to_dict,
     upload_pteam_tags,
 )
 
@@ -1462,6 +1468,485 @@ def test_accept_watching_request__not_admin():
         )
 
 
+def test_get_topic_status():
+
+    def _gen_action(tag_names: list[str]) -> dict:
+        return {
+            "action": f"action for {','.join(tag_names)}",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": tag_names,
+                "vulnerable_versions": {tag_name: ["< 99.9.9"] for tag_name in tag_names},
+            },
+        }
+
+    def _get_pteam(user: dict, pteam_id: UUID | str) -> schemas.PTeamInfo:
+        data = assert_200(client.get(f"/pteams/{pteam_id}", headers=headers(user)))
+        return schemas.PTeamInfo(**data)
+
+    user1 = create_user(USER1)
+    user2 = create_user(USER2)
+    tag1 = create_tag(USER1, TAG1)
+    tag2 = create_tag(USER1, TAG2)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    pteam1 = _get_pteam(USER1, pteam1.pteam_id)  # sync services
+    pteam2 = create_pteam(USER1, PTEAM2)
+    upload_pteam_tags(
+        USER1,
+        pteam2.pteam_id,
+        SERVICE2,
+        {
+            TAG1: [("Pipfile.lock", "1.0.0")],
+            TAG2: [("Pipfile.lock", "1.0.0")],
+            TAG3: [("Pipfile.lock", "1.0.0")],
+        },
+        True,
+    )
+    pteam2 = _get_pteam(USER1, pteam2.pteam_id)  # sync services
+    ateam1 = create_ateam(USER1, ATEAM1)
+
+    invitation = invite_to_ateam(USER1, ateam1.ateam_id)
+    accept_ateam_invitation(USER2, invitation.invitation_id)
+
+    # wrong ateam_id
+    with pytest.raises(HTTPError, match=r"404: Not Found"):
+        assert_200(client.get(f"/ateams/{pteam1.pteam_id}/topicstatus", headers=headers(USER1)))
+
+    # no pteams
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 0
+    assert len(data["topic_statuses"]) == 0
+
+    # PTEAM1 joins
+    watching_request1 = create_watching_request(USER1, ateam1.ateam_id)
+    accept_watching_request(USER1, watching_request1.request_id, pteam1.pteam_id)
+
+    # no topics
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 0
+    assert len(data["topic_statuses"]) == 0
+
+    # create topic1
+    topic1 = create_topic(USER1, {**TOPIC1, "tags": [TAG1], "actions": [_gen_action([TAG1])]})
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 1
+    assert len(topic_statuses := data["topic_statuses"]) == 1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
+    assert topic_statuses[0]["title"] == TOPIC1["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC1["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic1.updated_at
+    assert topic_statuses[0]["num_pteams"] == 1
+    assert len(topic_statuses[0]["pteams"]) == 1
+    pteam = topic_statuses[0]["pteams"][0]
+    assert UUID(pteam["pteam_id"]) == pteam1.pteam_id
+    assert pteam["pteam_name"] == PTEAM1["pteam_name"]
+    pteam_statuses = pteam["statuses"]
+    assert len(pteam_statuses) == 1
+    assert UUID(pteam_statuses[0]["topic_id"]) == topic1.topic_id
+    assert UUID(pteam_statuses[0]["pteam_id"]) == pteam1.pteam_id
+    assert pteam_statuses[0]["tag"] == schema_to_dict(tag1)
+    assert pteam_statuses[0]["topic_status"] == models.TopicStatusType.alerted
+    assert pteam_statuses[0]["assignees"] == []
+    assert pteam_statuses[0]["scheduled_at"] is None
+
+    # ack
+    request = {
+        "topic_status": models.TopicStatusType.acknowledged,
+    }
+    create_service_topicstatus(
+        USER1, pteam1.pteam_id, pteam1.services[0].service_id, topic1.topic_id, tag1.tag_id, request
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 1
+    assert len(topic_statuses := data["topic_statuses"]) == 1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
+    assert topic_statuses[0]["title"] == TOPIC1["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC1["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic1.updated_at
+    assert topic_statuses[0]["num_pteams"] == 1
+    assert len(topic_statuses[0]["pteams"]) == 1
+    pteam = topic_statuses[0]["pteams"][0]
+    assert UUID(pteam["pteam_id"]) == pteam1.pteam_id
+    assert pteam["pteam_name"] == PTEAM1["pteam_name"]
+    pteam_statuses = pteam["statuses"]
+    assert len(pteam_statuses) == 1
+    assert UUID(pteam_statuses[0]["topic_id"]) == topic1.topic_id
+    assert UUID(pteam_statuses[0]["pteam_id"]) == pteam1.pteam_id
+    assert pteam_statuses[0]["tag"] == schema_to_dict(tag1)
+    assert pteam_statuses[0]["topic_status"] == models.TopicStatusType.acknowledged
+    assert set(map(UUID, pteam_statuses[0]["assignees"])) == set([user1.user_id])
+    assert pteam_statuses[0]["scheduled_at"] is None
+
+    # schedule
+    request = {
+        "topic_status": models.TopicStatusType.scheduled,
+        "scheduled_at": str(datetime(3000, 1, 1)),
+        "assignees": list(map(str, [user1.user_id, user2.user_id])),
+    }
+    create_service_topicstatus(
+        USER1, pteam1.pteam_id, pteam1.services[0].service_id, topic1.topic_id, tag1.tag_id, request
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 1
+    assert len(topic_statuses := data["topic_statuses"]) == 1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
+    assert topic_statuses[0]["title"] == TOPIC1["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC1["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic1.updated_at
+    assert topic_statuses[0]["num_pteams"] == 1
+    pteam = topic_statuses[0]["pteams"][0]
+    assert UUID(pteam["pteam_id"]) == pteam1.pteam_id
+    assert pteam["pteam_name"] == PTEAM1["pteam_name"]
+    pteam_statuses = pteam["statuses"]
+    assert len(pteam_statuses) == 1
+    assert UUID(pteam_statuses[0]["topic_id"]) == topic1.topic_id
+    assert UUID(pteam_statuses[0]["pteam_id"]) == pteam1.pteam_id
+    assert pteam_statuses[0]["tag"] == schema_to_dict(tag1)
+    assert pteam_statuses[0]["topic_status"] == models.TopicStatusType.scheduled
+    assert set(map(UUID, pteam_statuses[0]["assignees"])) == set([user1.user_id, user2.user_id])
+    assert datetime.fromisoformat(pteam_statuses[0]["scheduled_at"]) == datetime.fromisoformat(
+        request["scheduled_at"]
+    )
+
+    # complete
+    request = {
+        "topic_status": models.TopicStatusType.completed,
+    }
+    create_service_topicstatus(
+        USER1, pteam1.pteam_id, pteam1.services[0].service_id, topic1.topic_id, tag1.tag_id, request
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 0
+    assert len(data["topic_statuses"]) == 0
+
+    def _pick_pteam(pteams, pteam_id):
+        return next(filter(lambda x: x["pteam_id"] == str(pteam_id), pteams), None)
+
+    def _pick_tag(statuses, tag_id):
+        return next(filter(lambda x: x["tag"]["tag_id"] == str(tag_id), statuses), None)
+
+    # PTEAM2 joins
+    watching_request2 = create_watching_request(USER1, ateam1.ateam_id)
+    accept_watching_request(USER1, watching_request2.request_id, pteam2.pteam_id)
+
+    # create topic2 with 2 tags
+    topic2 = create_topic(
+        USER1, {**TOPIC2, "tags": [TAG1, TAG2], "actions": [_gen_action([TAG1, TAG2])]}
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 2
+    assert len(topic_statuses := data["topic_statuses"]) == 2
+    assert topic2.updated_at > topic1.updated_at
+    assert topic2.threat_impact > topic1.threat_impact
+    # topic1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic1.topic_id
+    assert topic_statuses[0]["title"] == TOPIC1["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC1["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic1.updated_at
+    assert topic_statuses[0]["num_pteams"] == 1
+    assert len(topic_statuses[0]["pteams"]) == 1
+    assert UUID(topic_statuses[0]["pteams"][0]["pteam_id"]) == pteam2.pteam_id
+    assert topic_statuses[0]["pteams"][0]["pteam_name"] == PTEAM2["pteam_name"]
+    assert len(topic_statuses[0]["pteams"][0]["statuses"]) == 1
+    assert UUID(topic_statuses[0]["pteams"][0]["statuses"][0]["topic_id"]) == topic1.topic_id
+    assert UUID(topic_statuses[0]["pteams"][0]["statuses"][0]["pteam_id"]) == pteam2.pteam_id
+    assert topic_statuses[0]["pteams"][0]["statuses"][0]["tag"] == schema_to_dict(tag1)
+    assert (
+        topic_statuses[0]["pteams"][0]["statuses"][0]["topic_status"]
+        == models.TopicStatusType.alerted
+    )
+    assert topic_statuses[0]["pteams"][0]["statuses"][0]["assignees"] == []
+    assert topic_statuses[0]["pteams"][0]["statuses"][0]["scheduled_at"] is None
+    # topic2
+    assert UUID(topic_statuses[1]["topic_id"]) == topic2.topic_id
+    assert topic_statuses[1]["title"] == TOPIC2["title"]
+    assert topic_statuses[1]["threat_impact"] == TOPIC2["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[1]["updated_at"]) == topic2.updated_at
+    assert topic_statuses[1]["num_pteams"] == 2
+    assert len(topic_statuses[1]["pteams"]) == 2
+    tmp1 = _pick_pteam(topic_statuses[1]["pteams"], pteam1.pteam_id)
+    assert tmp1
+    assert len(tmp1["statuses"]) == 1
+    # stXYZ = topicX + pteamY + tagZ
+    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert st211
+    assert st211["topic_status"] == models.TopicStatusType.alerted
+    assert st211["assignees"] == []
+    assert st211["scheduled_at"] is None
+    tmp2 = _pick_pteam(topic_statuses[1]["pteams"], pteam2.pteam_id)
+    assert tmp2
+    assert len(tmp2["statuses"]) == 2
+    tmp221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert tmp221
+    assert tmp221["topic_status"] == models.TopicStatusType.alerted
+    assert tmp221["assignees"] == []
+    assert tmp221["scheduled_at"] is None
+    tmp222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    assert tmp222
+    assert tmp222["topic_status"] == models.TopicStatusType.alerted
+    assert tmp222["assignees"] == []
+    assert tmp222["scheduled_at"] is None
+
+    # PTEAM2 complete TOPIC1 TAG1
+    request = {
+        "topic_status": models.TopicStatusType.completed,
+    }
+    create_service_topicstatus(
+        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic1.topic_id, tag1.tag_id, request
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 1
+    assert len(topic_statuses := data["topic_statuses"]) == 1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic2.topic_id
+    assert topic_statuses[0]["title"] == TOPIC2["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
+    assert topic_statuses[0]["num_pteams"] == 2
+    assert len(topic_statuses[0]["pteams"]) == 2
+    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert tmp1
+    assert len(tmp1["statuses"]) == 1
+    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert st211
+    assert st211["topic_status"] == models.TopicStatusType.alerted
+    assert st211["assignees"] == []
+    assert st211["scheduled_at"] is None
+    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    assert tmp2
+    assert len(tmp2["statuses"]) == 2
+    st221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert st221["topic_status"] == models.TopicStatusType.alerted
+    assert st221["assignees"] == []
+    assert st221["scheduled_at"] is None
+    st222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    assert st222["topic_status"] == models.TopicStatusType.alerted
+    assert st222["assignees"] == []
+    assert st222["scheduled_at"] is None
+
+    # PTEAM2 ack TOPIC2 TAG1
+    request = {
+        "topic_status": models.TopicStatusType.acknowledged,
+    }
+    create_service_topicstatus(
+        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic2.topic_id, tag1.tag_id, request
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 1
+    assert len(topic_statuses := data["topic_statuses"]) == 1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic2.topic_id
+    assert topic_statuses[0]["title"] == TOPIC2["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
+    assert topic_statuses[0]["num_pteams"] == 2
+    assert len(topic_statuses[0]["pteams"]) == 2
+    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert tmp1
+    assert len(tmp1["statuses"]) == 1
+    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert st211
+    assert st211["topic_status"] == models.TopicStatusType.alerted
+    assert st211["assignees"] == []
+    assert st211["scheduled_at"] is None
+    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    assert tmp2
+    assert len(tmp2["statuses"]) == 2
+    assert tmp2["statuses"][0]["topic_status"] == models.TopicStatusType.alerted  # worst first
+    assert tmp2["statuses"][1]["topic_status"] == models.TopicStatusType.acknowledged
+    st221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert st221["topic_status"] == models.TopicStatusType.acknowledged
+    assert st221["assignees"] == list(map(str, [user1.user_id]))
+    assert st221["scheduled_at"] is None
+    st222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    assert st222["topic_status"] == models.TopicStatusType.alerted
+    assert st222["assignees"] == []
+    assert st222["scheduled_at"] is None
+
+    # PTEAM2 schedule TOPIC2 TAG2
+    request = {
+        "topic_status": models.TopicStatusType.scheduled,
+        "scheduled_at": str(datetime(3000, 1, 1)),
+    }
+    create_service_topicstatus(
+        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic2.topic_id, tag2.tag_id, request
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 1
+    assert len(topic_statuses := data["topic_statuses"]) == 1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic2.topic_id
+    assert topic_statuses[0]["title"] == TOPIC2["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
+    assert topic_statuses[0]["num_pteams"] == 2
+    assert len(topic_statuses[0]["pteams"]) == 2
+    assert UUID(topic_statuses[0]["pteams"][0]["pteam_id"]) == pteam1.pteam_id  # worst first
+    assert UUID(topic_statuses[0]["pteams"][1]["pteam_id"]) == pteam2.pteam_id
+    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert tmp1
+    assert len(tmp1["statuses"]) == 1
+    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert st211
+    assert st211["topic_status"] == models.TopicStatusType.alerted
+    assert st211["assignees"] == []
+    assert st211["scheduled_at"] is None
+    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    assert tmp2
+    assert len(tmp2["statuses"]) == 2
+    assert tmp2["statuses"][0]["topic_status"] == models.TopicStatusType.acknowledged  # worst first
+    assert tmp2["statuses"][1]["topic_status"] == models.TopicStatusType.scheduled
+    st221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert st221["topic_status"] == models.TopicStatusType.acknowledged
+    assert st221["assignees"] == list(map(str, [user1.user_id]))
+    assert st221["scheduled_at"] is None
+    st222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    assert st222["topic_status"] == models.TopicStatusType.scheduled
+    assert st222["assignees"] == []
+    assert datetime.fromisoformat(st222["scheduled_at"]) == datetime.fromisoformat(
+        request["scheduled_at"]
+    )
+
+    # PTEAM1 schedule TOPIC2 TAG1
+    request = {
+        "topic_status": models.TopicStatusType.scheduled,
+        "scheduled_at": str(datetime(3000, 12, 31)),
+    }
+    create_service_topicstatus(
+        USER1, pteam1.pteam_id, pteam1.services[0].service_id, topic2.topic_id, tag1.tag_id, request
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 1
+    assert len(topic_statuses := data["topic_statuses"]) == 1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic2.topic_id
+    assert topic_statuses[0]["title"] == TOPIC2["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
+    assert topic_statuses[0]["num_pteams"] == 2
+    assert len(topic_statuses[0]["pteams"]) == 2
+    assert UUID(topic_statuses[0]["pteams"][0]["pteam_id"]) == pteam2.pteam_id  # worst first
+    assert UUID(topic_statuses[0]["pteams"][1]["pteam_id"]) == pteam1.pteam_id
+    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert tmp1
+    assert len(tmp1["statuses"]) == 1
+    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert st211
+    assert st211["topic_status"] == models.TopicStatusType.scheduled
+    assert st211["assignees"] == []
+    assert datetime.fromisoformat(st211["scheduled_at"]) == datetime.fromisoformat(
+        request["scheduled_at"]
+    )
+    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    assert tmp2
+    assert len(tmp2["statuses"]) == 2
+    assert tmp2["statuses"][0]["topic_status"] == models.TopicStatusType.acknowledged  # worst first
+    assert tmp2["statuses"][1]["topic_status"] == models.TopicStatusType.scheduled
+    st221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert st221["topic_status"] == models.TopicStatusType.acknowledged
+    assert st221["assignees"] == list(map(str, [user1.user_id]))
+    assert st221["scheduled_at"] is None
+    st222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    assert st222["topic_status"] == models.TopicStatusType.scheduled
+    assert st222["assignees"] == []
+
+    # PTEAM2 complete TOPIC2 TAG1
+    request = {
+        "topic_status": models.TopicStatusType.completed,
+    }
+    create_service_topicstatus(
+        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic2.topic_id, tag1.tag_id, request
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 1
+    assert len(topic_statuses := data["topic_statuses"]) == 1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic2.topic_id
+    assert topic_statuses[0]["title"] == TOPIC2["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
+    assert topic_statuses[0]["num_pteams"] == 2
+    assert len(topic_statuses[0]["pteams"]) == 2
+    assert UUID(topic_statuses[0]["pteams"][0]["pteam_id"]) == pteam1.pteam_id  # later first(12/31)
+    assert UUID(topic_statuses[0]["pteams"][1]["pteam_id"]) == pteam2.pteam_id  # (3000/1/1)
+    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert tmp1
+    assert len(tmp1["statuses"]) == 1
+    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert st211
+    assert st211["topic_status"] == models.TopicStatusType.scheduled
+    assert st211["assignees"] == []
+    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    assert tmp2
+    assert len(tmp2["statuses"]) == 1
+    st222 = _pick_tag(tmp2["statuses"], tag2.tag_id)
+    assert st222["topic_status"] == models.TopicStatusType.scheduled
+    assert st222["assignees"] == []
+
+    # PTEAM2 complete TOPIC2 TAG2
+    request = {
+        "topic_status": models.TopicStatusType.completed,
+    }
+    create_service_topicstatus(
+        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic2.topic_id, tag2.tag_id, request
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 1
+    assert len(topic_statuses := data["topic_statuses"]) == 1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic2.topic_id
+    assert topic_statuses[0]["title"] == TOPIC2["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
+    assert topic_statuses[0]["num_pteams"] == 1
+    assert len(topic_statuses[0]["pteams"]) == 1
+    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert tmp1
+    assert len(tmp1["statuses"]) == 1
+    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert st211["topic_status"] == models.TopicStatusType.scheduled
+    assert st211["assignees"] == []
+
+    # PTEAM2 ack TOPIC2 TAG1 again
+    request = {
+        "topic_status": models.TopicStatusType.acknowledged,
+    }
+    create_service_topicstatus(
+        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic2.topic_id, tag1.tag_id, request
+    )
+
+    data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
+    assert data["num_topics"] == 1
+    assert len(topic_statuses := data["topic_statuses"]) == 1
+    assert UUID(topic_statuses[0]["topic_id"]) == topic2.topic_id
+    assert topic_statuses[0]["title"] == TOPIC2["title"]
+    assert topic_statuses[0]["threat_impact"] == TOPIC2["threat_impact"]
+    assert datetime.fromisoformat(topic_statuses[0]["updated_at"]) == topic2.updated_at
+    assert topic_statuses[0]["num_pteams"] == 2
+    assert len(topic_statuses[0]["pteams"]) == 2
+    assert UUID(topic_statuses[0]["pteams"][0]["pteam_id"]) == pteam2.pteam_id  # worst first
+    assert UUID(topic_statuses[0]["pteams"][1]["pteam_id"]) == pteam1.pteam_id
+    tmp1 = _pick_pteam(topic_statuses[0]["pteams"], pteam1.pteam_id)
+    assert tmp1
+    assert len(tmp1["statuses"]) == 1
+    st211 = _pick_tag(tmp1["statuses"], tag1.tag_id)
+    assert st211["topic_status"] == models.TopicStatusType.scheduled
+    assert st211["assignees"] == []
+    tmp2 = _pick_pteam(topic_statuses[0]["pteams"], pteam2.pteam_id)
+    assert tmp2
+    assert len(tmp2["statuses"]) == 1
+    st221 = _pick_tag(tmp2["statuses"], tag1.tag_id)
+    assert st221["topic_status"] == models.TopicStatusType.acknowledged
+    assert st221["assignees"] == []
+
+
 class TestGetTopicStatusWithQueryParams:
     # default params on API
     default_offset: int = 0
@@ -1554,15 +2039,32 @@ class TestGetTopicStatusWithQueryParams:
         watching_request1 = create_watching_request(USER1, self.ateam1.ateam_id)
         accept_watching_request(USER1, watching_request1.request_id, self.pteam1.pteam_id)
 
+        action1 = {
+            "action": "action1",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": [TAG1],
+                "vulnerable_versions": {TAG1: ["< 99.9.9"]},
+            },
+        }
+
         # create 4 topics on unsorted order
-        topic2 = create_topic(USER1, {**TOPIC2, "threat_impact": 2, "tags": [TAG1]})
-        topic4 = create_topic(USER1, {**TOPIC4, "threat_impact": 3, "tags": [TAG1]})
-        topic1 = create_topic(USER1, {**TOPIC1, "threat_impact": 1, "tags": [TAG1]})
-        topic3 = create_topic(USER1, {**TOPIC3, "threat_impact": 3, "tags": [TAG1]})
+        topic2 = create_topic(
+            USER1, {**TOPIC2, "threat_impact": 2, "tags": [TAG1], "actions": [action1]}
+        )
+        topic4 = create_topic(
+            USER1, {**TOPIC4, "threat_impact": 3, "tags": [TAG1], "actions": [action1]}
+        )
+        topic1 = create_topic(
+            USER1, {**TOPIC1, "threat_impact": 1, "tags": [TAG1], "actions": [action1]}
+        )
+        topic3 = create_topic(
+            USER1, {**TOPIC3, "threat_impact": 3, "tags": [TAG1], "actions": [action1]}
+        )
 
         return [topic1, topic2, topic3, topic4]
 
-    @pytest.mark.skip(reason="Currently, Fix it when fix ATeam API")  # TODO
     def test_default_behavior(self, topics):
         data = self._get_summary()
         self._assert_nums(data, 4, self.default_offset, self.default_limit, 4)
@@ -1573,7 +2075,6 @@ class TestGetTopicStatusWithQueryParams:
         self._assert_topic_is(data["topic_statuses"][2], topics[2])  # created after topic4
         self._assert_topic_is(data["topic_statuses"][3], topics[3])
 
-    @pytest.mark.skip(reason="Currently, Fix it when fix ATeam API")  # TODO
     def test_offset(self, topics):
         data = self._get_summary(offset=1)
         self._assert_nums(data, 4, 1, self.default_limit, 3)
@@ -1593,7 +2094,6 @@ class TestGetTopicStatusWithQueryParams:
         data = self._get_summary(offset=5)
         self._assert_nums(data, 4, 5, self.default_limit, 0)  # all topics omitted by offset
 
-    @pytest.mark.skip(reason="Currently, Fix it when fix ATeam API")  # TODO
     def test_limit(self, topics):
         data = self._get_summary(limit=1)
         self._assert_nums(data, 4, self.default_offset, 1, 1)
@@ -1622,7 +2122,6 @@ class TestGetTopicStatusWithQueryParams:
         self._assert_topic_is(data["topic_statuses"][2], topics[2])
         self._assert_topic_is(data["topic_statuses"][3], topics[3])
 
-    @pytest.mark.skip(reason="Currently, Fix it when fix ATeam API")  # TODO
     def test_offset_and_limit(self, topics):
         data = self._get_summary(offset=1, limit=1)
         self._assert_nums(data, 4, 1, 1, 1)
@@ -1644,7 +2143,6 @@ class TestGetTopicStatusWithQueryParams:
         data = self._get_summary(offset=4, limit=4)
         self._assert_nums(data, 4, 4, 4, 0)  # all topics omitted by offset
 
-    @pytest.mark.skip(reason="Currently, Fix it when fix ATeam API")  # TODO
     def test_search(self, topics):
         data = self._get_summary(search="topic")
         self._assert_nums(data, 4, self.default_offset, self.default_limit, 4)
@@ -1681,7 +2179,6 @@ class TestGetTopicStatusWithQueryParams:
         self._assert_nums(data, 0, self.default_offset, self.default_limit, 0)
         assert data["search"] == "_"
 
-    @pytest.mark.skip(reason="Currently, Fix it when fix ATeam API")  # TODO
     def test_actually_ignored_empty_search(self, topics):
         data = self._get_summary(search="")
         self._assert_nums(data, 4, self.default_offset, self.default_limit, 4)
@@ -1691,7 +2188,6 @@ class TestGetTopicStatusWithQueryParams:
         self._assert_topic_is(data["topic_statuses"][2], topics[2])
         self._assert_topic_is(data["topic_statuses"][3], topics[3])
 
-    @pytest.mark.skip(reason="Currently, Fix it when fix ATeam API")  # TODO
     def test_sort_key(self, topics):
         assert (
             topics[1].updated_at
@@ -1736,7 +2232,6 @@ class TestGetTopicStatusWithQueryParams:
         self._assert_topic_is(data["topic_statuses"][2], topics[3])
         self._assert_topic_is(data["topic_statuses"][3], topics[1])
 
-    @pytest.mark.skip(reason="Currently, Fix it when fix ATeam API")  # TODO
     def test_complex_cases(self, topics):
         data = self._get_summary(
             offset=1,
