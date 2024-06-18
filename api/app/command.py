@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import Row, and_, delete, false, func, nullsfirst, or_, select, true
@@ -155,14 +154,6 @@ def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
     )
 
 
-def get_pteam_topic_ids(db: Session, pteam_id: UUID | str) -> Sequence[str]:
-    return db.scalars(
-        select(models.CurrentPTeamTopicTagStatus.topic_id.distinct()).where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id)
-        )
-    ).all()
-
-
 def check_tag_is_related_to_topic(db: Session, tag: models.Tag, topic: models.Topic) -> bool:
     row = (
         db.query(models.Tag, models.TopicTag)
@@ -224,7 +215,12 @@ def ticket_status_to_response(
     service = dependency.service
     actionlogs = db.scalars(
         select(models.ActionLog)
-        .where(func.array_position(status.logging_ids, models.ActionLog.logging_id).is_not(None))
+        .where(
+            and_(
+                func.array_position(status.logging_ids, models.ActionLog.logging_id).is_not(None),
+                models.ActionLog.service_id == service.service_id,
+            )
+        )
         .order_by(models.ActionLog.executed_at.desc())
     ).all()
     return schemas.TopicStatusResponse(
