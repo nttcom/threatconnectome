@@ -66,6 +66,8 @@ def get_ateam_topic_statuses(
             models.ATeamPTeam.ateam_id,
             models.PTeam.pteam_id,
             models.PTeam.pteam_name,
+            models.Service.service_id,
+            models.Service.service_name,
             models.Tag,
             models.Topic.topic_id,
             models.Topic.title,
