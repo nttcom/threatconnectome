@@ -3,7 +3,9 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
+from app import persistence
 from app.constants import ZERO_FILLED_UUID
 from app.main import app
 from app.tests.medium.constants import (
@@ -34,16 +36,25 @@ from app.tests.medium.utils import (
 client = TestClient(app)
 
 
-def test_create_log():
+def test_create_log(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    pteam1_model = persistence.get_pteam_by_id(testdb, pteam1.pteam_id)
+    assert pteam1_model is not None
+    service1 = pteam1_model.services[0]
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     now = datetime.now()
 
     actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, now
+        USER1,
+        action1.action_id,
+        topic1.topic_id,
+        user1.user_id,
+        pteam1.pteam_id,
+        service1.service_id,
+        now,
     )
 
     assert actionlog1.logging_id != ZERO_FILLED_UUID
@@ -59,11 +70,14 @@ def test_create_log():
     assert actionlog1.created_at > now
 
 
-def test_create_log__with_wrong_params():
+def test_create_log__with_wrong_params(testdb: Session):
     user1 = create_user(USER1)
     user2 = create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
     upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    pteam1_model = persistence.get_pteam_by_id(testdb, pteam1.pteam_id)
+    assert pteam1_model is not None
+    service1 = pteam1_model.services[0]
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     topic2_data = {**TOPIC2, "tags": ["fake tag"]}
@@ -72,58 +86,123 @@ def test_create_log__with_wrong_params():
 
     # wrong action
     with pytest.raises(HTTPError, match="400: Bad Request"):
-        create_actionlog(USER1, uuid4(), topic1.topic_id, user1.user_id, pteam1.pteam_id, None)
+        create_actionlog(
+            USER1,
+            uuid4(),
+            topic1.topic_id,
+            user1.user_id,
+            pteam1.pteam_id,
+            service1.service_id,
+            None,
+        )
     # wrong topic
     with pytest.raises(HTTPError, match="400: Bad Request"):
-        create_actionlog(USER1, action1.action_id, uuid4(), user1.user_id, pteam1.pteam_id, None)
+        create_actionlog(
+            USER1,
+            action1.action_id,
+            uuid4(),
+            user1.user_id,
+            pteam1.pteam_id,
+            service1.service_id,
+            None,
+        )
     # wrong user
     with pytest.raises(HTTPError, match="400: Bad Request"):
-        create_actionlog(USER1, action1.action_id, topic1.topic_id, uuid4(), pteam1.pteam_id, None)
+        create_actionlog(
+            USER1,
+            action1.action_id,
+            topic1.topic_id,
+            uuid4(),
+            pteam1.pteam_id,
+            service1.service_id,
+            None,
+        )
     # wrong pteam
     with pytest.raises(HTTPError, match="400: Bad Request"):
-        create_actionlog(USER1, action1.action_id, topic1.topic_id, user1.user_id, uuid4(), None)
+        create_actionlog(
+            USER1,
+            action1.action_id,
+            topic1.topic_id,
+            user1.user_id,
+            uuid4(),
+            service1.service_id,
+            None,
+        )
     # called by not pteam member
     with pytest.raises(HTTPError, match="403: Forbidden"):
         create_actionlog(
-            USER2, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, None
+            USER2,
+            action1.action_id,
+            topic1.topic_id,
+            user1.user_id,
+            pteam1.pteam_id,
+            service1.service_id,
+            None,
         )
     # not pteam member as recipient
     with pytest.raises(HTTPError, match="400: Bad Request"):
         create_actionlog(
-            USER1, action1.action_id, topic1.topic_id, user2.user_id, pteam1.pteam_id, None
+            USER1,
+            action1.action_id,
+            topic1.topic_id,
+            user2.user_id,
+            pteam1.pteam_id,
+            service1.service_id,
+            None,
         )
-    # not pteam topic
-    # TODO Skip error check until fix ActionLog
-    # with pytest.raises(HTTPError, match="400: Bad Request"):
-    #    create_actionlog(
-    #        USER1, action2.action_id, topic2.topic_id, user1.user_id, pteam1.pteam_id, None
-    #    )
     # action mismatch with topic
     with pytest.raises(HTTPError, match="400: Bad Request"):
         create_actionlog(
-            USER1, action2.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, None
+            USER1,
+            action2.action_id,
+            topic1.topic_id,
+            user1.user_id,
+            pteam1.pteam_id,
+            service1.service_id,
+            None,
         )
 
     actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, None
+        USER1,
+        action1.action_id,
+        topic1.topic_id,
+        user1.user_id,
+        pteam1.pteam_id,
+        service1.service_id,
+        None,
     )
     assert actionlog1.action_id == action1.action_id
 
 
-def test_get_logs():
+def test_get_logs(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    pteam1_model = persistence.get_pteam_by_id(testdb, pteam1.pteam_id)
+    assert pteam1_model is not None
+    service1 = pteam1_model.services[0]
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]
     action2 = topic1.actions[1]
     now = datetime.now()
     yesterday = now - timedelta(days=1)
     actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, yesterday
+        USER1,
+        action1.action_id,
+        topic1.topic_id,
+        user1.user_id,
+        pteam1.pteam_id,
+        service1.service_id,
+        yesterday,
     )
     actionlog2 = create_actionlog(
-        USER1, action2.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, now
+        USER1,
+        action2.action_id,
+        topic1.topic_id,
+        user1.user_id,
+        pteam1.pteam_id,
+        service1.service_id,
+        now,
     )
     response = client.get("/actionlogs", headers=headers(USER1))
     assert response.status_code == 200
@@ -133,20 +212,35 @@ def test_get_logs():
     assert data[1]["logging_id"] == str(actionlog1.logging_id)
 
 
-def test_get_logs__members_only():
+def test_get_logs__members_only(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    pteam1_model = persistence.get_pteam_by_id(testdb, pteam1.pteam_id)
+    assert pteam1_model is not None
+    service1 = pteam1_model.services[0]
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     action1 = topic1.actions[0]
     actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, None
+        USER1,
+        action1.action_id,
+        topic1.topic_id,
+        user1.user_id,
+        pteam1.pteam_id,
+        service1.service_id,
+        None,
     )
     user2 = create_user(USER2)
     pteam2 = create_pteam(USER2, PTEAM2)
     upload_pteam_tags(USER2, pteam2.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
     actionlog2 = create_actionlog(
-        USER2, action1.action_id, topic1.topic_id, user2.user_id, pteam2.pteam_id, None
+        USER2,
+        action1.action_id,
+        topic1.topic_id,
+        user2.user_id,
+        pteam2.pteam_id,
+        service1.service_id,
+        None,
     )
 
     response = client.get("/actionlogs", headers=headers(USER1))
@@ -188,20 +282,35 @@ def test_get_logs__members_only():
     assert data[1]["logging_id"] == str(actionlog1.logging_id)
 
 
-def test_get_topic_logs():
+def test_get_topic_logs(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     upload_pteam_tags(USER1, pteam1.pteam_id, SERVICE1, {TAG1: [("Pipfile.lock", "1.0.0")]}, True)
+    pteam1_model = persistence.get_pteam_by_id(testdb, pteam1.pteam_id)
+    assert pteam1_model is not None
+    service1 = pteam1_model.services[0]
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
     action1 = topic1.actions[0]
     action2 = topic1.actions[1]
     now = datetime.now()
     yesterday = now - timedelta(days=1)
     actionlog1 = create_actionlog(
-        USER1, action1.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, yesterday
+        USER1,
+        action1.action_id,
+        topic1.topic_id,
+        user1.user_id,
+        pteam1.pteam_id,
+        service1.service_id,
+        yesterday,
     )
     actionlog2 = create_actionlog(
-        USER1, action2.action_id, topic1.topic_id, user1.user_id, pteam1.pteam_id, now
+        USER1,
+        action2.action_id,
+        topic1.topic_id,
+        user1.user_id,
+        pteam1.pteam_id,
+        service1.service_id,
+        now,
     )
     response = client.get(f"/actionlogs/topics/{topic1.topic_id}", headers=headers(USER1))
     assert response.status_code == 200

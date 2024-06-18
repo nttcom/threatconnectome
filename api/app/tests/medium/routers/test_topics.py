@@ -3,6 +3,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import insert
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -359,6 +360,16 @@ def test_update_topic_not_creater():
 def test_delete_topic(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+
+    # create service
+    service_name = "service_x"
+    service_id = str(uuid4())
+    testdb.execute(
+        insert(models.Service).values(
+            service_id=service_id, pteam_id=pteam1.pteam_id, service_name=service_name
+        )
+    )
+
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
     create_actionlog(
         USER1,
@@ -366,6 +377,7 @@ def test_delete_topic(testdb: Session):
         topic1.topic_id,
         user1.user_id,
         pteam1.pteam_id,
+        UUID(service_id),
         datetime.now(),
     )
 

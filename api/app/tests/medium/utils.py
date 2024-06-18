@@ -300,6 +300,7 @@ def create_actionlog(
     topic_id: UUID,
     user_id: UUID,
     pteam_id: UUID,
+    service_id: UUID,
     executed_at: datetime | None,
 ) -> schemas.ActionLogResponse:
     request = {
@@ -307,6 +308,7 @@ def create_actionlog(
         "topic_id": str(topic_id),
         "user_id": str(user_id),
         "pteam_id": str(pteam_id),
+        "service_id": str(service_id),
         "executed_at": str(executed_at) if executed_at else None,
     }
 

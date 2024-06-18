@@ -56,9 +56,6 @@ def create_log(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam member")
     if not (persistence.get_topic_by_id(db, data.topic_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
-    # TODO Skip error check until fix ActionLog
-    # if str(data.topic_id) not in command.get_pteam_topic_ids(db, data.pteam_id):
-    #    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam topic")
     if not (
         topic_action := persistence.get_action_by_id(db, data.action_id)
     ) or topic_action.topic_id != str(data.topic_id):
@@ -73,6 +70,7 @@ def create_log(
         recommended=topic_action.recommended,
         user_id=data.user_id,
         pteam_id=data.pteam_id,
+        service_id=data.service_id,
         email=user.email,
         executed_at=data.executed_at or now,
         created_at=now,
