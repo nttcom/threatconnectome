@@ -51,6 +51,7 @@ export function ReportCompletedActions(props) {
             await createActionLog({
               action_id: actionId,
               pteam_id: pteamId,
+              service_id: serviceId,
               topic_id: topicId,
               user_id: user.user_id,
             }).then((response) => {

@@ -784,6 +784,9 @@ class ActionLog(Base):
     pteam_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
     )
+    service_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("service.service_id", ondelete="CASCADE"), index=True
+    )
     email: Mapped[Str255]  # snapshot: don't set ForeignKey.
     executed_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())

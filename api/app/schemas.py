@@ -432,6 +432,7 @@ class ActionLogRequest(ORMModel):
     topic_id: UUID
     user_id: UUID
     pteam_id: UUID
+    service_id: UUID
     executed_at: datetime | None = None
 
 
