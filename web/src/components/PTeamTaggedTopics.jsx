@@ -9,7 +9,7 @@ import { ThreatImpactCountChip } from "./ThreatImpactCountChip";
 import { TopicCard } from "./TopicCard";
 
 export function PTeamTaggedTopics(props) {
-  const { pteamId, tagId, serviceId, isSolved, pteamtag } = props;
+  const { pteamId, tagId, serviceId, isSolved, references } = props;
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -84,7 +84,7 @@ export function PTeamTaggedTopics(props) {
               topicId={ticketId_topicId.topic_id}
               currentTagId={tagId}
               serviceId={serviceId}
-              pteamtag={pteamtag}
+              references={references}
             />
           </ListItem>
         ))}
@@ -98,5 +98,5 @@ PTeamTaggedTopics.propTypes = {
   tagId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
   isSolved: PropTypes.bool.isRequired,
-  pteamtag: PropTypes.object.isRequired,
+  references: PropTypes.array.isRequired,
 };

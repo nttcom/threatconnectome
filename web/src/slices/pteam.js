@@ -1,12 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import {
+  getDependencies as apiGetDependencies,
   getPTeam as apiGetPTeam,
   getPTeamAuth as apiGetPTeamAuth,
   getPTeamAuthInfo as apiGetPTeamAuthInfo,
   getPTeamMembers as apiGetPTeamMembers,
   getPTeamServiceTaggedTicketIds as apiGetPTeamServiceTaggedTicketIds,
-  getPTeamTag as apiGetPTeamTag,
   getPTeamTopicActions as apiGetPTeamTopicActions,
   getTopicStatus as apiGetTopicStatus,
   getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
@@ -53,19 +53,14 @@ export const getPTeamMembers = createAsyncThunk(
     })),
 );
 
-export const getPTeamTag = createAsyncThunk(
-  "pteam/getPTeamTag",
+export const getDependencies = createAsyncThunk(
+  "pteam/getDependencies",
   async (data) =>
-    await apiGetPTeamTag(data.pteamId, data.tagId)
-      .then((response) => ({
-        pteamId: data.pteamId,
-        tagId: data.tagId,
-        data: response.data,
-      }))
-      .catch((error) => {
-        if (data.onError) data.onError(error);
-        throw error;
-      }),
+    await apiGetDependencies(data.pteamId, data.serviceId).then((response) => ({
+      pteamId: data.pteamId,
+      serviceId: data.serviceId,
+      data: response.data,
+    })),
 );
 
 export const getPTeamServiceTaggedTicketIds = createAsyncThunk(
@@ -121,7 +116,7 @@ const _initialState = {
   authInfo: undefined,
   authorities: undefined,
   members: undefined,
-  pteamtags: {},
+  serviceDependencies: {}, // dict[serviceId: list[dependency]]
   taggedTopics: {},
   topicStatus: {},
   topicActions: {},
@@ -161,11 +156,11 @@ const pteamSlice = createSlice({
         ...state,
         members: action.payload.data,
       }))
-      .addCase(getPTeamTag.fulfilled, (state, action) => ({
+      .addCase(getDependencies.fulfilled, (state, action) => ({
         ...state,
-        pteamtags: {
-          ...state.pteamtags,
-          [action.payload.tagId]: action.payload.data,
+        serviceDependencies: {
+          ...state.serviceDependencies,
+          [action.payload.serviceId]: action.payload.data,
         },
       }))
       .addCase(getPTeamServiceTaggedTicketIds.fulfilled, (state, action) => ({

@@ -49,7 +49,7 @@ import { UUIDTypography } from "./UUIDTypography";
 import { WarningTooltip } from "./WarningTooltip";
 
 export function TopicCard(props) {
-  const { pteamId, topicId, currentTagId, serviceId, pteamtag } = props;
+  const { pteamId, topicId, currentTagId, serviceId, references } = props;
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
@@ -143,8 +143,8 @@ export function TopicCard(props) {
     (!action.ext?.vulnerable_versions?.[tagName]?.length > 0 ||
       parseVulnerableVersions(action.ext.vulnerable_versions[tagName]).some(
         (actionVersion) =>
-          !pteamtag.references?.length > 0 ||
-          pteamtag.references?.some((ref) =>
+          !references?.length > 0 ||
+          references?.some((ref) =>
             versionMatch(
               ref.version,
               actionVersion.ge,
@@ -204,7 +204,7 @@ export function TopicCard(props) {
       return pteamTopicActions[topicId]?.every((action) => {
         return parseVulnerableVersions(action.ext?.vulnerable_versions?.[tagName]).every(
           (actionVersion) => {
-            return pteamtag.references?.every((ref) => {
+            return references?.every((ref) => {
               return (
                 (actionVersion.ge === undefined || isComparable(ref.version, actionVersion.ge)) &&
                 (actionVersion.gt === undefined || isComparable(ref.version, actionVersion.gt)) &&
@@ -242,9 +242,9 @@ export function TopicCard(props) {
           </Box>
         </Box>
         <Box mt={3} mr={2} display="flex" flexDirection="row">
-          {pteamtag.references?.length === 0 && (
+          {references?.length === 0 && (
             <Alert severity="warning" ml={2}>
-              {"It cannot be auto-closed, because pteamtag reference is not set."}
+              {"It cannot be auto-closed, because reference is not set."}
             </Alert>
           )}
           {checkCompalable() === false && (
@@ -516,7 +516,7 @@ export function TopicCard(props) {
             presetParentTagId={currentTagDict.parent_id}
             presetActions={pteamTopicActions[topicId]}
             currentTagDict={currentTagDict}
-            pteamtag={pteamtag}
+            references={references}
             serviceId={serviceId}
           />
         </Box>
@@ -595,5 +595,5 @@ TopicCard.propTypes = {
   topicId: PropTypes.string.isRequired,
   currentTagId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
-  pteamtag: PropTypes.object.isRequired,
+  references: PropTypes.array.isRequired,
 };

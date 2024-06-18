@@ -10,23 +10,26 @@ import { TabPanel } from "../components/TabPanel";
 import { TagReferences } from "../components/TagReferences";
 import { UUIDTypography } from "../components/UUIDTypography";
 import {
+  getDependencies,
   getPTeam,
   getPTeamMembers,
-  getPTeamTag,
   getPTeamServiceTaggedTicketIds,
 } from "../slices/pteam";
+import { getLastUpdatedUncompletedTopicByServiceTag } from "../utils/api.js";
 import { a11yProps, calcTimestampDiff } from "../utils/func.js";
 
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
   const [loadMembers, setLoadMembers] = useState(false);
   const [loadPTeam, setLoadPTeam] = useState(false);
-  const [loadPTeamTag, setLoadPTeamTag] = useState(false);
+  const [loadDependencies, setLoadDependencies] = useState(false);
   const [loadTopicList, setLoadTopicList] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
+  const [loadLastUpdatedAt, setLoadLastUpdatedAt] = useState(true);
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const members = useSelector((state) => state.pteam.members);
-  const pteamtags = useSelector((state) => state.pteam.pteamtags);
+  const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
   const taggedTopics = useSelector((state) => state.pteam.taggedTopics);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
   const pteam = useSelector((state) => state.pteam.pteam);
@@ -38,6 +41,8 @@ export function Tag() {
   const { tagId } = useParams();
   const params = new URLSearchParams(useLocation().search);
   const serviceId = params.get("serviceId");
+
+  const dependencies = serviceDependencies[serviceId];
 
   useEffect(() => {
     if (!pteamId || !tagId) return;
@@ -67,31 +72,6 @@ export function Tag() {
   }, [loadTopicList, pteamId, tagId, serviceId]);
 
   useEffect(() => {
-    if (!pteamId || !tagId) return;
-    if (!loadPTeamTag && pteamtags[tagId] === undefined) {
-      setLoadPTeamTag(true);
-    }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [pteamId, tagId]);
-
-  useEffect(() => {
-    if (!loadPTeamTag || !pteamId || !tagId) return;
-    setLoadPTeamTag(false);
-    const onError = (error) => {
-      if (error.response?.status === 404) {
-        enqueueSnackbar("Specified artifact is not in PTeam monitoring targets.", {
-          variant: "error",
-        });
-        const params = new URLSearchParams();
-        params.set("pteamId", pteamId);
-        navigate("/?" + params.toString());
-      }
-    };
-    dispatch(getPTeamTag({ pteamId: pteamId, tagId: tagId, onError: onError }));
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [loadPTeamTag, pteamId, tagId]);
-
-  useEffect(() => {
     if (!pteamId) return;
     if (typeof members === "undefined") {
       setLoadMembers(true);
@@ -104,16 +84,58 @@ export function Tag() {
     }
   }, [dispatch, loadMembers, pteamId]);
 
-  if (!allTags || !pteamId || !pteam || !taggedTopics[tagId] || !pteamtags[tagId]) {
+  useEffect(() => {
+    if (!pteamId || !serviceId) return;
+    if (dependencies === undefined) {
+      setLoadDependencies(true);
+    }
+  }, [pteamId, serviceId, dependencies]);
+
+  useEffect(() => {
+    if (loadDependencies) {
+      setLoadDependencies(false);
+      dispatch(getDependencies({ pteamId: pteamId, serviceId: serviceId }));
+    }
+  }, [dispatch, loadDependencies, pteamId, serviceId]);
+
+  useEffect(() => {
+    if (!pteamId || !serviceId || !tagId || !loadLastUpdatedAt) return;
+    async function loadLastUpdatedAt() {
+      await getLastUpdatedUncompletedTopicByServiceTag(pteamId, serviceId, tagId)
+        .then((response) => {
+          const lastUpdatedTopic = response.data;
+          setLastUpdatedAt(lastUpdatedTopic.updated_at);
+        })
+        .catch((error) => {
+          setLastUpdatedAt(null);
+        })
+        .finally(() => {
+          setLoadLastUpdatedAt(false);
+        });
+    }
+
+    loadLastUpdatedAt();
+  }, [pteamId, serviceId, tagId, loadLastUpdatedAt]);
+
+  if (!allTags || !pteamId || !pteam || !taggedTopics[tagId]) {
     return <>Now loading...</>;
+  }
+  if (dependencies === undefined) {
+    return <>Now loading Dependencies...</>;
   }
 
   const numSolved = taggedTopics[tagId].solved?.topic_ticket_ids?.length ?? 0;
   const numUnsolved = taggedTopics[tagId].unsolved?.topic_ticket_ids?.length ?? 0;
 
-  const pteamtag = pteamtags[tagId];
   const tagDict = allTags.find((tag) => tag.tag_id === tagId);
   const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
+  const references = dependencies
+    .filter((dependency) => dependency.tag_id === tagId)
+    .map((dependency) => ({
+      target: dependency.target,
+      version: dependency.version,
+      service: serviceDict.service_name,
+    }));
 
   const handleTabChange = (event, value) => setTabValue(value);
 
@@ -141,9 +163,9 @@ export function Tag() {
           </Box>
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{tagId}</UUIDTypography>
-            {`Updated ${calcTimestampDiff(pteamtag.last_updated_at)}`}
+            {`Updated ${calcTimestampDiff(lastUpdatedAt)}`}
           </Typography>
-          <TagReferences references={pteamtag.references} serviceDict={serviceDict} />
+          <TagReferences references={references} serviceDict={serviceDict} />
         </Box>
       </Box>
       <Divider />
@@ -160,7 +182,7 @@ export function Tag() {
             tagId={tagId}
             serviceId={serviceDict.service_id}
             isSolved={false}
-            pteamtag={pteamtag}
+            references={references}
           />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
@@ -169,7 +191,7 @@ export function Tag() {
             tagId={tagId}
             serviceId={serviceDict.service_id}
             isSolved={true}
-            pteamtag={pteamtag}
+            references={references}
           />
         </TabPanel>
       </Box>
