@@ -342,6 +342,7 @@ export function TopicModal(props) {
         }),
       );
     }
+    dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
   };
 
   function ActionGeneratorModal() {
@@ -656,7 +657,6 @@ export function TopicModal(props) {
                     topicId={presetTopicId}
                     onSetOpenTopicModal={onSetOpen}
                     onDelete={handleDeleteTopic}
-                    serviceId={serviceId}
                   />
                 </Box>
               </Box>
