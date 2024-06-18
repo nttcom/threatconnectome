@@ -61,9 +61,6 @@ export const createTopicStatus = async (pteamId, serviceId, topicId, tagId, data
 export const getTopicStatus = async (pteamId, serviceId, topicId, tagId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/topicstatus/${topicId}/${tagId}`);
 
-export const getPTeamTopicStatusesSummary = async (pteamId, tagId) =>
-  axios.get(`/pteams/${pteamId}/topicstatusessummary/${tagId}`);
-
 export const getPTeamTopicActions = async (pteamId, topicId) =>
   axios.get(`/topics/${topicId}/actions/pteam/${pteamId}`);
 
