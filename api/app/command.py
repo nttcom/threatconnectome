@@ -163,52 +163,6 @@ def get_pteam_topic_ids(db: Session, pteam_id: UUID | str) -> Sequence[str]:
     ).all()
 
 
-def get_pteam_topic_statuses_summary(db: Session, pteam: models.PTeam, tag: models.Tag) -> dict:
-    rows = (
-        db.query(
-            models.Tag,
-            models.Topic,
-            models.PTeamTopicTagStatus.created_at.label("executed_at"),
-            models.PTeamTopicTagStatus.topic_status,
-        )
-        .filter(
-            models.Tag.tag_id == tag.tag_id,
-        )
-        .join(
-            models.TopicTag, models.TopicTag.tag_id.in_([models.Tag.tag_id, models.Tag.parent_id])
-        )
-        .join(models.Topic, models.Topic.topic_id == models.TopicTag.topic_id)
-        .outerjoin(
-            models.CurrentPTeamTopicTagStatus,
-            and_(
-                models.CurrentPTeamTopicTagStatus.pteam_id == pteam.pteam_id,
-                models.CurrentPTeamTopicTagStatus.tag_id == models.Tag.tag_id,
-                models.CurrentPTeamTopicTagStatus.topic_id == models.TopicTag.topic_id,
-            ),
-        )
-        .outerjoin(
-            models.PTeamTopicTagStatus,
-        )
-        .order_by(
-            models.Topic.threat_impact,
-            models.Topic.updated_at.desc(),
-        )
-        .all()
-    )
-
-    return {
-        "tag_id": tag.tag_id,
-        "topics": [
-            {
-                **row.Topic.__dict__,
-                "topic_status": row.topic_status or models.TopicStatusType.alerted,
-                "executed_at": row.executed_at,
-            }
-            for row in rows
-        ],
-    }
-
-
 def check_tag_is_related_to_topic(db: Session, tag: models.Tag, topic: models.Topic) -> bool:
     row = (
         db.query(models.Tag, models.TopicTag)

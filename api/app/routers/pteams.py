@@ -946,29 +946,6 @@ def update_pteam(
     return pteam
 
 
-@router.get(
-    "/{pteam_id}/topicstatusessummary/{tag_id}", response_model=schemas.PTeamTopicStatusesSummary
-)
-def get_pteam_topic_statuses_summary(
-    pteam_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get current status summary of all pteam topics.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-    return command.get_pteam_topic_statuses_summary(db, pteam, tag)
-
-
 @router.get("/{pteam_id}/members", response_model=list[schemas.UserResponse])
 def get_pteam_members(
     pteam_id: UUID,
