@@ -223,18 +223,40 @@ def check_tag_is_related_to_topic(db: Session, tag: models.Tag, topic: models.To
     return row is not None and row.TopicTag is not None
 
 
-def get_last_updated_at_in_current_pteam_topic_tag_status(
+def get_last_updated_uncompleted_topic_by_pteam_id_and_tag_id(
     db: Session,
     pteam_id: UUID | str,
     tag_id: UUID | str,
-) -> datetime | None:
-    return db.scalars(
-        select(func.max(models.CurrentPTeamTopicTagStatus.updated_at)).where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
-            models.CurrentPTeamTopicTagStatus.topic_status != models.TopicStatusType.completed,
+) -> models.Topic | None:
+    last_updated_topic = db.scalars(
+        select(models.Topic)
+        .join(
+            models.Threat,
+            and_(
+                models.Threat.dependency_id.in_(
+                    select(models.Dependency.dependency_id).join(
+                        models.Service,
+                        and_(
+                            models.Dependency.tag_id == str(tag_id),
+                            models.Dependency.service_id == models.Service.service_id,
+                            models.Service.pteam_id == str(pteam_id),
+                        ),
+                    )
+                ),
+                models.Threat.topic_id == models.Topic.topic_id,
+            ),
         )
-    ).one()
+        .join(models.Ticket)
+        .join(
+            models.CurrentTicketStatus,
+            and_(
+                models.CurrentTicketStatus.ticket_id == models.Ticket.ticket_id,
+                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
+            ),
+        )
+        .order_by(models.Topic.updated_at.desc())
+    ).first()
+    return last_updated_topic
 
 
 def ticket_status_to_response(
