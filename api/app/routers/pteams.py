@@ -682,9 +682,10 @@ def get_pteamtag(
                     }
                 )
 
-    last_updated_at = command.get_last_updated_at_in_current_pteam_topic_tag_status(
+    last_updated_topic = command.get_last_updated_uncompleted_topic_by_pteam_id_and_tag_id(
         db, pteam_id, tag_id
     )
+    last_updated_at = last_updated_topic.updated_at if last_updated_topic else None
 
     return {
         "pteam_id": pteam_id,

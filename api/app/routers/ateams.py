@@ -706,7 +706,6 @@ def get_topic_status(
     rows = command.get_ateam_topic_statuses(db, ateam_id, sort_key, search)
 
     # Caution:
-    #   rows includes completed. (how can i filter by query???)
     #   rows is already sorted by query based on query params. keep the order.
 
     def _pick_pteam(pteams_, pteam_id_):
@@ -714,46 +713,39 @@ def get_topic_status(
 
     summary: list[dict] = []
     for row in rows:
-        if (
-            row.PTeamTopicTagStatus
-            and row.PTeamTopicTagStatus.topic_status == models.TopicStatusType.completed
-        ):
-            continue  # filter completed
         if len(summary) == 0 or summary[-1]["topic_id"] != row.topic_id:
-            summary.append(
+            summary.append(  # ATeamTopicStatus
                 {
                     "topic_id": row.topic_id,
                     "title": row.title,
                     "threat_impact": row.threat_impact,
                     "updated_at": row.updated_at,
                     "num_pteams": 0,
-                    "pteams": [],
+                    "pteam_statuses": [],
                 }
             )
         _topic = summary[-1]
-        _pteam = _pick_pteam(_topic["pteams"], row.pteam_id)
+        _pteam = _pick_pteam(_topic["pteam_statuses"], row.pteam_id)
         if _pteam is None:
-            _topic["pteams"].append(
+            _topic["pteam_statuses"].append(  # PTeamTopicStatus
                 {
                     "pteam_id": row.pteam_id,
                     "pteam_name": row.pteam_name,
-                    "statuses": [],
+                    "service_statuses": [],
                 }
             )
             _topic["num_pteams"] += 1
-            _pteam = _topic["pteams"][-1]
-        _pteam["statuses"].append(
+            _pteam = _topic["pteam_statuses"][-1]
+        _pteam["service_statuses"].append(  # ServiceTopicStatus
             {
                 **(
-                    row.PTeamTopicTagStatus.__dict__
-                    if row.PTeamTopicTagStatus
-                    else {
-                        "topic_id": row.topic_id,
-                        "pteam_id": row.pteam_id,
-                        "topic_status": models.TopicStatusType.alerted,
-                    }
+                    row.TicketStatus.__dict__
+                    if row.TicketStatus
+                    else {"topic_status": models.TopicStatusType.alerted}
                 ),
-                # extended data not included in PTeamTopicTagStatus
+                # extended data not included in TicketStatus
+                "service_id": row.service_id,
+                "service_name": row.service_name,
                 "tag": row.Tag,
             }
         )

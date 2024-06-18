@@ -50,42 +50,51 @@ def get_ateam_topic_statuses(
 ):
     sort_rules = sortkey2orderby[sort_key] + [
         models.Topic.topic_id,  # service by topic
-        nullsfirst(models.PTeamTopicTagStatus.topic_status),  # worst state on array[0]
-        models.PTeamTopicTagStatus.scheduled_at.desc(),  # latest on array[0] if worst is scheduled
+        nullsfirst(models.CurrentTicketStatus.topic_status),  # worst state on array[0]
+        models.TicketStatus.scheduled_at.desc(),  # latest on array[0] if worst is scheduled
         models.PTeam.pteam_name,
         models.Tag.tag_name,
     ]
 
-    join_topic_rules = [models.Topic.topic_id == models.CurrentPTeamTopicTagStatus.topic_id]
+    join_topic_rules = [models.Topic.topic_id == models.Threat.topic_id]
     if search:
         join_topic_rules.append(models.Topic.title.icontains(search, autoescape=True))
 
     select_stmt = (
         select(
-            models.CurrentPTeamTopicTagStatus.topic_id,
-            models.CurrentPTeamTopicTagStatus.pteam_id,
+            models.ATeamPTeam.ateam_id,
+            models.PTeam.pteam_id,
             models.PTeam.pteam_name,
+            models.Service.service_id,
+            models.Service.service_name,
             models.Tag,
+            models.Topic.topic_id,
             models.Topic.title,
             models.Topic.updated_at,
             models.Topic.threat_impact,
-            models.PTeamTopicTagStatus,
+            models.TicketStatus,
         )
         .join(
-            models.ATeamPTeam,
+            models.PTeam,
             and_(
                 models.ATeamPTeam.ateam_id == str(ateam_id),
-                models.ATeamPTeam.pteam_id == models.CurrentPTeamTopicTagStatus.pteam_id,
+                models.ATeamPTeam.pteam_id == models.PTeam.pteam_id,
             ),
         )
-        .join(models.PTeam, models.PTeam.pteam_id == models.CurrentPTeamTopicTagStatus.pteam_id)
-        .join(models.Tag, models.Tag.tag_id == models.CurrentPTeamTopicTagStatus.tag_id)
+        .join(models.Service)
+        .join(models.Dependency)
+        .join(models.Tag)
+        .join(models.Threat)
         .join(models.Topic, and_(*join_topic_rules))
-        .outerjoin(
-            models.PTeamTopicTagStatus,
-            models.PTeamTopicTagStatus.status_id == models.CurrentPTeamTopicTagStatus.status_id,
+        .join(models.Ticket)
+        .join(
+            models.CurrentTicketStatus,
+            and_(
+                models.CurrentTicketStatus.ticket_id == models.Ticket.ticket_id,
+                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
+            ),
         )
-        .where(models.CurrentPTeamTopicTagStatus.topic_status != models.TopicStatusType.completed)
+        .outerjoin(models.TicketStatus)
         .order_by(*sort_rules)
     )
 
@@ -207,18 +216,40 @@ def check_tag_is_related_to_topic(db: Session, tag: models.Tag, topic: models.To
     return row is not None and row.TopicTag is not None
 
 
-def get_last_updated_at_in_current_pteam_topic_tag_status(
+def get_last_updated_uncompleted_topic_by_pteam_id_and_tag_id(
     db: Session,
     pteam_id: UUID | str,
     tag_id: UUID | str,
-) -> datetime | None:
-    return db.scalars(
-        select(func.max(models.CurrentPTeamTopicTagStatus.updated_at)).where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
-            models.CurrentPTeamTopicTagStatus.topic_status != models.TopicStatusType.completed,
+) -> models.Topic | None:
+    last_updated_topic = db.scalars(
+        select(models.Topic)
+        .join(
+            models.Threat,
+            and_(
+                models.Threat.dependency_id.in_(
+                    select(models.Dependency.dependency_id).join(
+                        models.Service,
+                        and_(
+                            models.Dependency.tag_id == str(tag_id),
+                            models.Dependency.service_id == models.Service.service_id,
+                            models.Service.pteam_id == str(pteam_id),
+                        ),
+                    )
+                ),
+                models.Threat.topic_id == models.Topic.topic_id,
+            ),
         )
-    ).one()
+        .join(models.Ticket)
+        .join(
+            models.CurrentTicketStatus,
+            and_(
+                models.CurrentTicketStatus.ticket_id == models.Ticket.ticket_id,
+                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
+            ),
+        )
+        .order_by(models.Topic.updated_at.desc())
+    ).first()
+    return last_updated_topic
 
 
 def ticket_status_to_response(

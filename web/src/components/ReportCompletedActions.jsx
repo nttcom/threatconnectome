@@ -18,7 +18,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { getTopicStatus, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
+import {
+  getTopicStatus,
+  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTagsSummary,
+} from "../slices/pteam";
 import { createActionLog, createTopicStatus } from "../utils/api";
 
 import { ActionTypeChip } from "./ActionTypeChip";
@@ -74,6 +78,7 @@ export function ReportCompletedActions(props) {
       dispatch(
         getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
       );
+      dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
       enqueueSnackbar("Set topicstatus 'completed' succeeded", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`Operation failed: ${error}`, { variant: "error" });
