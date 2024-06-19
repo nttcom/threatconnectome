@@ -170,38 +170,6 @@ def check_tag_is_related_to_topic(db: Session, tag: models.Tag, topic: models.To
     return row is not None and row.TopicTag is not None
 
 
-def get_last_updated_uncompleted_topic_by_service_id_and_tag_id(
-    db: Session,
-    service_id: UUID | str,
-    tag_id: UUID | str,
-) -> models.Topic | None:
-    last_updated_topic = db.scalars(
-        select(models.Topic)
-        .join(
-            models.Threat,
-            and_(
-                models.Threat.dependency_id.in_(
-                    select(models.Dependency.dependency_id).where(
-                        models.Dependency.tag_id == str(tag_id),
-                        models.Dependency.service_id == str(service_id),
-                    )
-                ),
-                models.Threat.topic_id == models.Topic.topic_id,
-            ),
-        )
-        .join(models.Ticket)
-        .join(
-            models.CurrentTicketStatus,
-            and_(
-                models.CurrentTicketStatus.ticket_id == models.Ticket.ticket_id,
-                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
-            ),
-        )
-        .order_by(models.Topic.updated_at.desc())
-    ).first()
-    return last_updated_topic
-
-
 def ticket_status_to_response(
     db: Session,
     status: models.TicketStatus,

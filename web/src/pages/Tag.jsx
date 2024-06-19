@@ -15,12 +15,10 @@ import {
   getPTeamMembers,
   getPTeamServiceTaggedTicketIds,
 } from "../slices/pteam";
-import { getLastUpdatedUncompletedTopicByServiceTag } from "../utils/api.js";
-import { a11yProps, calcTimestampDiff } from "../utils/func.js";
+import { a11yProps } from "../utils/func.js";
 
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
 
   const user = useSelector((state) => state.user.user);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by App
@@ -41,17 +39,6 @@ export function Tag() {
   const dependencies = serviceDependencies[serviceId];
   const currentTagDependencies = dependencies?.filter((dependency) => dependency.tag_id === tagId);
   const taggedTopics = taggedTopicsDict[tagId];
-
-  async function loadLastUpdatedAt(pteamId, serviceId, tagId) {
-    await getLastUpdatedUncompletedTopicByServiceTag(pteamId, serviceId, tagId)
-      .then((response) => {
-        const lastUpdatedTopic = response.data;
-        setLastUpdatedAt(lastUpdatedTopic.updated_at);
-      })
-      .catch((error) => {
-        setLastUpdatedAt(null);
-      });
-  }
 
   useEffect(() => {
     if (!user.user_id) return; // wait login completed
@@ -110,11 +97,6 @@ export function Tag() {
     }
   }, [dispatch, user.user_id, pteamId, members]);
 
-  useEffect(() => {
-    if (!pteamId || !serviceId || !tagId) return;
-    loadLastUpdatedAt(pteamId, serviceId, tagId);
-  }, [pteamId, serviceId, tagId]);
-
   if (!allTags || !pteam || !members || !currentTagDependencies || !taggedTopics) {
     return <>Now loading...</>;
   }
@@ -156,7 +138,6 @@ export function Tag() {
           </Box>
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{tagId}</UUIDTypography>
-            {`Updated ${calcTimestampDiff(lastUpdatedAt)}`}
           </Typography>
           <TagReferences references={references} serviceDict={serviceDict} />
         </Box>

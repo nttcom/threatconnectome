@@ -250,40 +250,6 @@ def get_pteam_service_tags_summary(
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/tags/{tag_id}/last_updated_uncompleted_topic",
-    response_model=schemas.Topic,
-)
-def get_last_updated_uncompleted_topic_by_service_and_tag(
-    pteam_id: UUID,
-    service_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get last updated uncompleted topic matched with specified service and tag.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not next(filter(lambda x: x.service_id == str(service_id), pteam.services), None):
-        raise NO_SUCH_SERVICE
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    last_updated_topic = command.get_last_updated_uncompleted_topic_by_service_id_and_tag_id(
-        db, service_id, tag_id
-    )
-    if not last_updated_topic:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No topic matched")
-
-    return last_updated_topic
-
-
-@router.get(
     "/{pteam_id}/services/{service_id}/dependencies",
     response_model=list[schemas.DependencyResponse],
 )
