@@ -20,122 +20,115 @@ import { a11yProps, calcTimestampDiff } from "../utils/func.js";
 
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
-  const [loadMembers, setLoadMembers] = useState(false);
-  const [loadPTeam, setLoadPTeam] = useState(false);
-  const [loadDependencies, setLoadDependencies] = useState(false);
-  const [loadTopicList, setLoadTopicList] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
-  const [loadLastUpdatedAt, setLoadLastUpdatedAt] = useState(true);
 
-  const pteamId = useSelector((state) => state.pteam.pteamId);
+  const user = useSelector((state) => state.user.user);
+  const allTags = useSelector((state) => state.tags.allTags); // dispatched by App
+  const pteam = useSelector((state) => state.pteam.pteam);
   const members = useSelector((state) => state.pteam.members);
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
-  const taggedTopics = useSelector((state) => state.pteam.taggedTopics);
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
-  const pteam = useSelector((state) => state.pteam.pteam);
+  const taggedTopicsDict = useSelector((state) => state.pteam.taggedTopics);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const { enqueueSnackbar } = useSnackbar();
+
   const { tagId } = useParams();
   const params = new URLSearchParams(useLocation().search);
+  const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
   const dependencies = serviceDependencies[serviceId];
+  const currentTagDependencies = dependencies?.filter((dependency) => dependency.tag_id === tagId);
+  const taggedTopics = taggedTopicsDict[tagId];
+
+  async function loadLastUpdatedAt(pteamId, serviceId, tagId) {
+    await getLastUpdatedUncompletedTopicByServiceTag(pteamId, serviceId, tagId)
+      .then((response) => {
+        const lastUpdatedTopic = response.data;
+        setLastUpdatedAt(lastUpdatedTopic.updated_at);
+      })
+      .catch((error) => {
+        setLastUpdatedAt(null);
+      });
+  }
 
   useEffect(() => {
-    if (!pteamId || !tagId) return;
-    if (!loadTopicList && taggedTopics[tagId] === undefined) {
-      setLoadTopicList(true);
+    if (!user.user_id) return; // wait login completed
+    if (!pteamId) return; // wait fixed by App
+    if (!pteam) {
+      dispatch(getPTeam(pteamId));
+      return;
     }
-    if (!loadPTeam && pteam === undefined) {
-      setLoadPTeam(true);
+    if (!serviceId || !pteam.services.find((service) => service.service_id === serviceId)) {
+      const msg = `${serviceId ? "Invalid" : "Missing"} serviceId`;
+      enqueueSnackbar(msg, { variant: "error" });
+      const params = new URLSearchParams();
+      params.set("pteamId", pteamId);
+      navigate("/?" + params.toString()); // force jump to Status page
+      return;
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [pteamId, tagId]);
+    if (dependencies === undefined) {
+      dispatch(getDependencies({ pteamId: pteamId, serviceId: serviceId }));
+      return;
+    }
+    if (!tagId || !currentTagDependencies?.length > 0) {
+      const msg = `${tagId ? "Invalid" : "Missing"} tagId`;
+      enqueueSnackbar(msg, { variant: "error" });
+      const params = new URLSearchParams();
+      params.set("pteamId", pteamId);
+      navigate("/?" + params.toString()); // force jump to Status page
+      return;
+    }
+    // all params are valid.
+
+    if (taggedTopics === undefined) {
+      dispatch(
+        getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
+      );
+      return;
+    }
+  }, [
+    user.user_id,
+    pteam,
+    dependencies,
+    currentTagDependencies,
+    taggedTopics,
+    pteamId,
+    serviceId,
+    tagId,
+    dispatch,
+    enqueueSnackbar,
+    navigate,
+  ]);
 
   useEffect(() => {
-    if (!pteamId || !loadPTeam) return;
-    setLoadPTeam(false);
-    dispatch(getPTeam(pteamId));
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [loadPTeam, pteamId]);
-
-  useEffect(() => {
-    if (!loadTopicList || !pteamId || !tagId || !serviceId) return;
-    setLoadTopicList(false);
-    dispatch(
-      getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
-    );
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [loadTopicList, pteamId, tagId, serviceId]);
-
-  useEffect(() => {
+    if (!user.user_id) return;
     if (!pteamId) return;
-    if (typeof members === "undefined") {
-      setLoadMembers(true);
-    }
-  }, [pteamId, members]);
-
-  useEffect(() => {
-    if (loadMembers) {
+    if (!members) {
       dispatch(getPTeamMembers(pteamId));
     }
-  }, [dispatch, loadMembers, pteamId]);
+  }, [dispatch, user.user_id, pteamId, members]);
 
   useEffect(() => {
-    if (!pteamId || !serviceId) return;
-    if (dependencies === undefined) {
-      setLoadDependencies(true);
-    }
-  }, [pteamId, serviceId, dependencies]);
+    if (!pteamId || !serviceId || !tagId) return;
+    loadLastUpdatedAt(pteamId, serviceId, tagId);
+  }, [pteamId, serviceId, tagId]);
 
-  useEffect(() => {
-    if (loadDependencies) {
-      setLoadDependencies(false);
-      dispatch(getDependencies({ pteamId: pteamId, serviceId: serviceId }));
-    }
-  }, [dispatch, loadDependencies, pteamId, serviceId]);
-
-  useEffect(() => {
-    if (!pteamId || !serviceId || !tagId || !loadLastUpdatedAt) return;
-    async function loadLastUpdatedAt() {
-      await getLastUpdatedUncompletedTopicByServiceTag(pteamId, serviceId, tagId)
-        .then((response) => {
-          const lastUpdatedTopic = response.data;
-          setLastUpdatedAt(lastUpdatedTopic.updated_at);
-        })
-        .catch((error) => {
-          setLastUpdatedAt(null);
-        })
-        .finally(() => {
-          setLoadLastUpdatedAt(false);
-        });
-    }
-
-    loadLastUpdatedAt();
-  }, [pteamId, serviceId, tagId, loadLastUpdatedAt]);
-
-  if (!allTags || !pteamId || !pteam || !taggedTopics[tagId]) {
+  if (!allTags || !pteam || !members || !currentTagDependencies || !taggedTopics) {
     return <>Now loading...</>;
   }
-  if (dependencies === undefined) {
-    return <>Now loading Dependencies...</>;
-  }
 
-  const numSolved = taggedTopics[tagId].solved?.topic_ticket_ids?.length ?? 0;
-  const numUnsolved = taggedTopics[tagId].unsolved?.topic_ticket_ids?.length ?? 0;
+  const numSolved = taggedTopics.solved?.topic_ticket_ids?.length ?? 0;
+  const numUnsolved = taggedTopics.unsolved?.topic_ticket_ids?.length ?? 0;
 
   const tagDict = allTags.find((tag) => tag.tag_id === tagId);
   const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
-  const references = dependencies
-    .filter((dependency) => dependency.tag_id === tagId)
-    .map((dependency) => ({
-      target: dependency.target,
-      version: dependency.version,
-      service: serviceDict.service_name,
-    }));
+  const references = currentTagDependencies.map((dependency) => ({
+    target: dependency.target,
+    version: dependency.version,
+    service: serviceDict.service_name,
+  }));
 
   const handleTabChange = (event, value) => setTabValue(value);
 
