@@ -1,4 +1,3 @@
-from typing import Sequence
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
@@ -69,16 +68,6 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
             "exploitation": "active",
             "automatable": True,
         }
-
-    def _find_expected(
-        _targets: Sequence[models.CurrentPTeamTopicTagStatus],
-        idx: int,
-        tag: schemas.TagResponse,
-    ) -> bool:
-        return any(
-            _tgt.pteam.pteam_name == f"pteam{idx}" and _tgt.tag.tag_name == tag.tag_name
-            for _tgt in _targets
-        )
 
     pteam0 = create_pteam(USER1, _gen_pteam_params(0))
     ext_tags = {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]}

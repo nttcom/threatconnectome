@@ -405,12 +405,6 @@ def test_delete_topic(testdb: Session):
     )
 
     assert (
-        not testdb.query(models.PTeamTopicTagStatus)
-        .filter(models.PTeamTopicTagStatus.topic_id == str(topic1.topic_id))
-        .all()
-    )
-
-    assert (
         not testdb.query(models.TopicAction)
         .filter(models.TopicAction.topic_id == str(topic1.topic_id))
         .all()
