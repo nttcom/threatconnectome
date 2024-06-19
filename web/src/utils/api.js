@@ -84,11 +84,6 @@ export const uploadSBOMFile = async (pteamId, service, file, forceMode = true) =
 export const deletePTeamService = async (pteamId, service) =>
   axios.delete(`/pteams/${pteamId}/tags`, { params: { service: service } });
 
-export const getLastUpdatedUncompletedTopicByServiceTag = async (pteamId, serviceId, tagId) =>
-  axios.get(
-    `/pteams/${pteamId}/services/${serviceId}/tags/${tagId}/last_updated_uncompleted_topic`,
-  );
-
 export const getDependencies = async (pteamId, serviceId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/dependencies`);
 
