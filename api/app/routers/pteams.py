@@ -249,6 +249,28 @@ def get_pteam_service_tags_summary(
     }
 
 
+@router.get(
+    "/{pteam_id}/services/{service_id}/dependencies",
+    response_model=list[schemas.DependencyResponse],
+)
+def get_dependencies(
+    pteam_id: UUID,
+    service_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (
+        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+    ):
+        raise NO_SUCH_SERVICE
+
+    return service.dependencies
+
+
 @router.get("/{pteam_id}/tags", response_model=list[schemas.ExtTagResponse])
 def get_pteam_tags(
     pteam_id: UUID,
@@ -649,50 +671,6 @@ def get_pteam_auth(
         enums = models.PTeamAuthIntFlag(auth.authority).to_enums()
         response.append({"user_id": auth.user_id, "authorities": enums})
     return response
-
-
-@router.get("/{pteam_id}/tags/{tag_id}", response_model=schemas.PTeamtagExtResponse)
-def get_pteamtag(
-    pteam_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get detals of the pteam tag with last updated date.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    references = []
-    for service in pteam.services:
-        for dependency in service.dependencies:
-            if dependency.tag_id == str(tag_id):
-                references.append(
-                    {
-                        "service": service.service_name,
-                        "target": dependency.target,
-                        "version": dependency.version,
-                    }
-                )
-
-    last_updated_topic = command.get_last_updated_uncompleted_topic_by_pteam_id_and_tag_id(
-        db, pteam_id, tag_id
-    )
-    last_updated_at = last_updated_topic.updated_at if last_updated_topic else None
-
-    return {
-        "pteam_id": pteam_id,
-        "tag_id": tag_id,
-        "references": references,
-        "last_updated_at": last_updated_at,
-    }
 
 
 def _check_file_extention(file: UploadFile, extention: str):

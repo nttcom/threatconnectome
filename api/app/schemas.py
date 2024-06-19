@@ -602,3 +602,11 @@ class ServiceTaggedTopics(ORMModel):
 class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
     solved: ServiceTaggedTopics
     unsolved: ServiceTaggedTopics
+
+
+class DependencyResponse(ORMModel):
+    dependency_id: UUID
+    service_id: UUID
+    tag_id: UUID
+    version: str
+    target: str

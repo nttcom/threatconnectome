@@ -40,7 +40,7 @@ export function PTeamEditAction(props) {
     presetParentTagId,
     presetActions,
     currentTagDict,
-    pteamtag,
+    references,
     serviceId,
   } = props;
 
@@ -233,8 +233,8 @@ export function PTeamEditAction(props) {
     (!action.ext?.vulnerable_versions?.[tagName]?.length > 0 ||
       parseVulnerableVersions(action.ext.vulnerable_versions[tagName]).some(
         (actionVersion) =>
-          !pteamtag.references?.length > 0 ||
-          pteamtag.references?.some((ref) =>
+          !references?.length > 0 ||
+          references?.some((ref) =>
             versionMatch(
               ref.version,
               actionVersion.ge,
@@ -389,6 +389,6 @@ PTeamEditAction.propTypes = {
     }),
   ),
   currentTagDict: PropTypes.object.isRequired,
-  pteamtag: PropTypes.object.isRequired,
+  references: PropTypes.array.isRequired,
   serviceId: PropTypes.string,
 };
