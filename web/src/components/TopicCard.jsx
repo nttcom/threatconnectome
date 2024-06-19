@@ -236,7 +236,7 @@ export function TopicCard(props) {
             <Box alignItems="center" display="flex" flexDirection="row" sx={{ color: grey[600] }}>
               <UpdateIcon fontSize="small" />
               <Typography ml={0.5} variant="caption">
-                {dateTimeFormat(topic?.created_at)}
+                {dateTimeFormat(topic?.updated_at)}
               </Typography>
             </Box>
           </Box>
