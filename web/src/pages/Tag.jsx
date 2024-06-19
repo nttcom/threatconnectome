@@ -10,110 +10,125 @@ import { TabPanel } from "../components/TabPanel";
 import { TagReferences } from "../components/TagReferences";
 import { UUIDTypography } from "../components/UUIDTypography";
 import {
+  getDependencies,
   getPTeam,
   getPTeamMembers,
-  getPTeamTag,
   getPTeamServiceTaggedTicketIds,
 } from "../slices/pteam";
+import { getLastUpdatedUncompletedTopicByServiceTag } from "../utils/api.js";
 import { a11yProps, calcTimestampDiff } from "../utils/func.js";
 
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
-  const [loadMembers, setLoadMembers] = useState(false);
-  const [loadPTeam, setLoadPTeam] = useState(false);
-  const [loadPTeamTag, setLoadPTeamTag] = useState(false);
-  const [loadTopicList, setLoadTopicList] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
 
-  const pteamId = useSelector((state) => state.pteam.pteamId);
-  const members = useSelector((state) => state.pteam.members);
-  const pteamtags = useSelector((state) => state.pteam.pteamtags);
-  const taggedTopics = useSelector((state) => state.pteam.taggedTopics);
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
+  const user = useSelector((state) => state.user.user);
+  const allTags = useSelector((state) => state.tags.allTags); // dispatched by App
   const pteam = useSelector((state) => state.pteam.pteam);
+  const members = useSelector((state) => state.pteam.members);
+  const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
+  const taggedTopicsDict = useSelector((state) => state.pteam.taggedTopics);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const { enqueueSnackbar } = useSnackbar();
+
   const { tagId } = useParams();
   const params = new URLSearchParams(useLocation().search);
+  const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
+  const dependencies = serviceDependencies[serviceId];
+  const currentTagDependencies = dependencies?.filter((dependency) => dependency.tag_id === tagId);
+  const taggedTopics = taggedTopicsDict[tagId];
+
+  async function loadLastUpdatedAt(pteamId, serviceId, tagId) {
+    await getLastUpdatedUncompletedTopicByServiceTag(pteamId, serviceId, tagId)
+      .then((response) => {
+        const lastUpdatedTopic = response.data;
+        setLastUpdatedAt(lastUpdatedTopic.updated_at);
+      })
+      .catch((error) => {
+        setLastUpdatedAt(null);
+      });
+  }
+
   useEffect(() => {
-    if (!pteamId || !tagId) return;
-    if (!loadTopicList && taggedTopics[tagId] === undefined) {
-      setLoadTopicList(true);
+    if (!user.user_id) return; // wait login completed
+    if (!pteamId) return; // wait fixed by App
+    if (!pteam) {
+      dispatch(getPTeam(pteamId));
+      return;
     }
-    if (!loadPTeam && pteam === undefined) {
-      setLoadPTeam(true);
+    if (!serviceId || !pteam.services.find((service) => service.service_id === serviceId)) {
+      const msg = `${serviceId ? "Invalid" : "Missing"} serviceId`;
+      enqueueSnackbar(msg, { variant: "error" });
+      const params = new URLSearchParams();
+      params.set("pteamId", pteamId);
+      navigate("/?" + params.toString()); // force jump to Status page
+      return;
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [pteamId, tagId]);
-
-  useEffect(() => {
-    if (!pteamId || !loadPTeam) return;
-    setLoadPTeam(false);
-    dispatch(getPTeam(pteamId));
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [loadPTeam, pteamId]);
-
-  useEffect(() => {
-    if (!loadTopicList || !pteamId || !tagId || !serviceId) return;
-    setLoadTopicList(false);
-    dispatch(
-      getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
-    );
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [loadTopicList, pteamId, tagId, serviceId]);
-
-  useEffect(() => {
-    if (!pteamId || !tagId) return;
-    if (!loadPTeamTag && pteamtags[tagId] === undefined) {
-      setLoadPTeamTag(true);
+    if (dependencies === undefined) {
+      dispatch(getDependencies({ pteamId: pteamId, serviceId: serviceId }));
+      return;
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [pteamId, tagId]);
+    if (!tagId || !currentTagDependencies?.length > 0) {
+      const msg = `${tagId ? "Invalid" : "Missing"} tagId`;
+      enqueueSnackbar(msg, { variant: "error" });
+      const params = new URLSearchParams();
+      params.set("pteamId", pteamId);
+      navigate("/?" + params.toString()); // force jump to Status page
+      return;
+    }
+    // all params are valid.
+
+    if (taggedTopics === undefined) {
+      dispatch(
+        getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
+      );
+      return;
+    }
+  }, [
+    user.user_id,
+    pteam,
+    dependencies,
+    currentTagDependencies,
+    taggedTopics,
+    pteamId,
+    serviceId,
+    tagId,
+    dispatch,
+    enqueueSnackbar,
+    navigate,
+  ]);
 
   useEffect(() => {
-    if (!loadPTeamTag || !pteamId || !tagId) return;
-    setLoadPTeamTag(false);
-    const onError = (error) => {
-      if (error.response?.status === 404) {
-        enqueueSnackbar("Specified artifact is not in PTeam monitoring targets.", {
-          variant: "error",
-        });
-        const params = new URLSearchParams();
-        params.set("pteamId", pteamId);
-        navigate("/?" + params.toString());
-      }
-    };
-    dispatch(getPTeamTag({ pteamId: pteamId, tagId: tagId, onError: onError }));
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [loadPTeamTag, pteamId, tagId]);
-
-  useEffect(() => {
+    if (!user.user_id) return;
     if (!pteamId) return;
-    if (typeof members === "undefined") {
-      setLoadMembers(true);
-    }
-  }, [pteamId, members]);
-
-  useEffect(() => {
-    if (loadMembers) {
+    if (!members) {
       dispatch(getPTeamMembers(pteamId));
     }
-  }, [dispatch, loadMembers, pteamId]);
+  }, [dispatch, user.user_id, pteamId, members]);
 
-  if (!allTags || !pteamId || !pteam || !taggedTopics[tagId] || !pteamtags[tagId]) {
+  useEffect(() => {
+    if (!pteamId || !serviceId || !tagId) return;
+    loadLastUpdatedAt(pteamId, serviceId, tagId);
+  }, [pteamId, serviceId, tagId]);
+
+  if (!allTags || !pteam || !members || !currentTagDependencies || !taggedTopics) {
     return <>Now loading...</>;
   }
 
-  const numSolved = taggedTopics[tagId].solved?.topic_ticket_ids?.length ?? 0;
-  const numUnsolved = taggedTopics[tagId].unsolved?.topic_ticket_ids?.length ?? 0;
+  const numSolved = taggedTopics.solved?.topic_ticket_ids?.length ?? 0;
+  const numUnsolved = taggedTopics.unsolved?.topic_ticket_ids?.length ?? 0;
 
-  const pteamtag = pteamtags[tagId];
   const tagDict = allTags.find((tag) => tag.tag_id === tagId);
   const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
+  const references = currentTagDependencies.map((dependency) => ({
+    target: dependency.target,
+    version: dependency.version,
+    service: serviceDict.service_name,
+  }));
 
   const handleTabChange = (event, value) => setTabValue(value);
 
@@ -141,9 +156,9 @@ export function Tag() {
           </Box>
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{tagId}</UUIDTypography>
-            {`Updated ${calcTimestampDiff(pteamtag.last_updated_at)}`}
+            {`Updated ${calcTimestampDiff(lastUpdatedAt)}`}
           </Typography>
-          <TagReferences references={pteamtag.references} serviceDict={serviceDict} />
+          <TagReferences references={references} serviceDict={serviceDict} />
         </Box>
       </Box>
       <Divider />
@@ -160,7 +175,7 @@ export function Tag() {
             tagId={tagId}
             serviceId={serviceDict.service_id}
             isSolved={false}
-            pteamtag={pteamtag}
+            references={references}
           />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
@@ -169,7 +184,7 @@ export function Tag() {
             tagId={tagId}
             serviceId={serviceDict.service_id}
             isSolved={true}
-            pteamtag={pteamtag}
+            references={references}
           />
         </TabPanel>
       </Box>

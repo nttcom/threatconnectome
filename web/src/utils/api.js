@@ -36,8 +36,6 @@ export const getPTeamAuth = async (pteamId) => axios.get(`/pteams/${pteamId}/aut
 export const updatePTeamAuth = async (pteamId, data) =>
   axios.post(`/pteams/${pteamId}/authority`, data);
 
-export const getPTeamTag = async (pteamId, tagId) => axios.get(`/pteams/${pteamId}/tags/${tagId}`);
-
 export const getPTeamTopics = async (pteamId) => axios.get(`/pteams/${pteamId}/topics`);
 
 export const getPTeamServiceTaggedTicketIds = async (pteamId, serviceId, tagId) =>
@@ -85,6 +83,14 @@ export const uploadSBOMFile = async (pteamId, service, file, forceMode = true) =
 
 export const deletePTeamService = async (pteamId, service) =>
   axios.delete(`/pteams/${pteamId}/tags`, { params: { service: service } });
+
+export const getLastUpdatedUncompletedTopicByServiceTag = async (pteamId, serviceId, tagId) =>
+  axios.get(
+    `/pteams/${pteamId}/services/${serviceId}/tags/${tagId}/last_updated_uncompleted_topic`,
+  );
+
+export const getDependencies = async (pteamId, serviceId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/dependencies`);
 
 // ateams
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);
