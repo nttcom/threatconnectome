@@ -221,6 +221,9 @@ export function Status() {
     const newParams = new URLSearchParams();
     newParams.set("pteamId", pteamId);
     newParams.set("serviceId", serviceId);
+    if (searchWord) {
+      newParams.set("word", searchWord);
+    }
     navigate(location.pathname + "?" + newParams.toString());
   };
 
