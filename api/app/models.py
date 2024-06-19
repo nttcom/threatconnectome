@@ -702,56 +702,6 @@ class TopicAction(Base):
     topic = relationship("Topic", back_populates="actions")
 
 
-class PTeamTopicTagStatus(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.status_id:
-            self.status_id = str(uuid.uuid4())
-
-    __tablename__ = "pteamtopictagstatus"
-
-    status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
-    )
-    topic_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"), index=True
-    )
-    tag_id: Mapped[StrUUID] = mapped_column(ForeignKey("tag.tag_id"), index=True)
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    topic_status: Mapped[TopicStatusType]
-    note: Mapped[str | None]
-    logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
-    assignees: Mapped[list[StrUUID]] = mapped_column(default=[])
-    scheduled_at: Mapped[datetime | None]
-    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-
-
-class CurrentPTeamTopicTagStatus(Base):
-    __tablename__ = "currentpteamtopictagstatus"
-
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        "pteam_id", ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    topic_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    tag_id: Mapped[StrUUID] = mapped_column(ForeignKey("tag.tag_id"), primary_key=True, index=True)
-    status_id: Mapped[StrUUID | None] = mapped_column(
-        ForeignKey("pteamtopictagstatus.status_id"), index=True
-    )
-    topic_status: Mapped[TopicStatusType | None]
-    threat_impact: Mapped[int | None]
-    updated_at: Mapped[datetime | None]
-
-    pteam = relationship("PTeam")
-    topic = relationship("Topic")
-    tag = relationship("Tag")
-    raw_status = relationship(PTeamTopicTagStatus, viewonly=True)
-
-
 class MispTag(Base):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
