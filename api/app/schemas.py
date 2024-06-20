@@ -511,7 +511,6 @@ class PTeamServiceTagsSummary(ORMModel):
         tag_name: str
         parent_id: UUID | None
         parent_name: str | None
-        references: list[dict]
         threat_impact: int | None
         updated_at: datetime | None
         status_count: dict[str, int]  # TopicStatusType.value: tickets count
