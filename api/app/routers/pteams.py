@@ -173,79 +173,21 @@ def get_pteam_service_tags_summary(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not (
-        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
-    ):
+    if not next(filter(lambda x: x.service_id == str(service_id), pteam.services), None):
         raise NO_SUCH_SERVICE
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    tags_summary: dict[str, dict] = {}  # {tag_id: tag_summary}
-    for dependency in service.dependencies:
-        tag = dependency.tag
-        # init tag summary if not yet
-        if not (tag_summary := tags_summary.get(tag.tag_id)):
-            tag_summary = {
-                "tag_id": tag.tag_id,
-                "tag_name": tag.tag_name,
-                "parent_id": tag.parent_id,
-                "parent_name": tag.parent_name,
-                "references": [],
-                "threat_impact": None,
-                "updated_at": None,
-                "status_count": {
-                    status_type.value: 0 for status_type in list(models.TopicStatusType)
-                },
-            }
-            tags_summary[tag.tag_id] = tag_summary
-        # apply dependency
-        tag_summary["references"].append(
-            {
-                "target": dependency.target,
-                "version": dependency.version,
-                "service": service.service_name,
-            }
-        )
-        # apply threat and current ticket status
-        for threat in dependency.threats:
-            if not (ticket := threat.ticket):  # ignore threats if not have ticket
-                continue
-            fixed_ticket_status = (
-                models.TopicStatusType.alerted
-                if (
-                    not (current_ticket_status := ticket.current_ticket_status)
-                    or current_ticket_status.topic_status is None
-                )
-                else current_ticket_status.topic_status
-            )
-            tag_summary["status_count"][fixed_ticket_status] += 1
-            if fixed_ticket_status == models.TopicStatusType.completed:
-                continue
-
-            topic = threat.topic
-            if (
-                tag_summary["threat_impact"] is None
-                or tag_summary["threat_impact"] > topic.threat_impact
-            ):
-                tag_summary["threat_impact"] = topic.threat_impact
-            if tag_summary["updated_at"] is None or tag_summary["updated_at"] < topic.updated_at:
-                tag_summary["updated_at"] = topic.updated_at
+    tags_summary = command.get_tags_summary_by_service_id(db, service_id)
 
     # count tags threat_impact
     threat_impact_count: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
-    for tag_summary in tags_summary.values():
+    for tag_summary in tags_summary:
         threat_impact_count[str(tag_summary["threat_impact"] or 4)] += 1
 
     return {
         "threat_impact_count": threat_impact_count,
-        "tags": sorted(
-            list(tags_summary.values()),
-            key=lambda x: (
-                x["threat_impact"] or 4,
-                -(_dt.timestamp() if (_dt := x.get("updated_at")) else 0),
-                x["tag_name"],
-            ),
-        ),
+        "tags": tags_summary,
     }
 
 
