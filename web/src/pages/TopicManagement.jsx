@@ -8,7 +8,9 @@ import {
   Box,
   Button,
   Chip,
+  FormControlLabel,
   Select,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -22,6 +24,7 @@ import {
   Paper,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
+import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
@@ -60,6 +63,8 @@ function TopicManagementTableRow(props) {
     );
   }
 
+  const relatedTopic = true;
+
   return (
     <TableRow
       key={topic.topic_id}
@@ -74,7 +79,14 @@ function TopicManagementTableRow(props) {
       <TableCell>
         <FormattedDateTimeWithTooltip utcString={topic.updated_at} />
       </TableCell>
-      <TableCell>
+      <TableCell align="center">
+        {relatedTopic ? (
+          <CheckCircleOutlineIcon color="success" />
+        ) : (
+          <HorizontalRuleIcon sx={{ color: grey[500] }} />
+        )}
+      </TableCell>
+      <TableCell align="center">
         {actionList?.length > 0 ? (
           <CheckCircleOutlineIcon color="success" />
         ) : (
@@ -190,6 +202,39 @@ export function TopicManagement() {
     </Box>
   );
 
+  const Android12Switch = styled(Switch)(({ theme }) => ({
+    padding: 8,
+    "& .MuiSwitch-track": {
+      borderRadius: 22 / 2,
+      "&:before, &:after": {
+        content: "''",
+        position: "absolute",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: 16,
+        height: 16,
+      },
+      "&:before": {
+        backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
+          theme.palette.getContrastText(theme.palette.primary.main),
+        )}" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>")`,
+        left: 12,
+      },
+      "&:after": {
+        backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
+          theme.palette.getContrastText(theme.palette.primary.main),
+        )}" d="M19,13H5V11H19V13Z" /></svg>")`,
+        right: 12,
+      },
+    },
+    "& .MuiSwitch-thumb": {
+      boxShadow: "none",
+      width: 16,
+      height: 16,
+      margin: 2,
+    },
+  }));
+
   const topics = searchResult?.topics;
 
   if (!topics) return <>Loading...</>;
@@ -197,7 +242,7 @@ export function TopicManagement() {
   return (
     <>
       <Box display="flex" mt={2}>
-        {filterRow}
+        <FormControlLabel sx={{ ml: -1 }} control={<Android12Switch />} label="Related topics" />
         <Box flexGrow={1} />
         <Box mb={0.5}>
           <Button
@@ -221,17 +266,20 @@ export function TopicManagement() {
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
-              <TableCell style={{ width: "10%" }} display="flex">
+              <TableCell style={{ width: "20%" }} display="flex">
                 <Box display="flex" flexDirection="row">
-                  <Typography variant="body2">Last Update</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 900 }}>
+                    Last Update
+                  </Typography>
                   <Tooltip title="Timezone is local time">
                     <InfoIcon sx={{ color: grey[600], ml: 1 }} />
                   </Tooltip>
                 </Box>
               </TableCell>
-              <TableCell style={{ width: "3%" }}>Action</TableCell>
-              <TableCell style={{ width: "25%" }}>Title</TableCell>
-              <TableCell style={{ width: "35%" }}>MISP Tag</TableCell>
+              <TableCell style={{ width: "3%", fontWeight: 900 }}>Affected</TableCell>
+              <TableCell style={{ width: "3%", fontWeight: 900 }}>Action</TableCell>
+              <TableCell style={{ width: "25%", fontWeight: 900 }}>Title</TableCell>
+              <TableCell style={{ width: "35%", fontWeight: 900 }}>MISP Tag</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
