@@ -24,10 +24,10 @@ def create_ticket(testdb: Session, user: dict, pteam: dict, topic: dict, action:
     # Uploaded sbom file.
     # Create tag, service and dependency table
     params: Dict[str, Union[str, bool]] = {"service": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
+    sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag.jsonl"
     with open(sbom_file, "rb") as tags:
         response_upload_sbom_file = client.post(
-            f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
+            f"/pteams/{pteam1.pteam_id}/upload_tags_file",
             headers=file_upload_headers(user),
             params=params,
             files={"file": tags},
