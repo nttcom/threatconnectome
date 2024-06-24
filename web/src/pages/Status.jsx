@@ -7,6 +7,7 @@ import {
 import {
   Box,
   Chip,
+  FormControlLabel,
   IconButton,
   InputAdornment,
   ListItemIcon,
@@ -17,6 +18,7 @@ import {
   Pagination,
   Paper,
   Select,
+  Switch,
   Table,
   TableBody,
   TableContainer,
@@ -24,11 +26,13 @@ import {
   Typography,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
+import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
+import { DeleteServiceIcon } from "../components/DeleteServiceIcon";
 import { PTeamGroupChip } from "../components/PTeamGroupChip";
 import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
@@ -80,6 +84,28 @@ SearchField.propTypes = {
   onApply: PropTypes.func.isRequired,
 };
 
+function CustomTabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+CustomTabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+};
+
 export function Status() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -90,6 +116,9 @@ export function Status() {
   const selectedGroup = params.get("group") ?? "";
 
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [allService, setAllService] = useState(false);
+  const [serviceUploadMode, setServiceUploadMode] = useState(0);
+
   const searchMenuOpen = Boolean(anchorEl);
 
   const user = useSelector((state) => state.user.user);
@@ -129,6 +158,14 @@ export function Status() {
     params.set("page", page); // fix for the next
   }
   const targetTags = filteredTags.slice(perPage * (page - 1), perPage * page);
+
+  const serviceModeChange = (event) => {
+    setAllService(event.target.checked);
+  };
+
+  const handleServiceUploadMode = (newValue) => {
+    setServiceUploadMode(newValue);
+  };
 
   const filterRow = (
     <Box display="flex" alignItems="center" sx={{ mt: 1 }}>
@@ -261,50 +298,111 @@ export function Status() {
     </>
   );
 
+  const Android12Switch = styled(Switch)(({ theme }) => ({
+    padding: 8,
+    "& .MuiSwitch-track": {
+      borderRadius: 22 / 2,
+      "&:before, &:after": {
+        content: "''",
+        position: "absolute",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: 16,
+        height: 16,
+      },
+      "&:before": {
+        backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
+          theme.palette.getContrastText(theme.palette.primary.main),
+        )}" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>")`,
+        left: 12,
+      },
+      "&:after": {
+        backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
+          theme.palette.getContrastText(theme.palette.primary.main),
+        )}" d="M19,13H5V11H19V13Z" /></svg>")`,
+        right: 12,
+      },
+    },
+    "& .MuiSwitch-thumb": {
+      boxShadow: "none",
+      width: 16,
+      height: 16,
+      margin: 2,
+    },
+  }));
+
   return (
     <>
       <Box display="flex" flexDirection="row">
         <PTeamLabel defaultTabIndex={0} />
         <Box flexGrow={1} />
       </Box>
-      <PTeamGroupChip />
       {summary.tags.length === 0 ? (
         <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
       ) : (
         <>
-          <Box display="flex" mt={2}>
-            {filterRow}
-            <Box flexGrow={1} />
-            <Box mb={0.5}>
-              <SearchField word={searchWord} onApply={handleSearchWord} />
-              <IconButton
-                id="basic-button"
-                aria-controls={searchMenuOpen ? "basic-menu" : undefined}
-                aria-haspopup="true"
-                aria-expanded={searchMenuOpen ? "true" : undefined}
-                onClick={handleClick}
-                size="small"
-                sx={{ mt: 1.5 }}
-              >
-                {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
-              </IconButton>
-              {ThreatImpactMenu}
-            </Box>
+          <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+            <DeleteServiceIcon />
+            <FormControlLabel
+              control={
+                <Android12Switch
+                  checked={allService}
+                  onChange={serviceModeChange}
+                  onClick={() => {
+                    handleServiceUploadMode(0);
+                  }}
+                />
+              }
+              label="All Services"
+              sx={{ mb: 1 }}
+            />
           </Box>
-          <TableContainer component={Paper} sx={{ mt: 0.5 }}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableBody>
-                {targetTags.map((tag) => (
-                  <PTeamStatusCard
-                    key={tag.tag_id}
-                    onHandleClick={() => handleNavigateTag(tag.tag_id)}
-                    tag={tag}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {targetTags.length > 3 && filterRow}
+          {allService ? (
+            <></>
+          ) : (
+            <PTeamGroupChip handleServiceUploadMode={handleServiceUploadMode} />
+          )}
+          <CustomTabPanel value={serviceUploadMode} index={0}>
+            <>
+              <Box display="flex" mt={2}>
+                {filterRow}
+                <Box flexGrow={1} />
+                <Box mb={0.5}>
+                  <SearchField word={searchWord} onApply={handleSearchWord} />
+                  <IconButton
+                    id="basic-button"
+                    aria-controls={searchMenuOpen ? "basic-menu" : undefined}
+                    aria-haspopup="true"
+                    aria-expanded={searchMenuOpen ? "true" : undefined}
+                    onClick={handleClick}
+                    size="small"
+                    sx={{ mt: 1.5 }}
+                  >
+                    {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
+                  </IconButton>
+                  {ThreatImpactMenu}
+                </Box>
+              </Box>
+              <TableContainer component={Paper} sx={{ mt: 0.5 }}>
+                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                  <TableBody>
+                    {targetTags.map((tag) => (
+                      <PTeamStatusCard
+                        key={tag.tag_id}
+                        onHandleClick={() => handleNavigateTag(tag.tag_id)}
+                        tag={tag}
+                        allService={allService}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              {targetTags.length > 3 && filterRow}
+            </>
+          </CustomTabPanel>
+          <CustomTabPanel value={serviceUploadMode} index={1}>
+            <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+          </CustomTabPanel>
         </>
       )}
     </>

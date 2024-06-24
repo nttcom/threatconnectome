@@ -153,7 +153,7 @@ export function SBOMDropArea(props) {
         display="flex"
         flexDirection="column"
         ref={dropRef}
-        sx={{ width: "100%", minHeight: "300px", border: "4px dotted #888" }}
+        sx={{ width: "100%", minHeight: "300px", border: "4px dotted #888", mt: 3 }}
       >
         <UploadFileIcon sx={{ fontSize: 50, mb: 3 }} />
         <Typography>Drop SBOM file here</Typography>

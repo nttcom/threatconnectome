@@ -163,7 +163,7 @@ GroupChips.propTypes = {
 };
 
 export function PTeamStatusCard(props) {
-  const { onHandleClick, tag } = props;
+  const { onHandleClick, tag, allService } = props;
 
   return (
     <TableRow
@@ -184,7 +184,7 @@ export function PTeamStatusCard(props) {
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
           {tag.tag_name}
         </Typography>
-        <GroupChips references={tag.references}></GroupChips>
+        {allService && <GroupChips references={tag.references}></GroupChips>}
       </TableCell>
       <TableCell align="right" style={{ width: "30%" }}>
         <Box display="flex" flexDirection="column">
@@ -211,4 +211,5 @@ PTeamStatusCard.propTypes = {
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
   }).isRequired,
+  allService: PropTypes.bool.isRequired,
 };
