@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
@@ -22,7 +22,7 @@ from app.common import (
     get_tag_ids_with_parent_ids,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
-from app.database import get_db
+from app.database import get_db, get_db_with_context_manager
 from app.sbom import sbom_json_to_artifact_json_lines
 from app.slack import validate_slack_webhook_url
 
@@ -648,10 +648,34 @@ def _json_loads(s: str | bytes | bytearray):
         ) from error
 
 
-@router.post("/{pteam_id}/upload_sbom_file", response_model=list[schemas.ExtTagResponse])
-def upload_pteam_sbom_file(
+def create_tags_from_sbom_json_in_asynchronous_processing(
+    jdata,
+    pteam_id,
+    service,
+    force_mode,
+):
+    with get_db_with_context_manager() as db:
+        pteam = persistence.get_pteam_by_id(db, pteam_id)
+        if not (
+            service_model := next(filter(lambda x: x.service_name == service, pteam.services), None)
+        ):
+            service_model = models.Service(pteam_id=str(pteam_id), service_name=service)
+            pteam.services.append(service_model)
+            db.flush()
+        try:
+            json_lines = sbom_json_to_artifact_json_lines(jdata)
+            apply_service_tags(db, pteam, service_model, json_lines, auto_create_tags=force_mode)
+        except ValueError as err:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+
+        db.commit()
+
+
+@router.post("/{pteam_id}/upload_sbom_file")
+async def upload_pteam_sbom_file(
     pteam_id: UUID,
     file: UploadFile,
+    background_tasks: BackgroundTasks,
     service: str = Query("", description="name of service(repository or product)"),
     force_mode: bool = Query(False, description="if true, create unexist tags"),
     current_user: models.Account = Depends(get_current_user),
@@ -676,22 +700,10 @@ def upload_pteam_sbom_file(
             detail=("Wrong file content"),
         ) from error
 
-    if not (
-        service_model := next(filter(lambda x: x.service_name == service, pteam.services), None)
-    ):
-        service_model = models.Service(pteam_id=str(pteam_id), service_name=service)
-        pteam.services.append(service_model)
-        db.flush()
-
-    try:
-        json_lines = sbom_json_to_artifact_json_lines(jdata)
-        apply_service_tags(db, pteam, service_model, json_lines, auto_create_tags=force_mode)
-    except ValueError as err:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
-
-    db.commit()
-
-    return get_pteam_ext_tags(db, pteam)
+    background_tasks.add_task(
+        create_tags_from_sbom_json_in_asynchronous_processing, jdata, pteam_id, service, force_mode
+    )
+    return {"message": "Tag creation is running asynchronously"}
 
 
 @router.post("/{pteam_id}/upload_tags_file", response_model=list[schemas.ExtTagResponse])

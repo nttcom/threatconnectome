@@ -1,3 +1,4 @@
+import contextlib
 import os
 
 from sqlalchemy import create_engine
@@ -31,3 +32,27 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def create_new_session():
+    engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
+    maker = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=engine)
+    session = maker()
+
+    try:
+        yield session
+    except Exception:
+        session.rollback()
+    finally:
+        session.close()
+
+
+@contextlib.contextmanager
+def get_db_with_context_manager():
+    session = next(create_new_session())
+    try:
+        yield session
+    except Exception:
+        session.rollback()
+    finally:
+        session.close()
