@@ -3,6 +3,9 @@ import random
 import string
 import tempfile
 from datetime import datetime
+from hashlib import sha256
+from io import DEFAULT_BUFFER_SIZE, BytesIO
+from pathlib import Path
 from typing import Sequence
 from uuid import UUID
 
@@ -363,3 +366,11 @@ def common_put(user: dict, api_path: str, **kwargs) -> dict:
     if response.status_code != 200:
         raise HTTPError(response)
     return response.json()
+
+
+def calc_file_sha256(file_path: str | Path) -> str:
+    with open(file_path, "rb") as fin:
+        file_sha256 = sha256()
+        while data := fin.read(DEFAULT_BUFFER_SIZE):
+            file_sha256.update(BytesIO(data).getbuffer())
+        return file_sha256.hexdigest()

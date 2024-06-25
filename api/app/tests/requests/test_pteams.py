@@ -37,6 +37,7 @@ from app.tests.medium.utils import (
     accept_watching_request,
     assert_200,
     assert_204,
+    calc_file_sha256,
     compare_references,
     compare_tags,
     create_ateam,
@@ -2265,7 +2266,10 @@ def test_upload_pteam_sbom_file_with_syft():
             files={"file": tags},
         )
     assert response.status_code == 200
-    assert response.json() == {"message": "Tag creation is running asynchronously"}
+    data = response.json()
+    assert data["pteam_id"] == str(pteam1.pteam_id)
+    assert data["service_name"] == params["service"]
+    assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
 
 
 @pytest.mark.skip(reason="TODO: figure out how to test background tasks")
@@ -2286,7 +2290,10 @@ def test_upload_pteam_sbom_file_with_trivy():
         )
 
     assert response.status_code == 200
-    assert response.json() == {"message": "Tag creation is running asynchronously"}
+    data = response.json()
+    assert data["pteam_id"] == str(pteam1.pteam_id)
+    assert data["service_name"] == params["service"]
+    assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
 
 
 def test_upload_pteam_sbom_file_with_empty_file():
