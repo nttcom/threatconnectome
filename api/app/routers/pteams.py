@@ -1,5 +1,7 @@
 import json
 from datetime import datetime
+from hashlib import sha256
+from io import DEFAULT_BUFFER_SIZE, BytesIO
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, status
@@ -701,7 +703,18 @@ async def upload_pteam_sbom_file(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
     _check_file_extention(file, ".json")
     _check_empty_file(file)
+
+    sbom_sha256 = sha256()
+    while data := await file.read(DEFAULT_BUFFER_SIZE):
+        sbom_sha256.update(BytesIO(data).getbuffer())
+    ret = {
+        "pteam_id": pteam_id,
+        "service_name": service,
+        "sbom_file_sha256": sbom_sha256.hexdigest(),
+    }
+
     try:
+        await file.seek(0)
         sbom_json = json.load(file.file)
     except json.JSONDecodeError as error:
         raise HTTPException(
@@ -712,7 +725,7 @@ async def upload_pteam_sbom_file(
     background_tasks.add_task(
         bg_create_tags_from_sbom_json, sbom_json, pteam_id, service, force_mode
     )
-    return {"message": "Tag creation is running asynchronously"}
+    return ret
 
 
 @router.post("/{pteam_id}/upload_tags_file", response_model=list[schemas.ExtTagResponse])
