@@ -37,7 +37,7 @@ from app.tests.medium.utils import (
     accept_watching_request,
     assert_200,
     assert_204,
-    create_actionlog,
+    create_actionlog_with_related_data,
     create_ateam,
     create_misp_tag,
     create_pteam,
@@ -360,6 +360,7 @@ def test_update_topic_not_creater():
 def test_delete_topic(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
+    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
 
     # create service
     service_name = "service_x"
@@ -370,15 +371,31 @@ def test_delete_topic(testdb: Session):
         )
     )
 
-    topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
-    create_actionlog(
-        USER1,
-        topic1.actions[0].action_id,
-        topic1.topic_id,
+    tag_id = "da54de37-308e-40a7-a5ba-aab594796992"
+    # create tag
+    testdb.execute(
+        insert(models.Tag).values(
+            tag_id=tag_id,
+            tag_name="",
+        )
+    )
+
+    dependency1_id = "dependency1_id"
+    threat1_id = "threat1_id"
+    ticket1_id = "3d362f0f-e08e-45a3-9ae9-5a46936372c0"
+    create_actionlog_with_related_data(
         user1.user_id,
+        USER1,
+        topic1,
+        topic1.actions[0].action_id,
         pteam1.pteam_id,
-        UUID(service_id),
+        service_id,
+        tag_id,
+        dependency1_id,
+        threat1_id,
+        ticket1_id,
         datetime.now(),
+        testdb,
     )
 
     # delete topic

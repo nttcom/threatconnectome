@@ -422,6 +422,8 @@ class ActionLogResponse(ORMModel):
     recommended: bool
     user_id: UUID | None = None
     pteam_id: UUID
+    service_id: UUID
+    ticket_id: UUID
     email: str
     executed_at: datetime
     created_at: datetime

@@ -411,6 +411,12 @@ def delete_ticket(db: Session, ticket: models.Ticket) -> None:
     db.flush()
 
 
+def get_ticket_by_id(db: Session, ticket_id: UUID | str) -> models.Ticket | None:
+    return db.scalars(
+        select(models.Ticket).where(models.Ticket.ticket_id == str(ticket_id))
+    ).one_or_none()
+
+
 ### TicketStatus
 
 

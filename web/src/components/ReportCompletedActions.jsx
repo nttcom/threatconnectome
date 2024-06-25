@@ -66,7 +66,7 @@ export function ReportCompletedActions(props) {
       );
       await createTopicStatus(pteamId, serviceId, topicId, tagId, {
         topic_status: "completed",
-        logging_ids: actionLogs.map((log) => log.logging_id),
+        logging_ids: actionLogs.map((logs) => logs.map((log) => log.logging_id)).flat(),
         note: note.trim() || null,
       });
       handleClose();
