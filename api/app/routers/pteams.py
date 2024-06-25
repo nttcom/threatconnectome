@@ -22,7 +22,7 @@ from app.common import (
     get_tag_ids_with_parent_ids,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
-from app.database import get_db, get_db_with_context_manager
+from app.database import get_db, open_db_session
 from app.sbom import sbom_json_to_artifact_json_lines
 from app.slack import validate_slack_webhook_url
 
@@ -648,24 +648,33 @@ def _json_loads(s: str | bytes | bytearray):
         ) from error
 
 
-def create_tags_from_sbom_json_in_asynchronous_processing(
-    jdata,
+def bg_create_tags_from_sbom_json(
+    sbom_json,
     pteam_id,
-    service,
+    service_name,
     force_mode,
 ):
-    with get_db_with_context_manager() as db:
-        pteam = persistence.get_pteam_by_id(db, pteam_id)
+    # TODO
+    #   functions for background tasks should be divided to another source file.
+    #   Note: background tasks cannot rely on Depends(get_db) and cannot override by
+    #         app.dependency_overrides[]. how to test us? hummm...
+
+    with open_db_session() as db:
+        if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+            # TODO notify failure to the caller
+            raise NO_SUCH_PTEAM
         if not (
-            service_model := next(filter(lambda x: x.service_name == service, pteam.services), None)
+            service := next(filter(lambda x: x.service_name == service_name, pteam.services), None)
         ):
-            service_model = models.Service(pteam_id=str(pteam_id), service_name=service)
-            pteam.services.append(service_model)
+            service = models.Service(pteam_id=str(pteam_id), service_name=service_name)
+            pteam.services.append(service)
             db.flush()
+
         try:
-            json_lines = sbom_json_to_artifact_json_lines(jdata)
-            apply_service_tags(db, pteam, service_model, json_lines, auto_create_tags=force_mode)
+            json_lines = sbom_json_to_artifact_json_lines(sbom_json)
+            apply_service_tags(db, pteam, service, json_lines, auto_create_tags=force_mode)
         except ValueError as err:
+            # TODO notify failure to the caller
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
         db.commit()
@@ -693,7 +702,7 @@ async def upload_pteam_sbom_file(
     _check_file_extention(file, ".json")
     _check_empty_file(file)
     try:
-        jdata = json.load(file.file)
+        sbom_json = json.load(file.file)
     except json.JSONDecodeError as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -701,7 +710,7 @@ async def upload_pteam_sbom_file(
         ) from error
 
     background_tasks.add_task(
-        create_tags_from_sbom_json_in_asynchronous_processing, jdata, pteam_id, service, force_mode
+        bg_create_tags_from_sbom_json, sbom_json, pteam_id, service, force_mode
     )
     return {"message": "Tag creation is running asynchronously"}
 
