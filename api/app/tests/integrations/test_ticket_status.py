@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
@@ -21,6 +22,7 @@ from app.tests.medium.constants import (
 )
 from app.tests.medium.utils import (
     accept_pteam_invitation,
+    create_actionlog,
     create_pteam,
     create_service_topicstatus,
     create_tag,
@@ -285,3 +287,89 @@ def test_CurrentTicketStatus_when_create_threat(testdb: Session):
     assert current_tcket_status.status_id is None
     assert current_tcket_status.topic_status == models.TopicStatusType.alerted
     assert current_tcket_status.threat_impact == 1
+
+
+def test_TicketStatus_with_multi_ActionLogs(testdb: Session):
+    # Given
+    # A service has tow ticket with same topic_id and tag_id.
+    threat_respose1 = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+    user1 = persistence.get_account_by_email(testdb, str(USER1["email"]))
+    assert user1 is not None
+    threats1 = persistence.search_threats(
+        testdb, threat_respose1.dependency_id, threat_respose1.topic_id
+    )
+    threat1 = threats1[0]
+
+    dependency2_id = "1d362f0f-e08e-45a3-9ae9-5a46936372c1"
+    threat2_id = "2d362f0f-e08e-45a3-9ae9-5a46936372c2"
+    ticket2_id = "3d362f0f-e08e-45a3-9ae9-5a46936372c3"
+    testdb.execute(
+        insert(models.Dependency).values(
+            dependency_id=dependency2_id,
+            service_id=threat1.dependency.service.service_id,
+            tag_id=threat1.dependency.tag.tag_id,
+            version="",
+            target="2",
+            dependency_mission_impact=models.MissionImpactEnum.MISSION_FAILURE,
+        )
+    )
+    testdb.execute(
+        insert(models.Threat).values(
+            threat_id=threat2_id, dependency_id=dependency2_id, topic_id=threat1.topic.topic_id
+        )
+    )
+    testdb.execute(
+        insert(models.Ticket).values(
+            ticket_id=ticket2_id,
+            threat_id=threat2_id,
+            created_at="2033-06-26 15:00:00",
+            updated_at="2033-06-26 15:00:00",
+            ssvc_deployer_priority=models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE,
+        )
+    )
+
+    # When
+    # create ActionLog and create TicketTopicStatus
+    actionlogs1 = create_actionlog(
+        USER1,
+        threat1.topic.actions[0].action_id,
+        threat1.topic.topic_id,
+        UUID(user1.user_id),
+        threat1.dependency.service.pteam.pteam_id,
+        threat1.dependency.service.service_id,
+        None,
+    )
+
+    json_data = {
+        "topic_status": "acknowledged",
+        "logging_ids": [str(actionlogs1[0].logging_id), str(actionlogs1[1].logging_id)],
+        "note": "acknowledged",
+        "assignees": [str(user1.user_id)],
+        "scheduled_at": str(datetime(2024, 5, 1)),
+    }
+    create_service_topicstatus(
+        USER1,
+        threat1.dependency.service.pteam.pteam_id,
+        threat1.dependency.service.service_id,
+        threat1.topic.topic_id,
+        threat1.dependency.tag.tag_id,
+        json_data,
+    )
+
+    # Then
+    # each ticket record has logging_id
+    ticket_statuses_list1 = testdb.scalars(
+        select(models.TicketStatus).where(
+            models.TicketStatus.ticket_id == str(threat1.ticket.ticket_id)
+        )
+    ).all()
+    assert len(ticket_statuses_list1) == 1
+    assert len(ticket_statuses_list1[0].logging_ids) == 1
+    assert str(ticket_statuses_list1[0].logging_ids[0]) == str(actionlogs1[0].logging_id)
+
+    ticket_statuses_list2 = testdb.scalars(
+        select(models.TicketStatus).where(models.TicketStatus.ticket_id == ticket2_id)
+    ).all()
+    assert len(ticket_statuses_list2) == 1
+    assert len(ticket_statuses_list2[0].logging_ids) == 1
+    assert str(ticket_statuses_list2[0].logging_ids[0]) == str(actionlogs1[1].logging_id)
