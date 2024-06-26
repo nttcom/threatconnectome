@@ -130,7 +130,7 @@ export function SBOMDropArea(props) {
     enqueueSnackbar(`Uploading SBOM file: ${file.name}`, { variant: "info" });
     uploadSBOMFile(pteamId, service, file)
       .then((response) => {
-        enqueueSnackbar("SBOM Update Request was accepted. Please access later", {
+        enqueueSnackbar("SBOM Update Request was accepted. Please reload later", {
           variant: "success",
         });
         onUploaded();
