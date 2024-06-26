@@ -267,6 +267,32 @@ def create_topic(
     return schemas.TopicCreateResponse(**response.json())
 
 
+def create_topic_with_versioned_actions(
+    user: dict,
+    topic: dict,
+    actions_tagnames: list[list[str]],
+) -> schemas.TopicCreateResponse:
+    def _gen_action(tag_names: list[str]) -> dict:
+        return {
+            "action": f"action for {','.join(tag_names)}",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": tag_names,
+                "vulnerable_versions": {tag_name: ["< 99.9.9"] for tag_name in tag_names},
+            },
+        }
+
+    return create_topic(
+        user,
+        {
+            **topic,
+            "tags": actions_tagnames[0],
+            "actions": [_gen_action(tag_names) for tag_names in actions_tagnames],
+        },
+    )
+
+
 def update_topic(
     user: dict,
     topic: schemas.TopicEntry,
@@ -305,7 +331,7 @@ def create_actionlog(
     pteam_id: UUID,
     service_id: UUID,
     executed_at: datetime | None,
-) -> schemas.ActionLogResponse:
+) -> list[schemas.ActionLogResponse]:
     request = {
         "action_id": str(action_id),
         "topic_id": str(topic_id),
@@ -319,7 +345,7 @@ def create_actionlog(
 
     if response.status_code != 200:
         raise HTTPError(response)
-    return schemas.ActionLogResponse(**response.json())
+    return [schemas.ActionLogResponse(**row) for row in response.json()]
 
 
 def compare_tags(

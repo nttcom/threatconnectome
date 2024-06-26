@@ -15,6 +15,16 @@ def set_ticket_statuses_in_service(
 ) -> schemas.TopicStatusResponse | None:
     oldest_status: models.TicketStatus | None = None
     oldest_updated_at: datetime | None = None
+    ticket_logging_ids_dict: dict[str, set[str]] = {}
+    for logging_id in topicStatusRequest.logging_ids:
+        if not (action_log := persistence.get_action_log_by_id(db, logging_id)):
+            continue
+        if action_log.ticket_id is None:
+            continue
+        if (tmp_logging_ids := ticket_logging_ids_dict.get(action_log.ticket_id)) is None:
+            tmp_logging_ids = set()
+            ticket_logging_ids_dict[action_log.ticket_id] = tmp_logging_ids
+        tmp_logging_ids.add(str(logging_id))
 
     for dependency in service.dependencies:
         if dependency.tag_id != tag.tag_id:
@@ -22,8 +32,12 @@ def set_ticket_statuses_in_service(
         for threat in persistence.search_threats(db, dependency.dependency_id, topic.topic_id):
             if not (ticket := threat.ticket):
                 continue
+
+            logging_ids: set[str] = set()
+            if ticket.ticket_id in ticket_logging_ids_dict:
+                logging_ids = ticket_logging_ids_dict[ticket.ticket_id]
             updated_at, ticket_status = set_ticket_status(
-                db, current_user, topic, ticket, topicStatusRequest
+                db, current_user, topic, ticket, topicStatusRequest, logging_ids
             )
             if oldest_status is None or (
                 oldest_updated_at is not None
@@ -44,6 +58,7 @@ def set_ticket_status(
     topic: models.Topic,
     ticket: models.Ticket,
     topicStatusRequest: schemas.TopicStatusRequest,
+    logging_ids: set[str],
 ) -> tuple[datetime | None, models.TicketStatus]:
     current_status = persistence.get_current_ticket_status(db, ticket.ticket_id)
     if (
@@ -59,7 +74,7 @@ def set_ticket_status(
         user_id=current_user.user_id,
         topic_status=topicStatusRequest.topic_status,
         note=topicStatusRequest.note,
-        logging_ids=list(map(str, set(topicStatusRequest.logging_ids))),
+        logging_ids=list(logging_ids),
         assignees=list(set(assignees)),
         scheduled_at=topicStatusRequest.scheduled_at,
         created_at=datetime.now(),
