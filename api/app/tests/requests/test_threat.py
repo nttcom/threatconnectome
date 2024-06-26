@@ -295,7 +295,7 @@ def test_create_threat(testdb: Session):
     # Uploaded sbom file.
     # Create tag, service and dependency table
     params: Dict[str, str | bool] = {"service": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag2.jsonl"
+    sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag.jsonl"
     with open(sbom_file, "rb") as tags:
         response = client.post(
             f"/pteams/{pteam1.pteam_id}/upload_tags_file",
