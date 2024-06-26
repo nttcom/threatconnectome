@@ -3,6 +3,7 @@ import {
   Check as CheckIcon,
   Clear as ClearIcon,
   RemoveCircleOutline as RemoveCircleOutlineIcon,
+  UploadFile as UploadFileIcon,
 } from "@mui/icons-material";
 import {
   Box,
@@ -19,6 +20,8 @@ import {
   Paper,
   Select,
   Switch,
+  Tab,
+  Tabs,
   Table,
   TableBody,
   TableContainer,
@@ -338,7 +341,20 @@ export function Status() {
         <Box flexGrow={1} />
       </Box>
       {summary.tags.length === 0 ? (
-        <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+        <>
+          <Tab
+            icon={<UploadFileIcon />}
+            label="Upload"
+            sx={{
+              textTransform: "none",
+              border: `1px solid ${grey[500]}`,
+              borderRadius: "0.5rem 0.5rem 0 0",
+              width: "10%",
+              mt: 1,
+            }}
+          />
+          <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+        </>
       ) : (
         <>
           <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
@@ -358,7 +374,29 @@ export function Status() {
             />
           </Box>
           {allService ? (
-            <></>
+            <Tabs variant="scrollable" scrollButtons>
+              <Tab
+                label="All"
+                sx={{
+                  textTransform: "none",
+                  border: `1px solid ${grey[300]}`,
+                  borderRadius: "0.5rem 0.5rem 0 0",
+                  width: "10%",
+                  mt: 1,
+                }}
+              />
+              <Tab
+                icon={<UploadFileIcon />}
+                label="Upload"
+                sx={{
+                  textTransform: "none",
+                  border: `1px solid ${grey[300]}`,
+                  borderRadius: "0.5rem 0.5rem 0 0",
+                  width: "10%",
+                  mt: 1,
+                }}
+              />
+            </Tabs>
           ) : (
             <PTeamGroupChip handleServiceUploadMode={handleServiceUploadMode} />
           )}
