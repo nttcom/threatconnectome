@@ -1,8 +1,10 @@
 import json
 from datetime import datetime
+from hashlib import sha256
+from io import DEFAULT_BUFFER_SIZE, BytesIO
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
@@ -22,7 +24,7 @@ from app.common import (
     get_tag_ids_with_parent_ids,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
-from app.database import get_db
+from app.database import get_db, open_db_session
 from app.sbom import sbom_json_to_artifact_json_lines
 from app.slack import validate_slack_webhook_url
 
@@ -648,10 +650,43 @@ def _json_loads(s: str | bytes | bytearray):
         ) from error
 
 
-@router.post("/{pteam_id}/upload_sbom_file", response_model=list[schemas.ExtTagResponse])
-def upload_pteam_sbom_file(
+def bg_create_tags_from_sbom_json(
+    sbom_json,
+    pteam_id,
+    service_name,
+    force_mode,
+):
+    # TODO
+    #   functions for background tasks should be divided to another source file.
+    #   Note: background tasks cannot rely on Depends(get_db) and cannot override by
+    #         app.dependency_overrides[]. how to test us? hummm...
+
+    with open_db_session() as db:
+        if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+            # TODO notify failure to the caller
+            raise NO_SUCH_PTEAM
+        if not (
+            service := next(filter(lambda x: x.service_name == service_name, pteam.services), None)
+        ):
+            service = models.Service(pteam_id=str(pteam_id), service_name=service_name)
+            pteam.services.append(service)
+            db.flush()
+
+        try:
+            json_lines = sbom_json_to_artifact_json_lines(sbom_json)
+            apply_service_tags(db, pteam, service, json_lines, auto_create_tags=force_mode)
+        except ValueError as err:
+            # TODO notify failure to the caller
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+
+        db.commit()
+
+
+@router.post("/{pteam_id}/upload_sbom_file")
+async def upload_pteam_sbom_file(
     pteam_id: UUID,
     file: UploadFile,
+    background_tasks: BackgroundTasks,
     service: str = Query("", description="name of service(repository or product)"),
     force_mode: bool = Query(False, description="if true, create unexist tags"),
     current_user: models.Account = Depends(get_current_user),
@@ -668,30 +703,29 @@ def upload_pteam_sbom_file(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
     _check_file_extention(file, ".json")
     _check_empty_file(file)
+
+    sbom_sha256 = sha256()
+    while data := await file.read(DEFAULT_BUFFER_SIZE):
+        sbom_sha256.update(BytesIO(data).getbuffer())
+    ret = {
+        "pteam_id": pteam_id,
+        "service_name": service,
+        "sbom_file_sha256": sbom_sha256.hexdigest(),
+    }
+
     try:
-        jdata = json.load(file.file)
+        await file.seek(0)
+        sbom_json = json.load(file.file)
     except json.JSONDecodeError as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=("Wrong file content"),
         ) from error
 
-    if not (
-        service_model := next(filter(lambda x: x.service_name == service, pteam.services), None)
-    ):
-        service_model = models.Service(pteam_id=str(pteam_id), service_name=service)
-        pteam.services.append(service_model)
-        db.flush()
-
-    try:
-        json_lines = sbom_json_to_artifact_json_lines(jdata)
-        apply_service_tags(db, pteam, service_model, json_lines, auto_create_tags=force_mode)
-    except ValueError as err:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
-
-    db.commit()
-
-    return get_pteam_ext_tags(db, pteam)
+    background_tasks.add_task(
+        bg_create_tags_from_sbom_json, sbom_json, pteam_id, service, force_mode
+    )
+    return ret
 
 
 @router.post("/{pteam_id}/upload_tags_file", response_model=list[schemas.ExtTagResponse])

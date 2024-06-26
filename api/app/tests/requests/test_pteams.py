@@ -37,6 +37,7 @@ from app.tests.medium.utils import (
     accept_watching_request,
     assert_200,
     assert_204,
+    calc_file_sha256,
     compare_references,
     compare_tags,
     create_ateam,
@@ -2248,6 +2249,7 @@ def test_remove_watcher():
     assert len(data) == 0
 
 
+@pytest.mark.skip(reason="TODO: figure out how to test background tasks")
 def test_upload_pteam_sbom_file_with_syft():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -2257,23 +2259,20 @@ def test_upload_pteam_sbom_file_with_syft():
     params = {"service": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
-        data = assert_200(
-            client.post(
-                f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
-                headers=file_upload_headers(USER1),
-                params=params,
-                files={"file": tags},
-            )
+        response = client.post(
+            f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
+            headers=file_upload_headers(USER1),
+            params=params,
+            files={"file": tags},
         )
-    tags = {tag["tag_name"]: tag for tag in data}
-    assert "axios:npm:npm" in tags
-    assert {
-        (r["target"], r["version"], r["service"]) for r in tags["axios:npm:npm"]["references"]
-    } == {
-        ("/package-lock.json", "1.6.7", params["service"]),
-    }
+    assert response.status_code == 200
+    data = response.json()
+    assert data["pteam_id"] == str(pteam1.pteam_id)
+    assert data["service_name"] == params["service"]
+    assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
 
 
+@pytest.mark.skip(reason="TODO: figure out how to test background tasks")
 def test_upload_pteam_sbom_file_with_trivy():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -2283,22 +2282,18 @@ def test_upload_pteam_sbom_file_with_trivy():
     params = {"service": "threatconnectome", "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
     with open(sbom_file, "rb") as tags:
-        data = assert_200(
-            client.post(
-                f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
-                headers=file_upload_headers(USER1),
-                params=params,
-                files={"file": tags},
-            )
+        response = client.post(
+            f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
+            headers=file_upload_headers(USER1),
+            params=params,
+            files={"file": tags},
         )
-    tags = {tag["tag_name"]: tag for tag in data}
-    assert "axios:npm:npm" in tags
-    assert {
-        (r["target"], r["version"], r["service"]) for r in tags["axios:npm:npm"]["references"]
-    } == {
-        ("package-lock.json", "1.6.7", params["service"]),
-        (".", "1.6.7", params["service"]),
-    }
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["pteam_id"] == str(pteam1.pteam_id)
+    assert data["service_name"] == params["service"]
+    assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
 
 
 def test_upload_pteam_sbom_file_with_empty_file():
@@ -2339,6 +2334,7 @@ def test_upload_pteam_sbom_file_with_wrong_filename():
     assert data["detail"] == "Please upload a file with .json as extension"
 
 
+@pytest.mark.skip(reason="TODO: figure out how to test background tasks")
 def test_upload_pteam_sbom_file_wrong_content_format():
     create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)

@@ -611,3 +611,9 @@ class DependencyResponse(ORMModel):
     tag_id: UUID
     version: str
     target: str
+
+
+class UploadSBOMAcceptedResponse(ORMModel):
+    pteam_id: UUID
+    service_name: str
+    sbom_file_sha256: str

@@ -137,6 +137,13 @@ const pteamSlice = createSlice({
       ...(action.payload && state.pteamId === action.payload ? state : _initialState),
       pteamId: action.payload,
     }),
+    invalidateServiceId: (state, action) => ({
+      ...state,
+      /* Note: state.pteam.services should be fixed by dispatch(getPTeam(pteamId)) */
+      serviceDependencies: { ...state.serviceDependencies, [action.payload]: undefined },
+      topicStatus: { ...state.topicStatus, [action.payload]: undefined },
+      serviceTagsSummaries: { ...state.serviceTagsSummaries, [action.payload]: undefined },
+    }),
   },
   extraReducers: (builder) => {
     builder
@@ -206,6 +213,6 @@ const pteamSlice = createSlice({
 
 const { actions, reducer } = pteamSlice;
 
-export const { clearPTeam, setPTeamId } = actions;
+export const { clearPTeam, setPTeamId, invalidateServiceId } = actions;
 
 export default reducer;

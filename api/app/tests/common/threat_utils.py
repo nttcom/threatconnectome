@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from app import models, persistence, schemas
 from app.main import app
 from app.tests.medium.utils import (
-    assert_200,
     create_pteam,
     create_user,
     file_upload_headers,
@@ -28,16 +27,17 @@ def create_threat(
     # Uploaded sbom file.
     # Create tag, service and dependency table
     params: Dict[str, Union[str, bool]] = {"service": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
+    sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag.jsonl"
+    print(sbom_file)
     with open(sbom_file, "rb") as tags:
-        data = assert_200(
-            client.post(
-                f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
-                headers=file_upload_headers(user),
-                params=params,
-                files={"file": tags},
-            )
+        response = client.post(
+            f"/pteams/{pteam1.pteam_id}/upload_tags_file",
+            headers=file_upload_headers(user),
+            files={"file": tags},
+            params=params,
         )
+        assert response.status_code == 200
+        data = response.json()
 
     tag_id = data[0]["tag_id"]
 
