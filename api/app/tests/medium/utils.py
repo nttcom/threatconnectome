@@ -7,8 +7,6 @@ from typing import Sequence
 from uuid import UUID
 
 from fastapi.testclient import TestClient
-from sqlalchemy import insert
-from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.main import app
@@ -266,6 +264,32 @@ def create_topic(
     return schemas.TopicCreateResponse(**response.json())
 
 
+def create_topic_with_versioned_actions(
+    user: dict,
+    topic: dict,
+    actions_tagnames: list[list[str]],
+) -> schemas.TopicCreateResponse:
+    def _gen_action(tag_names: list[str]) -> dict:
+        return {
+            "action": f"action for {','.join(tag_names)}",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": tag_names,
+                "vulnerable_versions": {tag_name: ["< 99.9.9"] for tag_name in tag_names},
+            },
+        }
+
+    return create_topic(
+        user,
+        {
+            **topic,
+            "tags": actions_tagnames[0],
+            "actions": [_gen_action(tag_names) for tag_names in actions_tagnames],
+        },
+    )
+
+
 def update_topic(
     user: dict,
     topic: schemas.TopicEntry,
@@ -308,66 +332,6 @@ def create_actionlog(
     request = {
         "action_id": str(action_id),
         "topic_id": str(topic_id),
-        "user_id": str(user_id),
-        "pteam_id": str(pteam_id),
-        "service_id": str(service_id),
-        "executed_at": str(executed_at) if executed_at else None,
-    }
-
-    response = client.post("/actionlogs", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return [schemas.ActionLogResponse(**row) for row in response.json()]
-
-
-def create_actionlog_with_related_data(
-    user_id: UUID | str,
-    user: dict,
-    topic: schemas.TopicCreateResponse,
-    action_id: UUID | str,
-    pteam_id: UUID | str,
-    service_id: UUID | str,
-    tag_id: UUID | str,
-    dependency_id: UUID | str,
-    threat_id: UUID | str,
-    ticket_id: UUID | str,
-    executed_at: datetime | None,
-    testdb: Session,
-) -> list[schemas.ActionLogResponse]:
-    # create dependency
-    testdb.execute(
-        insert(models.Dependency).values(
-            dependency_id=dependency_id,
-            service_id=service_id,
-            tag_id=tag_id,
-            version="",
-            target="1",
-            dependency_mission_impact=models.MissionImpactEnum.MISSION_FAILURE,
-        )
-    )
-    # create threat
-    testdb.execute(
-        insert(models.Threat).values(
-            threat_id=threat_id,
-            dependency_id=dependency_id,
-            topic_id=topic.topic_id,
-        )
-    )
-    # create ticket
-    testdb.execute(
-        insert(models.Ticket).values(
-            ticket_id=ticket_id,
-            threat_id=threat_id,
-            created_at="2033-06-26 15:00:00",
-            updated_at="2033-06-26 15:00:00",
-            ssvc_deployer_priority=models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE,
-        )
-    )
-
-    request = {
-        "action_id": str(action_id),
-        "topic_id": str(topic.topic_id),
         "user_id": str(user_id),
         "pteam_id": str(pteam_id),
         "service_id": str(service_id),
