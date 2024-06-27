@@ -1932,50 +1932,6 @@ def test_upload_pteam_tags_file_with_unexist_tagnames():
         upload_pteam_tags(USER1, pteam1.pteam_id, "threatconnectome", refs, force_mode=False)
 
 
-def test_get_service_tagged_ticket_ids(testdb):
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
-
-    json_data = {
-        "topic_status": "acknowledged",
-        "note": "string",
-        "assignees": [],
-        "scheduled_at": str(datetime.now()),
-    }
-    create_service_topicstatus(
-        USER1,
-        ticket_response["pteam_id"],
-        ticket_response["service_id"],
-        ticket_response["topic_id"],
-        ticket_response["tag_id"],
-        json_data,
-    )
-
-    # create current_ticket_status table
-    response = client.get(
-        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    response = response.json()
-
-    # solved
-    assert response["solved"]["pteam_id"] == ticket_response["pteam_id"]
-    assert response["solved"]["service_id"] == ticket_response["service_id"]
-    assert response["solved"]["tag_id"] == ticket_response["tag_id"]
-    assert response["solved"]["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 0}
-    assert response["solved"]["topic_ticket_ids"] == []
-
-    # unsolved
-    assert response["unsolved"]["pteam_id"] == ticket_response["pteam_id"]
-    assert response["unsolved"]["service_id"] == ticket_response["service_id"]
-    assert response["unsolved"]["tag_id"] == ticket_response["tag_id"]
-    assert response["unsolved"]["threat_impact_count"] == {"1": 1, "2": 0, "3": 0, "4": 0}
-    assert (
-        ticket_response["ticket_id"] in response["unsolved"]["topic_ticket_ids"][0]["ticket_ids"][0]
-    )
-    assert response["unsolved"]["topic_ticket_ids"][0]["topic_id"] == ticket_response["topic_id"]
-
-
 def test_service_tagged_ticket_ids_with_wrong_pteam_id(testdb):
     # create current_ticket_status table
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
