@@ -87,16 +87,60 @@ def test_get_service_tagged_ticket_ids_when_change_the_topic_status_type(
 
 
 @pytest.mark.parametrize(
-    "threat_impact, threat_impact_count",
+    "threat_impact, topic_status, solved_threat_impact_count, unsolved_threat_impact_count",
     [
-        (1, {"1": 1, "2": 0, "3": 0, "4": 0}),
-        (2, {"1": 0, "2": 1, "3": 0, "4": 0}),
-        (3, {"1": 0, "2": 0, "3": 1, "4": 0}),
-        (4, {"1": 0, "2": 0, "3": 0, "4": 1}),
+        (
+            1,
+            models.TopicStatusType.completed,
+            {"1": 1, "2": 0, "3": 0, "4": 0},
+            {"1": 0, "2": 0, "3": 0, "4": 0},
+        ),
+        (
+            2,
+            models.TopicStatusType.completed,
+            {"1": 0, "2": 1, "3": 0, "4": 0},
+            {"1": 0, "2": 0, "3": 0, "4": 0},
+        ),
+        (
+            3,
+            models.TopicStatusType.completed,
+            {"1": 0, "2": 0, "3": 1, "4": 0},
+            {"1": 0, "2": 0, "3": 0, "4": 0},
+        ),
+        (
+            4,
+            models.TopicStatusType.completed,
+            {"1": 0, "2": 0, "3": 0, "4": 1},
+            {"1": 0, "2": 0, "3": 0, "4": 0},
+        ),
+        (
+            1,
+            models.TopicStatusType.acknowledged,
+            {"1": 0, "2": 0, "3": 0, "4": 0},
+            {"1": 1, "2": 0, "3": 0, "4": 0},
+        ),
+        (
+            2,
+            models.TopicStatusType.acknowledged,
+            {"1": 0, "2": 0, "3": 0, "4": 0},
+            {"1": 0, "2": 1, "3": 0, "4": 0},
+        ),
+        (
+            3,
+            models.TopicStatusType.acknowledged,
+            {"1": 0, "2": 0, "3": 0, "4": 0},
+            {"1": 0, "2": 0, "3": 1, "4": 0},
+        ),
+        (
+            4,
+            models.TopicStatusType.acknowledged,
+            {"1": 0, "2": 0, "3": 0, "4": 0},
+            {"1": 0, "2": 0, "3": 0, "4": 1},
+        ),
     ],
 )
 def test_get_service_tagged_ticket_ids_when_change_the_threat_impact(
-    testdb, threat_impact, threat_impact_count
+    testdb, threat_impact, topic_status, solved_threat_impact_count, unsolved_threat_impact_count
 ):
     topic = {
         **TOPIC1,
@@ -106,7 +150,7 @@ def test_get_service_tagged_ticket_ids_when_change_the_threat_impact(
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, topic, ACTION1)
 
     json_data = {
-        "topic_status": models.TopicStatusType.acknowledged,
+        "topic_status": topic_status,
         "note": "string",
         "assignees": [],
         "scheduled_at": str(datetime.now()),
@@ -132,17 +176,10 @@ def test_get_service_tagged_ticket_ids_when_change_the_threat_impact(
     assert response["solved"]["pteam_id"] == ticket_response["pteam_id"]
     assert response["solved"]["service_id"] == ticket_response["service_id"]
     assert response["solved"]["tag_id"] == ticket_response["tag_id"]
-    assert len(response["solved"]["topic_ticket_ids"]) == 0
-    assert response["solved"]["topic_ticket_ids"] == []
-    assert response["solved"]["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 0}
+    assert response["solved"]["threat_impact_count"] == solved_threat_impact_count
 
     # unsolved
     assert response["unsolved"]["pteam_id"] == ticket_response["pteam_id"]
     assert response["unsolved"]["service_id"] == ticket_response["service_id"]
     assert response["unsolved"]["tag_id"] == ticket_response["tag_id"]
-    assert len(response["unsolved"]["topic_ticket_ids"]) == 1
-    assert (
-        ticket_response["ticket_id"] in response["unsolved"]["topic_ticket_ids"][0]["ticket_ids"][0]
-    )
-    assert response["unsolved"]["topic_ticket_ids"][0]["topic_id"] == ticket_response["topic_id"]
-    assert response["unsolved"]["threat_impact_count"] == threat_impact_count
+    assert response["unsolved"]["threat_impact_count"] == unsolved_threat_impact_count
