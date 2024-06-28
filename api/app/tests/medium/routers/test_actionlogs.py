@@ -280,6 +280,8 @@ def test_get_logs(testdb: Session):
     assert data[0]["service_id"] == str(service1.service_id)
     assert data[0]["ticket_id"] is not None
     assert data[1]["logging_id"] == str(actionlog1.logging_id)
+    assert data[1]["service_id"] == str(service1.service_id)
+    assert data[1]["ticket_id"] is not None
 
 
 def test_get_logs__members_only(testdb: Session):
@@ -400,4 +402,8 @@ def test_get_topic_logs(testdb: Session):
     data = response.json()
     assert len(data) == 2
     assert data[0]["logging_id"] == str(actionlog2.logging_id)  # sorted by excuted_at
+    assert data[0]["service_id"] == str(service1.service_id)
+    assert data[0]["ticket_id"] is not None
     assert data[1]["logging_id"] == str(actionlog1.logging_id)
+    assert data[1]["service_id"] == str(service1.service_id)
+    assert data[1]["ticket_id"] is not None

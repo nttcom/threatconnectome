@@ -2382,6 +2382,43 @@ def test_get_service_topic_status_with_ticket_status(testdb: Session):
     assert responsed_topicstatuses["note"] == set_request["note"]
 
 
+def test_post_service_topic_status(testdb: Session):
+    threat = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+    dependency = (
+        testdb.query(models.Dependency)
+        .filter(
+            models.Dependency.dependency_id == str(threat.dependency_id),
+        )
+        .one()
+    )
+    pteam_id = dependency.service.pteam.pteam_id
+    service_id = UUID(dependency.service.service_id)
+    tag_id = UUID(dependency.tag.tag_id)
+
+    set_request = {
+        "topic_status": models.TopicStatusType.acknowledged,
+        "logging_ids": [],
+        "assignees": [],
+        "note": f"acknowledged by {USER1['email']}",
+        "scheduled_at": None,
+    }
+
+    response = client.post(
+        f"/pteams/{pteam_id}/services/{service_id}/topicstatus/{threat.topic_id}/{tag_id}",
+        headers=headers(USER1),
+        json=set_request,
+    )
+    assert response.status_code == 200
+    responsed_topicstatuses = response.json()
+    assert responsed_topicstatuses["pteam_id"] == str(pteam_id)
+    assert responsed_topicstatuses["service_id"] == str(service_id)
+    assert responsed_topicstatuses["topic_id"] == str(threat.topic_id)
+    assert responsed_topicstatuses["tag_id"] == str(tag_id)
+    assert responsed_topicstatuses["user_id"] is not None
+    assert responsed_topicstatuses["topic_status"] == set_request["topic_status"]
+    assert responsed_topicstatuses["note"] == set_request["note"]
+
+
 class TestGetPTeamServiceTagsSummary:
     @staticmethod
     def _get_access_token(user: dict) -> str:
