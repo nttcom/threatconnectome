@@ -339,10 +339,15 @@ def test_TicketStatus_with_multi_ActionLogs(testdb: Session):
         threat1.dependency.service.service_id,
         None,
     )
+    for actionlog in actionlogs1:
+        if str(threat1.ticket.ticket_id) == str(actionlog.ticket_id):
+            ticket1_logging_id = actionlog.logging_id
+        elif ticket2_id == str(actionlog.ticket_id):
+            ticket2_logging_id = actionlog.logging_id
 
     json_data = {
         "topic_status": "acknowledged",
-        "logging_ids": [str(actionlogs1[0].logging_id), str(actionlogs1[1].logging_id)],
+        "logging_ids": [str(ticket1_logging_id), str(ticket2_logging_id)],
         "note": "acknowledged",
         "assignees": [str(user1.user_id)],
         "scheduled_at": str(datetime(2024, 5, 1)),
@@ -365,11 +370,11 @@ def test_TicketStatus_with_multi_ActionLogs(testdb: Session):
     ).all()
     assert len(ticket_statuses_list1) == 1
     assert len(ticket_statuses_list1[0].logging_ids) == 1
-    assert str(ticket_statuses_list1[0].logging_ids[0]) == str(actionlogs1[0].logging_id)
+    assert str(ticket_statuses_list1[0].logging_ids[0]) == str(ticket1_logging_id)
 
     ticket_statuses_list2 = testdb.scalars(
         select(models.TicketStatus).where(models.TicketStatus.ticket_id == ticket2_id)
     ).all()
     assert len(ticket_statuses_list2) == 1
     assert len(ticket_statuses_list2[0].logging_ids) == 1
-    assert str(ticket_statuses_list2[0].logging_ids[0]) == str(actionlogs1[1].logging_id)
+    assert str(ticket_statuses_list2[0].logging_ids[0]) == str(ticket2_logging_id)
