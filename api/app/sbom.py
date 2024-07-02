@@ -120,7 +120,7 @@ class TrivyCDXParser(SBOMParser):
             if not self.purl:
                 return None
             pkg_name = (
-                self.group + ":" + self.name if self.group else self.name
+                self.group + "/" + self.name if self.group else self.name
             )  # given by trivy. may include namespace in some case.
             pkg_info = self.purl.type
             pkg_mgr = ""
@@ -313,7 +313,7 @@ class SyftCDXParser(SBOMParser):
             if not self.purl:
                 return None
             pkg_name = (
-                self.group + ":" + self.name if self.group else self.name
+                self.group + "/" + self.name if self.group else self.name
             )  # given by syft. may include namespace in some case.
             distro = (
                 self.purl.qualifiers.get("distro")
