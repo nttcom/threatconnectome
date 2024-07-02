@@ -23,7 +23,7 @@ import React, { useState } from "react";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 
-import Android12Switch from "./Android12Switch";
+import { Android12Switch } from "./Android12Switch";
 
 export function TopicSearchModal(props) {
   const { show, onSearch, onCancel } = props;

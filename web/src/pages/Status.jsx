@@ -32,7 +32,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
-import Android12Switch from "../components/Android12Switch";
+import { Android12Switch } from "../components/Android12Switch";
 import { DeleteServiceIcon } from "../components/DeleteServiceIcon";
 import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
