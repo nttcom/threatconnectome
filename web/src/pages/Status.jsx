@@ -129,7 +129,7 @@ export function Status() {
   const searchMenuOpen = Boolean(anchorEl);
 
   const [isActiveAllServices, setIsActiveAllServices] = useState(false);
-  const [isUploadMode, setIsUploadMode] = useState(0);
+  const [isActiveUploadMode, setIsActiveUploadMode] = useState(0);
 
   useEffect(() => {
     if (!user.user_id) return; // wait login completed
@@ -369,7 +369,7 @@ export function Status() {
               checked={isActiveAllServices}
               onChange={() => {
                 setIsActiveAllServices(!isActiveAllServices);
-                setIsUploadMode(0);
+                setIsActiveUploadMode(0);
               }}
             />
           }
@@ -377,16 +377,16 @@ export function Status() {
         />
       </Box>
       {isActiveAllServices ? (
-        <StatusTabsAllServices setIsUploadMode={setIsUploadMode} />
+        <StatusTabsAllServices setIsActiveUploadMode={setIsActiveUploadMode} />
       ) : (
         <PTeamServiceTabs
           services={pteam.services}
           currentServiceId={serviceId}
           onChangeService={handleChangeService}
-          setIsUploadMode={setIsUploadMode}
+          setIsActiveUploadMode={setIsActiveUploadMode}
         />
       )}
-      <CustomTabPanel value={isUploadMode} index={0}>
+      <CustomTabPanel value={isActiveUploadMode} index={0}>
         <Box display="flex" mt={2}>
           {filterRow}
           <Box flexGrow={1} />
@@ -423,7 +423,7 @@ export function Status() {
         </TableContainer>
         {targetTags.length > 3 && filterRow}
       </CustomTabPanel>
-      <CustomTabPanel value={isUploadMode} index={1}>
+      <CustomTabPanel value={isActiveUploadMode} index={1}>
         <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
       </CustomTabPanel>
     </>

@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 export function PTeamServiceTabs(props) {
-  const { services, currentServiceId, onChangeService, setIsUploadMode } = props;
+  const { services, currentServiceId, onChangeService, setIsActiveUploadMode } = props;
 
   const serviceIds = services.map((service) => service.service_id);
   const currentIndex = serviceIds.findIndex((serviceId) => serviceId === currentServiceId);
@@ -26,7 +26,7 @@ export function PTeamServiceTabs(props) {
             label={service.service_name}
             onClick={() => {
               onChangeService(service.service_id);
-              setIsUploadMode(0);
+              setIsActiveUploadMode(0);
             }}
             sx={{
               textTransform: "none",
@@ -40,7 +40,7 @@ export function PTeamServiceTabs(props) {
         <Tab
           icon={<UploadFile />}
           label="Upload"
-          onClick={() => setIsUploadMode(1)}
+          onClick={() => setIsActiveUploadMode(1)}
           sx={{
             textTransform: "none",
             border: `1px solid ${grey[300]}`,
@@ -58,5 +58,5 @@ PTeamServiceTabs.propTypes = {
   services: PropTypes.array.isRequired,
   currentServiceId: PropTypes.string.isRequired,
   onChangeService: PropTypes.func.isRequired,
-  setIsUploadMode: PropTypes.func.isRequired,
+  setIsActiveUploadMode: PropTypes.func.isRequired,
 };
