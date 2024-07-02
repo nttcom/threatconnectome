@@ -18,11 +18,9 @@ import {
   Pagination,
   Paper,
   Select,
-  Tab,
   Table,
   TableBody,
   TableContainer,
-  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
@@ -38,7 +36,6 @@ import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
-import { StatusTabsAllServices } from "../components/StatusTabsAllServices";
 import { getPTeam, getPTeamServiceTagsSummary, setPTeamId } from "../slices/pteam";
 import { noPTeamMessage, threatImpactName, threatImpactProps } from "../utils/const";
 const threatImpactCountMax = 99999;
@@ -128,7 +125,7 @@ export function Status() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const searchMenuOpen = Boolean(anchorEl);
 
-  const [isActiveAllServices, setIsActiveAllServices] = useState(false);
+  const [isActiveAllServicesMode, setIsActiveAllServicesMode] = useState(false);
   const [isActiveUploadMode, setIsActiveUploadMode] = useState(0);
 
   useEffect(() => {
@@ -366,9 +363,9 @@ export function Status() {
         <FormControlLabel
           control={
             <Android12Switch
-              checked={isActiveAllServices}
+              checked={isActiveAllServicesMode}
               onChange={() => {
-                setIsActiveAllServices(!isActiveAllServices);
+                setIsActiveAllServicesMode(!isActiveAllServicesMode);
                 setIsActiveUploadMode(0);
               }}
             />
@@ -376,9 +373,7 @@ export function Status() {
           label="All Services"
         />
       </Box>
-      {isActiveAllServices ? (
-        <StatusTabsAllServices setIsActiveUploadMode={setIsActiveUploadMode} />
-      ) : (
+      {!isActiveAllServicesMode && (
         <PTeamServiceTabs
           services={pteam.services}
           currentServiceId={serviceId}
@@ -414,7 +409,7 @@ export function Status() {
                   key={tag.tag_id}
                   onHandleClick={() => handleNavigateTag(tag.tag_id)}
                   tag={tag}
-                  isActiveAllServices={isActiveAllServices}
+                  isActiveAllServicesMode={isActiveAllServicesMode}
                   serviceName={pteam.services[0].service_name}
                 />
               ))}

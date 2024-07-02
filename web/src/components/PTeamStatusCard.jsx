@@ -109,7 +109,7 @@ StatusRatioGraph.propTypes = {
 };
 
 export function PTeamStatusCard(props) {
-  const { onHandleClick, tag, isActiveAllServices, serviceName } = props;
+  const { onHandleClick, tag, isActiveAllServicesMode, serviceName } = props;
 
   return (
     <TableRow
@@ -130,7 +130,7 @@ export function PTeamStatusCard(props) {
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
           {tag.tag_name}
         </Typography>
-        {isActiveAllServices && <Chip label={serviceName}></Chip>}
+        {isActiveAllServicesMode && <Chip label={serviceName}></Chip>}
       </TableCell>
       <TableCell align="right" style={{ width: "30%" }}>
         <Box display="flex" flexDirection="column">
@@ -157,6 +157,6 @@ PTeamStatusCard.propTypes = {
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
   }).isRequired,
-  isActiveAllServices: PropTypes.bool,
+  isActiveAllServicesMode: PropTypes.bool,
   serviceName: PropTypes.string,
 };
