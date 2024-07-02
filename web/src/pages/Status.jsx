@@ -394,6 +394,8 @@ export function Status() {
                 key={tag.tag_id}
                 onHandleClick={() => handleNavigateTag(tag.tag_id)}
                 tag={tag}
+                isActiveAllServices={isActiveAllServices}
+                serviceName={pteam.services[0].service_name}
               />
             ))}
           </TableBody>

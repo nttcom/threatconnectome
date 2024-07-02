@@ -1,4 +1,4 @@
-import { Box, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
+import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
@@ -109,7 +109,7 @@ StatusRatioGraph.propTypes = {
 };
 
 export function PTeamStatusCard(props) {
-  const { onHandleClick, tag } = props;
+  const { onHandleClick, tag, isActiveAllServices, serviceName } = props;
 
   return (
     <TableRow
@@ -130,6 +130,7 @@ export function PTeamStatusCard(props) {
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
           {tag.tag_name}
         </Typography>
+        {isActiveAllServices && <Chip label={serviceName}></Chip>}
       </TableCell>
       <TableCell align="right" style={{ width: "30%" }}>
         <Box display="flex" flexDirection="column">
@@ -156,4 +157,6 @@ PTeamStatusCard.propTypes = {
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
   }).isRequired,
+  isActiveAllServices: PropTypes.bool,
+  serviceName: PropTypes.string,
 };
