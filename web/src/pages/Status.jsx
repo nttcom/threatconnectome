@@ -33,6 +33,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import Android12Switch from "../components/Android12Switch";
+import { DeleteServiceIcon } from "../components/DeleteServiceIcon";
 import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
@@ -337,6 +338,7 @@ export function Status() {
         <Box flexGrow={1} />
       </Box>
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+        <DeleteServiceIcon />
         <FormControlLabel
           control={
             <Android12Switch
