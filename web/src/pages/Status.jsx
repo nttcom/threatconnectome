@@ -7,6 +7,7 @@ import {
 import {
   Box,
   Chip,
+  FormControlLabel,
   IconButton,
   InputAdornment,
   ListItemIcon,
@@ -17,9 +18,11 @@ import {
   Pagination,
   Paper,
   Select,
+  Tab,
   Table,
   TableBody,
   TableContainer,
+  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
@@ -29,6 +32,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
+import Android12Switch from "../components/Android12Switch";
 import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
@@ -99,6 +103,8 @@ export function Status() {
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const searchMenuOpen = Boolean(anchorEl);
+
+  const [isActiveAllServices, setIsActiveAllServices] = useState(false);
 
   useEffect(() => {
     if (!user.user_id) return; // wait login completed
@@ -330,11 +336,37 @@ export function Status() {
         <PTeamLabel defaultTabIndex={0} />
         <Box flexGrow={1} />
       </Box>
-      <PTeamServiceTabs
-        services={pteam.services}
-        currentServiceId={serviceId}
-        onChangeService={handleChangeService}
-      />
+      <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+        <FormControlLabel
+          control={
+            <Android12Switch
+              checked={isActiveAllServices}
+              onChange={() => setIsActiveAllServices(!isActiveAllServices)}
+            />
+          }
+          label="All Services"
+        />
+      </Box>
+      {isActiveAllServices ? (
+        <Tabs value={0}>
+          <Tab
+            label="All"
+            sx={{
+              textTransform: "none",
+              border: `1px solid ${grey[300]}`,
+              borderRadius: "0.5rem 0.5rem 0 0",
+            }}
+          />
+        </Tabs>
+      ) : (
+        <>
+          <PTeamServiceTabs
+            services={pteam.services}
+            currentServiceId={serviceId}
+            onChangeService={handleChangeService}
+          />
+        </>
+      )}
       <Box display="flex" mt={2}>
         {filterRow}
         <Box flexGrow={1} />
