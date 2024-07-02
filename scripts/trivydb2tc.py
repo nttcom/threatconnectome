@@ -351,7 +351,7 @@ def vuln_info(repos, txs):
             for pattern in vuln_filter:
                 if pattern in vuln_id:
                     vuln_dict["vuln_id"] = vuln_id
-                    vuln_dict["pkg_name"] = pkg.decode()
+                    vuln_dict["pkg_name"] = pkg.decode().replace(":", "/")
                     vuln_content = pkg_bucket.get(vuln).decode()
                     if vuln_content:
                         vuln_dict["version_details"] = json.loads(vuln_content)
