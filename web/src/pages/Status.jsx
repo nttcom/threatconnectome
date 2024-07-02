@@ -38,6 +38,7 @@ import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
+import { StatusTabsAllServices } from "../components/StatusTabsAllServices";
 import { getPTeam, getPTeamServiceTagsSummary, setPTeamId } from "../slices/pteam";
 import { noPTeamMessage, threatImpactName, threatImpactProps } from "../utils/const";
 const threatImpactCountMax = 99999;
@@ -350,24 +351,13 @@ export function Status() {
         />
       </Box>
       {isActiveAllServices ? (
-        <Tabs value={0}>
-          <Tab
-            label="All"
-            sx={{
-              textTransform: "none",
-              border: `1px solid ${grey[300]}`,
-              borderRadius: "0.5rem 0.5rem 0 0",
-            }}
-          />
-        </Tabs>
+        <StatusTabsAllServices />
       ) : (
-        <>
-          <PTeamServiceTabs
-            services={pteam.services}
-            currentServiceId={serviceId}
-            onChangeService={handleChangeService}
-          />
-        </>
+        <PTeamServiceTabs
+          services={pteam.services}
+          currentServiceId={serviceId}
+          onChangeService={handleChangeService}
+        />
       )}
       <Box display="flex" mt={2}>
         {filterRow}
