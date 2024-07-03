@@ -132,7 +132,7 @@ def main() -> None:
         tag_class = result.get("Class")  # package category
         tag_packages = result.get("Packages")
         for package in tag_packages:
-            tag_package_name = package.get("Name")
+            tag_package_name = package.get("Name", "").replace(":", "/")
             tag_package_version = package.get("Version")
             new_tag = create_tag(metadata, tag_class, tag_type, tag_package_name)
             tags.append(new_tag)

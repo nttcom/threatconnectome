@@ -5,19 +5,19 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import models, persistence
 from app.main import app
 from app.tests.medium.utils import (
     create_pteam,
+    create_topic_with_versioned_actions,
     create_user,
     file_upload_headers,
-    headers,
 )
 
 client = TestClient(app)
 
 
-def create_ticket(testdb: Session, user: dict, pteam: dict, topic: dict, action: dict):
+def create_ticket(testdb: Session, user: dict, pteam: dict, topic: dict):
     create_user(user)
     pteam1 = create_pteam(user, pteam)
 
@@ -40,38 +40,9 @@ def create_ticket(testdb: Session, user: dict, pteam: dict, topic: dict, action:
     # Create topic and topicaction table
     tag_name_of_upload_sbom_file = data[0]["tag_name"]
 
-    if action:
-        action = {
-            **action,
-            "ext": {
-                "tags": [tag_name_of_upload_sbom_file],
-                "vulnerable_versions": {
-                    tag_name_of_upload_sbom_file: [
-                        "<100"
-                    ],  # Prevent auto close from being executed
-                },
-            },
-        }
-
-        topic = {
-            **topic,
-            "tags": [tag_name_of_upload_sbom_file],
-            "actions": [action],
-        }
-
-    else:
-        topic = {
-            **topic,
-            "tags": [tag_name_of_upload_sbom_file],
-        }
-
-    request = {**topic}
-    del request["topic_id"]
-
-    response = client.post(f'/topics/{topic["topic_id"]}', headers=headers(user), json=request)
-
-    assert response.status_code == 200
-    responsed_topic = schemas.TopicCreateResponse(**response.json())
+    responsed_topic = create_topic_with_versioned_actions(
+        user, topic, [[tag_name_of_upload_sbom_file]]
+    )
 
     # Saerch threat table
     service_id = testdb.scalars(
@@ -96,6 +67,7 @@ def create_ticket(testdb: Session, user: dict, pteam: dict, topic: dict, action:
         "pteam_id": str(pteam1.pteam_id),
         "service_id": str(service_id),
         "tag_id": str(tag_id),
+        "tag_name": data[0]["tag_name"],
         "topic_id": str(responsed_topic.topic_id),
         "threat_id": str(threats[0].threat_id),
         "ticket_id": str(threats[0].ticket.ticket_id),
