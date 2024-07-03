@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from app import models
 from app.main import app
@@ -18,6 +19,7 @@ from app.tests.medium.constants import (
 from app.tests.medium.utils import (
     create_pteam,
     create_service_topicstatus,
+    create_topic,
     create_user,
     headers,
 )
@@ -537,3 +539,292 @@ class TestPostUploadSBOMFileCycloneDX:
                 for expected_dependency_param in expected_dependency_params
             }
             assert created_dependencies == expected_dependencies
+
+        @pytest.mark.parametrize(
+            "service_name, component_params, vulnerable_versions, expected_threat_params",
+            # Note: components_params: list[tuple[ApplicationParam, list[LibraryParam]]]
+            #       vulnerable_versions: {str: list[str]} -- {tag_name: ["< 2.0", ...]}
+            [
+                # test case 1: lang-pkgs
+                (
+                    "sample service1",
+                    [  # input
+                        (
+                            {  # application
+                                "name": "threatconnectome/api/Pipfile.lock",
+                                "type": "application",
+                                "trivy_type": "pipenv",
+                                "trivy_class": "lang-pkgs",
+                            },
+                            [  # libraries
+                                {
+                                    "purl": "pkg:pypi/cryptography@39.0.2",
+                                    "name": "cryptography",
+                                    "group": None,
+                                    "version": "39.0.2",
+                                },
+                            ],
+                        ),
+                    ],
+                    {  # vulnerable_versions
+                        "cryptography:pypi:pipenv": ["<40.0"],
+                    },
+                    [  # expected
+                        {
+                            "tag_name": "cryptography:pypi:pipenv",
+                            "target": "threatconnectome/api/Pipfile.lock",
+                            "version": "39.0.2",
+                        },
+                        {
+                            "tag_name": "cryptography:pypi:pipenv",
+                            "target": "sample target1",  # scan root
+                            "version": "39.0.2",
+                        },
+                    ],
+                ),
+                # test case 1b: lang-pkgs with not vulnerable version
+                (
+                    "sample service1",
+                    [  # input
+                        (
+                            {  # application
+                                "name": "threatconnectome/api/Pipfile.lock",
+                                "type": "application",
+                                "trivy_type": "pipenv",
+                                "trivy_class": "lang-pkgs",
+                            },
+                            [  # libraries
+                                {
+                                    "purl": "pkg:pypi/cryptography@39.0.2",
+                                    "name": "cryptography",
+                                    "group": None,
+                                    "version": "39.0.2",
+                                },
+                            ],
+                        ),
+                    ],
+                    {  # vulnerable_versions
+                        "cryptography:pypi:pipenv": ["<30.0"],
+                    },
+                    [],  # expected
+                ),
+                # test case 2: os-pkgs
+                (
+                    "sample service1",
+                    [  # input
+                        (
+                            {  # application
+                                "name": "ubuntu",
+                                "type": "operating-system",
+                                "trivy_type": "ubuntu",
+                                "trivy_class": "os-pkgs",
+                            },
+                            [  # libraries
+                                {
+                                    "purl": (
+                                        "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4"
+                                        "?distro=ubuntu-20.04"
+                                    ),
+                                    "name": "libcrypt1",
+                                    "group": None,
+                                    "version": "1:4.4.10-10ubuntu4",
+                                },
+                            ],
+                        ),
+                    ],
+                    {  # vulnerable_versions
+                        "libcrypt1:ubuntu-20.04:": ["<4.5.0"],
+                    },
+                    [  # expected
+                        {
+                            "tag_name": "libcrypt1:ubuntu-20.04:",
+                            "target": "ubuntu",
+                            "version": "1:4.4.10-10ubuntu4",
+                        },
+                        {
+                            "tag_name": "libcrypt1:ubuntu-20.04:",
+                            "target": "sample target1",  # scan root
+                            "version": "1:4.4.10-10ubuntu4",
+                        },
+                    ],
+                ),
+                # test case 2b: os-pkgs with not vulnerable version
+                (
+                    "sample service1",
+                    [  # input
+                        (
+                            {  # application
+                                "name": "ubuntu",
+                                "type": "operating-system",
+                                "trivy_type": "ubuntu",
+                                "trivy_class": "os-pkgs",
+                            },
+                            [  # libraries
+                                {
+                                    "purl": (
+                                        "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4"
+                                        "?distro=ubuntu-20.04"
+                                    ),
+                                    "name": "libcrypt1",
+                                    "group": None,
+                                    "version": "1:4.4.10-10ubuntu4",
+                                },
+                            ],
+                        ),
+                    ],
+                    {  # vulnerable_versions
+                        "libcrypt1:ubuntu-20.04:": ["<4.3.0"],
+                    },
+                    [],  # expected
+                ),
+                # test case 3: lang-pkgs with group
+                (
+                    "sample service1",
+                    [  # input
+                        (
+                            {  # application
+                                "name": "web/package-lock.json",
+                                "type": "application",
+                                "trivy_type": "npm",
+                                "trivy_class": "lang-pkgs",
+                            },
+                            [  # libraries
+                                {
+                                    "purl": "pkg:npm/%40nextui-org/button@2.0.26",
+                                    "name": "button",
+                                    "group": "@nextui-org",
+                                    "version": "2.0.26",
+                                },
+                            ],
+                        ),
+                    ],
+                    {  # vulnerable_versions
+                        "@nextui-org:button:npm:npm": ["< 2.1.0"],
+                    },
+                    [  # expected
+                        {  # FIXME: should be "@nextui-org/button:npm:npm" ?
+                            "tag_name": "@nextui-org:button:npm:npm",
+                            "target": "web/package-lock.json",
+                            "version": "2.0.26",
+                        },
+                        {
+                            "tag_name": "@nextui-org:button:npm:npm",
+                            "target": "sample target1",  # scan root
+                            "version": "2.0.26",
+                        },
+                    ],
+                ),
+                # test case 4: (legacy) lang-pkgs without group
+                (
+                    "sample service1",
+                    [  # input
+                        (
+                            {  # application
+                                "name": "web/package-lock.json",
+                                "type": "application",
+                                "trivy_type": "npm",
+                                "trivy_class": "lang-pkgs",
+                            },
+                            [  # libraries
+                                {
+                                    "purl": "pkg:npm/%40nextui-org/button@2.0.26",
+                                    "name": "@nextui-org/button",
+                                    "group": None,
+                                    "version": "2.0.26",
+                                },
+                            ],
+                        ),
+                    ],
+                    {  # vulnerable_versions
+                        "@nextui-org/button:npm:npm": ["< 2.1.0"],
+                    },
+                    [  # expected
+                        {
+                            "tag_name": "@nextui-org/button:npm:npm",
+                            "target": "web/package-lock.json",
+                            "version": "2.0.26",
+                        },
+                        {
+                            "tag_name": "@nextui-org/button:npm:npm",
+                            "target": "sample target1",  # scan root
+                            "version": "2.0.26",
+                        },
+                    ],
+                ),
+            ],
+        )
+        def test_create_threats_based_on_sbom(
+            self,
+            service_name,
+            component_params,
+            vulnerable_versions,
+            expected_threat_params,
+            testdb,
+        ) -> None:
+            tag_names = list(vulnerable_versions.keys())
+            actions = [
+                {
+                    "action": "sample action 1",
+                    "action_type": models.ActionType.elimination,
+                    "recommended": True,
+                    "ext": {
+                        "tags": tag_names,
+                        "vulnerable_versions": vulnerable_versions,
+                    },
+                }
+            ]
+            topic1 = create_topic(USER1, {**TOPIC1, "tags": tag_names, "actions": actions})
+
+            target_name = "sample target1"
+            components_dict = {
+                self.ApplicationParam(**application_param): [
+                    self.LibraryParam(**library_param) for library_param in library_params
+                ]
+                for application_param, library_params in component_params
+            }
+            sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
+
+            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, True)
+
+            services = self.get_services()
+            service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+            assert service1
+
+            @dataclass(frozen=True, kw_only=True)
+            class ThreatParamsToCheck:
+                tag_name: str
+                target: str
+                version: str
+                title: str
+
+            db_threats = testdb.execute(
+                select(
+                    models.Threat.dependency_id,
+                    models.Dependency.version,
+                    models.Dependency.target,
+                    models.Tag.tag_name,
+                    models.Topic.title,
+                )
+                .join(
+                    models.Dependency,
+                    models.Dependency.dependency_id == models.Threat.dependency_id,
+                )
+                .join(models.Tag)
+                .join(models.Topic)
+                .where(models.Dependency.service_id == service1["service_id"])
+            ).all()
+
+            created_threats = {
+                ThreatParamsToCheck(
+                    tag_name=db_threat.tag_name,
+                    target=db_threat.target,
+                    version=db_threat.version,
+                    title=db_threat.title,
+                )
+                for db_threat in db_threats
+            }
+            expected_threats = {
+                ThreatParamsToCheck(**expected_threat_param, title=topic1.title)
+                for expected_threat_param in expected_threat_params
+            }
+            assert created_threats == expected_threats
