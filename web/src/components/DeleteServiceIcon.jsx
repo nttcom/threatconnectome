@@ -23,7 +23,7 @@ export function DeleteServiceIcon() {
 
   return (
     <>
-      <Tooltip title="Service Delete" sx={{ mb: 1 }}>
+      <Tooltip title="Service Delete">
         <IconButton onClick={() => setModalOpen(true)}>
           <DeleteIcon />
         </IconButton>
