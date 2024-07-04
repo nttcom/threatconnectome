@@ -6,8 +6,10 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas
+from app import models, persistence, schemas
+from app.alert import send_alert_to_pteam
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
+from app.ssvc import calculate_ssvc_deployer_priority
 from app.version import (
     PackageFamily,
     VulnerableRange,
@@ -114,10 +116,6 @@ def get_sorted_topics(topics: Sequence[models.Topic]) -> Sequence[models.Topic]:
     )
 
 
-def get_enabled_topics(topics: Sequence[models.Topic]) -> Sequence[models.Topic]:
-    return list(filter(lambda t: t.disabled is False, topics))
-
-
 def _pick_parent_tag(tag_name: str) -> str | None:
     if len(tag_name.split(":", 2)) == 3:  # supported format
         return tag_name.rsplit(":", 1)[0] + ":"  # trim the right most field
@@ -200,7 +198,7 @@ def get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> Sequence[schemas.Ext
             )
             ext_tag.references.append(
                 {
-                    "group": service.service_name,
+                    "service": service.service_name,
                     "target": dependency.target,
                     "version": dependency.version,
                 }
@@ -210,182 +208,425 @@ def get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> Sequence[schemas.Ext
     return sorted(ext_tags_dict.values(), key=lambda x: x.tag_name)
 
 
-def set_pteam_topic_status_internal(
-    db: Session,
-    current_user: models.Account,
-    pteam: models.PTeam,
-    topic: models.Topic,
-    tag: models.Tag,  # should be PTeamTag, not TopicTag
-    data: schemas.TopicStatusRequest,
-) -> schemas.TopicStatusResponse | None:
-    current_status = persistence.get_current_pteam_topic_tag_status(
-        db, pteam.pteam_id, topic.topic_id, tag.tag_id
-    )
-    if (
-        (not current_status or current_status.topic_status == models.TopicStatusType.alerted)
-        and data.topic_status == models.TopicStatusType.acknowledged
-        and not data.assignees  # first ack without assignees
+def threat_meets_condition_to_create_ticket(db: Session, threat: models.Threat) -> bool:
+    if not (actions := persistence.get_actions_by_topic_id(db, threat.topic_id)):
+        return False
+    tag = threat.dependency.tag
+    action_tag_names_set: set = set()
+
+    for action in actions:
+        action_tag_names = action.ext.get("tags")
+        if action_tag_names is None:
+            continue
+        action_tag_names_set |= set(action_tag_names)
+
+    for action_tag_name in action_tag_names_set:
+        tag_by_action = persistence.get_tag_by_name(db, action_tag_name)
+        if (
+            threat.topic
+            and tag_by_action
+            and (tag_by_action.tag_id == tag.tag_id or tag_by_action.tag_id == tag.parent_id)
+        ):
+            return True
+    return False
+
+
+def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
+    # abort if deployer_priofiry is not yet calclated
+    if ticket.ssvc_deployer_priority is None:
+        return False
+    if not (
+        int_priority := {
+            models.SSVCDeployerPriorityEnum.IMMEDIATE: 1,
+            models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
+            models.SSVCDeployerPriorityEnum.SCHEDULED: 3,
+            models.SSVCDeployerPriorityEnum.DEFER: 4,
+        }.get(ticket.ssvc_deployer_priority)
     ):
-        assignees = [current_user.user_id]  # force assign current_user
-    else:
-        assignees = list(map(str, data.assignees))
-    new_status = models.PTeamTopicTagStatus(
-        pteam_id=pteam.pteam_id,
-        topic_id=topic.topic_id,
-        tag_id=tag.tag_id,
-        topic_status=data.topic_status,
-        user_id=current_user.user_id,
-        note=data.note,
-        logging_ids=list(map(str, set(data.logging_ids))),
-        assignees=list(set(assignees)),
-        scheduled_at=data.scheduled_at,
-        created_at=datetime.now(),
-    )
-    persistence.create_pteam_topic_tag_status(db, new_status)
+        raise ValueError(f"Invalid SSVCDeployerPriority: {ticket.ssvc_deployer_priority}")
 
-    if not current_status:
-        current_status = models.CurrentPTeamTopicTagStatus(
-            pteam_id=pteam.pteam_id,
-            topic_id=topic.topic_id,
-            tag_id=tag.tag_id,
-            status_id=None,  # fill later
-            topic_status=None,  # fill later
-            threat_impact=None,  # fill later
-            updated_at=None,  # fill later
-        )
-        persistence.create_current_pteam_topic_tag_status(db, current_status)
-
-    current_status.status_id = new_status.status_id
-    current_status.topic_status = new_status.topic_status
-    current_status.threat_impact = topic.threat_impact
-    current_status.updated_at = (
-        None if new_status.topic_status == models.TopicStatusType.completed else topic.updated_at
-    )
-    db.flush()
-
-    return command.pteam_topic_tag_status_to_response(db, new_status)
+    # WORKAROUND
+    # use pteam.alert_threat_impact as threshold for alert.
+    # threshold should be defined in pteam and/or service.
+    pteam = ticket.threat.dependency.service.pteam
+    int_threshold = pteam.alert_threat_impact or 4
+    return int_priority <= int_threshold
 
 
-def _pick_vulnerable_version_strings_from_actions(
-    actions: Sequence[models.TopicAction],
-    tag: models.Tag,
-) -> set[str]:
-    tag_name = tag.tag_name
-    parent_name = tag.parent_name
-    vulnerable_versions = set()
-    for action in actions:
-        vulnerable_versions |= set(action.ext.get("vulnerable_versions", {}).get(tag_name, []))
-        if parent_name and parent_name != tag_name:
-            vulnerable_versions |= set(
-                action.ext.get("vulnerable_versions", {}).get(parent_name, [])
-            )
-    result: set[str] = set()
-    for vulnerable_version in vulnerable_versions:
-        result |= set(vulnerable_version.split("||"))
-    return result
+def count_service_solved_tickets_per_threat_impact(
+    service: models.Service,
+    tag_id: UUID | str,
+) -> dict[str, int]:
+    _completed = models.TopicStatusType.completed
+    threat_counts_rows: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+    prev_topic_id: set = set()
+
+    for dependency in service.dependencies:
+        if dependency.tag_id != str(tag_id):
+            continue
+        for threat in dependency.threats:
+            if not threat.ticket:
+                continue
+
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status == _completed and threat.topic_id not in prev_topic_id:
+                threat_imapct_str = str(_curent_ticket.threat_impact)
+                threat_counts_rows[threat_imapct_str] += 1
+                prev_topic_id.add(threat.topic_id)
+
+    return threat_counts_rows
 
 
-def _complete_topic(
-    db: Session,
-    pteam: models.PTeam,
-    tag: models.Tag,
-    actions: Sequence[models.TopicAction],
-):
-    if not actions:
-        return
+def count_service_unsolved_tickets_per_threat_impact(
+    service: models.Service,
+    tag_id: UUID | str,
+) -> dict[str, int]:
+    _completed = models.TopicStatusType.completed
+    threat_counts_rows: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+    prev_topic_id: set = set()
 
-    topic = actions[0].topic
-    system_account = persistence.get_system_account(db)
-    now = datetime.now()
+    for dependency in service.dependencies:
+        if dependency.tag_id != str(tag_id):
+            continue
+        for threat in dependency.threats:
+            if not threat.ticket:
+                continue
 
-    logging_ids = []
-    for action in actions:
-        action_log = models.ActionLog(
-            action_id=action.action_id,
-            topic_id=topic.topic_id,
-            action=action.action,
-            action_type=action.action_type,
-            recommended=action.recommended,
-            user_id=system_account.user_id,
-            pteam_id=pteam.pteam_id,
-            email=system_account.email,
-            executed_at=now,
-            created_at=now,
-        )
-        persistence.create_action_log(db, action_log)
-        logging_ids.append(action_log.logging_id)
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status != _completed and threat.topic_id not in prev_topic_id:
+                threat_imapct_str = str(_curent_ticket.threat_impact)
+                threat_counts_rows[threat_imapct_str] += 1
+                prev_topic_id.add(threat.topic_id)
 
-    set_pteam_topic_status_internal(
-        db,
-        system_account,
-        pteam,
-        topic,
-        tag,
-        schemas.TopicStatusRequest(
-            topic_status=models.TopicStatusType.completed,
-            logging_ids=list(map(UUID, logging_ids)),
-            note="auto closed by system",
+    return threat_counts_rows
+
+
+def get_sorted_solved_ticket_ids_by_service_tag_and_status(
+    service: models.Service,
+    tag_id: UUID | str,
+) -> list[dict]:
+    _completed = models.TopicStatusType.completed
+    topic_ticket_ids: list[dict] = []
+    topic_ticket_ids_dict: dict = {}
+    result: list = []
+
+    # Search for topic_id and ticket_id corresponding to service_id and tag_id
+    for dependency in service.dependencies:
+        if dependency.tag_id != str(tag_id):
+            continue
+        for threat in dependency.threats:
+            if not threat.ticket:
+                continue
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status == _completed:
+                if (
+                    tmp_topic_ticket_ids_dict := topic_ticket_ids_dict.get(threat.topic_id)
+                ) is None:
+                    tmp_topic_ticket_ids_dict = {
+                        "topic_id": threat.topic_id,
+                        "topic_threat_impact": threat.topic.threat_impact,
+                        "topic_updated_at": threat.topic.updated_at,
+                        "ticket_ids": [],
+                    }
+                    topic_ticket_ids_dict[threat.topic_id] = tmp_topic_ticket_ids_dict
+                tmp_topic_ticket_ids_dict["ticket_ids"].append(_curent_ticket.ticket_id)
+
+    # The contents of topic_ticket_ids are as follows
+    # [{
+    #   "topic_id":xxxxx,
+    #   "topic_threat_impact":xxxxx,
+    #   "topic_updated_at":xxxxx,
+    #   "ticket_ids":[xxxxx,xxxxx,xxxxx]
+    # }]
+    topic_ticket_ids = list(topic_ticket_ids_dict.values())
+
+    # Sort topic_id according to threat_impact and updated_at
+    topic_ticket_ids_sorted = sorted(
+        topic_ticket_ids,
+        key=lambda x: (
+            x["topic_threat_impact"],
+            -(_dt.timestamp() if (_dt := x["topic_updated_at"]) else 0),
         ),
     )
 
+    # delete topic_threat_impact and topic_updated_at
+    for _ in topic_ticket_ids_sorted:
+        del _["topic_threat_impact"]
+        del _["topic_updated_at"]
+        result.append(_)
 
-def pteamtag_try_auto_close_topic(
-    db: Session,
-    pteam: models.PTeam,
-    tag: models.Tag,  # should be bound to pteam, not to topic
-    topic: models.Topic,
-):
-    if topic.disabled or pteam.disabled:
-        return
-
-    try:
-        # pick unique reference versions to compare. (omit empty -- maybe added on WebUI)
-        reference_versions = {
-            dependency.version
-            for service in pteam.services
-            for dependency in service.dependencies
-            if dependency.tag == tag and dependency.version
-        }
-        if not reference_versions:
-            return  # no references to compare
-        # pick all actions which matched on tags
-        actions = command.pick_actions_related_to_pteam_tag_from_topic(db, topic, pteam, tag)
-        if not actions:  # this topic does not have actions for this pteamtag
-            return
-        # pick all matched vulnerables from actions
-        vulnerable_strings = _pick_vulnerable_version_strings_from_actions(actions, tag)
-        if not vulnerable_strings:
-            return
-
-        package_family = PackageFamily.from_tag_name(tag.tag_name)
-        vulnerables = {
-            VulnerableRange.from_string(package_family, vulnerable_string)
-            for vulnerable_string in vulnerable_strings
-        }
-        references = {
-            gen_version_instance(package_family, reference_version)
-            for reference_version in reference_versions
-        }
-        # detect vulnerable
-        if any(vulnerable.detect_matched(references) for vulnerable in vulnerables):
-            return  # found at least 1 vulnerable
-    except ValueError:  # found invalid, ambiguous or uncomparable
-        return  # human check required
-
-    # This topic has actionable actions, but no actions left to carry out for this pteamtag.
-    _complete_topic(db, pteam, tag, actions)
+    return result
 
 
-def auto_close_by_pteamtags(db: Session, pteamtags: Sequence[tuple[models.PTeam, models.Tag]]):
-    for pteam, tag in pteamtags:
-        if pteam.disabled:
+def get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
+    service: models.Service,
+    tag_id: UUID | str,
+) -> list[dict]:
+    _completed = models.TopicStatusType.completed
+    topic_ticket_ids: list[dict] = []
+    topic_ticket_ids_dict: dict = {}
+    result: list = []
+
+    # Search for topic_id and ticket_id corresponding to service_id and tag_id
+    for dependency in service.dependencies:
+        if dependency.tag_id != str(tag_id):
             continue
-        for topic in command.pick_topics_related_to_pteam_tag(db, pteam, tag):
-            pteamtag_try_auto_close_topic(db, pteam, tag, topic)
+        for threat in dependency.threats:
+            if not threat.ticket:
+                continue
+            _curent_ticket = threat.ticket.current_ticket_status
+            if _curent_ticket.topic_status != _completed:
+                if (
+                    tmp_topic_ticket_ids_dict := topic_ticket_ids_dict.get(threat.topic_id)
+                ) is None:
+                    tmp_topic_ticket_ids_dict = {
+                        "topic_id": threat.topic_id,
+                        "topic_threat_impact": threat.topic.threat_impact,
+                        "topic_updated_at": threat.topic.updated_at,
+                        "ticket_ids": [],
+                    }
+                    topic_ticket_ids_dict[threat.topic_id] = tmp_topic_ticket_ids_dict
+                tmp_topic_ticket_ids_dict["ticket_ids"].append(_curent_ticket.ticket_id)
+
+    # The contents of topic_ticket_ids are as follows
+    # [{
+    #   "topic_id":xxxxx,
+    #   "topic_threat_impact":xxxxx,
+    #   "topic_updated_at":xxxxx,
+    #   "ticket_ids":[xxxxx,xxxxx,xxxxx]
+    # }]
+    topic_ticket_ids = list(topic_ticket_ids_dict.values())
+
+    # Sort topic_id according to threat_impact and updated_at
+    topic_ticket_ids_sorted = sorted(
+        topic_ticket_ids,
+        key=lambda x: (
+            x["topic_threat_impact"],
+            -(_dt.timestamp() if (_dt := x["topic_updated_at"]) else 0),
+        ),
+    )
+
+    # delete topic_threat_impact and topic_updated_at
+    for _ in topic_ticket_ids_sorted:
+        del _["topic_threat_impact"]
+        del _["topic_updated_at"]
+        result.append(_)
+
+    return result
 
 
-def auto_close_by_topic(db: Session, topic: models.Topic):
-    if topic.disabled:
-        return
-    for pteam, tag in command.pick_pteam_tags_related_to_topic(db, topic):
-        pteamtag_try_auto_close_topic(db, pteam, tag, topic)
+def create_ticket_internal(
+    db: Session,
+    threat: models.Threat,
+    now: datetime | None = None,
+) -> models.Ticket:
+    if now is None:
+        now = datetime.now()
+
+    ticket = models.Ticket(
+        threat_id=threat.threat_id,
+        created_at=now,
+        updated_at=now,
+        ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat),
+    )
+    persistence.create_ticket(db, ticket)
+
+    # create CurrentTicketStatus without TicketStatus
+    current_status = models.CurrentTicketStatus(
+        ticket_id=ticket.ticket_id,
+        status_id=None,
+        topic_status=models.TopicStatusType.alerted,
+        threat_impact=threat.topic.threat_impact,
+        updated_at=threat.topic.updated_at,
+    )
+    persistence.create_current_ticket_status(db, current_status)
+
+    # send alert if needed
+    if ticket_meets_condition_to_create_alert(ticket):
+        alert = models.Alert(
+            ticket_id=ticket.ticket_id,
+            alerted_at=now,
+            alert_content="",  # alert_content is not used
+        )
+        persistence.create_alert(db, alert)
+        send_alert_to_pteam(alert)
+
+    return ticket
+
+
+def fix_threats_for_topic(db: Session, topic: models.Topic):
+    now = datetime.now()
+
+    # remove threats which lost related dependency -- for the case Topic.tags updated
+    valid_dependency_ids = {dependency.dependency_id for dependency in topic.dependencies_via_tag}
+    for threat in topic.threats:
+        if threat.dependency_id not in valid_dependency_ids:
+            persistence.delete_threat(db, threat)
+
+    # collect VulnerableRanges for each tags from TopicAction
+    vulnerable_range_strings_dict: dict[str, set[str]] = {}  # tag_name: range strings
+    for action in topic.actions:
+        if not action.ext or not (vulnerable_versions := action.ext.get("vulnerable_versions")):
+            continue
+        for tag_name, vulnerable_range_strings in vulnerable_versions.items():
+            if (tmp_str_set := vulnerable_range_strings_dict.get(tag_name)) is None:
+                tmp_str_set = set()
+                vulnerable_range_strings_dict[tag_name] = tmp_str_set
+            for vulnerable_range_string in vulnerable_range_strings:
+                tmp_str_set |= set(vulnerable_range_string.split("||"))
+    vulnerables_dict: dict[str, set[VulnerableRange]] = {}  # tag_name: VulnerableRanges
+    for tag_name, vulnerable_range_strings in vulnerable_range_strings_dict.items():
+        package_family = PackageFamily.from_tag_name(tag_name)
+        if (tmp_obj_set := vulnerables_dict.get(tag_name)) is None:
+            tmp_obj_set = set()
+            vulnerables_dict[tag_name] = tmp_obj_set
+        for vulnerable_range_string in vulnerable_range_strings:
+            try:
+                tmp_obj_set.add(
+                    VulnerableRange.from_string(package_family, vulnerable_range_string)
+                )
+            except ValueError:
+                pass  # ignore unexpected range strings
+
+    # check and fix for each dependencies related to the topic
+    for dependency in topic.dependencies_via_tag:
+        tag = dependency.tag
+        try:
+            dependency_version = gen_version_instance(
+                PackageFamily.from_tag_name(tag.tag_name), dependency.version
+            )
+        except ValueError:
+            dependency_version = None
+
+        tmp_threats = persistence.search_threats(db, dependency.dependency_id, topic.topic_id)
+        current_threat = tmp_threats[0] if tmp_threats else None
+
+        if dependency_version:
+            # collect vulnerables for this tag
+            vulnerables_to_check = vulnerables_dict.get(tag.tag_name, set())
+            if tag.parent_id and tag.parent_id != tag.tag_id:
+                vulnerables_to_check |= vulnerables_dict.get(tag.parent_name, set())
+
+            # detect how should be
+            need_threat, need_ticket = False, False
+            if not vulnerables_to_check:
+                # topic is matched with this dependency on the tag, but have no actionable info
+                need_threat, need_ticket = True, False
+            else:
+                for vulnerable in vulnerables_to_check:
+                    try:
+                        if vulnerable.detect_matched({dependency_version}):
+                            # vulnerable and actionable
+                            need_threat, need_ticket = True, True
+                            break
+                    except ValueError:
+                        need_threat = True
+                        # continue to find out actionable or not
+        else:
+            # dependency version is not comparable
+            need_threat, need_ticket = True, False
+
+        # fix threat and ticket
+        if need_threat:
+            if current_threat:
+                threat = current_threat
+            else:
+                threat = models.Threat(
+                    dependency_id=dependency.dependency_id, topic_id=topic.topic_id
+                )
+                persistence.create_threat(db, threat)
+            if need_ticket:
+                if not threat.ticket:
+                    create_ticket_internal(db, threat, now=now)
+            elif threat.ticket:
+                persistence.delete_ticket(db, threat.ticket)
+        elif current_threat:
+            persistence.delete_threat(db, current_threat)
+
+        db.flush()
+
+
+def fix_threats_for_dependency(db: Session, dependency: models.Dependency):
+    now = datetime.now()
+    tag = dependency.tag
+    package_family = PackageFamily.from_tag_name(tag.tag_name)
+    try:
+        dependency_version = gen_version_instance(package_family, dependency.version)
+    except ValueError:
+        # dependency.version is not comparable
+        dependency_version = None
+
+    if dependency_version:
+        # collect TopicActions
+        topic_actions: list[models.TopicAction] = []
+        for topic in tag.topics:
+            topic_actions.extend(topic.actions)
+
+        # collect VulnerableRanges for each topics from TopicAction
+        vulnerable_range_strings_dict: dict[str, set[str]] = {}  # topic_id: range strings
+        for action in topic_actions:
+            if not action.ext or not (vulnerable_versions := action.ext.get("vulnerable_versions")):
+                continue
+            for tag_name, vulnerable_range_strings in vulnerable_versions.items():
+                if tag_name not in {tag.tag_name, tag.parent_name}:
+                    continue
+                if (tmp_str_set := vulnerable_range_strings_dict.get(action.topic_id)) is None:
+                    tmp_str_set = set()
+                    vulnerable_range_strings_dict[action.topic_id] = tmp_str_set
+                for vulnerable_range_string in vulnerable_range_strings:
+                    tmp_str_set |= set(vulnerable_range_string.split("||"))
+        vulnerables_dict: dict[str, set[VulnerableRange]] = {}  # topic_id: VulnerableRanges
+        for topic_id, vulnerable_range_strings in vulnerable_range_strings_dict.items():
+            if (tmp_obj_set := vulnerables_dict.get(topic_id)) is None:
+                tmp_obj_set = set()
+                vulnerables_dict[topic_id] = tmp_obj_set
+            for vulnerable_range_string in vulnerable_range_strings:
+                try:
+                    tmp_obj_set.add(
+                        VulnerableRange.from_string(package_family, vulnerable_range_string)
+                    )
+                except ValueError:
+                    pass  # ignore unexpected range strings
+
+    # check and fix for each topics related to the dependency
+    for topic_id in [topic.topic_id for topic in tag.topics]:
+        tmp_threats = persistence.search_threats(db, dependency.dependency_id, topic_id)
+        current_threat = tmp_threats[0] if tmp_threats else None
+
+        if dependency_version:
+            # get vulnerables for this topic
+            vulnerables_to_check = vulnerables_dict.get(topic_id, set())
+
+            # detect how should be
+            need_threat, need_ticket = False, False
+            if not vulnerables_to_check:
+                # topic is matched with the dependency on the tag, but have no actionable info
+                need_threat, need_ticket = True, False
+            else:
+                for vulnerable in vulnerables_to_check:
+                    try:
+                        if vulnerable.detect_matched({dependency_version}):
+                            # vulnerable and actionable
+                            need_threat, need_ticket = True, True
+                            break
+                    except ValueError:
+                        need_threat = True
+                        # continue to find out actionable or not
+        else:
+            # dependency version is not comparable
+            need_threat, need_ticket = True, False
+
+        # fix threat and ticket
+        if need_threat:
+            if current_threat:
+                threat = current_threat
+            else:
+                threat = models.Threat(dependency_id=dependency.dependency_id, topic_id=topic_id)
+                persistence.create_threat(db, threat)
+            if need_ticket:
+                if not threat.ticket:
+                    create_ticket_internal(db, threat, now=now)
+            elif threat.ticket:
+                persistence.delete_ticket(db, threat.ticket)
+        elif current_threat:
+            persistence.delete_threat(db, current_threat)

@@ -86,11 +86,11 @@ def create_topic(
 def upload_pteam_tags(
     user: dict,
     pteam_id: UUID | str,
-    group: str,
+    service: str,
     ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
     force_mode: bool = True,
 ) -> dict:
-    params = {"group": group, "force_mode": str(force_mode)}
+    params = {"service": service, "force_mode": str(force_mode)}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
         for tag_name, etags in ext_tags.items():
             assert all(len(etag) == 2 and None not in etag for etag in etags)  # check test code

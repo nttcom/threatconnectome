@@ -22,12 +22,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import {
-  getPTeamSolvedTaggedTopicIds,
-  getPTeamTagsSummary,
-  getPTeamTopicActions,
-  getPTeamUnsolvedTaggedTopicIds,
-} from "../slices/pteam";
+import { getPTeamTopicActions, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { updateTopic, createAction, updateAction, deleteAction } from "../utils/api";
 import { actionTypes } from "../utils/const";
@@ -45,7 +40,8 @@ export function PTeamEditAction(props) {
     presetParentTagId,
     presetActions,
     currentTagDict,
-    pteamtag,
+    references,
+    serviceId,
   } = props;
 
   const [errors, setErrors] = useState([]);
@@ -138,14 +134,18 @@ export function PTeamEditAction(props) {
     // fix topic state
     await Promise.all([
       dispatch(getTopic(topicId)),
-      dispatch(getPTeamTagsSummary(pteamId)),
       dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
     ]);
     // update only if needed
     if (pteamId && presetTagId) {
       await Promise.all([
-        dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
-        dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
+        dispatch(
+          getPTeamServiceTaggedTicketIds({
+            pteamId: pteamId,
+            serviceId: serviceId,
+            tagId: presetTagId,
+          }),
+        ),
       ]);
     }
   };
@@ -233,8 +233,8 @@ export function PTeamEditAction(props) {
     (!action.ext?.vulnerable_versions?.[tagName]?.length > 0 ||
       parseVulnerableVersions(action.ext.vulnerable_versions[tagName]).some(
         (actionVersion) =>
-          !pteamtag.references?.length > 0 ||
-          pteamtag.references?.some((ref) =>
+          !references?.length > 0 ||
+          references?.some((ref) =>
             versionMatch(
               ref.version,
               actionVersion.ge,
@@ -389,5 +389,6 @@ PTeamEditAction.propTypes = {
     }),
   ),
   currentTagDict: PropTypes.object.isRequired,
-  pteamtag: PropTypes.object.isRequired,
+  references: PropTypes.array.isRequired,
+  serviceId: PropTypes.string,
 };

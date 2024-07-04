@@ -19,10 +19,9 @@ import { useParams } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
-  getPTeamSolvedTaggedTopicIds,
-  getPTeamTagsSummary,
-  getPTeamTopicStatus,
-  getPTeamUnsolvedTaggedTopicIds,
+  getTopicStatus,
+  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTagsSummary,
 } from "../slices/pteam";
 import { createActionLog, createTopicStatus } from "../utils/api";
 
@@ -32,7 +31,7 @@ import { RecommendedStar } from "./RecommendedStar";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function ReportCompletedActions(props) {
-  const { onConfirm, onSetShow, show, topicId, topicActions } = props;
+  const { onConfirm, onSetShow, show, topicId, topicActions, serviceId } = props;
 
   const [note, setNote] = useState("");
   const [selectedAction, setSelectedAction] = useState([]);
@@ -56,6 +55,7 @@ export function ReportCompletedActions(props) {
             await createActionLog({
               action_id: actionId,
               pteam_id: pteamId,
+              service_id: serviceId,
               topic_id: topicId,
               user_id: user.user_id,
             }).then((response) => {
@@ -64,18 +64,21 @@ export function ReportCompletedActions(props) {
             }),
         ),
       );
-      await createTopicStatus(pteamId, topicId, tagId, {
+      await createTopicStatus(pteamId, serviceId, topicId, tagId, {
         topic_status: "completed",
-        logging_ids: actionLogs.map((log) => log.logging_id),
+        logging_ids: actionLogs.map((logs) => logs.map((log) => log.logging_id)).flat(),
         note: note.trim() || null,
       });
       handleClose();
       onConfirm();
       setNote("");
-      dispatch(getPTeamTagsSummary(pteamId));
-      dispatch(getPTeamTopicStatus({ pteamId: pteamId, topicId: topicId, tagId: tagId }));
-      dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
-      dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
+      dispatch(
+        getTopicStatus({ pteamId: pteamId, serviceId: serviceId, topicId: topicId, tagId: tagId }),
+      );
+      dispatch(
+        getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
+      );
+      dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
       enqueueSnackbar("Set topicstatus 'completed' succeeded", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`Operation failed: ${error}`, { variant: "error" });
@@ -247,4 +250,5 @@ ReportCompletedActions.propTypes = {
   show: PropTypes.bool.isRequired,
   topicId: PropTypes.string.isRequired,
   topicActions: PropTypes.array.isRequired,
+  serviceId: PropTypes.string.isRequired,
 };

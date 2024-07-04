@@ -82,7 +82,6 @@ export const threatImpactName = {
 
 export const threatImpactProps = {
   immediate: {
-    alert: "Your pteam has a Immediate. Please take actions immediately.",
     chipLabel: "Immediate",
     icon: RunningWithErrorsIcon,
     statusLabel: "Your pteam has a immediate",
