@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 from uuid import UUID
 
 import requests
-
 from exceptions import HTTPError
 
 base_url = os.getenv("BASE_URL", "http://localhost")
@@ -104,6 +103,16 @@ def upload_pteam_tags(
                 params=params,
                 files={"file": bfile},
             )
+    if response.status_code != 200:
+        raise HTTPError(response)
+    return response.json()
+
+
+def get_pteam_services(user: dict, pteam_id: UUID | str):
+    response = requests.get(
+        f"{api_url}/pteams/{pteam_id}/services",
+        headers=file_upload_headers(user),
+    )
     if response.status_code != 200:
         raise HTTPError(response)
     return response.json()
