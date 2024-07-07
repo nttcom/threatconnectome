@@ -1,4 +1,5 @@
 import os
+from unittest.mock import patch
 
 import alembic.config
 import pytest
@@ -55,10 +56,13 @@ def handle_testdb():
         try:
             yield db
         except SQLAlchemyError as sql_error:
-            assert sql_error is not None
+            print("SQL ERROR:", sql_error)
             db.rollback()
 
     app.dependency_overrides[get_db] = override_get_db
-    yield db
+    with patch("app.database.get_db") as mock:  # for open_db_session called from background tasks
+        mock.side_effect = override_get_db
+        yield db
+
     db.rollback()
     db.close()

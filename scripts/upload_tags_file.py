@@ -6,7 +6,7 @@ import os
 import sys
 from functools import partial
 from time import sleep
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable
 from uuid import UUID
 
 import requests
@@ -92,9 +92,9 @@ class ThreatconnectomeClient:
                 _retry -= 1
             sleep(3)
 
-    def upload_tags_file(self, pteam_id: Union[UUID, str], group: str, data: Any, force: bool):
+    def upload_tags_file(self, pteam_id: UUID | str, service: str, data: Any, force: bool):
         params = {
-            "group": group,
+            "service": service,
             "force_mode": force,
         }
         files = {
@@ -104,12 +104,12 @@ class ThreatconnectomeClient:
         response = self.retry_call(requests.post, url, params=params, files=files)
         return response.json()
 
-    def remove_pteamtags_by_group(self, pteam_id: Union[UUID, str], group: str):
+    def remove_pteamtags_by_group(self, pteam_id: UUID | str):
         url = f"{self.api_url}/pteams/{pteam_id}/tags"
         self.retry_call(requests.delete, url)
 
 
-ARGUMENTS: List[Tuple[str, dict]] = [
+ARGUMENTS: list[tuple[str, dict]] = [
     (
         "pteam_id",
         {
@@ -117,13 +117,13 @@ ARGUMENTS: List[Tuple[str, dict]] = [
         },
     ),
     (
-        "group",
+        "service",
         {
-            "help": "Group name to apply",
+            "help": "Service name to apply",
         },
     ),
 ]
-OPTIONS: List[Tuple[str, str, dict]] = [
+OPTIONS: list[tuple[str, str, dict]] = [
     (
         "-e",
         "--endpoint",
@@ -188,22 +188,22 @@ def main(args: argparse.Namespace) -> None:
     if args.gradual == 0:
         trace_message("processing update artifact tags.")
         lines = args.infile.read()  # process all lines at once
-        tc_client.upload_tags_file(args.pteam_id, args.group, lines, not args.block_new_tags)
+        tc_client.upload_tags_file(args.pteam_id, args.service, lines, not args.block_new_tags)
         trace_message("update completed.")
     else:
         trace_message("processing guradual update artifact tags.")
         all_lines = list(args.infile)
         all_lines_length = len(all_lines)
         limit = args.gradual if args.gradual < all_lines_length else all_lines_length
-        trace_message(f"removing all artifact tags for {args.group}...", end="")
-        tc_client.remove_pteamtags_by_group(args.pteam_id, args.group)
+        trace_message(f"removing all artifact tags for {args.service}...", end="")
+        tc_client.remove_pteamtags_by_group(args.pteam_id)
         trace_message("done")
         while True:
             if limit > all_lines_length:
                 limit = all_lines_length
             trace_message(f"uploading {limit} of {all_lines_length}...", end="")
             lines = "".join(all_lines[:limit])
-            tc_client.upload_tags_file(args.pteam_id, args.group, lines, not args.block_new_tags)
+            tc_client.upload_tags_file(args.pteam_id, args.service, lines, not args.block_new_tags)
             trace_message("done")
             if limit >= all_lines_length:
                 break

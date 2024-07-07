@@ -28,10 +28,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
-  getPTeamSolvedTaggedTopicIds,
-  getPTeamTagsSummary,
   getPTeamTopicActions,
-  getPTeamUnsolvedTaggedTopicIds,
+  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTagsSummary,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import {
@@ -54,7 +53,15 @@ import { TopicTagSelector } from "./TopicTagSelector";
 const steps = ["Import Flashsense", "Create topic"];
 
 export function TopicModal(props) {
-  const { open, onSetOpen, presetTopicId, presetTagId, presetParentTagId, presetActions } = props;
+  const {
+    open,
+    onSetOpen,
+    presetTopicId,
+    presetTagId,
+    presetParentTagId,
+    presetActions,
+    serviceId,
+  } = props;
 
   const [errors, setErrors] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
@@ -161,14 +168,19 @@ export function TopicModal(props) {
     // fix topic state
     await Promise.all([
       dispatch(getTopic(topicId)),
-      dispatch(getPTeamTagsSummary(pteamId)),
       dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
+      dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
     ]);
     // update only if needed
     if (pteamId && presetTagId) {
       await Promise.all([
-        dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
-        dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
+        dispatch(
+          getPTeamServiceTaggedTicketIds({
+            pteamId: pteamId,
+            serviceId: serviceId,
+            tagId: presetTagId,
+          }),
+        ),
       ]);
     }
   };
@@ -322,9 +334,15 @@ export function TopicModal(props) {
 
   const handleDeleteTopic = () => {
     if (presetTagId) {
-      dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId }));
-      dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId }));
+      dispatch(
+        getPTeamServiceTaggedTicketIds({
+          pteamId: pteamId,
+          serviceId: serviceId,
+          tagId: presetTagId,
+        }),
+      );
     }
+    dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
   };
 
   function ActionGeneratorModal() {
@@ -682,4 +700,5 @@ TopicModal.propTypes = {
       }),
     }),
   ),
+  serviceId: PropTypes.string.isRequired,
 };

@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from typing import Sequence, Set
+from typing import Sequence
 from uuid import UUID
 
 import requests
@@ -10,14 +10,12 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
-from app.alert import alert_new_topic
 from app.auth import get_current_user, token_scheme
 from app.common import (
-    auto_close_by_topic,
     calculate_topic_content_fingerprint,
     check_pteam_membership,
     check_topic_action_tags_integrity,
-    get_enabled_topics,
+    fix_threats_for_topic,
     get_or_create_misp_tag,
     get_sorted_topics,
 )
@@ -46,7 +44,7 @@ def get_topics(
         }
         return hashlib.md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
     """
-    return get_sorted_topics(get_enabled_topics(persistence.get_all_topics(db)))
+    return get_sorted_topics(persistence.get_all_topics(db))
 
 
 @router.get("/search", response_model=schemas.SearchTopicsResponse)
@@ -98,7 +96,7 @@ def search_topics(
     """
     keyword_for_empty = ""
 
-    fixed_tag_ids: Set[str | None] = set()
+    fixed_tag_ids: set[str | None] = set()
     if tag_names is not None:
         for tag_name in tag_names:
             if tag_name == keyword_for_empty:
@@ -108,7 +106,7 @@ def search_topics(
                 continue  # ignore wrong tag_name
             fixed_tag_ids.add(tag.tag_id)
 
-    fixed_misp_tag_ids: Set[str | None] = set()
+    fixed_misp_tag_ids: set[str | None] = set()
     if misp_tag_names is not None:
         for misp_tag_name in misp_tag_names:
             if misp_tag_name == keyword_for_empty:
@@ -134,7 +132,7 @@ def search_topics(
                 continue
             fixed_creator_ids.add(creator_id)
 
-    fixed_title_words: Set[str | None] = set()
+    fixed_title_words: set[str | None] = set()
     if title_words is not None:
         for title_word in title_words:
             if title_word == keyword_for_empty:
@@ -142,7 +140,7 @@ def search_topics(
                 continue
             fixed_title_words.add(title_word)
 
-    fixed_abstract_words: Set[str | None] = set()
+    fixed_abstract_words: set[str | None] = set()
     if abstract_words is not None:
         for abstract_word in abstract_words:
             if abstract_word == keyword_for_empty:
@@ -150,7 +148,7 @@ def search_topics(
                 continue
             fixed_abstract_words.add(abstract_word)
 
-    fixed_threat_impacts: Set[int] = set()
+    fixed_threat_impacts: set[int] = set()
     if threat_impacts is not None:
         for threat_impact in threat_impacts:
             try:
@@ -225,7 +223,7 @@ def get_topic(
     """
     Get a topic.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):
         raise NO_SUCH_TOPIC
 
     return topic
@@ -309,6 +307,9 @@ def create_topic(
         content_fingerprint=calculate_topic_content_fingerprint(
             fixed_title, fixed_abstract, data.threat_impact, data.tags
         ),
+        safety_impact=data.safety_impact,
+        exploitation=data.exploitation,
+        automatable=data.automatable,
     )
     # fix relations
     topic.tags = [requested_tags[tag_name] for tag_name in set(data.tags)]
@@ -328,12 +329,9 @@ def create_topic(
 
     persistence.create_topic(db, topic)
 
-    auto_close_by_topic(db, topic)
-    command.fix_current_status_by_topic(db, topic)
+    fix_threats_for_topic(db, topic)
 
     db.commit()
-
-    alert_new_topic(db, topic.topic_id)
 
     return topic
 
@@ -348,7 +346,7 @@ def update_topic(
     """
     Update a topic.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)):  # ignore disabled
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):
         raise NO_SUCH_TOPIC
     if topic.created_by != current_user.user_id:
         raise HTTPException(
@@ -377,9 +375,6 @@ def update_topic(
         or data.threat_impact not in {None, topic.threat_impact}
         or tags_updated
     )
-    # Note: since the causes which prevent auto-close can be removed,
-    #       not only adding but also deleting should trigger auto-close
-    need_auto_close = (data.disabled is False and topic.disabled is True) or tags_updated
 
     # Update topic attributes
     if new_tags is not None:
@@ -392,8 +387,12 @@ def update_topic(
         topic.abstract = new_abstract
     if data.threat_impact is not None:
         topic.threat_impact = data.threat_impact
-    if data.disabled is not None:
-        topic.disabled = data.disabled
+    if data.safety_impact is not None:
+        topic.safety_impact = data.safety_impact
+    if data.exploitation is not None:
+        topic.exploitation = data.exploitation
+    if data.automatable is not None:
+        topic.automatable = data.automatable
 
     if need_update_content_fingerprint:
         topic.content_fingerprint = calculate_topic_content_fingerprint(
@@ -404,9 +403,8 @@ def update_topic(
 
     db.flush()
 
-    if need_auto_close:
-        auto_close_by_topic(db, topic)
-    command.fix_current_status_by_topic(db, topic)
+    if tags_updated:
+        fix_threats_for_topic(db, topic)
 
     db.commit()
 
@@ -422,7 +420,7 @@ def delete_topic(
     """
     Delete a topic and related records except actionlog.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):
         raise NO_SUCH_TOPIC
 
     if topic.created_by != current_user.user_id:
@@ -432,7 +430,6 @@ def delete_topic(
         )
 
     persistence.delete_topic(db, topic)
-    command.fix_current_status_by_deleted_topic(db, topic.topic_id)
 
     db.commit()
 
@@ -449,9 +446,9 @@ def get_pteam_topic_actions(
     """
     Get actions list of the topic for specified pteam.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+    if not (persistence.get_topic_by_id(db, topic_id)):
         raise NO_SUCH_TOPIC
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)) or pteam.disabled:
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
     if not check_pteam_membership(db, pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
@@ -475,7 +472,7 @@ def get_user_topic_actions(
     """
     Get actions list of the topic for current user.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)) or topic.disabled:
+    if not persistence.get_topic_by_id(db, topic_id):
         raise NO_SUCH_TOPIC
 
     # Note: no limitations currently, thus return all topic actions

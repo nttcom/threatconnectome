@@ -251,14 +251,14 @@ export function PTeamNotificationSetting(props) {
             <AndroidSwitch checked={slackEnable} onChange={() => setSlackEnable(!slackEnable)} />
           }
           labelPlacement="start"
-          label="Email"
+          label="Slack"
         />
         <FormControlLabel
           control={
             <AndroidSwitch checked={mailEnable} onChange={() => setMailEnable(!mailEnable)} />
           }
           labelPlacement="start"
-          label="Slack"
+          label="Email"
         />
       </Box>
       <Divider />

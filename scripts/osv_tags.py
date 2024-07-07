@@ -5,7 +5,6 @@ import json
 import os
 import re
 import sys
-from typing import List, Tuple
 
 package_files = {
     # package file: package manager
@@ -100,7 +99,7 @@ def main() -> None:
     json_contents = json.loads(osv_result)
     results_list = json_contents.get("results")
 
-    replace_rules: List[Tuple] = []
+    replace_rules: list[tuple] = []
     for rep_rule in args.replace_rules or []:
         try:
             rep_regex, replaced = rep_rule.rsplit(REP_DELIMITER, 1)

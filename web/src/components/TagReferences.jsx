@@ -17,7 +17,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 export function TagReferences(props) {
-  const { references } = props;
+  const { references, serviceDict } = props;
 
   return (
     <Accordion
@@ -44,15 +44,18 @@ export function TagReferences(props) {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {references.map((ref) => (
-                  <TableRow key={ref.group + "-" + ref.target}>
-                    <TableCell component="th" scope="row">
-                      {ref.target}
-                    </TableCell>
-                    <TableCell>{ref.version}</TableCell>
-                    <TableCell>{ref.group}</TableCell>
-                  </TableRow>
-                ))}
+                {references.map(
+                  (ref) =>
+                    ref.service === serviceDict.service_name && (
+                      <TableRow key={ref.service + "-" + ref.target}>
+                        <TableCell component="th" scope="row">
+                          {ref.target}
+                        </TableCell>
+                        <TableCell>{ref.version}</TableCell>
+                        <TableCell>{ref.service}</TableCell>
+                      </TableRow>
+                    ),
+                )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -64,4 +67,5 @@ export function TagReferences(props) {
 
 TagReferences.propTypes = {
   references: PropTypes.arrayOf(PropTypes.object).isRequired,
+  serviceDict: PropTypes.object.isRequired,
 };

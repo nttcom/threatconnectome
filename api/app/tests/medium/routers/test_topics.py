@@ -1,19 +1,22 @@
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import insert
 from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.main import app
+from app.models import (
+    ExploitationEnum,
+    SafetyImpactEnum,
+)
 from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
     ACTION3,
     ATEAM1,
-    GROUP1,
     MISPTAG1,
     MISPTAG2,
     MISPTAG3,
@@ -34,20 +37,17 @@ from app.tests.medium.utils import (
     accept_watching_request,
     assert_200,
     assert_204,
-    create_actionlog,
     create_ateam,
     create_misp_tag,
     create_pteam,
     create_tag,
     create_topic,
-    create_topicstatus,
     create_user,
     create_watching_request,
     headers,
     random_string,
     search_topics,
     update_topic,
-    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -72,6 +72,9 @@ def test_create_topic():
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in topic1.misp_tags]
     assert ACTION1["action"] in [a.action for a in topic1.actions]
     assert ACTION2["action"] in [a.action for a in topic1.actions]
+    assert topic1.safety_impact == TOPIC1["safety_impact"]
+    assert topic1.exploitation == TOPIC1["exploitation"]
+    assert topic1.automatable == TOPIC1["automatable"]
 
 
 def test_create_topic__with_new_tags():
@@ -160,6 +163,52 @@ def test_create_wrong_threat_level_topic():
         create_topic(USER1, _topic)
 
 
+def test_it_should_return_422_when_use_try_to_create_wrong_safety_impact_topic():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    _topic["safety_impact"] = "test"
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.status_code == 422
+
+
+def test_it_should_return_422_when_use_try_to_create_wrong_exploitation_topic():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    _topic["exploitation"] = "test"
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.status_code == 422
+
+
+def test_default_value_is_set_when_ssvc_related_value_is_empty_in_creation():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    del _topic["safety_impact"]
+    del _topic["exploitation"]
+    del _topic["automatable"]
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.status_code == 200
+
+    responsed_topic = schemas.TopicCreateResponse(**response.json())
+    assert responsed_topic.safety_impact == SafetyImpactEnum.CATASTROPHIC
+    assert responsed_topic.exploitation == ExploitationEnum.ACTIVE
+    assert responsed_topic.automatable is True
+
+
 def test_create_too_long_action():
     create_user(USER1)
     _action = ACTION1.copy()
@@ -189,6 +238,9 @@ def test_get_topic():
     assert responsed_topic.updated_at == topic1.updated_at
     assert TOPIC1["tags"][0] in [t.tag_name for t in responsed_topic.tags]
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in responsed_topic.misp_tags]
+    assert responsed_topic.safety_impact == TOPIC1["safety_impact"]
+    assert responsed_topic.exploitation == TOPIC1["exploitation"]
+    assert responsed_topic.automatable == TOPIC1["automatable"]
     # actions are removed from TopicResponse.
     # use 'GET /topics/{tid}/actions/pteam/{pid}' to get actions.
 
@@ -229,6 +281,9 @@ def test_update_topic():
         "threat_impact": 2,
         "tags": [tag1.tag_name],
         "misp_tags": ["tlp:white"],
+        "safety_impact": "hazardous",
+        "exploitation": "poc",
+        "automatable": False,
     }
     response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
 
@@ -246,6 +301,12 @@ def test_update_topic():
     assert TOPIC1["misp_tags"][0] not in [
         misp_tag.tag_name for misp_tag in responsed_topic.misp_tags
     ]
+    assert responsed_topic.safety_impact == request["safety_impact"]
+    assert responsed_topic.safety_impact != TOPIC1["safety_impact"]
+    assert responsed_topic.exploitation == request["exploitation"]
+    assert responsed_topic.exploitation != TOPIC1["exploitation"]
+    assert responsed_topic.automatable == request["automatable"]
+    assert responsed_topic.automatable != TOPIC1["automatable"]
 
 
 def test_update_topic__with_new_tags():
@@ -283,11 +344,11 @@ def test_update_topic__with_new_tags():
         )
 
 
-def test_update_topic_not_creater(testdb: Session):
+def test_update_topic_not_creater():
     create_user(USER1)
     create_user(USER2)
     create_topic(USER1, TOPIC1, actions=[ACTION1])
-    request = {"disabled": True}
+    request = {}
 
     with pytest.raises(HTTPError, match=r"403: Forbidden: you are not topic creator"):
         assert_204(
@@ -295,40 +356,73 @@ def test_update_topic_not_creater(testdb: Session):
         )
 
 
-def test_disable_topic():
-    create_user(USER1)
-    create_topic(USER1, TOPIC1, actions=[ACTION1])
-    request = {"disabled": True}
-    response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
-
-    assert response.status_code == 200
-    responsed_topic = schemas.TopicResponse(**response.json())
-    assert responsed_topic.disabled is True
-
-
 def test_delete_topic(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    etags = upload_pteam_tags(
-        USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
-    )
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
-    create_actionlog(
-        USER1,
-        topic1.actions[0].action_id,
-        topic1.topic_id,
-        user1.user_id,
-        pteam1.pteam_id,
-        datetime.now(),
+    now = datetime.now()
+
+    # create service
+    service_name = "service_x"
+    service_id = str(uuid4())
+    testdb.execute(
+        insert(models.Service).values(
+            service_id=service_id, pteam_id=pteam1.pteam_id, service_name=service_name
+        )
     )
 
-    json_data = {
-        "topic_status": "acknowledged",
-        "note": "acknowledged",
-        "assignees": [str(user1.user_id)],
-        "scheduled_at": str(datetime(2023, 6, 1)),
+    tag_id = "da54de37-308e-40a7-a5ba-aab594796992"
+    # create tag
+    testdb.execute(
+        insert(models.Tag).values(
+            tag_id=tag_id,
+            tag_name="",
+        )
+    )
+
+    # create dependency
+    dependency1_id = "dependency1_id"
+    testdb.execute(
+        insert(models.Dependency).values(
+            dependency_id=dependency1_id,
+            service_id=service_id,
+            tag_id=tag_id,
+            version="",
+            target="1",
+            dependency_mission_impact=models.MissionImpactEnum.MISSION_FAILURE,
+        )
+    )
+    # create threat
+    threat1_id = "threat1_id"
+    testdb.execute(
+        insert(models.Threat).values(
+            threat_id=threat1_id,
+            dependency_id=dependency1_id,
+            topic_id=topic1.topic_id,
+        )
+    )
+    # create ticket
+    ticket1_id = "3d362f0f-e08e-45a3-9ae9-5a46936372c0"
+    testdb.execute(
+        insert(models.Ticket).values(
+            ticket_id=ticket1_id,
+            threat_id=threat1_id,
+            created_at="2033-06-26 15:00:00",
+            updated_at="2033-06-26 15:00:00",
+            ssvc_deployer_priority=models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE,
+        )
+    )
+
+    request = {
+        "action_id": str(topic1.actions[0].action_id),
+        "topic_id": str(topic1.topic_id),
+        "user_id": str(user1.user_id),
+        "pteam_id": str(pteam1.pteam_id),
+        "service_id": str(service_id),
+        "executed_at": str(now) if now else None,
     }
-    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, etags[0].tag_id, json_data)
+
+    client.post("/actionlogs", headers=headers(USER1), json=request)
 
     # delete topic
     response = client.delete(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1))
@@ -350,12 +444,6 @@ def test_delete_topic(testdb: Session):
     assert (
         not testdb.query(models.TopicMispTag)
         .filter(models.TopicMispTag.topic_id == str(topic1.topic_id))
-        .all()
-    )
-
-    assert (
-        not testdb.query(models.PTeamTopicTagStatus)
-        .filter(models.PTeamTopicTagStatus.topic_id == str(topic1.topic_id))
         .all()
     )
 
@@ -458,7 +546,7 @@ def test_create_topic_actions():
     child11 = create_tag(USER1, "alpha:alpha:alpha1")
     child21 = create_tag(USER1, "bravo:bravo:bravo1")
 
-    def _gen_topic(tags: List[str], actions: List[dict]) -> dict:
+    def _gen_topic(tags: list[str], actions: list[dict]) -> dict:
         return {
             **TOPIC1,
             "topic_id": str(uuid4()),
@@ -466,7 +554,7 @@ def test_create_topic_actions():
             "actions": actions,
         }
 
-    def _gen_action(tags: List[str]) -> dict:
+    def _gen_action(tags: list[str]) -> dict:
         return {
             "action_id": None,
             "action": "action " + str(uuid4()),
@@ -527,7 +615,7 @@ def test_create_topic_actions__with_action_id():
     parent1 = create_tag(USER1, "alpha:alpha:")
     child11 = create_tag(USER1, "alpha:alpha:alpha1")
 
-    def _gen_action(action_id: Optional[UUID]) -> dict:
+    def _gen_action(action_id: UUID | None) -> dict:
         return {
             "action_id": str(action_id) if action_id else None,
             "action": f"action for {action_id}",
@@ -536,7 +624,7 @@ def test_create_topic_actions__with_action_id():
             "ext": {"tags": [child11.tag_name]},
         }
 
-    def _gen_topic(tags: List[str], actions: List[dict]) -> dict:
+    def _gen_topic(tags: list[str], actions: list[dict]) -> dict:
         return {
             **TOPIC1,
             "topic_id": str(uuid4()),
@@ -714,6 +802,9 @@ class TestSearchTopics:
                 "abstract": "",
                 "threat_impact": 1,
                 **params,
+                "safety_impact": "catastrophic",
+                "exploitation": "active",
+                "automatable": True,
             }
             return create_topic(user, minimal_topic)
 
