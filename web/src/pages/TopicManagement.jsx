@@ -72,7 +72,7 @@ function TopicManagementTableRow(props) {
         "&:hover": { bgcolor: grey[100] },
         borderLeft: `solid 5px ${difficultyColors[difficulty[topic.threat_impact - 1]]}`,
       }}
-      onClick={() => navigate("/topic_datail")}
+      onClick={() => navigate(`/topic/${topic.topic_id}`)}
     >
       <TableCell>
         <FormattedDateTimeWithTooltip utcString={topic.updated_at} />

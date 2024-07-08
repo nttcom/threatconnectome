@@ -69,8 +69,8 @@ root.render(
                   <Route path="topics">
                     <Route index element={<TopicManagement />} />
                   </Route>
-                  <Route path="topic_datail">
-                    <Route index element={<TopicDetail />} />
+                  <Route path="topic">
+                    <Route path=":topicId" element={<TopicDetail />} />
                   </Route>
                 </Route>
               </Routes>

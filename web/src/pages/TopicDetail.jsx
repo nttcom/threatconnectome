@@ -4,98 +4,15 @@ import {
   Recommend as RecommendIcon,
   Warning as WarningIcon,
 } from "@mui/icons-material";
-import { Badge, Box, Button, Card, Chip, Typography, MenuItem } from "@mui/material";
+import { Badge, Box, Button, Card, Chip, MenuItem, Tooltip, Typography } from "@mui/material";
 import { amber, green, grey, orange, red, yellow } from "@mui/material/colors";
-import React, { useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../components/ActionTypeIcon";
-import { threatImpactProps } from "../utils/const";
-
-// Sample Data
-const sampleImpactName = "offcycle";
-
-const sampleTitle =
-  "npmjs-websocket-extensions: ReDoS vulnerability in Sec-WebSocket-Extensions parser";
-
-const sampleDetail =
-  "Memory safety bugs present in Firefox 117, Firefox ESR 115.2, and Thunderbird 115.2.Some of these bugs showed evidence of memory corruption and we presumethat with enough effort some of these could have been exploited to run arbitrary code.This vulnerability affects Firefox  118, Firefox ESR 115.3, and Thunderbird  115.3.";
-
-const sampleCreater = "Tanaka Taro";
-
-const sampleLastupdate = "2024/4/15T11:38:35+09:00";
-
-const sampleTopicId = "fahfia-nkfnaeda-ncjandsjk";
-
-const sampleMispTagLists = [
-  {
-    id: 1,
-    name: "CVE-2020-7662 : xxxx-xxxx-xxxxx",
-  },
-  {
-    id: 2,
-    name: "CVE-2020-2573 : xxxx-xxxx-xxxxx",
-  },
-  {
-    id: 3,
-    name: "CVE-2020-8474 : xxxx-xxxx-xxxxx",
-  },
-  {
-    id: 4,
-    name: "CVE-2020-8493 : xxxx-xxxx-xxxxx",
-  },
-  {
-    id: 5,
-    name: "CVE-2020-8928 : xxxx-xxxx-xxxxx",
-  },
-];
-
-const sampleActionLists = [
-  {
-    id: 1,
-    name: "Update websocket-extensions from version ['>=0, <0.1.4'] to ['0.1.4']",
-  },
-  {
-    id: 2,
-    name: "Update websocket-extensions from version ['< 0.1.4'] to ['0.1.4']",
-  },
-  {
-    id: 3,
-    name: "Update pygments from version ['>=0, <2.15.0'] to ['2.15.0']",
-  },
-  {
-    id: 4,
-    name: "Update pygments from version ['>=0, <2.15.1'] to ['2.15.1']",
-  },
-];
-
-const sampleArtifactTagLists = [
-  {
-    id: 1,
-    name: "asynckit:npm:",
-    affectedVer: "2.1.0-2.5.1",
-    patchedVer: "2.6.1",
-  },
-  {
-    id: 2,
-    name: "asynckit:npm:",
-    affectedVer: "1.2.0-1.4.1",
-    patchedVer: "1.5.0",
-  },
-  {
-    id: 3,
-    name: "../../../pkg:golang:",
-    affectedVer: "1.4.0-2.1.1",
-    patchedVer: "2.2.1",
-  },
-  {
-    id: 4,
-    name: "python-rundeps:3.9.2:",
-    affectedVer: "2.1.0-3.0.1",
-    patchedVer: "3.9.2",
-  },
-];
-
-const baseStyle = threatImpactProps[sampleImpactName].style;
+import { getTopic, getActions } from "../slices/topics";
+import { threatImpactName as threatImpactNames, threatImpactProps } from "../utils/const";
 
 const threatImpactColor = {
   immediate: {
@@ -115,32 +32,67 @@ const threatImpactColor = {
   },
 };
 
-const artifactTagMax = 100;
-
-const artifactTagChip = () => {
-  if (sampleArtifactTagLists.length < artifactTagMax) {
-    return sampleArtifactTagLists.length - 1;
-  } else {
-    return "99+";
-  }
+const artifactTagChip = (chipNumber) => {
+  const artifactTagMax = 99;
+  return chipNumber <= artifactTagMax ? chipNumber : `${artifactTagMax}+`;
 };
 
-export function TopicDetail() {
-  const [handleArtifact, setHandleArtifact] = useState(false);
+function pickAffectedVersions(actions, tagName) {
+  const versions = actions.reduce(
+    (ret, action) => [...ret, ...(action.ext?.vulnerable_versions?.[tagName] ?? [])],
+    [],
+  );
+  if (versions.length > 0) {
+    return [...new Set(versions)].sort();
+  }
+  return ["?"]; // default(fake?) affected version for the case not found
+}
 
-  const handleArtifactOpen = () => setHandleArtifact(!handleArtifact);
+export function TopicDetail() {
+  const { topicId } = useParams();
+
+  const [showAllArtifacts, setShowAllArtifacts] = useState(false);
+
+  const user = useSelector((state) => state.user.user);
+  const topics = useSelector((state) => state.topics.topics);
+  const topicActions = useSelector((state) => state.topics.actions);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const topic = topicId && topics ? topics[topicId] : undefined;
+  const actions = topicId && topicActions ? topicActions[topicId] : undefined;
+
+  useEffect(() => {
+    if (!user.user_id) return; // wait for login completed
+    if (!topicId) navigate("/topics"); // force navigate to topic list if missing topicId
+    if (topic) return; // nothing to do any more
+    dispatch(getTopic(topicId));
+  }, [user.user_id, topicId, topic, dispatch, navigate]);
+
+  useEffect(() => {
+    if (!user.user_id) return; // wait for login completed
+    if (!topicId) return;
+    if (actions) return; // nothing to do any more
+    dispatch(getActions(topicId));
+  }, [user.user_id, topicId, actions, dispatch]);
+
+  if (!topic || !actions) return <>Now loading...</>;
+
+  const threatImpactName = threatImpactNames[topic.threat_impact];
+  const baseStyle = threatImpactProps[threatImpactName].style;
 
   return (
     <>
       <Box>
         <Card
           variant="outlined"
-          sx={{ margin: 1, backgroundColor: threatImpactColor[sampleImpactName].bgcolor }}
+          sx={{ margin: 1, backgroundColor: threatImpactColor[threatImpactName].bgcolor }}
         >
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
               <Chip
-                label={threatImpactProps[sampleImpactName].chipLabel}
+                label={threatImpactProps[threatImpactName].chipLabel}
                 variant="filled"
                 sx={{
                   mr: 3,
@@ -150,144 +102,118 @@ export function TopicDetail() {
                   color: "white",
                 }}
               />
-              <Typography variant="h5">{sampleTitle}</Typography>
+              <Typography variant="h5">{topic.title}</Typography>
             </Box>
             <Box sx={{ mt: 2, ml: 1 }}>
-              <Typography sx={{ color: grey[700] }}>{sampleDetail}</Typography>
+              <Typography sx={{ color: grey[700] }}>{topic.abstract}</Typography>
             </Box>
           </Box>
         </Card>
+        {/* Artifact Tag */}
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Typography sx={{ fontWeight: "bold" }}>Artifact Tag</Typography>
-            <Card
-              variant="outlined"
-              display="flex"
-              flexDirection="row"
-              sx={{ margin: 1, padding: 2 }}
-            >
-              <Typography variant="h5">{sampleArtifactTagLists[0].name}</Typography>
-              <Box display="flex" flexDirection="row" justifyContent="center">
-                <Box
-                  alignItems="center"
+            {topic.tags
+              .filter((artifactTag, index) => (showAllArtifacts ? true : index === 0))
+              .map((artifactTag) => (
+                <Card
+                  key={artifactTag.tag_id}
+                  variant="outlined"
                   display="flex"
-                  flexDirection="row"
-                  justifyContent="center"
-                  sx={{ width: "50%" }}
+                  sx={{ margin: 1, padding: 2 }}
                 >
-                  <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
-                  <Typography sx={{ fontSize: 32 }}>
-                    {sampleArtifactTagLists[0].affectedVer}
-                  </Typography>
-                </Box>
-                <Box
-                  alignItems="center"
-                  display="flex"
-                  flexDirection="row"
-                  justifyContent="center"
-                  sx={{ width: "50%" }}
-                >
-                  <RecommendIcon sx={{ fontSize: 32, color: green[500] }} />
-                  <Typography sx={{ fontSize: 32 }}>
-                    {sampleArtifactTagLists[0].patchedVer}
-                  </Typography>
-                </Box>
-              </Box>
-            </Card>
-            {handleArtifact ? (
-              <>
-                {sampleArtifactTagLists.map((artifactTag, index) => (
-                  <>
-                    {index !== 0 ? (
-                      <Card
-                        key={artifactTag.id}
-                        variant="outlined"
-                        display="flex"
-                        flexDirection="row"
-                        sx={{ margin: 1, padding: 2 }}
-                      >
-                        <Typography variant="h5">{artifactTag.name}</Typography>
-                        <Box display="flex" flexDirection="row" justifyContent="center">
+                  <Typography variant="h5">{artifactTag.tag_name}</Typography>
+                  <Box display="flex" flexDirection="row" justifyContent="center">
+                    {/* left half -- affected versions */}
+                    <Box
+                      alignItems="flexStart"
+                      display="flex"
+                      flexDirection="column"
+                      sx={{ width: "50%", minWidth: "50%" }}
+                    >
+                      {pickAffectedVersions(actions, artifactTag.tag_name).map(
+                        (affectedVersion) => (
                           <Box
+                            key={affectedVersion}
                             alignItems="center"
                             display="flex"
                             flexDirection="row"
-                            justifyContent="center"
-                            sx={{ width: "50%" }}
+                            sx={{ ml: 2 }}
                           >
                             <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
-                            <Typography sx={{ fontSize: 32 }}>{artifactTag.affectedVer}</Typography>
+                            <Tooltip title={affectedVersion} placement="right">
+                              <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
+                                {affectedVersion}
+                              </Typography>
+                            </Tooltip>
                           </Box>
-                          <Box
-                            alignItems="center"
-                            display="flex"
-                            flexDirection="row"
-                            justifyContent="center"
-                            sx={{ width: "50%" }}
-                          >
-                            <RecommendIcon sx={{ fontSize: 32, color: green[500] }} />
-                            <Typography sx={{ fontSize: 32 }}>{artifactTag.patchedVer}</Typography>
-                          </Box>
-                        </Box>
-                      </Card>
-                    ) : (
-                      <></>
-                    )}
-                  </>
-                ))}
-              </>
-            ) : (
-              <></>
-            )}
-            {sampleArtifactTagLists.length <= 1 ? (
-              <></>
-            ) : (
-              <>
-                <Box display="flex" alignItems="center" sx={{ mr: 3 }}>
-                  <Box flexGrow={1} />
-                  {handleArtifact ? (
+                        ),
+                      )}
+                    </Box>
+                    {/* right half -- patched versions */}
+                    <Box
+                      alignItems="center"
+                      display="flex"
+                      flexDirection="row"
+                      sx={{ width: "50%", ml: 2 }}
+                    >
+                      <RecommendIcon sx={{ fontSize: 32, color: green[500] }} />
+                      <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
+                        {"-" /* not yet supported */}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Card>
+              ))}
+            {/* hide or more button if needed */}
+            {topic.tags.length > 1 && (
+              <Box display="flex" justifyContent="center" sx={{ mr: 3 }}>
+                {showAllArtifacts ? (
+                  <Button
+                    onClick={() => setShowAllArtifacts(false)}
+                    variant="outlined"
+                    size="small"
+                    sx={{ textTransform: "none", width: 120 }}
+                  >
+                    <KeyboardArrowUpIcon sx={{ ml: -1 }} />
+                    Hide
+                  </Button>
+                ) : (
+                  <Badge
+                    badgeContent={artifactTagChip(topic.tags.length - 1)}
+                    color="primary"
+                    sx={{ mt: 1 }}
+                  >
                     <Button
-                      onClick={handleArtifactOpen}
+                      onClick={() => setShowAllArtifacts(true)}
                       variant="outlined"
                       size="small"
                       sx={{ textTransform: "none", width: 120 }}
                     >
-                      <KeyboardArrowUpIcon sx={{ ml: -1 }} />
-                      Hide
+                      <KeyboardArrowDownIcon sx={{ ml: -1 }} />
+                      More
                     </Button>
-                  ) : (
-                    <Badge badgeContent={artifactTagChip()} color="primary" sx={{ mt: 1 }}>
-                      <Button
-                        onClick={handleArtifactOpen}
-                        variant="outlined"
-                        size="small"
-                        sx={{ textTransform: "none", width: 120 }}
-                      >
-                        <KeyboardArrowDownIcon sx={{ ml: -1 }} />
-                        More
-                      </Button>
-                    </Badge>
-                  )}
-                  <Box flexGrow={1} />
-                </Box>
-              </>
+                  </Badge>
+                )}
+              </Box>
             )}
           </Box>
         </Card>
+        {/* MISP Tag */}
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
               <Typography sx={{ fontWeight: "bold" }}>MISP Tag</Typography>
             </Box>
-            {sampleMispTagLists.length === 0 ? (
+            {topic.misp_tags.length === 0 ? (
               <Typography sx={{ margin: 1 }}>No data</Typography>
             ) : (
               <>
                 <Box sx={{ mt: 1 }}>
-                  {sampleMispTagLists.map((mispTag) => (
+                  {topic.misp_tags.map((mispTag) => (
                     <Chip
-                      key={mispTag.id}
-                      label={mispTag.name}
+                      key={mispTag.tag_id}
+                      label={mispTag.tag_name}
                       size="small"
                       sx={{ m: 0.5, borderRadius: 0.5 }}
                     />
@@ -297,29 +223,30 @@ export function TopicDetail() {
             )}
           </Box>
         </Card>
+        {/* TopicActions */}
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
               <Typography sx={{ fontWeight: "bold" }}>Action</Typography>
             </Box>
-            {sampleActionLists.length === 0 ? (
+            {actions.length === 0 ? (
               <Typography sx={{ margin: 1 }}>No data</Typography>
             ) : (
               <>
                 <Box>
-                  {sampleActionLists.map((actionList) => (
+                  {actions.map((action) => (
                     <MenuItem
-                      key={actionList.id}
+                      key={action.action_id}
                       sx={{
                         alignItems: "center",
                         display: "flex",
                         flexDirection: "row",
                       }}
                     >
-                      <ActionTypeIcon actionType="elimination" />
+                      <ActionTypeIcon actionType="elimination" disabled={false} />
                       <Box display="flex" flexDirection="column">
                         <Typography noWrap variant="body">
-                          {actionList.name}
+                          {action.action}
                         </Typography>
                       </Box>
                     </MenuItem>
@@ -329,19 +256,21 @@ export function TopicDetail() {
             )}
           </Box>
         </Card>
+        {/* Other topic info */}
         <Card variant="outlined" sx={{ margin: 1, mb: 3 }}>
           <Box sx={{ margin: 3 }}>
             <Box display="flex" flexDirection="column">
-              <Typography sx={{ fontWeight: "bold" }}>Creater</Typography>
-              <Typography>{sampleCreater}</Typography>
+              <Typography sx={{ fontWeight: "bold" }}>Creator</Typography>
+              <Typography>{topic.created_by}</Typography>
+              {/* TODO: convert to email address? */}
             </Box>
             <Box display="flex" flexDirection="column" sx={{ mt: 1 }}>
               <Typography sx={{ fontWeight: "bold" }}>Last Updated</Typography>
-              <Typography>{sampleLastupdate}</Typography>
+              <Typography>{topic.updated_at}</Typography>
             </Box>
             <Box display="flex" flexDirection="column" sx={{ mt: 1 }}>
               <Typography sx={{ fontWeight: "bold" }}>Topic ID</Typography>
-              <Typography>{sampleTopicId}</Typography>
+              <Typography>{topic.topic_id}</Typography>
             </Box>
           </Box>
         </Card>
