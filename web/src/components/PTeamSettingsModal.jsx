@@ -16,14 +16,11 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
-import { getPTeam } from "../slices/pteam";
 import { a11yProps } from "../utils/func.js";
 
 import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
 import { PTeamNotificationSetting } from "./PTeamNotificationSetting";
-import { PTeamServiceDelete } from "./PTeamServiceDelete";
-import { SBOMDropArea } from "./SBOMDropArea";
 
 export function PTeamSettingsModal(props) {
   const dispatch = useDispatch();
@@ -36,10 +33,6 @@ export function PTeamSettingsModal(props) {
   const handleChangeTab = (_, newTab) => setTab(newTab);
 
   const pteamId = useSelector((state) => state.pteam.pteamId); // dispatched by App or PTeamSelector
-
-  const handleSBOMUploaded = () => {
-    dispatch(getPTeam(pteamId)); // update pteam.services
-  };
 
   return (
     <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
@@ -59,8 +52,6 @@ export function PTeamSettingsModal(props) {
             <Tab label="General" {...a11yProps(0)} />
             <Tab label="Notification" {...a11yProps(1)} />
             <Tab label="Authorities" {...a11yProps(2)} />
-            <Tab label="Upload" {...a11yProps(3)} />
-            <Tab label="Service" {...a11yProps(5)} />
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
@@ -71,12 +62,6 @@ export function PTeamSettingsModal(props) {
         </TabPanel>
         <TabPanel index={2} value={tab}>
           <PTeamAuthEditor />
-        </TabPanel>
-        <TabPanel index={3} value={tab}>
-          <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
-        </TabPanel>
-        <TabPanel index={4} value={tab}>
-          <PTeamServiceDelete />
         </TabPanel>
       </DialogContent>
     </Dialog>
