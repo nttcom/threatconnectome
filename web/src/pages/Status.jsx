@@ -125,7 +125,6 @@ export function Status() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const searchMenuOpen = Boolean(anchorEl);
 
-  const [isActiveAllServicesMode, setIsActiveAllServicesMode] = useState(false);
   const [isActiveUploadMode, setIsActiveUploadMode] = useState(0);
 
   useEffect(() => {
@@ -361,26 +360,17 @@ export function Status() {
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <DeleteServiceIcon />
         <FormControlLabel
-          control={
-            <Android12Switch
-              checked={isActiveAllServicesMode}
-              onChange={() => {
-                setIsActiveAllServicesMode(!isActiveAllServicesMode);
-                setIsActiveUploadMode(0);
-              }}
-            />
-          }
+          control={<Android12Switch checked={false} />}
           label="All Services"
+          disabled={true} // ALL Services not yet supported
         />
       </Box>
-      {!isActiveAllServicesMode && (
-        <PTeamServiceTabs
-          services={pteam.services}
-          currentServiceId={serviceId}
-          onChangeService={handleChangeService}
-          setIsActiveUploadMode={setIsActiveUploadMode}
-        />
-      )}
+      <PTeamServiceTabs
+        services={pteam.services}
+        currentServiceId={serviceId}
+        onChangeService={handleChangeService}
+        setIsActiveUploadMode={setIsActiveUploadMode}
+      />
       <CustomTabPanel value={isActiveUploadMode} index={0}>
         <Box display="flex" mt={2}>
           {filterRow}
@@ -409,8 +399,6 @@ export function Status() {
                   key={tag.tag_id}
                   onHandleClick={() => handleNavigateTag(tag.tag_id)}
                   tag={tag}
-                  isActiveAllServicesMode={isActiveAllServicesMode}
-                  serviceName={pteam.services[0].service_name}
                 />
               ))}
             </TableBody>
