@@ -12,7 +12,6 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
@@ -23,16 +22,12 @@ import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
 import { PTeamNotificationSetting } from "./PTeamNotificationSetting";
 
 export function PTeamSettingsModal(props) {
-  const dispatch = useDispatch();
-
   const { onSetShow, show, defaultTabIndex } = props;
   const [tab, setTab] = useState(defaultTabIndex ?? 0);
 
   const handleClose = () => onSetShow(false);
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
-
-  const pteamId = useSelector((state) => state.pteam.pteamId); // dispatched by App or PTeamSelector
 
   return (
     <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
