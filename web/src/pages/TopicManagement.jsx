@@ -29,6 +29,7 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 
 import { FormattedDateTimeWithTooltip } from "../components/FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "../components/TopicSearchModal";
@@ -63,8 +64,6 @@ function TopicManagementTableRow(props) {
     );
   }
 
-  const relatedTopic = true;
-
   return (
     <TableRow
       key={topic.topic_id}
@@ -78,13 +77,6 @@ function TopicManagementTableRow(props) {
     >
       <TableCell>
         <FormattedDateTimeWithTooltip utcString={topic.updated_at} />
-      </TableCell>
-      <TableCell align="center">
-        {relatedTopic ? (
-          <CheckCircleOutlineIcon color="success" />
-        ) : (
-          <HorizontalRuleIcon sx={{ color: grey[500] }} />
-        )}
       </TableCell>
       <TableCell align="center">
         {actionList?.length > 0 ? (
@@ -119,6 +111,7 @@ export function TopicManagement() {
   const perPageItems = [10, 20, 50, 100];
 
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
+  const [checked, setChecked] = useState(true);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
@@ -129,13 +122,27 @@ export function TopicManagement() {
 
   const pageMax = Math.ceil((searchResult?.num_topics ?? 0) / perPage);
 
+  const params = new URLSearchParams(useLocation().search);
+  const pteamId = params.get("pteamId");
+
   const evalSearchTopics = async () => {
-    const queryParams = {
-      offset: perPage * (page - 1),
-      limit: perPage,
-      sort_key: "updated_at_desc",
-      ...searchConditions,
-    };
+    let queryParams = {};
+    if (checked === true) {
+      queryParams = {
+        offset: perPage * (page - 1),
+        limit: perPage,
+        sort_key: "updated_at_desc",
+        pteam_id: pteamId,
+        ...searchConditions,
+      };
+    } else {
+      queryParams = {
+        offset: perPage * (page - 1),
+        limit: perPage,
+        sort_key: "updated_at_desc",
+        ...searchConditions,
+      };
+    }
     await searchTopics(queryParams)
       .then((response) => setSearchResult(response.data))
       .catch((error) =>
@@ -149,7 +156,7 @@ export function TopicManagement() {
     if (!user?.user_id) return;
     evalSearchTopics();
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [page, perPage, searchConditions, user]);
+  }, [page, perPage, searchConditions, user, checked]);
 
   const paramsToSearchQuery = (params) => {
     const delimiter = "|";
@@ -171,6 +178,10 @@ export function TopicManagement() {
 
   const handleCancel = () => {
     setSearchMenuOpen(false);
+  };
+
+  const handleChangeSwitch = () => {
+    setChecked(!checked);
   };
 
   const filterRow = (
@@ -242,7 +253,11 @@ export function TopicManagement() {
   return (
     <>
       <Box display="flex" mt={2}>
-        <FormControlLabel sx={{ ml: -1 }} control={<Android12Switch />} label="Related topics" />
+        <FormControlLabel
+          sx={{ ml: -1 }}
+          control={<Android12Switch checked={checked} onChange={handleChangeSwitch} />}
+          label="Related topics"
+        />
         <Box flexGrow={1} />
         <Box mb={0.5}>
           <Button
@@ -276,7 +291,6 @@ export function TopicManagement() {
                   </Tooltip>
                 </Box>
               </TableCell>
-              <TableCell style={{ width: "3%", fontWeight: 900 }}>Affected</TableCell>
               <TableCell style={{ width: "3%", fontWeight: 900 }}>Action</TableCell>
               <TableCell style={{ width: "25%", fontWeight: 900 }}>Title</TableCell>
               <TableCell style={{ width: "35%", fontWeight: 900 }}>MISP Tag</TableCell>
