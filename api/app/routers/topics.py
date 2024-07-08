@@ -369,13 +369,6 @@ def update_topic(
         new_tags = list(tags_dict.values())
     tags_updated = new_tags is not None and set(new_tags) != set(topic.tags)
 
-    need_update_content_fingerprint = (
-        new_title not in {None, topic.title}
-        or new_abstract not in {None, topic.abstract}
-        or data.threat_impact not in {None, topic.threat_impact}
-        or tags_updated
-    )
-
     # Update topic attributes
     if new_tags is not None:
         topic.tags = new_tags
@@ -394,10 +387,9 @@ def update_topic(
     if data.automatable is not None:
         topic.automatable = data.automatable
 
-    if need_update_content_fingerprint:
-        topic.content_fingerprint = calculate_topic_content_fingerprint(
-            topic.title, topic.abstract, topic.threat_impact, [tag.tag_name for tag in topic.tags]
-        )
+    topic.content_fingerprint = calculate_topic_content_fingerprint(
+        topic.title, topic.abstract, topic.threat_impact, [tag.tag_name for tag in topic.tags]
+    )
 
     topic.updated_at = datetime.now()
 
