@@ -185,19 +185,30 @@ export function Status() {
 
   if (!summary) return <>Now loading ServiceTagsSummary...</>;
 
-  const iFilter = [0, 1, 2, 3].reduce(
-    (ret, idx) => ({
-      ...ret,
-      [idx]: (params.get("iFilter") ?? "0000")[idx] !== "0",
-    }),
-    {},
-  );
+  const immediateOn = (params.get("immediate") || "") === "on";
+  const offcycleOn = (params.get("offcycle") || "") === "on";
+  const acceptableOn = (params.get("acceptable") || "") === "on";
+  const noneOn = (params.get("none") || "") === "on";
+
+  function getThreatImpactOn(threatImpact) {
+    switch (threatImpact) {
+      case 1:
+        return immediateOn;
+      case 2:
+        return offcycleOn;
+      case 3:
+        return acceptableOn;
+      case 4:
+      default:
+        return noneOn;
+    }
+  }
 
   const filteredTags = summary.tags.filter(
     (tag) =>
-      (Object.values(iFilter).every((val) => !val)
+      (!immediateOn && !offcycleOn && !acceptableOn && !noneOn
         ? true // show all if selected none
-        : iFilter[parseInt(tag.threat_impact ?? 4) - 1]) && // show only selected
+        : getThreatImpactOn(parseInt(tag.threat_impact ?? 4))) && // show only selected
       (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)),
   );
 
@@ -263,7 +274,7 @@ export function Status() {
   };
 
   const handleNavigateTag = (tagId) => {
-    for (let key of ["iFilter", "word", "perPage", "page"]) {
+    for (let key of ["immediate", "offcycle", "acceptable", "none", "word", "perPage", "page"]) {
       params.delete(key);
     }
     navigate(`/tags/${tagId}?${params.toString()}`);
@@ -290,7 +301,7 @@ export function Status() {
         sx={{ left: -55 }}
       >
         {[0, 1, 2, 3].map((idx) => {
-          const checked = iFilter[idx];
+          const checked = getThreatImpactOn(idx + 1);
           const threatImpactCount = summary.threat_impact_count[(idx + 1).toString()];
 
           const fixedSx = {
@@ -304,21 +315,38 @@ export function Status() {
             : threatImpactName[idx + 1];
 
           const onClick = () => {
-            params.set(
-              "iFilter",
-              [0, 1, 2, 3].reduce(
-                (ret, val) =>
-                  ret +
-                  (val === idx // toggle me only
-                    ? checked
-                      ? "0"
-                      : "1"
-                    : iFilter[val] // keep current
-                      ? "1"
-                      : "0"),
-                "",
-              ),
-            );
+            if (getThreatImpactOn(idx + 1)) {
+              switch (idx) {
+                case 0:
+                  params.delete("immediate");
+                  break;
+                case 1:
+                  params.delete("offcycle");
+                  break;
+                case 2:
+                  params.delete("acceptable");
+                  break;
+                case 3:
+                default:
+                  params.delete("none");
+              }
+            } else {
+              switch (idx) {
+                case 0:
+                  params.set("immediate", "on");
+                  break;
+                case 1:
+                  params.set("offcycle", "on");
+                  break;
+                case 2:
+                  params.set("acceptable", "on");
+                  break;
+                case 3:
+                default:
+                  params.set("none", "on");
+              }
+            }
+
             params.set("page", 1); // reset page
             navigate(location.pathname + "?" + params.toString());
           };
