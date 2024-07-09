@@ -98,6 +98,12 @@ def search_topics(
     """
     keyword_for_empty = ""
 
+    if pteam_id and ateam_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify both pteam_id and ateam_id",
+        )
+
     fixed_tag_ids: set[str | None] = set()
     if tag_names is not None:
         for tag_name in tag_names:
