@@ -8,7 +8,7 @@ import { Badge, Box, Button, Card, Chip, MenuItem, Tooltip, Typography } from "@
 import { amber, green, grey, orange, red, yellow } from "@mui/material/colors";
 import React, { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../components/ActionTypeIcon";
 import { getTopic, getActions } from "../slices/topics";
@@ -58,21 +58,20 @@ export function TopicDetail() {
   const topicActions = useSelector((state) => state.topics.actions);
 
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const topic = topicId && topics ? topics[topicId] : undefined;
   const actions = topicId && topicActions ? topicActions[topicId] : undefined;
 
   useEffect(() => {
     if (!user.user_id) return; // wait for login completed
-    if (!topicId) navigate("/topics"); // force navigate to topic list if missing topicId
+    if (!topicId) return; // will never happen
     if (topic) return; // nothing to do any more
     dispatch(getTopic(topicId));
-  }, [user.user_id, topicId, topic, dispatch, navigate]);
+  }, [user.user_id, topicId, topic, dispatch]);
 
   useEffect(() => {
     if (!user.user_id) return; // wait for login completed
-    if (!topicId) return;
+    if (!topicId) return; // will never happen
     if (actions) return; // nothing to do any more
     dispatch(getActions(topicId));
   }, [user.user_id, topicId, actions, dispatch]);

@@ -68,8 +68,6 @@ root.render(
                   </Route>
                   <Route path="topics">
                     <Route index element={<TopicManagement />} />
-                  </Route>
-                  <Route path="topic">
                     <Route path=":topicId" element={<TopicDetail />} />
                   </Route>
                 </Route>
