@@ -1193,7 +1193,6 @@ class TestSearchTopics:
                 / "upload_test"
                 / "tag.jsonl"
             )
-            print(sbom_file)
             with open(sbom_file, "rb") as tags:
                 response_upload_sbom_file = client.post(
                     f"/pteams/{self.pteam1.pteam_id}/upload_tags_file",
