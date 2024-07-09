@@ -64,6 +64,7 @@ def search_topics(
     updated_after: datetime | None = Query(None),
     updated_before: datetime | None = Query(None),
     pteam_id: UUID | None = Query(None),
+    ateam_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -176,6 +177,7 @@ def search_topics(
         updated_after=updated_after,
         updated_before=updated_before,
         pteam_id=pteam_id,
+        ateam_id=ateam_id,
     )
 
 

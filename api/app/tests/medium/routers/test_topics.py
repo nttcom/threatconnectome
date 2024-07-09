@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
@@ -44,6 +45,7 @@ from app.tests.medium.utils import (
     create_topic,
     create_user,
     create_watching_request,
+    file_upload_headers,
     headers,
     random_string,
     search_topics,
@@ -818,6 +820,7 @@ class TestSearchTopics:
             assert {topic.topic_id for topic in result.topics} == {
                 topics_dict[idx].topic_id for idx in expected
             }
+            return result
 
     class TestSearchByThreatImpact(Common_):
         @pytest.fixture(scope="function", autouse=True)
@@ -1177,6 +1180,86 @@ class TestSearchTopics:
             if fixed_before:
                 search_params["updated_before"] = fixed_before
             self.try_search_topics(USER1, self.topics, search_params, expected)
+
+    class TestSearchByPteamId(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_pteam_id(self):
+            self.pteam1 = create_pteam(USER1, PTEAM1)
+
+            params = {"service": "threatconnectome", "force_mode": True}
+            sbom_file = (
+                Path(__file__).resolve().parent.parent.parent
+                / "requests"
+                / "upload_test"
+                / "tag.jsonl"
+            )
+            print(sbom_file)
+            with open(sbom_file, "rb") as tags:
+                response_upload_sbom_file = client.post(
+                    f"/pteams/{self.pteam1.pteam_id}/upload_tags_file",
+                    headers=file_upload_headers(USER1),
+                    params=params,
+                    files={"file": tags},
+                )
+            assert response_upload_sbom_file.status_code == 200
+            self.result = response_upload_sbom_file.json()
+
+            # topic registration without pteam
+            self.topic1 = self.create_minimal_topic(USER1, {"tags": [TAG1]})
+            self.topic2 = self.create_minimal_topic(USER1, {"tags": [TAG2]})
+            self.topic3 = self.create_minimal_topic(USER1, {"tags": [TAG3]})
+            self.topics_not_pteam = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+            }
+
+        @pytest.mark.parametrize(
+            "topic_registration_num, expected",
+            [
+                (1, {1}),
+                (2, {1, 2}),
+            ],
+        )
+        def test_search_by_pteam_id(self, topic_registration_num, expected):
+            # topic registration with pteam
+            self.topics = {}
+            for idx in range(topic_registration_num):
+                params = {"tags": [self.result[idx]["tag_name"]]}
+                self.topics[idx + 1] = self.create_minimal_topic(USER1, params)
+
+            search_params = {
+                "pteam_id": self.pteam1.pteam_id,
+            }
+
+            result_search_topics = self.try_search_topics(
+                USER1, self.topics, search_params, expected
+            )
+            assert result_search_topics.num_topics == len(expected)
+
+        @pytest.mark.parametrize(
+            "topic_registration_num, expected",
+            [
+                (1, {1, 2, 3, 4}),
+                (2, {1, 2, 3, 4, 5}),
+            ],
+        )
+        def test_search_by_not_pteam_id(self, topic_registration_num, expected):
+            # topic registration with pteam
+            self.topics = {}
+            for idx in range(topic_registration_num):
+                params = {"tags": [self.result[idx]["tag_name"]]}
+                self.topics[idx + 4] = self.create_minimal_topic(USER1, params)
+
+            self.topics = {**self.topics_not_pteam, **self.topics}
+
+            # not pteam_id
+            search_params = {}
+
+            result_search_topics = self.try_search_topics(
+                USER1, self.topics, search_params, expected
+            )
+            assert result_search_topics.num_topics == len(expected)
 
     class ExtCommonForResultSlice_(Common_):
         @staticmethod

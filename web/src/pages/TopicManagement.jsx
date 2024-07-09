@@ -111,7 +111,8 @@ export function TopicManagement() {
   const perPageItems = [10, 20, 50, 100];
 
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
-  const [checked, setChecked] = useState(true);
+  const [checkedPteam, setCheckedPteam] = useState(true);
+  const [checkedAteam, setCheckedAteam] = useState(false);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
@@ -124,15 +125,24 @@ export function TopicManagement() {
 
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
+  const ateamId = params.get("ateamId");
 
   const evalSearchTopics = async () => {
     let queryParams = {};
-    if (checked === true) {
+    if (checkedPteam === true && pteamId) {
       queryParams = {
         offset: perPage * (page - 1),
         limit: perPage,
         sort_key: "updated_at_desc",
         pteam_id: pteamId,
+        ...searchConditions,
+      };
+    } else if (checkedAteam === true && ateamId) {
+      queryParams = {
+        offset: perPage * (page - 1),
+        limit: perPage,
+        sort_key: "updated_at_desc",
+        ateam_id: ateamId,
         ...searchConditions,
       };
     } else {
@@ -156,7 +166,7 @@ export function TopicManagement() {
     if (!user?.user_id) return;
     evalSearchTopics();
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [page, perPage, searchConditions, user, checked]);
+  }, [page, perPage, searchConditions, user, checkedPteam, checkedAteam]);
 
   const paramsToSearchQuery = (params) => {
     const delimiter = "|";
@@ -181,7 +191,11 @@ export function TopicManagement() {
   };
 
   const handleChangeSwitch = () => {
-    setChecked(!checked);
+    if (pteamId) {
+      setCheckedPteam(!checkedPteam);
+    } else if (ateamId) {
+      setCheckedAteam(!checkedAteam);
+    }
   };
 
   const filterRow = (
@@ -253,11 +267,20 @@ export function TopicManagement() {
   return (
     <>
       <Box display="flex" mt={2}>
-        <FormControlLabel
-          sx={{ ml: -1 }}
-          control={<Android12Switch checked={checked} onChange={handleChangeSwitch} />}
-          label="Related topics"
-        />
+        {pteamId ? (
+          <FormControlLabel
+            sx={{ ml: -1 }}
+            control={<Android12Switch checked={checkedPteam} onChange={handleChangeSwitch} />}
+            label="Related topics"
+          />
+        ) : (
+          <FormControlLabel
+            sx={{ ml: -1 }}
+            control={<Android12Switch checked={checkedAteam} onChange={handleChangeSwitch} />}
+            label="Related topics"
+          />
+        )}
+
         <Box flexGrow={1} />
         <Box mb={0.5}>
           <Button
