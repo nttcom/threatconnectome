@@ -185,19 +185,15 @@ export function Status() {
 
   if (!summary) return <>Now loading ServiceTagsSummary...</>;
 
-  const iFilter = [0, 1, 2, 3].reduce(
-    (ret, idx) => ({
-      ...ret,
-      [idx]: (params.get("iFilter") ?? "0000")[idx] !== "0",
-    }),
-    {},
-  );
+  let impactFilters = params
+    .getAll("impactFilter")
+    .filter((filter) => Object.values(threatImpactName).includes(filter));
 
   const filteredTags = summary.tags.filter(
     (tag) =>
-      (Object.values(iFilter).every((val) => !val)
+      (impactFilters.length === 0
         ? true // show all if selected none
-        : iFilter[parseInt(tag.threat_impact ?? 4) - 1]) && // show only selected
+        : impactFilters.includes(threatImpactName[parseInt(tag.threat_impact ?? 4)])) && // show only selected
       (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)),
   );
 
@@ -263,7 +259,7 @@ export function Status() {
   };
 
   const handleNavigateTag = (tagId) => {
-    for (let key of ["iFilter", "word", "perPage", "page"]) {
+    for (let key of ["impactFilter", "word", "perPage", "page"]) {
       params.delete(key);
     }
     navigate(`/tags/${tagId}?${params.toString()}`);
@@ -290,7 +286,8 @@ export function Status() {
         sx={{ left: -55 }}
       >
         {[0, 1, 2, 3].map((idx) => {
-          const checked = iFilter[idx];
+          const impactName = threatImpactName[idx + 1];
+          const checked = impactFilters.includes(impactName);
           const threatImpactCount = summary.threat_impact_count[(idx + 1).toString()];
 
           const fixedSx = {
@@ -299,26 +296,15 @@ export function Status() {
             }),
           };
 
-          const impactName = Object.keys(threatImpactProps).includes(idx + 1)
-            ? idx + 1
-            : threatImpactName[idx + 1];
-
           const onClick = () => {
-            params.set(
-              "iFilter",
-              [0, 1, 2, 3].reduce(
-                (ret, val) =>
-                  ret +
-                  (val === idx // toggle me only
-                    ? checked
-                      ? "0"
-                      : "1"
-                    : iFilter[val] // keep current
-                      ? "1"
-                      : "0"),
-                "",
-              ),
-            );
+            if (checked) {
+              impactFilters = impactFilters.filter((filter) => filter !== impactName);
+            } else {
+              impactFilters.push(impactName);
+            }
+            params.delete("impactFilter");
+            impactFilters.map((filter) => params.append("impactFilter", filter));
+
             params.set("page", 1); // reset page
             navigate(location.pathname + "?" + params.toString());
           };
