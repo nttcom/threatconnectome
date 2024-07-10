@@ -10,6 +10,7 @@ import { PTeam } from "./PTeam";
 import { ResetPassword } from "./ResetPassword";
 import { Status } from "./Status";
 import { Tag } from "./Tag";
+import { TopicDetail } from "./TopicDetail";
 import { TopicManagement } from "./TopicManagement";
 
 export {
@@ -25,5 +26,6 @@ export {
   ResetPassword,
   Status,
   Tag,
+  TopicDetail,
   TopicManagement,
 };

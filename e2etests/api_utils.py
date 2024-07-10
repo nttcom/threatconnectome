@@ -107,3 +107,13 @@ def upload_pteam_tags(
     if response.status_code != 200:
         raise HTTPError(response)
     return response.json()
+
+
+def get_pteam_services(user: dict, pteam_id: UUID | str):
+    response = requests.get(
+        f"{api_url}/pteams/{pteam_id}/services",
+        headers=file_upload_headers(user),
+    )
+    if response.status_code != 200:
+        raise HTTPError(response)
+    return response.json()

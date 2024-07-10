@@ -30,6 +30,7 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import { FormattedDateTimeWithTooltip } from "../components/FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "../components/TopicSearchModal";
@@ -43,6 +44,7 @@ function TopicManagementTableRow(props) {
   const { topicId } = props;
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const topics = useSelector((state) => state.topics.topics);
   const actions = useSelector((state) => state.topics.actions);
@@ -74,6 +76,7 @@ function TopicManagementTableRow(props) {
         "&:hover": { bgcolor: grey[100] },
         borderLeft: `solid 5px ${difficultyColors[difficulty[topic.threat_impact - 1]]}`,
       }}
+      onClick={() => navigate(`/topics/${topic.topic_id}`)}
     >
       <TableCell>
         <FormattedDateTimeWithTooltip utcString={topic.updated_at} />

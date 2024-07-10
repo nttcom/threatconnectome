@@ -19,6 +19,7 @@ import {
   ResetPassword,
   Status,
   Tag,
+  TopicDetail,
   TopicManagement,
   PTeam,
 } from "./pages";
@@ -67,6 +68,7 @@ root.render(
                   </Route>
                   <Route path="topics">
                     <Route index element={<TopicManagement />} />
+                    <Route path=":topicId" element={<TopicDetail />} />
                   </Route>
                 </Route>
               </Routes>
