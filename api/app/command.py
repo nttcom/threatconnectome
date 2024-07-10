@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Row, and_, delete, false, func, nullsfirst, or_, select, true
+from sqlalchemy import Row, Subquery, and_, delete, false, func, nullsfirst, or_, select, true
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -318,65 +318,6 @@ def search_topics_internal(
         if updated_after is None  # do not filter by updated_after
         else models.Topic.updated_at >= updated_after
     )
-    search_by_pteam_id = (
-        true()
-        if pteam_id is None
-        else or_(
-            models.TopicTag.tag_id.in_(
-                select(models.Tag.tag_id)
-                .join(models.Dependency)
-                .join(
-                    models.Service,
-                    and_(
-                        models.Service.service_id == models.Dependency.service_id,
-                        models.Service.pteam_id == str(pteam_id),
-                    ),
-                )
-            ),
-            models.TopicTag.tag_id.in_(
-                select(models.Tag.parent_id)
-                .join(models.Dependency)
-                .join(
-                    models.Service,
-                    and_(
-                        models.Service.service_id == models.Dependency.service_id,
-                        models.Service.pteam_id == str(pteam_id),
-                    ),
-                )
-            ),
-        )
-    )
-
-    search_by_ateam_id = (
-        true()
-        if ateam_id is None
-        else or_(
-            models.TopicTag.tag_id.in_(
-                select(models.Tag.tag_id)
-                .join(models.Dependency)
-                .join(models.Service)
-                .join(
-                    models.ATeamPTeam,
-                    and_(
-                        models.ATeamPTeam.pteam_id == models.Service.pteam_id,
-                        models.ATeamPTeam.ateam_id == str(ateam_id),
-                    ),
-                )
-            ),
-            models.TopicTag.tag_id.in_(
-                select(models.Tag.parent_id)
-                .join(models.Dependency)
-                .join(models.Service)
-                .join(
-                    models.ATeamPTeam,
-                    and_(
-                        models.ATeamPTeam.pteam_id == models.Service.pteam_id,
-                        models.ATeamPTeam.ateam_id == str(ateam_id),
-                    ),
-                )
-            ),
-        )
-    )
 
     search_conditions = [
         search_by_threat_impacts_stmt,
@@ -390,8 +331,6 @@ def search_topics_internal(
         search_by_created_after_stmt,
         search_by_updated_before_stmt,
         search_by_updated_after_stmt,
-        search_by_pteam_id,
-        search_by_ateam_id,
     ]
     filter_topics_stmt = and_(
         true(),
@@ -399,10 +338,54 @@ def search_topics_internal(
     )
     filter_topics_stmt = and_(*search_conditions)
 
+    subq_team_affected_tag: Subquery | None = None
+    if pteam_id:
+        subq_team_affected_tag = (
+            select(models.Tag)
+            .join(models.Dependency)
+            .join(
+                models.Service,
+                and_(
+                    models.Service.service_id == models.Dependency.service_id,
+                    models.Service.pteam_id == str(pteam_id),
+                ),
+            )
+            .subquery()
+        )
+    elif ateam_id:
+        subq_team_affected_tag = (
+            select(models.Tag)
+            .join(models.Dependency)
+            .join(models.Service)
+            .join(
+                models.ATeamPTeam,
+                and_(
+                    models.Service.pteam_id == models.ATeamPTeam.pteam_id,
+                    models.ATeamPTeam.ateam_id == str(ateam_id),
+                ),
+            )
+            .subquery()
+        )
+
     # join tables only if required
     select_topics_stmt = select(models.Topic)
     select_count_stmt = select(func.count(models.Topic.topic_id.distinct()))
-    if tag_ids is not None or pteam_id or ateam_id:
+    if subq_team_affected_tag is not None:
+        # filter by join
+        # Note: use inner join because Tag required to check affected
+        select_topics_stmt = select_topics_stmt.join(models.TopicTag).join(
+            subq_team_affected_tag,
+            models.TopicTag.tag_id.in_(
+                [subq_team_affected_tag.c.tag_id, subq_team_affected_tag.c.parent_id]
+            ),
+        )
+        select_count_stmt = select_count_stmt.join(models.TopicTag).join(
+            subq_team_affected_tag,
+            models.TopicTag.tag_id.in_(
+                [subq_team_affected_tag.c.tag_id, subq_team_affected_tag.c.parent_id]
+            ),
+        )
+    elif tag_ids is not None:
         select_topics_stmt = select_topics_stmt.outerjoin(models.TopicTag)
         select_count_stmt = select_count_stmt.outerjoin(models.TopicTag)
     if misp_tag_ids is not None:
