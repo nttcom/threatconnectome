@@ -63,6 +63,8 @@ def search_topics(
     created_before: datetime | None = Query(None),
     updated_after: datetime | None = Query(None),
     updated_before: datetime | None = Query(None),
+    pteam_id: UUID | None = Query(None),
+    ateam_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -95,6 +97,12 @@ def search_topics(
       "...?title_words=a&title_words=&title_words=B" -> title includes [aAbB] or empty
     """
     keyword_for_empty = ""
+
+    if pteam_id and ateam_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify both pteam_id and ateam_id",
+        )
 
     fixed_tag_ids: set[str | None] = set()
     if tag_names is not None:
@@ -174,6 +182,8 @@ def search_topics(
         created_before=created_before,
         updated_after=updated_after,
         updated_before=updated_before,
+        pteam_id=pteam_id,
+        ateam_id=ateam_id,
     )
 
 
