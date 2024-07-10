@@ -45,9 +45,11 @@ function TopicManagementTableRow(props) {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const topics = useSelector((state) => state.topics.topics);
   const actions = useSelector((state) => state.topics.actions);
+  const params = new URLSearchParams(location.search);
 
   useEffect(() => {
     if (topics?.[topicId] === undefined) dispatch(getTopic(topicId));
@@ -76,7 +78,7 @@ function TopicManagementTableRow(props) {
         "&:hover": { bgcolor: grey[100] },
         borderLeft: `solid 5px ${difficultyColors[difficulty[topic.threat_impact - 1]]}`,
       }}
-      onClick={() => navigate(`/topics/${topic.topic_id}`)}
+      onClick={() => navigate(`/topics/${topic.topic_id}?${params.toString()}`)}
     >
       <TableCell>
         <FormattedDateTimeWithTooltip utcString={topic.updated_at} />
