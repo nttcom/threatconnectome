@@ -185,30 +185,15 @@ export function Status() {
 
   if (!summary) return <>Now loading ServiceTagsSummary...</>;
 
-  const immediateOn = (params.get("immediate") || "") === "on";
-  const offcycleOn = (params.get("offcycle") || "") === "on";
-  const acceptableOn = (params.get("acceptable") || "") === "on";
-  const noneOn = (params.get("none") || "") === "on";
-
-  function getThreatImpactOn(threatImpact) {
-    switch (threatImpact) {
-      case 1:
-        return immediateOn;
-      case 2:
-        return offcycleOn;
-      case 3:
-        return acceptableOn;
-      case 4:
-      default:
-        return noneOn;
-    }
-  }
+  let impactFilters = params
+    .getAll("impactFilter")
+    .filter((filter) => Object.values(threatImpactName).includes(filter));
 
   const filteredTags = summary.tags.filter(
     (tag) =>
-      (!immediateOn && !offcycleOn && !acceptableOn && !noneOn
+      (impactFilters.length === 0
         ? true // show all if selected none
-        : getThreatImpactOn(parseInt(tag.threat_impact ?? 4))) && // show only selected
+        : impactFilters.includes(threatImpactName[parseInt(tag.threat_impact ?? 4)])) && // show only selected
       (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)),
   );
 
@@ -274,7 +259,7 @@ export function Status() {
   };
 
   const handleNavigateTag = (tagId) => {
-    for (let key of ["immediate", "offcycle", "acceptable", "none", "word", "perPage", "page"]) {
+    for (let key of ["impactFilter", "word", "perPage", "page"]) {
       params.delete(key);
     }
     navigate(`/tags/${tagId}?${params.toString()}`);
@@ -301,7 +286,8 @@ export function Status() {
         sx={{ left: -55 }}
       >
         {[0, 1, 2, 3].map((idx) => {
-          const checked = getThreatImpactOn(idx + 1);
+          const impactName = threatImpactName[idx + 1];
+          const checked = impactFilters.includes(impactName);
           const threatImpactCount = summary.threat_impact_count[(idx + 1).toString()];
 
           const fixedSx = {
@@ -310,42 +296,14 @@ export function Status() {
             }),
           };
 
-          const impactName = Object.keys(threatImpactProps).includes(idx + 1)
-            ? idx + 1
-            : threatImpactName[idx + 1];
-
           const onClick = () => {
-            if (getThreatImpactOn(idx + 1)) {
-              switch (idx) {
-                case 0:
-                  params.delete("immediate");
-                  break;
-                case 1:
-                  params.delete("offcycle");
-                  break;
-                case 2:
-                  params.delete("acceptable");
-                  break;
-                case 3:
-                default:
-                  params.delete("none");
-              }
+            if (checked) {
+              impactFilters = impactFilters.filter((filter) => filter !== impactName);
             } else {
-              switch (idx) {
-                case 0:
-                  params.set("immediate", "on");
-                  break;
-                case 1:
-                  params.set("offcycle", "on");
-                  break;
-                case 2:
-                  params.set("acceptable", "on");
-                  break;
-                case 3:
-                default:
-                  params.set("none", "on");
-              }
+              impactFilters.push(impactName);
             }
+            params.delete("impactFilter");
+            impactFilters.map((filter) => params.append("impactFilter", filter));
 
             params.set("page", 1); // reset page
             navigate(location.pathname + "?" + params.toString());
