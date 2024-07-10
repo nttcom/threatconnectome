@@ -32,7 +32,7 @@ export function PTeamServiceTabs(props) {
               textTransform: "none",
               border: `1px solid ${grey[300]}`,
               borderRadius: "0.5rem 0.5rem 0 0",
-              width: "10%",
+              width: "20%",
               mt: 1,
             }}
           />
@@ -45,7 +45,7 @@ export function PTeamServiceTabs(props) {
             textTransform: "none",
             border: `1px solid ${grey[300]}`,
             borderRadius: "0.5rem 0.5rem 0 0",
-            width: "10%",
+            width: "20%",
             mt: 1,
           }}
         />
