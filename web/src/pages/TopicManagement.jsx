@@ -169,7 +169,7 @@ export function TopicManagement() {
     if (!user?.user_id) return;
     evalSearchTopics();
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [page, perPage, searchConditions, user, checkedPteam, checkedAteam]);
+  }, [page, perPage, searchConditions, user, checkedPteam, checkedAteam, pteamId, ateamId]);
 
   const paramsToSearchQuery = (params) => {
     const delimiter = "|";
