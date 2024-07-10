@@ -22,6 +22,7 @@ from app.tests.medium.constants import (
     MISPTAG2,
     MISPTAG3,
     PTEAM1,
+    PTEAM2,
     TAG1,
     TAG2,
     TAG3,
@@ -1204,13 +1205,13 @@ class TestSearchTopics:
             self.result = response_upload_sbom_file.json()
 
             # topic registration without pteam
-            self.topic1 = self.create_minimal_topic(USER1, {"tags": [TAG1]})
-            self.topic2 = self.create_minimal_topic(USER1, {"tags": [TAG2]})
-            self.topic3 = self.create_minimal_topic(USER1, {"tags": [TAG3]})
+            topic1 = self.create_minimal_topic(USER1, {"tags": [TAG1]})
+            topic2 = self.create_minimal_topic(USER1, {"tags": [TAG2]})
+            topic3 = self.create_minimal_topic(USER1, {"tags": [TAG3]})
             self.topics_not_pteam = {
-                1: self.topic1,
-                2: self.topic2,
-                3: self.topic3,
+                1: topic1,
+                2: topic2,
+                3: topic3,
             }
 
         @pytest.mark.parametrize(
@@ -1222,18 +1223,16 @@ class TestSearchTopics:
         )
         def test_search_by_pteam_id(self, topic_registration_num, expected):
             # topic registration with pteam
-            self.topics = {}
+            topics = {}
             for idx in range(topic_registration_num):
                 params = {"tags": [self.result[idx]["tag_name"]]}
-                self.topics[idx + 1] = self.create_minimal_topic(USER1, params)
+                topics[idx + 1] = self.create_minimal_topic(USER1, params)
 
             search_params = {
                 "pteam_id": self.pteam1.pteam_id,
             }
 
-            result_search_topics = self.try_search_topics(
-                USER1, self.topics, search_params, expected
-            )
+            result_search_topics = self.try_search_topics(USER1, topics, search_params, expected)
             assert result_search_topics.num_topics == len(expected)
 
         @pytest.mark.parametrize(
@@ -1245,19 +1244,159 @@ class TestSearchTopics:
         )
         def test_search_by_not_pteam_id(self, topic_registration_num, expected):
             # topic registration with pteam
-            self.topics = {}
+            topics = {}
             for idx in range(topic_registration_num):
                 params = {"tags": [self.result[idx]["tag_name"]]}
-                self.topics[idx + 4] = self.create_minimal_topic(USER1, params)
+                topics[idx + 4] = self.create_minimal_topic(USER1, params)
 
-            self.topics = {**self.topics_not_pteam, **self.topics}
+            topics = {**self.topics_not_pteam, **topics}
 
             # not pteam_id
             search_params = {}
 
-            result_search_topics = self.try_search_topics(
-                USER1, self.topics, search_params, expected
+            result_search_topics = self.try_search_topics(USER1, topics, search_params, expected)
+            assert result_search_topics.num_topics == len(expected)
+
+    class TestSearchByAteamId(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_ateam_id(self):
+            pteam1 = create_pteam(USER1, PTEAM1)
+            pteam2 = create_pteam(USER1, PTEAM2)
+            self.ateam1 = create_ateam(USER1, ATEAM1)
+            watching_request1 = create_watching_request(USER1, self.ateam1.ateam_id)
+            watching_request2 = create_watching_request(USER1, self.ateam1.ateam_id)
+            request1 = {
+                "request_id": str(watching_request1.request_id),
+                "pteam_id": str(pteam1.pteam_id),
+            }
+            request2 = {
+                "request_id": str(watching_request2.request_id),
+                "pteam_id": str(pteam2.pteam_id),
+            }
+
+            data1 = client.post(
+                "/ateams/apply_watching_request", headers=headers(USER1), json=request1
             )
+            data2 = client.post(
+                "/ateams/apply_watching_request", headers=headers(USER1), json=request2
+            )
+            assert data1.status_code == 200
+            assert data2.status_code == 200
+
+            # register tag with pteam1
+            params = {"service": "threatconnectome", "force_mode": True}
+            sbom_file = (
+                Path(__file__).resolve().parent.parent.parent
+                / "requests"
+                / "upload_test"
+                / "tag.jsonl"
+            )
+            with open(sbom_file, "rb") as tags:
+                response_upload_sbom_file_pteam1 = client.post(
+                    f"/pteams/{pteam1.pteam_id}/upload_tags_file",
+                    headers=file_upload_headers(USER1),
+                    params=params,
+                    files={"file": tags},
+                )
+            assert response_upload_sbom_file_pteam1.status_code == 200
+            self.result_pteam1 = response_upload_sbom_file_pteam1.json()
+
+            # register tag with pteam2
+            params = {"service": "threatconnectome", "force_mode": True}
+            sbom_file = (
+                Path(__file__).resolve().parent.parent.parent
+                / "requests"
+                / "upload_test"
+                / "tag2.jsonl"
+            )
+            with open(sbom_file, "rb") as tags:
+                response_upload_sbom_file_pteam2 = client.post(
+                    f"/pteams/{pteam2.pteam_id}/upload_tags_file",
+                    headers=file_upload_headers(USER1),
+                    params=params,
+                    files={"file": tags},
+                )
+            assert response_upload_sbom_file_pteam2.status_code == 200
+            self.result_pteam2 = response_upload_sbom_file_pteam2.json()
+
+            # topic registration without pteam
+            topic1 = self.create_minimal_topic(USER1, {"tags": [TAG1]})
+            topic2 = self.create_minimal_topic(USER1, {"tags": [TAG2]})
+            topic3 = self.create_minimal_topic(USER1, {"tags": [TAG3]})
+            self.topics_not_pteam = {
+                1: topic1,
+                2: topic2,
+                3: topic3,
+            }
+
+        @pytest.mark.parametrize(
+            "topic_registration_num, expected",
+            [
+                (1, {1}),
+                (2, {1, 2}),
+            ],
+        )
+        def test_search_by_ateam_id_with_one_pteam(self, topic_registration_num, expected):
+            # topic registration with pteam
+            topics = {}
+            for idx in range(topic_registration_num):
+                params = {"tags": [self.result_pteam1[idx]["tag_name"]]}
+                topics[idx + 1] = self.create_minimal_topic(USER1, params)
+
+            search_params = {
+                "ateam_id": self.ateam1.ateam_id,
+            }
+
+            result_search_topics = self.try_search_topics(USER1, topics, search_params, expected)
+            assert result_search_topics.num_topics == len(expected)
+
+        @pytest.mark.parametrize(
+            "topic_registration_num, expected",
+            [
+                (1, {1, 2}),
+                (2, {1, 2, 3, 4}),
+            ],
+        )
+        def test_search_by_ateam_id_with_two_pteam(self, topic_registration_num, expected):
+            # topic registration with pteam
+            topics_list = []
+            for idx in range(topic_registration_num):
+                params_pteam1 = {"tags": [self.result_pteam1[idx]["tag_name"]]}
+                params_pteam2 = {"tags": [self.result_pteam2[idx]["tag_name"]]}
+                topics_list.append(self.create_minimal_topic(USER1, params_pteam1))
+                topics_list.append(self.create_minimal_topic(USER1, params_pteam2))
+
+            topics_dict = {}
+            for idx in range(len(topics_list)):
+                topics_dict[idx + 1] = topics_list[idx]
+
+            search_params = {
+                "ateam_id": self.ateam1.ateam_id,
+            }
+
+            result_search_topics = self.try_search_topics(
+                USER1, topics_dict, search_params, expected
+            )
+            assert result_search_topics.num_topics == len(expected)
+
+        @pytest.mark.parametrize(
+            "topic_registration_num, expected",
+            [
+                (1, {1, 2, 3, 4}),
+                (2, {1, 2, 3, 4, 5}),
+            ],
+        )
+        def test_search_by_not_ateam_id(self, topic_registration_num, expected):
+            # topic registration with pteam
+            topics = {}
+            for idx in range(topic_registration_num):
+                params = {"tags": [self.result_pteam1[idx]["tag_name"]]}
+                topics[idx + 4] = self.create_minimal_topic(USER1, params)
+
+            topics = {**self.topics_not_pteam, **topics}
+            search_params = {}
+
+            result_search_topics = self.try_search_topics(USER1, topics, search_params, expected)
             assert result_search_topics.num_topics == len(expected)
 
     class ExtCommonForResultSlice_(Common_):
