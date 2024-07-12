@@ -63,12 +63,6 @@ class ATeamEntry(ORMModel):
     contact_info: str
 
 
-class ATeamInfo(ATeamEntry):
-    alert_slack: Slack
-    alert_mail: Mail
-    pteams: list[PTeamEntry]
-
-
 class UserResponse(ORMModel):
     user_id: UUID
     uid: str
@@ -121,6 +115,7 @@ class ExtTagResponse(TagResponse):
 class PTeamServiceResponse(ORMModel):
     service_name: str
     service_id: UUID
+    sbom_uploaded_at: datetime | None = None
 
 
 class PTeamtagRequest(ORMModel):
@@ -322,6 +317,12 @@ class PTeamInviterResponse(ORMModel):
     pteam_name: str
     email: str
     user_id: UUID
+
+
+class ATeamInfo(ATeamEntry):
+    alert_slack: Slack
+    alert_mail: Mail
+    pteams: list[PTeamInfo]
 
 
 class ApplyInvitationRequest(ORMModel):  # common use of PTeam and ATeam
