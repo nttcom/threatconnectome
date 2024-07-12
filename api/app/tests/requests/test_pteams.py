@@ -2288,6 +2288,28 @@ def test_upload_pteam_sbom_file_with_wrong_filename():
     assert data["detail"] == "Please upload a file with .json as extension"
 
 
+def test_it_should_return_422_when_upload_sbom_with_over_255_char_servicename():
+    create_user(USER1)
+    pteam = create_pteam(USER1, PTEAM1)
+
+    # create random 256 alphanumeric characters
+    service_name = "a" * 256
+
+    params = {"service": service_name, "force_mode": True}
+    sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
+    with open(sbom_file, "rb") as tags:
+        response = client.post(
+            f"/pteams/{pteam.pteam_id}/upload_sbom_file",
+            headers=file_upload_headers(USER1),
+            params=params,
+            files={"file": tags},
+        )
+
+    assert response.status_code == 422
+    data = response.json()
+    assert data["detail"] == "Length of Service name exceeds 255 characters"
+
+
 @pytest.mark.skip(reason="TODO: need api to get background task status")
 def test_upload_pteam_sbom_file_wrong_content_format():
     create_user(USER1)

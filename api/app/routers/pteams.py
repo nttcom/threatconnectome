@@ -695,6 +695,12 @@ async def upload_pteam_sbom_file(
     """
     upload sbom file
     """
+    if len(service) > 255:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Length of Service name exceeds 255 characters",
+        )
+
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(db, pteam, current_user):
