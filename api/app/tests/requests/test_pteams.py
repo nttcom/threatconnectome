@@ -1,6 +1,4 @@
 import json
-import random
-import string
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -2290,14 +2288,12 @@ def test_upload_pteam_sbom_file_with_wrong_filename():
     assert data["detail"] == "Please upload a file with .json as extension"
 
 
-def test_upload_pteam_sbom_file_with_service_name_length_exceed_max_characters():
+def test_it_should_return_422_when_upload_sbom_with_over_255_char_servicename():
     create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
 
     # create random 256 alphanumeric characters
-    service_name = ""
-    for i in range(256):
-        service_name += random.choice(string.ascii_letters + string.digits)
+    service_name = "a" * 256
 
     params = {"service": service_name, "force_mode": True}
     sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
