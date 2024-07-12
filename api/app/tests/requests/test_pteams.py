@@ -1,4 +1,6 @@
 import json
+import random
+import string
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -2286,6 +2288,30 @@ def test_upload_pteam_sbom_file_with_wrong_filename():
     assert response.status_code == 400
     data = response.json()
     assert data["detail"] == "Please upload a file with .json as extension"
+
+
+def test_upload_pteam_sbom_file_with_service_name_length_exceed_max_characters():
+    create_user(USER1)
+    pteam = create_pteam(USER1, PTEAM1)
+
+    # create random 256 alphanumeric characters
+    service_name = ""
+    for i in range(256):
+        service_name += random.choice(string.ascii_letters + string.digits)
+
+    params = {"service": service_name, "force_mode": True}
+    sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
+    with open(sbom_file, "rb") as tags:
+        response = client.post(
+            f"/pteams/{pteam.pteam_id}/upload_sbom_file",
+            headers=file_upload_headers(USER1),
+            params=params,
+            files={"file": tags},
+        )
+
+    assert response.status_code == 422
+    data = response.json()
+    assert data["detail"] == "Length of Service name exceeds 255 characters"
 
 
 @pytest.mark.skip(reason="TODO: need api to get background task status")
