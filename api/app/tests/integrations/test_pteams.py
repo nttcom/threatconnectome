@@ -7,10 +7,19 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from app import models
+from app.alert import (
+    create_mail_to_notify_sbom_upload_failed,
+    create_mail_to_notify_sbom_upload_succeeded,
+)
+from app.constants import SYSTEM_EMAIL
 from app.main import app
 from app.routers.pteams import bg_create_tags_from_sbom_json
+from app.slack import (
+    create_slack_blocks_to_notify_sbom_upload_failed,
+    create_slack_blocks_to_notify_sbom_upload_succeeded,
+)
 from app.tests.common import ticket_utils
-from app.tests.medium.constants import PTEAM1, TOPIC1, USER1
+from app.tests.medium.constants import PTEAM1, SAMPLE_SLACK_WEBHOOK_URL, TOPIC1, USER1
 from app.tests.medium.utils import (
     create_pteam,
     create_service_topicstatus,
@@ -615,6 +624,31 @@ class TestPostUploadSBOMFileCycloneDX:
             }
             return sbom_json
 
+        def gen_broken_sbom_json(self, base_json: dict) -> dict:
+            application_param = self.ApplicationParam(
+                **{
+                    "name": "threatconnectome/api/Pipfile.lock",
+                    "type": "application",
+                    "trivy_type": "pipenv",
+                    "trivy_class": "lang-pkgs",
+                },
+            )
+            library_param = self.LibraryParam(
+                **{
+                    "purl": "pkg:pypi/cryptography@39.0.2",
+                    "name": "cryptography",
+                    "group": None,
+                    "version": "39.0.2",
+                },
+            )
+            components_dict = {application_param: [library_param]}
+            # gen normal sbom
+            sbom_json = self.gen_sbom_json(base_json, components_dict)
+            # overwrite bom-ref -- it will cause dependency mismatch error
+            for component in sbom_json["components"]:
+                component["bom-ref"] += "xxx"  # does not match with "dependsOn" params
+            return sbom_json
+
         def get_services(self) -> dict:
             response = client.get(f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1))
             return response.json().get("services", {})
@@ -628,6 +662,20 @@ class TestPostUploadSBOMFileCycloneDX:
 
         def get_tag(self, tag_id: UUID | str) -> dict:
             response = client.get(f"/tags/{tag_id}", headers=headers(USER1))
+            return response.json()
+
+        def enable_slack(self, webhook_url: str) -> dict:
+            request = {"alert_slack": {"enable": True, "webhook_url": webhook_url}}
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=request
+            )
+            return response.json()
+
+        def enable_mail(self, mail_address: str) -> dict:
+            request = {"alert_mail": {"enable": True, "address": mail_address}}
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=request
+            )
             return response.json()
 
     class TestCycloneDX15WithTrivy(Common):
@@ -808,7 +856,7 @@ class TestPostUploadSBOMFileCycloneDX:
             }
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
 
-            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, True)
+            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, True, None)
 
             services = self.get_services()
             service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
@@ -1078,7 +1126,7 @@ class TestPostUploadSBOMFileCycloneDX:
             }
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
 
-            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, True)
+            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, True, None)
 
             services = self.get_services()
             service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
@@ -1122,3 +1170,133 @@ class TestPostUploadSBOMFileCycloneDX:
                 for expected_threat_param in expected_threat_params
             }
             assert created_threats == expected_threats
+
+        @pytest.mark.parametrize(
+            "enable_slack, enable_mail, expected_slack, expected_mail",
+            [
+                (True, True, True, True),
+                (True, False, True, False),
+                (False, True, False, True),
+                (False, False, False, False),
+            ],
+        )
+        def test_notify_sbom_upload_succeeded(
+            self, mocker, enable_slack, enable_mail, expected_slack, expected_mail
+        ) -> None:
+            service_name = "test service"
+            upload_filename = "sample-sbom.json"
+
+            # setup mocker
+            send_slack = mocker.patch("app.alert.send_slack")
+            send_email = mocker.patch("app.alert.send_email")
+
+            # enable pteam notification
+            webhook_url = mail_address = None
+            if enable_slack:
+                webhook_url = SAMPLE_SLACK_WEBHOOK_URL
+                self.enable_slack(webhook_url)
+            if enable_mail:
+                mail_address = "foobar@example.com"
+                self.enable_mail(mail_address)
+
+            # gen sbom with empty components
+            target_name = "sample target1"
+            sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), {})
+
+            bg_create_tags_from_sbom_json(
+                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+            )
+
+            services = self.get_services()
+            service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+            assert service1
+
+            if expected_slack:
+                expected_slack_blocks = create_slack_blocks_to_notify_sbom_upload_succeeded(
+                    str(self.pteam1.pteam_id),
+                    self.pteam1.pteam_name,
+                    service1["service_id"],
+                    service_name,
+                    upload_filename,
+                )
+                send_slack.assert_called_once()
+                send_slack.assert_called_with(webhook_url, expected_slack_blocks)
+            else:
+                send_slack.addrt_not_called()
+
+            if expected_mail:
+                expected_mail_subject, expected_mail_body = (
+                    create_mail_to_notify_sbom_upload_succeeded(
+                        str(self.pteam1.pteam_id),
+                        self.pteam1.pteam_name,
+                        service1["service_id"],
+                        service_name,
+                        upload_filename,
+                    )
+                )
+                send_email.assert_called_once()
+                send_email.assert_called_with(
+                    mail_address, SYSTEM_EMAIL, expected_mail_subject, expected_mail_body
+                )
+            else:
+                send_email.assert_not_called()
+
+        @pytest.mark.parametrize(
+            "enable_slack, enable_mail, expected_slack, expected_mail",
+            [
+                (True, True, True, True),
+                (True, False, True, False),
+                (False, True, False, True),
+                (False, False, False, False),
+            ],
+        )
+        def test_notify_sbom_upload_failed(
+            self, mocker, enable_slack, enable_mail, expected_slack, expected_mail
+        ) -> None:
+            service_name = "test service"
+            upload_filename = "sample-sbom.json"
+
+            # setup mocker
+            send_slack = mocker.patch("app.alert.send_slack")
+            send_email = mocker.patch("app.alert.send_email")
+
+            # enable pteam notification
+            webhook_url = mail_address = None
+            if enable_slack:
+                webhook_url = SAMPLE_SLACK_WEBHOOK_URL
+                self.enable_slack(webhook_url)
+            if enable_mail:
+                mail_address = "foobar@example.com"
+                self.enable_mail(mail_address)
+
+            # gen broken sbom which cause background task error
+            target_name = "sample target1"
+            sbom_json = self.gen_broken_sbom_json(self.gen_base_json(target_name))
+
+            bg_create_tags_from_sbom_json(
+                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+            )
+
+            services = self.get_services()
+            service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+            assert service1
+
+            if expected_slack:
+                expected_slack_blocks = create_slack_blocks_to_notify_sbom_upload_failed(
+                    service_name, upload_filename
+                )
+                send_slack.assert_called_once()
+                send_slack.assert_called_with(webhook_url, expected_slack_blocks)
+            else:
+                send_slack.assert_not_called()
+
+            if expected_mail:
+                expected_mail_subject, expected_mail_body = (
+                    create_mail_to_notify_sbom_upload_failed(service_name, upload_filename)
+                )
+                send_email.assert_called_once()
+                send_email.assert_called_with(
+                    mail_address, SYSTEM_EMAIL, expected_mail_subject, expected_mail_body
+                )
+            else:
+                send_email.assert_not_called()
