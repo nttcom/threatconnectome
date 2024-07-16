@@ -1,6 +1,6 @@
 import os
 from typing import Sequence
-from urllib.parse import urljoin
+from urllib.parse import urlencode, urljoin
 
 from fastapi import HTTPException, status
 from slack_sdk.errors import SlackApiError
@@ -98,7 +98,9 @@ def create_slack_blocks_to_notify_sbom_upload_succeeded(
     blocks: list[dict[str, str | dict | list]] = _block_header(
         text=f":white_check_mark: SBOM uploaded as a service: {service_name}"
     )
-    service_url = f"{STATUS_URL}?pteamId={pteam_id}&serviceId={service_id}"
+    params = {"pteamId": pteam_id, "serviceId": service_id}
+    encoded_params = urlencode(params)
+    service_url = urljoin(WEBUI_URL, f"?{encoded_params}")
     blocks.extend(
         [
             {

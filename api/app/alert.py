@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urljoin
+from urllib.parse import urlencode, urljoin
 from uuid import UUID
 
 from email_validator import validate_email
@@ -38,7 +38,9 @@ def _pteam_tag_page_link(pteam_id: UUID | str, tag_id: UUID | str) -> str:
 def _pteam_service_tab_link(pteam_id: UUID | str, service_id: UUID | str) -> str:
     baseurl = os.getenv("WEBUI_URL", "http://localhost")
     baseurl += "" if baseurl.endswith("/") else "/"
-    return urljoin(baseurl, f"?pteamId={pteam_id}&serviceId={service_id}")
+    params = {"pteamId": str(pteam_id), "serviceId": str(service_id)}
+    encoded_params = urlencode(params)
+    return urljoin(baseurl, f"?{encoded_params}")
 
 
 def create_mail_alert_for_new_topic(
