@@ -7,8 +7,11 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.webhook import WebhookClient
 
 WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
-TAG_URL = urljoin(WEBUI_URL, "/tags/")
-ANALYSIS_URL = urljoin(WEBUI_URL, "/analysis")
+WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
+# CAUTION: do *NOT* urljoin subpath which starts with "/"
+STATUS_URL = urljoin(WEBUI_URL, "")
+TAG_URL = urljoin(WEBUI_URL, "tags/")
+ANALYSIS_URL = urljoin(WEBUI_URL, "analysis/")
 THREAT_IMPACT_LABEL = {
     1: ":red_circle: Immediate",
     2: ":large_orange_circle: Off-cycle",
@@ -82,4 +85,57 @@ def create_slack_pteam_alert_blocks_for_new_topic(
             {"type": "divider"},
         ]
     )
+    return blocks
+
+
+def create_slack_blocks_to_notify_sbom_upload_succeeded(
+    pteam_id: str,
+    pteam_name: str,
+    service_id: str,
+    service_name: str,
+    uploaded_filename: str | None,
+):
+    blocks: list[dict[str, str | dict | list]] = _block_header(
+        text=f":white_check_mark: SBOM uploaded as a service: {service_name}"
+    )
+    service_url = f"{STATUS_URL}?pteamId={pteam_id}&serviceId={service_id}"
+    blocks.extend(
+        [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*<{service_url}|{service_name} ({pteam_name})>*",
+                },
+            }
+        ]
+    )
+    if uploaded_filename:
+        blocks.extend(
+            [
+                {
+                    "type": "context",
+                    "elements": [{"type": "plain_text", "text": uploaded_filename}],
+                },
+            ]
+        )
+    return blocks
+
+
+def create_slack_blocks_to_notify_sbom_upload_failed(
+    service_name: str,
+    uploaded_filename: str | None,
+):
+    blocks: list[dict[str, str | dict | list]] = _block_header(
+        text=f":exclamation: Failed uploading SBOM as a service: {service_name}"
+    )
+    if uploaded_filename:
+        blocks.extend(
+            [
+                {
+                    "type": "context",
+                    "elements": [{"type": "plain_text", "text": uploaded_filename}],
+                },
+            ]
+        )
     return blocks
