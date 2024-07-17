@@ -345,6 +345,7 @@ class Service(Base):
     service_mission_impact: Mapped[MissionImpactEnum] = mapped_column(
         server_default=MissionImpactEnum.MISSION_FAILURE
     )
+    sbom_uploaded_at: Mapped[datetime | None]
 
     pteam = relationship("PTeam", back_populates="services")
     dependencies = relationship(

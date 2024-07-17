@@ -674,10 +674,13 @@ def bg_create_tags_from_sbom_json(
 
         try:
             json_lines = sbom_json_to_artifact_json_lines(sbom_json)
-            apply_service_tags(db, pteam, service, json_lines, auto_create_tags=force_mode)
+            apply_service_tags(db, service, json_lines, auto_create_tags=force_mode)
         except ValueError:
             notify_sbom_upload_ended(service, filename, False)
             return
+
+        now = datetime.now()
+        service.sbom_uploaded_at = now
 
         db.commit()
 
@@ -772,9 +775,12 @@ def upload_pteam_tags_file(
         db.flush()
 
     try:
-        apply_service_tags(db, pteam, service_model, json_lines, auto_create_tags=force_mode)
+        apply_service_tags(db, service_model, json_lines, auto_create_tags=force_mode)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+
+    now = datetime.now()
+    service_model.sbom_uploaded_at = now
 
     db.commit()
 
@@ -783,7 +789,6 @@ def upload_pteam_tags_file(
 
 def apply_service_tags(
     db: Session,
-    pteam: models.PTeam,
     service: models.Service,
     json_lines: list[dict],
     auto_create_tags=False,

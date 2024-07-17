@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 import pytest
@@ -19,7 +19,13 @@ from app.slack import (
     create_slack_blocks_to_notify_sbom_upload_succeeded,
 )
 from app.tests.common import ticket_utils
-from app.tests.medium.constants import PTEAM1, SAMPLE_SLACK_WEBHOOK_URL, TOPIC1, USER1
+from app.tests.medium.constants import (
+    PTEAM1,
+    SAMPLE_SLACK_WEBHOOK_URL,
+    TAG1,
+    TOPIC1,
+    USER1,
+)
 from app.tests.medium.utils import (
     create_pteam,
     create_service_topicstatus,
@@ -27,6 +33,7 @@ from app.tests.medium.utils import (
     create_topic_with_versioned_actions,
     create_user,
     headers,
+    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -531,6 +538,24 @@ def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
     assert topic_title_list == sorted_titles
 
 
+def test_sbom_uploaded_at_with_called_upload_tags_file():
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    service_name = "test service 1"
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_name, {TAG1: [("Pipfile.lock", "1.0.0")]})
+
+    response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1))
+    services = response.json().get("services", {})
+    service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+    assert service1
+    now = datetime.now()
+    datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
+    assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) > now - timedelta(
+        seconds=30
+    )
+    assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
+
+
 class TestPostUploadSBOMFileCycloneDX:
 
     class Common:
@@ -861,6 +886,12 @@ class TestPostUploadSBOMFileCycloneDX:
             services = self.get_services()
             service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
             assert service1
+            now = datetime.now()
+            datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
+            assert datetime.strptime(
+                service1["sbom_uploaded_at"], datetime_format
+            ) > now - timedelta(seconds=30)
+            assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
 
             @dataclass(frozen=True, kw_only=True)
             class DependencyParamsToCheck:
