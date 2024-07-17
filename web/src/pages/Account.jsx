@@ -1,14 +1,5 @@
+import { Edit as EditIcon, Save as SaveIcon, Undo as UndoIcon } from "@mui/icons-material";
 import {
-  Edit as EditIcon,
-  MilitaryTech as MilitaryTechIcon,
-  Save as SaveIcon,
-  Star as StarIcon,
-  Undo as UndoIcon,
-  Verified as VerifiedIcon,
-} from "@mui/icons-material";
-import {
-  Avatar,
-  Badge,
   Box,
   Button,
   ButtonGroup,
@@ -23,8 +14,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { UUIDTypography } from "../components/UUIDTypography";
-import { getAchievements, updateUser } from "../slices/user";
-import { difficultyColors } from "../utils/const";
+import { updateUser } from "../slices/user";
 
 export function Account() {
   const [editInfo, setEditInfo] = useState({
@@ -34,7 +24,6 @@ export function Account() {
 
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user);
-  const achievements = useSelector((state) => state.user.achievements);
 
   useEffect(() => {
     if (!user?.user_id) return;
@@ -43,19 +32,7 @@ export function Account() {
 
   useEffect(() => {
     if (!user.user_id) return;
-    if (!achievements) dispatch(getAchievements(user.user_id));
-  }, [achievements, dispatch, user]);
-
-  const handleChangeFavoriteBadge = (badgeId) => {
-    dispatch(
-      updateUser({
-        userId: user.user_id,
-        user: {
-          favorite_badge: user.favorite_badge === badgeId ? "" : badgeId,
-        },
-      }),
-    );
-  };
+  }, [dispatch, user]);
 
   const handleEditMode = () => {
     setEditInfo({ years: user.years });
@@ -101,11 +78,6 @@ export function Account() {
               >
                 <Button color="warning" onClick={handleEditMode} variant="contained">
                   {editMode ? <UndoIcon /> : <EditIcon />}
-                </Button>
-              </Tooltip>
-              <Tooltip arrow placement="bottom-end" title={"Request New Badge"}>
-                <Button color="secondary" variant="contained">
-                  <MilitaryTechIcon />
                 </Button>
               </Tooltip>
             </ButtonGroup>
@@ -162,23 +134,6 @@ export function Account() {
             )}
           </Box>
         </Box>
-        <Box alignItems="center" display="flex" flexDirection="row" my={1}>
-          <Box display="flex" flexDirection="row" width="30%">
-            <Typography>GTeam:</Typography>
-          </Box>
-          <Box display="flex" flexDirection="column" width="70%">
-            {user.gteams?.length >= 1 ? (
-              user.gteams.map((gteam, index) => (
-                <Box alignItems="baseline" display="flex" flexDirection="row" key={index}>
-                  <Typography mr={1}>{gteam.gteam_name}</Typography>
-                  <UUIDTypography>{gteam.gteam_id}</UUIDTypography>
-                </Box>
-              ))
-            ) : (
-              <Typography>-</Typography>
-            )}
-          </Box>
-        </Box>
         <Box alignItems="center" display="flex" flexDirection="row" mt={1}>
           <Box display="flex" flexDirection="row" width="30%">
             <Tooltip
@@ -209,49 +164,6 @@ export function Account() {
                 {user.years}+ year{user.years <= 1 ? "" : "s"}
               </Typography>
             )}
-          </Box>
-        </Box>
-        <Box alignItems="center" display="flex" flexDirection="row" mt={1}>
-          <Box display="flex" flexDirection="row" width="30%">
-            <Typography>Achievements:</Typography>
-          </Box>
-          <Box display="flex" flexDirection="row" flexWrap="wrap" width="70%">
-            {achievements?.map((achievement, index) => (
-              <Tooltip
-                arrow
-                describeChild
-                key={index}
-                onClick={() => handleChangeFavoriteBadge(achievement.badge_id)}
-                placement="bottom-start"
-                title={`${achievement.badge_name}${
-                  achievement.badge_id === user.favorite_badge ? " *" : ""
-                }`}
-                sx={{ mr: 1 }}
-              >
-                <Badge
-                  anchorOrigin={{
-                    horizontal: "right",
-                    vertical: "bottom",
-                  }}
-                  badgeContent={<StarIcon color="warning" />}
-                  invisible={achievement.badge_id !== user.favorite_badge}
-                  overlap="circular"
-                >
-                  <Avatar
-                    alt={achievement.badge_name.slice(0, 1)}
-                    src={achievement.image_url}
-                    variant="square"
-                    sx={{
-                      border: 2,
-                      borderColor: difficultyColors[achievement.difficulty],
-                    }}
-                  >
-                    {/* default badge image */}
-                    {achievement.image_url ? "" : <VerifiedIcon />}
-                  </Avatar>
-                </Badge>
-              </Tooltip>
-            ))}
           </Box>
         </Box>
       </>

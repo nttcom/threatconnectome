@@ -35,6 +35,8 @@ env:
   FLASHSENSE_API_URL: http://flashsense.api.url.example/api
   FIREBASE_CRED: ../key/firebase_credentials.json
   FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+  SENDGRID_API_KEY: fake_api_key_for_sendgrid_test
+  SYSTEM_EMAIL: ic-metemcyber@example.com
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:

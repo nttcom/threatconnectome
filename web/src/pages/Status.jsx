@@ -7,6 +7,7 @@ import {
 import {
   Box,
   Chip,
+  FormControlLabel,
   IconButton,
   InputAdornment,
   ListItemIcon,
@@ -25,15 +26,17 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
-import { PTeamGroupChip } from "../components/PTeamGroupChip";
+import { Android12Switch } from "../components/Android12Switch";
+import { DeleteServiceIcon } from "../components/DeleteServiceIcon";
 import { PTeamLabel } from "../components/PTeamLabel";
+import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
-import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
+import { getPTeam, getPTeamServiceTagsSummary, setPTeamId } from "../slices/pteam";
 import { noPTeamMessage, threatImpactName, threatImpactProps } from "../utils/const";
 const threatImpactCountMax = 99999;
 
@@ -80,6 +83,28 @@ SearchField.propTypes = {
   onApply: PropTypes.func.isRequired,
 };
 
+function CustomTabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+CustomTabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+};
+
 export function Status() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -87,38 +112,89 @@ export function Status() {
 
   const params = new URLSearchParams(location.search);
   const searchWord = params.get("word")?.trim().toLowerCase() ?? "";
-  const selectedGroup = params.get("group") ?? "";
+
+  const pteamId = params.get("pteamId");
+  const serviceId = params.get("serviceId");
+
+  const user = useSelector((state) => state.user.user);
+  const pteam = useSelector((state) => state.pteam.pteam);
+  const summaries = useSelector((state) => state.pteam.serviceTagsSummaries);
+
+  const summary = summaries[serviceId];
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const searchMenuOpen = Boolean(anchorEl);
 
-  const user = useSelector((state) => state.user.user);
-  const pteamId = useSelector((state) => state.pteam.pteamId); // dispatched by App or PTeamSelector
-  const summary = useSelector((state) => state.pteam.tagsSummary); // dispatched by App
+  const [isActiveUploadMode, setIsActiveUploadMode] = useState(0);
+
+  useEffect(() => {
+    if (!user.user_id) return; // wait login completed
+    if (!pteamId) return; // wait fixed by App
+    if (!pteam) {
+      dispatch(getPTeam(pteamId));
+      return;
+    }
+    if (pteam && pteam.pteam_id !== pteamId) {
+      // for the case pteam switched. -- looks redundant but necessary, uhmm...
+      dispatch(setPTeamId(pteamId));
+      return;
+    }
+    if (summary) return; // Ready!
+
+    if (!serviceId) {
+      if (pteam.services.length === 0) return; // nothing to do any more.
+      // no service selected. force selecting one of services -- the first one
+      const newParams = new URLSearchParams();
+      newParams.set("pteamId", pteamId);
+      newParams.set("serviceId", pteam.services[0].service_id);
+      navigate(location.pathname + "?" + newParams.toString());
+      return;
+    } else if (!pteam.services.find((service) => service.service_id === serviceId)) {
+      alert("Invalid serviceId!");
+      const newParams = new URLSearchParams();
+      newParams.set("pteamId", pteamId);
+      navigate("/?" + newParams.toString());
+      return;
+    }
+    dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [user.user_id, pteamId, pteam, pteamId, serviceId]);
 
   if (!pteamId) return <>{noPTeamMessage}</>;
-  else if (!user || !summary) return <>Now loading...</>;
+  if (!user.user_id || !pteamId || !pteam) {
+    return <>Now loading...</>;
+  }
 
   const handleSBOMUploaded = () => {
-    dispatch(getPTeamTagsSummary(pteamId));
-    dispatch(getPTeamGroups(pteamId));
+    dispatch(getPTeam(pteamId));
   };
 
-  const iFilter = [0, 1, 2, 3].reduce(
-    (ret, idx) => ({
-      ...ret,
-      [idx]: (params.get("iFilter") ?? "0000")[idx] !== "0",
-    }),
-    {},
-  );
+  if (!serviceId) {
+    if (pteam.services.length === 0) {
+      return (
+        <>
+          <Box display="flex" flexDirection="row">
+            <PTeamLabel defaultTabIndex={0} />
+            <Box flexGrow={1} />
+          </Box>
+          <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+        </>
+      );
+    }
+  }
+
+  if (!summary) return <>Now loading ServiceTagsSummary...</>;
+
+  let impactFilters = params
+    .getAll("impactFilter")
+    .filter((filter) => Object.values(threatImpactName).includes(filter));
 
   const filteredTags = summary.tags.filter(
     (tag) =>
-      (Object.values(iFilter).every((val) => !val)
+      (impactFilters.length === 0
         ? true // show all if selected none
-        : iFilter[parseInt(tag.threat_impact ?? 4) - 1]) && // show only selected
-      (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)) &&
-      (selectedGroup === "" || tag.references.some((ref) => ref.group === selectedGroup)),
+        : impactFilters.includes(threatImpactName[parseInt(tag.threat_impact ?? 4)])) && // show only selected
+      (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)),
   );
 
   let tmp;
@@ -164,6 +240,16 @@ export function Status() {
     </Box>
   );
 
+  const handleChangeService = (serviceId) => {
+    const newParams = new URLSearchParams();
+    newParams.set("pteamId", pteamId);
+    newParams.set("serviceId", serviceId);
+    if (searchWord) {
+      newParams.set("word", searchWord);
+    }
+    navigate(location.pathname + "?" + newParams.toString());
+  };
+
   const handleSearchWord = (word) => {
     params.set("word", word);
     if (word !== searchWord) {
@@ -173,7 +259,7 @@ export function Status() {
   };
 
   const handleNavigateTag = (tagId) => {
-    for (let key of ["iFilter", "word", "perPage", "page"]) {
+    for (let key of ["impactFilter", "word", "perPage", "page"]) {
       params.delete(key);
     }
     navigate(`/tags/${tagId}?${params.toString()}`);
@@ -200,7 +286,8 @@ export function Status() {
         sx={{ left: -55 }}
       >
         {[0, 1, 2, 3].map((idx) => {
-          const checked = iFilter[idx];
+          const impactName = threatImpactName[idx + 1];
+          const checked = impactFilters.includes(impactName);
           const threatImpactCount = summary.threat_impact_count[(idx + 1).toString()];
 
           const fixedSx = {
@@ -209,26 +296,15 @@ export function Status() {
             }),
           };
 
-          const impactName = Object.keys(threatImpactProps).includes(idx + 1)
-            ? idx + 1
-            : threatImpactName[idx + 1];
-
           const onClick = () => {
-            params.set(
-              "iFilter",
-              [0, 1, 2, 3].reduce(
-                (ret, val) =>
-                  ret +
-                  (val === idx // toggle me only
-                    ? checked
-                      ? "0"
-                      : "1"
-                    : iFilter[val] // keep current
-                      ? "1"
-                      : "0"),
-                "",
-              ),
-            );
+            if (checked) {
+              impactFilters = impactFilters.filter((filter) => filter !== impactName);
+            } else {
+              impactFilters.push(impactName);
+            }
+            params.delete("impactFilter");
+            impactFilters.map((filter) => params.append("impactFilter", filter));
+
             params.set("page", 1); // reset page
             navigate(location.pathname + "?" + params.toString());
           };
@@ -264,49 +340,61 @@ export function Status() {
   return (
     <>
       <Box display="flex" flexDirection="row">
-        <PTeamLabel defaultTabIndex={1} />
+        <PTeamLabel defaultTabIndex={0} />
         <Box flexGrow={1} />
       </Box>
-      <PTeamGroupChip />
-      {summary.tags.length === 0 ? (
-        <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
-      ) : (
-        <>
-          <Box display="flex" mt={2}>
-            {filterRow}
-            <Box flexGrow={1} />
-            <Box mb={0.5}>
-              <SearchField word={searchWord} onApply={handleSearchWord} />
-              <IconButton
-                id="basic-button"
-                aria-controls={searchMenuOpen ? "basic-menu" : undefined}
-                aria-haspopup="true"
-                aria-expanded={searchMenuOpen ? "true" : undefined}
-                onClick={handleClick}
-                size="small"
-                sx={{ mt: 1.5 }}
-              >
-                {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
-              </IconButton>
-              {ThreatImpactMenu}
-            </Box>
+      <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+        <DeleteServiceIcon />
+        <FormControlLabel
+          control={<Android12Switch checked={false} />}
+          label="All Services"
+          disabled={true} // ALL Services not yet supported
+        />
+      </Box>
+      <PTeamServiceTabs
+        services={pteam.services}
+        currentServiceId={serviceId}
+        onChangeService={handleChangeService}
+        setIsActiveUploadMode={setIsActiveUploadMode}
+      />
+      <CustomTabPanel value={isActiveUploadMode} index={0}>
+        <Box display="flex" mt={2}>
+          {filterRow}
+          <Box flexGrow={1} />
+          <Box mb={0.5}>
+            <SearchField word={searchWord} onApply={handleSearchWord} />
+            <IconButton
+              id="basic-button"
+              aria-controls={searchMenuOpen ? "basic-menu" : undefined}
+              aria-haspopup="true"
+              aria-expanded={searchMenuOpen ? "true" : undefined}
+              onClick={handleClick}
+              size="small"
+              sx={{ mt: 1.5 }}
+            >
+              {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
+            </IconButton>
+            {ThreatImpactMenu}
           </Box>
-          <TableContainer component={Paper} sx={{ mt: 0.5 }}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableBody>
-                {targetTags.map((tag) => (
-                  <PTeamStatusCard
-                    key={tag.tag_id}
-                    onHandleClick={() => handleNavigateTag(tag.tag_id)}
-                    tag={tag}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {targetTags.length > 3 && filterRow}
-        </>
-      )}
+        </Box>
+        <TableContainer component={Paper} sx={{ mt: 0.5 }}>
+          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableBody>
+              {targetTags.map((tag) => (
+                <PTeamStatusCard
+                  key={tag.tag_id}
+                  onHandleClick={() => handleNavigateTag(tag.tag_id)}
+                  tag={tag}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        {targetTags.length > 3 && filterRow}
+      </CustomTabPanel>
+      <CustomTabPanel value={isActiveUploadMode} index={1}>
+        <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+      </CustomTabPanel>
     </>
   );
 }

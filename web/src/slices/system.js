@@ -4,7 +4,7 @@ const systemSlice = createSlice({
   name: "system",
   initialState: {
     drawerOpen: true,
-    teamMode: "pteam", // "pteam" or "ateam" or "gteam"
+    teamMode: "pteam", // "pteam" or "ateam"
   },
   reducers: {
     setDrawerOpen: (state, action) => ({

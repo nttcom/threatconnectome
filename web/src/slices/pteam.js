@@ -1,34 +1,21 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import {
+  getDependencies as apiGetDependencies,
   getPTeam as apiGetPTeam,
-  getPTeamAchievements as apiGetPTeamAchievements,
   getPTeamAuth as apiGetPTeamAuth,
   getPTeamAuthInfo as apiGetPTeamAuthInfo,
   getPTeamMembers as apiGetPTeamMembers,
-  getPTeamSolvedTaggedTopicIds as apiGetPTeamSolvedTaggedTopicIds,
-  getPTeamUnsolvedTaggedTopicIds as apiGetPTeamUnsolvedTaggedTopicIds,
-  getPTeamTag as apiGetPTeamTag,
-  getPTeamTagsSummary as apiGetPTeamTagsSummary,
+  getPTeamServiceTaggedTicketIds as apiGetPTeamServiceTaggedTicketIds,
   getPTeamTopicActions as apiGetPTeamTopicActions,
-  getPTeamTopicStatus as apiGetPTeamTopicStatus,
-  getPTeamTopicStatusesSummary as apiGetPTeamTopicStatusesSummary,
-  getPTeamGroups as apiGetPTeamGroups,
+  getTopicStatus as apiGetTopicStatus,
+  getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
 } from "../utils/api";
 
 export const getPTeam = createAsyncThunk(
   "pteam/getPTeam",
   async (pteamId) =>
     await apiGetPTeam(pteamId).then((response) => ({
-      data: response.data,
-      pteamId: pteamId,
-    })),
-);
-
-export const getPTeamAchievements = createAsyncThunk(
-  "pteam/getPTeamAchievements",
-  async (pteamId) =>
-    await apiGetPTeamAchievements(pteamId).then((response) => ({
       data: response.data,
       pteamId: pteamId,
     })),
@@ -66,69 +53,41 @@ export const getPTeamMembers = createAsyncThunk(
     })),
 );
 
-export const getPTeamTag = createAsyncThunk(
-  "pteam/getPTeamTag",
+export const getDependencies = createAsyncThunk(
+  "pteam/getDependencies",
   async (data) =>
-    await apiGetPTeamTag(data.pteamId, data.tagId)
-      .then((response) => ({
+    await apiGetDependencies(data.pteamId, data.serviceId).then((response) => ({
+      pteamId: data.pteamId,
+      serviceId: data.serviceId,
+      data: response.data,
+    })),
+);
+
+export const getPTeamServiceTaggedTicketIds = createAsyncThunk(
+  "pteam/getPTeamServiceTaggedTicketIds",
+  async (data) =>
+    await apiGetPTeamServiceTaggedTicketIds(data.pteamId, data.serviceId, data.tagId).then(
+      (response) => ({
         pteamId: data.pteamId,
+        serviceId: data.serviceId,
         tagId: data.tagId,
         data: response.data,
-      }))
-      .catch((error) => {
-        if (data.onError) data.onError(error);
-        throw error;
       }),
+    ),
 );
 
-export const getPTeamSolvedTaggedTopicIds = createAsyncThunk(
-  "pteam/getPTeamSolvedTaggedTopicIds",
+export const getTopicStatus = createAsyncThunk(
+  "pteam/getTopicStatus",
   async (data) =>
-    await apiGetPTeamSolvedTaggedTopicIds(data.pteamId, data.tagId).then((response) => ({
-      pteamId: data.pteamId,
-      tagId: data.tagId,
-      data: response.data,
-    })),
-);
-
-export const getPTeamUnsolvedTaggedTopicIds = createAsyncThunk(
-  "pteam/getPTeamUnsolvedTaggedTopicIds",
-  async (data) =>
-    await apiGetPTeamUnsolvedTaggedTopicIds(data.pteamId, data.tagId).then((response) => ({
-      pteamId: data.pteamId,
-      tagId: data.tagId,
-      data: response.data,
-    })),
-);
-
-export const getPTeamTagsSummary = createAsyncThunk(
-  "pteam/getPTeamTagsSummary",
-  async (pteamId) =>
-    await apiGetPTeamTagsSummary(pteamId).then((response) => ({
-      data: response.data,
-      pteamId: pteamId,
-    })),
-);
-
-export const getPTeamTopicStatusesSummary = createAsyncThunk(
-  "pteam/getPTeamTopicStatusesSummary",
-  async (data) =>
-    await apiGetPTeamTopicStatusesSummary(data.pteamId, data.tagId).then((response) => ({
-      data: response.data,
-      pteamId: data.pteamId,
-      tagId: data.tagId,
-    })),
-);
-
-export const getPTeamTopicStatus = createAsyncThunk(
-  "pteam/getPTeamTopicStatus",
-  async (data) =>
-    await apiGetPTeamTopicStatus(data.pteamId, data.topicId, data.tagId).then((response) => ({
-      data: response.data || {},
-      pteamId: data.pteamId,
-      topicId: data.topicId,
-      tagId: data.tagId,
-    })),
+    await apiGetTopicStatus(data.pteamId, data.serviceId, data.topicId, data.tagId).then(
+      (response) => ({
+        data: response.data || {},
+        pteamId: data.pteamId,
+        serviceId: data.serviceId,
+        topicId: data.topicId,
+        tagId: data.tagId,
+      }),
+    ),
 );
 
 export const getPTeamTopicActions = createAsyncThunk(
@@ -141,29 +100,27 @@ export const getPTeamTopicActions = createAsyncThunk(
     })),
 );
 
-export const getPTeamGroups = createAsyncThunk(
-  "pteam/getPTeamGroups",
-  async (pteamId) =>
-    await apiGetPTeamGroups(pteamId).then((response) => ({
-      groups: response.data.groups,
-      pteamId: pteamId,
+export const getPTeamServiceTagsSummary = createAsyncThunk(
+  "pteam/getPTeamServiceTagsSummary",
+  async (data) =>
+    await apiGetPTeamServiceTagsSummary(data.pteamId, data.serviceId).then((response) => ({
+      data: response.data,
+      pteamId: data.pteamId,
+      serviceId: data.serviceId,
     })),
 );
 
 const _initialState = {
   pteamId: undefined,
   pteam: undefined,
-  achievements: undefined,
   authInfo: undefined,
   authorities: undefined,
   members: undefined,
-  tagsSummary: undefined,
-  topicsSummary: undefined,
-  pteamtags: {},
+  serviceDependencies: {}, // dict[serviceId: list[dependency]]
   taggedTopics: {},
   topicStatus: {},
   topicActions: {},
-  groups: undefined,
+  serviceTagsSummaries: {},
 };
 
 const pteamSlice = createSlice({
@@ -180,16 +137,19 @@ const pteamSlice = createSlice({
       ...(action.payload && state.pteamId === action.payload ? state : _initialState),
       pteamId: action.payload,
     }),
+    invalidateServiceId: (state, action) => ({
+      ...state,
+      /* Note: state.pteam.services should be fixed by dispatch(getPTeam(pteamId)) */
+      serviceDependencies: { ...state.serviceDependencies, [action.payload]: undefined },
+      topicStatus: { ...state.topicStatus, [action.payload]: undefined },
+      serviceTagsSummaries: { ...state.serviceTagsSummaries, [action.payload]: undefined },
+    }),
   },
   extraReducers: (builder) => {
     builder
       .addCase(getPTeam.fulfilled, (state, action) => ({
         ...state,
         pteam: action.payload.data,
-      }))
-      .addCase(getPTeamAchievements.fulfilled, (state, action) => ({
-        ...state,
-        achievements: action.payload.data,
       }))
       .addCase(getPTeamAuthInfo.fulfilled, (state, action) => ({
         ...state,
@@ -203,48 +163,34 @@ const pteamSlice = createSlice({
         ...state,
         members: action.payload.data,
       }))
-      .addCase(getPTeamTagsSummary.fulfilled, (state, action) => ({
+      .addCase(getDependencies.fulfilled, (state, action) => ({
         ...state,
-        tagsSummary: action.payload.data,
-      }))
-      .addCase(getPTeamTopicStatusesSummary.fulfilled, (state, action) => ({
-        ...state,
-        topicsSummary: action.payload.data,
-      }))
-      .addCase(getPTeamTag.fulfilled, (state, action) => ({
-        ...state,
-        pteamtags: {
-          ...state.pteamtags,
-          [action.payload.tagId]: action.payload.data,
+        serviceDependencies: {
+          ...state.serviceDependencies,
+          [action.payload.serviceId]: action.payload.data,
         },
       }))
-      .addCase(getPTeamSolvedTaggedTopicIds.fulfilled, (state, action) => ({
+      .addCase(getPTeamServiceTaggedTicketIds.fulfilled, (state, action) => ({
         ...state,
         taggedTopics: {
           ...state.taggedTopics,
           [action.payload.tagId]: {
             ...state.taggedTopics[action.payload.tagId],
-            solved: action.payload.data,
+            solved: action.payload.data.solved,
+            unsolved: action.payload.data.unsolved,
           },
         },
       }))
-      .addCase(getPTeamUnsolvedTaggedTopicIds.fulfilled, (state, action) => ({
-        ...state,
-        taggedTopics: {
-          ...state.taggedTopics,
-          [action.payload.tagId]: {
-            ...state.taggedTopics[action.payload.tagId],
-            unsolved: action.payload.data,
-          },
-        },
-      }))
-      .addCase(getPTeamTopicStatus.fulfilled, (state, action) => ({
+      .addCase(getTopicStatus.fulfilled, (state, action) => ({
         ...state,
         topicStatus: {
           ...state.topicStatus,
-          [action.payload.topicId]: {
-            ...state.topicStatus[action.payload.topicId],
-            [action.payload.tagId]: action.payload.data,
+          [action.payload.serviceId]: {
+            ...state.topicStatus[action.payload.serviceId],
+            [action.payload.topicId]: {
+              ...state.topicStatus[action.payload.topicId],
+              [action.payload.tagId]: action.payload.data,
+            },
           },
         },
       }))
@@ -255,15 +201,18 @@ const pteamSlice = createSlice({
           [action.payload.topicId]: action.payload.actions,
         },
       }))
-      .addCase(getPTeamGroups.fulfilled, (state, action) => ({
+      .addCase(getPTeamServiceTagsSummary.fulfilled, (state, action) => ({
         ...state,
-        groups: action.payload.groups,
+        serviceTagsSummaries: {
+          ...state.serviceTagsSummaries,
+          [action.payload.serviceId]: action.payload.data,
+        },
       }));
   },
 });
 
 const { actions, reducer } = pteamSlice;
 
-export const { clearPTeam, setPTeamId } = actions;
+export const { clearPTeam, setPTeamId, invalidateServiceId } = actions;
 
 export default reducer;

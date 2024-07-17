@@ -8,7 +8,6 @@ import {
   blue,
   blueGrey,
   brown,
-  cyan,
   green,
   grey,
   lightBlue,
@@ -83,7 +82,6 @@ export const threatImpactName = {
 
 export const threatImpactProps = {
   immediate: {
-    alert: "Your pteam has a Immediate. Please take actions immediately.",
     chipLabel: "Immediate",
     icon: RunningWithErrorsIcon,
     statusLabel: "Your pteam has a immediate",
@@ -232,7 +230,6 @@ export const sxModal = {
 
 export const noPTeamMessage = "You do not belong to any pteam. Please create a pteam.";
 export const noATeamMessage = "You do not belong to any ateam. Please create an ateam.";
-export const noGTeamMessage = "You do not belong to any gteam. Please create a gteam.";
 
 export const teamColor = {
   pteam: {
@@ -242,9 +239,5 @@ export const teamColor = {
   ateam: {
     mainColor: blue[900],
     hoverColor: blue[700],
-  },
-  gteam: {
-    mainColor: cyan[900],
-    hoverColor: cyan[700],
   },
 };

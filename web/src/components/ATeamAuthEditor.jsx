@@ -2,11 +2,12 @@ import {
   CheckBox as CheckedIcon,
   CheckBoxOutlineBlank as UnCheckedIcon,
   CheckBoxOutlined as CheckedOutlinedIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import {
   Box,
   Button,
-  Divider,
+  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -20,9 +21,9 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import { getATeamAuth, getATeamAuthInfo } from "../slices/ateam";
 import { updateATeamAuth } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 
 export function ATeamAuthEditor(props) {
   const { userId, userEmail, onClose } = props;
@@ -203,8 +204,17 @@ export function ATeamAuthEditor(props) {
 
   return userMe && newAuth.user && authInfo && authorities && ateamAuth ? (
     <>
-      <Typography variant="h5">Authority: {pseudoEdit ? "member & others" : userEmail}</Typography>
-      <Divider sx={{ my: 1 }} />
+      <Box display="flex" flexDirection="row">
+        <Typography className={dialogStyle.dialog_title}>
+          Authority: {pseudoEdit ? "member & others" : userEmail}
+        </Typography>
+        <Box flexGrow={1} />
+        {onClose && (
+          <IconButton onClick={onClose}>
+            <CloseIcon />
+          </IconButton>
+        )}
+      </Box>
       <TableContainer>
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
@@ -223,22 +233,13 @@ export function ATeamAuthEditor(props) {
       </TableContainer>
       <Box display="flex" mt={2}>
         {editable && userId && (
-          <Button onClick={switchPseudoEdit} sx={modalCommonButtonStyle}>
+          <Button onClick={switchPseudoEdit} className={dialogStyle.submit_btn}>
             {pseudoEdit ? `Edit ${userEmail}` : "Edit Pseudo"}
           </Button>
         )}
         <Box flexGrow={1} />
-        {onClose && (
-          <Button onClick={onClose} sx={modalCommonButtonStyle}>
-            {editable && updated() ? "Cancel" : "Close"}
-          </Button>
-        )}
         {editable && (
-          <Button
-            onClick={handleSave}
-            disabled={!updated()}
-            sx={{ ...modalCommonButtonStyle, ml: 1 }}
-          >
+          <Button onClick={handleSave} disabled={!updated()} className={dialogStyle.submit_btn}>
             Update
           </Button>
         )}

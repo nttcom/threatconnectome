@@ -1,4 +1,4 @@
-import { ArrowDropDown as ArrowDropDownIcon } from "@mui/icons-material";
+import { ArrowDropDown as ArrowDropDownIcon, Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -8,6 +8,7 @@ import {
   DialogTitle,
   ClickAwayListener,
   Grow,
+  IconButton,
   MenuItem,
   MenuList,
   Paper,
@@ -24,18 +25,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import {
-  getPTeamSolvedTaggedTopicIds,
-  getPTeamTagsSummary,
-  getPTeamTopicStatus,
-  getPTeamUnsolvedTaggedTopicIds,
+  getTopicStatus,
+  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTagsSummary,
 } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
-import { topicStatusProps, modalCommonButtonStyle } from "../utils/const";
+import { topicStatusProps } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
 export function TopicStatusSelector(props) {
-  const { pteamId, topicId } = props;
+  const { pteamId, topicId, serviceId } = props;
 
   const [open, setOpen] = useState(false);
   const [selectableItems, setSelectableItems] = useState([]);
@@ -55,8 +56,8 @@ export function TopicStatusSelector(props) {
 
   useEffect(() => {
     if (!pteamId || !topicId) return;
-    if (!topicStatus[topicId]?.[tagId]) return; // resolved by parent
-    const ttStatus = topicStatus[topicId][tagId];
+    if (!topicStatus[serviceId]?.[topicId]?.[tagId]) return; // resolved by parent
+    const ttStatus = topicStatus[serviceId][topicId][tagId];
     const current = ttStatus.topic_status ?? "alerted";
     const items = [
       { display: "Acknowledge", rawStatus: "acknowledged", disabled: current === "acknowledged" },
@@ -68,11 +69,11 @@ export function TopicStatusSelector(props) {
         ? dateTimeFormat(ttStatus.scheduled_at)
         : null,
     );
-  }, [tagId, pteamId, topicId, topicStatus]);
+  }, [tagId, pteamId, serviceId, topicId, topicStatus]);
 
   const modifyTopicStatus = async (selectedStatus) => {
-    const ttStatus = topicStatus[topicId][tagId];
-    await createTopicStatus(pteamId, topicId, tagId, {
+    const ttStatus = topicStatus[serviceId][topicId][tagId];
+    await createTopicStatus(pteamId, serviceId, topicId, tagId, {
       topic_status: selectedStatus,
       logging_ids: ttStatus.logging_ids ?? [],
       assignees: ttStatus.assignees ?? [],
@@ -81,12 +82,24 @@ export function TopicStatusSelector(props) {
     })
       .then(() => {
         if (selectedStatus !== ttStatus.topicStatus) {
-          dispatch(getPTeamTopicStatus({ pteamId: pteamId, topicId: topicId, tagId: tagId }));
-          dispatch(getPTeamTagsSummary(pteamId));
+          dispatch(
+            getTopicStatus({
+              pteamId: pteamId,
+              serviceId: serviceId,
+              topicId: topicId,
+              tagId: tagId,
+            }),
+          );
+          dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
         }
         if (ttStatus.topic_status === "completed") {
-          dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
-          dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
+          dispatch(
+            getPTeamServiceTaggedTicketIds({
+              pteamId: pteamId,
+              serviceId: serviceId,
+              tagId: tagId,
+            }),
+          );
         }
         enqueueSnackbar("Change topic status succeeded", { variant: "success" });
       })
@@ -119,8 +132,9 @@ export function TopicStatusSelector(props) {
   };
 
   return (() => {
-    if (!pteamId || !topicId || !topics[topicId] || !topicStatus[topicId]?.[tagId]) return <></>;
-    const ttStatus = topicStatus[topicId][tagId];
+    if (!pteamId || !topicId || !topics[topicId] || !topicStatus[serviceId]?.[topicId]?.[tagId])
+      return <></>;
+    const ttStatus = topicStatus[serviceId][topicId][tagId];
     const currentStatus = ttStatus.topic_status ?? "alerted";
 
     const handleHideDatepicker = () => {
@@ -182,37 +196,40 @@ export function TopicStatusSelector(props) {
             </Grow>
           )}
         </Popper>
-        <Dialog onClose={handleHideDatepicker} open={datepickerOpen} fullWidth>
+        <Dialog open={datepickerOpen} onClose={handleHideDatepicker} fullWidth>
           <DialogTitle>
-            <Box alignItems="center" display="flex" flexGrow={1}>
-              <Typography flexGrow={1} variant="inherit">
+            <Box alignItems="center" display="flex" flexDirection="row">
+              <Typography flexGrow={1} className={dialogStyle.dialog_title}>
                 Set schedule
               </Typography>
+              <IconButton onClick={handleHideDatepicker}>
+                <CloseIcon />
+              </IconButton>
             </Box>
           </DialogTitle>
           <DialogContent>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DateTimePicker
-                inputFormat={dateFormat}
-                label="Schedule Date (future date)"
-                mask="____/__/__ __:__"
-                minDateTime={now}
-                value={schedule}
-                onChange={(newDate) => setSchedule(newDate)}
-                renderInput={(params) => (
-                  <TextField fullWidth margin="dense" required {...params} />
-                )}
-              />
-            </LocalizationProvider>
+            <Box sx={{ mt: 3 }}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DateTimePicker
+                  inputFormat={dateFormat}
+                  label="Schedule Date (future date)"
+                  mask="____/__/__ __:__"
+                  minDateTime={now}
+                  value={schedule}
+                  onChange={(newDate) => setSchedule(newDate)}
+                  renderInput={(params) => (
+                    <TextField fullWidth margin="dense" required {...params} />
+                  )}
+                  sx={{ width: "100%" }}
+                />
+              </LocalizationProvider>
+            </Box>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleHideDatepicker} sx={modalCommonButtonStyle}>
-              Cancel
-            </Button>
+          <DialogActions className={dialogStyle.action_area}>
             <Button
               onClick={handleUpdateSchedule}
               disabled={!isBefore(now, schedule)}
-              sx={modalCommonButtonStyle}
+              className={dialogStyle.submit_btn}
             >
               Schedule
             </Button>
@@ -226,4 +243,5 @@ export function TopicStatusSelector(props) {
 TopicStatusSelector.propTypes = {
   pteamId: PropTypes.string.isRequired,
   topicId: PropTypes.string.isRequired,
+  serviceId: PropTypes.string.isRequired,
 };

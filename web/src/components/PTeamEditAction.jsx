@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogTitle,
   DialogActions,
-  Divider,
   IconButton,
   List,
   Switch,
@@ -22,15 +21,11 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import {
-  getPTeamSolvedTaggedTopicIds,
-  getPTeamTagsSummary,
-  getPTeamTopicActions,
-  getPTeamUnsolvedTaggedTopicIds,
-} from "../slices/pteam";
+import dialogStyle from "../cssModule/dialog.module.css";
+import { getPTeamTopicActions, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { updateTopic, createAction, updateAction, deleteAction } from "../utils/api";
-import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import { actionTypes } from "../utils/const";
 import { parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import { ActionGenerator } from "./ActionGenerator";
@@ -45,7 +40,8 @@ export function PTeamEditAction(props) {
     presetParentTagId,
     presetActions,
     currentTagDict,
-    pteamtag,
+    references,
+    serviceId,
   } = props;
 
   const [errors, setErrors] = useState([]);
@@ -63,7 +59,6 @@ export function PTeamEditAction(props) {
   const [abst, setAbst] = useState("");
   const [threatImpact, setThreatImpact] = useState(4);
   const [tagIds, setTagIds] = useState([]);
-  const [zoneNames, setZoneNames] = useState([]);
   const [mispTags, setMispTags] = useState("");
   const [actionTagOptions, setActionTagOptions] = useState([]);
   const [actions, setActions] = useState([]);
@@ -88,7 +83,6 @@ export function PTeamEditAction(props) {
             ? [presetTagId]
             : [],
     );
-    setZoneNames(src?.zones?.map((zone) => zone.zone_name) ?? []);
     setMispTags(src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",") ?? "");
     setActionTagOptions([
       ...new Set([
@@ -114,6 +108,9 @@ export function PTeamEditAction(props) {
 
   const validateActionTags = () => {
     const validTagNames = new Set();
+    const presetTag = allTags.find((tag) => tag.tag_id === presetTagId);
+    validTagNames.add(presetTag.tag_name);
+
     allTags
       .filter((tag) => tagIds.includes(tag.tag_id))
       .forEach((tag) => {
@@ -137,14 +134,18 @@ export function PTeamEditAction(props) {
     // fix topic state
     await Promise.all([
       dispatch(getTopic(topicId)),
-      dispatch(getPTeamTagsSummary(pteamId)),
       dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
     ]);
     // update only if needed
     if (pteamId && presetTagId) {
       await Promise.all([
-        dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
-        dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
+        dispatch(
+          getPTeamServiceTaggedTicketIds({
+            pteamId: pteamId,
+            serviceId: serviceId,
+            tagId: presetTagId,
+          }),
+        ),
       ]);
     }
   };
@@ -157,10 +158,8 @@ export function PTeamEditAction(props) {
     actions.forEach((a) => {
       const actionRequest = {
         ...a,
-        zone_names: a.zones.map((zone) => zone.zone_name),
         topic_id: topicId,
       };
-      delete actionRequest.zones;
       if (a.action_id === null) {
         createAction(actionRequest).catch((error) => operationError(error));
       } else if (presetActionIds.has(a.action_id)) {
@@ -189,7 +188,6 @@ export function PTeamEditAction(props) {
       abstract: abst,
       threat_impact: parseInt(threatImpact),
       tags: allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
-      zone_names: zoneNames,
       misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
     };
     await updateTopic(topicId, data)
@@ -235,8 +233,8 @@ export function PTeamEditAction(props) {
     (!action.ext?.vulnerable_versions?.[tagName]?.length > 0 ||
       parseVulnerableVersions(action.ext.vulnerable_versions[tagName]).some(
         (actionVersion) =>
-          !pteamtag.references?.length > 0 ||
-          pteamtag.references?.some((ref) =>
+          !references?.length > 0 ||
+          references?.some((ref) =>
             versionMatch(
               ref.version,
               actionVersion.ge,
@@ -260,18 +258,17 @@ export function PTeamEditAction(props) {
 
   return (
     <>
-      <Dialog open={open === true} fullWidth>
+      <Dialog open={open === true} onClose={handleClose} fullWidth>
         <DialogTitle>
           <Box alignItems="center" display="flex" flexDirection="row">
-            <Typography flexGrow={1} variant="inherit">
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
               Edit actions on this topic
             </Typography>
-            <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+            <IconButton onClick={handleClose}>
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
-        <Divider />
         <DialogContent>
           <>
             <Box flexDirection="row">
@@ -306,7 +303,7 @@ export function PTeamEditAction(props) {
                       width: "100%",
                       position: "relative",
                       overflow: "auto",
-                      maxHeight: 150,
+                      maxHeight: 200,
                     }}
                   >
                     {topicActions &&
@@ -323,7 +320,6 @@ export function PTeamEditAction(props) {
                             actionId={action.action_id}
                             actionType={action.action_type}
                             recommended={action.recommended}
-                            zones={action.zones}
                             ext={action.ext}
                             onChangeRecommended={() =>
                               setActions(
@@ -344,12 +340,12 @@ export function PTeamEditAction(props) {
             </Box>
           </>
         </DialogContent>
-        <DialogActions>
-          <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
+        <DialogActions className={dialogStyle.action_area}>
+          <Box sx={{ display: "flex", flexDirection: "row" }}>
             <Button
               onClick={handleUpdateTopic}
               disabled={errors?.length > 0}
-              sx={modalCommonButtonStyle}
+              className={dialogStyle.submit_btn}
             >
               Update
             </Button>
@@ -386,11 +382,6 @@ PTeamEditAction.propTypes = {
       action: PropTypes.string,
       action_type: PropTypes.string,
       recommended: PropTypes.bool,
-      zones: PropTypes.arrayOf(
-        PropTypes.shape({
-          zone_name: PropTypes.string,
-        }),
-      ),
       ext: PropTypes.shape({
         tags: PropTypes.array,
         vulnerable_versions: PropTypes.object,
@@ -398,5 +389,6 @@ PTeamEditAction.propTypes = {
     }),
   ),
   currentTagDict: PropTypes.object.isRequired,
-  pteamtag: PropTypes.object.isRequired,
+  references: PropTypes.array.isRequired,
+  serviceId: PropTypes.string,
 };

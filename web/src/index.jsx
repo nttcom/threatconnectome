@@ -10,21 +10,18 @@ import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-d
 import {
   AcceptATeamInvitation,
   AcceptATeamWatchingRequest,
-  AcceptGTeamInvitation,
   AcceptPTeamInvitation,
   Account,
   Analysis,
   App,
   ATeam,
-  GTeam,
   Login,
   ResetPassword,
   Status,
   Tag,
+  TopicDetail,
   TopicManagement,
   PTeam,
-  Zone,
-  ZoneEdit,
 } from "./pages";
 import store from "./store";
 
@@ -61,17 +58,6 @@ root.render(
                     <Route index element={<ATeam />} />
                     <Route path="join" element={<AcceptATeamInvitation />} />
                   </Route>
-                  <Route path="gteam">
-                    <Route index element={<GTeam />} />
-                    <Route path="join" element={<AcceptGTeamInvitation />} />
-                  </Route>
-                  <Route path="zone">
-                    <Route index element={<Zone />} />
-                    <Route index path=":zoneName" element={<ZoneEdit />} />
-                  </Route>
-                  <Route path="zoneedit">
-                    <Route index element={<ZoneEdit />} />
-                  </Route>
                   <Route path="tags">
                     <Route index element={<Navigate to="/" />} />
                     <Route path=":tagId" element={<Tag />} />
@@ -82,6 +68,7 @@ root.render(
                   </Route>
                   <Route path="topics">
                     <Route index element={<TopicManagement />} />
+                    <Route path=":topicId" element={<TopicDetail />} />
                   </Route>
                 </Route>
               </Routes>

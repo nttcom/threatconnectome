@@ -1,4 +1,4 @@
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { Close as CloseIcon, ContentCopy as ContentCopyIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -21,8 +21,9 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
+import styles from "../cssModule/button.module.css";
+import dialogStyle from "../cssModule/dialog.module.css";
 import { createATeamWatchingRequest } from "../utils/api";
-import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
 export function ATeamRequestModal(props) {
   const { text } = props;
@@ -74,12 +75,20 @@ export function ATeamRequestModal(props) {
 
   return (
     <>
-      <Button onClick={handleOpen} sx={commonButtonStyle}>
+      <Button className={styles.prominent_btn} onClick={handleOpen}>
         {text}
       </Button>
-      <Dialog open={open} fullWidth>
+      <Dialog open={open} onClose={handleClose} fullWidth>
         <DialogTitle>
-          <Typography variant="inherit">Create New Watching Request</Typography>
+          <Box display="flex" flexDirection="row">
+            <Typography className={dialogStyle.dialog_title}>
+              Create New Watching Request
+            </Typography>
+            <Box flexGrow={1} />
+            <IconButton onClick={handleClose}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
         <DialogContent>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -132,15 +141,12 @@ export function ATeamRequestModal(props) {
             )}
           </LocalizationProvider>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} sx={modalCommonButtonStyle}>
-            {requestLink ? "Close" : "Cancel"}
-          </Button>
+        <DialogActions className={dialogStyle.action_area}>
           {!requestLink && (
             <Button
               onClick={handleCreate}
               disabled={!isBefore(now, expiration)}
-              sx={modalCommonButtonStyle}
+              className={dialogStyle.submit_btn}
             >
               Create
             </Button>

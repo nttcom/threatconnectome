@@ -1,3 +1,4 @@
+import contextlib
 import os
 
 from sqlalchemy import create_engine
@@ -31,3 +32,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@contextlib.contextmanager
+def open_db_session():
+    return get_db()

@@ -121,6 +121,29 @@ def test_get_tags():
     assert data[0]["tag_id"] == str(tag3.parent_id)
 
 
+@pytest.mark.parametrize(
+    "tag_name",
+    ["a1:a2", "b1:b2:b3", "c1:c2:"],
+)
+def test_it_should_return_tag_data_when_it_requested_existing_tagid(tag_name):
+    # Given
+    # 予めtagが作成されており
+    create_user(USER1)
+    tag = create_tag(USER1, tag_name)
+
+    # When
+    # ユーザがtag_id を指定してリクエストした場合
+    response = client.get("/tags/" + str(tag.tag_id), headers=headers(USER1))
+    fetched_tag = response.json()
+
+    # Then
+    # 取得したデータには、タグ作成時と同じ情報が含まれている
+    assert str(fetched_tag["tag_id"]) == str(tag.tag_id)
+    assert str(fetched_tag["tag_name"]) == str(tag.tag_name)
+    assert str(fetched_tag["parent_id"]) == str(tag.parent_id)
+    assert str(fetched_tag["parent_name"]) == str(tag.parent_name)
+
+
 def test_delete_tag():
     create_user(USER1)
 
@@ -143,20 +166,31 @@ def test_delete_tag():
     assert len(data) == 0
 
 
-@pytest.mark.skip(reason='TODO: need fix syntax error in query at searching with ":"')
 def test_search_tag():
     create_user(USER1)
 
-    # tag_1 = create_tag(USER1, 'a1:a2:')
-    # tag_11 = create_tag(USER1, 'a1:a2:a3-1')
-    # tag_12 = create_tag(USER1, 'a1:a2:a3-2')
-    # tag_1 = create_tag(USER1, 'b1:b2:')
-    # tag_11 = create_tag(USER1, 'b1:b2:b3-1')
-    # tag_12 = create_tag(USER1, 'b1:b2:b3-2')
-    # tag_x = create_tag(USER1, 'a2')
+    tag_1 = create_tag(USER1, "a1:a2:")
+    tag_11 = create_tag(USER1, "a1:a2:a3-1")
+    tag_12 = create_tag(USER1, "a1:a2:a3-2")
+    create_tag(USER1, "b1:b2:")
+    tag_21 = create_tag(USER1, "b1:b2:b3-1")
+    create_tag(USER1, "b1:b2:b3-2")
+    create_tag(USER1, "a2")
 
-    # params = {"words": ["a1:a2:a3-1"]}
-    # data = assert_200(client.get("/tags/search", headers=headers(USER1), params=params))
-    # assert len(data) == 1
-    # assert data[0] == schema_to_dict(tag_11)
-    # # TODO: check more
+    params = {"words": ["a3-1"]}
+    data = assert_200(client.get("/tags/search", headers=headers(USER1), params=params))
+    assert len(data) == 1
+    assert schema_to_dict(tag_11) in data
+
+    params = {"words": ["3-1"]}
+    data = assert_200(client.get("/tags/search", headers=headers(USER1), params=params))
+    assert len(data) == 2
+    assert schema_to_dict(tag_11) in data
+    assert schema_to_dict(tag_21) in data
+
+    params = {"words": [":A2"]}
+    data = assert_200(client.get("/tags/search", headers=headers(USER1), params=params))
+    assert len(data) == 3
+    assert schema_to_dict(tag_1) in data
+    assert schema_to_dict(tag_11) in data
+    assert schema_to_dict(tag_12) in data

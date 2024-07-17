@@ -1,3 +1,4 @@
+import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -6,6 +7,7 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
+  IconButton,
   Link,
   Slider,
   TextField,
@@ -19,8 +21,9 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
+import styles from "../cssModule/button.module.css";
+import dialogStyle from "../cssModule/dialog.module.css";
 import { createATeamInvitation } from "../utils/api";
-import { commonButtonStyle, modalCommonButtonStyle } from "../utils/const";
 
 import { CopiedIcon } from "./CopiedIcon";
 
@@ -75,12 +78,18 @@ export function ATeamInviteModal(props) {
 
   return (
     <>
-      <Button onClick={handleOpen} sx={commonButtonStyle}>
+      <Button className={styles.prominent_btn} onClick={handleOpen}>
         {text}
       </Button>
-      <Dialog open={open} fullWidth>
+      <Dialog open={open} onClose={handleClose} fullWidth>
         <DialogTitle>
-          <Typography variant="inherit">Create New Invitation Link</Typography>
+          <Box display="flex" flexDirection="row">
+            <Typography className={dialogStyle.dialog_title}>Create New Invitation Link</Typography>
+            <Box flexGrow={1} />
+            <IconButton onClick={handleClose}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
         <DialogContent>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -138,15 +147,12 @@ export function ATeamInviteModal(props) {
             )}
           </LocalizationProvider>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} sx={modalCommonButtonStyle}>
-            {invitationLink ? "Close" : "Cancel"}
-          </Button>
+        <DialogActions className={dialogStyle.action_area}>
           {!invitationLink && (
             <Button
               onClick={handleCreate}
               disabled={!isBefore(now, expiration)}
-              sx={modalCommonButtonStyle}
+              className={dialogStyle.submit_btn}
             >
               Create
             </Button>

@@ -23,94 +23,66 @@ USER3 = {
 TAG1 = "alpha:alpha2:alpha3"
 TAG2 = "bravo:bravo2:bravo3"
 TAG3 = "charlie:charlie2:charlie3"
+SERVICE1 = "Threatconnectome"
+SERVICE2 = "RepoA"
 REF1 = [
-    {"target": "api/Pipfile.lock", "version": "1.0.0", "group": "Threatconnectome"},
-    {"target": "api2/Pipfile.lock", "version": "1.0.1", "group": "Threatconnectome"},
-    {"target": "api/Pipfile.lock", "version": "1.0.0", "group": "Flashsense"},
+    {"target": "api/Pipfile.lock", "version": "1.0.0", "service": "Threatconnectome"},
+    {"target": "api2/Pipfile.lock", "version": "1.0.1", "service": "Threatconnectome"},
+    {"target": "api/Pipfile.lock", "version": "1.0.0", "service": "Flashsense"},
 ]
-REF2 = [{"target": "web/package-lock.json", "version": "1.1.1", "group": "RepoA"}]
+REF2 = [{"target": "web/package-lock.json", "version": "1.1.1", "service": "RepoA"}]
 REF3 = [
     {
         "target": "Pipfile.lock",
         "version": "a1daed12b7955ab3ca423f7242a9ccfd249f2ebcba180a9376aea74b1ec913d0",
-        "group": "productB",
+        "service": "productB",
     }
 ]
 
 EXT_TAG1 = {
     "tag_name": TAG1,
     "references": REF1,
-    "text": f"text {TAG1}",
 }
 EXT_TAG2 = {
     "tag_name": TAG2,
     "references": REF2,
-    "text": f"text {TAG2}",
 }
 EXT_TAG3 = {
     "tag_name": TAG3,
     "references": REF3,
-    "text": f"text {TAG3}",
 }
 MISPTAG1 = "tlp:amber"
 MISPTAG2 = "tlp:clear"
 MISPTAG3 = "tlp:red"
-ZONE1 = {
-    "zone_name": "metemcyber:org:nttcom",
-    "zone_info": "zone info one",
-}
-ZONE2 = {
-    "zone_name": "nttcom-ic",
-    "zone_info": "zone info two",
-}
-ZONE3 = {
-    "zone_name": "test:zones:3",
-    "zone_info": "zone info three",
-}
 PTEAM1 = {
     "pteam_name": "pteam alpha",
     "contact_info": "alpha@ml.com",
-    "slack_webhook_url": "",
+    "alert_slack": {"enable": True, "webhook_url": ""},
     "alert_threat_impact": 3,
-    "tags": [EXT_TAG1],
-    "zone_names": [],
+    "alert_mail": {"enable": False, "address": "alpha@ml.com"},  # disable SendGrid if not needed
 }
 
 PTEAM2 = {
     "pteam_name": "pteam bravo",
     "contact_info": "bravo@ml.com",
-    "slack_webhook_url": "",
+    "alert_slack": {"enable": True, "webhook_url": ""},
     "alert_threat_impact": 2,
-    "tags": [EXT_TAG2, EXT_TAG1, EXT_TAG3],  # not sorted
-    "zone_names": [],
+    "alert_mail": {"enable": False, "address": "bravo@ml.com"},  # disable SendGrid if not needed
 }
 PTEAM3 = {
     "pteam_name": "pteam charlie",
     "contact_info": "charlie@ml.com",
-    "slack_webhook_url": "",
-    "tags": [EXT_TAG3],
-}
-PTEAM4 = {
-    "pteam_name": "pteam delta",
-    "contact_info": "",
-    "slack_webhook_url": "",
-    "disabled": False,
+    "alert_slack": {"enable": True, "webhook_url": ""},
 }
 ATEAM1 = {
     "ateam_name": "ateam a-one",
     "contact_info": "a-one@ml.com",
+    "alert_mail": {"enable": False, "address": "a-one@ml.com"},  # disable SendGrid if not needed
 }
 ATEAM2 = {
     "ateam_name": "ateam a-two",
     "contact_info": "",
-}
-GTEAM1 = {
-    "gteam_name": "gteam g-one",
-    "contact_info": "g-one@ml.com",
-}
-GTEAM2 = {
-    "gteam_name": "gteam g-two",
-    "contact_info": "",
+    "alert_mail": {"enable": False, "address": "a-two@ml.com"},  # disable SendGrid if not needed
 }
 TOPIC1 = {
     "topic_id": uuid4(),
@@ -119,8 +91,10 @@ TOPIC1 = {
     "threat_impact": 1,
     "tags": [TAG1],
     "misp_tags": [MISPTAG1],
-    "zone_names": [],
     "actions": [],
+    "safety_impact": "catastrophic",
+    "exploitation": "active",
+    "automatable": True,
 }
 TOPIC2 = {
     "topic_id": uuid4(),
@@ -129,8 +103,10 @@ TOPIC2 = {
     "threat_impact": 2,
     "tags": [TAG1],
     "misp_tags": [],
-    "zone_names": [],
     "actions": [],
+    "safety_impact": "hazardous",
+    "exploitation": "active",
+    "automatable": True,
 }
 TOPIC3 = {
     "topic_id": uuid4(),
@@ -139,8 +115,10 @@ TOPIC3 = {
     "threat_impact": 1,
     "tags": [TAG1, TAG3],
     "misp_tags": [],
-    "zone_names": [],
     "actions": [],
+    "safety_impact": "catastrophic",
+    "exploitation": "active",
+    "automatable": True,
 }
 TOPIC4 = {
     "topic_id": uuid4(),
@@ -149,72 +127,40 @@ TOPIC4 = {
     "threat_impact": 2,
     "tags": [TAG3],
     "misp_tags": [],
-    "zone_names": [],
     "actions": [],
+    "safety_impact": "hazardous",
+    "exploitation": "active",
+    "automatable": True,
 }
 ACTION1 = {
     "action": "action one",
     "action_type": "elimination",
     "recommended": True,
     "ext": {},
-    "zone_names": [],
 }
 ACTION2 = {
     "action": "action two",
     "action_type": "mitigation",
     "recommended": False,
     "ext": {},
-    "zone_names": [],
 }
 ACTION3 = {
     "action": "action three",
     "action_type": "rejection",
     "recommended": False,
     "ext": {},
-    "zone_names": [],
 }
 ELIMINATED_ACTION = {
     "action": "eliminated action",
     "action_type": "elimination",
     "recommended": False,
     "ext": {},
-    "zone_names": [],
 }
 MITIGATED_ACTION = {
     "action": "mitigated action",
     "action_type": "mitigation",
     "recommended": False,
     "ext": {},
-    "zone_names": [],
-}
-METADATA1 = {
-    "image": "test-image",
-    "name": "threat1 has been solved!",
-}
-RANDOM_METADATA1 = {
-    "image": "test-image",
-    "name": "The reason of threat has been found!",
-    "status_id": str(uuid4()),
-}
-RANDOM_METADATA2 = {
-    "image": "",
-    "name": "threat has been solved!",
-    "logging_id": str(uuid4()),
-}
-INVALID_METADATA = {
-    "image": "",
-}
-BADGE1 = {
-    "badge_type": ["skill"],
-    "certifier_type": "trusted_third_party",
-}
-BADGE2 = {
-    "badge_type": ["performance"],
-    "certifier_type": "system",
-}
-BADGE3 = {
-    "badge_type": ["skill"],
-    "certifier_type": "myself",
 }
 
 SAMPLE_SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/T00000000/B00000000/XXXX"

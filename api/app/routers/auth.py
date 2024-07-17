@@ -1,14 +1,11 @@
 import json
 import os
-from typing import Dict
 
 import requests
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi import APIRouter, Form, HTTPException, status
 from pydantic import SecretStr
 
-from ..auth import get_current_user
-from ..models import Account
-from ..schemas import RefreshTokenRequest, Token, User
+from ..schemas import RefreshTokenRequest, Token
 
 router = APIRouter(
     prefix="/auth",
@@ -49,7 +46,7 @@ def login_for_access_token(username: str = Form(), password: SecretStr = Form())
             headers={"WWW-Authenticate": "Bearer"},
         ) from firebase_timeout
 
-    data: Dict = resp.json()
+    data: dict = resp.json()
     if not resp.ok:
         error_message: str = data["error"]["message"]
         raise HTTPException(
@@ -92,7 +89,7 @@ def refresh_access_token(request: RefreshTokenRequest) -> Token:
             headers={"WWW-Authenticate": "Bearer"},
         ) from firebase_timeout
 
-    data: Dict = resp.json()
+    data: dict = resp.json()
     if not resp.ok:
         error_message: str = data["error"]["message"]
         raise HTTPException(
@@ -105,11 +102,3 @@ def refresh_access_token(request: RefreshTokenRequest) -> Token:
         token_type=data["token_type"],
         refresh_token=data["refresh_token"],
     )
-
-
-@router.get("/users/me", response_model=User)
-def read_users_me(current_user: Account = Depends(get_current_user)) -> Account:
-    """
-    Get current user's email.
-    """
-    return current_user

@@ -3,16 +3,14 @@ import { Box, Button, Divider, ListSubheader, Menu, MenuItem } from "@mui/materi
 import { grey } from "@mui/material/colors";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 
 import { clearATeam } from "../slices/ateam";
-import { clearGTeam } from "../slices/gteam";
 import { clearPTeam } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
 import { teamColor } from "../utils/const";
 
 import { ATeamCreateModal } from "./ATeamCreateModal";
-import { GTeamCreateModal } from "./GTeamCreateModal";
 import { PTeamCreateModal } from "./PTeamCreateModal";
 
 function textTrim(selector) {
@@ -32,7 +30,6 @@ export function TeamSelector() {
   const teamMode = useSelector((state) => state.system.teamMode);
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const ateamId = useSelector((state) => state.ateam.ateamId);
-  const gteamId = useSelector((state) => state.gteam.gteamId);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -42,7 +39,7 @@ export function TeamSelector() {
   const [currentTeamName, setCurrentTeamName] = useState(null);
   const [openPTeamCreationModal, setOpenPTeamCreationModal] = useState(false);
   const [openATeamCreationModal, setOpenATeamCreationModal] = useState(false);
-  const [openGTeamCreationModal, setOpenGTeamCreationModal] = useState(false);
+  const { tagId } = useParams();
 
   useEffect(() => {
     if (!user) return;
@@ -53,28 +50,31 @@ export function TeamSelector() {
       case "ateam":
         setCurrentTeamName(user.ateams?.find((x) => x.ateam_id === ateamId)?.ateam_name);
         break;
-      case "gteam":
-        setCurrentTeamName(user.gteams?.find((x) => x.gteam_id === gteamId)?.gteam_name);
-        break;
       default:
         break;
     }
-  }, [teamMode, user, pteamId, ateamId, gteamId]);
+  }, [teamMode, user, pteamId, ateamId]);
 
   const switchToPTeam = (teamId) => {
     handleClose();
     setCurrentTeamName(user.pteams?.find((x) => x.pteam_id === teamId)?.pteam_name);
+
     if (teamMode === "pteam") {
-      const newParams =
-        location.pathname === "/pteam/watching_request"
-          ? new URLSearchParams(location.search) // keep request token
-          : new URLSearchParams(); // clear params
-      newParams.set("pteamId", teamId);
-      navigate(location.pathname + "?" + newParams.toString());
+      if (tagId) {
+        const newParams = new URLSearchParams();
+        newParams.set("pteamId", teamId);
+        navigate("/?" + newParams);
+      } else {
+        const newParams =
+          location.pathname === "/pteam/watching_request"
+            ? new URLSearchParams(location.search) // keep request token
+            : new URLSearchParams(); // clear params
+        newParams.set("pteamId", teamId);
+        navigate(location.pathname + "?" + newParams.toString());
+      }
     } else {
       dispatch(setTeamMode("pteam"));
       dispatch(clearATeam());
-      dispatch(clearGTeam());
       const newParams = new URLSearchParams();
       newParams.set("pteamId", teamId);
       navigate("/?" + newParams.toString());
@@ -91,23 +91,7 @@ export function TeamSelector() {
     } else {
       dispatch(setTeamMode("ateam"));
       dispatch(clearPTeam());
-      dispatch(clearGTeam());
       navigate("/analysis?" + newParams.toString());
-    }
-  };
-
-  const switchToGTeam = (teamId) => {
-    handleClose();
-    setCurrentTeamName(user.gteams?.find((x) => x.gteam_id === teamId)?.gteam_name);
-    const newParams = new URLSearchParams();
-    newParams.set("gteamId", teamId);
-    if (teamMode === "gteam") {
-      navigate(location.pathname + "?" + newParams.toString());
-    } else {
-      dispatch(setTeamMode("gteam"));
-      dispatch(clearPTeam());
-      dispatch(clearATeam());
-      navigate("/zone?" + newParams.toString());
     }
   };
 
@@ -176,24 +160,6 @@ export function TeamSelector() {
             <AddIcon fontSize="small" />
             Create ATeam
           </MenuItem>
-          <Divider />
-          <ListSubheader sx={{ color: teamColor.gteam.hoverColor }}>Governance Team</ListSubheader>
-          {user?.gteams &&
-            [...user.gteams]
-              .sort((a, b) => a.gteam_name.localeCompare(b.gteam_name)) // alphabetically
-              .map((gteam) => (
-                <MenuItem
-                  key={gteam.gteam_id}
-                  value={gteam.ateam_name}
-                  onClick={() => switchToGTeam(gteam.gteam_id)}
-                >
-                  {textTrim(gteam.gteam_name)}
-                </MenuItem>
-              ))}
-          <MenuItem onClick={() => setOpenGTeamCreationModal(true)}>
-            <AddIcon fontSize="small" />
-            Create GTeam
-          </MenuItem>
         </Menu>
         <PTeamCreateModal
           open={openPTeamCreationModal}
@@ -203,11 +169,6 @@ export function TeamSelector() {
         <ATeamCreateModal
           open={openATeamCreationModal}
           onOpen={setOpenATeamCreationModal}
-          onCloseTeamSelector={handleClose}
-        />
-        <GTeamCreateModal
-          open={openGTeamCreationModal}
-          onSetOpen={setOpenGTeamCreationModal}
           onCloseTeamSelector={handleClose}
         />
       </Box>

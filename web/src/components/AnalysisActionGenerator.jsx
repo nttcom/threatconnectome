@@ -1,12 +1,11 @@
-import {
-  Delete as DeleteIcon,
-  FiberManualRecord as FiberManualRecordIcon,
-} from "@mui/icons-material";
+import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
   Checkbox,
-  Divider,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   List,
   ListItem,
@@ -17,27 +16,21 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { grey, red } from "@mui/material/colors";
-import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
-import { actionTypes, modalCommonButtonStyle } from "../utils/const";
-import { collectZonesRelatedTeams, errorToString } from "../utils/func";
-
-import { ZoneSelectorModal } from "./ZoneSelectorModal";
+import dialogStyle from "../cssModule/dialog.module.css";
+import { actionTypes } from "../utils/const";
 
 export function AnalysisActionGenerator(props) {
-  const { text, tagIds, action, myZones, onGenerate, onEdit, onCancel } = props;
+  const { text, tagIds, action, onGenerate, onEdit, onCancel } = props;
 
   if (Boolean(onGenerate) === Boolean(onEdit)) {
     throw new Error("Internal Error: Ambiguous mode");
   }
 
   const allTags = useSelector((state) => state.tags.allTags);
-
-  const { enqueueSnackbar } = useSnackbar();
 
   const [actionType, setActionType] = useState(action?.action_type ?? null);
   const [actionTemplate, setActionTemplate] = useState(null);
@@ -59,29 +52,11 @@ export function AnalysisActionGenerator(props) {
         )
       : {},
   );
-  const defaultZoneNames =
-    action?.zones?.length > 0
-      ? typeof action.zones[0] === "string"
-        ? action.zones
-        : action.zones.map((zone) => zone.zone_name)
-      : [];
-  const [zoneNames, setZoneNames] = useState(defaultZoneNames);
-  const [zonesRelatedTeams, setZonesRelatedTeams] = useState(
-    collectZonesRelatedTeams(defaultZoneNames),
-  );
-
-  const tryCollectZonesRelatedTeams = async (newZoneNames) => {
-    try {
-      return await collectZonesRelatedTeams(newZoneNames);
-    } catch (error) {
-      enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
-    }
-  };
 
   const cancelButton = onCancel ? (
-    <Button onClick={onCancel} sx={{ ...modalCommonButtonStyle }}>
-      Cancel
-    </Button>
+    <IconButton onClick={onCancel}>
+      <CloseIcon />
+    </IconButton>
   ) : (
     <></>
   );
@@ -185,14 +160,7 @@ export function AnalysisActionGenerator(props) {
   const buttonDisabled = () => {
     if (onGenerate) {
       const createText = actionTemplates?.[actionTemplate]?.["createText"];
-      return (
-        !actionType ||
-        !createText ||
-        !createText() ||
-        (zoneNames.length > 0 &&
-          Object.values(zonesRelatedTeams?.pteams ?? []).length === 0 &&
-          zonesRelatedTeams?.unvisibleExists !== true) // given zones include no teams
-      );
+      return !actionType || !createText || !createText();
     }
     return false;
   };
@@ -323,133 +291,29 @@ export function AnalysisActionGenerator(props) {
 
   return (
     <>
-      <Box display="flex" flexDirection="column" flexGrow={1}>
-        <Typography variant="h6">{onEdit ? "Edit action" : "Create action"}</Typography>
+      <DialogTitle>
+        <Box alignItems="center" display="flex" flexDirection="row">
+          <Typography flexGrow={1} className={dialogStyle.dialog_title}>
+            {onEdit ? "Edit action" : "Create action"}
+          </Typography>
+          {cancelButton}
+        </Box>
+      </DialogTitle>
+      <DialogContent>
         {actionDescriptionEditor}
         <Typography sx={{ mt: 2 }}>
           {"Select artifact tags to which this action should be applied."}
         </Typography>
         {tagsEditor}
-        <Box display="flex" flexDirection="column" mt={2}>
-          <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              Zone
-            </Typography>
-            <ZoneSelectorModal
-              currentZoneNames={zoneNames}
-              onApply={async (newZoneNames) => {
-                if (newZoneNames.sort().toString() === zoneNames.toString()) return;
-                setZonesRelatedTeams(await tryCollectZonesRelatedTeams(newZoneNames));
-                setZoneNames(newZoneNames.sort());
-              }}
-            />
-          </Box>
-          <List sx={{ ml: 1 }}>
-            {zoneNames.map((zoneName) =>
-              myZones?.apply?.map((zone) => zone.zone_name).includes(zoneName) ? (
-                <Box key={zoneName}>
-                  <ListItem
-                    disablePadding
-                    secondaryAction={
-                      <IconButton
-                        edge="end"
-                        aria-label="delete"
-                        onClick={async () => {
-                          const newZoneNames = zoneNames.filter((name) => name !== zoneName);
-                          setZonesRelatedTeams(await tryCollectZonesRelatedTeams(newZoneNames));
-                          setZoneNames(newZoneNames);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    }
-                  >
-                    <ListItemText
-                      primary={zoneName}
-                      primaryTypographyProps={{
-                        style: {
-                          whiteSpace: "nowrap",
-                          overflow: "auto",
-                          textOverflow: "ellipsis",
-                        },
-                      }}
-                    />
-                  </ListItem>
-                  <Divider />
-                </Box>
-              ) : (
-                <Box key={zoneName}>
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary={zoneName}
-                      primaryTypographyProps={{
-                        style: {
-                          color: "grey",
-                          whiteSpace: "nowrap",
-                          overflow: "auto",
-                          textOverflow: "ellipsis",
-                        },
-                      }}
-                    />
-                  </ListItem>
-                  <Divider />
-                </Box>
-              ),
-            )}
-          </List>
-        </Box>
         <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
             PTeams which this action reaches
           </Typography>
         </Box>
-        <List sx={{ ml: 1 }}>
-          {zoneNames.length === 0 ? (
-            <>All of PTeams</>
-          ) : zonesRelatedTeams?.pteams === undefined ? (
-            <Typography sx={{ color: "red" }}>Something went wrong</Typography>
-          ) : Object.values(zonesRelatedTeams.pteams).length > 0 ||
-            zonesRelatedTeams.unvisibleExists === true ? (
-            <>
-              {Object.values(zonesRelatedTeams.pteams).map((pteam) => (
-                <ListItem key={pteam.pteam_id} disablePadding>
-                  <FiberManualRecordIcon sx={{ m: 1, color: grey[500], fontSize: "small" }} />
-                  <ListItemText
-                    primary={pteam.pteam_name}
-                    primaryTypographyProps={{
-                      style: {
-                        whiteSpace: "nowrap",
-                        overflow: "auto",
-                        textOverflow: "ellipsis",
-                      },
-                    }}
-                  />
-                </ListItem>
-              ))}
-              {zonesRelatedTeams.unvisibleExists && (
-                <ListItem disablePadding>
-                  <FiberManualRecordIcon sx={{ m: 1, color: red[500], fontSize: "small" }} />
-                  <ListItemText
-                    primary={"(some teams you cannot access to)"}
-                    primaryTypographyProps={{
-                      style: {
-                        color: "orange",
-                        whiteSpace: "nowrap",
-                        overflow: "auto",
-                        textOverflow: "ellipsis",
-                      },
-                    }}
-                  />
-                </ListItem>
-              )}
-            </>
-          ) : (
-            <Typography sx={{ color: "red" }}>No PTeams</Typography>
-          )}
-        </List>
+      </DialogContent>
+      <DialogActions className={dialogStyle.action_area}>
         <Box display="flex" flexDirection="row" sx={{ mt: 1 }}>
           <Box flexGrow={1} />
-          {cancelButton}
           <Button
             disabled={buttonDisabled()}
             onClick={() => {
@@ -459,7 +323,6 @@ export function AnalysisActionGenerator(props) {
                   action_type: actionType,
                   action: actionTemplates[actionTemplate]["createText"](),
                   ext: createExt(),
-                  zones: zoneNames,
                   recommended: false,
                 });
               } else {
@@ -468,17 +331,16 @@ export function AnalysisActionGenerator(props) {
                   action_type: actionType,
                   action: description,
                   ext: createExt(),
-                  zones: zoneNames,
                   recommended: action.recommended,
                 });
               }
             }}
-            sx={{ ...modalCommonButtonStyle, ml: 1 }}
+            className={dialogStyle.submit_btn}
           >
             {text}
           </Button>
         </Box>
-      </Box>
+      </DialogActions>
     </>
   );
 }
@@ -491,17 +353,11 @@ AnalysisActionGenerator.propTypes = {
     action: PropTypes.string,
     action_type: PropTypes.string,
     recommended: PropTypes.bool,
-    zones: PropTypes.arrayOf(
-      PropTypes.shape({
-        zone_name: PropTypes.string,
-      }),
-    ),
     ext: PropTypes.shape({
       tags: PropTypes.array,
       vulnerable_versions: PropTypes.object,
     }),
   }),
-  myZones: PropTypes.array.isRequired,
   onGenerate: PropTypes.func,
   onEdit: PropTypes.func,
   onCancel: PropTypes.func,

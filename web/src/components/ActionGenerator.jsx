@@ -1,7 +1,9 @@
+import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
   Checkbox,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -15,7 +17,8 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
-import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import dialogStyle from "../cssModule/dialog.module.css";
+import { actionTypes } from "../utils/const";
 
 export function ActionGenerator(props) {
   const { text, tagIds, action, onGenerate, onEdit, onCancel } = props;
@@ -47,18 +50,11 @@ export function ActionGenerator(props) {
         )
       : {},
   );
-  const [actionZones, setActionZones] = useState(
-    action?.zones?.length > 0
-      ? typeof action.zones[0] === "string"
-        ? action.zones.join(", ")
-        : action.zones.map((zone) => zone.zone_name).join(", ")
-      : "",
-  );
 
   const cancelButton = onCancel ? (
-    <Button onClick={onCancel} sx={{ ...modalCommonButtonStyle }}>
-      Cancel
-    </Button>
+    <IconButton onClick={() => onCancel()}>
+      <CloseIcon />
+    </IconButton>
   ) : (
     <></>
   );
@@ -158,15 +154,6 @@ export function ActionGenerator(props) {
         ),
     };
   };
-
-  const genZonesArray = () =>
-    actionZones.trim().length > 0
-      ? actionZones.split(",").map((zoneName) => {
-          return {
-            zone_name: zoneName.trim(),
-          };
-        })
-      : [];
 
   const buttonDisabled = () => {
     if (onGenerate) {
@@ -307,26 +294,20 @@ export function ActionGenerator(props) {
   return (
     <>
       <Box display="flex" flexDirection="column" flexGrow={1}>
-        <Typography variant="h6">{onEdit ? "Edit action" : "Create action"}</Typography>
+        <Box display="flex" flexDirection="row">
+          <Typography className={dialogStyle.dialog_title}>
+            {onEdit ? "Edit action" : "Create action"}
+          </Typography>
+          <Box flexGrow={1} />
+          {cancelButton}
+        </Box>
         {actionDescriptionEditor}
         <Typography sx={{ mt: 2 }}>
           {"Select artifact tags to which this action should be applied."}
         </Typography>
         {tagsEditor}
         <Box display="flex" flexDirection="row" sx={{ mt: 1 }}>
-          <Typography>Action Zones:</Typography>
-          <TextField
-            size="small"
-            sx={{ width: 512 }}
-            value={actionZones}
-            onChange={(event) => {
-              setActionZones(event.target.value);
-            }}
-          />
-        </Box>
-        <Box display="flex" flexDirection="row" sx={{ mt: 1 }}>
           <Box flexGrow={1} />
-          {cancelButton}
           <Button
             disabled={buttonDisabled()}
             onClick={() => {
@@ -336,7 +317,6 @@ export function ActionGenerator(props) {
                   action_type: actionType,
                   action: actionTemplates[actionTemplate]["createText"](),
                   ext: createExt(),
-                  zones: genZonesArray(),
                   recommended: false,
                 });
               } else {
@@ -345,12 +325,11 @@ export function ActionGenerator(props) {
                   action_type: actionType,
                   action: description,
                   ext: createExt(),
-                  zones: genZonesArray(),
                   recommended: action.recommended,
                 });
               }
             }}
-            sx={{ ...modalCommonButtonStyle, ml: 1 }}
+            className={dialogStyle.submit_btn}
           >
             {text}
           </Button>
@@ -368,11 +347,6 @@ ActionGenerator.propTypes = {
     action: PropTypes.string,
     action_type: PropTypes.string,
     recommended: PropTypes.bool,
-    zones: PropTypes.arrayOf(
-      PropTypes.shape({
-        zone_name: PropTypes.string,
-      }),
-    ),
     ext: PropTypes.shape({
       tags: PropTypes.array,
       vulnerable_versions: PropTypes.object,

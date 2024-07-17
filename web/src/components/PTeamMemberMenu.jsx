@@ -71,7 +71,7 @@ export function PTeamMemberMenu(props) {
           </MenuItem>
         )}
       </Menu>
-      <Dialog open={openAuth}>
+      <Dialog open={openAuth} onClose={() => setOpenAuth(false)}>
         <DialogContent>
           <PTeamAuthEditor
             userId={userId}
@@ -80,19 +80,17 @@ export function PTeamMemberMenu(props) {
           />
         </DialogContent>
       </Dialog>
-      <Dialog open={openRemove}>
-        <DialogContent>
-          <PTeamMemberRemoveModal
-            userId={userId}
-            userName={userEmail}
-            pteamId={pteamId}
-            pteamName={pteam.pteam_name}
-            onClose={() => {
-              if (userId === userMe.user_id) dispatch(getUser()); // update user.pteam_ids
-              setOpenRemove(false);
-            }}
-          />
-        </DialogContent>
+      <Dialog open={openRemove} onClose={() => setOpenRemove(false)}>
+        <PTeamMemberRemoveModal
+          userId={userId}
+          userName={userEmail}
+          pteamId={pteamId}
+          pteamName={pteam.pteam_name}
+          onClose={() => {
+            if (userId === userMe.user_id) dispatch(getUser()); // update user.pteam_ids
+            setOpenRemove(false);
+          }}
+        />
       </Dialog>
     </>
   );

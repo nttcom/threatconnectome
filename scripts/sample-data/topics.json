@@ -39,7 +39,6 @@
     "title": "A ReDoS issue was discovered in pygments/lexers/smithy.py in pygments  ...",
     "abstract": "A ReDoS issue was discovered in pygments/lexers/smithy.py in pygments through 2.15.0 via SmithyLexer.",
     "threat_impact": 3,
-    "disabled": false,
     "tags": ["pygments:pypi:"],
     "misp_tags": ["CVE-2022-40896"],
     "zone_names": [],

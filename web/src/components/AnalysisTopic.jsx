@@ -40,14 +40,14 @@ import { ThreatImpactChip } from "../components/ThreatImpactChip";
 import { TopicEditModal } from "../components/TopicEditModal";
 import { UUIDTypography } from "../components/UUIDTypography";
 import { WarningTooltip } from "../components/WarningTooltip";
+import styles from "../cssModule/button.module.css";
 import { getActions, getTopic } from "../slices/topics";
 import {
   createATeamTopicComment as apiCreateATeamTopicComment,
   getATeamTopicComments as apiGetATeamTopicComments,
-  getPTeamTag as apiGetPTeamTag,
   updateATeamTopicComment as apiUpdateATeamTopicComment,
 } from "../utils/api";
-import { commonButtonStyle, rootPrefix, threatImpactName } from "../utils/const";
+import { rootPrefix, threatImpactName } from "../utils/const";
 import { a11yProps, dateTimeFormat, tagsMatched } from "../utils/func.js";
 
 export function AnalysisTopic(props) {
@@ -60,7 +60,6 @@ export function AnalysisTopic(props) {
   const [tab, setTab] = useState(0);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [listHeight, setListHeight] = useState(0);
-  const [groupsDict, setGroupsDict] = useState({});
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionExpanded, setActionExpanded] = useState(false);
 
@@ -89,36 +88,6 @@ export function AnalysisTopic(props) {
       setListHeight(topicListElem.offsetHeight);
     }
   }, []);
-
-  const groupsDictKey = (pteamId, tagId) => `${pteamId}:${tagId}`;
-
-  useEffect(() => {
-    if (!targetTopic.pteams?.length > 0) return;
-
-    async function fetchPTeamTagGroups() {
-      const newDict = { ...groupsDict };
-      let needUpdate = false;
-      // targetTopic: schemas.ATeamTopicStatus  see api/app/schemas.py for detail
-      for (const pteam of targetTopic.pteams) {
-        for (const item of pteam.statuses) {
-          const key = groupsDictKey(pteam.pteam_id, item.tag.tag_id);
-          if (newDict[key]) continue;
-          await apiGetPTeamTag(pteam.pteam_id, item.tag.tag_id).then((response) => {
-            // response.data: schemas.ExtTagResponse
-            // pick group from each reference:
-            //   {"references": [{"target": x, "version": y, "group": z}]}
-            const groups = new Set(response.data.references?.map((ref) => ref.group) ?? []);
-            newDict[key] = [...groups].sort();
-          });
-          needUpdate = true;
-        }
-      }
-      if (needUpdate) setGroupsDict(newDict); // explicit update to force re-render
-    }
-
-    fetchPTeamTagGroups();
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [targetTopic.topic_id]);
 
   const operationError = (error) =>
     enqueueSnackbar(
@@ -166,16 +135,17 @@ export function AnalysisTopic(props) {
       .catch((error) => operationError(error));
   };
 
-  const pteamLinkURL = (pteam) => {
+  const pteamLinkURL = (pteamId) => {
     const tmpParams = new URLSearchParams();
-    tmpParams.set("pteamId", pteam.pteam_id);
+    tmpParams.set("pteamId", pteamId);
     return `${rootPrefix}/?` + tmpParams.toString();
   };
 
-  const pteamTagLinkURL = (pteam, tag) => {
+  const pteamServiceTagLinkURL = (pteamId, serviceId, tagId) => {
     const tmpParams = new URLSearchParams();
-    tmpParams.set("pteamId", pteam.pteam_id);
-    return `${rootPrefix}/tags/${tag.tag_id}?` + tmpParams.toString();
+    tmpParams.set("pteamId", pteamId);
+    tmpParams.set("serviceId", serviceId);
+    return `${rootPrefix}/tags/${tagId}?` + tmpParams.toString();
   };
   const topicDetail = topics?.[targetTopic.topic_id];
   const topicActions = actions?.[targetTopic.topic_id];
@@ -198,8 +168,9 @@ export function AnalysisTopic(props) {
     {},
   );
 
-  const warningMessageForPTeam = (pteam) =>
-    `Contact the unresponsive team: ${pteamContactInfoDict[pteam.pteam_id]}`;
+  const warningMessageForPTeam = (pteamId) =>
+    `Contact the unresponsive team: ${pteamContactInfoDict[pteamId]}`;
+  const sortedStatuses = targetTopic.pteam_statuses ?? [];
 
   return (
     <>
@@ -243,41 +214,45 @@ export function AnalysisTopic(props) {
                   <TableRow>
                     <TableCell sx={{ width: "30%", fontWeight: 900 }}>PTEAM NAME</TableCell>
                     <TableCell sx={{ fontWeight: 900 }}>TARGET ARTIFACT</TableCell>
-                    <TableCell sx={{ fontWeight: 900 }}>TARGET ARTIFACT GROUP</TableCell>
+                    <TableCell sx={{ fontWeight: 900 }}>TARGET ARTIFACT SERVICE</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {targetTopic.pteams.map((pteam) =>
-                    pteam.statuses.map((topicStatus, index) => (
+                  {sortedStatuses.map((pteamStatus) =>
+                    pteamStatus.service_statuses.map((serviceStatus) => (
                       <TableRow
                         sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                        key={index}
+                        key={serviceStatus.service_id}
                       >
                         <TableCell sx={{ overflowWrap: "anywhere" }}>
-                          <Link href={pteamLinkURL(pteam)} color="inherit">
-                            {pteam.pteam_name}
+                          <Link href={pteamLinkURL(pteamStatus.pteam_id)} color="inherit">
+                            {pteamStatus.pteam_name}
                           </Link>
-                          {topicStatus.topic_status === "alerted" && (
-                            <WarningTooltip message={warningMessageForPTeam(pteam)} />
+                          {serviceStatus.topic_status === "alerted" && (
+                            <WarningTooltip
+                              message={warningMessageForPTeam(pteamStatus.pteam_id)}
+                            />
                           )}
                         </TableCell>
                         <TableCell align="left">
-                          <Link href={pteamTagLinkURL(pteam, topicStatus.tag)}>
+                          <Link
+                            href={pteamServiceTagLinkURL(
+                              pteamStatus.pteam_id,
+                              serviceStatus.service_id,
+                              serviceStatus.tag.tag_id,
+                            )}
+                          >
                             <Chip
-                              label={topicStatus.tag.tag_name}
+                              label={serviceStatus.tag.tag_name}
                               sx={{ borderRadius: "3px", marginleft: "15px" }}
                               size="small"
                             />
                           </Link>
                         </TableCell>
                         <TableCell align="left">
-                          {(
-                            groupsDict[groupsDictKey(pteam.pteam_id, topicStatus.tag.tag_id)] ?? []
-                          ).map((group, index) => (
-                            <Typography key={index} sx={{ overflowWrap: "anywhere" }}>
-                              {group}
-                            </Typography>
-                          ))}
+                          <Typography sx={{ overflowWrap: "anywhere" }}>
+                            {serviceStatus.service_name}
+                          </Typography>
                         </TableCell>
                       </TableRow>
                     )),
@@ -300,10 +275,10 @@ export function AnalysisTopic(props) {
                 onChange={(event) => setNewComment(event.target.value)}
               />
               <Button
+                className={styles.check_btn}
                 onClick={handleCreateComment}
                 sx={{
                   margin: "10px 0 30px auto",
-                  ...commonButtonStyle,
                 }}
               >
                 Comment
@@ -354,16 +329,18 @@ export function AnalysisTopic(props) {
                                 Cancel
                               </Button>
                               <Button
+                                variant="outlined"
+                                color="success"
                                 onClick={() => handleUpdateComment(comment.comment_id)}
                                 sx={{
-                                  ...commonButtonStyle,
+                                  textTransform: "none",
                                 }}
                               >
                                 Edit
                               </Button>
                             </Box>
                           ) : (
-                            <>
+                            <Box display="flex" justifyContent="flex-end">
                               {comment.user_id === user.user_id && (
                                 <IconButton
                                   aria-label="delete"
@@ -382,7 +359,7 @@ export function AnalysisTopic(props) {
                               >
                                 <DeleteIcon fontSize="inherit" />
                               </IconButton>
-                            </>
+                            </Box>
                           )}
                         </Box>
                       )}
@@ -417,24 +394,6 @@ export function AnalysisTopic(props) {
                     No Data
                   </Typography>
                 )}
-              </Box>
-              <Box sx={box_sx}>
-                <Typography fontWeight={900}>Zone</Typography>
-                <Box>
-                  {topicDetail.zones.length > 0 ? (
-                    <>
-                      {topicDetail.zones.map((zone, index) => (
-                        <Box key={index} ml={1}>
-                          <Typography variant="body">{zone.zone_name}</Typography>
-                        </Box>
-                      ))}
-                    </>
-                  ) : (
-                    <Typography sx={{ color: grey[500] }} ml={1}>
-                      No Data
-                    </Typography>
-                  )}
-                </Box>
               </Box>
               <Box sx={box_sx}>
                 <Box display="flex" flexDirection="columns" justifyContent="space-between">
@@ -551,12 +510,6 @@ export function AnalysisTopic(props) {
                               />
                             </Box>
                             <Box display="flex" flexDirection="columns">
-                              <Typography fontWeight={300}>Zone: </Typography>
-                              {action.zones.map((zone, index) => (
-                                <Typography key={index}>{zone.zone_name}</Typography>
-                              ))}
-                            </Box>
-                            <Box display="flex" flexDirection="columns">
                               <Typography fontWeight={300}>Author: </Typography>
                               <Typography>{action.created_by}</Typography>
                             </Box>
@@ -643,12 +596,6 @@ export function AnalysisTopic(props) {
                               />
                             </Box>
                             <Box display="flex" flexDirection="columns">
-                              <Typography fontWeight={300}>Zone: </Typography>
-                              {action.zones.map((zone, index) => (
-                                <Typography key={index}>{zone.zone_name}</Typography>
-                              ))}
-                            </Box>
-                            <Box display="flex" flexDirection="columns">
                               <Typography fontWeight={300}>Author: </Typography>
                               <Typography>{action.created_by}</Typography>
                             </Box>
@@ -672,7 +619,7 @@ export function AnalysisTopic(props) {
         </TabPanel>
         <TopicEditModal
           open={topicModalOpen}
-          setOpen={setTopicModalOpen}
+          onSetOpen={setTopicModalOpen}
           currentTopic={topicDetail}
           currentActions={topicActions}
         />

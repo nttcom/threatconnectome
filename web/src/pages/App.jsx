@@ -1,4 +1,4 @@
-import { Alert, Box } from "@mui/material";
+import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
@@ -9,13 +9,12 @@ import { AppBar } from "../components/AppBar";
 import { Drawer } from "../components/Drawer";
 import { Main } from "../components/Main";
 import { setATeamId } from "../slices/ateam";
-import { setGTeamId } from "../slices/gteam";
-import { getPTeamTagsSummary, setPTeamId } from "../slices/pteam";
+import { setPTeamId } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
 import { getTags } from "../slices/tags";
 import { getUser } from "../slices/user";
 import { getMyUserInfo, setToken } from "../utils/api";
-import { mainMaxWidth, threatImpactName, threatImpactProps } from "../utils/const";
+import { mainMaxWidth } from "../utils/const";
 
 import { authCookieName } from "./Login";
 
@@ -24,9 +23,6 @@ export function App() {
   const [cookies, _setCookie, _removeCookie] = useCookies([authCookieName]);
 
   const [loadTags, setLoadTags] = useState(false);
-  const [loadSummary, setLoadSummary] = useState(false);
-  const [prevPTeamId, setPrevPTeamId] = useState(undefined);
-  const [prevSummary, setPrevSummary] = useState(undefined);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -34,8 +30,6 @@ export function App() {
   const system = useSelector((state) => state.system);
   const user = useSelector((state) => state.user.user);
   const allTags = useSelector((state) => state.tags.allTags);
-  const pteamId = useSelector((state) => state.pteam.pteamId);
-  const summary = useSelector((state) => state.pteam.tagsSummary);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -90,27 +84,6 @@ export function App() {
         return;
       }
       dispatch(setATeamId(params.get("ateamId")));
-    } else if (["/gteam"].includes(location.pathname) || /\/zone/.test(location.pathname)) {
-      dispatch(setTeamMode("gteam"));
-      if (!user.gteams.length > 0) {
-        dispatch(setGTeamId(undefined));
-        return;
-      }
-      const gteamIdx = params.get("gteamId") || user.gteams[0].gteam_id;
-      if (!user.gteams.find((gteam) => gteam.gteam_id === gteamIdx)) {
-        enqueueSnackbar(`Wrong gteamId. Force switching to '${user.gteams[0].gteam_name}'.`, {
-          variant: "error",
-        });
-        params.set("gteamId", user.gteams[0].gteam_id);
-        navigate(location.pathname + "?" + params.toString());
-        return;
-      }
-      if (params.get("gteamId") !== gteamIdx) {
-        params.set("gteamId", gteamIdx);
-        navigate(location.pathname + "?" + params.toString());
-        return;
-      }
-      dispatch(setGTeamId(params.get("gteamId")));
     } else if (
       ["/", "/pteam", "/pteam/watching_request"].includes(location.pathname) ||
       /\/tags\//.test(location.pathname)
@@ -151,44 +124,6 @@ export function App() {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [loadTags]);
 
-  useEffect(() => {
-    if (!pteamId) return;
-    if (pteamId !== prevPTeamId) {
-      setPrevSummary(undefined);
-      setPrevPTeamId(pteamId);
-    }
-    if (loadSummary) {
-      setPrevSummary(summary);
-      dispatch(getPTeamTagsSummary(pteamId));
-      setLoadSummary(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, loadSummary, pteamId]);
-
-  const getWorst = (threatImpactCounts) =>
-    parseInt(Object.keys(threatImpactCounts).filter((key) => threatImpactCounts[key] > 0)[0] ?? 4);
-  const getThreatProp = (num) => threatImpactProps[threatImpactName[parseInt(num)]];
-
-  useEffect(() => {
-    if (!summary) setLoadSummary(true);
-    if (!pteamId || !prevPTeamId || pteamId !== prevPTeamId) return;
-    if (summary && prevSummary && summary !== prevSummary) {
-      const newThreatImpact = getWorst(summary.threat_impact_count ?? []);
-      const prevThreatImpact = getWorst(prevSummary.threat_impact_count ?? []);
-      if (newThreatImpact !== prevThreatImpact) {
-        enqueueSnackbar(
-          "Your pteam's Threat Impact got " +
-            (newThreatImpact > prevThreatImpact ? "better" : "worse") +
-            " to " +
-            getThreatProp(newThreatImpact).chipLabel,
-          { variant: newThreatImpact > prevThreatImpact ? "info" : "warning" },
-        );
-      }
-    }
-    setPrevSummary(summary);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, summary]);
-
   return (
     <>
       <Box flexGrow={1}>
@@ -198,11 +133,6 @@ export function App() {
       <Main open={system.drawerOpen}>
         <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" m={1}>
           <Box display="flex" flexDirection="column" flexGrow={1} maxWidth={mainMaxWidth}>
-            {summary && summary.threat_impact_count?.["1"] > 0 && (
-              <Box sx={{ width: 1 }} mb={3}>
-                <Alert severity="error">{threatImpactProps.immediate.alert}</Alert>
-              </Box>
-            )}
             <Outlet />
           </Box>
         </Box>

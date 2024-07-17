@@ -26,11 +26,11 @@ import React, { useEffect, useState } from "react";
 import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import {
-  getPTeamSolvedTaggedTopicIds,
-  getPTeamTagsSummary,
   getPTeamTopicActions,
-  getPTeamUnsolvedTaggedTopicIds,
+  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTagsSummary,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import {
@@ -41,7 +41,7 @@ import {
   updateAction,
   deleteAction,
 } from "../utils/api";
-import { actionTypes, modalCommonButtonStyle } from "../utils/const";
+import { actionTypes } from "../utils/const";
 import { validateNotEmpty, validateUUID } from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
@@ -49,12 +49,19 @@ import { ActionItem } from "./ActionItem";
 import { ThreatImpactChip } from "./ThreatImpactChip";
 import { TopicDeleteModal } from "./TopicDeleteModal";
 import { TopicTagSelector } from "./TopicTagSelector";
-import { ZoneSelectorModal } from "./ZoneSelectorModal";
 
 const steps = ["Import Flashsense", "Create topic"];
 
 export function TopicModal(props) {
-  const { open, onSetOpen, presetTopicId, presetTagId, presetParentTagId, presetActions } = props;
+  const {
+    open,
+    onSetOpen,
+    presetTopicId,
+    presetTagId,
+    presetParentTagId,
+    presetActions,
+    serviceId,
+  } = props;
 
   const [errors, setErrors] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
@@ -74,7 +81,6 @@ export function TopicModal(props) {
   const [abst, setAbst] = useState("");
   const [threatImpact, setThreatImpact] = useState(4);
   const [tagIds, setTagIds] = useState([]);
-  const [zoneNames, setZoneNames] = useState([]);
   const [mispTags, setMispTags] = useState("");
   const [actionTagOptions, setActionTagOptions] = useState([]);
   const [actions, setActions] = useState([]);
@@ -101,7 +107,6 @@ export function TopicModal(props) {
             ? [presetTagId]
             : [],
     );
-    setZoneNames(src?.zones?.map((zone) => zone.zone_name) ?? []);
     setMispTags(src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",") ?? "");
     setActionTagOptions([
       ...new Set([
@@ -137,6 +142,9 @@ export function TopicModal(props) {
 
   const validateActionTags = () => {
     const validTagNames = new Set();
+    const presetTag = allTags.find((tag) => tag.tag_id === presetTagId);
+    validTagNames.add(presetTag.tag_name);
+
     allTags
       .filter((tag) => tagIds.includes(tag.tag_id))
       .forEach((tag) => {
@@ -160,14 +168,19 @@ export function TopicModal(props) {
     // fix topic state
     await Promise.all([
       dispatch(getTopic(topicId)),
-      dispatch(getPTeamTagsSummary(pteamId)),
       dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
+      dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
     ]);
     // update only if needed
     if (pteamId && presetTagId) {
       await Promise.all([
-        dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
-        dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId })),
+        dispatch(
+          getPTeamServiceTaggedTicketIds({
+            pteamId: pteamId,
+            serviceId: serviceId,
+            tagId: presetTagId,
+          }),
+        ),
       ]);
     }
   };
@@ -179,14 +192,11 @@ export function TopicModal(props) {
       abstract: abst,
       threat_impact: parseInt(threatImpact),
       tags: allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
-      zone_names: zoneNames,
       misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
       actions: actions.map((action) => {
         const obj = {
           ...action,
-          zone_names: action.zones.map((zone) => zone.zone_name),
         };
-        delete obj.zones;
         return obj;
       }),
     };
@@ -207,10 +217,8 @@ export function TopicModal(props) {
     actions.forEach((a) => {
       const actionRequest = {
         ...a,
-        zone_names: a.zones.map((zone) => zone.zone_name),
         topic_id: topicId,
       };
-      delete actionRequest.zones;
       if (a.action_id === null) {
         createAction(actionRequest).catch((error) => operationError(error));
       } else if (presetActionIds.has(a.action_id)) {
@@ -239,7 +247,6 @@ export function TopicModal(props) {
       abstract: abst,
       threat_impact: parseInt(threatImpact),
       tags: allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
-      zone_names: zoneNames,
       misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
     };
     await updateTopic(topicId, data)
@@ -327,9 +334,15 @@ export function TopicModal(props) {
 
   const handleDeleteTopic = () => {
     if (presetTagId) {
-      dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId }));
-      dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: presetTagId }));
+      dispatch(
+        getPTeamServiceTaggedTicketIds({
+          pteamId: pteamId,
+          serviceId: serviceId,
+          tagId: presetTagId,
+        }),
+      );
     }
+    dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
   };
 
   function ActionGeneratorModal() {
@@ -399,10 +412,10 @@ export function TopicModal(props) {
       >
         <DialogTitle>
           <Box alignItems="center" display="flex" flexDirection="row">
-            <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
               {presetTopicId ? "Edit Topic" : "Create Topic"}
             </Typography>
-            <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+            <IconButton onClick={handleClose}>
               <CloseIcon />
             </IconButton>
           </Box>
@@ -543,7 +556,6 @@ export function TopicModal(props) {
                           actionId={action.action_id}
                           actionType={action.action_type}
                           recommended={action.recommended}
-                          zones={action.zones}
                           ext={action.ext}
                           onChangeRecommended={() =>
                             setActions(
@@ -578,23 +590,6 @@ export function TopicModal(props) {
                       inputProps={{ readOnly: true }}
                     />
                   </Box>
-                  <Box mb={1}>
-                    <Box display="flex" flexDirection="row" alignItems="center">
-                      <Typography sx={{ fontWeight: 900 }}>Zones</Typography>
-                      <ZoneSelectorModal
-                        currentZoneNames={zoneNames}
-                        onApply={(ary) => setZoneNames(ary)}
-                      />
-                    </Box>
-                    <TextField
-                      size="small"
-                      variant="outlined"
-                      value={zoneNames.slice().sort().join(", ")}
-                      // sx={{ minWidth: "830px" }}
-                      sx={{ width: "99%" }}
-                      inputProps={{ readOnly: true }}
-                    />
-                  </Box>
                   <Box>
                     <Typography sx={{ fontWeight: 900, mt: "7px", mb: 1.7 }}>
                       Misp Tags (CSV)
@@ -616,13 +611,13 @@ export function TopicModal(props) {
               <Button
                 disabled={activeStep === 0}
                 onClick={handleBackFlashsense}
-                sx={{ ...modalCommonButtonStyle, mr: 1 }}
+                className={dialogStyle.submit_btn}
               >
                 Back
               </Button>
               <Box sx={{ flex: "1 1 auto" }} />
               {isStepOptional(activeStep) && (
-                <Button onClick={handleSkipFlashsense} sx={{ ...modalCommonButtonStyle, mr: 1 }}>
+                <Button onClick={handleSkipFlashsense} className={dialogStyle.submit_btn}>
                   Skip
                 </Button>
               )}
@@ -634,7 +629,7 @@ export function TopicModal(props) {
                       : handleCreateTopic
                   }
                   disabled={errors?.length > 0}
-                  sx={modalCommonButtonStyle}
+                  className={dialogStyle.submit_btn}
                 >
                   {presetTopicId && topicId === presetTopicId ? "Update" : "Create"}
                 </Button>
@@ -642,7 +637,7 @@ export function TopicModal(props) {
                 <Button
                   onClick={handleFetchFlashsense}
                   disabled={!topicId}
-                  sx={modalCommonButtonStyle}
+                  className={dialogStyle.submit_btn}
                 >
                   Next
                 </Button>
@@ -699,15 +694,11 @@ TopicModal.propTypes = {
       action: PropTypes.string,
       action_type: PropTypes.string,
       recommended: PropTypes.bool,
-      zones: PropTypes.arrayOf(
-        PropTypes.shape({
-          zone_name: PropTypes.string,
-        }),
-      ),
       ext: PropTypes.shape({
         tags: PropTypes.array,
         vulnerable_versions: PropTypes.object,
       }),
     }),
   ),
+  serviceId: PropTypes.string.isRequired,
 };

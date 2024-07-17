@@ -1,5 +1,4 @@
-import { Verified as VerifiedIcon } from "@mui/icons-material";
-import { Avatar, AvatarGroup, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/material";
+import { Avatar, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -7,8 +6,8 @@ import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamMember } from "../components/PTeamMember";
 import { PTeamWatcher } from "../components/PTeamWatcher";
 import { TabPanel } from "../components/TabPanel";
-import { getPTeam, getPTeamAuth, getPTeamMembers, getPTeamAchievements } from "../slices/pteam";
-import { avatarGroupStyle, experienceColors, difficulty, noPTeamMessage } from "../utils/const";
+import { getPTeam, getPTeamAuth, getPTeamMembers } from "../slices/pteam";
+import { experienceColors, noPTeamMessage } from "../utils/const";
 import { a11yProps } from "../utils/func.js";
 
 export function PTeam() {
@@ -19,7 +18,6 @@ export function PTeam() {
   const pteam = useSelector((state) => state.pteam.pteam);
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const members = useSelector((state) => state.pteam.members);
-  const achievements = useSelector((state) => state.pteam.achievements);
   const authorities = useSelector((state) => state.pteam.authorities);
   const dispatch = useDispatch();
 
@@ -27,9 +25,8 @@ export function PTeam() {
     if (!pteamId) return;
     if (!pteam) dispatch(getPTeam(pteamId));
     if (!members) dispatch(getPTeamMembers(pteamId));
-    if (!achievements) dispatch(getPTeamAchievements(pteamId));
     if (!authorities) dispatch(getPTeamAuth(pteamId));
-  }, [dispatch, pteamId, pteam, members, achievements, authorities]);
+  }, [dispatch, pteamId, pteam, members, authorities]);
 
   const checkAdmin = (userId) => {
     return (authorities?.find((x) => x.user_id === userId)?.authorities ?? []).includes("admin");
@@ -37,22 +34,12 @@ export function PTeam() {
 
   const filterModes = ["All", "PTeam"];
 
-  const handleFilter = (achievement) => {
-    switch (filterMode) {
-      case "PTeam":
-        return achievement.pteam_id === pteamId;
-      case "All":
-      default:
-        return true;
-    }
-  };
-
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
   if (!pteamId) return <>{noPTeamMessage}</>;
-  if (!user || !pteam || !members || !achievements || !authorities) return <></>;
+  if (!user || !pteam || !members || !authorities) return <></>;
   const isAdmin = checkAdmin(user.user_id);
 
   return (
@@ -98,43 +85,6 @@ export function PTeam() {
                   </Tooltip>
                 );
               })()}
-            {achievements &&
-              (() => {
-                const badge_names = achievements.map((achievement) => achievement.badge_name);
-                const unique_badge_names = [...new Set(badge_names)].sort();
-                const unique_achievements = unique_badge_names.map((name) =>
-                  achievements.find((achievement) => achievement.badge_name === name),
-                );
-                const filtered_achievements = unique_achievements.filter((achievement) =>
-                  handleFilter(achievement),
-                );
-                const sorted_achievements = filtered_achievements.sort(
-                  (a, b) => difficulty.indexOf(a.difficulty) - difficulty.indexOf(b.difficulty),
-                );
-                return (
-                  <AvatarGroup max={6} variant="rounded" sx={{ m: 0.5, ...avatarGroupStyle }}>
-                    {sorted_achievements.map((achievement) => (
-                      <Tooltip
-                        arrow
-                        describeChild
-                        key={achievement.badge_id}
-                        placement="bottom-start"
-                        title={achievement.badge_name}
-                      >
-                        <Avatar
-                          alt={achievement.badge_name.slice(0, 1)}
-                          className={achievement.difficulty}
-                          src={achievement.image_url}
-                          variant="square"
-                        >
-                          {/* default badge image */}
-                          {achievement.image_url ? "" : <VerifiedIcon />}
-                        </Avatar>
-                      </Tooltip>
-                    ))}
-                  </AvatarGroup>
-                );
-              })()}
           </Box>
         </Box>
       </Box>
@@ -149,7 +99,6 @@ export function PTeam() {
           <PTeamMember
             pteamId={pteamId}
             members={members}
-            achievements={achievements}
             authorities={authorities}
             isAdmin={isAdmin}
           />

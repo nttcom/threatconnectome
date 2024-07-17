@@ -1,10 +1,11 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional, Union, cast
+from typing import cast
 
-from sqlalchemy import ARRAY, JSON, Enum, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
+from sqlalchemy.sql.expression import join, outerjoin, text
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
 
@@ -20,55 +21,26 @@ class ActionType(str, enum.Enum):
     rejection = "rejection"
 
 
-class BadgeType(str, enum.Enum):
-    skill = "skill"
-    performance = "performance"
-    position = "position"
-
-
-class CertifierType(str, enum.Enum):
-    trusted_third_party = "trusted_third_party"
-    coworker = "coworker"
-    myself = "myself"
-    system = "system"
-
-
-class Difficulty(str, enum.Enum):
-    low = "low"
-    middle = "middle"
-    high = "high"
-
-
 class PTeamAuthEnum(str, enum.Enum):
     ADMIN = "admin"
-    PTEAMBADGE_APPLY = "pteambadge_apply"
     INVITE = "invite"
-    PTEAMBADGE_MANAGE = "pteambadge_manage"
     TOPIC_STATUS = "topic_status"
 
     @classmethod
-    def info(cls) -> Dict[str, Dict[str, Union[int, str]]]:
+    def info(cls) -> dict[str, dict[str, int | str]]:
         return {
             "admin": {
                 "int": 0,
                 "name": "Administrator",
                 "desc": "To administrate the pteam.",
             },
-            "pteambadge_apply": {
-                "int": 1,
-                "name": "PTeam badge element",
-                "desc": "To be counted in pteam badge.",
-            },
+            # 1 is unused
             "invite": {
                 "int": 2,
                 "name": "Inviter",
                 "desc": "To create invitation to the pteam.",
             },
-            "pteambadge_manage": {
-                "int": 3,
-                "name": "PTeam badge manager",
-                "desc": "To manage pteam member's badge.",
-            },
+            # 3 is unused
             "topic_status": {
                 "int": 4,
                 "name": "Topic status operator",
@@ -88,27 +60,25 @@ class PTeamAuthIntFlag(enum.IntFlag):
     """
 
     ADMIN = 1 << PTeamAuthEnum.ADMIN.to_int()
-    PTEAMBADGE_APPLY = 1 << PTeamAuthEnum.PTEAMBADGE_APPLY.to_int()
     INVITE = 1 << PTeamAuthEnum.INVITE.to_int()
-    PTEAMBADGE_MANAGE = 1 << PTeamAuthEnum.PTEAMBADGE_MANAGE.to_int()
     TOPIC_STATUS = 1 << PTeamAuthEnum.TOPIC_STATUS.to_int()
 
     # authority sets for members
     PTEAM_MEMBER = TOPIC_STATUS
-    PTEAM_LEADER = PTEAM_MEMBER | PTEAMBADGE_APPLY | INVITE | PTEAMBADGE_MANAGE
+    PTEAM_LEADER = PTEAM_MEMBER | INVITE
     PTEAM_MASTER = 0x0FFFFFFF
 
     # template authority set for non-members
     FREE_TEMPLATE = 0
 
     @classmethod
-    def from_enums(cls, datas: List[PTeamAuthEnum]):
+    def from_enums(cls, datas: list[PTeamAuthEnum]):
         result = 0
         for data in datas:
             result |= 1 << data.to_int()
         return PTeamAuthIntFlag(result)
 
-    def to_enums(self) -> List[PTeamAuthEnum]:
+    def to_enums(self) -> list[PTeamAuthEnum]:
         result = []
         for data in list(PTeamAuthEnum):
             if self & 1 << data.to_int():
@@ -121,7 +91,7 @@ class ATeamAuthEnum(str, enum.Enum):
     INVITE = "invite"
 
     @classmethod
-    def info(cls) -> Dict[str, Dict[str, Union[int, str]]]:
+    def info(cls) -> dict[str, dict[str, int | str]]:
         return {
             "admin": {
                 "int": 0,
@@ -158,70 +128,15 @@ class ATeamAuthIntFlag(enum.IntFlag):
     FREE_TEMPLATE = 0
 
     @classmethod
-    def from_enums(cls, datas: List[ATeamAuthEnum]):
+    def from_enums(cls, datas: list[ATeamAuthEnum]):
         result = 0
         for data in datas:
             result |= 1 << data.to_int()
         return ATeamAuthIntFlag(result)
 
-    def to_enums(self) -> List[ATeamAuthEnum]:
+    def to_enums(self) -> list[ATeamAuthEnum]:
         result = []
         for data in list(ATeamAuthEnum):
-            if self & 1 << data.to_int():
-                result.append(data)
-        return result
-
-
-class GTeamAuthEnum(str, enum.Enum):
-    ADMIN = "admin"
-    INVITE = "invite"
-
-    @classmethod
-    def info(cls) -> Dict[str, Dict[str, Union[int, str]]]:
-        return {
-            "admin": {
-                "int": 0,
-                "name": "Administrator",
-                "desc": "To administrate the gteam.",
-            },
-            "invite": {
-                "int": 1,
-                "name": "Inviter",
-                "desc": "To create invitation to the gteam.",
-            },
-        }
-
-    def to_int(self) -> int:
-        return cast(int, GTeamAuthEnum.info()[self.value]["int"])
-
-
-class GTeamAuthIntFlag(enum.IntFlag):
-    """
-    Integer which can be combined using the bitwise operators. (INTERNAL USE ONLY!)
-
-    See GTeamAuthEnum.info() for details.
-    """
-
-    ADMIN = 1 << GTeamAuthEnum.ADMIN.to_int()
-    INVITE = 1 << GTeamAuthEnum.INVITE.to_int()
-
-    # authority sets for members
-    GTEAM_MEMBER = 0
-    GTEAM_MASTER = 0x0FFFFFFF
-
-    # template authority set for non-members
-    FREE_TEMPLATE = 0
-
-    @classmethod
-    def from_enums(cls, datas: List[GTeamAuthEnum]):
-        result = 0
-        for data in datas:
-            result |= 1 << data.to_int()
-        return GTeamAuthIntFlag(result)
-
-    def to_enums(self) -> List[GTeamAuthEnum]:
-        result = []
-        for data in list(GTeamAuthEnum):
             if self & 1 << data.to_int():
                 result.append(data)
         return result
@@ -232,6 +147,49 @@ class TopicStatusType(str, enum.Enum):
     acknowledged = "acknowledged"
     scheduled = "scheduled"
     completed = "completed"
+
+
+class ExploitationEnum(str, enum.Enum):
+    # https://certcc.github.io/SSVC/ssvc-calc/
+    # https://certcc.github.io/SSVC/reference/decision_points/exploitation/
+    ACTIVE = "active"
+    POC = "poc"
+    NONE = "none"
+
+
+class ExposureEnum(str, enum.Enum):
+    # https://certcc.github.io/SSVC/reference/decision_points/system_exposure/
+    OPEN = "open"
+    CONTROLLED = "controlled"
+    SMALL = "small"
+
+
+class SafetyImpactEnum(str, enum.Enum):
+    # https://certcc.github.io/SSVC/ssvc-calc/
+    # https://certcc.github.io/SSVC/reference/decision_points/safety_impact/#situated-safety-impact
+    CATASTROPHIC = "catastrophic"
+    HAZARDOUS = "hazardous"
+    MAJOR = "major"
+    MINOR = "minor"
+    NONE = "none"
+
+
+class MissionImpactEnum(str, enum.Enum):
+    # https://certcc.github.io/SSVC/ssvc-calc/
+    # https://certcc.github.io/SSVC/reference/decision_points/mission_impact/
+    MISSION_FAILURE = "mission_failure"
+    MEF_FAILURE = "mef_failure"
+    CRIPPLED = "crippled"
+    DEGRADED = "degraded"
+    NONE = "none"
+
+
+class SSVCDeployerPriorityEnum(str, enum.Enum):
+    # https://certcc.github.io/SSVC/howto/deployer_tree/#deployer-decision-outcomes
+    IMMEDIATE = "immediate"
+    OUT_OF_CYCLE = "out_of_cycle"
+    SCHEDULED = "scheduled"
+    DEFER = "defer"
 
 
 # Base class
@@ -247,9 +205,8 @@ class Base(DeclarativeBase):
             StrUUID: String(36),
             Str255: String(255),
             dict: JSON,
-            List[dict]: ARRAY(JSON),
-            List[StrUUID]: ARRAY(String(36)),
-            List[BadgeType]: ARRAY(Enum(BadgeType)),
+            list[dict]: ARRAY(JSON),
+            list[StrUUID]: ARRAY(String(36)),
         }
     )
 
@@ -257,17 +214,12 @@ class Base(DeclarativeBase):
 # secondary tables #
 
 
-class PTeamZone(Base):
-    __tablename__ = "pteamzone"
-
-    pteam_id = mapped_column(ForeignKey("pteam.pteam_id"), primary_key=True, index=True)
-    zone_name = mapped_column(ForeignKey("zone.zone_name"), primary_key=True, index=True)
-
-
 class PTeamAccount(Base):
     __tablename__ = "pteamaccount"
 
-    pteam_id = mapped_column(ForeignKey("pteam.pteam_id"), primary_key=True, index=True)
+    pteam_id = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
     user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
 
 
@@ -278,18 +230,13 @@ class ATeamAccount(Base):
     user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
 
 
-class GTeamAccount(Base):
-    __tablename__ = "gteamaccount"
-
-    gteam_id = mapped_column(ForeignKey("gteam.gteam_id"), primary_key=True, index=True)
-    user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
-
-
 class ATeamPTeam(Base):
     __tablename__ = "ateampteam"
 
     ateam_id = mapped_column(ForeignKey("ateam.ateam_id"), primary_key=True, index=True)
-    pteam_id = mapped_column(ForeignKey("pteam.pteam_id"), primary_key=True, index=True)
+    pteam_id = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
 
 
 class TopicTag(Base):
@@ -314,24 +261,6 @@ class TopicMispTag(Base):
     )
 
 
-class TopicZone(Base):
-    __tablename__ = "topiczone"
-
-    topic_id = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    zone_name = mapped_column(
-        ForeignKey("zone.zone_name", ondelete="CASCADE"), primary_key=True, index=True
-    )
-
-
-class ActionZone(Base):
-    __tablename__ = "actionzone"
-
-    action_id = mapped_column(ForeignKey("topicaction.action_id"), primary_key=True, index=True)
-    zone_name = mapped_column(ForeignKey("zone.zone_name"), primary_key=True, index=True)
-
-
 # primary tables #
 
 
@@ -344,77 +273,210 @@ class Account(Base):
     __tablename__ = "account"
 
     user_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    uid: Mapped[Optional[str]] = mapped_column(unique=True)  # UID on Firebase
-    email: Mapped[Optional[Str255]]
+    uid: Mapped[str | None] = mapped_column(unique=True)  # UID on Firebase
+    email: Mapped[Str255 | None]
     disabled: Mapped[bool] = mapped_column(default=False)
-    years: Mapped[Optional[int]]
-    favorite_badge: Mapped[Optional[StrUUID]] = mapped_column(
-        ForeignKey("secbadge.badge_id", use_alter=True), index=True
-    )
+    years: Mapped[int | None]
 
     pteams = relationship("PTeam", secondary=PTeamAccount.__tablename__, back_populates="members")
     ateams = relationship("ATeam", secondary=ATeamAccount.__tablename__, back_populates="members")
-    gteams = relationship("GTeam", secondary=GTeamAccount.__tablename__, back_populates="members")
     pteam_invitations = relationship("PTeamInvitation", back_populates="inviter")
     ateam_invitations = relationship("ATeamInvitation", back_populates="inviter")
-    gteam_invitations = relationship("GTeamInvitation", back_populates="inviter")
     ateam_requests = relationship("ATeamWatchingRequest", back_populates="requester")
     action_logs = relationship("ActionLog", back_populates="executed_by")
 
 
-class PTeamTag(Base):
-    __tablename__ = "pteamtag"
-
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    tag_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("tag.tag_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    references: Mapped[List[dict]] = mapped_column("refs", default=[])
-    # "references" is reserved word
-    # [{"target": "", "version": "", "group": ""}]
-    text: Mapped[Optional[str]]
-
-    # see https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html#association-object
-    tag = relationship("Tag", back_populates="pteamtags")
-    pteam = relationship("PTeam", back_populates="pteamtags")
-
-
-class PTeamTagReference(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.reference_id:
-            self.reference_id = str(uuid.uuid4())
-
-    __tablename__ = "pteamtagreference"
-    __table_args__ = (
+class Dependency(Base):
+    __tablename__ = "dependency"
+    __table_args__: tuple = (
         UniqueConstraint(
-            "pteam_id",
+            "service_id",
             "tag_id",
-            "group",
-            "target",
             "version",
-            name="pteamtagreference_pteam_id_tag_id_group_target_version_key",
+            "target",
+            name="dependency_service_id_tag_id_version_target_key",
         ),
     )
 
-    reference_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"),
-        index=True,
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.dependency_id:
+            self.dependency_id = str(uuid.uuid4())
+
+    dependency_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    service_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("service.service_id", ondelete="CASCADE"), index=True
     )
     tag_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("tag.tag_id", ondelete="CASCADE"),
-        index=True,
+        ForeignKey("tag.tag_id", ondelete="CASCADE"), index=True
     )
-    group: Mapped[Str255] = mapped_column(index=True)
-    target: Mapped[str]
     version: Mapped[str]
+    target: Mapped[str]
+    dependency_mission_impact: Mapped[MissionImpactEnum | None] = mapped_column(
+        server_default=None, nullable=True
+    )
+
+    service = relationship("Service", back_populates="dependencies")
+    tag = relationship("Tag", back_populates="dependencies")
+    threats = relationship("Threat", back_populates="dependency", cascade="all, delete-orphan")
+
+
+class Service(Base):
+    __tablename__ = "service"
+    __table_args__: tuple = (
+        UniqueConstraint("pteam_id", "service_name", name="service_pteam_id_service_name_key"),
+    )
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.service_id:
+            self.service_id = str(uuid.uuid4())
+        if not self.exposure:
+            self.exposure = ExposureEnum.OPEN
+        if not self.service_mission_impact:
+            self.service_mission_impact = MissionImpactEnum.MISSION_FAILURE
+
+    service_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
+    )
+    service_name: Mapped[Str255]
+    exposure: Mapped[ExposureEnum] = mapped_column(server_default=ExposureEnum.OPEN)
+    service_mission_impact: Mapped[MissionImpactEnum] = mapped_column(
+        server_default=MissionImpactEnum.MISSION_FAILURE
+    )
+    sbom_uploaded_at: Mapped[datetime | None]
+
+    pteam = relationship("PTeam", back_populates="services")
+    dependencies = relationship(
+        "Dependency", back_populates="service", cascade="all, delete-orphan"
+    )
+
+
+class Threat(Base):
+    __tablename__ = "threat"
+    __table_args__ = (
+        UniqueConstraint("dependency_id", "topic_id", name="threat_dependency_id_topic_id_key"),
+    )
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.threat_id:
+            self.threat_id = str(uuid.uuid4())
+
+    threat_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    dependency_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
+    )
+    topic_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("topic.topic_id", ondelete="CASCADE"), index=True
+    )
+
+    topic = relationship("Topic", back_populates="threats")
+    ticket = relationship("Ticket", uselist=False, back_populates="threat", cascade="all, delete")
+    dependency = relationship("Dependency", uselist=False, back_populates="threats")
+
+
+class Ticket(Base):
+    __tablename__ = "ticket"
+
+    def __init__(self, *args, **kwargs) -> None:
+        now = datetime.now()
+        super().__init__(*args, **kwargs)
+        if not self.ticket_id:
+            self.ticket_id = str(uuid.uuid4())
+        if not self.created_at:
+            self.created_at = now
+        if not self.updated_at:
+            self.updated_at = now
+
+    ticket_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    threat_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True, unique=True
+    )
+    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
+
+    threat = relationship("Threat", back_populates="ticket")
+    alert = relationship("Alert", uselist=False, back_populates="ticket")
+    ticket_statuses = relationship("TicketStatus", back_populates="ticket", cascade="all, delete")
+    current_ticket_status: Mapped["CurrentTicketStatus"] = relationship(
+        "CurrentTicketStatus", uselist=False, back_populates="ticket", cascade="all, delete"
+    )
+
+
+class TicketStatus(Base):
+    __tablename__ = "ticketstatus"
+
+    def __init__(self, *args, **kwargs) -> None:
+        now = datetime.now()
+        super().__init__(*args, **kwargs)
+        if not self.status_id:
+            self.status_id = str(uuid.uuid4())
+        if not self.created_at:
+            self.created_at = now
+
+    status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    ticket_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True
+    )
+    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
+    topic_status: Mapped[TopicStatusType]
+    note: Mapped[str | None]
+    logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
+    assignees: Mapped[list[StrUUID]] = mapped_column(default=[])
+    scheduled_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+
+    ticket = relationship("Ticket", back_populates="ticket_statuses")
+    current_ticket_status = relationship(
+        "CurrentTicketStatus", uselist=False, back_populates="ticket_status"
+    )
+
+
+class CurrentTicketStatus(Base):
+    __tablename__ = "currentticketstatus"
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.current_status_id:
+            self.current_status_id = str(uuid.uuid4())
+
+    current_status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    ticket_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True, unique=True
+    )
+    status_id: Mapped[StrUUID | None] = mapped_column(
+        ForeignKey("ticketstatus.status_id"), index=True
+    )
+    topic_status: Mapped[TopicStatusType | None]
+    threat_impact: Mapped[int | None]
+    updated_at: Mapped[datetime | None]
+
+    ticket = relationship("Ticket", back_populates="current_ticket_status")
+    ticket_status = relationship("TicketStatus", back_populates="current_ticket_status")
+
+
+class Alert(Base):
+    __tablename__ = "alert"
+
+    def __init__(self, *args, **kwargs) -> None:
+        now = datetime.now()
+        super().__init__(*args, **kwargs)
+        if not self.alert_id:
+            self.alert_id = str(uuid.uuid4())
+        if not self.alerted_at:
+            self.alerted_at = now
+
+    alert_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    ticket_id: Mapped[StrUUID | None] = mapped_column(
+        ForeignKey("ticket.ticket_id", ondelete="SET NULL"), index=True, nullable=True, unique=True
+    )
+    alerted_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    alert_content: Mapped[str | None] = mapped_column(nullable=True)  # WORKAROUND
+
+    ticket = relationship("Ticket", back_populates="alert")
 
 
 class PTeam(Base):
@@ -428,15 +490,31 @@ class PTeam(Base):
     pteam_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     pteam_name: Mapped[Str255]
     contact_info: Mapped[Str255]
-    slack_webhook_url: Mapped[Str255]
-    alert_threat_impact: Mapped[Optional[int]]
-    disabled: Mapped[bool] = mapped_column(default=False)
+    alert_threat_impact: Mapped[int | None]
 
-    pteamtags = relationship("PTeamTag", back_populates="pteam", cascade="all, delete-orphan")
-    zones = relationship("Zone", secondary=PTeamZone.__tablename__, back_populates="pteams")
+    tags = relationship(  # PTeam - [Service - Dependency] - Tag
+        "Tag",  # right most table is Tag
+        # secondary table is a joined table -- Service.join(Dependency)
+        secondary=join(Service, Dependency, Service.service_id == Dependency.service_id),
+        # left join condition : for PTeam.join(SecondaryTable)
+        #   declare with string because PTeam table is not yet defined
+        primaryjoin="PTeam.pteam_id == Service.pteam_id",
+        # right join condition : for SecondaryTable.join(Tag)
+        #   declare with string because Tag table is not yet defined
+        secondaryjoin="Dependency.tag_id == Tag.tag_id",
+        collection_class=set,  # avoid duplications
+        viewonly=True,  # block updating via this relationship
+    )
+    services = relationship("Service", back_populates="pteam", cascade="all, delete-orphan")
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
     invitations = relationship("PTeamInvitation", back_populates="pteam")
     ateams = relationship("ATeam", secondary=ATeamPTeam.__tablename__, back_populates="pteams")
+    alert_slack: Mapped["PTeamSlack"] = relationship(
+        back_populates="pteam", cascade="all, delete-orphan"
+    )
+    alert_mail: Mapped["PTeamMail"] = relationship(
+        back_populates="pteam", cascade="all, delete-orphan"
+    )
 
 
 class ATeam(Base):
@@ -450,29 +528,16 @@ class ATeam(Base):
     ateam_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     ateam_name: Mapped[Str255]
     contact_info: Mapped[Str255]
-    slack_webhook_url: Mapped[Str255]
-
     members = relationship("Account", secondary=ATeamAccount.__tablename__, back_populates="ateams")
     invitations = relationship("ATeamInvitation", back_populates="ateam")
     pteams = relationship("PTeam", secondary=ATeamPTeam.__tablename__, back_populates="ateams")
     watching_requests = relationship("ATeamWatchingRequest", back_populates="ateam")
-
-
-class GTeam(Base):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self.gteam_id:
-            self.gteam_id = str(uuid.uuid4())
-
-    __tablename__ = "gteam"
-
-    gteam_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    gteam_name: Mapped[Str255]
-    contact_info: Mapped[Str255]
-
-    members = relationship("Account", secondary=GTeamAccount.__tablename__, back_populates="gteams")
-    invitations = relationship("GTeamInvitation", back_populates="gteam")
-    zones = relationship("Zone", back_populates="gteam")
+    alert_slack: Mapped["ATeamSlack"] = relationship(
+        back_populates="ateam", cascade="all, delete-orphan"
+    )
+    alert_mail: Mapped["ATeamMail"] = relationship(
+        back_populates="ateam", cascade="all, delete-orphan"
+    )
 
 
 # TODO: This info should be stored in PTeamAccount table to cascade delete
@@ -480,7 +545,7 @@ class PTeamAuthority(Base):
     __tablename__ = "pteamauthority"
 
     pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id"), primary_key=True, index=True
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
     )
     user_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("account.user_id"), primary_key=True, index=True
@@ -501,51 +566,90 @@ class ATeamAuthority(Base):
     authority: Mapped[int]  # ATeamAuthIntFlag as an integer
 
 
-# TODO: This info should be stored in GTeamAccount table to cascade delete
-class GTeamAuthority(Base):
-    __tablename__ = "gteamauthority"
+class PTeamMail(Base):
+    __tablename__ = "pteammail"
 
-    gteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("gteam.gteam_id"), primary_key=True, index=True
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
     )
-    user_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("account.user_id"), primary_key=True, index=True
+    enable: Mapped[bool]
+    address: Mapped[Str255]
+
+    pteam: Mapped[PTeam] = relationship(back_populates="alert_mail")
+
+
+class ATeamMail(Base):
+    __tablename__ = "ateammail"
+
+    ateam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
     )
-    authority: Mapped[int]  # GTeamAuthIntFlag as an integer
+    enable: Mapped[bool]
+    address: Mapped[Str255]
+
+    ateam: Mapped[ATeam] = relationship(back_populates="alert_mail")
 
 
-class SecBadge(Base):
+class PTeamSlack(Base):
+    __tablename__ = "pteamslack"
+
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    enable: Mapped[bool] = mapped_column(default=True)
+    webhook_url: Mapped[Str255]
+
+    pteam: Mapped[PTeam] = relationship(back_populates="alert_slack")
+
+
+class ATeamSlack(Base):
+    __tablename__ = "ateamslack"
+
+    ateam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    enable: Mapped[bool] = mapped_column(default=True)
+    webhook_url: Mapped[Str255]
+
+    ateam: Mapped[ATeam] = relationship(back_populates="alert_slack")
+
+
+class Tag(Base):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        if not self.badge_id:
-            self.badge_id = str(uuid.uuid4())
+        if not self.tag_id:
+            self.tag_id = str(uuid.uuid4())
 
-    __tablename__ = "secbadge"
+    __tablename__ = "tag"
 
-    badge_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    badge_name: Mapped[Str255]
-    image_url: Mapped[Str255]
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    email: Mapped[Str255]
-    created_by: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    obtained_at: Mapped[datetime]
-    created_at: Mapped[datetime]
-    expired_at: Mapped[Optional[datetime]]
-    metadata_json: Mapped[dict]
-    priority: Mapped[int] = mapped_column(default=100)
-    difficulty: Mapped[Difficulty] = mapped_column(default="low")
-    badge_type: Mapped[List[BadgeType]]
-    certifier_type: Mapped[CertifierType]
-    pteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("pteam.pteam_id"), index=True)
+    tag_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    tag_name: Mapped[str] = mapped_column(unique=True)
+    parent_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("tag.tag_id"), index=True)
+    parent_name: Mapped[str | None] = mapped_column(ForeignKey("tag.tag_name"), index=True)
+
+    topics = relationship(
+        "Topic",
+        secondary=TopicTag.__tablename__,
+        primaryjoin="TopicTag.tag_id.in_([Tag.tag_id, Tag.parent_id])",
+        collection_class=set,
+        viewonly=True,
+    )
+    dependencies = relationship("Dependency", back_populates="tag", cascade="all, delete-orphan")
 
 
 class Topic(Base):
+    __tablename__ = "topic"
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if not self.topic_id:
             self.topic_id = str(uuid.uuid4())
-
-    __tablename__ = "topic"
+        if not self.safety_impact:
+            self.safety_impact = SafetyImpactEnum.CATASTROPHIC
+        if not self.exploitation:
+            self.exploitation = ExploitationEnum.ACTIVE
+        if not self.automatable:
+            self.automatable = True
 
     topic_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     title: Mapped[Str255]
@@ -555,14 +659,26 @@ class Topic(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     content_fingerprint: Mapped[str]
-    disabled: Mapped[bool] = mapped_column(default=False)
+    safety_impact: Mapped[SafetyImpactEnum] = mapped_column(
+        server_default=SafetyImpactEnum.CATASTROPHIC
+    )
+    exploitation: Mapped[ExploitationEnum] = mapped_column(server_default=ExploitationEnum.ACTIVE)
+    automatable: Mapped[bool] = mapped_column(server_default=text("TRUE"))
 
     actions = relationship("TopicAction", back_populates="topic", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary=TopicTag.__tablename__, order_by="Tag.tag_name")
     misp_tags = relationship(
         "MispTag", secondary=TopicMispTag.__tablename__, order_by="MispTag.tag_name"
     )
-    zones = relationship("Zone", secondary=TopicZone.__tablename__, order_by="Zone.zone_name")
+    threats = relationship("Threat", back_populates="topic", cascade="all, delete-orphan")
+    dependencies_via_tag = relationship(  # dependencies which have one of topic tag (or child)
+        Dependency,  # Topic - [TopicTag - Tag] - Dependency
+        secondary=outerjoin(TopicTag, Tag, TopicTag.tag_id.in_([Tag.tag_id, Tag.parent_id])),
+        primaryjoin="Topic.topic_id == TopicTag.topic_id",
+        secondaryjoin="Tag.tag_id == Dependency.tag_id",
+        collection_class=set,
+        viewonly=True,
+    )
 
 
 class TopicAction(Base):
@@ -584,68 +700,7 @@ class TopicAction(Base):
     created_by: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
 
-    zones = relationship("Zone", secondary=ActionZone.__tablename__, order_by="Zone.zone_name")
     topic = relationship("Topic", back_populates="actions")
-
-
-class PTeamTopicTagStatus(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.status_id:
-            self.status_id = str(uuid.uuid4())
-
-    __tablename__ = "pteamtopictagstatus"
-
-    status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    pteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("pteam.pteam_id"), index=True)
-    topic_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"), index=True
-    )
-    tag_id: Mapped[StrUUID] = mapped_column(ForeignKey("tag.tag_id"), index=True)
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    topic_status: Mapped[TopicStatusType]
-    note: Mapped[Optional[str]]
-    logging_ids: Mapped[List[StrUUID]] = mapped_column(default=[])
-    assignees: Mapped[List[StrUUID]] = mapped_column(default=[])
-    scheduled_at: Mapped[Optional[datetime]]
-    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-
-
-class CurrentPTeamTopicTagStatus(Base):
-    __tablename__ = "currentpteamtopictagstatus"
-
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        "pteam_id", ForeignKey("pteam.pteam_id"), primary_key=True, index=True
-    )
-    topic_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    tag_id: Mapped[StrUUID] = mapped_column(ForeignKey("tag.tag_id"), primary_key=True, index=True)
-    status_id: Mapped[Optional[StrUUID]] = mapped_column(
-        ForeignKey("pteamtopictagstatus.status_id"), index=True
-    )
-    topic_status: Mapped[Optional[TopicStatusType]]
-    threat_impact: Mapped[Optional[int]]
-    updated_at: Mapped[Optional[datetime]]
-
-
-class Tag(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.tag_id:
-            self.tag_id = str(uuid.uuid4())
-
-    __tablename__ = "tag"
-
-    tag_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    tag_name: Mapped[str] = mapped_column(unique=True)
-    parent_id: Mapped[Optional[StrUUID]] = mapped_column(ForeignKey("tag.tag_id"), index=True)
-    parent_name: Mapped[Optional[str]] = mapped_column(ForeignKey("tag.tag_name"), index=True)
-
-    topics = relationship("Topic", secondary=TopicTag.__tablename__, back_populates="tags")
-    pteamtags = relationship("PTeamTag", back_populates="tag", cascade="all, delete-orphan")
 
 
 class MispTag(Base):
@@ -662,28 +717,6 @@ class MispTag(Base):
     topics = relationship("Topic", secondary=TopicMispTag.__tablename__, back_populates="misp_tags")
 
 
-class Zone(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-    __tablename__ = "zone"
-
-    zone_name: Mapped[Str255] = mapped_column(primary_key=True)
-    zone_info: Mapped[str]
-    gteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("gteam.gteam_id"), index=True)
-    created_by: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    archived: Mapped[bool]
-
-    gteam = relationship("GTeam", back_populates="zones")
-    pteams = relationship("PTeam", secondary=PTeamZone.__tablename__, back_populates="zones")
-    topics = relationship("Topic", secondary=TopicZone.__tablename__, back_populates="zones")
-    actions = relationship(
-        "TopicAction",
-        secondary=ActionZone.__tablename__,
-        back_populates="zones",
-    )
-
-
 class ActionLog(Base):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -698,8 +731,16 @@ class ActionLog(Base):
     action: Mapped[str]  # snapshot: don't update even if TopicAction is modified.
     action_type: Mapped[ActionType]
     recommended: Mapped[bool]  # snapshot: don't update even if TopicAction is modified.
-    user_id: Mapped[Optional[StrUUID]] = mapped_column(ForeignKey("account.user_id"), index=True)
-    pteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("pteam.pteam_id"), index=True)
+    user_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("account.user_id"), index=True)
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
+    )
+    service_id: Mapped[StrUUID | None] = mapped_column(
+        ForeignKey("service.service_id", ondelete="SET NULL"), index=True
+    )
+    ticket_id: Mapped[StrUUID | None] = mapped_column(
+        ForeignKey("ticket.ticket_id", ondelete="SET NULL"), index=True
+    )
     email: Mapped[Str255]  # snapshot: don't set ForeignKey.
     executed_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
@@ -716,10 +757,12 @@ class PTeamInvitation(Base):
     __tablename__ = "pteaminvitation"
 
     invitation_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    pteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("pteam.pteam_id"), index=True)
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
+    )
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     expiration: Mapped[datetime]
-    limit_count: Mapped[Optional[int]]  # None for unlimited
+    limit_count: Mapped[int | None]  # None for unlimited
     used_count: Mapped[int] = mapped_column(server_default="0")
     authority: Mapped[int]  # PTeamAuthIntFlag
 
@@ -739,32 +782,12 @@ class ATeamInvitation(Base):
     ateam_id: Mapped[StrUUID] = mapped_column(ForeignKey("ateam.ateam_id"), index=True)
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     expiration: Mapped[datetime]
-    limit_count: Mapped[Optional[int]]  # None for unlimited
+    limit_count: Mapped[int | None]  # None for unlimited
     used_count: Mapped[int] = mapped_column(server_default="0")
     authority: Mapped[int]  # ATeamAuthIntFlag
 
     ateam = relationship("ATeam", back_populates="invitations")
     inviter = relationship("Account", back_populates="ateam_invitations")
-
-
-class GTeamInvitation(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.invitation_id:
-            self.invitation_id = str(uuid.uuid4())
-
-    __tablename__ = "gteaminvitation"
-
-    invitation_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    gteam_id: Mapped[StrUUID] = mapped_column(ForeignKey("gteam.gteam_id"), index=True)
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    expiration: Mapped[datetime]
-    limit_count: Mapped[Optional[int]]  # None for unlimited
-    used_count: Mapped[int] = mapped_column(server_default="0")
-    authority: Mapped[int]  # GTeamAuthIntFlag
-
-    gteam = relationship("GTeam", back_populates="invitations")
-    inviter = relationship("Account", back_populates="gteam_invitations")
 
 
 class ATeamWatchingRequest(Base):
@@ -779,7 +802,7 @@ class ATeamWatchingRequest(Base):
     ateam_id: Mapped[StrUUID] = mapped_column(ForeignKey("ateam.ateam_id"), index=True)
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     expiration: Mapped[datetime]
-    limit_count: Mapped[Optional[int]]  # None for unlimited
+    limit_count: Mapped[int | None]  # None for unlimited
     used_count: Mapped[int] = mapped_column(server_default="0")
 
     ateam = relationship("ATeam", back_populates="watching_requests")
@@ -801,5 +824,5 @@ class ATeamTopicComment(Base):
     ateam_id: Mapped[StrUUID] = mapped_column(ForeignKey("ateam.ateam_id"), index=True)
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-    updated_at: Mapped[Optional[datetime]]
+    updated_at: Mapped[datetime | None]
     comment: Mapped[str]

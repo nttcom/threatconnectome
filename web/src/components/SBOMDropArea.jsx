@@ -10,37 +10,36 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useRef, useState } from "react";
 
 import { WaitingModal } from "../components/WaitingModal";
+import dialogStyle from "../cssModule/dialog.module.css";
 import { uploadSBOMFile } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
 function PreUploadModal(props) {
   const { sbomFile, open, onSetOpen, onCompleted } = props;
-  const [groupName, setGroupName] = useState("");
+  const [serviceName, setServiceName] = useState("");
 
   const handleClose = () => {
-    setGroupName("");
+    setServiceName("");
     onSetOpen(false);
   };
   const handleUpload = () => {
-    onCompleted(groupName); // parent will close me
-    setGroupName(""); // reset for next open
+    onCompleted(serviceName); // parent will close me
+    setServiceName(""); // reset for next open
   };
 
   return (
     <Dialog fullWidth open={open} onClose={handleClose}>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography flexGrow={1} variant="inherit">
+          <Typography flexGrow={1} className={dialogStyle.dialog_title}>
             Upload SBOM File
           </Typography>
-          <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+          <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -48,12 +47,12 @@ function PreUploadModal(props) {
       <DialogContent>
         <Box display="flex" flexDirection="column">
           <TextField
-            label="Group name"
+            label="Service name"
             size="small"
-            value={groupName}
-            onChange={(event) => setGroupName(event.target.value)}
+            value={serviceName}
+            onChange={(event) => setServiceName(event.target.value)}
             required
-            error={!groupName}
+            error={!serviceName}
             sx={{ mt: 2 }}
           />
           <Box display="flex" flexDirection="row" sx={{ mt: 1, ml: 1 }}>
@@ -62,10 +61,10 @@ function PreUploadModal(props) {
           </Box>
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Box sx={{ display: "flex", flexDirection: "row", mr: 1, mb: 1 }}>
+      <DialogActions className={dialogStyle.action_area}>
+        <Box>
           <Box sx={{ flex: "1 1 auto" }} />
-          <Button onClick={handleUpload} disabled={!groupName} sx={modalCommonButtonStyle}>
+          <Button onClick={handleUpload} disabled={!serviceName} className={dialogStyle.submit_btn}>
             Upload
           </Button>
         </Box>
@@ -117,21 +116,23 @@ export function SBOMDropArea(props) {
       setPreModalOpen(true);
     }
   };
-  const handlePreUploadCompleted = (group) => {
+  const handlePreUploadCompleted = (service) => {
     setPreModalOpen(false);
-    processUploadSBOM(sbomFile, group);
+    processUploadSBOM(sbomFile, service);
   };
 
-  const processUploadSBOM = (file, group) => {
-    if (!file || !group) {
-      alert("Something went wrong: missing file or group.");
+  const processUploadSBOM = (file, service) => {
+    if (!file || !service) {
+      alert("Something went wrong: missing file or service.");
       return;
     }
     setIsOpenWaitingModal(true);
     enqueueSnackbar(`Uploading SBOM file: ${file.name}`, { variant: "info" });
-    uploadSBOMFile(pteamId, group, file)
+    uploadSBOMFile(pteamId, service, file)
       .then((response) => {
-        enqueueSnackbar("Upload SBOM succeeded", { variant: "success" });
+        enqueueSnackbar("SBOM Update Request was accepted. Please reload later", {
+          variant: "success",
+        });
         onUploaded();
       })
       .catch((error) => {
@@ -163,7 +164,7 @@ export function SBOMDropArea(props) {
         sbomFile={sbomFile}
         open={preModalOpen}
         onSetOpen={setPreModalOpen}
-        onCompleted={(group) => handlePreUploadCompleted(group)}
+        onCompleted={(service) => handlePreUploadCompleted(service)}
       />
       <WaitingModal isOpen={isOpenWaitingModal} text="Uploading SBOM file" />
     </>

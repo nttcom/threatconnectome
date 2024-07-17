@@ -1,12 +1,21 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Close as CloseIcon } from "@mui/icons-material";
+import {
+  Box,
+  Button,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
+} from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch } from "react-redux";
 
-import { /*getATeamAchievements,*/ getATeamAuth, getATeamMembers } from "../slices/ateam";
+import dialogStyle from "../cssModule/dialog.module.css";
+import { getATeamAuth, getATeamMembers } from "../slices/ateam";
 import { deleteATeamMember } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 
 export function ATeamMemberRemoveModal(props) {
   const { userId, userName, ateamId, ateamName, onClose } = props;
@@ -17,7 +26,6 @@ export function ATeamMemberRemoveModal(props) {
 
   const handleRemove = async () => {
     function onSuccess(success) {
-      //dispatch(getATeamAchievements(ateamId)); // TODO: not yet implemented for ateam
       dispatch(getATeamAuth(ateamId));
       dispatch(getATeamMembers(ateamId));
       enqueueSnackbar(`Remove ${userName} from ${ateamName} succeeded`, { variant: "success" });
@@ -35,33 +43,37 @@ export function ATeamMemberRemoveModal(props) {
 
   return (
     <>
-      <Typography variant="h5">Confirm</Typography>
-      <Box display="flex" flexWrap="wrap" alignItems="baseline" sx={{ my: 2 }}>
-        <Typography>Are you sure you want to remove </Typography>
-        <Typography
-          variant="h6"
-          noWrap
-          sx={{ fontWeight: "bold", textDecoration: "underline", mx: 1 }}
-        >
-          {userName}
-        </Typography>
-        <Typography>from the ateam </Typography>
-        <Typography noWrap sx={{ fontWeight: "bold", ml: 1 }}>
-          {ateamName}
-        </Typography>
-        <Typography>?</Typography>
-      </Box>
-      <Box display="flex">
-        <Box flexGrow={1} />
-        {onClose && (
-          <Button onClick={onClose} sx={modalCommonButtonStyle}>
-            Cancel
-          </Button>
-        )}
-        <Button onClick={handleRemove} sx={{ ...modalCommonButtonStyle, ml: 1 }}>
+      <DialogTitle>
+        <Box display="flex" flexDirection="row">
+          <Typography className={dialogStyle.dialog_title}>Confirm</Typography>
+          <Box flexGrow={1} />
+          <IconButton onClick={onClose}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+      <DialogContent>
+        <Box display="flex" flexWrap="wrap" alignItems="baseline">
+          <Typography>Are you sure you want to remove </Typography>
+          <Typography
+            variant="h6"
+            noWrap
+            sx={{ fontWeight: "bold", textDecoration: "underline", mx: 1 }}
+          >
+            {userName}
+          </Typography>
+          <Typography>from the ateam </Typography>
+          <Typography noWrap sx={{ fontWeight: "bold", ml: 1 }}>
+            {ateamName}
+          </Typography>
+          <Typography>?</Typography>
+        </Box>
+      </DialogContent>
+      <DialogActions className={dialogStyle.action_area}>
+        <Button onClick={handleRemove} className={dialogStyle.delete_btn}>
           Remove
         </Button>
-      </Box>
+      </DialogActions>
     </>
   );
 }

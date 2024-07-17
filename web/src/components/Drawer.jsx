@@ -1,7 +1,6 @@
 import {
   AccountCircle as AccountCircleIcon,
   Assessment as AssessmentIcon,
-  Fence as FenceIcon,
   Groups as GroupsIcon,
   Home as HomeIcon,
   Topic as TopicIcon,
@@ -58,8 +57,6 @@ export function Drawer() {
       navigate("/?" + queryParams);
     } else if (system.teamMode === "ateam") {
       navigate("/analysis?" + queryParams);
-    } else if (system.teamMode === "gteam") {
-      navigate("/zone?" + queryParams);
     }
   };
 
@@ -134,31 +131,9 @@ export function Drawer() {
             </StyledListItemButton>
           </>
         )}
-        {system.teamMode === "gteam" && (
-          <>
-            <StyledListItemButton
-              onClick={() => navigate("/zone?" + queryParams)}
-              selected={location.pathname === "/zone"}
-            >
-              <StyledListItemIcon>
-                <FenceIcon />
-              </StyledListItemIcon>
-              <ListItemText>Zone</ListItemText>
-            </StyledListItemButton>
-            <StyledListItemButton
-              onClick={() => navigate("/gteam?" + queryParams)}
-              selected={location.pathname === "/gteam"}
-            >
-              <StyledListItemIcon>
-                <GroupsIcon />
-              </StyledListItemIcon>
-              <ListItemText>GTeam</ListItemText>
-            </StyledListItemButton>
-          </>
-        )}
         {/* Topics */}
         <StyledListItemButton
-          onClick={() => navigate("/topics")}
+          onClick={() => navigate("/topics?" + queryParams)}
           selected={location.pathname === "/topics"}
         >
           <StyledListItemIcon>

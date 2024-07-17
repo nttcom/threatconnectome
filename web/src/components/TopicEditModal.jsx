@@ -2,7 +2,6 @@ import {
   AddBox as AddBoxIcon,
   Close as CloseIcon,
   Delete as DeleteIcon,
-  FiberManualRecord as FiberManualRecordIcon,
   SentimentSatisfiedAlt as SentimentSatisfiedAltIcon,
   SentimentVeryDissatisfied as SentimentVeryDissatisfiedIcon,
 } from "@mui/icons-material";
@@ -24,30 +23,22 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
-import { blue, grey, green, red } from "@mui/material/colors";
+import { blue, green, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
+import dialogStyle from "../cssModule/dialog.module.css";
 import { getActions, getTopic } from "../slices/topics";
-import { getAuthorizedZones } from "../slices/user";
 import { createAction, deleteAction, updateAction, updateTopic } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
-import {
-  a11yProps,
-  collectZonesRelatedTeams,
-  errorToString,
-  setEquals,
-  validateNotEmpty,
-} from "../utils/func";
+import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
 import { ActionTypeIcon } from "./ActionTypeIcon";
 import { AnalysisActionGenerator } from "./AnalysisActionGenerator";
 import { ThreatImpactChip } from "./ThreatImpactChip";
 import { TopicTagSelector } from "./TopicTagSelector";
-import { ZoneSelectorModal } from "./ZoneSelectorModal";
 
 export function TopicEditModal(props) {
   const { open, onSetOpen, currentTopic, currentActions } = props;
@@ -57,8 +48,6 @@ export function TopicEditModal(props) {
   const [threatImpact, setThreatImpact] = useState(1);
   const [abst, setAbst] = useState("");
   const [actions, setActions] = useState([]);
-  const [zoneNames, setZoneNames] = useState([]);
-  const [zonesRelatedTeams, setZonesRelatedTeams] = useState(undefined);
   const [actionTagOptions, setActionTagOptions] = useState([]);
 
   const [tagIds, setTagIds] = useState([]);
@@ -66,16 +55,10 @@ export function TopicEditModal(props) {
   const [updating, setUpdating] = useState(false);
 
   const allTags = useSelector((state) => state.tags.allTags);
-  const myZones = useSelector((state) => state.user.zones);
   const userMe = useSelector((state) => state.user.user);
 
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (myZones === undefined) dispatch(getAuthorizedZones());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -102,25 +85,6 @@ export function TopicEditModal(props) {
     setTagIds(newTagIds);
     setActionTagOptions(createActionTagOptions(newTagIds));
     setActions(currentActions);
-    setZoneNames(currentTopic.zones.map((zone) => zone.zone_name));
-    setZonesRelatedTeams(
-      await tryCollectZonesRelatedTeams(currentTopic.zones.map((zone) => zone.zone_name)),
-    );
-  };
-
-  const operationError = (error) => {
-    const resp = error.response ?? { status: "???", statusText: error.toString() };
-    enqueueSnackbar(`Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`, {
-      variant: "error",
-    });
-  };
-
-  const tryCollectZonesRelatedTeams = async (newZoneNames) => {
-    try {
-      return await collectZonesRelatedTeams(newZoneNames);
-    } catch (error) {
-      operationError(error);
-    }
   };
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
@@ -138,12 +102,6 @@ export function TopicEditModal(props) {
         tags: setEquals(new Set(tagIds), new Set(currentTopic.tags.map((tag) => tag.tag_id)))
           ? null
           : allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
-        zone_names: setEquals(
-          new Set(zoneNames),
-          new Set(currentTopic.zones.map((zone) => zone.zone_name)),
-        )
-          ? null
-          : zoneNames,
       };
       if (Object.values(topicData).filter((item) => item !== null).length > 0) {
         // something modified
@@ -214,13 +172,7 @@ export function TopicEditModal(props) {
       threatImpact !== currentTopic.threat_impact ||
       abst !== currentTopic.abstract ||
       !setEquals(new Set(tagIds), new Set(currentTopic.tags.map((tag) => tag.tag_id))) ||
-      !setEquals(new Set(zoneNames), new Set(currentTopic.zones.map((zone) => zone.zone_name))) ||
-      JSON.stringify(actions) !== JSON.stringify(currentActions)) &&
-    !(
-      zoneNames.length > 0 &&
-      Object.values(zonesRelatedTeams?.pteams ?? []).length === 0 &&
-      zonesRelatedTeams?.unvisibleExists !== true
-    );
+      JSON.stringify(actions) !== JSON.stringify(currentActions));
 
   function TopicTagSelectorModal() {
     const [tagOpen, setTagOpen] = useState(false);
@@ -254,33 +206,30 @@ export function TopicEditModal(props) {
           <AddBoxIcon />
         </IconButton>
         <Dialog open={generatorOpen} onClose={() => setGeneratorOpen(false)}>
-          <DialogContent>
-            <AnalysisActionGenerator
-              text="Add action"
-              tagIds={actionTagOptions}
-              myZones={myZones ?? []}
-              onGenerate={(ret) => {
-                setActions([...actions, ret]);
-                setGeneratorOpen(false);
-              }}
-              onCancel={() => setGeneratorOpen(false)}
-            />
-          </DialogContent>
+          <AnalysisActionGenerator
+            text="Add action"
+            tagIds={actionTagOptions}
+            onGenerate={(ret) => {
+              setActions([...actions, ret]);
+              setGeneratorOpen(false);
+            }}
+            onCancel={() => setGeneratorOpen(false)}
+          />
         </Dialog>
       </>
     );
   }
 
-  if (!allTags || !myZones) return <>Now loading...</>;
+  if (!allTags) return <>Now loading...</>;
 
   return (
     <Dialog open={open === true} maxWidth="md" fullWidth sx={{ maxHeight: "100vh" }}>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
+          <Typography flexGrow={1} className={dialogStyle.dialog_title}>
             Edit Topic
           </Typography>
-          <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+          <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -396,123 +345,11 @@ export function TopicEditModal(props) {
                   ))}
               </List>
             </Box>
-            <Box display="flex" flexDirection="column" mt={2}>
-              <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Zone
-                </Typography>
-                <ZoneSelectorModal
-                  currentZoneNames={zoneNames}
-                  onApply={async (newZoneNames) => {
-                    if (newZoneNames.sort().toString() === zoneNames.toString()) return;
-                    setZonesRelatedTeams(await tryCollectZonesRelatedTeams(newZoneNames));
-                    setZoneNames(newZoneNames.sort());
-                  }}
-                />
-              </Box>
-              <List sx={{ ml: 1 }}>
-                {zoneNames.map((zoneName, index) =>
-                  myZones?.apply?.map((zone) => zone.zone_name).includes(zoneName) ? (
-                    <Box key={index}>
-                      <ListItem
-                        disablePadding
-                        secondaryAction={
-                          <IconButton
-                            edge="end"
-                            aria-label="delete"
-                            onClick={async () => {
-                              const newZoneNames = zoneNames.filter((name) => name !== zoneName);
-                              setZonesRelatedTeams(await tryCollectZonesRelatedTeams(newZoneNames));
-                              setZoneNames(newZoneNames);
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        }
-                      >
-                        <ListItemText
-                          primary={zoneName}
-                          primaryTypographyProps={{
-                            style: {
-                              whiteSpace: "nowrap",
-                              overflow: "auto",
-                              textOverflow: "ellipsis",
-                            },
-                          }}
-                        />
-                      </ListItem>
-                      <Divider />
-                    </Box>
-                  ) : (
-                    <Box key={index}>
-                      <ListItem disablePadding>
-                        <ListItemText
-                          primary={zoneName}
-                          primaryTypographyProps={{
-                            style: {
-                              color: "grey",
-                              whiteSpace: "nowrap",
-                              overflow: "auto",
-                              textOverflow: "ellipsis",
-                            },
-                          }}
-                        />
-                      </ListItem>
-                      <Divider />
-                    </Box>
-                  ),
-                )}
-              </List>
-            </Box>
             <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 The PTeam that the topic reaches
               </Typography>
             </Box>
-            <List sx={{ ml: 1 }}>
-              {zoneNames.length === 0 ? (
-                <>All of PTeams</>
-              ) : zonesRelatedTeams?.pteams === undefined ? (
-                <Typography sx={{ color: "red" }}>Something went wrong</Typography>
-              ) : Object.values(zonesRelatedTeams.pteams).length > 0 ||
-                zonesRelatedTeams.unvisibleExists === true ? (
-                <>
-                  {Object.values(zonesRelatedTeams.pteams).map((pteam) => (
-                    <ListItem key={pteam.pteam_id} disablePadding>
-                      <FiberManualRecordIcon sx={{ m: 1, color: grey[500], fontSize: "small" }} />
-                      <ListItemText
-                        primary={pteam.pteam_name}
-                        primaryTypographyProps={{
-                          style: {
-                            whiteSpace: "nowrap",
-                            overflow: "auto",
-                            textOverflow: "ellipsis",
-                          },
-                        }}
-                      />
-                    </ListItem>
-                  ))}
-                  {zonesRelatedTeams.unvisibleExists && (
-                    <ListItem disablePadding>
-                      <FiberManualRecordIcon sx={{ m: 1, color: red[500], fontSize: "small" }} />
-                      <ListItemText
-                        primary={"(some teams you cannot access to)"}
-                        primaryTypographyProps={{
-                          style: {
-                            color: "orange",
-                            whiteSpace: "nowrap",
-                            overflow: "auto",
-                            textOverflow: "ellipsis",
-                          },
-                        }}
-                      />
-                    </ListItem>
-                  )}
-                </>
-              ) : (
-                <Typography sx={{ color: "red" }}>No PTeams</Typography>
-              )}
-            </List>
           </Box>
         </TabPanel>
         <TabPanel index={2} value={tab}>
@@ -574,10 +411,14 @@ export function TopicEditModal(props) {
           </Box>
         </TabPanel>
       </DialogContent>
-      <DialogActions>
-        <Box sx={{ display: "flex", flexDirection: "row", mr: 1, mb: 1 }}>
+      <DialogActions className={dialogStyle.action_area}>
+        <Box sx={{ display: "flex", flexDirection: "row" }}>
           <Box sx={{ flex: "1 1 auto" }} />
-          <Button disabled={!readyForUpdate()} sx={modalCommonButtonStyle} onClick={handleUpdate}>
+          <Button
+            disabled={!readyForUpdate()}
+            onClick={handleUpdate}
+            className={dialogStyle.submit_btn}
+          >
             Update
           </Button>
         </Box>

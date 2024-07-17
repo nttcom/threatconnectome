@@ -3,10 +3,8 @@ import {
   Box,
   Button,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   IconButton,
   TextField,
   Typography,
@@ -19,14 +17,13 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
+import dialogStyle from "../cssModule/dialog.module.css";
 import {
-  getPTeamSolvedTaggedTopicIds,
-  getPTeamTagsSummary,
-  getPTeamTopicStatus,
-  getPTeamUnsolvedTaggedTopicIds,
+  getTopicStatus,
+  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTagsSummary,
 } from "../slices/pteam";
 import { createActionLog, createTopicStatus } from "../utils/api";
-import { modalCommonButtonStyle } from "../utils/const";
 
 import { ActionTypeChip } from "./ActionTypeChip";
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -34,7 +31,7 @@ import { RecommendedStar } from "./RecommendedStar";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function ReportCompletedActions(props) {
-  const { onConfirm, onSetShow, show, topicId, topicActions } = props;
+  const { onConfirm, onSetShow, show, topicId, topicActions, serviceId } = props;
 
   const [note, setNote] = useState("");
   const [selectedAction, setSelectedAction] = useState([]);
@@ -58,6 +55,7 @@ export function ReportCompletedActions(props) {
             await createActionLog({
               action_id: actionId,
               pteam_id: pteamId,
+              service_id: serviceId,
               topic_id: topicId,
               user_id: user.user_id,
             }).then((response) => {
@@ -66,18 +64,21 @@ export function ReportCompletedActions(props) {
             }),
         ),
       );
-      await createTopicStatus(pteamId, topicId, tagId, {
+      await createTopicStatus(pteamId, serviceId, topicId, tagId, {
         topic_status: "completed",
-        logging_ids: actionLogs.map((log) => log.logging_id),
+        logging_ids: actionLogs.map((logs) => logs.map((log) => log.logging_id)).flat(),
         note: note.trim() || null,
       });
       handleClose();
       onConfirm();
       setNote("");
-      dispatch(getPTeamTagsSummary(pteamId));
-      dispatch(getPTeamTopicStatus({ pteamId: pteamId, topicId: topicId, tagId: tagId }));
-      dispatch(getPTeamSolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
-      dispatch(getPTeamUnsolvedTaggedTopicIds({ pteamId: pteamId, tagId: tagId }));
+      dispatch(
+        getTopicStatus({ pteamId: pteamId, serviceId: serviceId, topicId: topicId, tagId: tagId }),
+      );
+      dispatch(
+        getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
+      );
+      dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
       enqueueSnackbar("Set topicstatus 'completed' succeeded", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`Operation failed: ${error}`, { variant: "error" });
@@ -121,25 +122,24 @@ export function ReportCompletedActions(props) {
   };
 
   return (
-    <Dialog fullWidth onClose={handleClose} open={show}>
+    <Dialog open={show} onClose={handleClose} fullWidth>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           {activeStep === 0 && (
-            <Typography flexGrow={1} variant="inherit">
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
               Select the actions you have completed
             </Typography>
           )}
           {activeStep === 1 && (
-            <Typography flexGrow={1} variant="inherit">
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
               (Optional): Enter evidence of completion
             </Typography>
           )}
-          <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+          <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Box>
       </DialogTitle>
-      <Divider />
       <DialogContent>
         {activeStep === 0 && (
           <>
@@ -210,15 +210,13 @@ export function ReportCompletedActions(props) {
             />
           </>
         )}
-      </DialogContent>
-      <DialogActions>
         <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
-          <Box sx={{ flex: "1 1 auto" }} />
           {activeStep === 0 ? (
             <>
+              <Box sx={{ flex: "1 1 auto" }} />
               <Button
                 onClick={handleNext}
-                sx={modalCommonButtonStyle}
+                className={dialogStyle.submit_btn}
                 disabled={selectedAction.length === 0}
               >
                 {`Done ${selectedAction.length}`}
@@ -226,20 +224,22 @@ export function ReportCompletedActions(props) {
             </>
           ) : (
             <>
-              <Button onClick={handleBack} sx={modalCommonButtonStyle} disabled={activeStep === 0}>
+              <Button
+                onClick={handleBack}
+                className={dialogStyle.submit_btn}
+                disabled={activeStep === 0}
+                sx={{ ml: -2 }}
+              >
                 Back
               </Button>
-              <Button
-                color="success"
-                onClick={handleAction}
-                sx={{ textTransform: "none", fontWeight: "bold" }}
-              >
+              <Box sx={{ flex: "1 1 auto" }} />
+              <Button onClick={handleAction} className={dialogStyle.submit_btn}>
                 Submit
               </Button>
             </>
           )}
         </Box>
-      </DialogActions>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -250,4 +250,5 @@ ReportCompletedActions.propTypes = {
   show: PropTypes.bool.isRequired,
   topicId: PropTypes.string.isRequired,
   topicActions: PropTypes.array.isRequired,
+  serviceId: PropTypes.string.isRequired,
 };

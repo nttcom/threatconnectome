@@ -24,8 +24,6 @@ export const getPTeam = async (pteamId) => axios.get(`/pteams/${pteamId}`);
 
 export const updatePTeam = async (pteamId, data) => axios.put(`/pteams/${pteamId}`, data);
 
-export const getPTeamAchievements = async (pteamId) => axios.get(`/pteams/${pteamId}/achievements`);
-
 export const getPTeamMembers = async (pteamId) => axios.get(`/pteams/${pteamId}/members`);
 
 export const deletePTeamMember = async (pteamId, userId) =>
@@ -38,17 +36,10 @@ export const getPTeamAuth = async (pteamId) => axios.get(`/pteams/${pteamId}/aut
 export const updatePTeamAuth = async (pteamId, data) =>
   axios.post(`/pteams/${pteamId}/authority`, data);
 
-export const getPTeamTagsSummary = async (pteamId) => axios.get(`/pteams/${pteamId}/tags/summary`);
-
-export const getPTeamTag = async (pteamId, tagId) => axios.get(`/pteams/${pteamId}/tags/${tagId}`);
-
 export const getPTeamTopics = async (pteamId) => axios.get(`/pteams/${pteamId}/topics`);
 
-export const getPTeamSolvedTaggedTopicIds = async (pteamId, tagId) =>
-  axios.get(`/pteams/${pteamId}/tags/${tagId}/solved_topic_ids`);
-
-export const getPTeamUnsolvedTaggedTopicIds = async (pteamId, tagId) =>
-  axios.get(`/pteams/${pteamId}/tags/${tagId}/unsolved_topic_ids`);
+export const getPTeamServiceTaggedTicketIds = async (pteamId, serviceId, tagId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/${tagId}/ticket_ids`);
 
 export const createPTeamInvitation = async (pteamId, data) =>
   axios.post(`/pteams/${pteamId}/invitation`, data);
@@ -58,15 +49,15 @@ export const getPTeamInvited = async (tokenId) => axios.get(`/pteams/invitation/
 export const applyPTeamInvitation = async (tokenId) =>
   axios.post("/pteams/apply_invitation", { invitation_id: tokenId });
 
-export const createTopicStatus = async (pteamId, topicId, tagId, data) => {
-  return axios.post(`/pteams/${pteamId}/topicstatus/${topicId}/${tagId}`, data);
+export const createTopicStatus = async (pteamId, serviceId, topicId, tagId, data) => {
+  return axios.post(
+    `/pteams/${pteamId}/services/${serviceId}/topicstatus/${topicId}/${tagId}`,
+    data,
+  );
 };
 
-export const getPTeamTopicStatus = async (pteamId, topicId, tagId) =>
-  axios.get(`/pteams/${pteamId}/topicstatus/${topicId}/${tagId}`);
-
-export const getPTeamTopicStatusesSummary = async (pteamId, tagId) =>
-  axios.get(`/pteams/${pteamId}/topicstatusessummary/${tagId}`);
+export const getTopicStatus = async (pteamId, serviceId, topicId, tagId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/topicstatus/${topicId}/${tagId}`);
 
 export const getPTeamTopicActions = async (pteamId, topicId) =>
   axios.get(`/topics/${topicId}/actions/pteam/${pteamId}`);
@@ -74,13 +65,14 @@ export const getPTeamTopicActions = async (pteamId, topicId) =>
 export const removeWatcherATeam = async (pteamId, ateamId) =>
   axios.delete(`/pteams/${pteamId}/watchers/${ateamId}`);
 
-export const getPTeamGroups = async (pteamId) => axios.get(`/pteams/${pteamId}/groups`);
+export const getPTeamServiceTagsSummary = async (pteamId, serviceId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/summary`);
 
-export const uploadSBOMFile = async (pteamId, group, file, forceMode = true) => {
+export const uploadSBOMFile = async (pteamId, service, file, forceMode = true) => {
   const formData = new FormData();
   formData.append("file", file);
   const paramData = {
-    group: group,
+    service: service,
     force_mode: forceMode,
   };
   return axios.post(`/pteams/${pteamId}/upload_sbom_file`, formData, {
@@ -89,10 +81,11 @@ export const uploadSBOMFile = async (pteamId, group, file, forceMode = true) => 
   });
 };
 
-export const autoClose = async (pteamId) => axios.post(`/pteams/${pteamId}/fix_status_mismatch`);
+export const deletePTeamService = async (pteamId, service) =>
+  axios.delete(`/pteams/${pteamId}/tags`, { params: { service: service } });
 
-export const autoCloseTag = async (pteamId, tagId) =>
-  axios.post(`/pteams/${pteamId}/tags/${tagId}/fix_status_mismatch`);
+export const getDependencies = async (pteamId, serviceId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/dependencies`);
 
 // ateams
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);
@@ -148,56 +141,6 @@ export const updateATeamTopicComment = async (ateamId, topicId, commentId, data)
 export const deleteATeamTopicComment = async (ateamId, topicId, commentId) =>
   axios.delete(`/ateams/${ateamId}/topiccomment/${topicId}/${commentId}`);
 
-// gteams
-export const updateGTeam = async (gteamId, data) => axios.put(`/gteams/${gteamId}`, data);
-
-export const createGTeam = async (data) => axios.post("/gteams", data);
-
-export const getGTeam = async (gteamId) => axios.get(`/gteams/${gteamId}`);
-
-export const getGTeamMembers = async (gteamId) => axios.get(`/gteams/${gteamId}/members`);
-
-export const deleteGTeamMember = async (gteamId, userId) =>
-  axios.delete(`/gteams/${gteamId}/members/${userId}`);
-
-export const createGTeamInvitation = async (gteamId, data) =>
-  axios.post(`/gteams/${gteamId}/invitation`, data);
-
-export const getGTeamInvited = async (tokenId) => axios.get(`/gteams/invitation/${tokenId}`);
-
-export const applyGTeamInvitation = async (tokenId) =>
-  axios.post("/gteams/apply_invitation", { invitation_id: tokenId });
-
-export const getGTeamAuthInfo = async () => axios.get("/gteams/auth_info");
-
-export const getGTeamAuth = async (gteamId) => axios.get(`/gteams/${gteamId}/authority`);
-
-export const updateGTeamAuth = async (gteamId, data) =>
-  axios.post(`/gteams/${gteamId}/authority`, data);
-
-export const createGTeamZone = async (gteamId, data) =>
-  axios.post(`/gteams/${gteamId}/zones`, data);
-
-export const deleteGTeamZone = async (gteamId, zoneName) =>
-  axios.delete(`/gteams/${gteamId}/zones/${zoneName}`);
-
-export const updateZone = async (gteamId, zoneName, data) =>
-  axios.put(`/gteams/${gteamId}/zones/${zoneName}`, data);
-
-export const updateZoneArchived = async (gteamId, zoneName, data) =>
-  axios.put(`/gteams/${gteamId}/zones/${zoneName}/archived`, data);
-
-export const getGTeamZonesSummary = async (gteamId) =>
-  axios.get(`/gteams/${gteamId}/zones/summary`);
-
-export const deleteZoneFromPTeam = async (gteamId, zoneName, pteamId) =>
-  axios.delete(`/gteams/${gteamId}/zones/${zoneName}/pteams/${pteamId}`);
-
-// zones
-export const getAuthorizedZones = async () => axios.get("/zones/authorized_for_me");
-
-export const getZonedTeams = async (zoneName) => axios.get(`/zones/${zoneName}/teams`);
-
 // topics
 export const getTopic = async (topicId) => axios.get(`/topics/${topicId}`);
 
@@ -229,11 +172,10 @@ export const createTag = async (data) => axios.post("/tags", data);
 // actionlogs
 export const createActionLog = async (data) => axios.post("/actionlogs", data);
 
-// achievements
-export const getAchievements = async (userId) => axios.get(`/achievements/${userId}`);
-
 // external
 export const checkSlack = async (data) => axios.post("/external/slack/check", data);
+
+export const checkMail = async (data) => axios.post("/external/email/check", data);
 
 export const checkFs = async () => axios.post("/external/flashsense/check");
 

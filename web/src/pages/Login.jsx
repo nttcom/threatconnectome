@@ -21,7 +21,6 @@ import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { clearATeam } from "../slices/ateam";
-import { clearGTeam } from "../slices/gteam";
 import { clearPTeam } from "../slices/pteam";
 import { clearTopics } from "../slices/topics";
 import { clearUser } from "../slices/user";
@@ -48,7 +47,6 @@ export function Login() {
     dispatch(clearUser());
     dispatch(clearPTeam());
     dispatch(clearATeam());
-    dispatch(clearGTeam());
     dispatch(clearTopics());
     removeCookie(authCookieName, cookiesOptions);
     removeToken();

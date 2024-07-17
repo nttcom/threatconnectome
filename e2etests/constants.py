@@ -25,33 +25,30 @@ TAG1 = "alpha:alpha2:alpha3"
 TAG2 = "bravo:bravo2:bravo3"
 TAG3 = "charlie:charlie2:charlie3"
 REF1 = [
-    {"target": "api/Pipfile.lock", "version": "1.0.0", "group": "Threatconnectome"},
-    {"target": "api2/Pipfile.lock", "version": "1.0.1", "group": "Threatconnectome"},
-    {"target": "api/Pipfile.lock", "version": "1.0.0", "group": "Flashsense"},
+    {"target": "api/Pipfile.lock", "version": "1.0.0", "service": "Threatconnectome"},
+    {"target": "api2/Pipfile.lock", "version": "1.0.1", "service": "Threatconnectome"},
+    {"target": "api/Pipfile.lock", "version": "1.0.0", "service": "Flashsense"},
 ]
-REF2 = [{"target": "web/package-lock.json", "version": "1.1.1", "group": "RepoA"}]
+REF2 = [{"target": "web/package-lock.json", "version": "1.1.1", "service": "RepoA"}]
 REF3 = [
     {
         "target": "Pipfile.lock",
         "version": "a1daed12b7955ab3ca423f7242a9ccfd249f2ebcba180a9376aea74b1ec913d0",
-        "group": "productB",
+        "service": "productB",
     }
 ]
 
 EXT_TAG1 = {
     "tag_name": TAG1,
     "references": REF1,
-    "text": f"text {TAG1}",
 }
 EXT_TAG2 = {
     "tag_name": TAG2,
     "references": REF2,
-    "text": f"text {TAG2}",
 }
 EXT_TAG3 = {
     "tag_name": TAG3,
     "references": REF3,
-    "text": f"text {TAG3}",
 }
 MISPTAG1 = "tlp:amber"
 MISPTAG2 = "tlp:clear"
@@ -70,31 +67,19 @@ ZONE3 = {
 PTEAM1 = {
     "pteam_name": "pteam alpha",
     "contact_info": "alpha@ml.com",
-    "slack_webhook_url": "",
     "alert_threat_impact": 3,
-    "tags": [EXT_TAG1],
     "zone_names": [],
 }
 
 PTEAM2 = {
     "pteam_name": "pteam bravo",
     "contact_info": "bravo@ml.com",
-    "slack_webhook_url": "",
     "alert_threat_impact": 2,
-    "tags": [EXT_TAG2, EXT_TAG1, EXT_TAG3],  # not sorted
     "zone_names": [],
 }
 PTEAM3 = {
     "pteam_name": "pteam charlie",
     "contact_info": "charlie@ml.com",
-    "slack_webhook_url": "",
-    "tags": [EXT_TAG3],
-}
-PTEAM4 = {
-    "pteam_name": "pteam delta",
-    "contact_info": "",
-    "slack_webhook_url": "",
-    "disabled": False,
 }
 ATEAM1 = {
     "ateam_name": "ateam a-one",

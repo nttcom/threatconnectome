@@ -10,7 +10,7 @@ from functools import partial
 from hashlib import md5
 from pathlib import Path
 from time import sleep
-from typing import Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Callable
 
 import requests
 from boltdb import BoltDB
@@ -351,7 +351,7 @@ def vuln_info(repos, txs):
             for pattern in vuln_filter:
                 if pattern in vuln_id:
                     vuln_dict["vuln_id"] = vuln_id
-                    vuln_dict["pkg_name"] = pkg.decode()
+                    vuln_dict["pkg_name"] = pkg.decode().replace(":", "/")
                     vuln_content = pkg_bucket.get(vuln).decode()
                     if vuln_content:
                         vuln_dict["version_details"] = json.loads(vuln_content)
@@ -359,12 +359,14 @@ def vuln_info(repos, txs):
     return vulns
 
 
-def solution_from_vuln(vuln) -> Tuple[Optional[str], Optional[str]]:
+def solution_from_vuln(vuln) -> tuple[str | None, str | None, str | None]:
     if vuln["version_details"]:
-        solution, vuln_vers = make_update_action(vuln["pkg_name"], vuln["version_details"])
+        solution, vuln_vers, fix_vers = make_update_action(
+            vuln["pkg_name"], vuln["version_details"]
+        )
         if solution:
-            return solution, vuln_vers
-    return None, None
+            return solution, vuln_vers, fix_vers
+    return None, None, None
 
 
 def make_update_action(pkg_name, version_details: dict):
@@ -399,10 +401,12 @@ def make_update_action(pkg_name, version_details: dict):
     else:
         action = None
 
-    return action, vulnerable_versions
+    fixed_versions_str = ",".join(fixed_versions)
+
+    return action, vulnerable_versions, fixed_versions_str
 
 
-def _gen_action_id(topic_id: Union[uuid.UUID, str], tags: List[str], action: str) -> str:
+def _gen_action_id(topic_id: uuid.UUID | str, tags: list[str], action: str) -> str:
     random.seed(f"{topic_id}-{','.join(tags)}-{action}")
     return str(uuid.UUID(int=random.getrandbits(128), version=4))
 
@@ -455,7 +459,7 @@ def main() -> None:
     trivy_db = Path(args.trivy_db).expanduser()
     bdb = BoltDB(trivy_db)
 
-    vuln_dict: Dict[str, Dict[str, Union[Dict, Set]]] = {}
+    vuln_dict: dict[str, dict[str, dict | set | str | None]] = {}
     with bdb.view() as txs:
         for repos, _ in txs.bucket():
             if repos in allow_list:
@@ -463,11 +467,13 @@ def main() -> None:
                 category = get_package_info(repos)
                 vulns = vuln_info(repos, txs)
                 for vuln in vulns:
-                    solution, vuln_vers = solution_from_vuln(vuln)
+                    solution, vuln_vers, fix_vers = solution_from_vuln(vuln)
                     if not solution:
                         continue
                     vuln_id = vuln["vuln_id"]
-                    vuln_obj = vuln_dict.get(vuln_id, {"tags": set(), "actions": {}})
+                    vuln_obj = vuln_dict.get(
+                        vuln_id, {"tags": set(), "actions": {}, "fix_vers": {}}
+                    )
                     tag = f"{vuln['pkg_name']}:{category}"
                     assert isinstance(vuln_obj["tags"], set)
                     vuln_obj["tags"].add(tag)
@@ -489,9 +495,10 @@ def main() -> None:
                     vers_obj.update(vuln_vers or [])
                     act_obj["ext"]["vulnerable_versions"][tag] = vers_obj
                     vuln_obj["actions"][solution] = act_obj
+                    vuln_obj["fix_vers"] = fix_vers
                     vuln_dict[vuln_id] = vuln_obj
 
-        topics: Dict[str, dict] = {}
+        topics: dict[str, dict] = {}
         vuln_bucket = txs.bucket(b"vulnerability")
         for vuln_id, vuln_content in vuln_dict.items():
             # Generate a tooic uuid from Vuln ID
@@ -516,12 +523,14 @@ def main() -> None:
                 title = vuln_id
                 abstract = "This Vuln is not yet published."
                 severity = "UNKNOWN"
-            tags = list(vuln_content["tags"])
+            if vuln_content["tags"]:
+                tags = list(vuln_content["tags"])
             misp_tags = [vuln_id]
             assert isinstance(vuln_content["actions"], dict)
             actions = [
                 {
                     **x,
+                    "action": x["action"][:1024],
                     "ext": {
                         "tags": list(x["ext"]["tags"]),
                         "vulnerable_versions": {
@@ -534,6 +543,13 @@ def main() -> None:
             ]
 
             convert_impact = {"CRITICAL": 1, "HIGH": 2, "MEDIUM": 3, "LOW": 3, "UNKNOWN": 4}
+            safety_impact = {
+                "CRITICAL": "catastrophic",
+                "HIGH": "hazardous",
+                "MEDIUM": "major",
+                "LOW": "minor",
+                "UNKNOWN": "none",
+            }
             topics[topic_id] = {
                 "title": title,
                 "abstract": abstract,
@@ -541,6 +557,7 @@ def main() -> None:
                 "tags": tags,
                 "misp_tags": misp_tags,
                 "actions": actions,
+                "safety_impact": safety_impact.get(severity, "none"),
             }
 
     tc_client = ThreatconnectomeClient(args.url, refresh_token, retry_max=3)

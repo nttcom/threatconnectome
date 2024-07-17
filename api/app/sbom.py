@@ -5,13 +5,8 @@ from dataclasses import dataclass, field
 from typing import (
     Any,
     ClassVar,
-    Dict,
-    List,
     NamedTuple,
-    Optional,
     Pattern,
-    Set,
-    Tuple,
     Type,
     TypeAlias,
 )
@@ -30,14 +25,14 @@ class SBOMInfo(NamedTuple):
     spec_name: str
     spec_version: str
     tool_name: str
-    tool_version: Optional[str]
+    tool_version: str | None
 
 
 @dataclass
 class Artifact:
     tag: str
-    targets: Set[Tuple[str, str]] = field(init=False, repr=False, default_factory=set)
-    versions: Set[str] = field(init=False, repr=False, default_factory=set)  # for missing targets
+    targets: set[tuple[str, str]] = field(init=False, repr=False, default_factory=set)
+    versions: set[str] = field(init=False, repr=False, default_factory=set)  # for missing targets
 
     def to_json(self) -> dict:
         targets = self.targets if self.targets else {("", version) for version in self.versions}
@@ -59,7 +54,7 @@ class Artifact:
 class SBOMParser(ABC):
     @classmethod
     @abstractmethod
-    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
+    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
         raise NotImplementedError()
 
 
@@ -72,13 +67,14 @@ class TrivyCDXParser(SBOMParser):
 
         bom_ref: str
         type: str
+        group: str
         name: str
         version: str
-        raw_purl: Optional[str]
-        properties: Dict[str, Any]
-        purl: Optional[PackageURL] = field(init=False, repr=False)
-        trivy_class: Optional[str] = field(init=False, repr=False)
-        targets: Set[Target] = field(init=False, repr=False, default_factory=set)
+        raw_purl: str | None
+        properties: dict[str, Any]
+        purl: PackageURL | None = field(init=False, repr=False)
+        trivy_class: str | None = field(init=False, repr=False)
+        targets: set[Target] = field(init=False, repr=False, default_factory=set)
 
         def __post_init__(self):
             if not self.bom_ref:
@@ -94,7 +90,7 @@ class TrivyCDXParser(SBOMParser):
             #   syft sees /etc/os-release, but trivy sees /etc/redhat-release.
             #   if the contents differ, it causes distro mismatch.
             #   we fix the mismatch here as far as we found out.
-            fix_rules: List[Tuple[Pattern[str], str]] = [
+            fix_rules: list[tuple[Pattern[str], str]] = [
                 (re.compile(r"^(centos-[0-9]+)\..+$"), r"\1"),
                 (re.compile(r"^(debian-[0-9]+)\..+$"), r"\1"),
             ]
@@ -104,9 +100,9 @@ class TrivyCDXParser(SBOMParser):
 
         @staticmethod
         def _find_pkg_mgr(
-            components_map: Dict[str, "TrivyCDXParser.CDXComponent"],
-            refs: List[str],
-        ) -> Optional["TrivyCDXParser.CDXComponent"]:
+            components_map: dict[str, "TrivyCDXParser.CDXComponent"],
+            refs: list[str],
+        ) -> "TrivyCDXParser.CDXComponent | None":
             if not refs:
                 return None
             if len(refs) == 1:
@@ -120,10 +116,12 @@ class TrivyCDXParser(SBOMParser):
                     return mgr_candidate
             return components_map.get(refs[0])
 
-        def to_tag(self, components_map: Dict[str, Any]) -> Optional[str]:
+        def to_tag(self, components_map: dict[str, Any]) -> str | None:
             if not self.purl:
                 return None
-            pkg_name = self.name  # given by trivy. may include namespace in some case.
+            pkg_name = (
+                self.group + "/" + self.name if self.group else self.name
+            )  # given by trivy. may include namespace in some case.
             pkg_info = self.purl.type
             pkg_mgr = ""
             if self.targets:
@@ -142,7 +140,7 @@ class TrivyCDXParser(SBOMParser):
             return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
 
     @classmethod
-    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
+    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
             or sbom_info.spec_version not in {"1.5"}
@@ -157,12 +155,12 @@ class TrivyCDXParser(SBOMParser):
         return actual_parse_func(sbom)
 
     @classmethod
-    def parse_func_1_5(cls, sbom: SBOM) -> List[Artifact]:
+    def parse_func_1_5(cls, sbom: SBOM) -> list[Artifact]:
         meta_component = sbom.get("metadata", {}).get("component")
         raw_components = sbom.get("components", [])
 
         # parse components
-        components_map: Dict[str, TrivyCDXParser.CDXComponent] = {}
+        components_map: dict[str, TrivyCDXParser.CDXComponent] = {}
         for data in [meta_component, *raw_components]:
             if not data:
                 continue
@@ -170,6 +168,7 @@ class TrivyCDXParser(SBOMParser):
                 components_map[data["bom-ref"]] = TrivyCDXParser.CDXComponent(
                     bom_ref=data.get("bom-ref"),
                     type=data.get("type"),
+                    group=data.get("group"),
                     name=data.get("name"),
                     version=data.get("version"),
                     raw_purl=data.get("purl"),
@@ -180,14 +179,14 @@ class TrivyCDXParser(SBOMParser):
                 error_message("Dopped component:", data)
 
         # parse dependencies
-        dependencies: Dict[str, Set[str]] = {}
+        dependencies: dict[str, set[str]] = {}
         for dep in sbom.get("dependencies", []):
             if not (from_ := dep.get("ref")):
                 continue
             if to_ := dep.get("dependsOn"):
                 dependencies[from_] = set(to_)
 
-        def _recursive_get(ref_: str, current_: Set[str]) -> Set[str]:  # returns new refs only
+        def _recursive_get(ref_: str, current_: set[str]) -> set[str]:  # returns new refs only
             if ref_ in current_:
                 return set()  # nothing to add
             if not (children_ := dependencies.get(ref_)):
@@ -218,7 +217,7 @@ class TrivyCDXParser(SBOMParser):
                 pkg_component.targets |= {TrivyCDXParser.CDXComponent.Target(dep_ref, target_name)}
 
         # convert components to artifacts
-        artifacts_map: Dict[str, Artifact] = {}  # {tag: artifact}
+        artifacts_map: dict[str, Artifact] = {}  # {tag: artifact}
         for component in components_map.values():
             if not component.version:
                 continue  # maybe directory or image
@@ -246,16 +245,17 @@ class SyftCDXParser(SBOMParser):
 
         bom_ref: str
         type: str
+        group: str
         name: str
         version: str
-        raw_purl: Optional[str]
-        properties: Dict[str, Any]
-        purl: Optional[PackageURL] = field(init=False, repr=False)
-        mgr_info: Optional[PkgMgrInfo] = field(init=False, repr=False)
+        raw_purl: str | None
+        properties: dict[str, Any]
+        purl: PackageURL | None = field(init=False, repr=False)
+        mgr_info: PkgMgrInfo | None = field(init=False, repr=False)
 
         # https://github.com/anchore/syft/blob/main/syft/pkg/cataloger/ * /cataloger.go
         # Note: pkg_mgr is not defined in syft. use the same value in trivy (if exists).
-        location_to_pkg_mgr: ClassVar[List[Tuple[str, Pattern[str]]]] = [
+        location_to_pkg_mgr: ClassVar[list[tuple[str, Pattern[str]]]] = [
             ("conan", re.compile(r"conanfile\.txt$")),  # cpp
             ("conan", re.compile(r"conan\.lock$")),  # cpp
             ("pub", re.compile(r"pubspec\.lock$")),  # dart
@@ -291,7 +291,7 @@ class SyftCDXParser(SBOMParser):
             self.purl = PackageURL.from_string(self.raw_purl) if self.raw_purl else None
             self.mgr_info = self._guess_mgr()
 
-        def _guess_mgr(self) -> Optional[PkgMgrInfo]:
+        def _guess_mgr(self) -> PkgMgrInfo | None:
             # https://github.com/anchore/syft/blob/main/syft/pkg/package.go#L24
             # we do not know which is the best to guess pkg_mgr...
             if not (location_0_path := self.properties.get("syft:location:0:path")):
@@ -309,10 +309,12 @@ class SyftCDXParser(SBOMParser):
                         return self.PkgMgrInfo(mgr_name, location_path)  # Eureka!
                 idx += 1
 
-        def to_tag(self) -> Optional[str]:
+        def to_tag(self) -> str | None:
             if not self.purl:
                 return None
-            pkg_name = self.name  # given by syft. may include namespace in some case.
+            pkg_name = (
+                self.group + "/" + self.name if self.group else self.name
+            )  # given by syft. may include namespace in some case.
             distro = (
                 self.purl.qualifiers.get("distro")
                 if self.purl and isinstance(self.purl.qualifiers, dict)
@@ -324,7 +326,7 @@ class SyftCDXParser(SBOMParser):
             return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
 
     @classmethod
-    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> List[Artifact]:
+    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
             or sbom_info.spec_version not in {"1.4", "1.5"}
@@ -340,12 +342,12 @@ class SyftCDXParser(SBOMParser):
         return actual_parse_func(sbom)
 
     @classmethod
-    def parse_func_1_4(cls, sbom: SBOM) -> List[Artifact]:
+    def parse_func_1_4(cls, sbom: SBOM) -> list[Artifact]:
         meta_component = sbom.get("metadata", {}).get("component")
         raw_components = sbom.get("components", [])
 
         # parse components
-        components_map: Dict[str, SyftCDXParser.CDXComponent] = {}
+        components_map: dict[str, SyftCDXParser.CDXComponent] = {}
         for data in [meta_component, *raw_components]:
             if not data:
                 continue
@@ -353,6 +355,7 @@ class SyftCDXParser(SBOMParser):
                 components_map[data["bom-ref"]] = SyftCDXParser.CDXComponent(
                     bom_ref=data.get("bom-ref"),
                     type=data.get("type"),
+                    group=data.get("group"),
                     name=data.get("name"),
                     version=data.get("version"),
                     raw_purl=data.get("purl"),
@@ -363,7 +366,7 @@ class SyftCDXParser(SBOMParser):
                 error_message("Dropped component:", data)
 
         # convert components to artifacts
-        artifacts_map: Dict[str, Artifact] = {}  # {tag: artifact}
+        artifacts_map: dict[str, Artifact] = {}  # {tag: artifact}
         for component in components_map.values():
             if not component.version:
                 continue  # maybe directory or image
@@ -381,7 +384,7 @@ class SyftCDXParser(SBOMParser):
         return list(artifacts_map.values())
 
 
-def inspect_cyclonedx(sbom: SBOM) -> Tuple[str, Optional[str]]:  # tool_name, tool_version
+def inspect_cyclonedx(sbom: SBOM) -> tuple[str, str | None]:  # tool_name, tool_version
     def _get_tool0(jdata_: dict) -> dict:
         # https://cyclonedx.org/docs/1.5/json/#metadata_tools
         tools_ = jdata_["metadata"]["tools"]
@@ -404,7 +407,7 @@ def inspect_cyclonedx(sbom: SBOM) -> Tuple[str, Optional[str]]:  # tool_name, to
         raise ValueError("Not supported CycloneDX format")
 
 
-def inspect_spdx(sbom: SBOM) -> Tuple[str, Optional[str]]:  # tool_name, tool_version
+def inspect_spdx(sbom: SBOM) -> tuple[str, str | None]:  # tool_name, tool_version
     raise ValueError("SPDX is not yet supported")
 
 
@@ -425,14 +428,14 @@ def inspect_sbom(sbom: SBOM) -> SBOMInfo:
         raise ValueError("Not supported file format")
 
 
-SBOM_PARSERS: Dict[Tuple[str, str], Type[SBOMParser]] = {
+SBOM_PARSERS: dict[tuple[str, str], Type[SBOMParser]] = {
     # (spec_name, spec_version, tool_name) : SBOMParser
     ("CycloneDX", "trivy"): TrivyCDXParser,
     ("CycloneDX", "syft"): SyftCDXParser,
 }
 
 
-def sbom_json_to_artifact_json_lines(jdata: dict) -> List[dict]:
+def sbom_json_to_artifact_json_lines(jdata: dict) -> list[dict]:
     sbom: SBOM = jdata
     sbom_info = inspect_sbom(sbom)
     sbom_parser = SBOM_PARSERS.get((sbom_info.spec_name, sbom_info.tool_name))

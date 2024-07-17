@@ -1,0 +1,34 @@
+.dialog_title.dialog_title {
+    font-size: 20px;
+    margin-top: 5px;
+}
+
+.submit_btn.submit_btn {
+    color: black;
+    text-transform: none;
+    &:disabled {
+        color: #c0c0c0;
+    }
+}
+
+.delete_btn.delete_btn {
+    color: red;
+    text-transform: none;
+    &:disabled {
+        color: #c0c0c0;
+    }
+}
+
+.delete_bg_btn.delete_bg_btn {
+    background-color: #e53935;
+    color: white;
+    text-transform: none;
+    &:hover {
+        background-color: #c62828;
+    }
+}
+
+.action_area.action_area {
+    margin-right: 1%;
+    margin-bottom: 1%;
+}

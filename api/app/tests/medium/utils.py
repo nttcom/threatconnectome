@@ -1,7 +1,12 @@
+import json
 import random
 import string
+import tempfile
 from datetime import datetime
-from typing import List, Optional, Union
+from hashlib import sha256
+from io import DEFAULT_BUFFER_SIZE, BytesIO
+from pathlib import Path
+from typing import Sequence
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -12,6 +17,14 @@ from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.routers.test_auth import get_access_token_headers, get_file_upload_headers
 
 client = TestClient(app)
+
+
+def to_datetime(datetime_value: datetime | str | None) -> datetime | None:
+    if datetime_value is None:
+        return None
+    if isinstance(datetime_value, datetime):
+        return datetime_value
+    return datetime.fromisoformat(datetime_value)
 
 
 def assert_200(response) -> dict:
@@ -72,8 +85,8 @@ def create_pteam(user: dict, pteam: dict) -> schemas.PTeamInfo:
 
 def invite_to_pteam(
     user: dict,
-    pteam_id: Union[UUID, str],
-    auth: Optional[List[models.PTeamAuthEnum]] = None,
+    pteam_id: UUID | str,
+    auth: list[models.PTeamAuthEnum] | None = None,
 ) -> schemas.PTeamInvitationResponse:
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
@@ -100,6 +113,42 @@ def accept_pteam_invitation(user: dict, invitation_id: UUID) -> schemas.PTeamInf
     return schemas.PTeamInfo(**response.json())
 
 
+def upload_pteam_tags(
+    user: dict,
+    pteam_id: UUID | str,
+    service: str,
+    ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
+    force_mode: bool = True,
+) -> list[schemas.ExtTagResponse]:
+    params = {"service": service, "force_mode": str(force_mode)}
+    with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
+        for tag_name, etags in ext_tags.items():
+            assert all(len(etag) == 2 and None not in etag for etag in etags)  # check test code
+            refs = [{"target": etag[0], "version": etag[1]} for etag in etags]
+            tfile.writelines(json.dumps({"tag_name": tag_name, "references": refs}) + "\n")
+        tfile.flush()
+        with open(tfile.name, "rb") as bfile:
+            data = assert_200(
+                client.post(
+                    f"/pteams/{pteam_id}/upload_tags_file",
+                    headers=file_upload_headers(user),
+                    params=params,
+                    files={"file": bfile},
+                )
+            )
+    return [schemas.ExtTagResponse(**item) for item in data]
+
+
+def get_pteam_tags(user: dict, pteam_id: str) -> list[schemas.ExtTagResponse]:
+    data = assert_200(client.get(f"/pteams/{pteam_id}/tags", headers=headers(user)))
+    return [schemas.ExtTagResponse(**item) for item in data]
+
+
+def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceResponse]:
+    data = assert_200(client.get(f"/pteams/{pteam_id}/services", headers=headers(user)))
+    return [schemas.PTeamServiceResponse(**item) for item in data]
+
+
 def create_ateam(user: dict, ateam: dict) -> schemas.ATeamInfo:
     request = {**ateam}
 
@@ -112,8 +161,8 @@ def create_ateam(user: dict, ateam: dict) -> schemas.ATeamInfo:
 
 def invite_to_ateam(
     user: dict,
-    ateam_id: Union[UUID, str],
-    authes: Optional[List[models.ATeamAuthEnum]] = None,
+    ateam_id: UUID | str,
+    authes: list[models.ATeamAuthEnum] | None = None,
 ) -> schemas.ATeamInvitationResponse:
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
@@ -130,7 +179,7 @@ def invite_to_ateam(
 
 def create_watching_request(
     user: dict,
-    ateam_id: Union[UUID, str],
+    ateam_id: UUID | str,
 ) -> schemas.ATeamWatchingRequestResponse:
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
@@ -171,46 +220,6 @@ def accept_ateam_invitation(user: dict, invitation_id: UUID) -> schemas.ATeamInf
     return schemas.ATeamInfo(**response.json())
 
 
-def create_gteam(user: dict, gteam: dict) -> schemas.GTeamInfo:
-    request = {**gteam}
-
-    response = client.post("/gteams", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.GTeamInfo(**response.json())
-
-
-def invite_to_gteam(
-    user: dict,
-    gteam_id: Union[UUID, str],
-    authes: Optional[List[models.GTeamAuthEnum]] = None,
-) -> schemas.GTeamInvitationResponse:
-    request = {
-        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
-        "limit_count": 1,
-        "authorities": authes,
-    }
-
-    response = client.post(f"/gteams/{gteam_id}/invitation", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.GTeamInvitationResponse(**response.json())
-
-
-def accept_gteam_invitation(user: dict, invitation_id: UUID) -> schemas.GTeamInfo:
-    request = {
-        "invitation_id": str(invitation_id),
-    }
-
-    response = client.post("/gteams/apply_invitation", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.GTeamInfo(**response.json())
-
-
 def create_tag(user: dict, tag_name: str) -> schemas.TagResponse:
     request = {
         "tag_name": tag_name,
@@ -231,26 +240,15 @@ def create_misp_tag(user: dict, tag_name: str) -> schemas.MispTagResponse:
     return schemas.MispTagResponse(**response.json())
 
 
-def create_zone(user: dict, gteam_id: Union[UUID, str], zone: dict) -> schemas.ZoneInfo:
-    request = {**zone}
-    response = client.post(f"/gteams/{gteam_id}/zones", headers=headers(user), json=request)
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.ZoneInfo(**response.json())
-
-
 def create_topic(
     user: dict,
     topic: dict,
-    actions: Optional[List[dict]] = None,
-    zone_names: Optional[List[str]] = None,
+    actions: list[dict] | None = None,
     auto_create_tags: bool = True,
 ) -> schemas.TopicCreateResponse:
     request = {**topic}
     if actions is not None:
         request.update({"actions": actions})
-    if zone_names is not None:
-        request.update({"zone_names": zone_names})
     del request["topic_id"]
 
     response = client.post(f'/topics/{topic["topic_id"]}', headers=headers(user), json=request)
@@ -264,9 +262,35 @@ def create_topic(
         ):
             for tag_name in detail[len(no_tag_msg) :].split(", "):  # split tag_names CSV
                 create_tag(user, tag_name)
-            return create_topic(user, topic, actions, zone_names, auto_create_tags=False)
+            return create_topic(user, topic, actions, auto_create_tags=False)
         raise HTTPError(response)
     return schemas.TopicCreateResponse(**response.json())
+
+
+def create_topic_with_versioned_actions(
+    user: dict,
+    topic: dict,
+    actions_tagnames: list[list[str]],
+) -> schemas.TopicCreateResponse:
+    def _gen_action(tag_names: list[str]) -> dict:
+        return {
+            "action": f"action for {','.join(tag_names)}",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": tag_names,
+                "vulnerable_versions": {tag_name: ["< 99.9.9"] for tag_name in tag_names},
+            },
+        }
+
+    return create_topic(
+        user,
+        {
+            **topic,
+            "tags": actions_tagnames[0],
+            "actions": [_gen_action(tag_names) for tag_names in actions_tagnames],
+        },
+    )
 
 
 def update_topic(
@@ -289,15 +313,12 @@ def search_topics(
 def create_action(
     user: dict,
     action: dict,
-    topic_id: Union[str, UUID],
-    ext: Optional[dict] = None,
-    zone_names: Optional[List[str]] = None,
+    topic_id: str | UUID,
+    ext: dict | None = None,
 ) -> schemas.ActionResponse:
     request: dict = {**action, "topic_id": str(topic_id)}
     if ext is not None:
         request.update({"ext": ext})
-    if zone_names is not None:
-        request.update({"zone_names": zone_names})
     data = assert_200(client.post("/actions", headers=headers(user), json=request))
     return schemas.ActionResponse(**data)
 
@@ -308,13 +329,15 @@ def create_actionlog(
     topic_id: UUID,
     user_id: UUID,
     pteam_id: UUID,
-    executed_at: Optional[datetime],
-) -> schemas.ActionLogResponse:
+    service_id: UUID,
+    executed_at: datetime | None,
+) -> list[schemas.ActionLogResponse]:
     request = {
         "action_id": str(action_id),
         "topic_id": str(topic_id),
         "user_id": str(user_id),
         "pteam_id": str(pteam_id),
+        "service_id": str(service_id),
         "executed_at": str(executed_at) if executed_at else None,
     }
 
@@ -322,54 +345,46 @@ def create_actionlog(
 
     if response.status_code != 200:
         raise HTTPError(response)
-    return schemas.ActionLogResponse(**response.json())
+    return [schemas.ActionLogResponse(**row) for row in response.json()]
 
 
-def compare_ext_tags(
-    tags1: List[Union[dict, schemas.ExtTagResponse]],
-    tags2: List[Union[dict, schemas.ExtTagResponse]],
+def compare_tags(
+    tags1: Sequence[dict | schemas.TagResponse],
+    tags2: Sequence[dict | schemas.TagResponse],
 ) -> bool:
-    def _to_tuple_set(tags):
-        return set((dict(x)["tag_name"], dict(x)["text"]) for x in tags)
+    def _to_tuple(tag_: dict | schemas.TagResponse):
+        if isinstance(tag_, schemas.TagResponse):
+            tag_ = tag_.model_dump()
+        return (
+            tag_.get("tag_name"),
+            str(tag_.get("tag_id")),
+            tag_.get("parent_name"),
+            str(parent_id) if (parent_id := tag_.get("parent_id")) else None,
+        )
 
-    return _to_tuple_set(tags1) == _to_tuple_set(tags2)
+    return [_to_tuple(t1) for t1 in tags1] == [_to_tuple(t2) for t2 in tags2]
 
 
-def compare_references(refs1: List[dict], refs2: List[dict]) -> bool:
+def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     def _to_tuple_set(refs):
-        return {(ref.get("group"), ref.get("target"), ref.get("version")) for ref in refs}
+        return {(ref.get("service"), ref.get("target"), ref.get("version")) for ref in refs}
 
+    if not isinstance(refs1, list) or not isinstance(refs2, list):
+        return False
+    if len(refs1) != len(refs2):
+        return False
     return _to_tuple_set(refs1) == _to_tuple_set(refs2)
 
 
-def create_badge(
-    user: dict, recipient_id: UUID, metadata: dict, badge: dict, pteam_id: UUID
-) -> schemas.SecBadgeBody:
-    request = {
-        "recipient": str(recipient_id),
-        "metadata": metadata,
-        **badge,
-        "pteam_id": str(pteam_id),
-    }
-
-    response = client.post("/achievements", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.SecBadgeBody(**response.json())
-
-
-def create_topicstatus(
-    user: dict, pteam_id: UUID, topic_id: UUID, tag_id: UUID, json: dict
+def create_service_topicstatus(
+    user: dict, pteam_id: UUID, service_id: UUID, topic_id: UUID, tag_id: UUID, json: dict
 ) -> schemas.TopicStatusResponse:
-    response = assert_200(
-        client.post(
-            f"/pteams/{pteam_id}/topicstatus/{topic_id}/{tag_id}",
-            headers=headers(user),
-            json=json,
-        )
+    response = client.post(
+        f"/pteams/{pteam_id}/services/{service_id}/topicstatus/{topic_id}/{tag_id}",
+        headers=headers(user),
+        json=json,
     )
-    return schemas.TopicStatusResponse(**response)
+    return schemas.TopicStatusResponse(**response.json())
 
 
 def common_put(user: dict, api_path: str, **kwargs) -> dict:
@@ -377,3 +392,11 @@ def common_put(user: dict, api_path: str, **kwargs) -> dict:
     if response.status_code != 200:
         raise HTTPError(response)
     return response.json()
+
+
+def calc_file_sha256(file_path: str | Path) -> str:
+    with open(file_path, "rb") as fin:
+        file_sha256 = sha256()
+        while data := fin.read(DEFAULT_BUFFER_SIZE):
+            file_sha256.update(BytesIO(data).getbuffer())
+        return file_sha256.hexdigest()

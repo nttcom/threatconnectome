@@ -1,44 +1,33 @@
 import os
 from datetime import datetime
-from typing import Dict, List, Optional, Set
+from typing import Sequence
 from uuid import UUID
 
 import requests
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
 from fastapi.security import HTTPAuthorizationCredentials
-from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import command, models, persistence, schemas
 from app.auth import get_current_user, token_scheme
 from app.common import (
-    auto_close_by_topic,
     calculate_topic_content_fingerprint,
     check_pteam_membership,
     check_topic_action_tags_integrity,
-    check_zone_accessible,
-    create_action_internal,
-    fix_current_status_by_deleted_topic,
-    fix_current_status_by_topic,
-    get_misp_tag,
-    get_topics_internal,
-    search_topics_internal,
-    update_zones,
-    validate_action,
-    validate_misp_tag,
-    validate_pteam,
-    validate_tag,
-    validate_topic,
-    validate_zone,
+    fix_threats_for_topic,
+    get_or_create_misp_tag,
+    get_sorted_topics,
 )
 from app.database import get_db
-from app.slack import alert_new_topic
 
 router = APIRouter(prefix="/topics", tags=["topics"])
 
 
-@router.get("", response_model=List[schemas.TopicEntry])
+NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+
+
+@router.get("", response_model=list[schemas.TopicEntry])
 def get_topics(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
 ):
@@ -55,7 +44,7 @@ def get_topics(
         }
         return hashlib.md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
     """
-    return get_topics_internal(db, current_user.user_id)
+    return get_sorted_topics(persistence.get_all_topics(db))
 
 
 @router.get("/search", response_model=schemas.SearchTopicsResponse)
@@ -63,18 +52,19 @@ def search_topics(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),  # 10 is default in web/src/pages/TopicManagement.jsx
     sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.THREAT_IMPACT),
-    threat_impacts: Optional[List[int]] = Query(None),
-    topic_ids: Optional[List[str]] = Query(None),
-    title_words: Optional[List[str]] = Query(None),
-    abstract_words: Optional[List[str]] = Query(None),
-    tag_names: Optional[List[str]] = Query(None),
-    misp_tag_names: Optional[List[str]] = Query(None),
-    zone_names: Optional[List[str]] = Query(None),
-    creator_ids: Optional[List[str]] = Query(None),
-    created_after: Optional[datetime] = Query(None),
-    created_before: Optional[datetime] = Query(None),
-    updated_after: Optional[datetime] = Query(None),
-    updated_before: Optional[datetime] = Query(None),
+    threat_impacts: list[int] | None = Query(None),
+    topic_ids: list[str] | None = Query(None),
+    title_words: list[str] | None = Query(None),
+    abstract_words: list[str] | None = Query(None),
+    tag_names: list[str] | None = Query(None),
+    misp_tag_names: list[str] | None = Query(None),
+    creator_ids: list[str] | None = Query(None),
+    created_after: datetime | None = Query(None),
+    created_before: datetime | None = Query(None),
+    updated_after: datetime | None = Query(None),
+    updated_before: datetime | None = Query(None),
+    pteam_id: UUID | None = Query(None),
+    ateam_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -86,7 +76,6 @@ def search_topics(
     - abstract_words
     - tag_names
     - misp_tag_names
-    - zone_names
     - created_after
     - created_before
     - updated_after
@@ -94,56 +83,44 @@ def search_topics(
     - topic_ids
     - creator_ids
 
-    Zoned topics you cannot access to will not appear in the result.
     Defaults are "" for strings, None for datetimes, both means skip filtering.
     Different parameters are AND conditions.
-    Wrong names of tag, misp_tag, zone_name do not cause error, are just ignored.
+    Wrong names of tag and misp_tag do not cause error, are just ignored.
     The words search is case-insensitive.
-    Empty string ("") is a special keyword for empty or public for zone_names.
 
     Caution: If you do not want to filter by something, DO NOT give the param.
 
     examples:
       "...?tag_names=" -> search topics which have no tags
       (query does not include misp_tag_words) -> do not filter by misp_tag
-      "...?zone_names=zone1&zone_names=" -> zone1 or public
       "...?title_words=a&title_words=%20&title_words=B" -> title includes [aAbB ]
       "...?title_words=a&title_words=&title_words=B" -> title includes [aAbB] or empty
     """
     keyword_for_empty = ""
 
-    fixed_zone_names: Set[Optional[str]] = set()
-    if zone_names is not None:
-        for zone_name in zone_names:
-            if zone_name == keyword_for_empty:
-                fixed_zone_names.add(None)
-                continue
-            if not validate_zone(db, current_user.user_id, zone_name):
-                continue  # ignore wrong zone_name
-            if not check_zone_accessible(db, current_user.user_id, [zone_name]):
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You do not have related zone",  # FIXME: fix message with others
-                )
-            fixed_zone_names.add(zone_name)
+    if pteam_id and ateam_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify both pteam_id and ateam_id",
+        )
 
-    fixed_tag_ids: Set[Optional[str]] = set()
+    fixed_tag_ids: set[str | None] = set()
     if tag_names is not None:
         for tag_name in tag_names:
             if tag_name == keyword_for_empty:
                 fixed_tag_ids.add(None)
                 continue
-            if (tag := validate_tag(db, tag_name=tag_name)) is None:
+            if not (tag := persistence.get_tag_by_name(db, tag_name)):
                 continue  # ignore wrong tag_name
             fixed_tag_ids.add(tag.tag_id)
 
-    fixed_misp_tag_ids: Set[Optional[str]] = set()
+    fixed_misp_tag_ids: set[str | None] = set()
     if misp_tag_names is not None:
         for misp_tag_name in misp_tag_names:
             if misp_tag_name == keyword_for_empty:
                 fixed_misp_tag_ids.add(None)
                 continue
-            if (misp_tag := validate_misp_tag(db, tag_name=misp_tag_name)) is None:
+            if not (misp_tag := persistence.get_misp_tag_by_name(db, misp_tag_name)):
                 continue  # ignore wrong misp_tag_name
             fixed_misp_tag_ids.add(misp_tag.tag_id)
 
@@ -159,13 +136,11 @@ def search_topics(
     fixed_creator_ids = set()
     if creator_ids is not None:
         for creator_id in creator_ids:
-            try:
-                UUID(creator_id)
-                fixed_creator_ids.add(creator_id)
-            except ValueError:
-                pass
+            if not persistence.get_account_by_id(db, creator_id):
+                continue
+            fixed_creator_ids.add(creator_id)
 
-    fixed_title_words: Set[Optional[str]] = set()
+    fixed_title_words: set[str | None] = set()
     if title_words is not None:
         for title_word in title_words:
             if title_word == keyword_for_empty:
@@ -173,7 +148,7 @@ def search_topics(
                 continue
             fixed_title_words.add(title_word)
 
-    fixed_abstract_words: Set[Optional[str]] = set()
+    fixed_abstract_words: set[str | None] = set()
     if abstract_words is not None:
         for abstract_word in abstract_words:
             if abstract_word == keyword_for_empty:
@@ -181,7 +156,7 @@ def search_topics(
                 continue
             fixed_abstract_words.add(abstract_word)
 
-    fixed_threat_impacts: Set[int] = set()
+    fixed_threat_impacts: set[int] = set()
     if threat_impacts is not None:
         for threat_impact in threat_impacts:
             try:
@@ -191,9 +166,8 @@ def search_topics(
             except ValueError:
                 pass
 
-    return search_topics_internal(
+    return command.search_topics_internal(
         db,
-        current_user,
         offset=offset,
         limit=limit,
         sort_key=sort_key,
@@ -202,13 +176,14 @@ def search_topics(
         abstract_words=None if abstract_words is None else list(fixed_abstract_words),
         tag_ids=None if tag_names is None else list(fixed_tag_ids),
         misp_tag_ids=None if misp_tag_names is None else list(fixed_misp_tag_ids),
-        zone_names=None if zone_names is None else list(fixed_zone_names),
         topic_ids=None if topic_ids is None else list(fixed_topic_ids),
         creator_ids=None if creator_ids is None else list(fixed_creator_ids),
         created_after=created_after,
         created_before=created_before,
         updated_after=updated_after,
         updated_before=updated_before,
+        pteam_id=pteam_id,
+        ateam_id=ateam_id,
     )
 
 
@@ -258,9 +233,9 @@ def get_topic(
     """
     Get a topic.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND, ignore_disabled=True)
-    assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):
+        raise NO_SUCH_TOPIC
+
     return topic
 
 
@@ -284,13 +259,13 @@ def create_topic(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create default topic"
         )
-    if validate_topic(db, topic_id, ignore_disabled=True) is not None:
+    if persistence.get_topic_by_id(db, topic_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Topic already exists")
 
     # check tags
     action_tag_names = {tag for action in data.actions for tag in action.ext.get("tags", [])}
-    requested_tags: Dict[str, Optional[models.Tag]] = {
-        tag_name: validate_tag(db, tag_name=tag_name)
+    requested_tags: dict[str, models.Tag | None] = {
+        tag_name: persistence.get_tag_by_name(db, tag_name)
         for tag_name in set(data.tags) | action_tag_names
     }
     if not_exist_tag_names := [tag_name for tag_name, tag in requested_tags.items() if tag is None]:
@@ -298,22 +273,13 @@ def create_topic(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"No such tags: {', '.join(sorted(not_exist_tag_names))}",
         )
-    check_topic_action_tags_integrity(
+    if not check_topic_action_tags_integrity(
         data.tags,
         list(action_tag_names),
-        on_error=status.HTTP_400_BAD_REQUEST,
-    )
-
-    # check zones
-    for zone_str in {zone_name for action in data.actions or [] for zone_name in action.zone_names}:
-        validate_zone(  # looks redundant but need check before commit something
-            db,
-            current_user.user_id,
-            zone_str,
-            on_error=status.HTTP_400_BAD_REQUEST,
-            auth_mode="apply",
-            on_auth_error=status.HTTP_400_BAD_REQUEST,
-            on_archived=status.HTTP_400_BAD_REQUEST,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Action Tag mismatch with Topic Tag",
         )
 
     # check actions
@@ -324,7 +290,7 @@ def create_topic(
             detail="Ambiguous action ids",
         )
     for action_id in action_ids:
-        if validate_action(db, action_id) is not None:
+        if persistence.get_action_by_id(db, action_id):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Action id already exists",
@@ -351,30 +317,31 @@ def create_topic(
         content_fingerprint=calculate_topic_content_fingerprint(
             fixed_title, fixed_abstract, data.threat_impact, data.tags
         ),
+        safety_impact=data.safety_impact,
+        exploitation=data.exploitation,
+        automatable=data.automatable,
     )
     # fix relations
     topic.tags = [requested_tags[tag_name] for tag_name in set(data.tags)]
-    topic.misp_tags = [get_misp_tag(db, tag) for tag in set(data.misp_tags)]
-    topic.zones = update_zones(db, current_user.user_id, True, [], data.zone_names)
-
-    db.add(topic)
-    db.commit()
-    db.refresh(topic)
-
-    # create and bind actions -- needs active topic_id
+    topic.misp_tags = [get_or_create_misp_tag(db, tag) for tag in set(data.misp_tags)]
     for action in data.actions:
-        del action.topic_id
-        create_action_internal(
-            db,
-            current_user,
-            schemas.ActionCreateRequest(**action.model_dump(), topic_id=UUID(topic.topic_id)),
+        new_action = models.TopicAction(
+            action_id=str(action.action_id) if action.action_id else None,
+            # topic_id will be filled at appending to topic.actions
+            action=action.action,
+            action_type=action.action_type,
+            recommended=action.recommended,
+            ext=action.ext,
+            created_by=current_user.user_id,
+            created_at=now,
         )
-    db.refresh(topic)
+        topic.actions.append(new_action)
 
-    auto_close_by_topic(db, topic)
-    fix_current_status_by_topic(db, topic)
+    persistence.create_topic(db, topic)
 
-    alert_new_topic(db, topic)
+    fix_threats_for_topic(db, topic)
+
+    db.commit()
 
     return topic
 
@@ -389,38 +356,20 @@ def update_topic(
     """
     Update a topic.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND, ignore_disabled=True)
-    assert topic
-
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
-
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):
+        raise NO_SUCH_TOPIC
     if topic.created_by != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="you are not topic creator",
         )
 
-    # If the topic is already zoned, it cannot be returned to public status.
-    is_request_to_clear_all_existing_zones = (
-        len(topic.zones) >= 1
-        and data.zone_names == []
-        and update_zones(db, current_user.user_id, False, topic.zones, []) == []
-    )
-    if is_request_to_clear_all_existing_zones:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Once a topic has been zoned, it cannot be returned to public status. "
-                "Consider deleting and recreating the topic."
-            ),
-        )
-
     new_title = None if data.title is None else data.title.strip()
     new_abstract = None if data.abstract is None else data.abstract.strip()
-    new_tags: Optional[List[Optional[models.Tag]]] = None
+    new_tags: list[models.Tag | None] | None = None
     if data.tags is not None:
         tags_dict = {
-            tag_name: validate_tag(db, tag_name=tag_name) for tag_name in set(data.tags or [])
+            tag_name: persistence.get_tag_by_name(db, tag_name) for tag_name in set(data.tags or [])
         }
         if not_exist_tag_names := [tag_name for tag_name, tag in tags_dict.items() if tag is None]:
             raise HTTPException(
@@ -428,61 +377,38 @@ def update_topic(
                 detail=f"No such tags: {', '.join(sorted(not_exist_tag_names))}",
             )
         new_tags = list(tags_dict.values())
-    new_zones = (
-        None
-        if data.zone_names is None
-        else update_zones(
-            db,
-            current_user.user_id,
-            False,
-            topic.zones,
-            data.zone_names,
-        )
-    )
     tags_updated = new_tags is not None and set(new_tags) != set(topic.tags)
-    zones_updated = new_zones is not None and set(new_zones) != set(topic.zones)
-
-    need_update_content_fingerprint = (
-        new_title not in {None, topic.title}
-        or new_abstract not in {None, topic.abstract}
-        or data.threat_impact not in {None, topic.threat_impact}
-        or tags_updated
-    )
-    need_auto_close = (
-        (data.disabled is False and topic.disabled is True)
-        or tags_updated  # Note: since the causes which prevent auto-close can be removed,
-        or zones_updated  #      not only adding but also deleting should trigger auto-close
-    )
 
     # Update topic attributes
     if new_tags is not None:
         topic.tags = new_tags
     if data.misp_tags is not None:
-        topic.misp_tags = [get_misp_tag(db, tag) for tag in data.misp_tags]
-    if new_zones is not None:
-        topic.zones = new_zones
+        topic.misp_tags = [get_or_create_misp_tag(db, tag) for tag in data.misp_tags]
     if new_title is not None:
         topic.title = new_title
     if new_abstract is not None:
         topic.abstract = new_abstract
     if data.threat_impact is not None:
         topic.threat_impact = data.threat_impact
-    if data.disabled is not None:
-        topic.disabled = data.disabled
+    if data.safety_impact is not None:
+        topic.safety_impact = data.safety_impact
+    if data.exploitation is not None:
+        topic.exploitation = data.exploitation
+    if data.automatable is not None:
+        topic.automatable = data.automatable
 
-    if need_update_content_fingerprint:
-        topic.content_fingerprint = calculate_topic_content_fingerprint(
-            topic.title, topic.abstract, topic.threat_impact, [tag.tag_name for tag in topic.tags]
-        )
+    topic.content_fingerprint = calculate_topic_content_fingerprint(
+        topic.title, topic.abstract, topic.threat_impact, [tag.tag_name for tag in topic.tags]
+    )
 
     topic.updated_at = datetime.now()
-    db.add(topic)
-    db.commit()
-    db.refresh(topic)
 
-    if need_auto_close:
-        auto_close_by_topic(db, topic)
-    fix_current_status_by_topic(db, topic)
+    db.flush()
+
+    if tags_updated:
+        fix_threats_for_topic(db, topic)
+
+    db.commit()
 
     return topic
 
@@ -494,11 +420,10 @@ def delete_topic(
     db: Session = Depends(get_db),
 ):
     """
-    Delete a topic and related records except actionlog and secbadge.
+    Delete a topic and related records except actionlog.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
+    if not (topic := persistence.get_topic_by_id(db, topic_id)):
+        raise NO_SUCH_TOPIC
 
     if topic.created_by != current_user.user_id:
         raise HTTPException(
@@ -506,10 +431,9 @@ def delete_topic(
             detail="you are not topic creator",
         )
 
-    db.delete(topic)
-    db.commit()
+    persistence.delete_topic(db, topic)
 
-    fix_current_status_by_deleted_topic(db, topic.topic_id)
+    db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -524,62 +448,24 @@ def get_pteam_topic_actions(
     """
     Get actions list of the topic for specified pteam.
     """
-    topic = validate_topic(db, topic_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert topic
-    check_zone_accessible(db, current_user.user_id, topic.zones, on_error=status.HTTP_404_NOT_FOUND)
-    pteam = validate_pteam(db, pteam_id, on_error=status.HTTP_404_NOT_FOUND)
-    assert pteam
-    check_pteam_membership(db, pteam_id, current_user.user_id, on_error=status.HTTP_403_FORBIDDEN)
+    if not (persistence.get_topic_by_id(db, topic_id)):
+        raise NO_SUCH_TOPIC
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
+    if not check_pteam_membership(db, pteam, current_user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
 
-    # If there is no common zones between topic and pteam, access is not permitted.
-    if len(topic.zones) > 0 and not set(topic.zones) & set(pteam.zones):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic id")
-
-    pteam_zones = db.query(
-        models.PTeamZone.zone_name,
-    ).filter(
-        models.PTeamZone.pteam_id == str(pteam_id),
-    )  # Query, not subquery
-
-    action_ids = (
-        db.query(
-            models.TopicAction.action_id,
-        )
-        .filter(
-            models.TopicAction.topic_id == str(topic_id),
-        )
-        .subquery()
-    )
-
-    actions_accessible_from_pteam = (
-        db.query(
-            models.TopicAction,
-        )
-        .join(action_ids, action_ids.c.action_id == models.TopicAction.action_id)
-        .outerjoin(
-            models.ActionZone,
-            and_(
-                models.TopicAction.topic_id == str(topic_id),
-                models.ActionZone.action_id == models.TopicAction.action_id,
-            ),
-        )
-        .filter(
-            or_(
-                models.ActionZone.zone_name.is_(None),
-                models.ActionZone.zone_name.in_(pteam_zones),
-            ),
-        )
-        .all()
-    )
+    # Note: no limitations currently, thus return all topic actions
+    actions = persistence.get_actions_by_topic_id(db, topic_id)
 
     return {
         "topic_id": topic_id,
         "pteam_id": pteam_id,
-        "actions": actions_accessible_from_pteam,
+        "actions": actions,
     }
 
 
-@router.get("/{topic_id}/actions/user/me", response_model=List[schemas.ActionResponse])
+@router.get("/{topic_id}/actions/user/me", response_model=Sequence[schemas.ActionResponse])
 def get_user_topic_actions(
     topic_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -588,65 +474,10 @@ def get_user_topic_actions(
     """
     Get actions list of the topic for current user.
     """
-    topic = validate_topic(db, topic_id)
-    if not topic or not check_zone_accessible(db, current_user.user_id, topic.zones):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No such topic",
-        )
+    if not persistence.get_topic_by_id(db, topic_id):
+        raise NO_SUCH_TOPIC
 
-    pteam_zones = (
-        db.query(models.PTeamZone.zone_name)
-        .filter(
-            or_(
-                models.PTeamZone.pteam_id.in_(
-                    # joined pteams
-                    db.query(models.PTeamAccount.pteam_id).filter(
-                        models.PTeamAccount.user_id == current_user.user_id
-                    )
-                ),
-                models.PTeamZone.pteam_id.in_(
-                    # pteams via joined ateams
-                    db.query(models.ATeamPTeam.pteam_id).join(
-                        models.ATeamAccount,
-                        and_(
-                            models.ATeamAccount.user_id == current_user.user_id,
-                            models.ATeamAccount.ateam_id == models.ATeamPTeam.ateam_id,
-                        ),
-                    ),
-                ),
-            )
-        )
-        .distinct()
-    )
-    gteam_zones = db.query(models.Zone.zone_name).join(
-        models.GTeamAccount,
-        and_(
-            models.GTeamAccount.user_id == current_user.user_id,
-            models.GTeamAccount.gteam_id == models.Zone.gteam_id,
-        ),
-    )
-    related_action_ids = (
-        db.query(
-            models.TopicAction.action_id,
-        )
-        .filter(
-            models.TopicAction.topic_id == str(topic_id),
-        )
-        .subquery()
-    )
-
-    actions = (
-        db.query(models.TopicAction)
-        .join(related_action_ids, related_action_ids.c.action_id == models.TopicAction.action_id)
-        .outerjoin(models.ActionZone)
-        .filter(
-            or_(
-                models.ActionZone.zone_name.is_(None),  # public
-                models.ActionZone.zone_name.in_(pteam_zones),
-                models.ActionZone.zone_name.in_(gteam_zones),
-            ),
-        )
-    ).all()
+    # Note: no limitations currently, thus return all topic actions
+    actions = persistence.get_actions_by_topic_id(db, topic_id)
 
     return actions

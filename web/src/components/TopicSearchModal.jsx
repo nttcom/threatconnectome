@@ -11,18 +11,19 @@ import {
   TextField,
   Typography,
   Grid,
-  Switch,
   FormControl,
   Select,
   MenuItem,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
-import { styled } from "@mui/material/styles";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { addDays } from "date-fns";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
+
+import dialogStyle from "../cssModule/dialog.module.css";
+
+import { Android12Switch } from "./Android12Switch";
 
 export function TopicSearchModal(props) {
   const { show, onSearch, onCancel } = props;
@@ -96,39 +97,6 @@ export function TopicSearchModal(props) {
     setDateFormList(event.target.value);
   };
 
-  const Android12Switch = styled(Switch)(({ theme }) => ({
-    padding: 8,
-    "& .MuiSwitch-track": {
-      borderRadius: 22 / 2,
-      "&:before, &:after": {
-        content: "''",
-        position: "absolute",
-        top: "50%",
-        transform: "translateY(-50%)",
-        width: 16,
-        height: 16,
-      },
-      "&:before": {
-        backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
-          theme.palette.getContrastText(theme.palette.primary.main),
-        )}" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>")`,
-        left: 12,
-      },
-      "&:after": {
-        backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
-          theme.palette.getContrastText(theme.palette.primary.main),
-        )}" d="M19,13H5V11H19V13Z" /></svg>")`,
-        right: 12,
-      },
-    },
-    "& .MuiSwitch-thumb": {
-      boxShadow: "none",
-      width: 16,
-      height: 16,
-      margin: 2,
-    },
-  }));
-
   const titleForm = (
     <Grid container sx={{ margin: 1.5, width: "100%" }}>
       <Grid item xs={2} md={2}>
@@ -189,7 +157,9 @@ export function TopicSearchModal(props) {
               onChange={(newDate) =>
                 (dateFormList === "since" ? setUpdatedAfter : setUpdatedBefore)(newDate)
               }
-              renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
+              renderInput={(params) => (
+                <TextField size="small" fullWidth margin="dense" required {...params} />
+              )}
             />
           </Grid>
         )}
@@ -201,7 +171,9 @@ export function TopicSearchModal(props) {
               maxDateTime={updatedBefore || now}
               value={updatedAfter}
               onChange={(newDate) => setUpdatedAfter(newDate)}
-              renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
+              renderInput={(params) => (
+                <TextField size="small" fullWidth margin="dense" required {...params} />
+              )}
             />
             <Typography sx={{ margin: "20px" }}>~</Typography>
             <DateTimePicker
@@ -211,7 +183,9 @@ export function TopicSearchModal(props) {
               maxDateTime={now}
               value={updatedBefore}
               onChange={(newDate) => setUpdatedBefore(newDate)}
-              renderInput={(params) => <TextField fullWidth margin="dense" required {...params} />}
+              renderInput={(params) => (
+                <TextField size="small" fullWidth margin="dense" required {...params} />
+              )}
             />
           </Grid>
         )}
@@ -256,49 +230,42 @@ export function TopicSearchModal(props) {
   return (
     <>
       <Dialog onClose={handleCancel} open={show} PaperProps={{ sx: { width: 700 } }}>
-        <>
-          <DialogTitle>
-            <Box alignItems="center" display="flex" flexDirection="row" sx={{ mb: -3 }}>
-              <Typography flexGrow={1} variant="inherit" sx={{ fontWeight: 900 }}>
-                Topic Search
-              </Typography>
-              <IconButton onClick={handleCancel} sx={{ color: grey[500] }}>
-                <CloseIcon />
-              </IconButton>
+        <DialogTitle>
+          <Box alignItems="center" display="flex" flexDirection="row" sx={{ mb: -3 }}>
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
+              Topic Search
+            </Typography>
+            <IconButton onClick={handleCancel}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+              <FormControlLabel
+                control={<Android12Switch checked={adModeChange} onChange={advancedChange} />}
+                label="Advanced Mode"
+              />
             </Box>
-          </DialogTitle>
-          <DialogContent>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-                <FormControlLabel
-                  control={<Android12Switch checked={adModeChange} onChange={advancedChange} />}
-                  label="Advanced Mode"
-                />
+            {titleForm}
+            {mispForm}
+            {adModeChange && (
+              <Box>
+                {dateForm}
+                {uuidForm}
+                {creatorForm}
               </Box>
-              {titleForm}
-              {mispForm}
-              {adModeChange && (
-                <Box>
-                  {dateForm}
-                  {uuidForm}
-                  {creatorForm}
-                </Box>
-              )}
-            </LocalizationProvider>
-          </DialogContent>
-          <DialogActions>
-            <Box display="flex">
-              <Button
-                variant="contained"
-                color="success"
-                sx={{ margin: 1, textTransform: "none" }}
-                onClick={handleSearch}
-              >
-                Search
-              </Button>
-            </Box>
-          </DialogActions>
-        </>
+            )}
+          </LocalizationProvider>
+        </DialogContent>
+        <DialogActions className={dialogStyle.action_area}>
+          <Box display="flex">
+            <Button className={dialogStyle.submit_btn} onClick={handleSearch}>
+              Search
+            </Button>
+          </Box>
+        </DialogActions>
       </Dialog>
     </>
   );
