@@ -670,9 +670,7 @@ def bg_create_tags_from_sbom_json(
         ):
             service = models.Service(pteam_id=str(pteam_id), service_name=service_name)
             pteam.services.append(service)
-        now = datetime.now()
-        service.sbom_uploaded_at = now
-        db.flush()
+            db.flush()
 
         try:
             json_lines = sbom_json_to_artifact_json_lines(sbom_json)
@@ -680,6 +678,9 @@ def bg_create_tags_from_sbom_json(
         except ValueError as err:
             # TODO notify failure to the caller
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+
+        now = datetime.now()
+        service.sbom_uploaded_at = now
 
         db.commit()
 
@@ -763,14 +764,15 @@ def upload_pteam_tags_file(
     ):
         service_model = models.Service(pteam_id=pteam_id, service_name=service)
         pteam.services.append(service_model)
-    now = datetime.now()
-    service_model.sbom_uploaded_at = now
-    db.flush()
+        db.flush()
 
     try:
         apply_service_tags(db, service_model, json_lines, auto_create_tags=force_mode)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+
+    now = datetime.now()
+    service_model.sbom_uploaded_at = now
 
     db.commit()
 
