@@ -4,6 +4,7 @@ import {
   Edit as EditIcon,
   Update as UpdateIcon,
 } from "@mui/icons-material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Alert,
   Box,
@@ -25,6 +26,9 @@ import {
   Typography,
   Paper,
   Popper,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
@@ -521,50 +525,76 @@ export function TopicCard(props) {
           />
         </Box>
         <Divider flexItem={true} orientation="vertical" />
-        <Box display="flex" flexDirection="column">
+        <Box display="flex" flexDirection="column" sx={{ maxHeight: "300px" }}>
           <Box
             display="flex"
             flexDirection="column"
             justifyContent="baseline"
-            mb={8}
-            sx={{ minWidth: "320px" }}
+            // mb={8}
+            sx={{ minWidth: "320px", maxWidth: "480px", overflowY: "scroll" }}
           >
-            <Box display="flex" alignItems="baseline" p={2}>
-              <Typography mr={2} variant="subtitle2" sx={{ fontWeight: 900 }}>
-                Threat impact
-              </Typography>
-              <ThreatImpactChip threatImpact={topic.threat_impact ?? 4} />
-            </Box>
-            <CardActions sx={{ display: "flex", alignItems: "center", p: 2 }}>
-              <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
-                Assignees
-              </Typography>
-              <Box sx={{ maxWidth: 200 }}>
-                <AssigneesSelector pteamId={pteamId} topicId={topicId} serviceId={serviceId} />
-              </Box>
-            </CardActions>
-            <Box p={2} display="flex" flexDirection="row" alignItems="flex-start">
-              <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
-                Status
-              </Typography>
-              <Box display="flex" flexDirection="column">
-                <Box display="flex" alignItems="center">
-                  <TopicStatusSelector pteamId={pteamId} topicId={topicId} serviceId={serviceId} />
-                  {(ttStatus.topic_status ?? "alerted") === "alerted" && (
-                    <WarningTooltip message="No one has acknowledged this topic" />
-                  )}
-                </Box>
-                {(ttStatus.topic_status ?? "scheduled") === "scheduled" &&
-                  ttStatus.scheduled_at && (
-                    <Box display="flex" alignItems="flex-end">
-                      <Typography ml={0.5} variant="caption">
-                        <CalendarMonthIcon fontSize="small" sx={{ color: grey[700], mb: -0.7 }} />
-                        {dateTimeFormat(ttStatus.scheduled_at)}
-                      </Typography>
+            {[...Array(10)].map((i) => (
+              <Accordion key={i} disableGutters>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>django-web</AccordionSummary>
+                <AccordionDetails>
+                  <Box display="flex" alignItems="baseline" p={2}>
+                    <Typography mr={2} variant="subtitle2" sx={{ fontWeight: 900 }}>
+                      Threat impact
+                    </Typography>
+                    <ThreatImpactChip threatImpact={topic.threat_impact ?? 4} />
+                  </Box>
+                  <CardActions sx={{ display: "flex", alignItems: "center", p: 2 }}>
+                    <Typography
+                      mr={1}
+                      variant="subtitle2"
+                      sx={{ fontWeight: 900, minWidth: "110px" }}
+                    >
+                      Assignees
+                    </Typography>
+                    <Box sx={{ maxWidth: 200 }}>
+                      <AssigneesSelector
+                        pteamId={pteamId}
+                        topicId={topicId}
+                        serviceId={serviceId}
+                      />
                     </Box>
-                  )}
-              </Box>
-            </Box>
+                  </CardActions>
+                  <Box p={2} display="flex" flexDirection="row" alignItems="flex-start">
+                    <Typography
+                      mr={1}
+                      variant="subtitle2"
+                      sx={{ fontWeight: 900, minWidth: "110px" }}
+                    >
+                      Status
+                    </Typography>
+                    <Box display="flex" flexDirection="column">
+                      <Box display="flex" alignItems="center">
+                        <TopicStatusSelector
+                          pteamId={pteamId}
+                          topicId={topicId}
+                          serviceId={serviceId}
+                        />
+                        {(ttStatus.topic_status ?? "alerted") === "alerted" && (
+                          <WarningTooltip message="No one has acknowledged this topic" />
+                        )}
+                      </Box>
+                      {(ttStatus.topic_status ?? "scheduled") === "scheduled" &&
+                        ttStatus.scheduled_at && (
+                          <Box display="flex" alignItems="flex-end">
+                            <Typography ml={0.5} variant="caption">
+                              <CalendarMonthIcon
+                                fontSize="small"
+                                sx={{ color: grey[700], mb: -0.7 }}
+                              />
+                              {dateTimeFormat(ttStatus.scheduled_at)}
+                            </Typography>
+                          </Box>
+                        )}
+                    </Box>
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+            ))}
           </Box>
           {(ttStatus.topic_status ?? "alerted") !== "alerted" && (
             <Box
