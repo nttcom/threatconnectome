@@ -495,7 +495,13 @@ class FsTopicSummary(ORMModel):
     actions: list[FsAction]
 
 
-class PTeamTagSummary(ExtTagResponse):
+class PTeamTagSummary(ORMModel):
+    tag_id: UUID
+    tag_name: str
+    parent_id: UUID | None
+    parent_name: str | None
+    service_id: UUID
+    service_name: str
     threat_impact: int | None = None
     updated_at: datetime | None = None
     status_count: dict[str, int]

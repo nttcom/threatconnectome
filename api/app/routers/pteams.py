@@ -194,6 +194,33 @@ def get_pteam_service_tags_summary(
     }
 
 
+@router.get("/{pteam_id}/tags/summary", response_model=schemas.PTeamTagsSummary)
+def get_pteam_tags_summary(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get tags summary of the pteam service.
+    """
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
+
+    # count tags threat_impact
+    threat_impact_count: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+    for tag_summary in tags_summary:
+        threat_impact_count[str(tag_summary["threat_impact"] or 4)] += 1
+
+    return {
+        "threat_impact_count": threat_impact_count,
+        "tags": tags_summary,
+    }
+
+
 @router.get(
     "/{pteam_id}/services/{service_id}/dependencies",
     response_model=list[schemas.DependencyResponse],

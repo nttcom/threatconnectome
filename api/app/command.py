@@ -566,3 +566,92 @@ def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[
         for row in db.execute(summarize_stmt).all()
     ]
     return summary
+
+
+def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict]:
+    threat_impact = func.min(models.Topic.threat_impact).label("threat_impact")
+    updated_at = func.max(models.Topic.updated_at).label("updated_at")
+    summarize_stmt = (
+        select(
+            models.Tag.tag_id,
+            models.Tag.tag_name,
+            models.Tag.parent_id,
+            models.Tag.parent_name,
+            models.Service.service_id,
+            models.Service.service_name,
+            threat_impact,
+            updated_at,
+        )
+        .join(
+            models.Dependency,
+            models.Dependency.tag_id == models.Tag.tag_id,
+        )
+        .join(
+            models.Service,
+            and_(
+                models.Service.service_id == models.Dependency.service_id,
+                models.Service.pteam_id == str(pteam_id),
+            ),
+        )
+        .outerjoin(models.Threat)
+        .outerjoin(models.Ticket)
+        .outerjoin(models.CurrentTicketStatus)
+        .outerjoin(
+            models.Topic,  # do not count completed topic
+            and_(
+                models.Topic.topic_id == models.Threat.topic_id,
+                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
+            ),
+        )
+        .group_by(models.Tag.tag_id, models.Service.service_id)
+        .order_by(
+            func.coalesce(threat_impact, 4),
+            updated_at.desc().nullslast(),
+            models.Tag.tag_name,
+        )
+    )
+
+    count_status_stmt = (
+        select(
+            models.Tag.tag_id,
+            models.CurrentTicketStatus.topic_status,
+            func.count(models.CurrentTicketStatus.topic_status).label("num_status"),
+        )
+        .join(models.Dependency)
+        .join(
+            models.Service,
+            and_(
+                models.Service.service_id == models.Dependency.service_id,
+                models.Service.pteam_id == str(pteam_id),
+            ),
+        )
+        .join(models.Threat)
+        .join(models.Ticket)
+        .join(models.CurrentTicketStatus)
+        .group_by(models.Tag.tag_id, models.CurrentTicketStatus.topic_status)
+    )
+
+    status_count_dict = {
+        (row.tag_id, row.topic_status): row.num_status
+        for row in db.execute(count_status_stmt).all()
+    }
+
+    summary = [
+        {
+            "tag_id": row.tag_id,
+            "tag_name": row.tag_name,
+            "parent_id": row.parent_id,
+            "parent_name": row.parent_name,
+            "service_id": row.service_id,
+            "service_name": row.service_name,
+            "threat_impact": row.threat_impact,
+            "updated_at": row.updated_at,
+            "status_count": {
+                status_type.value: status_count_dict.get((row.tag_id, status_type.value), 0)
+                for status_type in list(models.TopicStatusType)
+            },
+        }
+        for row in db.execute(summarize_stmt).all()
+    ]
+
+    return summary
