@@ -1,7 +1,18 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Row, Subquery, and_, delete, false, func, nullsfirst, or_, select, true
+from sqlalchemy import (
+    Row,
+    Subquery,
+    and_,
+    delete,
+    false,
+    func,
+    nullsfirst,
+    or_,
+    select,
+    true,
+)
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -571,16 +582,19 @@ def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[
 def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict]:
     threat_impact = func.min(models.Topic.threat_impact).label("threat_impact")
     updated_at = func.max(models.Topic.updated_at).label("updated_at")
+    service_ids = func.array_agg(
+        # distinct(aggregate_order_by(models.Service, models.Service.service_name))
+        models.Service.service_id.distinct()
+    ).label("service_ids")
     summarize_stmt = (
         select(
             models.Tag.tag_id,
             models.Tag.tag_name,
             models.Tag.parent_id,
             models.Tag.parent_name,
-            models.Service.service_id,
-            models.Service.service_name,
             threat_impact,
             updated_at,
+            service_ids,
         )
         .join(
             models.Dependency,
@@ -603,7 +617,7 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
                 models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
             ),
         )
-        .group_by(models.Tag.tag_id, models.Service.service_id)
+        .group_by(models.Tag.tag_id)
         .order_by(
             func.coalesce(threat_impact, 4),
             updated_at.desc().nullslast(),
@@ -642,8 +656,7 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
             "tag_name": row.tag_name,
             "parent_id": row.parent_id,
             "parent_name": row.parent_name,
-            "service_id": row.service_id,
-            "service_name": row.service_name,
+            "service_ids": row.service_ids,
             "threat_impact": row.threat_impact,
             "updated_at": row.updated_at,
             "status_count": {
