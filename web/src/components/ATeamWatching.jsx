@@ -14,8 +14,56 @@ import { orange } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React from "react";
 
+import { utcStringToLocalDate } from "../utils/func";
+
 import { ATeamRequestModal } from "./ATeamRequestModal";
 import { ATeamWatchingMenu } from "./ATeamWatchingMenu";
+
+function getWarningCell(message, teamName) {
+  return (
+    <Box alignItems="center" display="flex" flexDirection="row">
+      <Tooltip title={message}>
+        <WarningAmberIcon sx={{ color: orange[500], mr: 1 }} />
+      </Tooltip>
+      {teamName}
+    </Box>
+  );
+}
+
+function TeamNameCell(props) {
+  const { services, teamName } = props;
+  if (services.length === 0) {
+    return getWarningCell("No service is registered.", teamName);
+  }
+
+  const now = new Date();
+  let oldestUploadedAt = now;
+  for (let service of services) {
+    if (service.sbom_uploaded_at === null) {
+      continue;
+    }
+    const currentUploadedAt = utcStringToLocalDate(service.sbom_uploaded_at);
+    if (currentUploadedAt < oldestUploadedAt) {
+      oldestUploadedAt = currentUploadedAt;
+    }
+  }
+
+  const passMilliseconds = now - oldestUploadedAt;
+  const passDays = parseInt(passMilliseconds / 1000 / 60 / 60 / 24);
+  if (passDays >= 14) {
+    return getWarningCell("SBOM updated " + passDays + " days ago.", teamName);
+  }
+  return teamName;
+}
+
+TeamNameCell.propTypes = {
+  services: PropTypes.arrayOf(
+    PropTypes.shape({
+      sbom_uploaded_at: PropTypes.string,
+    }),
+  ),
+  teamName: PropTypes.string,
+};
 
 export function ATeamWatching(props) {
   const { ateam, isAdmin } = props;
@@ -49,12 +97,10 @@ export function ATeamWatching(props) {
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell align="left" style={{ width: "30%" }}>
-                      <Box alignItems="center" display="flex" flexDirection="row">
-                        <Tooltip title="Last Update of SBOM: 2024/2/15">
-                          <WarningAmberIcon sx={{ color: orange[500], mr: 1 }} />
-                        </Tooltip>
-                        {monitorTeam.pteam_name}
-                      </Box>
+                      <TeamNameCell
+                        services={monitorTeam.services}
+                        teamName={monitorTeam.pteam_name}
+                      />
                     </TableCell>
                     <TableCell align="left">{monitorTeam.contact_info}</TableCell>
                     <TableCell align="right">
