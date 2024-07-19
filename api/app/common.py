@@ -630,3 +630,10 @@ def fix_threats_for_dependency(db: Session, dependency: models.Dependency):
                 persistence.delete_ticket(db, threat.ticket)
         elif current_threat:
             persistence.delete_threat(db, current_threat)
+
+
+def count_threat_impact_from_summary(tags_summary: list[dict]):
+    threat_impact_count: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+    for tag_summary in tags_summary:
+        threat_impact_count[str(tag_summary["threat_impact"] or 4)] += 1
+    return threat_impact_count

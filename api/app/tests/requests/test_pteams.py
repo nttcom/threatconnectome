@@ -2292,7 +2292,7 @@ def test_it_should_return_422_when_upload_sbom_with_over_255_char_servicename():
     create_user(USER1)
     pteam = create_pteam(USER1, PTEAM1)
 
-    # create random 256 alphanumeric characters
+    # create 256 alphanumeric characters
     service_name = "a" * 256
 
     params = {"service": service_name, "force_mode": True}
@@ -2592,6 +2592,172 @@ class TestGetPTeamServiceTagsSummary:
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
+                "threat_impact": topic1.threat_impact,
+                "updated_at": datetime.isoformat(topic1.updated_at),
+                "status_count": {
+                    **{status_type.value: 0 for status_type in list(models.TopicStatusType)},
+                    models.TopicStatusType.alerted.value: 1,  # default status is ALERTED
+                },
+            }
+        ]
+
+
+class TestGetPTeamTagsSummary:
+    @staticmethod
+    def _get_access_token(user: dict) -> str:
+        body = {
+            "username": user["email"],
+            "password": user["pass"],
+        }
+        response = client.post("/auth/token", data=body)
+        if response.status_code != 200:
+            raise HTTPError(response)
+        data = response.json()
+        return data["access_token"]
+
+    @staticmethod
+    def _get_service_id_by_service_name(user: dict, pteam_id: UUID | str, service_name: str) -> str:
+        response = client.get(f"/pteams/{pteam_id}/services", headers=headers(user))
+        if response.status_code != 200:
+            raise HTTPError(response)
+        data = response.json()
+        service = next(filter(lambda x: x["service_name"] == service_name, data))
+        return service["service_id"]
+
+    def test_returns_summary_even_if_no_topics(self):
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        tag1 = create_tag(USER1, TAG1)
+        # add test_service to pteam1
+        test_service = "test_service"
+        test_target = "test target"
+        test_version = "test version"
+        refs0 = {tag1.tag_name: [(test_target, test_version)]}
+        upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
+        service_id1 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service)
+
+        # no topics, no threats, no tickets
+
+        # get summary
+        url = f"/pteams/{pteam1.pteam_id}/tags/summary"
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        response = client.get(url, headers=_headers)
+        assert response.status_code == 200
+
+        summary = response.json()
+        assert summary["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 1}
+        assert summary["tags"] == [
+            {
+                "tag_id": str(tag1.tag_id),
+                "tag_name": tag1.tag_name,
+                "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
+                "parent_name": tag1.parent_name if tag1.parent_name else None,
+                "service_ids": [service_id1],
+                "threat_impact": None,
+                "updated_at": None,
+                "status_count": {
+                    status_type.value: 0 for status_type in list(models.TopicStatusType)
+                },
+            }
+        ]
+
+    def test_returns_summary_even_if_no_threats(self):
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        tag1 = create_tag(USER1, TAG1)
+        # add test_service to pteam1
+        test_service = "test_service"
+        test_target = "test target"
+        test_version = "test version"
+        refs0 = {tag1.tag_name: [(test_target, test_version)]}
+        upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
+        service_id1 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service)
+        # create topic1
+        create_topic(USER1, TOPIC1)  # Tag1
+
+        # no threats nor tickets
+
+        # get summary
+        url = f"/pteams/{pteam1.pteam_id}/tags/summary"
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        response = client.get(url, headers=_headers)
+        assert response.status_code == 200
+
+        summary = response.json()
+        assert summary["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 1}
+        assert summary["tags"] == [
+            {
+                "tag_id": str(tag1.tag_id),
+                "tag_name": tag1.tag_name,
+                "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
+                "parent_name": tag1.parent_name if tag1.parent_name else None,
+                "service_ids": [service_id1],
+                "threat_impact": None,
+                "updated_at": None,
+                "status_count": {
+                    status_type.value: 0 for status_type in list(models.TopicStatusType)
+                },
+            }
+        ]
+
+    def test_returns_summary_if_having_alerted_ticket(self):
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        tag1 = create_tag(USER1, TAG1)
+        # add test_service to pteam1
+        test_service = "test_service"
+        test_target = "test target"
+        vulnerable_version = "1.2.0"  # vulnerable
+        refs0 = {tag1.tag_name: [(test_target, vulnerable_version)]}
+        upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
+        service_id1 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service)
+        # add actionable topic1
+        action1 = {
+            "action": "action one",
+            "action_type": "elimination",
+            "recommended": True,
+            "ext": {
+                "tags": [tag1.tag_name],
+                "vulnerable_versions": {
+                    tag1.tag_name: ["< 1.2.3"],  # > vulnerable_version
+                },
+            },
+        }
+        topic1 = create_topic(USER1, TOPIC1, actions=[action1])  # Tag1
+
+        # get summary
+        url = f"/pteams/{pteam1.pteam_id}/tags/summary"
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        response = client.get(url, headers=_headers)
+        assert response.status_code == 200
+
+        summary = response.json()
+        assert summary["threat_impact_count"] == {
+            **{"1": 0, "2": 0, "3": 0, "4": 0},
+            str(topic1.threat_impact): 1,
+        }
+        assert summary["tags"] == [
+            {
+                "tag_id": str(tag1.tag_id),
+                "tag_name": tag1.tag_name,
+                "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
+                "parent_name": tag1.parent_name if tag1.parent_name else None,
+                "service_ids": [service_id1],
                 "threat_impact": topic1.threat_impact,
                 "updated_at": datetime.isoformat(topic1.updated_at),
                 "status_count": {

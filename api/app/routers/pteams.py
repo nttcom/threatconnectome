@@ -16,6 +16,7 @@ from app.common import (
     check_pteam_membership,
     count_service_solved_tickets_per_threat_impact,
     count_service_unsolved_tickets_per_threat_impact,
+    count_threat_impact_from_summary,
     fix_threats_for_dependency,
     get_or_create_topic_tag,
     get_pteam_ext_tags,
@@ -183,10 +184,31 @@ def get_pteam_service_tags_summary(
 
     tags_summary = command.get_tags_summary_by_service_id(db, service_id)
 
-    # count tags threat_impact
-    threat_impact_count: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
-    for tag_summary in tags_summary:
-        threat_impact_count[str(tag_summary["threat_impact"] or 4)] += 1
+    threat_impact_count = count_threat_impact_from_summary(tags_summary)
+
+    return {
+        "threat_impact_count": threat_impact_count,
+        "tags": tags_summary,
+    }
+
+
+@router.get("/{pteam_id}/tags/summary", response_model=schemas.PTeamTagsSummary)
+def get_pteam_tags_summary(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get tags summary of the pteam.
+    """
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
+
+    threat_impact_count = count_threat_impact_from_summary(tags_summary)
 
     return {
         "threat_impact_count": threat_impact_count,
