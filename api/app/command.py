@@ -583,7 +583,6 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
     threat_impact = func.min(models.Topic.threat_impact).label("threat_impact")
     updated_at = func.max(models.Topic.updated_at).label("updated_at")
     service_ids = func.array_agg(
-        # distinct(aggregate_order_by(models.Service, models.Service.service_name))
         models.Service.service_id.distinct()
     ).label("service_ids")
     summarize_stmt = (
