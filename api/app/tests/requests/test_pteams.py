@@ -2657,8 +2657,7 @@ class TestGetPTeamTagsSummary:
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "service_id": service_id1,
-                "service_name": test_service,
+                "service_ids": [service_id1],
                 "threat_impact": None,
                 "updated_at": None,
                 "status_count": {
@@ -2702,8 +2701,7 @@ class TestGetPTeamTagsSummary:
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "service_id": service_id1,
-                "service_name": test_service,
+                "service_ids": [service_id1],
                 "threat_impact": None,
                 "updated_at": None,
                 "status_count": {
@@ -2759,8 +2757,7 @@ class TestGetPTeamTagsSummary:
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "service_id": service_id1,
-                "service_name": test_service,
+                "service_ids": [service_id1],
                 "threat_impact": topic1.threat_impact,
                 "updated_at": datetime.isoformat(topic1.updated_at),
                 "status_count": {
