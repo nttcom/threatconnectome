@@ -36,7 +36,12 @@ import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
-import { getPTeam, getPTeamServiceTagsSummary, setPTeamId } from "../slices/pteam";
+import {
+  getPTeam,
+  getPTeamServiceTagsSummary,
+  getPTeamTagsSummary,
+  setPTeamId,
+} from "../slices/pteam";
 import { noPTeamMessage, threatImpactName, threatImpactProps } from "../utils/const";
 const threatImpactCountMax = 99999;
 
@@ -118,13 +123,16 @@ export function Status() {
 
   const user = useSelector((state) => state.user.user);
   const pteam = useSelector((state) => state.pteam.pteam);
-  const summaries = useSelector((state) => state.pteam.serviceTagsSummaries);
+  const serviceTagsSummaries = useSelector((state) => state.pteam.serviceTagsSummaries);
+  const pteamTagsSummaries = useSelector((state) => state.pteam.pteamTagsSummaries);
 
-  const summary = summaries[serviceId];
+  const serviceTagsSummary = serviceTagsSummaries[serviceId];
+  const pteamTagsSummary = pteamTagsSummaries[pteamId];
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const searchMenuOpen = Boolean(anchorEl);
 
+  const [isActiveAllServicesMode, setIsActiveAllServicesMode] = useState(false);
   const [isActiveUploadMode, setIsActiveUploadMode] = useState(0);
 
   useEffect(() => {
@@ -139,7 +147,12 @@ export function Status() {
       dispatch(setPTeamId(pteamId));
       return;
     }
-    if (summary) return; // Ready!
+
+    if (isActiveAllServicesMode) {
+      if (pteamTagsSummary) return;
+    } else {
+      if (serviceTagsSummary) return; // Ready!
+    }
 
     if (!serviceId) {
       if (pteam.services.length === 0) return; // nothing to do any more.
@@ -156,9 +169,14 @@ export function Status() {
       navigate("/?" + newParams.toString());
       return;
     }
-    dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+
+    if (isActiveAllServicesMode) {
+      dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
+    } else {
+      dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+    }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [user.user_id, pteamId, pteam, pteamId, serviceId]);
+  }, [user.user_id, pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (!user.user_id || !pteamId || !pteam) {
@@ -183,12 +201,17 @@ export function Status() {
     }
   }
 
-  if (!summary) return <>Now loading ServiceTagsSummary...</>;
+  if (isActiveAllServicesMode) {
+    if (!pteamTagsSummary) return <>Now loading PTeamTagsSummary...</>;
+  } else {
+    if (!serviceTagsSummary) return <>Now loading ServiceTagsSummary...</>;
+  }
 
   let impactFilters = params
     .getAll("impactFilter")
     .filter((filter) => Object.values(threatImpactName).includes(filter));
 
+  const summary = isActiveAllServicesMode ? pteamTagsSummary : serviceTagsSummary;
   const filteredTags = summary.tags.filter(
     (tag) =>
       (impactFilters.length === 0
@@ -288,6 +311,7 @@ export function Status() {
         {[0, 1, 2, 3].map((idx) => {
           const impactName = threatImpactName[idx + 1];
           const checked = impactFilters.includes(impactName);
+          const summary = isActiveAllServicesMode ? pteamTagsSummary : serviceTagsSummary;
           const threatImpactCount = summary.threat_impact_count[(idx + 1).toString()];
 
           const fixedSx = {
@@ -346,17 +370,26 @@ export function Status() {
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <DeleteServiceIcon />
         <FormControlLabel
-          control={<Android12Switch checked={false} />}
+          control={
+            <Android12Switch
+              checked={isActiveAllServicesMode}
+              onChange={() => {
+                setIsActiveAllServicesMode(!isActiveAllServicesMode);
+                setIsActiveUploadMode(0);
+              }}
+            />
+          }
           label="All Services"
-          disabled={true} // ALL Services not yet supported
         />
       </Box>
-      <PTeamServiceTabs
-        services={pteam.services}
-        currentServiceId={serviceId}
-        onChangeService={handleChangeService}
-        setIsActiveUploadMode={setIsActiveUploadMode}
-      />
+      {!isActiveAllServicesMode && (
+        <PTeamServiceTabs
+          services={pteam.services}
+          currentServiceId={serviceId}
+          onChangeService={handleChangeService}
+          setIsActiveUploadMode={setIsActiveUploadMode}
+        />
+      )}
       <CustomTabPanel value={isActiveUploadMode} index={0}>
         <Box display="flex" mt={2}>
           {filterRow}
@@ -380,13 +413,29 @@ export function Status() {
         <TableContainer component={Paper} sx={{ mt: 0.5 }}>
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableBody>
-              {targetTags.map((tag) => (
-                <PTeamStatusCard
-                  key={tag.tag_id}
-                  onHandleClick={() => handleNavigateTag(tag.tag_id)}
-                  tag={tag}
-                />
-              ))}
+              {isActiveAllServicesMode ? (
+                <>
+                  {targetTags.map((tag) => (
+                    <PTeamStatusCard
+                      key={tag.tag_id}
+                      // onHandleClick={() => handleNavigateTag(tag.tag_id)}
+                      tag={tag}
+                      isActiveAllServicesMode={isActiveAllServicesMode}
+                      serviceIds={tag.service_ids}
+                    />
+                  ))}
+                </>
+              ) : (
+                <>
+                  {targetTags.map((tag) => (
+                    <PTeamStatusCard
+                      key={tag.tag_id}
+                      onHandleClick={() => handleNavigateTag(tag.tag_id)}
+                      tag={tag}
+                    />
+                  ))}
+                </>
+              )}
             </TableBody>
           </Table>
         </TableContainer>

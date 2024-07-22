@@ -10,6 +10,7 @@ import {
   getPTeamTopicActions as apiGetPTeamTopicActions,
   getTopicStatus as apiGetTopicStatus,
   getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
+  getPTeamTagsSummary as apiGetPTeamTagsSummary,
 } from "../utils/api";
 
 export const getPTeam = createAsyncThunk(
@@ -110,6 +111,15 @@ export const getPTeamServiceTagsSummary = createAsyncThunk(
     })),
 );
 
+export const getPTeamTagsSummary = createAsyncThunk(
+  "pteam/getPTeamTagsSummary",
+  async (data) =>
+    await apiGetPTeamTagsSummary(data.pteamId).then((response) => ({
+      data: response.data,
+      pteamId: data.pteamId,
+    })),
+);
+
 const _initialState = {
   pteamId: undefined,
   pteam: undefined,
@@ -121,6 +131,7 @@ const _initialState = {
   topicStatus: {},
   topicActions: {},
   serviceTagsSummaries: {},
+  pteamTagsSummaries: {},
 };
 
 const pteamSlice = createSlice({
@@ -206,6 +217,13 @@ const pteamSlice = createSlice({
         serviceTagsSummaries: {
           ...state.serviceTagsSummaries,
           [action.payload.serviceId]: action.payload.data,
+        },
+      }))
+      .addCase(getPTeamTagsSummary.fulfilled, (state, action) => ({
+        ...state,
+        pteamTagsSummaries: {
+          ...state.pteamTagsSummaries,
+          [action.payload.pteamId]: action.payload.data,
         },
       }));
   },
