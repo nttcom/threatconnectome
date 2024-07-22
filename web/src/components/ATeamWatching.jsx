@@ -37,18 +37,21 @@ function TeamNameCell(props) {
   }
 
   const now = new Date();
-  let oldestUploadedAt = now;
+  let newestUploadedAt = null;
   for (let service of services) {
     if (service.sbom_uploaded_at === null) {
       continue;
     }
     const currentUploadedAt = utcStringToLocalDate(service.sbom_uploaded_at);
-    if (currentUploadedAt < oldestUploadedAt) {
-      oldestUploadedAt = currentUploadedAt;
+    if (newestUploadedAt === null || currentUploadedAt > newestUploadedAt) {
+      newestUploadedAt = currentUploadedAt;
     }
   }
+  if (newestUploadedAt === null) {
+    return teamName;
+  }
 
-  const passMilliseconds = now - oldestUploadedAt;
+  const passMilliseconds = now - newestUploadedAt;
   const passDays = parseInt(passMilliseconds / 1000 / 60 / 60 / 24);
   if (passDays >= 14) {
     return getWarningCell("SBOM updated " + passDays + " days ago.", teamName);
