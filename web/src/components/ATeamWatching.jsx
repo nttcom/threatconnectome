@@ -19,6 +19,8 @@ import { utcStringToLocalDate } from "../utils/func";
 import { ATeamRequestModal } from "./ATeamRequestModal";
 import { ATeamWatchingMenu } from "./ATeamWatchingMenu";
 
+const { differenceInDays } = require("date-fns");
+
 function getWarningCell(message, teamName) {
   return (
     <Box alignItems="center" display="flex" flexDirection="row">
@@ -36,26 +38,19 @@ function TeamNameCell(props) {
     return getWarningCell("No service is registered.", teamName);
   }
 
-  const now = new Date();
-  let newestUploadedAt = null;
-  for (let service of services) {
-    if (service.sbom_uploaded_at === null) {
-      continue;
-    }
-    const currentUploadedAt = utcStringToLocalDate(service.sbom_uploaded_at);
-    if (newestUploadedAt === null || currentUploadedAt > newestUploadedAt) {
-      newestUploadedAt = currentUploadedAt;
-    }
-  }
-  if (newestUploadedAt === null) {
-    return teamName;
+  const validUploadedDates = services
+    .filter((service) => service.sbom_uploaded_at !== null)
+    .map((service) => utcStringToLocalDate(service.sbom_uploaded_at));
+  if (validUploadedDates.length === 0) {
+    return getWarningCell("SBOM is not uploaded yet.", teamName);
   }
 
-  const passMilliseconds = now - newestUploadedAt;
-  const passDays = parseInt(passMilliseconds / 1000 / 60 / 60 / 24);
+  const latestUploaded = new Date(Math.max(...validUploadedDates));
+  const passDays = differenceInDays(new Date(), latestUploaded);
   if (passDays >= 14) {
     return getWarningCell("SBOM updated " + passDays + " days ago.", teamName);
   }
+
   return teamName;
 }
 
