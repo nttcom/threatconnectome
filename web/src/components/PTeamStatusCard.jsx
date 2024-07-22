@@ -1,9 +1,8 @@
-import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
+import { Box, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React from "react";
-import { useLocation, useNavigate } from "react-router";
 
 import { topicStatusProps } from "../utils/const";
 import { calcTimestampDiff } from "../utils/func";
@@ -109,59 +108,6 @@ StatusRatioGraph.propTypes = {
   threatImpact: PropTypes.number,
 };
 
-function GroupChips(props) {
-  const { references } = props;
-  const unduplicatedGroups = [...new Set(references.map((ref) => ref.group))].filter(
-    (group) => group !== "",
-  );
-
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const params = new URLSearchParams(location.search);
-  const selectedGroup = params.get("group") ?? "";
-
-  const handleSelectGroup = (group) => {
-    if (group === selectedGroup) {
-      params.delete("group");
-    } else {
-      params.set("group", group);
-      params.set("page", 1); // reset page
-    }
-    navigate(location.pathname + "?" + params.toString());
-  };
-
-  return (
-    <Box sx={{ overflowX: "auto", whiteSpace: "nowrap" }}>
-      {unduplicatedGroups.map((group) => (
-        <Chip
-          key={group}
-          label={group}
-          variant={group === selectedGroup ? "" : "outlined"}
-          size="small"
-          onClick={(event) => {
-            handleSelectGroup(group);
-            event.stopPropagation(); // avoid propagation of click event to parent
-          }}
-          sx={{
-            textTransform: "none",
-            marginRight: "5px",
-          }}
-        />
-      ))}
-    </Box>
-  );
-}
-GroupChips.propTypes = {
-  references: PropTypes.arrayOf(
-    PropTypes.shape({
-      target: PropTypes.string,
-      version: PropTypes.string,
-      group: PropTypes.string,
-    }),
-  ).isRequired,
-};
-
 export function PTeamStatusCard(props) {
   const { onHandleClick, tag } = props;
 
@@ -184,7 +130,6 @@ export function PTeamStatusCard(props) {
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
           {tag.tag_name}
         </Typography>
-        <GroupChips references={tag.references}></GroupChips>
       </TableCell>
       <TableCell align="right" style={{ width: "30%" }}>
         <Box display="flex" flexDirection="column">

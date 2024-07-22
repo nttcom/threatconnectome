@@ -167,13 +167,13 @@ class ThreatconnectomeClient:
         response = self.retry_call(requests.post, api_endpoint, json=request)
         return response.json()
 
-    def upload_tags_file(self, pteam_id: UUID | str, file, group: str):
+    def upload_tags_file(self, pteam_id: UUID | str, file, service: str):
         api_endpoint = f"{self.api_url}/pteams/{pteam_id}/upload_tags_file"
         print(f"Post {api_endpoint}")
         response = requests.post(
             api_endpoint,
             headers=self.refresh_auth_token({"accept": "application/json"}),
-            params={"group": group, "force_mode": "true"},
+            params={"service": service, "force_mode": "true"},
             files={"file": file},
         )
         print(f"Http status: {response.status_code} {response.reason}")

@@ -36,17 +36,10 @@ export const getPTeamAuth = async (pteamId) => axios.get(`/pteams/${pteamId}/aut
 export const updatePTeamAuth = async (pteamId, data) =>
   axios.post(`/pteams/${pteamId}/authority`, data);
 
-export const getPTeamTagsSummary = async (pteamId) => axios.get(`/pteams/${pteamId}/tags/summary`);
-
-export const getPTeamTag = async (pteamId, tagId) => axios.get(`/pteams/${pteamId}/tags/${tagId}`);
-
 export const getPTeamTopics = async (pteamId) => axios.get(`/pteams/${pteamId}/topics`);
 
-export const getPTeamSolvedTaggedTopicIds = async (pteamId, tagId) =>
-  axios.get(`/pteams/${pteamId}/tags/${tagId}/solved_topic_ids`);
-
-export const getPTeamUnsolvedTaggedTopicIds = async (pteamId, tagId) =>
-  axios.get(`/pteams/${pteamId}/tags/${tagId}/unsolved_topic_ids`);
+export const getPTeamServiceTaggedTicketIds = async (pteamId, serviceId, tagId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/${tagId}/ticket_ids`);
 
 export const createPTeamInvitation = async (pteamId, data) =>
   axios.post(`/pteams/${pteamId}/invitation`, data);
@@ -56,15 +49,15 @@ export const getPTeamInvited = async (tokenId) => axios.get(`/pteams/invitation/
 export const applyPTeamInvitation = async (tokenId) =>
   axios.post("/pteams/apply_invitation", { invitation_id: tokenId });
 
-export const createTopicStatus = async (pteamId, topicId, tagId, data) => {
-  return axios.post(`/pteams/${pteamId}/topicstatus/${topicId}/${tagId}`, data);
+export const createTopicStatus = async (pteamId, serviceId, topicId, tagId, data) => {
+  return axios.post(
+    `/pteams/${pteamId}/services/${serviceId}/topicstatus/${topicId}/${tagId}`,
+    data,
+  );
 };
 
-export const getPTeamTopicStatus = async (pteamId, topicId, tagId) =>
-  axios.get(`/pteams/${pteamId}/topicstatus/${topicId}/${tagId}`);
-
-export const getPTeamTopicStatusesSummary = async (pteamId, tagId) =>
-  axios.get(`/pteams/${pteamId}/topicstatusessummary/${tagId}`);
+export const getTopicStatus = async (pteamId, serviceId, topicId, tagId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/topicstatus/${topicId}/${tagId}`);
 
 export const getPTeamTopicActions = async (pteamId, topicId) =>
   axios.get(`/topics/${topicId}/actions/pteam/${pteamId}`);
@@ -72,13 +65,14 @@ export const getPTeamTopicActions = async (pteamId, topicId) =>
 export const removeWatcherATeam = async (pteamId, ateamId) =>
   axios.delete(`/pteams/${pteamId}/watchers/${ateamId}`);
 
-export const getPTeamGroups = async (pteamId) => axios.get(`/pteams/${pteamId}/groups`);
+export const getPTeamServiceTagsSummary = async (pteamId, serviceId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/summary`);
 
-export const uploadSBOMFile = async (pteamId, group, file, forceMode = true) => {
+export const uploadSBOMFile = async (pteamId, service, file, forceMode = true) => {
   const formData = new FormData();
   formData.append("file", file);
   const paramData = {
-    group: group,
+    service: service,
     force_mode: forceMode,
   };
   return axios.post(`/pteams/${pteamId}/upload_sbom_file`, formData, {
@@ -87,13 +81,11 @@ export const uploadSBOMFile = async (pteamId, group, file, forceMode = true) => 
   });
 };
 
-export const autoClose = async (pteamId) => axios.post(`/pteams/${pteamId}/fix_status_mismatch`);
-
-export const autoCloseTag = async (pteamId, tagId) =>
-  axios.post(`/pteams/${pteamId}/tags/${tagId}/fix_status_mismatch`);
-
 export const deletePTeamService = async (pteamId, service) =>
-  axios.delete(`/pteams/${pteamId}/tags`, { params: { group: service } });
+  axios.delete(`/pteams/${pteamId}/tags`, { params: { service: service } });
+
+export const getDependencies = async (pteamId, serviceId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/dependencies`);
 
 // ateams
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);

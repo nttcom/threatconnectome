@@ -8,7 +8,9 @@ from app.constants import DEFAULT_ALERT_THREAT_IMPACT
 from app.models import (
     ActionType,
     ATeamAuthEnum,
+    ExploitationEnum,
     PTeamAuthEnum,
+    SafetyImpactEnum,
     TopicStatusType,
 )
 
@@ -53,19 +55,12 @@ class PTeamEntry(ORMModel):
     pteam_id: UUID
     pteam_name: str
     contact_info: str
-    disabled: bool
 
 
 class ATeamEntry(ORMModel):
     ateam_id: UUID
     ateam_name: str
     contact_info: str
-
-
-class ATeamInfo(ATeamEntry):
-    alert_slack: Slack
-    alert_mail: Mail
-    pteams: list[PTeamEntry]
 
 
 class UserResponse(ORMModel):
@@ -117,8 +112,10 @@ class ExtTagResponse(TagResponse):
     references: list[dict] = []
 
 
-class PTeamGroupResponse(ORMModel):
-    groups: list[str] = []
+class PTeamServiceResponse(ORMModel):
+    service_name: str
+    service_id: UUID
+    sbom_uploaded_at: datetime | None = None
 
 
 class PTeamtagRequest(ORMModel):
@@ -163,7 +160,9 @@ class Topic(TopicEntry):
     threat_impact: int
     created_by: UUID
     created_at: datetime
-    disabled: bool
+    safety_impact: SafetyImpactEnum | None
+    exploitation: ExploitationEnum | None
+    automatable: bool | None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -218,6 +217,9 @@ class TopicCreateRequest(ORMModel):
     tags: list[str] = []
     misp_tags: list[str] = []
     actions: list[ActionCreateRequest] = []
+    safety_impact: SafetyImpactEnum | None = None
+    exploitation: ExploitationEnum | None = None
+    automatable: bool | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -228,7 +230,9 @@ class TopicUpdateRequest(ORMModel):
     threat_impact: int | None = None
     tags: list[str] | None = None
     misp_tags: list[str] | None = None
-    disabled: bool | None = None
+    safety_impact: SafetyImpactEnum | None = None
+    exploitation: ExploitationEnum | None = None
+    automatable: bool | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -236,6 +240,7 @@ class TopicUpdateRequest(ORMModel):
 class PTeamInfo(PTeamEntry):
     alert_slack: Slack
     alert_threat_impact: int
+    services: list[PTeamServiceResponse]
     ateams: list[ATeamEntry]
     alert_mail: Mail
 
@@ -261,7 +266,6 @@ class PTeamUpdateRequest(ORMModel):
     contact_info: str | None = None
     alert_slack: Slack | None = None
     alert_threat_impact: int | None = None
-    disabled: bool | None = None
     alert_mail: Mail | None = None
 
     _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
@@ -313,6 +317,12 @@ class PTeamInviterResponse(ORMModel):
     pteam_name: str
     email: str
     user_id: UUID
+
+
+class ATeamInfo(ATeamEntry):
+    alert_slack: Slack
+    alert_mail: Mail
+    pteams: list[PTeamInfo]
 
 
 class ApplyInvitationRequest(ORMModel):  # common use of PTeam and ATeam
@@ -413,6 +423,8 @@ class ActionLogResponse(ORMModel):
     recommended: bool
     user_id: UUID | None = None
     pteam_id: UUID
+    service_id: UUID
+    ticket_id: UUID
     email: str
     executed_at: datetime
     created_at: datetime
@@ -423,6 +435,7 @@ class ActionLogRequest(ORMModel):
     topic_id: UUID
     user_id: UUID
     pteam_id: UUID
+    service_id: UUID
     executed_at: datetime | None = None
 
 
@@ -438,6 +451,7 @@ class TopicStatusResponse(ORMModel):
     status_id: UUID | None = None  # None is the case no status is set yet
     topic_id: UUID
     pteam_id: UUID
+    service_id: UUID
     tag_id: UUID
     user_id: UUID | None = None
     topic_status: TopicStatusType | None = None
@@ -481,7 +495,12 @@ class FsTopicSummary(ORMModel):
     actions: list[FsAction]
 
 
-class PTeamTagSummary(ExtTagResponse):
+class PTeamTagSummary(ORMModel):
+    tag_id: UUID
+    tag_name: str
+    parent_id: UUID | None
+    parent_name: str | None
+    service_ids: list[UUID]
     threat_impact: int | None = None
     updated_at: datetime | None = None
     status_count: dict[str, int]
@@ -492,6 +511,20 @@ class PTeamTagSummary(ExtTagResponse):
 class PTeamTagsSummary(ORMModel):
     threat_impact_count: dict[str, int]  # str(threat_impact): tags count
     tags: list[PTeamTagSummary]
+
+
+class PTeamServiceTagsSummary(ORMModel):
+    class PTeamServiceTagSummary(ORMModel):
+        tag_id: UUID
+        tag_name: str
+        parent_id: UUID | None
+        parent_name: str | None
+        threat_impact: int | None
+        updated_at: datetime | None
+        status_count: dict[str, int]  # TopicStatusType.value: tickets count
+
+    threat_impact_count: dict[str, int]  # str(threat_impact): tags count
+    tags: list[PTeamServiceTagSummary]
 
 
 class SlackCheckRequest(ORMModel):
@@ -506,19 +539,19 @@ class FsServerInfo(ORMModel):
     api_url: str
 
 
-class PTeamTopicTagStatusSimple(ORMModel):
-    topic_id: UUID
-    pteam_id: UUID
+class ServiceTopicStatus(ORMModel):
+    service_id: UUID
+    service_name: str
     tag: TagResponse
     topic_status: TopicStatusType
     assignees: list[UUID] = []
     scheduled_at: datetime | None = None
 
 
-class PTeamTopicStatuses(ORMModel):
+class PTeamTopicStatus(ORMModel):
     pteam_id: UUID
     pteam_name: str
-    statuses: list[PTeamTopicTagStatusSimple]
+    service_statuses: list[ServiceTopicStatus]
 
 
 class ATeamTopicStatus(ORMModel):
@@ -527,7 +560,7 @@ class ATeamTopicStatus(ORMModel):
     threat_impact: int
     updated_at: datetime
     num_pteams: int
-    pteams: list[PTeamTopicStatuses]
+    pteam_statuses: list[PTeamTopicStatus]
 
 
 class ATeamTopicStatusResponse(ORMModel):
@@ -552,3 +585,41 @@ class ATeamTopicCommentResponse(ORMModel):
     updated_at: datetime | None = None
     comment: str
     email: str
+
+
+class ThreatResponse(ORMModel):
+    threat_id: UUID
+    dependency_id: UUID
+    topic_id: UUID
+
+
+class ThreatRequest(ORMModel):
+    dependency_id: UUID
+    topic_id: UUID
+
+
+class ServiceTaggedTopics(ORMModel):
+    pteam_id: UUID
+    service_id: UUID
+    tag_id: UUID
+    threat_impact_count: dict[str, int]
+    topic_ticket_ids: list[dict]
+
+
+class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
+    solved: ServiceTaggedTopics
+    unsolved: ServiceTaggedTopics
+
+
+class DependencyResponse(ORMModel):
+    dependency_id: UUID
+    service_id: UUID
+    tag_id: UUID
+    version: str
+    target: str
+
+
+class UploadSBOMAcceptedResponse(ORMModel):
+    pteam_id: UUID
+    service_name: str
+    sbom_file_sha256: str

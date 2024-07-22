@@ -9,7 +9,7 @@ import { ThreatImpactCountChip } from "./ThreatImpactCountChip";
 import { TopicCard } from "./TopicCard";
 
 export function PTeamTaggedTopics(props) {
-  const { pteamId, tagId, isSolved, pteamtag } = props;
+  const { pteamId, tagId, serviceId, isSolved, references } = props;
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -23,7 +23,7 @@ export function PTeamTaggedTopics(props) {
     return <>Loading...</>;
   }
 
-  const targetTopicIds = targets.topic_ids.slice(perPage * (page - 1), perPage * page);
+  const targetTopicIds = targets.topic_ticket_ids.slice(perPage * (page - 1), perPage * page);
   const presetTagId = tagId;
   const presetParentTagId = allTags.find((tag) => tag.tag_id === tagId)?.parent_id;
 
@@ -32,7 +32,7 @@ export function PTeamTaggedTopics(props) {
       <Pagination
         shape="rounded"
         page={page}
-        count={Math.ceil(targets.topic_ids.length / perPage)}
+        count={Math.ceil(targets.topic_ticket_ids.length / perPage)}
         onChange={(event, value) => setPage(value)}
       />
       <Select
@@ -68,18 +68,23 @@ export function PTeamTaggedTopics(props) {
           />
         ))}
         <Box flexGrow={1} />
-        <PTeamStatusMenu presetTagId={presetTagId} presetParentTagId={presetParentTagId} />
+        <PTeamStatusMenu
+          presetTagId={presetTagId}
+          presetParentTagId={presetParentTagId}
+          serviceId={serviceId}
+        />
       </Box>
       {paginationRow}
       <List sx={{ p: 0 }}>
-        {targetTopicIds.map((topicId) => (
-          <ListItem key={topicId} sx={{ minHeight: "250px", p: 0 }}>
+        {targetTopicIds.map((ticketId_topicId) => (
+          <ListItem key={ticketId_topicId.topic_id} sx={{ minHeight: "250px", p: 0 }}>
             <TopicCard
-              key={topicId}
+              key={ticketId_topicId.topic_id}
               pteamId={pteamId}
-              topicId={topicId}
+              topicId={ticketId_topicId.topic_id}
               currentTagId={tagId}
-              pteamtag={pteamtag}
+              serviceId={serviceId}
+              references={references}
             />
           </ListItem>
         ))}
@@ -91,6 +96,7 @@ export function PTeamTaggedTopics(props) {
 PTeamTaggedTopics.propTypes = {
   pteamId: PropTypes.string.isRequired,
   tagId: PropTypes.string.isRequired,
+  serviceId: PropTypes.string.isRequired,
   isSolved: PropTypes.bool.isRequired,
-  pteamtag: PropTypes.object.isRequired,
+  references: PropTypes.array.isRequired,
 };

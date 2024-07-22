@@ -1,22 +1,28 @@
 from datetime import datetime
+from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import insert
 from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.main import app
+from app.models import (
+    ExploitationEnum,
+    SafetyImpactEnum,
+)
 from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
     ACTION3,
     ATEAM1,
-    GROUP1,
     MISPTAG1,
     MISPTAG2,
     MISPTAG3,
     PTEAM1,
+    PTEAM2,
     TAG1,
     TAG2,
     TAG3,
@@ -33,20 +39,18 @@ from app.tests.medium.utils import (
     accept_watching_request,
     assert_200,
     assert_204,
-    create_actionlog,
     create_ateam,
     create_misp_tag,
     create_pteam,
     create_tag,
     create_topic,
-    create_topicstatus,
     create_user,
     create_watching_request,
+    file_upload_headers,
     headers,
     random_string,
     search_topics,
     update_topic,
-    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -71,6 +75,9 @@ def test_create_topic():
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in topic1.misp_tags]
     assert ACTION1["action"] in [a.action for a in topic1.actions]
     assert ACTION2["action"] in [a.action for a in topic1.actions]
+    assert topic1.safety_impact == TOPIC1["safety_impact"]
+    assert topic1.exploitation == TOPIC1["exploitation"]
+    assert topic1.automatable == TOPIC1["automatable"]
 
 
 def test_create_topic__with_new_tags():
@@ -159,6 +166,52 @@ def test_create_wrong_threat_level_topic():
         create_topic(USER1, _topic)
 
 
+def test_it_should_return_422_when_use_try_to_create_wrong_safety_impact_topic():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    _topic["safety_impact"] = "test"
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.status_code == 422
+
+
+def test_it_should_return_422_when_use_try_to_create_wrong_exploitation_topic():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    _topic["exploitation"] = "test"
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.status_code == 422
+
+
+def test_default_value_is_set_when_ssvc_related_value_is_empty_in_creation():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    del _topic["safety_impact"]
+    del _topic["exploitation"]
+    del _topic["automatable"]
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.status_code == 200
+
+    responsed_topic = schemas.TopicCreateResponse(**response.json())
+    assert responsed_topic.safety_impact == SafetyImpactEnum.CATASTROPHIC
+    assert responsed_topic.exploitation == ExploitationEnum.ACTIVE
+    assert responsed_topic.automatable is True
+
+
 def test_create_too_long_action():
     create_user(USER1)
     _action = ACTION1.copy()
@@ -188,6 +241,9 @@ def test_get_topic():
     assert responsed_topic.updated_at == topic1.updated_at
     assert TOPIC1["tags"][0] in [t.tag_name for t in responsed_topic.tags]
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in responsed_topic.misp_tags]
+    assert responsed_topic.safety_impact == TOPIC1["safety_impact"]
+    assert responsed_topic.exploitation == TOPIC1["exploitation"]
+    assert responsed_topic.automatable == TOPIC1["automatable"]
     # actions are removed from TopicResponse.
     # use 'GET /topics/{tid}/actions/pteam/{pid}' to get actions.
 
@@ -228,6 +284,9 @@ def test_update_topic():
         "threat_impact": 2,
         "tags": [tag1.tag_name],
         "misp_tags": ["tlp:white"],
+        "safety_impact": "hazardous",
+        "exploitation": "poc",
+        "automatable": False,
     }
     response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
 
@@ -245,6 +304,12 @@ def test_update_topic():
     assert TOPIC1["misp_tags"][0] not in [
         misp_tag.tag_name for misp_tag in responsed_topic.misp_tags
     ]
+    assert responsed_topic.safety_impact == request["safety_impact"]
+    assert responsed_topic.safety_impact != TOPIC1["safety_impact"]
+    assert responsed_topic.exploitation == request["exploitation"]
+    assert responsed_topic.exploitation != TOPIC1["exploitation"]
+    assert responsed_topic.automatable == request["automatable"]
+    assert responsed_topic.automatable != TOPIC1["automatable"]
 
 
 def test_update_topic__with_new_tags():
@@ -282,11 +347,11 @@ def test_update_topic__with_new_tags():
         )
 
 
-def test_update_topic_not_creater(testdb: Session):
+def test_update_topic_not_creater():
     create_user(USER1)
     create_user(USER2)
     create_topic(USER1, TOPIC1, actions=[ACTION1])
-    request = {"disabled": True}
+    request = {}
 
     with pytest.raises(HTTPError, match=r"403: Forbidden: you are not topic creator"):
         assert_204(
@@ -294,40 +359,73 @@ def test_update_topic_not_creater(testdb: Session):
         )
 
 
-def test_disable_topic():
-    create_user(USER1)
-    create_topic(USER1, TOPIC1, actions=[ACTION1])
-    request = {"disabled": True}
-    response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
-
-    assert response.status_code == 200
-    responsed_topic = schemas.TopicResponse(**response.json())
-    assert responsed_topic.disabled is True
-
-
 def test_delete_topic(testdb: Session):
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
-    etags = upload_pteam_tags(
-        USER1, pteam1.pteam_id, GROUP1, {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
-    )
     topic1 = create_topic(USER1, TOPIC1, actions=[ACTION1])
-    create_actionlog(
-        USER1,
-        topic1.actions[0].action_id,
-        topic1.topic_id,
-        user1.user_id,
-        pteam1.pteam_id,
-        datetime.now(),
+    now = datetime.now()
+
+    # create service
+    service_name = "service_x"
+    service_id = str(uuid4())
+    testdb.execute(
+        insert(models.Service).values(
+            service_id=service_id, pteam_id=pteam1.pteam_id, service_name=service_name
+        )
     )
 
-    json_data = {
-        "topic_status": "acknowledged",
-        "note": "acknowledged",
-        "assignees": [str(user1.user_id)],
-        "scheduled_at": str(datetime(2023, 6, 1)),
+    tag_id = "da54de37-308e-40a7-a5ba-aab594796992"
+    # create tag
+    testdb.execute(
+        insert(models.Tag).values(
+            tag_id=tag_id,
+            tag_name="",
+        )
+    )
+
+    # create dependency
+    dependency1_id = "dependency1_id"
+    testdb.execute(
+        insert(models.Dependency).values(
+            dependency_id=dependency1_id,
+            service_id=service_id,
+            tag_id=tag_id,
+            version="",
+            target="1",
+            dependency_mission_impact=models.MissionImpactEnum.MISSION_FAILURE,
+        )
+    )
+    # create threat
+    threat1_id = "threat1_id"
+    testdb.execute(
+        insert(models.Threat).values(
+            threat_id=threat1_id,
+            dependency_id=dependency1_id,
+            topic_id=topic1.topic_id,
+        )
+    )
+    # create ticket
+    ticket1_id = "3d362f0f-e08e-45a3-9ae9-5a46936372c0"
+    testdb.execute(
+        insert(models.Ticket).values(
+            ticket_id=ticket1_id,
+            threat_id=threat1_id,
+            created_at="2033-06-26 15:00:00",
+            updated_at="2033-06-26 15:00:00",
+            ssvc_deployer_priority=models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE,
+        )
+    )
+
+    request = {
+        "action_id": str(topic1.actions[0].action_id),
+        "topic_id": str(topic1.topic_id),
+        "user_id": str(user1.user_id),
+        "pteam_id": str(pteam1.pteam_id),
+        "service_id": str(service_id),
+        "executed_at": str(now) if now else None,
     }
-    create_topicstatus(USER1, pteam1.pteam_id, topic1.topic_id, etags[0].tag_id, json_data)
+
+    client.post("/actionlogs", headers=headers(USER1), json=request)
 
     # delete topic
     response = client.delete(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1))
@@ -349,12 +447,6 @@ def test_delete_topic(testdb: Session):
     assert (
         not testdb.query(models.TopicMispTag)
         .filter(models.TopicMispTag.topic_id == str(topic1.topic_id))
-        .all()
-    )
-
-    assert (
-        not testdb.query(models.PTeamTopicTagStatus)
-        .filter(models.PTeamTopicTagStatus.topic_id == str(topic1.topic_id))
         .all()
     )
 
@@ -713,6 +805,9 @@ class TestSearchTopics:
                 "abstract": "",
                 "threat_impact": 1,
                 **params,
+                "safety_impact": "catastrophic",
+                "exploitation": "active",
+                "automatable": True,
             }
             return create_topic(user, minimal_topic)
 
@@ -726,6 +821,7 @@ class TestSearchTopics:
             assert {topic.topic_id for topic in result.topics} == {
                 topics_dict[idx].topic_id for idx in expected
             }
+            return result
 
     class TestSearchByThreatImpact(Common_):
         @pytest.fixture(scope="function", autouse=True)
@@ -1085,6 +1181,223 @@ class TestSearchTopics:
             if fixed_before:
                 search_params["updated_before"] = fixed_before
             self.try_search_topics(USER1, self.topics, search_params, expected)
+
+    class TestSearchByPteamId(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_pteam_id(self):
+            self.pteam1 = create_pteam(USER1, PTEAM1)
+
+            params = {"service": "threatconnectome", "force_mode": True}
+            sbom_file = (
+                Path(__file__).resolve().parent.parent.parent
+                / "requests"
+                / "upload_test"
+                / "tag.jsonl"
+            )
+            with open(sbom_file, "rb") as tags:
+                response_upload_sbom_file = client.post(
+                    f"/pteams/{self.pteam1.pteam_id}/upload_tags_file",
+                    headers=file_upload_headers(USER1),
+                    params=params,
+                    files={"file": tags},
+                )
+            assert response_upload_sbom_file.status_code == 200
+            self.result = response_upload_sbom_file.json()
+
+            # topic registration without pteam
+            topic1 = self.create_minimal_topic(USER1, {"tags": [TAG1]})
+            topic2 = self.create_minimal_topic(USER1, {"tags": [TAG2]})
+            topic3 = self.create_minimal_topic(USER1, {"tags": [TAG3]})
+            self.topics_not_pteam = {
+                1: topic1,
+                2: topic2,
+                3: topic3,
+            }
+
+        @pytest.mark.parametrize(
+            "topic_registration_num, expected",
+            [
+                (1, {1}),
+                (2, {1, 2}),
+            ],
+        )
+        def test_search_by_pteam_id(self, topic_registration_num, expected):
+            # topic registration with pteam
+            topics = {}
+            for idx in range(topic_registration_num):
+                params = {"tags": [self.result[idx]["tag_name"]]}
+                topics[idx + 1] = self.create_minimal_topic(USER1, params)
+
+            search_params = {
+                "pteam_id": self.pteam1.pteam_id,
+            }
+
+            result_search_topics = self.try_search_topics(USER1, topics, search_params, expected)
+            assert result_search_topics.num_topics == len(expected)
+
+        @pytest.mark.parametrize(
+            "topic_registration_num, expected",
+            [
+                (1, {1, 2, 3, 4}),
+                (2, {1, 2, 3, 4, 5}),
+            ],
+        )
+        def test_search_by_not_pteam_id(self, topic_registration_num, expected):
+            # topic registration with pteam
+            topics = {}
+            for idx in range(topic_registration_num):
+                params = {"tags": [self.result[idx]["tag_name"]]}
+                topics[idx + 4] = self.create_minimal_topic(USER1, params)
+
+            topics = {**self.topics_not_pteam, **topics}
+
+            # not pteam_id
+            search_params = {}
+
+            result_search_topics = self.try_search_topics(USER1, topics, search_params, expected)
+            assert result_search_topics.num_topics == len(expected)
+
+    class TestSearchByAteamId(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_ateam_id(self):
+            pteam1 = create_pteam(USER1, PTEAM1)
+            pteam2 = create_pteam(USER1, PTEAM2)
+            self.ateam1 = create_ateam(USER1, ATEAM1)
+            watching_request1 = create_watching_request(USER1, self.ateam1.ateam_id)
+            watching_request2 = create_watching_request(USER1, self.ateam1.ateam_id)
+            request1 = {
+                "request_id": str(watching_request1.request_id),
+                "pteam_id": str(pteam1.pteam_id),
+            }
+            request2 = {
+                "request_id": str(watching_request2.request_id),
+                "pteam_id": str(pteam2.pteam_id),
+            }
+
+            data1 = client.post(
+                "/ateams/apply_watching_request", headers=headers(USER1), json=request1
+            )
+            data2 = client.post(
+                "/ateams/apply_watching_request", headers=headers(USER1), json=request2
+            )
+            assert data1.status_code == 200
+            assert data2.status_code == 200
+
+            # register tag with pteam1
+            params = {"service": "threatconnectome", "force_mode": True}
+            sbom_file = (
+                Path(__file__).resolve().parent.parent.parent
+                / "requests"
+                / "upload_test"
+                / "tag.jsonl"
+            )
+            with open(sbom_file, "rb") as tags:
+                response_upload_sbom_file_pteam1 = client.post(
+                    f"/pteams/{pteam1.pteam_id}/upload_tags_file",
+                    headers=file_upload_headers(USER1),
+                    params=params,
+                    files={"file": tags},
+                )
+            assert response_upload_sbom_file_pteam1.status_code == 200
+            self.result_pteam1 = response_upload_sbom_file_pteam1.json()
+
+            # register tag with pteam2
+            params = {"service": "threatconnectome", "force_mode": True}
+            sbom_file = (
+                Path(__file__).resolve().parent.parent.parent
+                / "requests"
+                / "upload_test"
+                / "tag2.jsonl"
+            )
+            with open(sbom_file, "rb") as tags:
+                response_upload_sbom_file_pteam2 = client.post(
+                    f"/pteams/{pteam2.pteam_id}/upload_tags_file",
+                    headers=file_upload_headers(USER1),
+                    params=params,
+                    files={"file": tags},
+                )
+            assert response_upload_sbom_file_pteam2.status_code == 200
+            self.result_pteam2 = response_upload_sbom_file_pteam2.json()
+
+            # topic registration without pteam
+            topic1 = self.create_minimal_topic(USER1, {"tags": [TAG1]})
+            topic2 = self.create_minimal_topic(USER1, {"tags": [TAG2]})
+            topic3 = self.create_minimal_topic(USER1, {"tags": [TAG3]})
+            self.topics_not_pteam = {
+                1: topic1,
+                2: topic2,
+                3: topic3,
+            }
+
+        @pytest.mark.parametrize(
+            "topic_registration_num, expected",
+            [
+                (1, {1}),
+                (2, {1, 2}),
+            ],
+        )
+        def test_search_by_ateam_id_with_one_pteam(self, topic_registration_num, expected):
+            # topic registration with pteam
+            topics = {}
+            for idx in range(topic_registration_num):
+                params = {"tags": [self.result_pteam1[idx]["tag_name"]]}
+                topics[idx + 1] = self.create_minimal_topic(USER1, params)
+
+            search_params = {
+                "ateam_id": self.ateam1.ateam_id,
+            }
+
+            result_search_topics = self.try_search_topics(USER1, topics, search_params, expected)
+            assert result_search_topics.num_topics == len(expected)
+
+        @pytest.mark.parametrize(
+            "topic_registration_num, expected",
+            [
+                (1, {1, 2}),
+                (2, {1, 2, 3, 4}),
+            ],
+        )
+        def test_search_by_ateam_id_with_two_pteam(self, topic_registration_num, expected):
+            # topic registration with pteam
+            topics_list = []
+            for idx in range(topic_registration_num):
+                params_pteam1 = {"tags": [self.result_pteam1[idx]["tag_name"]]}
+                params_pteam2 = {"tags": [self.result_pteam2[idx]["tag_name"]]}
+                topics_list.append(self.create_minimal_topic(USER1, params_pteam1))
+                topics_list.append(self.create_minimal_topic(USER1, params_pteam2))
+
+            topics_dict = {}
+            for idx in range(len(topics_list)):
+                topics_dict[idx + 1] = topics_list[idx]
+
+            search_params = {
+                "ateam_id": self.ateam1.ateam_id,
+            }
+
+            result_search_topics = self.try_search_topics(
+                USER1, topics_dict, search_params, expected
+            )
+            assert result_search_topics.num_topics == len(expected)
+
+        @pytest.mark.parametrize(
+            "topic_registration_num, expected",
+            [
+                (1, {1, 2, 3, 4}),
+                (2, {1, 2, 3, 4, 5}),
+            ],
+        )
+        def test_search_by_not_ateam_id(self, topic_registration_num, expected):
+            # topic registration with pteam
+            topics = {}
+            for idx in range(topic_registration_num):
+                params = {"tags": [self.result_pteam1[idx]["tag_name"]]}
+                topics[idx + 4] = self.create_minimal_topic(USER1, params)
+
+            topics = {**self.topics_not_pteam, **topics}
+            search_params = {}
+
+            result_search_topics = self.try_search_topics(USER1, topics, search_params, expected)
+            assert result_search_topics.num_topics == len(expected)
 
     class ExtCommonForResultSlice_(Common_):
         @staticmethod

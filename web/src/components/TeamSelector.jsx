@@ -3,7 +3,7 @@ import { Box, Button, Divider, ListSubheader, Menu, MenuItem } from "@mui/materi
 import { grey } from "@mui/material/colors";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 
 import { clearATeam } from "../slices/ateam";
 import { clearPTeam } from "../slices/pteam";
@@ -39,6 +39,7 @@ export function TeamSelector() {
   const [currentTeamName, setCurrentTeamName] = useState(null);
   const [openPTeamCreationModal, setOpenPTeamCreationModal] = useState(false);
   const [openATeamCreationModal, setOpenATeamCreationModal] = useState(false);
+  const { tagId } = useParams();
 
   useEffect(() => {
     if (!user) return;
@@ -57,13 +58,20 @@ export function TeamSelector() {
   const switchToPTeam = (teamId) => {
     handleClose();
     setCurrentTeamName(user.pteams?.find((x) => x.pteam_id === teamId)?.pteam_name);
+
     if (teamMode === "pteam") {
-      const newParams =
-        location.pathname === "/pteam/watching_request"
-          ? new URLSearchParams(location.search) // keep request token
-          : new URLSearchParams(); // clear params
-      newParams.set("pteamId", teamId);
-      navigate(location.pathname + "?" + newParams.toString());
+      if (tagId) {
+        const newParams = new URLSearchParams();
+        newParams.set("pteamId", teamId);
+        navigate("/?" + newParams);
+      } else {
+        const newParams =
+          location.pathname === "/pteam/watching_request"
+            ? new URLSearchParams(location.search) // keep request token
+            : new URLSearchParams(); // clear params
+        newParams.set("pteamId", teamId);
+        navigate(location.pathname + "?" + newParams.toString());
+      }
     } else {
       dispatch(setTeamMode("pteam"));
       dispatch(clearATeam());

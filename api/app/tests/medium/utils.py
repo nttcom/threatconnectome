@@ -3,6 +3,9 @@ import random
 import string
 import tempfile
 from datetime import datetime
+from hashlib import sha256
+from io import DEFAULT_BUFFER_SIZE, BytesIO
+from pathlib import Path
 from typing import Sequence
 from uuid import UUID
 
@@ -113,11 +116,11 @@ def accept_pteam_invitation(user: dict, invitation_id: UUID) -> schemas.PTeamInf
 def upload_pteam_tags(
     user: dict,
     pteam_id: UUID | str,
-    group: str,
+    service: str,
     ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
     force_mode: bool = True,
 ) -> list[schemas.ExtTagResponse]:
-    params = {"group": group, "force_mode": str(force_mode)}
+    params = {"service": service, "force_mode": str(force_mode)}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
         for tag_name, etags in ext_tags.items():
             assert all(len(etag) == 2 and None not in etag for etag in etags)  # check test code
@@ -141,9 +144,9 @@ def get_pteam_tags(user: dict, pteam_id: str) -> list[schemas.ExtTagResponse]:
     return [schemas.ExtTagResponse(**item) for item in data]
 
 
-def get_pteam_groups(user: dict, pteam_id: str) -> schemas.PTeamGroupResponse:
-    data = assert_200(client.get(f"/pteams/{pteam_id}/groups", headers=headers(user)))
-    return schemas.PTeamGroupResponse(**data)
+def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceResponse]:
+    data = assert_200(client.get(f"/pteams/{pteam_id}/services", headers=headers(user)))
+    return [schemas.PTeamServiceResponse(**item) for item in data]
 
 
 def create_ateam(user: dict, ateam: dict) -> schemas.ATeamInfo:
@@ -264,6 +267,32 @@ def create_topic(
     return schemas.TopicCreateResponse(**response.json())
 
 
+def create_topic_with_versioned_actions(
+    user: dict,
+    topic: dict,
+    actions_tagnames: list[list[str]],
+) -> schemas.TopicCreateResponse:
+    def _gen_action(tag_names: list[str]) -> dict:
+        return {
+            "action": f"action for {','.join(tag_names)}",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": tag_names,
+                "vulnerable_versions": {tag_name: ["< 99.9.9"] for tag_name in tag_names},
+            },
+        }
+
+    return create_topic(
+        user,
+        {
+            **topic,
+            "tags": actions_tagnames[0],
+            "actions": [_gen_action(tag_names) for tag_names in actions_tagnames],
+        },
+    )
+
+
 def update_topic(
     user: dict,
     topic: schemas.TopicEntry,
@@ -300,13 +329,15 @@ def create_actionlog(
     topic_id: UUID,
     user_id: UUID,
     pteam_id: UUID,
+    service_id: UUID,
     executed_at: datetime | None,
-) -> schemas.ActionLogResponse:
+) -> list[schemas.ActionLogResponse]:
     request = {
         "action_id": str(action_id),
         "topic_id": str(topic_id),
         "user_id": str(user_id),
         "pteam_id": str(pteam_id),
+        "service_id": str(service_id),
         "executed_at": str(executed_at) if executed_at else None,
     }
 
@@ -314,7 +345,7 @@ def create_actionlog(
 
     if response.status_code != 200:
         raise HTTPError(response)
-    return schemas.ActionLogResponse(**response.json())
+    return [schemas.ActionLogResponse(**row) for row in response.json()]
 
 
 def compare_tags(
@@ -336,7 +367,7 @@ def compare_tags(
 
 def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     def _to_tuple_set(refs):
-        return {(ref.get("group"), ref.get("target"), ref.get("version")) for ref in refs}
+        return {(ref.get("service"), ref.get("target"), ref.get("version")) for ref in refs}
 
     if not isinstance(refs1, list) or not isinstance(refs2, list):
         return False
@@ -345,17 +376,15 @@ def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     return _to_tuple_set(refs1) == _to_tuple_set(refs2)
 
 
-def create_topicstatus(
-    user: dict, pteam_id: UUID, topic_id: UUID, tag_id: UUID, json: dict
+def create_service_topicstatus(
+    user: dict, pteam_id: UUID, service_id: UUID, topic_id: UUID, tag_id: UUID, json: dict
 ) -> schemas.TopicStatusResponse:
-    response = assert_200(
-        client.post(
-            f"/pteams/{pteam_id}/topicstatus/{topic_id}/{tag_id}",
-            headers=headers(user),
-            json=json,
-        )
+    response = client.post(
+        f"/pteams/{pteam_id}/services/{service_id}/topicstatus/{topic_id}/{tag_id}",
+        headers=headers(user),
+        json=json,
     )
-    return schemas.TopicStatusResponse(**response)
+    return schemas.TopicStatusResponse(**response.json())
 
 
 def common_put(user: dict, api_path: str, **kwargs) -> dict:
@@ -363,3 +392,11 @@ def common_put(user: dict, api_path: str, **kwargs) -> dict:
     if response.status_code != 200:
         raise HTTPError(response)
     return response.json()
+
+
+def calc_file_sha256(file_path: str | Path) -> str:
+    with open(file_path, "rb") as fin:
+        file_sha256 = sha256()
+        while data := fin.read(DEFAULT_BUFFER_SIZE):
+            file_sha256.update(BytesIO(data).getbuffer())
+        return file_sha256.hexdigest()

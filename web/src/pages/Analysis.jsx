@@ -303,9 +303,9 @@ export function Analysis() {
           <Divider />
           {/* Topics */}
           <List sx={{ padding: 0 }} id="topicListElem">
-            {pageInfo.topic_statuses.map((topic, index) => (
+            {pageInfo.topic_statuses.map((topic) => (
               <ListItem
-                key={index}
+                key={topic.topic_id}
                 dense
                 disablePadding
                 divider={true}
@@ -325,7 +325,7 @@ export function Analysis() {
                           <Box display="flex" sx={{ color: grey[600] }}>
                             <GroupsIcon />
                             <Typography ml={1} fontWeight={900}>
-                              {topic.pteams.length}
+                              {topic.pteam_statuses.length /* FIXME: should count services? */}
                             </Typography>
                           </Box>
                         </Box>
@@ -333,12 +333,15 @@ export function Analysis() {
                           <Typography mt={1} mr={1} variant="caption">
                             {`Updated ${calcTimestampDiff(topic.updated_at)}`}
                           </Typography>
-                          {topic.pteams[0].statuses[0].topic_status === "scheduled" && (
+                          {topic.pteam_statuses[0]?.service_statuses[0]?.topic_status ===
+                            "scheduled" && (
                             <Box display="flex" alignItems="flex-end">
                               <CalendarMonthIcon fontSize="small" sx={{ color: grey[700] }} />
                               <Typography ml={0.5} variant="caption">
                                 {format(
-                                  utcStringToLocalDate(topic.pteams[0].statuses[0].scheduled_at),
+                                  utcStringToLocalDate(
+                                    topic.pteam_statuses[0].service_statuses[0].scheduled_at,
+                                  ),
                                   "yyyy/MM/dd",
                                 )}
                               </Typography>

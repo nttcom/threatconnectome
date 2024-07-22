@@ -5,7 +5,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import models
-from app.constants import SYSTEM_UUID
 
 ### Account
 
@@ -22,12 +21,6 @@ def get_account_by_id(db: Session, user_id: UUID | str) -> models.Account | None
 
 def get_account_by_email(db: Session, email: str) -> models.Account | None:
     return db.scalars(select(models.Account).where(models.Account.email == email)).first()
-
-
-def get_system_account(db: Session) -> models.Account:
-    return db.scalars(
-        select(models.Account).where(models.Account.user_id == str(SYSTEM_UUID))
-    ).one()
 
 
 def create_account(db: Session, account: models.Account) -> None:
@@ -297,51 +290,6 @@ def create_pteam_authority(db: Session, auth: models.PTeamAuthority) -> None:
     db.flush()
 
 
-### PTeamTopicTagStatus
-
-
-def create_pteam_topic_tag_status(db: Session, status: models.PTeamTopicTagStatus) -> None:
-    db.add(status)
-    db.flush()
-
-
-def get_pteam_topic_tag_status_by_id(
-    db: Session,
-    status_id: UUID | str,
-) -> models.PTeamTopicTagStatus | None:
-    return db.scalars(
-        select(models.PTeamTopicTagStatus).where(
-            models.PTeamTopicTagStatus.status_id == str(status_id)
-        )
-    ).one_or_none()
-
-
-### CurrentPTeamTopicTagStatus
-
-
-def create_current_pteam_topic_tag_status(
-    db: Session,
-    status: models.CurrentPTeamTopicTagStatus,
-) -> None:
-    db.add(status)
-    db.flush()
-
-
-def get_current_pteam_topic_tag_status(
-    db: Session,
-    pteam_id: UUID | str,
-    topic_id: UUID | str,
-    tag_id: UUID | str,  # should be PTeamTag, not TopicTag
-) -> models.CurrentPTeamTopicTagStatus | None:
-    return db.scalars(
-        select(models.CurrentPTeamTopicTagStatus).where(
-            models.CurrentPTeamTopicTagStatus.pteam_id == str(pteam_id),
-            models.CurrentPTeamTopicTagStatus.topic_id == str(topic_id),
-            models.CurrentPTeamTopicTagStatus.tag_id == str(tag_id),
-        )
-    ).one_or_none()
-
-
 ### Artifact Tag
 
 
@@ -414,4 +362,137 @@ def create_topic(db: Session, topic: models.Topic):
 
 def delete_topic(db: Session, topic: models.Topic):
     db.delete(topic)
+    db.flush()
+
+
+### Threat
+
+
+def create_threat(db: Session, threat: models.Threat) -> None:
+    db.add(threat)
+    db.flush()
+
+
+def delete_threat(db: Session, threat: models.Threat) -> None:
+    db.delete(threat)
+    db.flush()
+
+
+def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None:
+    return db.scalars(
+        select(models.Threat).where(models.Threat.threat_id == str(threat_id))
+    ).one_or_none()
+
+
+def search_threats(
+    db: Session,
+    dependency_id: UUID | str | None,
+    topic_id: UUID | str | None,
+) -> Sequence[models.Threat]:
+    select_stmt = select(models.Threat)
+    if dependency_id:
+        select_stmt = select_stmt.where(models.Threat.dependency_id == str(dependency_id))
+    if topic_id:
+        select_stmt = select_stmt.where(models.Threat.topic_id == str(topic_id))
+
+    return db.scalars(select_stmt).all()
+
+
+### Ticket
+
+
+def create_ticket(db: Session, ticket: models.Ticket) -> None:
+    db.add(ticket)
+    db.flush()
+
+
+def delete_ticket(db: Session, ticket: models.Ticket) -> None:
+    db.delete(ticket)
+    db.flush()
+
+
+def get_ticket_by_id(db: Session, ticket_id: UUID | str) -> models.Ticket | None:
+    return db.scalars(
+        select(models.Ticket).where(models.Ticket.ticket_id == str(ticket_id))
+    ).one_or_none()
+
+
+### TicketStatus
+
+
+def create_ticket_status(
+    db: Session,
+    status: models.TicketStatus,
+) -> None:
+    db.add(status)
+    db.flush()
+
+
+### CurrentTicketStatus
+
+
+def create_current_ticket_status(
+    db: Session,
+    status: models.CurrentTicketStatus,
+) -> None:
+    db.add(status)
+    db.flush()
+
+
+def get_current_ticket_status(
+    db: Session,
+    ticket_id: UUID | str,
+) -> models.CurrentTicketStatus | None:
+    return db.scalars(
+        select(models.CurrentTicketStatus).where(
+            models.CurrentTicketStatus.ticket_id == str(ticket_id),
+        )
+    ).one_or_none()
+
+
+### Service
+
+
+def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | None:
+    return db.scalars(
+        select(models.Service).where(models.Service.service_id == str(service_id))
+    ).one_or_none()
+
+
+### Dependency
+
+
+def get_dependency_from_service_id_and_tag_id(
+    db: Session, service_id: str, tag_id: str
+) -> models.Dependency | None:
+    return db.scalars(
+        select(models.Dependency).where(
+            models.Dependency.service_id == str(service_id),
+            models.Dependency.tag_id == str(tag_id),
+        )
+    ).first()  # FIXME: WORKAROUND to avoid getting multiple row
+
+
+def get_dependency_by_id(db: Session, dependency_id: UUID | str) -> models.Dependency | None:
+    return db.scalars(
+        select(models.Dependency).where(models.Dependency.dependency_id == str(dependency_id))
+    ).one_or_none()
+
+
+### Alert
+
+
+def get_alert_by_id(db: Session, alert_id: UUID | str) -> models.Alert | None:
+    return db.scalars(
+        select(models.Alert).where(models.Alert.alert_id == str(alert_id))
+    ).one_or_none()
+
+
+def create_alert(db: Session, alert: models.Alert) -> None:
+    db.add(alert)
+    db.flush()
+
+
+def delete_alert(db: Session, alert: models.Alert) -> None:
+    db.delete(alert)
     db.flush()

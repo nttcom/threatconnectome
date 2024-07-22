@@ -1,19 +1,17 @@
 import os
 from typing import Sequence
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import urlencode, urljoin
 
 from fastapi import HTTPException, status
 from slack_sdk.errors import SlackApiError
 from slack_sdk.webhook import WebhookClient
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import and_, func
-
-from app import models
 
 WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
-TAG_URL = urljoin(WEBUI_URL, "/tags/")
-ANALYSIS_URL = urljoin(WEBUI_URL, "/analysis")
+WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
+# CAUTION: do *NOT* urljoin subpath which starts with "/"
+STATUS_URL = urljoin(WEBUI_URL, "")
+TAG_URL = urljoin(WEBUI_URL, "tags/")
+ANALYSIS_URL = urljoin(WEBUI_URL, "analysis/")
 THREAT_IMPACT_LABEL = {
     1: ":red_circle: Immediate",
     2: ":large_orange_circle: Off-cycle",
@@ -59,11 +57,11 @@ def create_slack_pteam_alert_blocks_for_new_topic(
     topic_id: str,
     title: str,
     threat_impact: int,
-    groups: list[str],
+    services: list[str],
 ):
     blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
     blocks = _block_header(text=pteam_name)
-    groups_name = ",".join(groups)
+    services_name = ",".join(services)
     blocks.extend(
         [
             {
@@ -74,7 +72,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
                         [
                             f"*<{TAG_URL}{str(tag_id)}?pteamId={pteam_id}|{tag_name}>*",
                             f"*{title}*",
-                            f"*{groups_name}*",
+                            f"*{services_name}*",
                             THREAT_IMPACT_LABEL[threat_impact],
                         ]
                     ),
@@ -90,95 +88,56 @@ def create_slack_pteam_alert_blocks_for_new_topic(
     return blocks
 
 
-def _create_blocks_for_ateam(
-    ateam_id: str,
-    ateam_name: str,
-    title: str,
-    action: str,
-    action_type: str,
+def create_slack_blocks_to_notify_sbom_upload_succeeded(
+    pteam_id: str,
+    pteam_name: str,
+    service_id: str,
+    service_name: str,
+    uploaded_filename: str | None,
 ):
-    blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
-    blocks = _block_header(text=ateam_name)
+    blocks: list[dict[str, str | dict | list]] = _block_header(
+        text=f":white_check_mark: SBOM uploaded as a service: {service_name}"
+    )
+    params = {"pteamId": pteam_id, "serviceId": service_id}
+    encoded_params = urlencode(params)
+    service_url = urljoin(WEBUI_URL, f"?{encoded_params}")
     blocks.extend(
         [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "\n".join(
-                        [
-                            f"*<{ANALYSIS_URL}?ateamId={ateam_id}&search={quote_plus(title)}|{title}>*",
-                        ]
-                    ),
+                    "text": f"*<{service_url}|{service_name} ({pteam_name})>*",
                 },
-            },
-            {
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": "\n".join(
-                            [
-                                "Linked action has been created.",
-                                f"*action: {action}*",
-                                f"*type: {action_type}*",
-                            ]
-                        ),
-                    },
-                ],
-            },
-            {"type": "divider"},
+            }
         ]
     )
+    if uploaded_filename:
+        blocks.extend(
+            [
+                {
+                    "type": "context",
+                    "elements": [{"type": "plain_text", "text": uploaded_filename}],
+                },
+            ]
+        )
     return blocks
 
 
-def _pick_alert_targets_for_ateam(db: Session, action: models.TopicAction) -> list[dict]:
-    if action.topic.disabled:
-        return []
-    select_stmt = (
-        select(
-            models.ATeamPTeam.ateam_id,
-            models.ATeam.ateam_name,
-            models.ATeamSlack.webhook_url,
-        )
-        .join(
-            models.CurrentPTeamTopicTagStatus,
-            and_(
-                # Note: disabled pteam has no records on CurrentPTeamTopicTagStatus
-                models.CurrentPTeamTopicTagStatus.topic_id == action.topic_id,
-                models.CurrentPTeamTopicTagStatus.pteam_id == models.ATeamPTeam.pteam_id,
-            ),
-        )
-        .join(
-            models.ATeam,
-            and_(
-                # If you wanna filter notifications by topic threat impact, add conditions here.
-                models.ATeam.ateam_id
-                == models.ATeamPTeam.ateam_id,
-            ),
-        )
-        .join(
-            models.ATeamSlack,
-            and_(
-                models.ATeamSlack.enable.is_(True),
-                func.length(models.ATeamSlack.webhook_url) > 0,
-                models.ATeamSlack.ateam_id == models.ATeamPTeam.ateam_id,
-            ),
-        )
-        .distinct()
+def create_slack_blocks_to_notify_sbom_upload_failed(
+    service_name: str,
+    uploaded_filename: str | None,
+):
+    blocks: list[dict[str, str | dict | list]] = _block_header(
+        text=f":exclamation: Failed uploading SBOM as a service: {service_name}"
     )
-    return [row._asdict() for row in db.execute(select_stmt).all()]
-
-
-def alert_to_ateam(db: Session, action: models.TopicAction):
-    alert_targets = _pick_alert_targets_for_ateam(db, action)
-    for target in alert_targets:
-        webhook_url = target.pop("webhook_url")
-        blocks = _create_blocks_for_ateam(
-            **target,
-            title=action.topic.title,
-            action=action.action,
-            action_type=action.action_type,
+    if uploaded_filename:
+        blocks.extend(
+            [
+                {
+                    "type": "context",
+                    "elements": [{"type": "plain_text", "text": uploaded_filename}],
+                },
+            ]
         )
-        send_slack(webhook_url, blocks)
+    return blocks

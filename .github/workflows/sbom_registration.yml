@@ -60,15 +60,15 @@ jobs:
         run: echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#"${GITHUB_REPOSITORY_OWNER}"/}" >> "$GITHUB_ENV"
       - name: Set tag group name
         run: |
-          if [ -n "${{ secrets.TAG_GROUP_NAME }}" ]; then
-            echo "TAG_GROUP_NAME=${{ secrets.TAG_GROUP_NAME }}" >> "$GITHUB_ENV"
+          if [ -n "${{ secrets.SERVICE_NAME }}" ]; then
+            echo "SERVICE_NAME=${{ secrets.SERVICE_NAME }}" >> "$GITHUB_ENV"
           else
-            echo "TAG_GROUP_NAME=${{ env.REPOSITORY_NAME }}" >> "$GITHUB_ENV"
+            echo "SERVICE_NAME=${{ env.REPOSITORY_NAME }}" >> "$GITHUB_ENV"
           fi
       - name: Call upload_pteam_tags_file API to register tags
         run: |
           curl -fX 'POST' \
-            '${{ secrets.TC_API_URL }}/pteams/${{ secrets.THREATCONNECTOME_TEAM_ID }}/upload_tags_file?group=${{ env.TAG_GROUP_NAME }}&force_mode=True' \
+            '${{ secrets.TC_API_URL }}/pteams/${{ secrets.THREATCONNECTOME_TEAM_ID }}/upload_tags_file?service=${{ env.SERVICE_NAME }}&force_mode=True' \
             -H 'Authorization: Bearer ${{ env.AUTHTOKEN }}' \
             -H 'accept: application/json' \
             -H 'Content-Type: multipart/form-data' \

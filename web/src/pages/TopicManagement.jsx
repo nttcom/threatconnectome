@@ -8,7 +8,9 @@ import {
   Box,
   Button,
   Chip,
+  FormControlLabel,
   Select,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -22,10 +24,13 @@ import {
   Paper,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
+import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { useLocation } from "react-router-dom";
 
 import { FormattedDateTimeWithTooltip } from "../components/FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "../components/TopicSearchModal";
@@ -39,9 +44,12 @@ function TopicManagementTableRow(props) {
   const { topicId } = props;
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const topics = useSelector((state) => state.topics.topics);
   const actions = useSelector((state) => state.topics.actions);
+  const params = new URLSearchParams(location.search);
 
   useEffect(() => {
     if (topics?.[topicId] === undefined) dispatch(getTopic(topicId));
@@ -70,11 +78,12 @@ function TopicManagementTableRow(props) {
         "&:hover": { bgcolor: grey[100] },
         borderLeft: `solid 5px ${difficultyColors[difficulty[topic.threat_impact - 1]]}`,
       }}
+      onClick={() => navigate(`/topics/${topic.topic_id}?${params.toString()}`)}
     >
       <TableCell>
         <FormattedDateTimeWithTooltip utcString={topic.updated_at} />
       </TableCell>
-      <TableCell>
+      <TableCell align="center">
         {actionList?.length > 0 ? (
           <CheckCircleOutlineIcon color="success" />
         ) : (
@@ -107,6 +116,8 @@ export function TopicManagement() {
   const perPageItems = [10, 20, 50, 100];
 
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
+  const [checkedPteam, setCheckedPteam] = useState(true);
+  const [checkedAteam, setCheckedAteam] = useState(false);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
@@ -117,13 +128,36 @@ export function TopicManagement() {
 
   const pageMax = Math.ceil((searchResult?.num_topics ?? 0) / perPage);
 
+  const params = new URLSearchParams(useLocation().search);
+  const pteamId = params.get("pteamId");
+  const ateamId = params.get("ateamId");
+
   const evalSearchTopics = async () => {
-    const queryParams = {
-      offset: perPage * (page - 1),
-      limit: perPage,
-      sort_key: "updated_at_desc",
-      ...searchConditions,
-    };
+    let queryParams = {};
+    if (checkedPteam === true && pteamId) {
+      queryParams = {
+        offset: perPage * (page - 1),
+        limit: perPage,
+        sort_key: "updated_at_desc",
+        pteam_id: pteamId,
+        ...searchConditions,
+      };
+    } else if (checkedAteam === true && ateamId) {
+      queryParams = {
+        offset: perPage * (page - 1),
+        limit: perPage,
+        sort_key: "updated_at_desc",
+        ateam_id: ateamId,
+        ...searchConditions,
+      };
+    } else {
+      queryParams = {
+        offset: perPage * (page - 1),
+        limit: perPage,
+        sort_key: "updated_at_desc",
+        ...searchConditions,
+      };
+    }
     await searchTopics(queryParams)
       .then((response) => setSearchResult(response.data))
       .catch((error) =>
@@ -137,7 +171,7 @@ export function TopicManagement() {
     if (!user?.user_id) return;
     evalSearchTopics();
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [page, perPage, searchConditions, user]);
+  }, [page, perPage, searchConditions, user, checkedPteam, checkedAteam, pteamId, ateamId]);
 
   const paramsToSearchQuery = (params) => {
     const delimiter = "|";
@@ -159,6 +193,14 @@ export function TopicManagement() {
 
   const handleCancel = () => {
     setSearchMenuOpen(false);
+  };
+
+  const handleChangeSwitch = () => {
+    if (pteamId) {
+      setCheckedPteam(!checkedPteam);
+    } else if (ateamId) {
+      setCheckedAteam(!checkedAteam);
+    }
   };
 
   const filterRow = (
@@ -190,6 +232,39 @@ export function TopicManagement() {
     </Box>
   );
 
+  const Android12Switch = styled(Switch)(({ theme }) => ({
+    padding: 8,
+    "& .MuiSwitch-track": {
+      borderRadius: 22 / 2,
+      "&:before, &:after": {
+        content: "''",
+        position: "absolute",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: 16,
+        height: 16,
+      },
+      "&:before": {
+        backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
+          theme.palette.getContrastText(theme.palette.primary.main),
+        )}" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>")`,
+        left: 12,
+      },
+      "&:after": {
+        backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
+          theme.palette.getContrastText(theme.palette.primary.main),
+        )}" d="M19,13H5V11H19V13Z" /></svg>")`,
+        right: 12,
+      },
+    },
+    "& .MuiSwitch-thumb": {
+      boxShadow: "none",
+      width: 16,
+      height: 16,
+      margin: 2,
+    },
+  }));
+
   const topics = searchResult?.topics;
 
   if (!topics) return <>Loading...</>;
@@ -197,7 +272,20 @@ export function TopicManagement() {
   return (
     <>
       <Box display="flex" mt={2}>
-        {filterRow}
+        {pteamId ? (
+          <FormControlLabel
+            sx={{ ml: -1 }}
+            control={<Android12Switch checked={checkedPteam} onChange={handleChangeSwitch} />}
+            label="Related topics"
+          />
+        ) : (
+          <FormControlLabel
+            sx={{ ml: -1 }}
+            control={<Android12Switch checked={checkedAteam} onChange={handleChangeSwitch} />}
+            label="Related topics"
+          />
+        )}
+
         <Box flexGrow={1} />
         <Box mb={0.5}>
           <Button
@@ -221,17 +309,19 @@ export function TopicManagement() {
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
-              <TableCell style={{ width: "10%" }} display="flex">
+              <TableCell style={{ width: "20%" }} display="flex">
                 <Box display="flex" flexDirection="row">
-                  <Typography variant="body2">Last Update</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 900 }}>
+                    Last Update
+                  </Typography>
                   <Tooltip title="Timezone is local time">
                     <InfoIcon sx={{ color: grey[600], ml: 1 }} />
                   </Tooltip>
                 </Box>
               </TableCell>
-              <TableCell style={{ width: "3%" }}>Action</TableCell>
-              <TableCell style={{ width: "25%" }}>Title</TableCell>
-              <TableCell style={{ width: "35%" }}>MISP Tag</TableCell>
+              <TableCell style={{ width: "3%", fontWeight: 900 }}>Action</TableCell>
+              <TableCell style={{ width: "25%", fontWeight: 900 }}>Title</TableCell>
+              <TableCell style={{ width: "35%", fontWeight: 900 }}>MISP Tag</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

@@ -102,7 +102,7 @@ Get your own `team_id` by following steps and copy it.
 
 - 4.3 Scroll up to ⇨ `POST /pteams/{team_id}/upload_tags_file  Upload Pteam Tags File`
 
-Click `Try it out`, paste `team_id`, specifiy `group` (repository or product), set `force_mode` if needed, click on "choose file" button and choose the `tags.jsonl` generated in procedure 3, then execute.
+Click `Try it out`, paste `team_id`, specifiy `service` (repository or product), set `force_mode` if needed, click on "choose file" button and choose the `tags.jsonl` generated in procedure 3, then execute.
 ![Append team tags](images/append_team_tags.png)
 ![Paste team_id and upload tags.jsonl](images/registered_tags.png)
 
@@ -142,7 +142,7 @@ sudo docker compose -f docker-compose-local.yml up -d --build
   Get your own `team_id` and copy it.
 
 - 4.3 Scroll up to ⇨ `POST /pteams/{team_id}/upload_tags_file  Upload Pteam Tags File`
-  Click `Try it out`, paste `team_id`, specifiy `group` (repository or product), set `force_mode` if needed, click on "choose file" button and choose the `tags.jsonl` generated in procedure 2, then execute.
+  Click `Try it out`, paste `team_id`, specifiy `service` (repository or product), set `force_mode` if needed, click on "choose file" button and choose the `tags.jsonl` generated in procedure 2, then execute.
 
 5. Log in to Web UI
 

@@ -12,26 +12,32 @@ import {
 import { useSnackbar } from "notistack";
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useLocation, useNavigate } from "react-router";
 
 import styles from "../cssModule/dialog.module.css";
-import { getPTeamGroups, getPTeamTagsSummary } from "../slices/pteam";
+import { getPTeam, invalidateServiceId } from "../slices/pteam";
 import { deletePTeamService } from "../utils/api.js";
 
 export function PTeamServiceDelete() {
   const [checked, setChecked] = useState([]);
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const services = useSelector((state) => state.pteam.groups);
+  const services = useSelector((state) => state.pteam.pteam.services);
 
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const handleToggle = (value) => () => {
-    const currentIndex = checked.indexOf(value);
+  const params = new URLSearchParams(location.search);
+  const serviceId = params.get("serviceId");
+
+  const handleToggle = (service) => () => {
+    const currentIndex = checked.indexOf(service);
     const newChecked = [...checked];
 
     if (currentIndex === -1) {
-      newChecked.push(value);
+      newChecked.push(service);
     } else {
       newChecked.splice(currentIndex, 1);
     }
@@ -40,9 +46,9 @@ export function PTeamServiceDelete() {
   };
 
   const handleDeleteService = async () => {
-    function onSuccess(success) {
-      dispatch(getPTeamTagsSummary(pteamId));
-      dispatch(getPTeamGroups(pteamId));
+    function onSuccess(success, deletingServiceId) {
+      dispatch(getPTeam(pteamId)); // sync pteam.services
+      dispatch(invalidateServiceId(deletingServiceId));
       enqueueSnackbar("Remove service succeeded", { variant: "success" });
     }
     function onError(error) {
@@ -52,10 +58,14 @@ export function PTeamServiceDelete() {
     }
     checked.map(
       async (service) =>
-        await deletePTeamService(pteamId, service)
-          .then((success) => onSuccess(success))
+        await deletePTeamService(pteamId, service.service_name)
+          .then((success) => onSuccess(success, service.service_id))
           .catch((error) => onError(error)),
     );
+    if (checked.find((service) => service.service_id === serviceId)) {
+      params.delete("serviceId"); // current selected serviceId is obsoleted!
+      navigate(location.pathname + "?" + params.toString()); // entrust to default behavior
+    }
   };
 
   return (
@@ -69,9 +79,9 @@ export function PTeamServiceDelete() {
         }}
       >
         {services.map((service) => {
-          const labelId = `checkbox-list-label-${service}`;
+          const labelId = `checkbox-list-label-${service.service_name}`;
           return (
-            <ListItem key={service} disablePadding>
+            <ListItem key={service.service_id} disablePadding>
               <ListItemButton role={undefined} onClick={handleToggle(service)} dense>
                 <ListItemIcon>
                   <Checkbox
@@ -82,7 +92,7 @@ export function PTeamServiceDelete() {
                     inputProps={{ "aria-labelledby": labelId }}
                   />
                 </ListItemIcon>
-                <ListItemText id={labelId} primary={service} />
+                <ListItemText id={labelId} primary={service.service_name} />
               </ListItemButton>
             </ListItem>
           );
