@@ -544,7 +544,7 @@ export function TopicCard(props) {
                       <ThreatImpactStatusChip threatImpact={1} />
                     </Box>
                     <Box>
-                      django-webdjango-webdjango-webdjango-webdjango-webdjango-webdjango-web
+                      /usr/local/lib/python3.7/site-packages/sqlparse-0.4.4.dist-info/METADATA
                     </Box>
                   </Box>
                 </AccordionSummary>
