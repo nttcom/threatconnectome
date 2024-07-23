@@ -19,7 +19,7 @@ import { utcStringToLocalDate } from "../utils/func";
 import { ATeamRequestModal } from "./ATeamRequestModal";
 import { ATeamWatchingMenu } from "./ATeamWatchingMenu";
 
-const { differenceInDays } = require("date-fns");
+const { differenceInDays, max } = require("date-fns");
 
 function getWarningCell(message, teamName) {
   return (
@@ -45,7 +45,7 @@ function TeamNameCell(props) {
     return getWarningCell("SBOM is not uploaded yet.", teamName);
   }
 
-  const latestUploaded = new Date(Math.max(...validUploadedDates));
+  const latestUploaded = max(...validUploadedDates);
   const passDays = differenceInDays(new Date(), latestUploaded);
   if (passDays >= 14) {
     return getWarningCell("SBOM updated " + passDays + " days ago.", teamName);
