@@ -113,17 +113,6 @@ export function PTeamStatusCard(props) {
   const { onHandleClick, tag, isActiveAllServicesMode, serviceIds } = props;
   const pteam = useSelector((state) => state.pteam.pteam);
 
-  const services = [];
-  if (isActiveAllServicesMode) {
-    for (const service of pteam.services) {
-      for (const serviceId of serviceIds) {
-        if (service.service_id === serviceId) {
-          services.push(service);
-        }
-      }
-    }
-  }
-
   return (
     <TableRow
       onClick={onHandleClick}
@@ -144,7 +133,10 @@ export function PTeamStatusCard(props) {
           {tag.tag_name}
         </Typography>
         {isActiveAllServicesMode &&
-          services.map((service) => <Chip key={service.service_id} label={service.service_name} />)}
+          pteam.services
+            .filter((service) => serviceIds.includes(service.service_id))
+            .sort((a, b) => a.service_name.localeCompare(b.service_name))
+            .map((service) => <Chip key={service.service_id} label={service.service_name} />)}
       </TableCell>
       <TableCell align="right" style={{ width: "30%" }}>
         <Box display="flex" flexDirection="column">
