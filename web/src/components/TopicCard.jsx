@@ -47,6 +47,7 @@ import { AssigneesSelector } from "./AssigneesSelector";
 import { PTeamEditAction } from "./PTeamEditAction";
 import { ReportCompletedActions } from "./ReportCompletedActions";
 import { ThreatImpactChip } from "./ThreatImpactChip";
+import { ThreatImpactStatusChip } from "./ThreatImpactStatusChip";
 import { TopicModal } from "./TopicModal";
 import { TopicStatusSelector } from "./TopicStatusSelector";
 import { UUIDTypography } from "./UUIDTypography";
@@ -525,17 +526,28 @@ export function TopicCard(props) {
           />
         </Box>
         <Divider flexItem={true} orientation="vertical" />
-        <Box display="flex" flexDirection="column" sx={{ maxHeight: "300px" }}>
+        <Box display="flex" flexDirection="column" sx={{ height: "350px" }}>
           <Box
             display="flex"
             flexDirection="column"
             justifyContent="baseline"
-            // mb={8}
-            sx={{ minWidth: "320px", maxWidth: "480px", overflowY: "scroll" }}
+            sx={{ width: "320px", overflowY: "scroll" }}
           >
-            {[...Array(10)].map((i) => (
-              <Accordion key={i} disableGutters>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>django-web</AccordionSummary>
+            {[...Array(4)].map((_, i) => (
+              <Accordion key={i} disableGutters defaultExpanded={i === 0 ? true : false}>
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  sx={{ backgroundColor: grey[50] }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Box sx={{ mr: 1 }}>
+                      <ThreatImpactStatusChip threatImpact={1} />
+                    </Box>
+                    <Box>
+                      django-webdjango-webdjango-webdjango-webdjango-webdjango-webdjango-web
+                    </Box>
+                  </Box>
+                </AccordionSummary>
                 <AccordionDetails>
                   <Box display="flex" alignItems="baseline" p={2}>
                     <Typography mr={2} variant="subtitle2" sx={{ fontWeight: 900 }}>
