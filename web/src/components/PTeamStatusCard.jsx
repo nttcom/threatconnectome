@@ -1,8 +1,9 @@
-import { Box, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
+import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React from "react";
+import { useSelector } from "react-redux";
 
 import { topicStatusProps } from "../utils/const";
 import { calcTimestampDiff } from "../utils/func";
@@ -109,7 +110,8 @@ StatusRatioGraph.propTypes = {
 };
 
 export function PTeamStatusCard(props) {
-  const { onHandleClick, tag } = props;
+  const { onHandleClick, tag, isActiveAllServicesMode, serviceIds } = props;
+  const pteam = useSelector((state) => state.pteam.pteam);
 
   return (
     <TableRow
@@ -130,6 +132,11 @@ export function PTeamStatusCard(props) {
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
           {tag.tag_name}
         </Typography>
+        {isActiveAllServicesMode &&
+          pteam.services
+            .filter((service) => serviceIds.includes(service.service_id))
+            .sort((a, b) => a.service_name.localeCompare(b.service_name))
+            .map((service) => <Chip key={service.service_id} label={service.service_name} />)}
       </TableCell>
       <TableCell align="right" style={{ width: "30%" }}>
         <Box display="flex" flexDirection="column">
@@ -156,4 +163,6 @@ PTeamStatusCard.propTypes = {
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
   }).isRequired,
+  isActiveAllServicesMode: PropTypes.bool,
+  serviceIds: PropTypes.array.isRequired,
 };

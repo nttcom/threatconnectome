@@ -68,6 +68,8 @@ export const removeWatcherATeam = async (pteamId, ateamId) =>
 export const getPTeamServiceTagsSummary = async (pteamId, serviceId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/summary`);
 
+export const getPTeamTagsSummary = async (pteamId) => axios.get(`/pteams/${pteamId}/tags/summary`);
+
 export const uploadSBOMFile = async (pteamId, service, file, forceMode = true) => {
   const formData = new FormData();
   formData.append("file", file);
