@@ -420,7 +420,6 @@ export function Status() {
                       key={tag.tag_id}
                       // onHandleClick={() => handleNavigateTag(tag.tag_id)}
                       tag={tag}
-                      isActiveAllServicesMode={isActiveAllServicesMode}
                       serviceIds={tag.service_ids}
                     />
                   ))}
