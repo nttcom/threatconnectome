@@ -28,7 +28,6 @@ export const TopicTicketAccordion = (props) => {
     members,
     threat_impact,
   } = props;
-  console.log(typeof systemAccount);
   return (
     <Box>
       <Box sx={{ width: "320px", height: "350px", overflowY: "scroll" }}>
@@ -110,9 +109,9 @@ TopicTicketAccordion.propTypes = {
   pteamId: PropTypes.string.isRequired,
   topicId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
-  ttStatus: PropTypes.any.isRequired,
-  dateTimeFormat: PropTypes.any.isRequired,
-  systemAccount: PropTypes.any.isRequired,
-  members: PropTypes.any.isRequired,
-  threat_impact: PropTypes.any.isRequired,
+  ttStatus: PropTypes.object.isRequired,
+  dateTimeFormat: PropTypes.func.isRequired,
+  systemAccount: PropTypes.object.isRequired,
+  members: PropTypes.object.isRequired,
+  threat_impact: PropTypes.number.isRequired,
 };
