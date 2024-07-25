@@ -2766,3 +2766,68 @@ class TestGetPTeamTagsSummary:
                 },
             }
         ]
+
+    def test_returns_summary_even_if_multiple_services_are_registrered(self):
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        tag1 = create_tag(USER1, TAG1)
+        # add test_service to pteam1
+        test_service1 = "test_service1"
+        test_service2 = "test_service2"
+        test_target = "test target"
+        vulnerable_version = "1.2.0"  # vulnerable
+        refs0 = {tag1.tag_name: [(test_target, vulnerable_version)]}
+        upload_pteam_tags(USER1, pteam1.pteam_id, test_service1, refs0)
+        upload_pteam_tags(USER1, pteam1.pteam_id, test_service2, refs0)
+        service_id1 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service1)
+        service_id2 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service2)
+
+        # add actionable topic1
+        action1 = {
+            "action": "action one",
+            "action_type": "elimination",
+            "recommended": True,
+            "ext": {
+                "tags": [tag1.tag_name],
+                "vulnerable_versions": {
+                    tag1.tag_name: ["< 1.2.3"],  # > vulnerable_version
+                },
+            },
+        }
+        topic1 = create_topic(USER1, TOPIC1, actions=[action1])  # Tag1
+
+        # get summary
+        url = f"/pteams/{pteam1.pteam_id}/tags/summary"
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        response = client.get(url, headers=_headers)
+        assert response.status_code == 200
+
+        summary = response.json()
+        assert summary["threat_impact_count"] == {
+            **{"1": 0, "2": 0, "3": 0, "4": 0},
+            str(topic1.threat_impact): 1,
+        }
+
+        assert len(summary["tags"][0]["service_ids"]) == 2
+        assert set(summary["tags"][0]["service_ids"]) == {service_id1, service_id2}
+
+        del summary["tags"][0]["service_ids"]
+        assert summary["tags"] == [
+            {
+                "tag_id": str(tag1.tag_id),
+                "tag_name": tag1.tag_name,
+                "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
+                "parent_name": tag1.parent_name if tag1.parent_name else None,
+                "threat_impact": topic1.threat_impact,
+                "updated_at": datetime.isoformat(topic1.updated_at),
+                "status_count": {
+                    **{status_type.value: 0 for status_type in list(models.TopicStatusType)},
+                    models.TopicStatusType.alerted.value: 2,  # default status is ALERTED
+                },
+            }
+        ]
