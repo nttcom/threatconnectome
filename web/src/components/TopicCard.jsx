@@ -526,6 +526,7 @@ export function TopicCard(props) {
           dateTimeFormat={dateTimeFormat}
           systemAccount={systemAccount}
           members={members}
+          threat_impact={topic.threat_impact}
         />
       </Box>
     </Card>
