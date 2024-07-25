@@ -533,7 +533,7 @@ export function TopicCard(props) {
             justifyContent="baseline"
             sx={{ width: "320px", overflowY: "scroll" }}
           >
-            {[...Array(4)].map((_, i) => (
+            {[...Array(3)].map((_, i) => (
               <Accordion key={i} disableGutters defaultExpanded={i === 0 ? true : false}>
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
@@ -549,12 +549,12 @@ export function TopicCard(props) {
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Box display="flex" alignItems="baseline" p={2}>
+                  {/* <Box display="flex" alignItems="baseline" p={2}>
                     <Typography mr={2} variant="subtitle2" sx={{ fontWeight: 900 }}>
                       Threat impact
                     </Typography>
                     <ThreatImpactChip threatImpact={topic.threat_impact ?? 4} />
-                  </Box>
+                  </Box> */}
                   <CardActions sx={{ display: "flex", alignItems: "center", p: 2 }}>
                     <Typography
                       mr={1}
