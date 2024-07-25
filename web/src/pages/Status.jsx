@@ -293,7 +293,9 @@ export function Status() {
 
   const handleAllServices = () => {
     setIsActiveUploadMode(0);
-
+    if (params.get("impactFilter")) {
+      params.delete("impactFilter");
+    }
     if (isActiveAllServicesMode === true) {
       params.delete("allservices");
       navigate(location.pathname + "?" + params.toString());
