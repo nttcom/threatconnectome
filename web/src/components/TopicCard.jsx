@@ -1,6 +1,5 @@
 import {
   ArrowDropDown as ArrowDropDownIcon,
-  CalendarMonth as CalendarMonthIcon,
   Edit as EditIcon,
   Update as UpdateIcon,
 } from "@mui/icons-material";
