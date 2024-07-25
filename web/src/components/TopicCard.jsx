@@ -264,7 +264,7 @@ export function TopicCard(props) {
         />
       </Box>
       <Divider />
-      <Box display="flex">
+      <Box display="flex" sx={{ height: "350px" }}>
         <Box flexGrow={1} display="flex" flexDirection="column" justifyContent="space-between">
           <CardContent>
             {ttStatus.topic_status !== "completed" ? (

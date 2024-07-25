@@ -29,8 +29,8 @@ export const TopicTicketAccordion = (props) => {
     threat_impact,
   } = props;
   return (
-    <Box>
-      <Box sx={{ width: "320px", height: "350px", overflowY: "scroll" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+      <Box sx={{ width: "320px", overflowY: "auto" }}>
         <Accordion
           disableGutters
           defaultExpanded
