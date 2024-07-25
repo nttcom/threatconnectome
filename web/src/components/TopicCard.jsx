@@ -4,7 +4,6 @@ import {
   Edit as EditIcon,
   Update as UpdateIcon,
 } from "@mui/icons-material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Alert,
   Box,
@@ -26,9 +25,6 @@ import {
   Typography,
   Paper,
   Popper,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
@@ -43,16 +39,11 @@ import { dateTimeFormat } from "../utils/func";
 import { isComparable, parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import { ActionItem } from "./ActionItem";
-import { AssigneesSelector } from "./AssigneesSelector";
 import { PTeamEditAction } from "./PTeamEditAction";
 import { ReportCompletedActions } from "./ReportCompletedActions";
-import { ThreatImpactChip } from "./ThreatImpactChip";
-import { ThreatImpactStatusChip } from "./ThreatImpactStatusChip";
 import { TopicModal } from "./TopicModal";
-import { TopicStatusSelector } from "./TopicStatusSelector";
 import { TopicTicketAccordion } from "./TopicTicketAccordion";
 import { UUIDTypography } from "./UUIDTypography";
-import { WarningTooltip } from "./WarningTooltip";
 
 export function TopicCard(props) {
   const { pteamId, topicId, currentTagId, serviceId, references } = props;

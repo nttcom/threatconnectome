@@ -168,7 +168,14 @@ export function TopicStatusSelector(props) {
         >
           {topicStatusProps[currentStatus].chipLabelCapitalized}
         </Button>
-        <Popper open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal>
+        <Popper
+          open={open}
+          anchorEl={anchorRef.current}
+          role={undefined}
+          transition
+          disablePortal
+          sx={{ zIndex: 1 }}
+        >
           {({ TransitionProps, placement }) => (
             <Grow
               {...TransitionProps}
