@@ -133,7 +133,7 @@ export function Status() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const searchMenuOpen = Boolean(anchorEl);
 
-  const [isActiveAllServicesMode, setIsActiveAllServicesMode] = useState(false);
+  const isActiveAllServicesMode = params.get("allservices") === "on" ? true : false;
   const [isActiveUploadMode, setIsActiveUploadMode] = useState(0);
 
   const [pTeamServicesListModalOpen, setPTeamServicesListModalOpen] = useState(false);
@@ -308,6 +308,27 @@ export function Status() {
 
   const handleNavigateTag = (tagId) => navigateArtifactPage(tagId);
 
+  const handleAllServices = () => {
+    setIsActiveUploadMode(0);
+    if (params.get("impactFilter")) {
+      params.delete("impactFilter");
+    }
+    if (params.get("page")) {
+      params.delete("page");
+    }
+    if (params.get("perPage")) {
+      params.delete("perPage");
+    }
+
+    if (isActiveAllServicesMode) {
+      params.delete("allservices");
+      navigate(location.pathname + "?" + params.toString());
+    } else {
+      params.set("allservices", "on");
+      navigate(location.pathname + "?" + params.toString());
+    }
+  };
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -391,13 +412,7 @@ export function Status() {
         <DeleteServiceIcon />
         <FormControlLabel
           control={
-            <Android12Switch
-              checked={isActiveAllServicesMode}
-              onChange={() => {
-                setIsActiveAllServicesMode(!isActiveAllServicesMode);
-                setIsActiveUploadMode(0);
-              }}
-            />
+            <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />
           }
           label="All Services"
         />
