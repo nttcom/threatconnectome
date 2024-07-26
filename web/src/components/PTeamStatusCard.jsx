@@ -110,7 +110,7 @@ StatusRatioGraph.propTypes = {
 };
 
 export function PTeamStatusCard(props) {
-  const { onHandleClick, tag, isActiveAllServicesMode, serviceIds } = props;
+  const { onHandleClick, tag, serviceIds } = props;
   const pteam = useSelector((state) => state.pteam.pteam);
 
   return (
@@ -132,7 +132,7 @@ export function PTeamStatusCard(props) {
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
           {tag.tag_name}
         </Typography>
-        {isActiveAllServicesMode &&
+        {serviceIds &&
           pteam.services
             .filter((service) => serviceIds.includes(service.service_id))
             .sort((a, b) => a.service_name.localeCompare(b.service_name))
@@ -163,6 +163,5 @@ PTeamStatusCard.propTypes = {
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
   }).isRequired,
-  isActiveAllServicesMode: PropTypes.bool,
   serviceIds: PropTypes.array.isRequired,
 };
