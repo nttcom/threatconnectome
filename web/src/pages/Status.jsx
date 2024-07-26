@@ -120,7 +120,6 @@ export function Status() {
 
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
-  const allServices = params.get("allservices");
 
   const user = useSelector((state) => state.user.user);
   const pteam = useSelector((state) => state.pteam.pteam);
@@ -133,9 +132,7 @@ export function Status() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const searchMenuOpen = Boolean(anchorEl);
 
-  const [isActiveAllServicesMode, setIsActiveAllServicesMode] = useState(
-    allServices === "on" ? true : false,
-  );
+  const isActiveAllServicesMode = params.get("allservices") === "on" ? true : false;
   const [isActiveUploadMode, setIsActiveUploadMode] = useState(0);
 
   useEffect(() => {
@@ -296,14 +293,19 @@ export function Status() {
     if (params.get("impactFilter")) {
       params.delete("impactFilter");
     }
-    if (isActiveAllServicesMode === true) {
+    if (params.get("page")) {
+      params.delete("page");
+    }
+    if (params.get("perPage")) {
+      params.delete("perPage");
+    }
+
+    if (isActiveAllServicesMode) {
       params.delete("allservices");
       navigate(location.pathname + "?" + params.toString());
-      setIsActiveAllServicesMode(!isActiveAllServicesMode);
     } else {
       params.set("allservices", "on");
       navigate(location.pathname + "?" + params.toString());
-      setIsActiveAllServicesMode(!isActiveAllServicesMode);
     }
   };
 
