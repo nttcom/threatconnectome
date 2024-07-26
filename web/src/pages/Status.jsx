@@ -290,7 +290,7 @@ export function Status() {
   };
 
   function navigateArtifactPage(tagId) {
-    for (let key of ["impactFilter", "word", "perPage", "page"]) {
+    for (let key of ["impactFilter", "word", "perPage", "page", "allservices"]) {
       params.delete(key);
     }
     navigate(`/tags/${tagId}?${params.toString()}`);

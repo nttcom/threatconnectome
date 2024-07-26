@@ -38,7 +38,6 @@ export function PTeamServicesListModal(props) {
     return;
   }
 
-  console.log("testes tagId:" + tagId);
   const targetServices = pteam.services
     .filter((service) => serviceIds.includes(service.service_id))
     .sort((a, b) => a.service_name.localeCompare(b.service_name));
@@ -74,7 +73,7 @@ export function PTeamServicesListModal(props) {
   );
 
   const handleNavigateTag = (serviceId) => {
-    for (let key of ["tagId", "impactFilter", "word", "perPage", "page"]) {
+    for (let key of ["tagId", "impactFilter", "word", "perPage", "page", "allservices"]) {
       params.delete(key);
     }
     params.set("serviceId", serviceId);
