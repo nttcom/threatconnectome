@@ -35,7 +35,8 @@ export const TopicTicketAccordion = (props) => {
           disableGutters
           defaultExpanded
           sx={{
-            border: 1,
+            borderTop: 1,
+            borderBottom: 1,
             borderColor: "divider",
             "&:not(:last-child)": { borderBottom: 0 },
             "&::before": { display: "none" },
@@ -54,7 +55,7 @@ export const TopicTicketAccordion = (props) => {
               <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
                 Assignees
               </Typography>
-              <Box sx={{ maxWidth: 200 }}>
+              <Box sx={{ maxWidth: 150 }}>
                 <AssigneesSelector pteamId={pteamId} topicId={topicId} serviceId={serviceId} />
               </Box>
             </CardActions>
