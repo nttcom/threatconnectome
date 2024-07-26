@@ -34,6 +34,7 @@ import { Android12Switch } from "../components/Android12Switch";
 import { DeleteServiceIcon } from "../components/DeleteServiceIcon";
 import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
+import { PTeamServicesListModal } from "../components/PTeamServicesListModal";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
 import {
@@ -134,6 +135,13 @@ export function Status() {
 
   const isActiveAllServicesMode = params.get("allservices") === "on" ? true : false;
   const [isActiveUploadMode, setIsActiveUploadMode] = useState(0);
+
+  const [pTeamServicesListModalOpen, setPTeamServicesListModalOpen] = useState(false);
+  const [selectedTagInfo, setSelectedTagInfo] = useState({
+    tagId: "",
+    tagName: "",
+    serviceIds: [],
+  });
 
   useEffect(() => {
     if (!user.user_id) return; // wait login completed
@@ -281,12 +289,24 @@ export function Status() {
     navigate(location.pathname + "?" + params.toString());
   };
 
-  const handleNavigateTag = (tagId) => {
-    for (let key of ["impactFilter", "word", "perPage", "page"]) {
+  function navigateArtifactPage(tagId) {
+    for (let key of ["impactFilter", "word", "perPage", "page", "allservices"]) {
       params.delete(key);
     }
     navigate(`/tags/${tagId}?${params.toString()}`);
+  }
+
+  const handleNavigateServiceList = (tagId, tagName, serviceIds) => {
+    if (serviceIds.length === 1) {
+      params.set("serviceId", serviceIds[0]);
+      navigateArtifactPage(tagId);
+    } else {
+      setSelectedTagInfo({ tagId: tagId, tagName: tagName, serviceIds: serviceIds });
+      setPTeamServicesListModalOpen(true);
+    }
   };
+
+  const handleNavigateTag = (tagId) => navigateArtifactPage(tagId);
 
   const handleAllServices = () => {
     setIsActiveUploadMode(0);
@@ -433,7 +453,9 @@ export function Status() {
                   {targetTags.map((tag) => (
                     <PTeamStatusCard
                       key={tag.tag_id}
-                      // onHandleClick={() => handleNavigateTag(tag.tag_id)}
+                      onHandleClick={() =>
+                        handleNavigateServiceList(tag.tag_id, tag.tag_name, tag.service_ids)
+                      }
                       tag={tag}
                       serviceIds={tag.service_ids}
                     />
@@ -458,6 +480,13 @@ export function Status() {
       <CustomTabPanel value={isActiveUploadMode} index={1}>
         <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
       </CustomTabPanel>
+      <PTeamServicesListModal
+        onSetShow={setPTeamServicesListModalOpen}
+        show={pTeamServicesListModalOpen}
+        tagId={selectedTagInfo.tagId}
+        tagName={selectedTagInfo.tagName}
+        serviceIds={selectedTagInfo.serviceIds}
+      />
     </>
   );
 }
