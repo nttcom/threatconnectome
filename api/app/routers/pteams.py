@@ -17,8 +17,8 @@ from app.common import (
     count_service_solved_tickets_per_threat_impact,
     count_service_unsolved_tickets_per_threat_impact,
     count_threat_impact_from_summary,
+    create_topic_tag,
     fix_threats_for_dependency,
-    get_or_create_topic_tag,
     get_pteam_ext_tags,
     get_sorted_solved_ticket_ids_by_service_tag_and_status,
     get_sorted_topics,
@@ -827,7 +827,7 @@ def apply_service_tags(
             raise ValueError("Missing target and|or version")
         if not (_tag := persistence.get_tag_by_name(db, _tag_name)):
             if auto_create_tags:
-                _tag = get_or_create_topic_tag(db, _tag_name)  # FIXME!!
+                _tag = create_topic_tag(db, _tag_name)
             else:
                 missing_tags.add(_tag_name)
         if _tag:

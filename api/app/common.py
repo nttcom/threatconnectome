@@ -149,6 +149,10 @@ def get_or_create_topic_tag(db: Session, tag_name: str) -> models.Tag:
     if tag := persistence.get_tag_by_name(db, tag_name):  # already exists
         return tag
 
+    return create_topic_tag(db, tag_name)
+
+
+def create_topic_tag(db: Session, tag_name: str) -> models.Tag:
     tag = models.Tag(tag_name=tag_name, parent_id=None, parent_name=None)
     if not (parent_name := _pick_parent_tag(tag_name)):  # no parent: e.g. "tag1"
         persistence.create_tag(db, tag)
@@ -158,7 +162,9 @@ def get_or_create_topic_tag(db: Session, tag_name: str) -> models.Tag:
         tag.parent_id = tag.tag_id
         tag.parent_name = tag_name
     else:
-        parent = get_or_create_topic_tag(db, parent_name)
+        parent = persistence.get_tag_by_name(db, parent_name)
+        if not parent:
+            parent = create_topic_tag(db, parent_name)
         tag.parent_id = parent.tag_id
         tag.parent_name = parent.tag_name
 
