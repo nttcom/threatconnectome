@@ -30,6 +30,7 @@ import {
   getTopicStatus,
   getPTeamServiceTaggedTicketIds,
   getPTeamServiceTagsSummary,
+  getPTeamTagsSummary,
 } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
 import { topicStatusProps } from "../utils/const";
@@ -91,6 +92,7 @@ export function TopicStatusSelector(props) {
             }),
           );
           dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+          dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
         }
         if (ttStatus.topic_status === "completed") {
           dispatch(

@@ -31,6 +31,7 @@ import {
   getPTeamTopicActions,
   getPTeamServiceTaggedTicketIds,
   getPTeamServiceTagsSummary,
+  getPTeamTagsSummary,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import {
@@ -170,6 +171,7 @@ export function TopicModal(props) {
       dispatch(getTopic(topicId)),
       dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
       dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
+      dispatch(getPTeamTagsSummary({ pteamId: pteamId })),
     ]);
     // update only if needed
     if (pteamId && presetTagId) {
@@ -220,7 +222,13 @@ export function TopicModal(props) {
         topic_id: topicId,
       };
       if (a.action_id === null) {
-        createAction(actionRequest).catch((error) => operationError(error));
+        createAction(actionRequest)
+          .then(
+            (success) => dispatch(getPTeamTagsSummary({ pteamId: pteamId })),
+            dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
+          )
+          .catch((error) => operationError(error));
+        console.log("test1");
       } else if (presetActionIds.has(a.action_id)) {
         updateAction(a.action_id, actionRequest).catch((error) => operationError(error));
         presetActionIds.delete(a.action_id);
@@ -343,6 +351,7 @@ export function TopicModal(props) {
       );
     }
     dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+    dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
   };
 
   function ActionGeneratorModal() {

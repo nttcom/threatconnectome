@@ -22,6 +22,7 @@ import {
   getTopicStatus,
   getPTeamServiceTaggedTicketIds,
   getPTeamServiceTagsSummary,
+  getPTeamTagsSummary,
 } from "../slices/pteam";
 import { createActionLog, createTopicStatus } from "../utils/api";
 
@@ -79,6 +80,7 @@ export function ReportCompletedActions(props) {
         getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
       );
       dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+      dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
       enqueueSnackbar("Set topicstatus 'completed' succeeded", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`Operation failed: ${error}`, { variant: "error" });
