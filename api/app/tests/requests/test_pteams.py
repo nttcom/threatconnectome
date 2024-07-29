@@ -2837,6 +2837,43 @@ class TestGetPTeamTagsSummary:
 class TestTicketStatus:
 
     class Common:
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self):
+            self.user1 = create_user(USER1)
+            self.user2 = create_user(USER2)
+            self.pteam1 = create_pteam(USER1, PTEAM1)
+            invitation1 = invite_to_pteam(USER1, self.pteam1.pteam_id)
+            accept_pteam_invitation(USER2, invitation1.invitation_id)
+
+            self.tag1 = create_tag(USER1, TAG1)
+            # add test_service to pteam1
+            test_service = "test_service"
+            test_target = "test target"
+            test_version = "1.2.3"
+            refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
+            upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
+            self.service_id1 = self._get_service_id_by_service_name(
+                USER1, self.pteam1.pteam_id, test_service
+            )
+
+        @pytest.fixture(scope="function", autouse=False)
+        def actionable_topic1(self):
+            action1 = self._gen_action([self.tag1.tag_name])
+            self.topic1 = create_topic(
+                USER1, {**TOPIC1, "tags": [self.tag1.tag_name], "actions": [action1]}
+            )
+            tickets = self._get_tickets(
+                self.pteam1.pteam_id, self.service_id1, self.topic1.topic_id
+            )
+            self.ticket_id1 = tickets[0]["ticket_id"]
+
+        @pytest.fixture(scope="function", autouse=False)
+        def not_actionable_topic1(self):
+            self.topic1 = create_topic(
+                USER1, {**TOPIC1, "tags": [self.tag1.tag_name], "actions": []}
+            )
+            self.ticket_id1 = None
+
         @staticmethod
         def _get_access_token(user: dict) -> str:
             body = {
@@ -2906,24 +2943,11 @@ class TestTicketStatus:
 
     class TestGet(Common):
 
-        def test_returns_default_if_no_status_created(self, testdb):
-            create_user(USER1)
-            pteam1 = create_pteam(USER1, PTEAM1)
-            tag1 = create_tag(USER1, TAG1)
-            # add test_service to pteam1
-            test_service = "test_service"
-            test_target = "test target"
-            test_version = "1.2.3"
-            refs0 = {tag1.tag_name: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-            service_id1 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service)
-            # create actionable topic1
-            action1 = self._gen_action([tag1.tag_name])
-            topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.tag_name], "actions": [action1]})
-            tickets = self._get_tickets(pteam1.pteam_id, service_id1, topic1.topic_id)
-            ticket_id1 = tickets[0]["ticket_id"]
-
-            url = f"/pteams/{pteam1.pteam_id}/services/{service_id1}/ticketstatus/{ticket_id1}"
+        def test_returns_initial_status_if_no_status_created(self, actionable_topic1):
+            url = (
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+                f"/ticketstatus/{self.ticket_id1}"
+            )
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -2936,7 +2960,7 @@ class TestTicketStatus:
             data = response.json()
             expected_status = {
                 "status_id": None,
-                "ticket_id": ticket_id1,
+                "ticket_id": str(self.ticket_id1),
                 "topic_status": models.TopicStatusType.alerted.value,
                 "user_id": None,
                 "created_at": None,
@@ -2947,39 +2971,22 @@ class TestTicketStatus:
             }
             assert data == expected_status
 
-        def test_returns_current_status(self):
-            user1 = create_user(USER1)
-            user2 = create_user(USER2)
-            pteam1 = create_pteam(USER1, PTEAM1)
-            invitation1 = invite_to_pteam(USER1, pteam1.pteam_id)
-            accept_pteam_invitation(USER2, invitation1.invitation_id)
-            tag1 = create_tag(USER1, TAG1)
-            # add test_service to pteam1
-            test_service = "test_service"
-            test_target = "test target"
-            test_version = "1.2.3"
-            refs0 = {tag1.tag_name: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-            service_id1 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service)
-            # create actionable topic1
-            action1 = self._gen_action([tag1.tag_name])
-            topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.tag_name], "actions": [action1]})
-            tickets = self._get_tickets(pteam1.pteam_id, service_id1, topic1.topic_id)
-            ticket_id1 = tickets[0]["ticket_id"]
-
-            # set ticket status
+        def test_returns_current_status_if_status_created(self, actionable_topic1):
             status_request = {
                 "topic_status": models.TopicStatusType.scheduled.value,
-                "assignees": [str(user2.user_id)],
+                "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
                 "scheduled_at": "2345-06-07T08:09:10",
             }
             set_response = self._set_ticket_status(
-                pteam1.pteam_id, service_id1, ticket_id1, status_request
+                self.pteam1.pteam_id, self.service_id1, self.ticket_id1, status_request
             )
 
             # get ticket status
-            url = f"/pteams/{pteam1.pteam_id}/services/{service_id1}/ticketstatus/{ticket_id1}"
+            url = (
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+                f"/ticketstatus/{self.ticket_id1}"
+            )
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -2992,8 +2999,8 @@ class TestTicketStatus:
             data = response.json()
             expected_status = {
                 "status_id": set_response["status_id"],
-                "ticket_id": ticket_id1,
-                "user_id": str(user1.user_id),
+                "ticket_id": str(self.ticket_id1),
+                "user_id": str(self.user1.user_id),
                 "created_at": set_response["created_at"],
                 "action_logs": [],
                 **status_request,
@@ -3002,34 +3009,17 @@ class TestTicketStatus:
 
     class TestSet(Common):
 
-        def test_set_requested_status(self):
-            user1 = create_user(USER1)
-            user2 = create_user(USER2)
-            pteam1 = create_pteam(USER1, PTEAM1)
-            invitation1 = invite_to_pteam(USER1, pteam1.pteam_id)
-            accept_pteam_invitation(USER2, invitation1.invitation_id)
-            tag1 = create_tag(USER1, TAG1)
-            # add test_service to pteam1
-            test_service = "test_service"
-            test_target = "test target"
-            test_version = "1.2.3"
-            refs0 = {tag1.tag_name: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-            service_id1 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service)
-            # create actionable topic1
-            action1 = self._gen_action([tag1.tag_name])
-            topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.tag_name], "actions": [action1]})
-            tickets = self._get_tickets(pteam1.pteam_id, service_id1, topic1.topic_id)
-            ticket_id1 = tickets[0]["ticket_id"]
-
-            # set ticket status
+        def test_set_requested_status(self, actionable_topic1):
             status_request = {
                 "topic_status": models.TopicStatusType.scheduled.value,
-                "assignees": [str(user2.user_id)],
+                "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
                 "scheduled_at": "2345-06-07T08:09:10",
             }
-            url = f"/pteams/{pteam1.pteam_id}/services/{service_id1}/ticketstatus/{ticket_id1}"
+            url = (
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+                f"/ticketstatus/{self.ticket_id1}"
+            )
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -3045,8 +3035,8 @@ class TestTicketStatus:
                 assert data[key] is not None
                 del data[key]
             expected_status = {
-                "ticket_id": ticket_id1,
-                "user_id": str(user1.user_id),
+                "ticket_id": str(self.ticket_id1),
+                "user_id": str(self.user1.user_id),
                 "action_logs": [],
                 **status_request,
             }
@@ -3054,6 +3044,36 @@ class TestTicketStatus:
 
 
 class TestGetTickets:
+
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self):
+        self.user1 = create_user(USER1)
+        self.user2 = create_user(USER2)
+        self.pteam1 = create_pteam(USER1, PTEAM1)
+        invitation1 = invite_to_pteam(USER1, self.pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation1.invitation_id)
+
+        self.tag1 = create_tag(USER1, TAG1)
+        # add test_service to pteam1
+        test_service = "test_service"
+        test_target = "test target"
+        test_version = "1.2.3"
+        refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
+        upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
+        self.service_id1 = self._get_service_id_by_service_name(
+            USER1, self.pteam1.pteam_id, test_service
+        )
+
+    @pytest.fixture(scope="function", autouse=False)
+    def actionable_topic1(self):
+        action1 = self._gen_action([self.tag1.tag_name])
+        self.topic1 = create_topic(
+            USER1, {**TOPIC1, "tags": [self.tag1.tag_name], "actions": [action1]}
+        )
+
+    @pytest.fixture(scope="function", autouse=False)
+    def not_actionable_topic1(self):
+        self.topic1 = create_topic(USER1, {**TOPIC1, "tags": [self.tag1.tag_name], "actions": []})
 
     @staticmethod
     def _get_access_token(user: dict) -> str:
@@ -3100,21 +3120,11 @@ class TestGetTickets:
         }
         return client.post(url, headers=_headers, json=request).json()
 
-    def test_returns_empty_if_no_tickets(self):
-        create_user(USER1)
-        pteam1 = create_pteam(USER1, PTEAM1)
-        tag1 = create_tag(USER1, TAG1)
-        # add test_service to pteam1
-        test_service = "test_service"
-        test_target = "test target"
-        test_version = "1.2.3"
-        refs0 = {tag1.tag_name: [(test_target, test_version)]}
-        upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-        service_id1 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service)
-        # create *NOT* actionable topic1
-        topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.tag_name], "actions": []})
-
-        url = f"/pteams/{pteam1.pteam_id}/services/{service_id1}/topics/{topic1.topic_id}/tickets"
+    def test_returns_empty_if_no_tickets(self, not_actionable_topic1):
+        url = (
+            f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+            f"/topics/{self.topic1.topic_id}/tickets"
+        )
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -3125,21 +3135,9 @@ class TestGetTickets:
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_returns_ticket_with_default_status_if_no_status_created(self, testdb):
-        create_user(USER1)
-        pteam1 = create_pteam(USER1, PTEAM1)
-        tag1 = create_tag(USER1, TAG1)
-        # add test_service to pteam1
-        test_service = "test_service"
-        test_target = "test target"
-        test_version = "1.2.3"
-        refs0 = {tag1.tag_name: [(test_target, test_version)]}
-        upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-        service_id1 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service)
-        # create actionable topic1
-        action1 = self._gen_action([tag1.tag_name])
-        topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.tag_name], "actions": [action1]})
-
+    def test_returns_ticket_with_initial_status_if_no_status_created(
+        self, testdb, actionable_topic1
+    ):
         db_dependency1 = testdb.scalars(select(models.Dependency)).one()
         db_threat1 = testdb.scalars(select(models.Threat)).one()
         db_ticket1 = testdb.scalars(select(models.Ticket)).one()
@@ -3155,7 +3153,7 @@ class TestGetTickets:
             ),
             "threat": {
                 "threat_id": str(db_threat1.threat_id),
-                "topic_id": str(topic1.topic_id),
+                "topic_id": str(self.topic1.topic_id),
                 "dependency_id": str(db_dependency1.dependency_id),
             },
             "current_ticket_status": {
@@ -3171,7 +3169,10 @@ class TestGetTickets:
             },
         }
 
-        url = f"/pteams/{pteam1.pteam_id}/services/{service_id1}/topics/{topic1.topic_id}/tickets"
+        url = (
+            f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+            f"/topics/{self.topic1.topic_id}/tickets"
+        )
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -3186,36 +3187,19 @@ class TestGetTickets:
         ticket1 = data[0]
         assert ticket1 == expected_ticket_response1
 
-    def test_returns_ticket_with_current_status_if_status_created(self, testdb):
-        user1 = create_user(USER1)
-        user2 = create_user(USER2)
-        pteam1 = create_pteam(USER1, PTEAM1)
-        invitation1 = invite_to_pteam(USER1, pteam1.pteam_id)
-        accept_pteam_invitation(USER2, invitation1.invitation_id)
-        tag1 = create_tag(USER1, TAG1)
-        # add test_service to pteam1
-        test_service = "test_service"
-        test_target = "test target"
-        test_version = "1.2.3"
-        refs0 = {tag1.tag_name: [(test_target, test_version)]}
-        upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-        service_id1 = self._get_service_id_by_service_name(USER1, pteam1.pteam_id, test_service)
-        # create actionable topic1
-        action1 = self._gen_action([tag1.tag_name])
-        topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.tag_name], "actions": [action1]})
-
+    def test_returns_ticket_with_current_status_if_status_created(self, testdb, actionable_topic1):
         db_dependency1 = testdb.scalars(select(models.Dependency)).one()
         db_threat1 = testdb.scalars(select(models.Threat)).one()
         db_ticket1 = testdb.scalars(select(models.Ticket)).one()
-
-        # set ticket status
         status_request = {
             "topic_status": models.TopicStatusType.scheduled.value,
-            "assignees": [str(user2.user_id)],
+            "assignees": [str(self.user2.user_id)],
             "note": "assign user2 and schedule at 2345/6/7",
             "scheduled_at": "2345-06-07T08:09:10",
         }
-        self._set_ticket_status(pteam1.pteam_id, service_id1, db_ticket1.ticket_id, status_request)
+        self._set_ticket_status(
+            self.pteam1.pteam_id, self.service_id1, db_ticket1.ticket_id, status_request
+        )
 
         db_ticket_status1 = testdb.scalars(select(models.TicketStatus)).one()
         expected_ticket_response1 = {
@@ -3230,20 +3214,23 @@ class TestGetTickets:
             ),
             "threat": {
                 "threat_id": str(db_threat1.threat_id),
-                "topic_id": str(topic1.topic_id),
+                "topic_id": str(self.topic1.topic_id),
                 "dependency_id": str(db_dependency1.dependency_id),
             },
             "current_ticket_status": {
                 "status_id": str(db_ticket_status1.status_id),
                 "ticket_id": str(db_ticket1.ticket_id),
-                "user_id": str(user1.user_id),
+                "user_id": str(self.user1.user_id),
                 "created_at": datetime.isoformat(db_ticket_status1.created_at),
                 "action_logs": [],
                 **status_request,
             },
         }
 
-        url = f"/pteams/{pteam1.pteam_id}/services/{service_id1}/topics/{topic1.topic_id}/tickets"
+        url = (
+            f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+            f"/topics/{self.topic1.topic_id}/tickets"
+        )
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
