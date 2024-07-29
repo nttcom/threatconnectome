@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import (
@@ -13,7 +14,7 @@ from sqlalchemy import (
     select,
     true,
 )
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app import models, schemas
 
@@ -665,3 +666,35 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
     ]
 
     return summary
+
+
+def get_sorted_tickets_related_to_service_and_topic(
+    db: Session,
+    service_id: UUID | str,
+    topic_id: UUID | str,
+) -> Sequence[models.Ticket]:
+    select_stmt = (
+        select(models.Ticket)
+        .options(
+            joinedload(models.Ticket.current_ticket_status, innerjoin=True).joinedload(
+                models.CurrentTicketStatus.ticket_status, innerjoin=False
+            ),
+            joinedload(models.Ticket.threat, innerjoin=True),
+        )
+        .join(
+            models.Threat,
+            and_(
+                models.Threat.threat_id == models.Ticket.threat_id,
+                models.Threat.topic_id == str(topic_id),
+            ),
+        )
+        .join(
+            models.Dependency,
+            and_(
+                models.Dependency.dependency_id == models.Threat.dependency_id,
+                models.Dependency.service_id == str(service_id),
+            ),
+        )
+        .order_by(models.Ticket.ssvc_deployer_priority, models.Dependency.target)
+    )
+    return db.scalars(select_stmt).all()
