@@ -228,7 +228,6 @@ export function TopicModal(props) {
             dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
           )
           .catch((error) => operationError(error));
-        console.log("test1");
       } else if (presetActionIds.has(a.action_id)) {
         updateAction(a.action_id, actionRequest).catch((error) => operationError(error));
         presetActionIds.delete(a.action_id);
