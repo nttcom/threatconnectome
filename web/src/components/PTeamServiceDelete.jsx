@@ -15,7 +15,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import styles from "../cssModule/dialog.module.css";
-import { getPTeam, invalidateServiceId } from "../slices/pteam";
+import { getPTeam, invalidateServiceId, getPTeamTagsSummary } from "../slices/pteam";
 import { deletePTeamService } from "../utils/api.js";
 
 export function PTeamServiceDelete() {
@@ -49,6 +49,7 @@ export function PTeamServiceDelete() {
     function onSuccess(success, deletingServiceId) {
       dispatch(getPTeam(pteamId)); // sync pteam.services
       dispatch(invalidateServiceId(deletingServiceId));
+      dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
       enqueueSnackbar("Remove service succeeded", { variant: "success" });
     }
     function onError(error) {
