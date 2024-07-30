@@ -29,7 +29,7 @@ import { useDispatch, useSelector } from "react-redux";
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
   getPTeamTopicActions,
-  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTaggedTopicIds,
   getPTeamServiceTagsSummary,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
@@ -175,7 +175,7 @@ export function TopicModal(props) {
     if (pteamId && presetTagId) {
       await Promise.all([
         dispatch(
-          getPTeamServiceTaggedTicketIds({
+          getPTeamServiceTaggedTopicIds({
             pteamId: pteamId,
             serviceId: serviceId,
             tagId: presetTagId,
@@ -335,7 +335,7 @@ export function TopicModal(props) {
   const handleDeleteTopic = () => {
     if (presetTagId) {
       dispatch(
-        getPTeamServiceTaggedTicketIds({
+        getPTeamServiceTaggedTopicIds({
           pteamId: pteamId,
           serviceId: serviceId,
           tagId: presetTagId,

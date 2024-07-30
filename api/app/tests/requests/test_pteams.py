@@ -1954,7 +1954,7 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_id(testdb):
     # with wrong pteam_id
     pteam_id = str(uuid4())
     response = client.get(
-        f"/pteams/{pteam_id}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
+        f"/pteams/{pteam_id}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/topic_ids",
         headers=headers(USER1),
     )
     assert response.status_code == 404
@@ -1983,7 +1983,7 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_member(testdb):
     # with wrong pteam member
     create_user(USER2)
     response = client.get(
-        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/ticket_ids",
+        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/topic_ids",
         headers=headers(USER2),
     )
     assert response.status_code == 403
@@ -2012,7 +2012,7 @@ def test_service_tagged_ticket_ids_with_wrong_service_id(testdb):
     # with wrong service_id
     service_id = str(uuid4())
     response = client.get(
-        f"/pteams/{ticket_response['pteam_id']}/services/{service_id}/tags/{ticket_response['tag_id']}/ticket_ids",
+        f"/pteams/{ticket_response['pteam_id']}/services/{service_id}/tags/{ticket_response['tag_id']}/topic_ids",
         headers=headers(USER1),
     )
     assert response.status_code == 404
@@ -2041,7 +2041,7 @@ def test_service_tagged_ticket_ids_with_service_not_in_pteam(testdb):
 
     # with service not in pteam
     response = client.get(
-        f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response2['service_id']}/tags/{ticket_response1['tag_id']}/ticket_ids",
+        f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response2['service_id']}/tags/{ticket_response1['tag_id']}/topic_ids",
         headers=headers(USER1),
     )
     assert response.status_code == 404
@@ -2070,7 +2070,7 @@ def test_service_tagged_tikcet_ids_with_wrong_tag_id(testdb):
     # with wrong tag_id
     tag_id = str(uuid4())
     response = client.get(
-        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{tag_id}/ticket_ids",
+        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{tag_id}/topic_ids",
         headers=headers(USER1),
     )
     assert response.status_code == 404
@@ -2100,7 +2100,7 @@ def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
     str1 = "a1:a2:a3"
     tag = create_tag(USER1, str1)
     response = client.get(
-        f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response1['service_id']}/tags/{tag.tag_id}/ticket_ids",
+        f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response1['service_id']}/tags/{tag.tag_id}/topic_ids",
         headers=headers(USER1),
     )
     assert response.status_code == 404

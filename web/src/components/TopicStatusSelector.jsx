@@ -28,7 +28,7 @@ import { useParams } from "react-router-dom";
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
   getTopicStatus,
-  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTaggedTopicIds,
   getPTeamServiceTagsSummary,
 } from "../slices/pteam";
 import { createTopicStatus } from "../utils/api";
@@ -94,7 +94,7 @@ export function TopicStatusSelector(props) {
         }
         if (ttStatus.topic_status === "completed") {
           dispatch(
-            getPTeamServiceTaggedTicketIds({
+            getPTeamServiceTaggedTopicIds({
               pteamId: pteamId,
               serviceId: serviceId,
               tagId: tagId,
