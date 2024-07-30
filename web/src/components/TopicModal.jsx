@@ -216,27 +216,22 @@ export function TopicModal(props) {
 
     const presetActionIds = new Set(presetActions.map((a) => a.action_id));
 
-    actions.forEach((a) => {
+    actions.forEach(async (a) => {
       const actionRequest = {
         ...a,
         topic_id: topicId,
       };
       if (a.action_id === null) {
-        createAction(actionRequest)
-          .then(
-            (success) => dispatch(getPTeamTagsSummary({ pteamId: pteamId })),
-            dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
-          )
-          .catch((error) => operationError(error));
+        await createAction(actionRequest).catch((error) => operationError(error));
       } else if (presetActionIds.has(a.action_id)) {
-        updateAction(a.action_id, actionRequest).catch((error) => operationError(error));
+        await updateAction(a.action_id, actionRequest).catch((error) => operationError(error));
         presetActionIds.delete(a.action_id);
       }
     });
 
     // delete actions that are not related to topic
-    presetActionIds.forEach((actionId) => {
-      deleteAction(actionId).catch((error) => operationError(error));
+    presetActionIds.forEach(async (actionId) => {
+      await deleteAction(actionId).catch((error) => operationError(error));
     });
 
     if (src.created_by !== user.user_id) {
