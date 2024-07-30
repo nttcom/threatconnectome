@@ -11,6 +11,7 @@ from app.models import (
     ExploitationEnum,
     PTeamAuthEnum,
     SafetyImpactEnum,
+    SSVCDeployerPriorityEnum,
     TopicStatusType,
 )
 
@@ -462,6 +463,47 @@ class TopicStatusResponse(ORMModel):
     action_logs: list[ActionLogResponse] = []
 
 
+class ThreatResponse(ORMModel):
+    threat_id: UUID
+    dependency_id: UUID
+    topic_id: UUID
+
+
+class ThreatRequest(ORMModel):
+    dependency_id: UUID
+    topic_id: UUID
+
+
+class TicketStatusRequest(ORMModel):
+    topic_status: TopicStatusType | None = None
+    logging_ids: list[UUID] | None = None
+    assignees: list[UUID] | None = None
+    note: str | None = None
+    scheduled_at: datetime | None = None
+
+
+class TicketStatusResponse(ORMModel):
+    status_id: UUID | None = None  # None is the case no status is set yet
+    ticket_id: UUID
+    topic_status: TopicStatusType = TopicStatusType.alerted
+    user_id: UUID | None = None
+    created_at: datetime | None = None
+    assignees: list[UUID] = []
+    note: str | None = None
+    scheduled_at: datetime | None = None
+    action_logs: list[ActionLogResponse] = []
+
+
+class TicketResponse(ORMModel):
+    ticket_id: UUID
+    threat_id: UUID
+    created_at: datetime
+    updated_at: datetime
+    ssvc_deployer_priority: SSVCDeployerPriorityEnum
+    threat: ThreatResponse
+    current_ticket_status: TicketStatusResponse
+
+
 class PTeamTaggedTopics(ORMModel):
     pteam_id: UUID
     tag_id: UUID
@@ -585,17 +627,6 @@ class ATeamTopicCommentResponse(ORMModel):
     updated_at: datetime | None = None
     comment: str
     email: str
-
-
-class ThreatResponse(ORMModel):
-    threat_id: UUID
-    dependency_id: UUID
-    topic_id: UUID
-
-
-class ThreatRequest(ORMModel):
-    dependency_id: UUID
-    topic_id: UUID
 
 
 class ServiceTaggedTopics(ORMModel):

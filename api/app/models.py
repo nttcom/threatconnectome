@@ -430,9 +430,6 @@ class TicketStatus(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
 
     ticket = relationship("Ticket", back_populates="ticket_statuses")
-    current_ticket_status = relationship(
-        "CurrentTicketStatus", uselist=False, back_populates="ticket_status"
-    )
 
 
 class CurrentTicketStatus(Base):
@@ -455,7 +452,7 @@ class CurrentTicketStatus(Base):
     updated_at: Mapped[datetime | None]
 
     ticket = relationship("Ticket", back_populates="current_ticket_status")
-    ticket_status = relationship("TicketStatus", back_populates="current_ticket_status")
+    ticket_status = relationship("TicketStatus")
 
 
 class Alert(Base):
