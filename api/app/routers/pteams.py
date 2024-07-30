@@ -47,6 +47,7 @@ NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No 
 NO_SUCH_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
 NO_SUCH_SERVICE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
 NO_SUCH_PTEAM_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
+NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 
 
 @router.get("", response_model=list[schemas.PTeamEntry])
@@ -309,6 +310,192 @@ def get_service_tagged_ticket_ids(
             "topic_ticket_ids": topic_ticket_ids_unsoloved,
         },
     }
+
+
+@router.get(
+    "/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
+    response_model=schemas.TicketStatusResponse,
+)
+def get_ticket_status(
+    pteam_id: UUID,
+    service_id: UUID,
+    ticket_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get the current status of the ticket.
+    """
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (service := persistence.get_service_by_id(db, service_id)):
+        raise NO_SUCH_SERVICE
+    if service.pteam_id != str(pteam_id):
+        raise NO_SUCH_SERVICE
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+    if ticket.threat.dependency.service_id != str(service_id):
+        raise NO_SUCH_TICKET
+
+    fixed_status = (
+        {**ticket.current_ticket_status.ticket_status.__dict__}
+        if ticket.current_ticket_status and ticket.current_ticket_status.ticket_status
+        else {"ticket_id": ticket_id}  # all params except ticket_id are default
+    )
+    return fixed_status
+
+
+@router.post(
+    "/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
+    response_model=schemas.TicketStatusResponse,
+)
+def set_ticket_status(
+    pteam_id: UUID,
+    service_id: UUID,
+    ticket_id: UUID,
+    data: schemas.TicketStatusRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Set status of the ticket.
+    Current status should be inherited if requested value is None.
+    """
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (service := persistence.get_service_by_id(db, service_id)):
+        raise NO_SUCH_SERVICE
+    if service.pteam_id != str(pteam_id):
+        raise NO_SUCH_SERVICE
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+    if ticket.threat.dependency.service_id != str(service_id):
+        raise NO_SUCH_TICKET
+
+    if data.topic_status == models.TopicStatusType.alerted:
+        # user cannot set alerted
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
+    for logging_id_ in data.logging_ids or []:
+        if not (log := persistence.get_action_log_by_id(db, logging_id_)):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No such actionlog",
+            )
+        if log.ticket_id != str(ticket_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Not an actionlog for the ticket",
+            )
+    for assignee in data.assignees or []:
+        if not (a_user := persistence.get_account_by_id(db, assignee)):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No such user",
+            )
+        if not check_pteam_membership(db, pteam, a_user):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Not a pteam member",
+            )
+
+    current_ticket_status = ticket.current_ticket_status
+    fixed_assignees: list[str] | None = None
+    if (
+        current_ticket_status.topic_status == models.TopicStatusType.alerted
+        and data.topic_status == models.TopicStatusType.acknowledged
+        and not data.assignees
+    ):
+        # force assign current_user if no assignees given for the 1st ack
+        fixed_assignees = [current_user.user_id]
+    elif data.assignees is not None:
+        fixed_assignees = list(map(str, data.assignees))
+
+    # create base status inheriting current status
+    if _current := current_ticket_status.ticket_status:
+        new_status = models.TicketStatus(
+            ticket_id=str(ticket_id),
+            user_id=current_user.user_id,
+            topic_status=_current.topic_status,
+            note=_current.note,
+            logging_ids=_current.logging_ids,
+            assignees=_current.assignees,
+            scheduled_at=_current.scheduled_at,
+            created_at=datetime.now(),
+        )
+    else:
+        new_status = models.TicketStatus(
+            ticket_id=str(ticket_id),
+            topic_status=models.TopicStatusType.alerted,
+            user_id=current_user.user_id,
+        )
+    # overwrite only if required
+    if fixed_assignees is not None:
+        new_status.assignees = fixed_assignees
+    if data.topic_status is not None:
+        new_status.topic_status = data.topic_status
+    if data.logging_ids is not None:
+        new_status.logging_ids = list(map(str, data.logging_ids))
+    if data.note is not None:
+        new_status.note = data.note
+    if data.scheduled_at is not None:
+        new_status.scheduled_at = data.scheduled_at
+
+    persistence.create_ticket_status(db, new_status)
+    ret_status = {**new_status.__dict__}
+
+    # update current_status
+    current_ticket_status.status_id = new_status.status_id
+    current_ticket_status.topic_status = new_status.topic_status
+
+    db.commit()
+
+    return ret_status
+
+
+@router.get(
+    "/{pteam_id}/services/{service_id}/topics/{topic_id}/tickets",
+    response_model=list[schemas.TicketResponse],
+)
+def get_tickets_with_status_by_service_id_and_topic_id(
+    pteam_id: UUID,
+    service_id: UUID,
+    topic_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get tickets (with status) related to the service and topic.
+    """
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (service := persistence.get_service_by_id(db, service_id)):
+        raise NO_SUCH_SERVICE
+    if service.pteam_id != str(pteam_id):
+        raise NO_SUCH_SERVICE
+    if not persistence.get_topic_by_id(db, topic_id):
+        raise NO_SUCH_TOPIC
+
+    tickets = command.get_sorted_tickets_related_to_service_and_topic(db, service_id, topic_id)
+
+    ret = [
+        {
+            **ticket.__dict__,
+            "threat": ticket.threat.__dict__,
+            "current_ticket_status": (
+                {**ticket.current_ticket_status.ticket_status.__dict__}
+                if ticket.current_ticket_status and ticket.current_ticket_status.ticket_status
+                else {"ticket_id": ticket.ticket_id}
+            ),
+        }
+        for ticket in tickets
+    ]
+    return ret
 
 
 @router.get(
