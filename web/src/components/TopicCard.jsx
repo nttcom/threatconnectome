@@ -31,7 +31,11 @@ import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import { getPTeamTopicActions, getTicketsRelatedToServiceTopicTag } from "../slices/pteam";
+import {
+  getDependencies,
+  getPTeamTopicActions,
+  getTicketsRelatedToServiceTopicTag,
+} from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { dateTimeFormat } from "../utils/func";
 import { isComparable, parseVulnerableVersions, versionMatch } from "../utils/versions";
@@ -59,11 +63,13 @@ export function TopicCard(props) {
   const [actionColor, setActionColor] = useState("primary");
 
   const members = useSelector((state) => state.pteam.members); // dispatched by Tag.jsx
+  const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
   const ticketsDict = useSelector((state) => state.pteam.tickets);
   const pteamTopicActionsDict = useSelector((state) => state.pteam.topicActions);
   const topics = useSelector((state) => state.topics.topics);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
+  const dependencies = serviceDependencies[serviceId];
   const topic = topics[topicId];
   const tickets = ticketsDict[serviceId]?.[tagId]?.[topicId];
   const pteamTopicActions = pteamTopicActionsDict[topicId];
@@ -83,6 +89,13 @@ export function TopicCard(props) {
       );
     }
   }, [dispatch, pteamId, serviceId, topicId, tagId, tickets]);
+
+  useEffect(() => {
+    if (!pteamId || !serviceId) return;
+    if (dependencies === undefined) {
+      dispatch(getDependencies({ pteamId: pteamId, serviceId: serviceId }));
+    }
+  }, [dispatch, pteamId, serviceId, dependencies]);
 
   useEffect(() => {
     if (!topicId) return;
@@ -504,9 +517,10 @@ export function TopicCard(props) {
             <TopicTicketAccordion
               key={ticket.ticket_id}
               pteamId={pteamId}
-              serviceId={serviceId}
+              dependency={dependencies.find(
+                (dependency) => dependency.dependency_id === ticket.threat.dependency_id,
+              )}
               topicId={topicId}
-              tagId={tagId}
               ticket={ticket}
               members={members}
               defaultExpanded={index === 0}

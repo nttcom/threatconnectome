@@ -29,8 +29,11 @@ const ssvcPriorityToThreatImpact = (ssvcPriority) =>
   })[ssvcPriority];
 
 export const TopicTicketAccordion = (props) => {
-  const { pteamId, serviceId, topicId, tagId, ticket, members, defaultExpanded } = props;
+  const { pteamId, dependency, topicId, ticket, members, defaultExpanded } = props;
 
+  const serviceId = dependency.service_id;
+  const tagId = dependency.tag_id;
+  const target = dependency.target;
   const ticketStatus = ticket.current_ticket_status;
   const threatImpact = ssvcPriorityToThreatImpact(ticket.ssvc_deployer_priority);
 
@@ -53,7 +56,7 @@ export const TopicTicketAccordion = (props) => {
               <Box sx={{ mr: 1 }}>
                 <ThreatImpactStatusChip threatImpact={threatImpact} />
               </Box>
-              <Box>/usr/local/lib/python3.7/site-packages/sqlparse-0.4.4.dist-info/METADATA</Box>
+              <Box>{target}</Box>
             </Box>
           </AccordionSummary>
           <AccordionDetails>
@@ -129,9 +132,8 @@ export const TopicTicketAccordion = (props) => {
 
 TopicTicketAccordion.propTypes = {
   pteamId: PropTypes.string.isRequired,
-  serviceId: PropTypes.string.isRequired,
+  dependency: PropTypes.object.isRequired,
   topicId: PropTypes.string.isRequired,
-  tagId: PropTypes.string.isRequired,
   ticket: PropTypes.object.isRequired,
   members: PropTypes.object.isRequired,
   defaultExpanded: PropTypes.bool,
