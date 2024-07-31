@@ -677,9 +677,9 @@ def get_sorted_tickets_related_to_service_and_topic_and_tag(
     select_stmt = (
         select(models.Ticket)
         .options(
-            joinedload(models.Ticket.current_ticket_status, innerjoin=True).joinedload(
-                models.CurrentTicketStatus.ticket_status, innerjoin=False
-            ),
+            joinedload(models.Ticket.current_ticket_status, innerjoin=True)
+            .joinedload(models.CurrentTicketStatus.ticket_status, innerjoin=False)
+            .joinedload(models.TicketStatus.action_logs, innerjoin=False),
             joinedload(models.Ticket.threat, innerjoin=True),
         )
         .join(
@@ -699,4 +699,5 @@ def get_sorted_tickets_related_to_service_and_topic_and_tag(
         )
         .order_by(models.Ticket.ssvc_deployer_priority, models.Dependency.target)
     )
-    return db.scalars(select_stmt).all()
+    # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#joined-eager-loading
+    return db.scalars(select_stmt).unique().all()

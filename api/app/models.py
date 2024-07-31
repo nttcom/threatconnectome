@@ -430,6 +430,12 @@ class TicketStatus(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
 
     ticket = relationship("Ticket", back_populates="ticket_statuses")
+    action_logs = relationship(
+        "ActionLog",
+        primaryjoin="TicketStatus.logging_ids.any(foreign(ActionLog.logging_id))",
+        collection_class=set,
+        viewonly=True,
+    )
 
 
 class CurrentTicketStatus(Base):
