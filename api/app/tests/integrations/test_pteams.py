@@ -171,6 +171,8 @@ def test_it_shoud_return_threat_impact_count_num_based_on_tickte_status(
     expected_solved_count,
     expected_unsolved_count,
 ):
+    # Given
+    # create ticket
     topic = {
         **TOPIC1,
         "threat_impact": threat_impact,
@@ -178,6 +180,7 @@ def test_it_shoud_return_threat_impact_count_num_based_on_tickte_status(
 
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, topic)
 
+    # set topic_status1
     json_data = {
         "topic_status": topic_status1,
         "note": "string",
@@ -193,16 +196,29 @@ def test_it_shoud_return_threat_impact_count_num_based_on_tickte_status(
         json_data,
     )
 
-    dependencys = testdb.scalars(
-        select(models.Dependency).where(
-            models.Dependency.service_id == str(ticket_response["service_id"]),
-            models.Dependency.tag_id == str(ticket_response["tag_id"]),
-        )
-    ).all()
-    if len(dependencys) == 2:
-        dependencys[1].threats[0].ticket.current_ticket_status.topic_status = topic_status2
-        testdb.flush()
+    # set topic_status2
+    get_tickets_url = (
+        f"/pteams/{ticket_response['pteam_id']}/services/"
+        f"{ticket_response['service_id']}/topics/{ticket_response['topic_id']}/tickets"
+    )
+    tickets = client.get(get_tickets_url, headers=headers(USER1)).json()
+    status_request = {
+        "topic_status": topic_status2,
+        "assignees": [],
+        "note": "",
+        "scheduled_at": "2345-06-07T08:09:10",
+    }
+    post_topicstatus_url = (
+        f"/pteams/{ticket_response['pteam_id']}/services/"
+        f"{ticket_response['service_id']}/ticketstatus/{tickets[1]['ticket_id']}"
+    )
+    client.post(
+        post_topicstatus_url,
+        headers=headers(USER1),
+        json=status_request,
+    )
 
+    # When
     response = client.get(
         f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/topic_ids",
         headers=headers(USER1),
@@ -210,6 +226,7 @@ def test_it_shoud_return_threat_impact_count_num_based_on_tickte_status(
     assert response.status_code == 200
     response = response.json()
 
+    # Then
     # common
     assert response["pteam_id"] == ticket_response["pteam_id"]
     assert response["service_id"] == ticket_response["service_id"]
