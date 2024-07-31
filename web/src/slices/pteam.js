@@ -8,9 +8,10 @@ import {
   getPTeamMembers as apiGetPTeamMembers,
   getPTeamServiceTaggedTopicIds as apiGetPTeamServiceTaggedTopicIds,
   getPTeamTopicActions as apiGetPTeamTopicActions,
-  getTopicStatus as apiGetTopicStatus,
   getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
   getPTeamTagsSummary as apiGetPTeamTagsSummary,
+  getTopicStatus as apiGetTopicStatus,
+  getTicketsRelatedToServiceTopicTag as apiGetTicketsRelatedToServiceTopicTag,
 } from "../utils/api";
 
 export const getPTeam = createAsyncThunk(
@@ -77,6 +78,23 @@ export const getPTeamServiceTaggedTopicIds = createAsyncThunk(
     ),
 );
 
+export const getTicketsRelatedToServiceTopicTag = createAsyncThunk(
+  "pteam/getTicketsRelatedToServiceTopicTag",
+  async (data) =>
+    await apiGetTicketsRelatedToServiceTopicTag(
+      data.pteamId,
+      data.serviceId,
+      data.topicId,
+      data.tagId,
+    ).then((response) => ({
+      pteamId: data.pteamId,
+      serviceId: data.serviceId,
+      topicId: data.topicId,
+      tagId: data.tagId,
+      data: response.data,
+    })),
+);
+
 export const getTopicStatus = createAsyncThunk(
   "pteam/getTopicStatus",
   async (data) =>
@@ -128,6 +146,7 @@ const _initialState = {
   members: undefined,
   serviceDependencies: {}, // dict[serviceId: list[dependency]]
   taggedTopics: {},
+  tickets: {}, // dict[serviceId: dict[tagId: dict[topicId: list[ticket]]]]
   topicStatus: {},
   topicActions: {},
   serviceTagsSummaries: {},
@@ -188,6 +207,19 @@ const pteamSlice = createSlice({
           [action.payload.serviceId]: {
             ...state.taggedTopics[action.payload.serviceId],
             [action.payload.tagId]: action.payload.data,
+          },
+        },
+      }))
+      .addCase(getTicketsRelatedToServiceTopicTag.fulfilled, (state, action) => ({
+        ...state,
+        tickets: {
+          ...state.tickets,
+          [action.payload.serviceId]: {
+            ...state.tickets[action.payload.serviceId],
+            [action.payload.tagId]: {
+              ...state.tickets[action.payload.serviceId]?.[action.payload.tagId],
+              [action.payload.topicId]: action.payload.data,
+            },
           },
         },
       }))
