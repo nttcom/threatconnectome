@@ -204,7 +204,7 @@ def test_it_shoud_return_threat_impact_count_num_based_on_tickte_status(
     # set topic_status
     get_tickets_url = (
         f"/pteams/{ticket_response['pteam_id']}/services/"
-        f"{ticket_response['service_id']}/topics/{ticket_response['topic_id']}/tickets"
+        f"{ticket_response['service_id']}/topics/{ticket_response['topic_id']}/tags/{ticket_response['tag_id']}/tickets"
     )
     tickets = client.get(get_tickets_url, headers=headers(USER1)).json()
     _set_ticket_status(
