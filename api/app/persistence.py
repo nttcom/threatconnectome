@@ -463,7 +463,7 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
 
 
 def get_dependency_from_service_id_and_tag_id(
-    db: Session, service_id: str, tag_id: str
+    db: Session, service_id: UUID | str, tag_id: UUID | str
 ) -> models.Dependency | None:
     return db.scalars(
         select(models.Dependency).where(

@@ -6,10 +6,11 @@ import {
   getPTeamAuth as apiGetPTeamAuth,
   getPTeamAuthInfo as apiGetPTeamAuthInfo,
   getPTeamMembers as apiGetPTeamMembers,
-  getPTeamServiceTaggedTicketIds as apiGetPTeamServiceTaggedTicketIds,
+  getPTeamServiceTaggedTopicIds as apiGetPTeamServiceTaggedTopicIds,
   getPTeamTopicActions as apiGetPTeamTopicActions,
   getTopicStatus as apiGetTopicStatus,
   getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
+  getPTeamTagsSummary as apiGetPTeamTagsSummary,
 } from "../utils/api";
 
 export const getPTeam = createAsyncThunk(
@@ -63,10 +64,10 @@ export const getDependencies = createAsyncThunk(
     })),
 );
 
-export const getPTeamServiceTaggedTicketIds = createAsyncThunk(
-  "pteam/getPTeamServiceTaggedTicketIds",
+export const getPTeamServiceTaggedTopicIds = createAsyncThunk(
+  "pteam/getPTeamServiceTaggedTopicIds",
   async (data) =>
-    await apiGetPTeamServiceTaggedTicketIds(data.pteamId, data.serviceId, data.tagId).then(
+    await apiGetPTeamServiceTaggedTopicIds(data.pteamId, data.serviceId, data.tagId).then(
       (response) => ({
         pteamId: data.pteamId,
         serviceId: data.serviceId,
@@ -110,6 +111,15 @@ export const getPTeamServiceTagsSummary = createAsyncThunk(
     })),
 );
 
+export const getPTeamTagsSummary = createAsyncThunk(
+  "pteam/getPTeamTagsSummary",
+  async (data) =>
+    await apiGetPTeamTagsSummary(data.pteamId).then((response) => ({
+      data: response.data,
+      pteamId: data.pteamId,
+    })),
+);
+
 const _initialState = {
   pteamId: undefined,
   pteam: undefined,
@@ -121,6 +131,7 @@ const _initialState = {
   topicStatus: {},
   topicActions: {},
   serviceTagsSummaries: {},
+  pteamTagsSummaries: {},
 };
 
 const pteamSlice = createSlice({
@@ -170,14 +181,13 @@ const pteamSlice = createSlice({
           [action.payload.serviceId]: action.payload.data,
         },
       }))
-      .addCase(getPTeamServiceTaggedTicketIds.fulfilled, (state, action) => ({
+      .addCase(getPTeamServiceTaggedTopicIds.fulfilled, (state, action) => ({
         ...state,
         taggedTopics: {
           ...state.taggedTopics,
-          [action.payload.tagId]: {
-            ...state.taggedTopics[action.payload.tagId],
-            solved: action.payload.data.solved,
-            unsolved: action.payload.data.unsolved,
+          [action.payload.serviceId]: {
+            ...state.taggedTopics[action.payload.serviceId],
+            [action.payload.tagId]: action.payload.data,
           },
         },
       }))
@@ -206,6 +216,13 @@ const pteamSlice = createSlice({
         serviceTagsSummaries: {
           ...state.serviceTagsSummaries,
           [action.payload.serviceId]: action.payload.data,
+        },
+      }))
+      .addCase(getPTeamTagsSummary.fulfilled, (state, action) => ({
+        ...state,
+        pteamTagsSummaries: {
+          ...state.pteamTagsSummaries,
+          [action.payload.pteamId]: action.payload.data,
         },
       }));
   },

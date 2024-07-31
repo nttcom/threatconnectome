@@ -17,13 +17,13 @@ export function PTeamTaggedTopics(props) {
   const taggedTopics = useSelector((state) => state.pteam.taggedTopics); // dispatched by parent
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
-  const targets = isSolved ? taggedTopics?.[tagId]?.solved : taggedTopics?.[tagId]?.unsolved;
+  const targets = taggedTopics?.[serviceId]?.[tagId]?.[isSolved ? "solved" : "unsolved"];
 
   if (targets === undefined || !allTags) {
     return <>Loading...</>;
   }
 
-  const targetTopicIds = targets.topic_ticket_ids.slice(perPage * (page - 1), perPage * page);
+  const targetTopicIds = targets.topic_ids.slice(perPage * (page - 1), perPage * page);
   const presetTagId = tagId;
   const presetParentTagId = allTags.find((tag) => tag.tag_id === tagId)?.parent_id;
 
@@ -32,7 +32,7 @@ export function PTeamTaggedTopics(props) {
       <Pagination
         shape="rounded"
         page={page}
-        count={Math.ceil(targets.topic_ticket_ids.length / perPage)}
+        count={Math.ceil(targets.topic_ids.length / perPage)}
         onChange={(event, value) => setPage(value)}
       />
       <Select
@@ -76,12 +76,12 @@ export function PTeamTaggedTopics(props) {
       </Box>
       {paginationRow}
       <List sx={{ p: 0 }}>
-        {targetTopicIds.map((ticketId_topicId) => (
-          <ListItem key={ticketId_topicId.topic_id} sx={{ minHeight: "250px", p: 0 }}>
+        {targetTopicIds.map((topicId) => (
+          <ListItem key={topicId} sx={{ minHeight: "250px", p: 0 }}>
             <TopicCard
-              key={ticketId_topicId.topic_id}
+              key={topicId}
               pteamId={pteamId}
-              topicId={ticketId_topicId.topic_id}
+              topicId={topicId}
               currentTagId={tagId}
               serviceId={serviceId}
               references={references}

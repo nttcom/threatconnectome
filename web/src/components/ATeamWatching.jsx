@@ -1,3 +1,4 @@
+import { WarningAmber as WarningAmberIcon } from "@mui/icons-material";
 import {
   Box,
   Paper,
@@ -7,12 +8,60 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
 } from "@mui/material";
+import { orange } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React from "react";
 
+import { utcStringToLocalDate } from "../utils/func";
+
 import { ATeamRequestModal } from "./ATeamRequestModal";
 import { ATeamWatchingMenu } from "./ATeamWatchingMenu";
+
+const { differenceInDays, max } = require("date-fns");
+
+function getWarningCell(message, teamName) {
+  return (
+    <Box alignItems="center" display="flex" flexDirection="row">
+      <Tooltip title={message}>
+        <WarningAmberIcon sx={{ color: orange[500], mr: 1 }} />
+      </Tooltip>
+      {teamName}
+    </Box>
+  );
+}
+
+function TeamNameCell(props) {
+  const { services, teamName } = props;
+  if (services.length === 0) {
+    return getWarningCell("No service is registered.", teamName);
+  }
+
+  const validUploadedDates = services
+    .filter((service) => service.sbom_uploaded_at !== null)
+    .map((service) => utcStringToLocalDate(service.sbom_uploaded_at));
+  if (validUploadedDates.length === 0) {
+    return getWarningCell("SBOM is not uploaded yet.", teamName);
+  }
+
+  const latestUploaded = max(...validUploadedDates);
+  const passDays = differenceInDays(new Date(), latestUploaded);
+  if (passDays >= 14) {
+    return getWarningCell("SBOM updated " + passDays + " days ago.", teamName);
+  }
+
+  return teamName;
+}
+
+TeamNameCell.propTypes = {
+  services: PropTypes.arrayOf(
+    PropTypes.shape({
+      sbom_uploaded_at: PropTypes.string,
+    }),
+  ),
+  teamName: PropTypes.string,
+};
 
 export function ATeamWatching(props) {
   const { ateam, isAdmin } = props;
@@ -46,7 +95,10 @@ export function ATeamWatching(props) {
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell align="left" style={{ width: "30%" }}>
-                      {monitorTeam.pteam_name}
+                      <TeamNameCell
+                        services={monitorTeam.services}
+                        teamName={monitorTeam.pteam_name}
+                      />
                     </TableCell>
                     <TableCell align="left">{monitorTeam.contact_info}</TableCell>
                     <TableCell align="right">

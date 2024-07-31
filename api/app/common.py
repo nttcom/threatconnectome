@@ -149,6 +149,10 @@ def get_or_create_topic_tag(db: Session, tag_name: str) -> models.Tag:
     if tag := persistence.get_tag_by_name(db, tag_name):  # already exists
         return tag
 
+    return create_topic_tag(db, tag_name)
+
+
+def create_topic_tag(db: Session, tag_name: str) -> models.Tag:
     tag = models.Tag(tag_name=tag_name, parent_id=None, parent_name=None)
     if not (parent_name := _pick_parent_tag(tag_name)):  # no parent: e.g. "tag1"
         persistence.create_tag(db, tag)
@@ -158,7 +162,9 @@ def get_or_create_topic_tag(db: Session, tag_name: str) -> models.Tag:
         tag.parent_id = tag.tag_id
         tag.parent_name = tag_name
     else:
-        parent = get_or_create_topic_tag(db, parent_name)
+        parent = persistence.get_tag_by_name(db, parent_name)
+        if not parent:
+            parent = create_topic_tag(db, parent_name)
         tag.parent_id = parent.tag_id
         tag.parent_name = parent.tag_name
 
@@ -253,13 +259,23 @@ def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
     return int_priority <= int_threshold
 
 
-def count_service_solved_tickets_per_threat_impact(
+def sum_threat_impact_count(topic_ids: list[str], topic_ids_dict: dict, count_key: str) -> dict:
+    sum_threat_impact_count = {"1": 0, "2": 0, "3": 0, "4": 0}
+    for topic_id in topic_ids:
+        current_count = topic_ids_dict[topic_id][count_key]
+        sum_threat_impact_count["1"] += current_count["1"]
+        sum_threat_impact_count["2"] += current_count["2"]
+        sum_threat_impact_count["3"] += current_count["3"]
+        sum_threat_impact_count["4"] += current_count["4"]
+    return sum_threat_impact_count
+
+
+def get_topic_ids_summary_by_service_id_and_tag_id(
     service: models.Service,
     tag_id: UUID | str,
-) -> dict[str, int]:
+) -> dict:
+    topic_ids_dict: dict = {}
     _completed = models.TopicStatusType.completed
-    threat_counts_rows: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
-    prev_topic_id: set = set()
 
     for dependency in service.dependencies:
         if dependency.tag_id != str(tag_id):
@@ -267,152 +283,57 @@ def count_service_solved_tickets_per_threat_impact(
         for threat in dependency.threats:
             if not threat.ticket:
                 continue
-
             _curent_ticket = threat.ticket.current_ticket_status
-            if _curent_ticket.topic_status == _completed and threat.topic_id not in prev_topic_id:
-                threat_imapct_str = str(_curent_ticket.threat_impact)
-                threat_counts_rows[threat_imapct_str] += 1
-                prev_topic_id.add(threat.topic_id)
-
-    return threat_counts_rows
-
-
-def count_service_unsolved_tickets_per_threat_impact(
-    service: models.Service,
-    tag_id: UUID | str,
-) -> dict[str, int]:
-    _completed = models.TopicStatusType.completed
-    threat_counts_rows: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
-    prev_topic_id: set = set()
-
-    for dependency in service.dependencies:
-        if dependency.tag_id != str(tag_id):
-            continue
-        for threat in dependency.threats:
-            if not threat.ticket:
-                continue
-
-            _curent_ticket = threat.ticket.current_ticket_status
-            if _curent_ticket.topic_status != _completed and threat.topic_id not in prev_topic_id:
-                threat_imapct_str = str(_curent_ticket.threat_impact)
-                threat_counts_rows[threat_imapct_str] += 1
-                prev_topic_id.add(threat.topic_id)
-
-    return threat_counts_rows
-
-
-def get_sorted_solved_ticket_ids_by_service_tag_and_status(
-    service: models.Service,
-    tag_id: UUID | str,
-) -> list[dict]:
-    _completed = models.TopicStatusType.completed
-    topic_ticket_ids: list[dict] = []
-    topic_ticket_ids_dict: dict = {}
-    result: list = []
-
-    # Search for topic_id and ticket_id corresponding to service_id and tag_id
-    for dependency in service.dependencies:
-        if dependency.tag_id != str(tag_id):
-            continue
-        for threat in dependency.threats:
-            if not threat.ticket:
-                continue
-            _curent_ticket = threat.ticket.current_ticket_status
+            if (tmp_topic_ids_dict := topic_ids_dict.get(threat.topic_id)) is None:
+                tmp_topic_ids_dict = {
+                    "topic_id": threat.topic_id,
+                    "topic_threat_impact": threat.topic.threat_impact,
+                    "topic_updated_at": threat.topic.updated_at,
+                    "is_solved": True,
+                    "solved_threat_impact_count": {"1": 0, "2": 0, "3": 0, "4": 0},
+                    "unsolved_threat_impact_count": {"1": 0, "2": 0, "3": 0, "4": 0},
+                }
+                topic_ids_dict[threat.topic_id] = tmp_topic_ids_dict
+            threat_imapct_str = str(_curent_ticket.threat_impact)
             if _curent_ticket.topic_status == _completed:
-                if (
-                    tmp_topic_ticket_ids_dict := topic_ticket_ids_dict.get(threat.topic_id)
-                ) is None:
-                    tmp_topic_ticket_ids_dict = {
-                        "topic_id": threat.topic_id,
-                        "topic_threat_impact": threat.topic.threat_impact,
-                        "topic_updated_at": threat.topic.updated_at,
-                        "ticket_ids": [],
-                    }
-                    topic_ticket_ids_dict[threat.topic_id] = tmp_topic_ticket_ids_dict
-                tmp_topic_ticket_ids_dict["ticket_ids"].append(_curent_ticket.ticket_id)
-
-    # The contents of topic_ticket_ids are as follows
-    # [{
-    #   "topic_id":xxxxx,
-    #   "topic_threat_impact":xxxxx,
-    #   "topic_updated_at":xxxxx,
-    #   "ticket_ids":[xxxxx,xxxxx,xxxxx]
-    # }]
-    topic_ticket_ids = list(topic_ticket_ids_dict.values())
+                tmp_topic_ids_dict["solved_threat_impact_count"][threat_imapct_str] += 1
+            else:
+                tmp_topic_ids_dict["unsolved_threat_impact_count"][threat_imapct_str] += 1
+                tmp_topic_ids_dict["is_solved"] = False
 
     # Sort topic_id according to threat_impact and updated_at
-    topic_ticket_ids_sorted = sorted(
-        topic_ticket_ids,
+    topic_ids_sorted = sorted(
+        topic_ids_dict.values(),
         key=lambda x: (
             x["topic_threat_impact"],
             -(_dt.timestamp() if (_dt := x["topic_updated_at"]) else 0),
         ),
     )
-
-    # delete topic_threat_impact and topic_updated_at
-    for _ in topic_ticket_ids_sorted:
-        del _["topic_threat_impact"]
-        del _["topic_updated_at"]
-        result.append(_)
-
-    return result
-
-
-def get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
-    service: models.Service,
-    tag_id: UUID | str,
-) -> list[dict]:
-    _completed = models.TopicStatusType.completed
-    topic_ticket_ids: list[dict] = []
-    topic_ticket_ids_dict: dict = {}
-    result: list = []
-
-    # Search for topic_id and ticket_id corresponding to service_id and tag_id
-    for dependency in service.dependencies:
-        if dependency.tag_id != str(tag_id):
-            continue
-        for threat in dependency.threats:
-            if not threat.ticket:
-                continue
-            _curent_ticket = threat.ticket.current_ticket_status
-            if _curent_ticket.topic_status != _completed:
-                if (
-                    tmp_topic_ticket_ids_dict := topic_ticket_ids_dict.get(threat.topic_id)
-                ) is None:
-                    tmp_topic_ticket_ids_dict = {
-                        "topic_id": threat.topic_id,
-                        "topic_threat_impact": threat.topic.threat_impact,
-                        "topic_updated_at": threat.topic.updated_at,
-                        "ticket_ids": [],
-                    }
-                    topic_ticket_ids_dict[threat.topic_id] = tmp_topic_ticket_ids_dict
-                tmp_topic_ticket_ids_dict["ticket_ids"].append(_curent_ticket.ticket_id)
-
-    # The contents of topic_ticket_ids are as follows
-    # [{
-    #   "topic_id":xxxxx,
-    #   "topic_threat_impact":xxxxx,
-    #   "topic_updated_at":xxxxx,
-    #   "ticket_ids":[xxxxx,xxxxx,xxxxx]
-    # }]
-    topic_ticket_ids = list(topic_ticket_ids_dict.values())
-
-    # Sort topic_id according to threat_impact and updated_at
-    topic_ticket_ids_sorted = sorted(
-        topic_ticket_ids,
-        key=lambda x: (
-            x["topic_threat_impact"],
-            -(_dt.timestamp() if (_dt := x["topic_updated_at"]) else 0),
-        ),
+    solved_topic_ids = list(
+        map(lambda item: item["topic_id"], filter(lambda item: item["is_solved"], topic_ids_sorted))
     )
-
-    # delete topic_threat_impact and topic_updated_at
-    for _ in topic_ticket_ids_sorted:
-        del _["topic_threat_impact"]
-        del _["topic_updated_at"]
-        result.append(_)
-
-    return result
+    unsolved_topic_ids = list(
+        map(
+            lambda item: item["topic_id"],
+            filter(lambda item: not item["is_solved"], topic_ids_sorted),
+        )
+    )
+    # gen summary
+    topic_ids_summary: dict[str, dict] = {
+        "solved": {
+            "topic_ids": solved_topic_ids,
+            "threat_impact_count": sum_threat_impact_count(
+                solved_topic_ids, topic_ids_dict, "solved_threat_impact_count"
+            ),
+        },
+        "unsolved": {
+            "topic_ids": unsolved_topic_ids,
+            "threat_impact_count": sum_threat_impact_count(
+                unsolved_topic_ids, topic_ids_dict, "unsolved_threat_impact_count"
+            ),
+        },
+    }
+    return topic_ids_summary
 
 
 def create_ticket_internal(
@@ -630,3 +551,10 @@ def fix_threats_for_dependency(db: Session, dependency: models.Dependency):
                 persistence.delete_ticket(db, threat.ticket)
         elif current_threat:
             persistence.delete_threat(db, current_threat)
+
+
+def count_threat_impact_from_summary(tags_summary: list[dict]):
+    threat_impact_count: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+    for tag_summary in tags_summary:
+        threat_impact_count[str(tag_summary["threat_impact"] or 4)] += 1
+    return threat_impact_count

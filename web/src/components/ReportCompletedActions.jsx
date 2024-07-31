@@ -20,8 +20,9 @@ import { useParams } from "react-router-dom";
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
   getTopicStatus,
-  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTaggedTopicIds,
   getPTeamServiceTagsSummary,
+  getPTeamTagsSummary,
 } from "../slices/pteam";
 import { createActionLog, createTopicStatus } from "../utils/api";
 
@@ -76,9 +77,10 @@ export function ReportCompletedActions(props) {
         getTopicStatus({ pteamId: pteamId, serviceId: serviceId, topicId: topicId, tagId: tagId }),
       );
       dispatch(
-        getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
+        getPTeamServiceTaggedTopicIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
       );
       dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+      dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
       enqueueSnackbar("Set topicstatus 'completed' succeeded", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`Operation failed: ${error}`, { variant: "error" });

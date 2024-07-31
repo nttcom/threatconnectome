@@ -38,8 +38,8 @@ export const updatePTeamAuth = async (pteamId, data) =>
 
 export const getPTeamTopics = async (pteamId) => axios.get(`/pteams/${pteamId}/topics`);
 
-export const getPTeamServiceTaggedTicketIds = async (pteamId, serviceId, tagId) =>
-  axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/${tagId}/ticket_ids`);
+export const getPTeamServiceTaggedTopicIds = async (pteamId, serviceId, tagId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/${tagId}/topic_ids`);
 
 export const createPTeamInvitation = async (pteamId, data) =>
   axios.post(`/pteams/${pteamId}/invitation`, data);
@@ -67,6 +67,8 @@ export const removeWatcherATeam = async (pteamId, ateamId) =>
 
 export const getPTeamServiceTagsSummary = async (pteamId, serviceId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/summary`);
+
+export const getPTeamTagsSummary = async (pteamId) => axios.get(`/pteams/${pteamId}/tags/summary`);
 
 export const uploadSBOMFile = async (pteamId, service, file, forceMode = true) => {
   const formData = new FormData();

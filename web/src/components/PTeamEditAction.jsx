@@ -22,7 +22,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { getPTeamTopicActions, getPTeamServiceTaggedTicketIds } from "../slices/pteam";
+import { getPTeamTopicActions, getPTeamServiceTaggedTopicIds } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { updateTopic, createAction, updateAction, deleteAction } from "../utils/api";
 import { actionTypes } from "../utils/const";
@@ -140,7 +140,7 @@ export function PTeamEditAction(props) {
     if (pteamId && presetTagId) {
       await Promise.all([
         dispatch(
-          getPTeamServiceTaggedTicketIds({
+          getPTeamServiceTaggedTopicIds({
             pteamId: pteamId,
             serviceId: serviceId,
             tagId: presetTagId,

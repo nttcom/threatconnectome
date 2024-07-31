@@ -13,7 +13,7 @@ import {
   getDependencies,
   getPTeam,
   getPTeamMembers,
-  getPTeamServiceTaggedTicketIds,
+  getPTeamServiceTaggedTopicIds,
 } from "../slices/pteam";
 import { a11yProps } from "../utils/func.js";
 
@@ -38,7 +38,7 @@ export function Tag() {
 
   const dependencies = serviceDependencies[serviceId];
   const currentTagDependencies = dependencies?.filter((dependency) => dependency.tag_id === tagId);
-  const taggedTopics = taggedTopicsDict[tagId];
+  const taggedTopics = taggedTopicsDict?.[serviceId]?.[tagId];
 
   useEffect(() => {
     if (!user.user_id) return; // wait login completed
@@ -71,7 +71,7 @@ export function Tag() {
 
     if (taggedTopics === undefined) {
       dispatch(
-        getPTeamServiceTaggedTicketIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
+        getPTeamServiceTaggedTopicIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
       );
       return;
     }
@@ -101,8 +101,8 @@ export function Tag() {
     return <>Now loading...</>;
   }
 
-  const numSolved = taggedTopics.solved?.topic_ticket_ids?.length ?? 0;
-  const numUnsolved = taggedTopics.unsolved?.topic_ticket_ids?.length ?? 0;
+  const numSolved = taggedTopics.solved?.topic_ids?.length ?? 0;
+  const numUnsolved = taggedTopics.unsolved?.topic_ids?.length ?? 0;
 
   const tagDict = allTags.find((tag) => tag.tag_id === tagId);
   const serviceDict = pteam.services.find((service) => service.service_id === serviceId);

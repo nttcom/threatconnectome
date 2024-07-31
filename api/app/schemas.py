@@ -11,6 +11,7 @@ from app.models import (
     ExploitationEnum,
     PTeamAuthEnum,
     SafetyImpactEnum,
+    SSVCDeployerPriorityEnum,
     TopicStatusType,
 )
 
@@ -462,6 +463,47 @@ class TopicStatusResponse(ORMModel):
     action_logs: list[ActionLogResponse] = []
 
 
+class ThreatResponse(ORMModel):
+    threat_id: UUID
+    dependency_id: UUID
+    topic_id: UUID
+
+
+class ThreatRequest(ORMModel):
+    dependency_id: UUID
+    topic_id: UUID
+
+
+class TicketStatusRequest(ORMModel):
+    topic_status: TopicStatusType | None = None
+    logging_ids: list[UUID] | None = None
+    assignees: list[UUID] | None = None
+    note: str | None = None
+    scheduled_at: datetime | None = None
+
+
+class TicketStatusResponse(ORMModel):
+    status_id: UUID | None = None  # None is the case no status is set yet
+    ticket_id: UUID
+    topic_status: TopicStatusType = TopicStatusType.alerted
+    user_id: UUID | None = None
+    created_at: datetime | None = None
+    assignees: list[UUID] = []
+    note: str | None = None
+    scheduled_at: datetime | None = None
+    action_logs: list[ActionLogResponse] = []
+
+
+class TicketResponse(ORMModel):
+    ticket_id: UUID
+    threat_id: UUID
+    created_at: datetime
+    updated_at: datetime
+    ssvc_deployer_priority: SSVCDeployerPriorityEnum
+    threat: ThreatResponse
+    current_ticket_status: TicketStatusResponse
+
+
 class PTeamTaggedTopics(ORMModel):
     pteam_id: UUID
     tag_id: UUID
@@ -495,7 +537,12 @@ class FsTopicSummary(ORMModel):
     actions: list[FsAction]
 
 
-class PTeamTagSummary(ExtTagResponse):
+class PTeamTagSummary(ORMModel):
+    tag_id: UUID
+    tag_name: str
+    parent_id: UUID | None
+    parent_name: str | None
+    service_ids: list[UUID]
     threat_impact: int | None = None
     updated_at: datetime | None = None
     status_count: dict[str, int]
@@ -582,26 +629,15 @@ class ATeamTopicCommentResponse(ORMModel):
     email: str
 
 
-class ThreatResponse(ORMModel):
-    threat_id: UUID
-    dependency_id: UUID
-    topic_id: UUID
-
-
-class ThreatRequest(ORMModel):
-    dependency_id: UUID
-    topic_id: UUID
-
-
 class ServiceTaggedTopics(ORMModel):
-    pteam_id: UUID
-    service_id: UUID
-    tag_id: UUID
     threat_impact_count: dict[str, int]
-    topic_ticket_ids: list[dict]
+    topic_ids: list[UUID]
 
 
 class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
+    pteam_id: UUID
+    service_id: UUID
+    tag_id: UUID
     solved: ServiceTaggedTopics
     unsolved: ServiceTaggedTopics
 
