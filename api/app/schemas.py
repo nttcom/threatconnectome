@@ -630,14 +630,14 @@ class ATeamTopicCommentResponse(ORMModel):
 
 
 class ServiceTaggedTopics(ORMModel):
-    pteam_id: UUID
-    service_id: UUID
-    tag_id: UUID
     threat_impact_count: dict[str, int]
-    topic_ticket_ids: list[dict]
+    topic_ids: list[UUID]
 
 
 class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
+    pteam_id: UUID
+    service_id: UUID
+    tag_id: UUID
     solved: ServiceTaggedTopics
     unsolved: ServiceTaggedTopics
 

@@ -14,16 +14,13 @@ from app.auth import get_current_user
 from app.common import (
     check_pteam_auth,
     check_pteam_membership,
-    count_service_solved_tickets_per_threat_impact,
-    count_service_unsolved_tickets_per_threat_impact,
     count_threat_impact_from_summary,
     create_topic_tag,
     fix_threats_for_dependency,
     get_pteam_ext_tags,
-    get_sorted_solved_ticket_ids_by_service_tag_and_status,
     get_sorted_topics,
-    get_sorted_unsolved_ticket_ids_by_service_tag_and_status,
     get_tag_ids_with_parent_ids,
+    get_topic_ids_summary_by_service_id_and_tag_id,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db, open_db_session
@@ -257,10 +254,10 @@ def get_pteam_tags(
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/tags/{tag_id}/ticket_ids",
+    "/{pteam_id}/services/{service_id}/tags/{tag_id}/topic_ids",
     response_model=schemas.ServiceTaggedTopicsSolvedUnsolved,
 )
-def get_service_tagged_ticket_ids(
+def get_service_tagged_topic_ids(
     pteam_id: UUID,
     service_id: UUID,
     tag_id: UUID,
@@ -277,38 +274,17 @@ def get_service_tagged_ticket_ids(
         raise NO_SUCH_SERVICE
     if not persistence.get_tag_by_id(db, tag_id):
         raise NO_SUCH_TAG
-    if not persistence.get_dependency_from_service_id_and_tag_id(db, str(service_id), str(tag_id)):
+    if not persistence.get_dependency_from_service_id_and_tag_id(db, service_id, tag_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service tag")
 
     ## sovled
-    topic_ticket_ids_soloved = get_sorted_solved_ticket_ids_by_service_tag_and_status(
-        service, tag_id
-    )
-    threat_impact_count_soloved = count_service_solved_tickets_per_threat_impact(service, tag_id)
-
-    ## unsovled
-    topic_ticket_ids_unsoloved = get_sorted_unsolved_ticket_ids_by_service_tag_and_status(
-        service, tag_id
-    )
-    threat_impact_count_unsoloved = count_service_unsolved_tickets_per_threat_impact(
-        service, tag_id
-    )
+    topic_ids_summary = get_topic_ids_summary_by_service_id_and_tag_id(service, tag_id)
 
     return {
-        "solved": {
-            "pteam_id": pteam_id,
-            "service_id": service_id,
-            "tag_id": tag_id,
-            "threat_impact_count": threat_impact_count_soloved,
-            "topic_ticket_ids": topic_ticket_ids_soloved,
-        },
-        "unsolved": {
-            "pteam_id": pteam_id,
-            "service_id": service_id,
-            "tag_id": tag_id,
-            "threat_impact_count": threat_impact_count_unsoloved,
-            "topic_ticket_ids": topic_ticket_ids_unsoloved,
-        },
+        "pteam_id": pteam_id,
+        "service_id": service_id,
+        "tag_id": tag_id,
+        **topic_ids_summary,
     }
 
 
