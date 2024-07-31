@@ -81,7 +81,6 @@ function StatusRatioGraph(props) {
   if ((counts ?? []).length === 0) return "";
   let keys = [];
   if (threatImpact < 4 || (threatImpact === 4 && counts.completed > 0)) {
-    console.log(counts);
     keys = ["scheduled", "acknowledged", "alerted", "completed"];
   }
   const total = keys.reduce((ret, key) => ret + counts[key] ?? 0, 0);
