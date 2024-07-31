@@ -457,18 +457,19 @@ def set_ticket_status(
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/topics/{topic_id}/tickets",
+    "/{pteam_id}/services/{service_id}/topics/{topic_id}/tags/{tag_id}/tickets",
     response_model=list[schemas.TicketResponse],
 )
 def get_tickets_with_status_by_service_id_and_topic_id(
     pteam_id: UUID,
     service_id: UUID,
     topic_id: UUID,
+    tag_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Get tickets (with status) related to the service and topic.
+    Get tickets (with status) related to the service, topic and tag.
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
@@ -480,8 +481,12 @@ def get_tickets_with_status_by_service_id_and_topic_id(
         raise NO_SUCH_SERVICE
     if not persistence.get_topic_by_id(db, topic_id):
         raise NO_SUCH_TOPIC
+    if not persistence.get_tag_by_id(db, tag_id):
+        raise NO_SUCH_TAG
 
-    tickets = command.get_sorted_tickets_related_to_service_and_topic(db, service_id, topic_id)
+    tickets = command.get_sorted_tickets_related_to_service_and_topic_and_tag(
+        db, service_id, topic_id, tag_id
+    )
 
     ret = [
         {
