@@ -171,6 +171,27 @@ def test_it_shoud_return_threat_impact_count_num_based_on_tickte_status(
     expected_solved_count,
     expected_unsolved_count,
 ):
+    @staticmethod
+    def _set_ticket_status(
+        user: dict,
+        pteam_id: str,
+        service_id: str,
+        ticket_id: str,
+        topic_status: models.TopicStatusType,
+    ) -> None:
+        post_topicstatus_url = f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}"
+        status_request = {
+            "topic_status": topic_status,
+            "assignees": [],
+            "note": "",
+            "scheduled_at": "2345-06-07T08:09:10",
+        }
+        client.post(
+            post_topicstatus_url,
+            headers=headers(user),
+            json=status_request,
+        )
+
     # Given
     # create ticket
     topic = {
@@ -180,42 +201,25 @@ def test_it_shoud_return_threat_impact_count_num_based_on_tickte_status(
 
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, topic)
 
-    # set topic_status1
-    json_data = {
-        "topic_status": topic_status1,
-        "note": "string",
-        "assignees": [],
-        "scheduled_at": str(datetime.now()),
-    }
-    create_service_topicstatus(
-        USER1,
-        ticket_response["pteam_id"],
-        ticket_response["service_id"],
-        ticket_response["topic_id"],
-        ticket_response["tag_id"],
-        json_data,
-    )
-
-    # set topic_status2
+    # set topic_status
     get_tickets_url = (
         f"/pteams/{ticket_response['pteam_id']}/services/"
         f"{ticket_response['service_id']}/topics/{ticket_response['topic_id']}/tickets"
     )
     tickets = client.get(get_tickets_url, headers=headers(USER1)).json()
-    status_request = {
-        "topic_status": topic_status2,
-        "assignees": [],
-        "note": "",
-        "scheduled_at": "2345-06-07T08:09:10",
-    }
-    post_topicstatus_url = (
-        f"/pteams/{ticket_response['pteam_id']}/services/"
-        f"{ticket_response['service_id']}/ticketstatus/{tickets[1]['ticket_id']}"
+    _set_ticket_status(
+        USER1,
+        ticket_response["pteam_id"],
+        ticket_response["service_id"],
+        tickets[0]["ticket_id"],
+        topic_status1,
     )
-    client.post(
-        post_topicstatus_url,
-        headers=headers(USER1),
-        json=status_request,
+    _set_ticket_status(
+        USER1,
+        ticket_response["pteam_id"],
+        ticket_response["service_id"],
+        tickets[1]["ticket_id"],
+        topic_status2,
     )
 
     # When
