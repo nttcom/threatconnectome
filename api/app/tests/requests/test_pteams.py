@@ -2863,7 +2863,7 @@ class TestTicketStatus:
                 USER1, {**TOPIC1, "tags": [self.tag1.tag_name], "actions": [action1]}
             )
             tickets = self._get_tickets(
-                self.pteam1.pteam_id, self.service_id1, self.topic1.topic_id
+                self.pteam1.pteam_id, self.service_id1, self.topic1.topic_id, self.tag1.tag_id
             )
             self.ticket_id1 = tickets[0]["ticket_id"]
 
@@ -2909,8 +2909,11 @@ class TestTicketStatus:
                 },
             }
 
-        def _get_tickets(self, pteam_id: str, service_id: str, topic_id: str) -> dict:
-            url = f"/pteams/{pteam_id}/services/{service_id}/topics/{topic_id}/tickets"
+        def _get_tickets(self, pteam_id: str, service_id: str, topic_id: str, tag_id: str) -> dict:
+            url = (
+                f"/pteams/{pteam_id}/services/{service_id}"
+                f"/topics/{topic_id}/tags/{tag_id}/tickets"
+            )
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -3123,7 +3126,7 @@ class TestGetTickets:
     def test_returns_empty_if_no_tickets(self, not_actionable_topic1):
         url = (
             f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-            f"/topics/{self.topic1.topic_id}/tickets"
+            f"/topics/{self.topic1.topic_id}/tags/{self.tag1.tag_id}/tickets"
         )
         user1_access_token = self._get_access_token(USER1)
         _headers = {
@@ -3171,7 +3174,7 @@ class TestGetTickets:
 
         url = (
             f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-            f"/topics/{self.topic1.topic_id}/tickets"
+            f"/topics/{self.topic1.topic_id}/tags/{self.tag1.tag_id}/tickets"
         )
         user1_access_token = self._get_access_token(USER1)
         _headers = {
@@ -3229,7 +3232,7 @@ class TestGetTickets:
 
         url = (
             f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-            f"/topics/{self.topic1.topic_id}/tickets"
+            f"/topics/{self.topic1.topic_id}/tags/{self.tag1.tag_id}/tickets"
         )
         user1_access_token = self._get_access_token(USER1)
         _headers = {

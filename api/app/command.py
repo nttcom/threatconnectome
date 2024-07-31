@@ -668,10 +668,11 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
     return summary
 
 
-def get_sorted_tickets_related_to_service_and_topic(
+def get_sorted_tickets_related_to_service_and_topic_and_tag(
     db: Session,
     service_id: UUID | str,
     topic_id: UUID | str,
+    tag_id: UUID | str,
 ) -> Sequence[models.Ticket]:
     select_stmt = (
         select(models.Ticket)
@@ -693,6 +694,7 @@ def get_sorted_tickets_related_to_service_and_topic(
             and_(
                 models.Dependency.dependency_id == models.Threat.dependency_id,
                 models.Dependency.service_id == str(service_id),
+                models.Dependency.tag_id == str(tag_id),
             ),
         )
         .order_by(models.Ticket.ssvc_deployer_priority, models.Dependency.target)
