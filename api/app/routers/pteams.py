@@ -355,6 +355,11 @@ def set_ticket_status(
     if data.topic_status == models.TopicStatusType.alerted:
         # user cannot set alerted
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
+    if data.topic_status == models.TopicStatusType.scheduled and not data.scheduled_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="If statsu is schduled, specify schduled_at",
+        )
     for logging_id_ in data.logging_ids or []:
         if not (log := persistence.get_action_log_by_id(db, logging_id_)):
             raise HTTPException(
@@ -417,8 +422,14 @@ def set_ticket_status(
         new_status.logging_ids = list(map(str, data.logging_ids))
     if data.note is not None:
         new_status.note = data.note
+    print("bbb")
+    print(type(data.scheduled_at))
+    print(data.scheduled_at)
     if data.scheduled_at is not None:
-        new_status.scheduled_at = data.scheduled_at
+        if data.scheduled_at == datetime.fromtimestamp(0):
+            new_status.scheduled_at = None
+        else:
+            new_status.scheduled_at = data.scheduled_at
 
     persistence.create_ticket_status(db, new_status)
     ret_status = {**new_status.__dict__}
