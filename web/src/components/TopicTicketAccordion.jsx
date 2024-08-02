@@ -20,12 +20,12 @@ import { ThreatImpactStatusChip } from "./ThreatImpactStatusChip";
 import { TopicStatusSelector } from "./TopicStatusSelector";
 import { WarningTooltip } from "./WarningTooltip";
 
-const ssvcPriorityToThreatImpact = (ssvcPriority) =>
+const ssvcPriorityToThreatImpactName = (ssvcPriority) =>
   ({
-    immediate: 1,
-    out_of_cycle: 2,
-    scheduled: 3,
-    defer: 4,
+    immediate: "immediate",
+    out_of_cycle: "offcycle",
+    scheduled: "acceptable",
+    defer: "none",
   })[ssvcPriority];
 
 export const TopicTicketAccordion = (props) => {
@@ -35,7 +35,7 @@ export const TopicTicketAccordion = (props) => {
   const tagId = dependency.tag_id;
   const target = dependency.target;
   const ticketStatus = ticket.current_ticket_status;
-  const threatImpact = ssvcPriorityToThreatImpact(ticket.ssvc_deployer_priority);
+  const threatImpactName = ssvcPriorityToThreatImpactName(ticket.ssvc_deployer_priority);
 
   return (
     <Accordion
@@ -52,7 +52,7 @@ export const TopicTicketAccordion = (props) => {
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: grey[50] }}>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Box sx={{ mr: 1 }}>
-            <ThreatImpactStatusChip threatImpact={threatImpact} />
+            <ThreatImpactStatusChip threatImpactName={threatImpactName} />
           </Box>
           <Box>{target}</Box>
         </Box>
