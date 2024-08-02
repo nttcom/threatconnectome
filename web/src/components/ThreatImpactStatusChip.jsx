@@ -3,25 +3,23 @@ import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { threatImpactName, threatImpactProps } from "../utils/const";
+import { threatImpactProps } from "../utils/const";
 
 export function ThreatImpactStatusChip(props) {
-  const { statusCounts, threatImpact } = props;
-  const impactName =
-    threatImpact === 4 && statusCounts["completed"] > 0 ? "safe" : threatImpactName[threatImpact];
-  const Icon = threatImpactProps[impactName].icon;
+  const { threatImpactName } = props;
+  const Icon = threatImpactProps[threatImpactName].icon;
 
   const StyledTooltip = styled((styledProps) => (
     <Tooltip classes={{ popper: styledProps.className }} {...styledProps} />
   ))`
     & .MuiTooltip-tooltip {
-      background-color: ${threatImpactProps[impactName].style.bgcolor};
-      color: ${threatImpactProps[impactName].style.color};
+      background-color: ${threatImpactProps[threatImpactName].style.bgcolor};
+      color: ${threatImpactProps[threatImpactName].style.color};
     }
   `;
 
   return (
-    <StyledTooltip title={threatImpactProps[impactName].statusLabel}>
+    <StyledTooltip title={threatImpactProps[threatImpactName].statusLabel}>
       <Paper
         variant="outlined"
         sx={{
@@ -29,7 +27,7 @@ export function ThreatImpactStatusChip(props) {
           alignItems: "center",
           justifyContent: "center",
           padding: "4px",
-          ...threatImpactProps[impactName].style,
+          ...threatImpactProps[threatImpactName].style,
         }}
       >
         <Icon style={{ color: "white", fontSize: "20px" }} />
@@ -39,6 +37,5 @@ export function ThreatImpactStatusChip(props) {
 }
 
 ThreatImpactStatusChip.propTypes = {
-  statusCounts: PropTypes.object,
-  threatImpact: PropTypes.number.isRequired,
+  threatImpactName: PropTypes.string.isRequired,
 };

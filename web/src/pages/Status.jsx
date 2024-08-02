@@ -43,7 +43,7 @@ import {
   getPTeamTagsSummary,
   setPTeamId,
 } from "../slices/pteam";
-import { noPTeamMessage, threatImpactName, threatImpactProps } from "../utils/const";
+import { noPTeamMessage, threatImpactNames, threatImpactProps } from "../utils/const";
 const threatImpactCountMax = 99999;
 
 function SearchField(props) {
@@ -217,14 +217,14 @@ export function Status() {
 
   let impactFilters = params
     .getAll("impactFilter")
-    .filter((filter) => Object.values(threatImpactName).includes(filter));
+    .filter((filter) => Object.values(threatImpactNames).includes(filter));
 
   const summary = isActiveAllServicesMode ? pteamTagsSummary : serviceTagsSummary;
   const filteredTags = summary.tags.filter(
     (tag) =>
       (impactFilters.length === 0
         ? true // show all if selected none
-        : impactFilters.includes(threatImpactName[parseInt(tag.threat_impact ?? 4)])) && // show only selected
+        : impactFilters.includes(threatImpactNames[parseInt(tag.threat_impact ?? 4)])) && // show only selected
       (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)),
   );
 
@@ -350,7 +350,7 @@ export function Status() {
         sx={{ left: -55 }}
       >
         {[0, 1, 2, 3].map((idx) => {
-          const impactName = threatImpactName[idx + 1];
+          const impactName = threatImpactNames[idx + 1];
           const checked = impactFilters.includes(impactName);
           const summary = isActiveAllServicesMode ? pteamTagsSummary : serviceTagsSummary;
           const threatImpactCount = summary.threat_impact_count[(idx + 1).toString()];

@@ -47,7 +47,7 @@ import {
   getATeamTopicComments as apiGetATeamTopicComments,
   updateATeamTopicComment as apiUpdateATeamTopicComment,
 } from "../utils/api";
-import { rootPrefix, threatImpactName } from "../utils/const";
+import { rootPrefix, threatImpactNames } from "../utils/const";
 import { a11yProps, dateTimeFormat, tagsMatched } from "../utils/func.js";
 
 export function AnalysisTopic(props) {
@@ -178,7 +178,7 @@ export function AnalysisTopic(props) {
         <Box m={3}>
           <Box display="flex">
             <ThreatImpactChip
-              threatImpact={threatImpactName[topicDetail.threat_impact]}
+              threatImpact={threatImpactNames[topicDetail.threat_impact]}
               sx={{ marginRight: "10px" }}
             />
             <Typography variant="h6" fontWeight={900} mr={1}>

@@ -73,7 +73,7 @@ export const experienceColors = {
   7: red[500],
 };
 
-export const threatImpactName = {
+export const threatImpactNames = {
   1: "immediate",
   2: "offcycle",
   3: "acceptable",

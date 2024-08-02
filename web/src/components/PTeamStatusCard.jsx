@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { useSelector } from "react-redux";
 
-import { topicStatusProps } from "../utils/const";
+import { threatImpactNames, topicStatusProps } from "../utils/const";
 import { calcTimestampDiff } from "../utils/func";
 
 import { ThreatImpactStatusChip } from "./ThreatImpactStatusChip";
@@ -113,6 +113,12 @@ export function PTeamStatusCard(props) {
   const { onHandleClick, tag, serviceIds } = props;
   const pteam = useSelector((state) => state.pteam.pteam);
 
+  const threatImpactNum = tag.threat_impact ?? 4;
+  const threatImpactName =
+    threatImpactNum === 4 && tag.status_count["completed"] > 0
+      ? "safe" // solved all and at least 1 tickets
+      : threatImpactNames[threatImpactNum];
+
   return (
     <TableRow
       onClick={onHandleClick}
@@ -123,10 +129,7 @@ export function PTeamStatusCard(props) {
       }}
     >
       <TableCell component="th" scope="row" style={{ width: "5%" }}>
-        <ThreatImpactStatusChip
-          threatImpact={tag.threat_impact ?? 4}
-          statusCounts={tag.status_count ?? []}
-        />
+        <ThreatImpactStatusChip threatImpactName={threatImpactName} />
       </TableCell>
       <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>

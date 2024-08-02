@@ -1,6 +1,5 @@
 import {
   ArrowDropDown as ArrowDropDownIcon,
-  CalendarMonth as CalendarMonthIcon,
   Edit as EditIcon,
   Update as UpdateIcon,
 } from "@mui/icons-material";
@@ -32,30 +31,29 @@ import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import { getPTeamTopicActions, getTopicStatus } from "../slices/pteam";
+import {
+  getDependencies,
+  getPTeamTopicActions,
+  getTicketsRelatedToServiceTopicTag,
+} from "../slices/pteam";
 import { getTopic } from "../slices/topics";
-import { systemAccount } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 import { isComparable, parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import { ActionItem } from "./ActionItem";
-import { AssigneesSelector } from "./AssigneesSelector";
 import { PTeamEditAction } from "./PTeamEditAction";
 import { ReportCompletedActions } from "./ReportCompletedActions";
-import { ThreatImpactChip } from "./ThreatImpactChip";
 import { TopicModal } from "./TopicModal";
-import { TopicStatusSelector } from "./TopicStatusSelector";
+import { TopicTicketAccordion } from "./TopicTicketAccordion";
 import { UUIDTypography } from "./UUIDTypography";
-import { WarningTooltip } from "./WarningTooltip";
 
 export function TopicCard(props) {
   const { pteamId, topicId, currentTagId, serviceId, references } = props;
+  const { tagId } = useParams();
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [actionModalOpen, setActionModalOpen] = useState(false);
-  const [loadTopicStatus, setLoadTopicStatus] = useState(false);
-  const [loadTopic, setLoadTopic] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
   const [pteamActionModalOpen, setPteamActionModalOpen] = useState(false);
 
@@ -64,78 +62,71 @@ export function TopicCard(props) {
   const [openActionMenu, setOpenActionMenu] = useState(false);
   const [actionColor, setActionColor] = useState("primary");
 
-  const { tagId } = useParams();
   const members = useSelector((state) => state.pteam.members); // dispatched by Tag.jsx
-  const topicStatus = useSelector((state) => state.pteam.topicStatus);
-  const pteamTopicActions = useSelector((state) => state.pteam.topicActions);
+  const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
+  const ticketsDict = useSelector((state) => state.pteam.tickets);
+  const pteamTopicActionsDict = useSelector((state) => state.pteam.topicActions);
   const topics = useSelector((state) => state.topics.topics);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
+
+  const dependencies = serviceDependencies[serviceId];
+  const topic = topics[topicId];
+  const tickets = ticketsDict[serviceId]?.[tagId]?.[topicId];
+  const pteamTopicActions = pteamTopicActionsDict[topicId];
 
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!pteamId || !topicId || !tagId) return;
-    if (typeof topicStatus[serviceId]?.[topicId]?.[tagId] === "undefined") {
-      setLoadTopicStatus(true);
-    }
-  }, [dispatch, tagId, pteamId, serviceId, topicId, topicStatus]);
-
-  useEffect(() => {
-    if (loadTopicStatus) {
+    if (!pteamId || !serviceId || !topicId || !tagId) return;
+    if (tickets === undefined) {
       dispatch(
-        getTopicStatus({ pteamId: pteamId, serviceId: serviceId, topicId: topicId, tagId: tagId }),
+        getTicketsRelatedToServiceTopicTag({
+          pteamId: pteamId,
+          serviceId: serviceId,
+          topicId: topicId,
+          tagId: tagId,
+        }),
       );
     }
-  }, [dispatch, pteamId, serviceId, topicId, tagId, loadTopicStatus]);
+  }, [dispatch, pteamId, serviceId, topicId, tagId, tickets]);
 
   useEffect(() => {
-    if (
-      !serviceId ||
-      !topicId ||
-      !pteamId ||
-      !tagId ||
-      typeof topicStatus[serviceId]?.[topicId]?.[tagId] === "undefined"
-    ) {
-      return;
+    if (!pteamId || !serviceId) return;
+    if (dependencies === undefined) {
+      dispatch(getDependencies({ pteamId: pteamId, serviceId: serviceId }));
     }
-    if (typeof topics[topicId] === "undefined") {
-      setLoadTopic(true);
-    }
-  }, [tagId, pteamId, serviceId, topicId, topics, topicStatus]);
+  }, [dispatch, pteamId, serviceId, dependencies]);
 
   useEffect(() => {
-    if (loadTopic) {
+    if (!topicId) return;
+    if (topic === undefined) {
       dispatch(getTopic(topicId));
     }
-  }, [dispatch, loadTopic, topicId]);
+  }, [dispatch, topicId, topic]);
 
   useEffect(() => {
-    if (pteamTopicActions[topicId] === undefined) {
+    if (!pteamId || !topicId) return;
+    if (pteamTopicActions === undefined) {
       dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dispatch, pteamId, topicId, pteamTopicActions]);
 
   const handleActionMenuClose = () => {};
 
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
-  if (
-    !pteamId ||
-    !serviceId ||
-    !members ||
-    !topicId ||
-    !topics[topicId] ||
-    !tagId ||
-    !topicStatus[serviceId]?.[topicId]?.[tagId] ||
-    !allTags
-  ) {
-    return <>Loading Topic...</>;
+  if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets || !allTags) {
+    return <>Now Loading...</>;
   }
 
+  const isSolved = !tickets.find(
+    (ticket) => ticket.current_ticket_status?.topic_status !== "completed",
+  );
   const currentTagDict = allTags.find((tag) => tag.tag_id === tagId);
-  const topic = topics[topicId];
-  const ttStatus = topicStatus[serviceId][topicId][tagId];
+
+  const takenActionLogs = isSolved // FIXME: WORKAROUND, just list taken actions of each tickets
+    ? tickets.reduce((ret, ticket) => [...ret, ...ticket.current_ticket_status.action_logs], [])
+    : [];
 
   // oops, ext.tags are list of tag NAME. (because generated by script without TC)
   const isRelatedAction = (action, tagName) =>
@@ -157,12 +148,12 @@ export function TopicCard(props) {
           ),
       ));
   const topicActions = actionFilter
-    ? pteamTopicActions[topicId]?.filter(
+    ? pteamTopicActions?.filter(
         (action) =>
           isRelatedAction(action, currentTagDict.tag_name) ||
           isRelatedAction(action, currentTagDict.parent_name),
       )
-    : pteamTopicActions[topicId] ?? [];
+    : pteamTopicActions ?? [];
 
   const options = ["Report completed actions", "Add other actions"];
 
@@ -201,7 +192,7 @@ export function TopicCard(props) {
   const checkCompalable = () => {
     const tagNames = [currentTagDict.tag_name, currentTagDict.parent_name];
     return tagNames.every((tagName) => {
-      return pteamTopicActions[topicId]?.every((action) => {
+      return pteamTopicActions?.every((action) => {
         return parseVulnerableVersions(action.ext?.vulnerable_versions?.[tagName]).every(
           (actionVersion) => {
             return references?.every((ref) => {
@@ -262,15 +253,15 @@ export function TopicCard(props) {
           presetTopicId={topicId}
           presetTagId={currentTagId}
           presetParentTagId={currentTagDict.parent_id}
-          presetActions={pteamTopicActions[topicId]}
+          presetActions={pteamTopicActions}
           serviceId={serviceId}
         />
       </Box>
       <Divider />
-      <Box display="flex">
+      <Box display="flex" sx={{ height: "350px" }}>
         <Box flexGrow={1} display="flex" flexDirection="column" justifyContent="space-between">
           <CardContent>
-            {ttStatus.topic_status !== "completed" ? (
+            {!isSolved ? (
               topicActions && (
                 <>
                   <Box alignItems="center" display="flex" flexDirection="row" mb={1}>
@@ -326,11 +317,11 @@ export function TopicCard(props) {
                 <Box alignItems="center" display="flex" flexDirection="row" mb={2}>
                   <Typography mr={2} sx={{ fontWeight: 900 }}>
                     Taken Action
-                    {ttStatus.action_logs.length > 1 ? "s" : ""}
+                    {takenActionLogs.length > 1 ? "s" : ""}
                   </Typography>
                   <Chip
                     size="small"
-                    label={ttStatus.action_logs.length}
+                    label={takenActionLogs.length}
                     sx={{ backgroundColor: grey[300], fontWeight: 900 }}
                   />
                   <Box display="flex" flexGrow={1} flexDirection="row" />
@@ -349,7 +340,7 @@ export function TopicCard(props) {
                     maxHeight: 200,
                   }}
                 >
-                  {ttStatus.action_logs.map((log) => (
+                  {takenActionLogs.map((log) => (
                     <ActionItem
                       key={log.logging_id}
                       action={log.action}
@@ -364,9 +355,9 @@ export function TopicCard(props) {
             <Collapse in={detailOpen}>
               {(() => {
                 const otherActions = topicActions?.filter((action) =>
-                  ttStatus.topic_status !== "completed"
-                    ? !action.recommended
-                    : !ttStatus.action_logs?.map((log) => log.action_id).includes(action.action_id),
+                  isSolved
+                    ? !takenActionLogs?.find((log) => log.action_id === action.action_id)
+                    : !action.recommended,
                 );
                 return otherActions?.length >= 1 ? (
                   <>
@@ -446,7 +437,7 @@ export function TopicCard(props) {
             >
               {detailOpen ? "Hide" : "Show"} Details
             </Button>
-            {ttStatus.topic_status !== "completed" && topicActions && (
+            {!isSolved && topicActions && (
               <>
                 <ButtonGroup
                   variant="contained"
@@ -492,6 +483,7 @@ export function TopicCard(props) {
                               </MenuItem>
                             ))}
                           </MenuList>
+                          z
                         </ClickAwayListener>
                       </Paper>
                     </Grow>
@@ -514,76 +506,33 @@ export function TopicCard(props) {
             presetTopicId={topicId}
             presetTagId={currentTagId}
             presetParentTagId={currentTagDict.parent_id}
-            presetActions={pteamTopicActions[topicId]}
+            presetActions={pteamTopicActions}
             currentTagDict={currentTagDict}
             references={references}
             serviceId={serviceId}
           />
         </Box>
         <Divider flexItem={true} orientation="vertical" />
-        <Box display="flex" flexDirection="column">
-          <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent="baseline"
-            mb={8}
-            sx={{ minWidth: "320px" }}
-          >
-            <Box display="flex" alignItems="baseline" p={2}>
-              <Typography mr={2} variant="subtitle2" sx={{ fontWeight: 900 }}>
-                Threat impact
-              </Typography>
-              <ThreatImpactChip threatImpact={topic.threat_impact ?? 4} />
-            </Box>
-            <CardActions sx={{ display: "flex", alignItems: "center", p: 2 }}>
-              <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
-                Assignees
-              </Typography>
-              <Box sx={{ maxWidth: 200 }}>
-                <AssigneesSelector pteamId={pteamId} topicId={topicId} serviceId={serviceId} />
-              </Box>
-            </CardActions>
-            <Box p={2} display="flex" flexDirection="row" alignItems="flex-start">
-              <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
-                Status
-              </Typography>
-              <Box display="flex" flexDirection="column">
-                <Box display="flex" alignItems="center">
-                  <TopicStatusSelector pteamId={pteamId} topicId={topicId} serviceId={serviceId} />
-                  {(ttStatus.topic_status ?? "alerted") === "alerted" && (
-                    <WarningTooltip message="No one has acknowledged this topic" />
-                  )}
-                </Box>
-                {(ttStatus.topic_status ?? "scheduled") === "scheduled" &&
-                  ttStatus.scheduled_at && (
-                    <Box display="flex" alignItems="flex-end">
-                      <Typography ml={0.5} variant="caption">
-                        <CalendarMonthIcon fontSize="small" sx={{ color: grey[700], mb: -0.7 }} />
-                        {dateTimeFormat(ttStatus.scheduled_at)}
-                      </Typography>
-                    </Box>
-                  )}
-              </Box>
-            </Box>
-          </Box>
-          {(ttStatus.topic_status ?? "alerted") !== "alerted" && (
-            <Box
-              p={1.5}
-              display="flex"
-              flexDirection="row"
-              justifyContent="flex-end"
-              sx={{ color: grey[600] }}
-            >
-              <Box display="flex" alignItems="flex-end">
-                <Typography variant="caption">Last updated by</Typography>
-                <Typography ml={0.5} variant="caption" fontWeight={900}>
-                  {ttStatus.user_id === systemAccount.uuid
-                    ? systemAccount.email
-                    : members[ttStatus.user_id]?.email ?? "not a pteam member"}
-                </Typography>
-              </Box>
-            </Box>
-          )}
+        <Box
+          sx={{
+            overflowY: "auto",
+            minWidth: "320px",
+            maxWidth: "350px",
+          }}
+        >
+          {tickets.map((ticket, index) => (
+            <TopicTicketAccordion
+              key={ticket.ticket_id}
+              pteamId={pteamId}
+              dependency={dependencies.find(
+                (dependency) => dependency.dependency_id === ticket.threat.dependency_id,
+              )}
+              topicId={topicId}
+              ticket={ticket}
+              members={members}
+              defaultExpanded={index === 0}
+            />
+          ))}
         </Box>
       </Box>
     </Card>

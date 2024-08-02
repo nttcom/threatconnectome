@@ -176,9 +176,9 @@ export function ATeamNotificationSetting(props) {
           sx={{ marginRight: "10px", minWidth: "800px" }}
           size="small"
         >
-          {Object.keys(threatImpactName).map((key) => (
+          {Object.keys(threatImpactNames).map((key) => (
             <MenuItem key={key} value={key}>
-              {key}: {threatImpactProps[threatImpactName[key]].chipLabel}
+              {key}: {threatImpactProps[threatImpactNames[key]].chipLabel}
             </MenuItem>
           ))}
         </Select>
