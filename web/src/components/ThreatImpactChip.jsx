@@ -2,14 +2,14 @@ import { Chip } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { threatImpactName, threatImpactProps } from "../utils/const";
+import { threatImpactNames, threatImpactProps } from "../utils/const";
 
 export function ThreatImpactChip(props) {
   const { threatImpact, reverse, sx } = props;
 
   const impactName = Object.keys(threatImpactProps).includes(threatImpact)
     ? threatImpact
-    : threatImpactName[threatImpact];
+    : threatImpactNames[threatImpact];
   const baseStyle = threatImpactProps[impactName].style;
   const fixedSx = {
     ...(reverse

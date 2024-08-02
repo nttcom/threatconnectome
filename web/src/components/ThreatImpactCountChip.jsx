@@ -2,7 +2,7 @@ import { Box, Paper, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { threatImpactName, threatImpactProps } from "../utils/const";
+import { threatImpactNames, threatImpactProps } from "../utils/const";
 
 const countMax = 99;
 
@@ -11,7 +11,7 @@ export function ThreatImpactCountChip(props) {
 
   const impactName = Object.keys(threatImpactProps).includes(threatImpact)
     ? threatImpact
-    : threatImpactName[threatImpact];
+    : threatImpactNames[threatImpact];
   const Icon = threatImpactProps[impactName].icon;
   const baseSx = threatImpactProps[impactName].style;
   const fixedSx = {

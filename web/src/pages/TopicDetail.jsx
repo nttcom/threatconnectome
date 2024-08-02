@@ -12,7 +12,7 @@ import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../components/ActionTypeIcon";
 import { getTopic, getActions } from "../slices/topics";
-import { threatImpactName as threatImpactNames, threatImpactProps } from "../utils/const";
+import { threatImpactNames, threatImpactProps } from "../utils/const";
 
 const threatImpactColor = {
   immediate: {
