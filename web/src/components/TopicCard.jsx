@@ -483,6 +483,7 @@ export function TopicCard(props) {
                               </MenuItem>
                             ))}
                           </MenuList>
+                          z
                         </ClickAwayListener>
                       </Paper>
                     </Grow>
@@ -512,7 +513,13 @@ export function TopicCard(props) {
           />
         </Box>
         <Divider flexItem={true} orientation="vertical" />
-        <Box display="flex" flexDirection="column">
+        <Box
+          sx={{
+            overflowY: "auto",
+            minWidth: "320px",
+            maxWidth: "350px",
+          }}
+        >
           {tickets.map((ticket, index) => (
             <TopicTicketAccordion
               key={ticket.ticket_id}
