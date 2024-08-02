@@ -966,7 +966,18 @@ class TestPostUploadSBOMFileCycloneDX:
                     {  # vulnerable_versions
                         "cryptography:pypi:pipenv": ["<30.0"],
                     },
-                    [],  # expected
+                    [  # expected
+                        {
+                            "tag_name": "cryptography:pypi:pipenv",
+                            "target": "threatconnectome/api/Pipfile.lock",
+                            "version": "39.0.2",
+                        },
+                        {
+                            "tag_name": "cryptography:pypi:pipenv",
+                            "target": "sample target1",  # scan root
+                            "version": "39.0.2",
+                        },
+                    ],
                 ),
                 # test case 2: os-pkgs
                 (
@@ -1035,7 +1046,18 @@ class TestPostUploadSBOMFileCycloneDX:
                     {  # vulnerable_versions
                         "libcrypt1:ubuntu-20.04:": ["<4.3.0"],
                     },
-                    [],  # expected
+                    [  # expected
+                        {
+                            "tag_name": "libcrypt1:ubuntu-20.04:",
+                            "target": "ubuntu",
+                            "version": "1:4.4.10-10ubuntu4",
+                        },
+                        {
+                            "tag_name": "libcrypt1:ubuntu-20.04:",
+                            "target": "sample target1",  # scan root
+                            "version": "1:4.4.10-10ubuntu4",
+                        },
+                    ],
                 ),
                 # test case 3: lang-pkgs with group
                 (

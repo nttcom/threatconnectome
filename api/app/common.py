@@ -429,40 +429,35 @@ def fix_threats_for_topic(db: Session, topic: models.Topic):
                 vulnerables_to_check |= vulnerables_dict.get(tag.parent_name, set())
 
             # detect how should be
-            need_threat, need_ticket = False, False
+            need_ticket = False
             if not vulnerables_to_check:
                 # topic is matched with this dependency on the tag, but have no actionable info
-                need_threat, need_ticket = True, False
+                need_ticket = False
             else:
                 for vulnerable in vulnerables_to_check:
                     try:
                         if vulnerable.detect_matched({dependency_version}):
                             # vulnerable and actionable
-                            need_threat, need_ticket = True, True
+                            need_ticket = True
                             break
                     except ValueError:
-                        need_threat = True
+                        pass
                         # continue to find out actionable or not
         else:
             # dependency version is not comparable
-            need_threat, need_ticket = True, False
+            need_ticket = False
 
-        # fix threat and ticket
-        if need_threat:
-            if current_threat:
-                threat = current_threat
-            else:
-                threat = models.Threat(
-                    dependency_id=dependency.dependency_id, topic_id=topic.topic_id
-                )
-                persistence.create_threat(db, threat)
-            if need_ticket:
-                if not threat.ticket:
-                    create_ticket_internal(db, threat, now=now)
-            elif threat.ticket:
-                persistence.delete_ticket(db, threat.ticket)
-        elif current_threat:
-            persistence.delete_threat(db, current_threat)
+        # fix ticket
+        if current_threat:
+            threat = current_threat
+        else:
+            threat = models.Threat(dependency_id=dependency.dependency_id, topic_id=topic.topic_id)
+            persistence.create_threat(db, threat)
+        if need_ticket:
+            if not threat.ticket:
+                create_ticket_internal(db, threat, now=now)
+        elif threat.ticket:
+            persistence.delete_ticket(db, threat.ticket)
 
         db.flush()
 
@@ -519,38 +514,35 @@ def fix_threats_for_dependency(db: Session, dependency: models.Dependency):
             vulnerables_to_check = vulnerables_dict.get(topic_id, set())
 
             # detect how should be
-            need_threat, need_ticket = False, False
+            need_ticket = False
             if not vulnerables_to_check:
                 # topic is matched with the dependency on the tag, but have no actionable info
-                need_threat, need_ticket = True, False
+                need_ticket = False
             else:
                 for vulnerable in vulnerables_to_check:
                     try:
                         if vulnerable.detect_matched({dependency_version}):
                             # vulnerable and actionable
-                            need_threat, need_ticket = True, True
+                            need_ticket = True
                             break
                     except ValueError:
-                        need_threat = True
+                        pass
                         # continue to find out actionable or not
         else:
             # dependency version is not comparable
-            need_threat, need_ticket = True, False
+            need_ticket = False
 
-        # fix threat and ticket
-        if need_threat:
-            if current_threat:
-                threat = current_threat
-            else:
-                threat = models.Threat(dependency_id=dependency.dependency_id, topic_id=topic_id)
-                persistence.create_threat(db, threat)
-            if need_ticket:
-                if not threat.ticket:
-                    create_ticket_internal(db, threat, now=now)
-            elif threat.ticket:
-                persistence.delete_ticket(db, threat.ticket)
-        elif current_threat:
-            persistence.delete_threat(db, current_threat)
+        # fix ticket
+        if current_threat:
+            threat = current_threat
+        else:
+            threat = models.Threat(dependency_id=dependency.dependency_id, topic_id=topic_id)
+            persistence.create_threat(db, threat)
+        if need_ticket:
+            if not threat.ticket:
+                create_ticket_internal(db, threat, now=now)
+        elif threat.ticket:
+            persistence.delete_ticket(db, threat.ticket)
 
 
 def count_threat_impact_from_summary(tags_summary: list[dict]):

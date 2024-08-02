@@ -23,8 +23,8 @@ class TestFixThreatsForTopic:
         "dep_version, vuln_versions, should_exist_threat, should_exist_ticket",
         [
             ("1.2", ["< 2.0"], True, True),  # vulnerable and actionable
-            ("1.2", ["< 1.0"], False, False),  # not vulnerable
-            ("1.2", ["< 1.0", "> 3.0"], False, False),  # not vulnerable
+            ("1.2", ["< 1.0"], True, False),  # not vulnerable
+            ("1.2", ["< 1.0", "> 3.0"], True, False),  # not vulnerable
             ("1.2", ["< 1.0", "> 3.0 || = 1.2"], True, True),  # vulnerable and actionable
             ("1.2", [], True, False),  # cannot detect vulnerable
             ("1.2", ["< uncomparable_range"], True, False),  # cannot detect vulnerable
@@ -172,8 +172,8 @@ class TestFixThreatsForDependency:
         "dep_version, vuln_versions, should_exist_threat, should_exist_ticket",
         [
             ("1.2", ["< 2.0"], True, True),  # vulnerable and actionable
-            ("1.2", ["< 1.0"], False, False),  # not vulnerable
-            ("1.2", ["< 1.0", "> 3.0"], False, False),  # not vulnerable
+            ("1.2", ["< 1.0"], True, False),  # not vulnerable
+            ("1.2", ["< 1.0", "> 3.0"], True, False),  # not vulnerable
             ("1.2", ["< 1.0", "> 3.0 || = 1.2"], True, True),  # vulnerable and actionable
             ("1.2", [], True, False),  # cannot detect vulnerable
             ("1.2", ["< uncomparable_range"], True, False),  # cannot detect vulnerable
