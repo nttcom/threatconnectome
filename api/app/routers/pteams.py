@@ -422,9 +422,6 @@ def set_ticket_status(
         new_status.logging_ids = list(map(str, data.logging_ids))
     if data.note is not None:
         new_status.note = data.note
-    print("bbb")
-    print(type(data.scheduled_at))
-    print(data.scheduled_at)
     if data.scheduled_at is not None:
         if data.scheduled_at == datetime.fromtimestamp(0):
             new_status.scheduled_at = None
