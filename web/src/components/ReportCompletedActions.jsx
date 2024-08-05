@@ -74,7 +74,7 @@ export function ReportCompletedActions(props) {
       handleClose();
       onSucceeded();
       setNote("");
-      enqueueSnackbar("Set topicstatus 'completed' succeeded", { variant: "success" });
+      enqueueSnackbar("Set ticketstatus 'completed' succeeded", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`Operation failed: ${error}`, { variant: "error" });
     }
