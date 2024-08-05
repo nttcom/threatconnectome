@@ -339,9 +339,9 @@ def set_ticket_status(
     Set status of the ticket.
     Current status should be inherited if requested value is None.
 
-    Use of scheduled_at in request body:
-    - Current status should be inherited when scheduled_at is None
-    - Set None in new status when scheduled_at is datetime.fromtimestamp(0)
+    To clear scheduled_at give datetime.fromtimestamp(0) to scheduled_at.
+
+    scheduled_at is necessary to make topic_status "scheduled".
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
