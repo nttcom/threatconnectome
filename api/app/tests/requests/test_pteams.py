@@ -3093,14 +3093,14 @@ class TestTicketStatus:
                 raise HTTPError(response)
 
             data = response.json()
-            assert data['scheduled_at'] is None
+            assert data["scheduled_at"] is None
 
             # verification of correct registration in DB
             get_response = self._get_ticket_status(
                 self.pteam1.pteam_id, self.service_id1, self.ticket_id1
             )
 
-            assert get_response['scheduled_at'] is None
+            assert get_response["scheduled_at"] is None
 
 
 class TestGetTickets:
