@@ -3045,6 +3045,63 @@ class TestTicketStatus:
             }
             assert data == expected_status
 
+        def test_it_should_return_400_when_topic_status_is_scheduled_and_there_is_no_schduled_at(
+            self, actionable_topic1
+        ):
+            status_request = {
+                "topic_status": models.TopicStatusType.scheduled.value,
+                "assignees": [str(self.user2.user_id)],
+                "note": "assign user2 and schedule at 2345/6/7",
+            }
+            url = (
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+                f"/ticketstatus/{self.ticket_id1}"
+            )
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            response = client.post(url, headers=_headers, json=status_request)
+            assert response.status_code == 400
+
+            set_response = response.json()
+            assert set_response["detail"] == "If statsu is schduled, specify schduled_at"
+
+        def test_it_should_put_None_in_schduled_at_when_schduled_at_is_datetime_fromtimestamp_zero(
+            self, actionable_topic1
+        ):
+            status_request = {
+                "topic_status": models.TopicStatusType.scheduled.value,
+                "assignees": [str(self.user2.user_id)],
+                "note": "assign user2 and schedule at 2345/6/7",
+                "scheduled_at": str(datetime.fromtimestamp(0)),
+            }
+            url = (
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+                f"/ticketstatus/{self.ticket_id1}"
+            )
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            response = client.post(url, headers=_headers, json=status_request)
+            if response.status_code != 200:
+                raise HTTPError(response)
+
+            data = response.json()
+            assert data["scheduled_at"] is None
+
+            # verification of correct registration in DB
+            get_response = self._get_ticket_status(
+                self.pteam1.pteam_id, self.service_id1, self.ticket_id1
+            )
+
+            assert get_response["scheduled_at"] is None
+
 
 class TestGetTickets:
 
