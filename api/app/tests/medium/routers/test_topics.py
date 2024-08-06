@@ -422,6 +422,7 @@ def test_delete_topic(testdb: Session):
         "user_id": str(user1.user_id),
         "pteam_id": str(pteam1.pteam_id),
         "service_id": str(service_id),
+        "ticket_id": ticket1_id,
         "executed_at": str(now) if now else None,
     }
 

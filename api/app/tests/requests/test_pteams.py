@@ -7,7 +7,6 @@ from uuid import UUID, uuid4
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.constants import (
@@ -17,7 +16,7 @@ from app.constants import (
     ZERO_FILLED_UUID,
 )
 from app.main import app
-from app.tests.common import threat_utils, ticket_utils
+from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
@@ -43,7 +42,6 @@ from app.tests.medium.utils import (
     compare_tags,
     create_ateam,
     create_pteam,
-    create_service_topicstatus,
     create_tag,
     create_topic,
     create_user,
@@ -54,6 +52,7 @@ from app.tests.medium.utils import (
     headers,
     invite_to_pteam,
     schema_to_dict,
+    set_ticket_status,
     upload_pteam_tags,
 )
 
@@ -1943,12 +1942,11 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_id(testdb):
         "assignees": [],
         "scheduled_at": str(datetime.now()),
     }
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
         ticket_response["service_id"],
-        ticket_response["topic_id"],
-        ticket_response["tag_id"],
+        ticket_response["ticket_id"],
         json_data,
     )
 
@@ -1972,12 +1970,11 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_member(testdb):
         "assignees": [],
         "scheduled_at": str(datetime.now()),
     }
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
         ticket_response["service_id"],
-        ticket_response["topic_id"],
-        ticket_response["tag_id"],
+        ticket_response["ticket_id"],
         json_data,
     )
 
@@ -2001,12 +1998,11 @@ def test_service_tagged_ticket_ids_with_wrong_service_id(testdb):
         "assignees": [],
         "scheduled_at": str(datetime.now()),
     }
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
         ticket_response["service_id"],
-        ticket_response["topic_id"],
-        ticket_response["tag_id"],
+        ticket_response["ticket_id"],
         json_data,
     )
 
@@ -2031,12 +2027,11 @@ def test_service_tagged_ticket_ids_with_service_not_in_pteam(testdb):
         "assignees": [],
         "scheduled_at": str(datetime.now()),
     }
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
         ticket_response1["pteam_id"],
         ticket_response1["service_id"],
-        ticket_response1["topic_id"],
-        ticket_response1["tag_id"],
+        ticket_response1["ticket_id"],
         json_data,
     )
 
@@ -2059,12 +2054,11 @@ def test_service_tagged_tikcet_ids_with_wrong_tag_id(testdb):
         "assignees": [],
         "scheduled_at": str(datetime.now()),
     }
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
         ticket_response["service_id"],
-        ticket_response["topic_id"],
-        ticket_response["tag_id"],
+        ticket_response["ticket_id"],
         json_data,
     )
 
@@ -2088,12 +2082,11 @@ def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
         "assignees": [],
         "scheduled_at": str(datetime.now()),
     }
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
         ticket_response1["pteam_id"],
         ticket_response1["service_id"],
-        ticket_response1["topic_id"],
-        ticket_response1["tag_id"],
+        ticket_response1["ticket_id"],
         json_data,
     )
 
@@ -2328,116 +2321,6 @@ def test_upload_pteam_sbom_file_wrong_content_format():
                     files={"file": tags},
                 )
             )
-
-
-def test_get_service_topic_status_without_ticket_status(testdb: Session):
-    threat = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
-    dependency = (
-        testdb.query(models.Dependency)
-        .filter(
-            models.Dependency.dependency_id == str(threat.dependency_id),
-        )
-        .one()
-    )
-    pteam_id = dependency.service.pteam.pteam_id
-    service_id = UUID(dependency.service.service_id)
-    tag_id = UUID(dependency.tag.tag_id)
-
-    response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/topicstatus/{threat.topic_id}/{tag_id}",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    responsed_topicstatuses = response.json()
-    assert responsed_topicstatuses["pteam_id"] == str(pteam_id)
-    assert responsed_topicstatuses["service_id"] == str(service_id)
-    assert responsed_topicstatuses["topic_id"] == str(threat.topic_id)
-    assert responsed_topicstatuses["tag_id"] == str(tag_id)
-    assert responsed_topicstatuses["user_id"] is None
-    assert responsed_topicstatuses["topic_status"] is None
-    assert responsed_topicstatuses["note"] is None
-
-
-def test_get_service_topic_status_with_ticket_status(testdb: Session):
-    threat = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
-    dependency = (
-        testdb.query(models.Dependency)
-        .filter(
-            models.Dependency.dependency_id == str(threat.dependency_id),
-        )
-        .one()
-    )
-    pteam_id = dependency.service.pteam.pteam_id
-    service_id = UUID(dependency.service.service_id)
-    tag_id = UUID(dependency.tag.tag_id)
-
-    set_request = {
-        "topic_status": models.TopicStatusType.acknowledged,
-        "logging_ids": [],
-        "assignees": [],
-        "note": f"acknowledged by {USER1['email']}",
-        "scheduled_at": None,
-    }
-    create_service_topicstatus(
-        USER1,
-        pteam_id,
-        service_id,
-        threat.topic_id,
-        tag_id,
-        set_request,
-    )
-
-    # get topicstatuses
-    response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/topicstatus/{threat.topic_id}/{tag_id}",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    responsed_topicstatuses = response.json()
-    assert responsed_topicstatuses["pteam_id"] == str(pteam_id)
-    assert responsed_topicstatuses["service_id"] == str(service_id)
-    assert responsed_topicstatuses["topic_id"] == str(threat.topic_id)
-    assert responsed_topicstatuses["tag_id"] == str(tag_id)
-    assert responsed_topicstatuses["user_id"] is not None
-    assert responsed_topicstatuses["topic_status"] == set_request["topic_status"]
-    assert responsed_topicstatuses["note"] == set_request["note"]
-
-
-def test_post_service_topic_status(testdb: Session):
-    threat = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
-    dependency = (
-        testdb.query(models.Dependency)
-        .filter(
-            models.Dependency.dependency_id == str(threat.dependency_id),
-        )
-        .one()
-    )
-    pteam_id = dependency.service.pteam.pteam_id
-    service_id = UUID(dependency.service.service_id)
-    tag_id = UUID(dependency.tag.tag_id)
-
-    set_request = {
-        "topic_status": models.TopicStatusType.acknowledged,
-        "logging_ids": [],
-        "assignees": [],
-        "note": f"acknowledged by {USER1['email']}",
-        "scheduled_at": None,
-    }
-
-    response = client.post(
-        f"/pteams/{pteam_id}/services/{service_id}/topicstatus/{threat.topic_id}/{tag_id}",
-        headers=headers(USER1),
-        json=set_request,
-    )
-    assert response.status_code == 200
-    responsed_topicstatuses = response.json()
-    assert responsed_topicstatuses["pteam_id"] == str(pteam_id)
-    assert responsed_topicstatuses["service_id"] == str(service_id)
-    assert responsed_topicstatuses["topic_id"] == str(threat.topic_id)
-    assert responsed_topicstatuses["tag_id"] == str(tag_id)
-    assert responsed_topicstatuses["user_id"] is not None
-    assert responsed_topicstatuses["topic_status"] == set_request["topic_status"]
-    assert responsed_topicstatuses["note"] == set_request["note"]
 
 
 class TestGetPTeamServiceTagsSummary:

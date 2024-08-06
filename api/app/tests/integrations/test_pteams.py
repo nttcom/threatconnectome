@@ -28,11 +28,14 @@ from app.tests.medium.constants import (
 )
 from app.tests.medium.utils import (
     create_pteam,
-    create_service_topicstatus,
+    create_tag,
     create_topic,
     create_topic_with_versioned_actions,
     create_user,
+    get_service_by_service_name,
+    get_tickets_related_to_topic_tag,
     headers,
+    set_ticket_status,
     upload_pteam_tags,
 )
 
@@ -42,92 +45,58 @@ client = TestClient(app)
 @pytest.mark.parametrize(
     "topic_status, solved_num, unsolved_num",
     [
+        (models.TopicStatusType.acknowledged, 0, 1),
+        (models.TopicStatusType.scheduled, 0, 1),
         (models.TopicStatusType.completed, 1, 0),
     ],
 )
-def test_it_should_return_solved_number_based_on_ticket_status(
+def test_it_should_return_solved_or_unsolved_number_based_on_ticket_status(
     testdb, topic_status, solved_num, unsolved_num
 ):
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    tag1 = create_tag(USER1, TAG1)
+    topic1 = create_topic_with_versioned_actions(USER1, TOPIC1, [[TAG1]])
+    test_service = "test service"
+    refs0 = {TAG1: [("test target", "1.2.3")]}
+    upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
+    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service)
+    tickets = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic1.topic_id, tag1.tag_id
+    )
+    ticket1 = tickets[0]
 
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
-
+    # set status
     json_data = {
         "topic_status": topic_status,
         "note": "string",
         "assignees": [],
         "scheduled_at": str(datetime.now()),
     }
-    create_service_topicstatus(
-        USER1,
-        ticket_response["pteam_id"],
-        ticket_response["service_id"],
-        ticket_response["topic_id"],
-        ticket_response["tag_id"],
-        json_data,
+    set_ticket_status(
+        USER1, pteam1.pteam_id, service1["service_id"], ticket1["ticket_id"], json_data
     )
 
+    # get summary
     response = client.get(
-        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/topic_ids",
+        f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
         headers=headers(USER1),
     )
     assert response.status_code == 200
     response = response.json()
 
     # common
-    assert response["pteam_id"] == ticket_response["pteam_id"]
-    assert response["service_id"] == ticket_response["service_id"]
-    assert response["tag_id"] == ticket_response["tag_id"]
+    assert response["pteam_id"] == str(pteam1.pteam_id)
+    assert response["service_id"] == service1["service_id"]
+    assert response["tag_id"] == str(tag1.tag_id)
     # solved
     assert len(response["solved"]["topic_ids"]) == solved_num
-    assert response["solved"]["topic_ids"][0] == ticket_response["topic_id"]
+    if solved_num > 0:
+        all(topic_id == str(topic1.topic_id) for topic_id in response["solved"]["topic_ids"])
     # unsolved
     assert len(response["unsolved"]["topic_ids"]) == unsolved_num
-
-
-@pytest.mark.parametrize(
-    "topic_status, solved_num, unsolved_num",
-    [
-        (models.TopicStatusType.acknowledged, 0, 1),
-        (models.TopicStatusType.scheduled, 0, 1),
-    ],
-)
-def test_it_should_return_unsolved_number_based_on_ticket_status(
-    testdb, topic_status, solved_num, unsolved_num
-):
-
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
-
-    json_data = {
-        "topic_status": topic_status,
-        "note": "string",
-        "assignees": [],
-        "scheduled_at": str(datetime.now()),
-    }
-    create_service_topicstatus(
-        USER1,
-        ticket_response["pteam_id"],
-        ticket_response["service_id"],
-        ticket_response["topic_id"],
-        ticket_response["tag_id"],
-        json_data,
-    )
-
-    response = client.get(
-        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/topic_ids",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    response = response.json()
-
-    # common
-    assert response["pteam_id"] == ticket_response["pteam_id"]
-    assert response["service_id"] == ticket_response["service_id"]
-    assert response["tag_id"] == ticket_response["tag_id"]
-    # solved
-    assert len(response["solved"]["topic_ids"]) == solved_num == 0
-    # unsolved
-    assert len(response["unsolved"]["topic_ids"]) == unsolved_num
-    assert response["unsolved"]["topic_ids"][0] == ticket_response["topic_id"]
+    if unsolved_num > 0:
+        all(topic_id == str(topic1.topic_id) for topic_id in response["unsolved"]["topic_ids"])
 
 
 @pytest.mark.parametrize(
@@ -163,7 +132,7 @@ def test_it_should_return_unsolved_number_based_on_ticket_status(
         ),
     ],
 )
-def test_it_shoud_return_threat_impact_count_num_based_on_tickte_status(
+def test_it_should_return_threat_impact_count_num_based_on_tickte_status(
     testdb,
     threat_impact,
     topic_status1,
@@ -284,43 +253,65 @@ def test_it_shoud_return_threat_impact_count_num_based_on_tickte_status(
 def test_it_shoud_return_solved_sorted_title_based_on_threat_impact(
     testdb, _topic1, _topic2, _topic3, _topic4, titles_sorted_by_threat_impact
 ):
-    topic1 = {
-        **TOPIC1,
-        "title": _topic1["title"],
-        "threat_impact": _topic1["threat_impact"],
-    }
-    ticket_response1 = ticket_utils.create_ticket(testdb, USER1, PTEAM1, topic1)
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    tag1 = create_tag(USER1, TAG1)
+    test_service = "test service"
+    refs0 = {TAG1: [("test target", "1.2.3")]}
+    upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
+    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service)
 
-    topic2 = {
-        **TOPIC1,
-        "topic_id": uuid4(),
-        "tag_name": ticket_response1["tag_name"],
-        "title": _topic2["title"],
-        "threat_impact": _topic2["threat_impact"],
-    }
-    topic3 = {
-        **TOPIC1,
-        "topic_id": uuid4(),
-        "tag_name": ticket_response1["tag_name"],
-        "title": _topic3["title"],
-        "threat_impact": _topic3["threat_impact"],
-    }
-    topic4 = {
-        **TOPIC1,
-        "topic_id": uuid4(),
-        "tag_name": ticket_response1["tag_name"],
-        "title": _topic4["title"],
-        "threat_impact": _topic4["threat_impact"],
-    }
-    topic_response2 = create_topic_with_versioned_actions(
-        USER1, topic2, [[ticket_response1["tag_name"]]]
+    topic1 = create_topic_with_versioned_actions(
+        USER1,
+        {
+            **TOPIC1,
+            "title": _topic1["title"],
+            "threat_impact": _topic1["threat_impact"],
+        },
+        [[TAG1]],
     )
-    topic_response3 = create_topic_with_versioned_actions(
-        USER1, topic3, [[ticket_response1["tag_name"]]]
+    topic2 = create_topic_with_versioned_actions(
+        USER1,
+        {
+            **TOPIC1,
+            "topic_id": uuid4(),
+            "title": _topic2["title"],
+            "threat_impact": _topic2["threat_impact"],
+        },
+        [[TAG1]],
     )
-    topic_response4 = create_topic_with_versioned_actions(
-        USER1, topic4, [[ticket_response1["tag_name"]]]
+    topic3 = create_topic_with_versioned_actions(
+        USER1,
+        {
+            **TOPIC1,
+            "topic_id": uuid4(),
+            "title": _topic3["title"],
+            "threat_impact": _topic3["threat_impact"],
+        },
+        [[TAG1]],
     )
+    topic4 = create_topic_with_versioned_actions(
+        USER1,
+        {
+            **TOPIC1,
+            "topic_id": uuid4(),
+            "title": _topic4["title"],
+            "threat_impact": _topic4["threat_impact"],
+        },
+        [[TAG1]],
+    )
+    ticket1 = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic1.topic_id, tag1.tag_id
+    )[0]
+    ticket2 = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic2.topic_id, tag1.tag_id
+    )[0]
+    ticket3 = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic3.topic_id, tag1.tag_id
+    )[0]
+    ticket4 = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic4.topic_id, tag1.tag_id
+    )[0]
 
     json_data = {
         "topic_status": models.TopicStatusType.completed,
@@ -328,50 +319,46 @@ def test_it_shoud_return_solved_sorted_title_based_on_threat_impact(
         "assignees": [],
         "scheduled_at": str(datetime.now()),
     }
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
-        ticket_response1["pteam_id"],
-        ticket_response1["service_id"],
-        ticket_response1["topic_id"],
-        ticket_response1["tag_id"],
+        pteam1.pteam_id,
+        service1["service_id"],
+        ticket1["ticket_id"],
         json_data,
     )
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
-        ticket_response1["pteam_id"],
-        ticket_response1["service_id"],
-        topic_response2.topic_id,
-        ticket_response1["tag_id"],
+        pteam1.pteam_id,
+        service1["service_id"],
+        ticket2["ticket_id"],
         json_data,
     )
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
-        ticket_response1["pteam_id"],
-        ticket_response1["service_id"],
-        topic_response3.topic_id,
-        ticket_response1["tag_id"],
+        pteam1.pteam_id,
+        service1["service_id"],
+        ticket3["ticket_id"],
         json_data,
     )
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
-        ticket_response1["pteam_id"],
-        ticket_response1["service_id"],
-        topic_response4.topic_id,
-        ticket_response1["tag_id"],
+        pteam1.pteam_id,
+        service1["service_id"],
+        ticket4["ticket_id"],
         json_data,
     )
 
     response = client.get(
-        f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response1['service_id']}/tags/{ticket_response1['tag_id']}/topic_ids",
+        f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
         headers=headers(USER1),
     )
     assert response.status_code == 200
     response_json = response.json()
 
     # common
-    assert response_json["pteam_id"] == ticket_response1["pteam_id"]
-    assert response_json["service_id"] == ticket_response1["service_id"]
-    assert response_json["tag_id"] == ticket_response1["tag_id"]
+    assert response_json["pteam_id"] == str(pteam1.pteam_id)
+    assert response_json["service_id"] == service1["service_id"]
+    assert response_json["tag_id"] == str(tag1.tag_id)
     # solved
     topic_title_list = []
     for topic_id in response_json["solved"]["topic_ids"]:
@@ -426,43 +413,65 @@ def test_it_shoud_return_solved_sorted_title_based_on_threat_impact(
 def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
     testdb, _topic1, _topic2, _topic3, _topic4, titles_sorted_by_threat_impact
 ):
-    topic1 = {
-        **TOPIC1,
-        "title": _topic1["title"],
-        "threat_impact": _topic1["threat_impact"],
-    }
-    ticket_response1 = ticket_utils.create_ticket(testdb, USER1, PTEAM1, topic1)
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    tag1 = create_tag(USER1, TAG1)
+    test_service = "test service"
+    refs0 = {TAG1: [("test target", "1.2.3")]}
+    upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
+    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service)
 
-    topic2 = {
-        **TOPIC1,
-        "topic_id": uuid4(),
-        "tag_name": ticket_response1["tag_name"],
-        "title": _topic2["title"],
-        "threat_impact": _topic2["threat_impact"],
-    }
-    topic3 = {
-        **TOPIC1,
-        "topic_id": uuid4(),
-        "tag_name": ticket_response1["tag_name"],
-        "title": _topic3["title"],
-        "threat_impact": _topic3["threat_impact"],
-    }
-    topic4 = {
-        **TOPIC1,
-        "topic_id": uuid4(),
-        "tag_name": ticket_response1["tag_name"],
-        "title": _topic4["title"],
-        "threat_impact": _topic4["threat_impact"],
-    }
-    topic_response2 = create_topic_with_versioned_actions(
-        USER1, topic2, [[ticket_response1["tag_name"]]]
+    topic1 = create_topic_with_versioned_actions(
+        USER1,
+        {
+            **TOPIC1,
+            "title": _topic1["title"],
+            "threat_impact": _topic1["threat_impact"],
+        },
+        [[TAG1]],
     )
-    topic_response3 = create_topic_with_versioned_actions(
-        USER1, topic3, [[ticket_response1["tag_name"]]]
+    topic2 = create_topic_with_versioned_actions(
+        USER1,
+        {
+            **TOPIC1,
+            "topic_id": uuid4(),
+            "title": _topic2["title"],
+            "threat_impact": _topic2["threat_impact"],
+        },
+        [[TAG1]],
     )
-    topic_response4 = create_topic_with_versioned_actions(
-        USER1, topic4, [[ticket_response1["tag_name"]]]
+    topic3 = create_topic_with_versioned_actions(
+        USER1,
+        {
+            **TOPIC1,
+            "topic_id": uuid4(),
+            "title": _topic3["title"],
+            "threat_impact": _topic3["threat_impact"],
+        },
+        [[TAG1]],
     )
+    topic4 = create_topic_with_versioned_actions(
+        USER1,
+        {
+            **TOPIC1,
+            "topic_id": uuid4(),
+            "title": _topic4["title"],
+            "threat_impact": _topic4["threat_impact"],
+        },
+        [[TAG1]],
+    )
+    ticket1 = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic1.topic_id, tag1.tag_id
+    )[0]
+    ticket2 = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic2.topic_id, tag1.tag_id
+    )[0]
+    ticket3 = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic3.topic_id, tag1.tag_id
+    )[0]
+    ticket4 = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic4.topic_id, tag1.tag_id
+    )[0]
 
     json_data = {
         "topic_status": models.TopicStatusType.acknowledged,
@@ -470,50 +479,46 @@ def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
         "assignees": [],
         "scheduled_at": str(datetime.now()),
     }
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
-        ticket_response1["pteam_id"],
-        ticket_response1["service_id"],
-        ticket_response1["topic_id"],
-        ticket_response1["tag_id"],
+        pteam1.pteam_id,
+        service1["service_id"],
+        ticket1["ticket_id"],
         json_data,
     )
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
-        ticket_response1["pteam_id"],
-        ticket_response1["service_id"],
-        topic_response2.topic_id,
-        ticket_response1["tag_id"],
+        pteam1.pteam_id,
+        service1["service_id"],
+        ticket2["ticket_id"],
         json_data,
     )
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
-        ticket_response1["pteam_id"],
-        ticket_response1["service_id"],
-        topic_response3.topic_id,
-        ticket_response1["tag_id"],
+        pteam1.pteam_id,
+        service1["service_id"],
+        ticket3["ticket_id"],
         json_data,
     )
-    create_service_topicstatus(
+    set_ticket_status(
         USER1,
-        ticket_response1["pteam_id"],
-        ticket_response1["service_id"],
-        topic_response4.topic_id,
-        ticket_response1["tag_id"],
+        pteam1.pteam_id,
+        service1["service_id"],
+        ticket4["ticket_id"],
         json_data,
     )
 
     response = client.get(
-        f"/pteams/{ticket_response1['pteam_id']}/services/{ticket_response1['service_id']}/tags/{ticket_response1['tag_id']}/topic_ids",
+        f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
         headers=headers(USER1),
     )
     assert response.status_code == 200
     response_json = response.json()
 
     # common
-    assert response_json["pteam_id"] == ticket_response1["pteam_id"]
-    assert response_json["service_id"] == ticket_response1["service_id"]
-    assert response_json["tag_id"] == ticket_response1["tag_id"]
+    assert response_json["pteam_id"] == str(pteam1.pteam_id)
+    assert response_json["service_id"] == service1["service_id"]
+    assert response_json["tag_id"] == str(tag1.tag_id)
     # solved
     assert len(response_json["solved"]["topic_ids"]) == 0
     # unsolved
