@@ -170,25 +170,14 @@ class TestFixThreatsForTopic:
         else:
             assert len(db_dependency1.threats) == 0
 
-    @pytest.mark.parametrize(
-        "vuln_versions_1, vuln_versions_2, delete_action_1, delete_action_2, should_exist_ticket",
-        [
-            (["< 1.5"], ["< 1.0"], False, True, True),
-            (["< 1.0"], ["< 1.5"], False, True, False),
-            (["< 1.0"], ["< 1.5"], True, True, False),
-        ],
-    )
-    def test_threat_ticket_creation_on_delete_action(
-        self,
-        testdb,
+    @staticmethod
+    def create_ticket_and_delete_action(
+        dep_version,
         vuln_versions_1,
         vuln_versions_2,
         delete_action_1,
         delete_action_2,
-        should_exist_ticket,
-    ):
-        dep_version = "1.2"
-
+    ) -> tuple[str, str]:
         create_user(USER1)
         tag1 = create_tag(USER1, "foobar:ubuntu-24.04:")
         pteam1 = create_pteam(USER1, PTEAM1)
@@ -230,15 +219,70 @@ class TestFixThreatsForTopic:
                 headers=headers(USER1),
             )
 
+        return (str(pteam1.pteam_id), str(topic1.topic_id))
+
+    @pytest.mark.parametrize(
+        "vuln_versions_1, vuln_versions_2, delete_action_1, delete_action_2, should_exist_ticket",
+        [
+            (["< 1.0"], ["< 1.5"], False, True, False),
+            (["< 1.0"], ["< 1.5"], True, True, False),
+        ],
+    )
+    def test_ticket_should_be_deleted_when_delete_action_which_has_affected_version(
+        self,
+        testdb,
+        vuln_versions_1,
+        vuln_versions_2,
+        delete_action_1,
+        delete_action_2,
+        should_exist_ticket,
+    ):
+        dep_version = "1.2"
+        pteam_id, topic_id = TestFixThreatsForTopic.create_ticket_and_delete_action(
+            dep_version, vuln_versions_1, vuln_versions_2, delete_action_1, delete_action_2
+        )
+
         db_dependency1 = testdb.scalars(
             select(models.Dependency)
             .join(models.Service)
-            .where(models.Service.pteam_id == str(pteam1.pteam_id))
+            .where(models.Service.pteam_id == pteam_id)
         ).one()
 
         assert len(db_dependency1.threats) == 1
         db_threat1 = db_dependency1.threats[0]
-        assert db_threat1.topic_id == str(topic1.topic_id)
+        assert db_threat1.topic_id == topic_id
+        assert (db_threat1.ticket is not None) == should_exist_ticket
+
+    @pytest.mark.parametrize(
+        "vuln_versions_1, vuln_versions_2, delete_action_1, delete_action_2, should_exist_ticket",
+        [
+            (["< 1.5"], ["< 1.0"], False, True, True),
+            (["< 1.5"], ["< 1.0"], False, True, True),
+        ],
+    )
+    def test_ticket_should_not_be_deleted_when_delete_action_which_has_not_affected_version(
+        self,
+        testdb,
+        vuln_versions_1,
+        vuln_versions_2,
+        delete_action_1,
+        delete_action_2,
+        should_exist_ticket,
+    ):
+        dep_version = "1.2"
+        pteam_id, topic_id = TestFixThreatsForTopic.create_ticket_and_delete_action(
+            dep_version, vuln_versions_1, vuln_versions_2, delete_action_1, delete_action_2
+        )
+
+        db_dependency1 = testdb.scalars(
+            select(models.Dependency)
+            .join(models.Service)
+            .where(models.Service.pteam_id == pteam_id)
+        ).one()
+
+        assert len(db_dependency1.threats) == 1
+        db_threat1 = db_dependency1.threats[0]
+        assert db_threat1.topic_id == topic_id
         assert (db_threat1.ticket is not None) == should_exist_ticket
 
 
