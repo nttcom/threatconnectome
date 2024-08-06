@@ -261,5 +261,8 @@ TopicStatusSelector.propTypes = {
   tagId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentStatus: PropTypes.object.isRequired,
-  topicActions: PropTypes.array.isRequired,
+  topicActions: PropTypes.array,
+};
+TopicStatusSelector.defaultProps = {
+  topicActions: [],
 };
