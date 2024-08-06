@@ -221,25 +221,14 @@ class TestFixThreatsForTopic:
 
         return (str(pteam1.pteam_id), str(topic1.topic_id))
 
-    @pytest.mark.parametrize(
-        "vuln_versions_1, vuln_versions_2, delete_action_1, delete_action_2, should_exist_ticket",
-        [
-            (["< 1.0"], ["< 1.5"], False, True, False),
-            (["< 1.0"], ["< 1.5"], True, True, False),
-        ],
-    )
+    @pytest.mark.parametrize("delete_action_1", [False, True])
     def test_ticket_should_be_deleted_when_delete_action_which_has_affected_version(
         self,
         testdb,
-        vuln_versions_1,
-        vuln_versions_2,
         delete_action_1,
-        delete_action_2,
-        should_exist_ticket,
     ):
-        dep_version = "1.2"
         pteam_id, topic_id = TestFixThreatsForTopic.create_ticket_and_delete_action(
-            dep_version, vuln_versions_1, vuln_versions_2, delete_action_1, delete_action_2
+            "1.2", ["< 1.0"], ["< 1.5"], delete_action_1, True
         )
 
         db_dependency1 = testdb.scalars(
@@ -251,27 +240,14 @@ class TestFixThreatsForTopic:
         assert len(db_dependency1.threats) == 1
         db_threat1 = db_dependency1.threats[0]
         assert db_threat1.topic_id == topic_id
-        assert (db_threat1.ticket is not None) == should_exist_ticket
+        assert db_threat1.ticket is None
 
-    @pytest.mark.parametrize(
-        "vuln_versions_1, vuln_versions_2, delete_action_1, delete_action_2, should_exist_ticket",
-        [
-            (["< 1.5"], ["< 1.0"], False, True, True),
-            (["< 1.5"], ["< 1.0"], False, True, True),
-        ],
-    )
     def test_ticket_should_not_be_deleted_when_delete_action_which_has_not_affected_version(
         self,
         testdb,
-        vuln_versions_1,
-        vuln_versions_2,
-        delete_action_1,
-        delete_action_2,
-        should_exist_ticket,
     ):
-        dep_version = "1.2"
         pteam_id, topic_id = TestFixThreatsForTopic.create_ticket_and_delete_action(
-            dep_version, vuln_versions_1, vuln_versions_2, delete_action_1, delete_action_2
+            "1.2", ["< 1.5"], ["< 1.0"], False, True
         )
 
         db_dependency1 = testdb.scalars(
@@ -283,7 +259,7 @@ class TestFixThreatsForTopic:
         assert len(db_dependency1.threats) == 1
         db_threat1 = db_dependency1.threats[0]
         assert db_threat1.topic_id == topic_id
-        assert (db_threat1.ticket is not None) == should_exist_ticket
+        assert db_threat1.ticket is not None
 
 
 class TestFixThreatsForDependency:
