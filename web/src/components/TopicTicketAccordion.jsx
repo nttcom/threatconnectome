@@ -134,8 +134,9 @@ TopicTicketAccordion.propTypes = {
   ticket: PropTypes.object.isRequired,
   members: PropTypes.object.isRequired,
   defaultExpanded: PropTypes.bool,
-  topicActions: PropTypes.array.isRequired,
+  topicActions: PropTypes.array,
 };
 TopicTicketAccordion.defaultProps = {
   defaultExpanded: false,
+  topicActions: [],
 };
