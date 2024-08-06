@@ -99,5 +99,5 @@ AssigneesSelector.propTypes = {
   tagId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentAssigneeIds: PropTypes.array.isRequired,
-  members: PropTypes.array.isRequired,
+  members: PropTypes.object.isRequired,
 };
