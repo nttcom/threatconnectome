@@ -166,5 +166,5 @@ PTeamStatusCard.propTypes = {
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
   }).isRequired,
-  serviceIds: PropTypes.array.isRequired,
+  serviceIds: PropTypes.array,
 };
