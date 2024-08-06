@@ -29,7 +29,7 @@ const ssvcPriorityToThreatImpactName = (ssvcPriority) =>
   })[ssvcPriority];
 
 export const TopicTicketAccordion = (props) => {
-  const { pteamId, dependency, topicId, ticket, members, defaultExpanded } = props;
+  const { pteamId, dependency, topicId, ticket, members, defaultExpanded, topicActions } = props;
 
   const serviceId = dependency.service_id;
   const tagId = dependency.tag_id;
@@ -87,6 +87,7 @@ export const TopicTicketAccordion = (props) => {
                 tagId={tagId}
                 ticketId={ticket.ticket_id}
                 currentStatus={ticketStatus}
+                topicActions={topicActions}
               />
               {(ticketStatus.topic_status ?? "alerted") === "alerted" && (
                 <WarningTooltip message="No one has acknowledged this topic" />
@@ -133,6 +134,7 @@ TopicTicketAccordion.propTypes = {
   ticket: PropTypes.object.isRequired,
   members: PropTypes.object.isRequired,
   defaultExpanded: PropTypes.bool,
+  topicActions: PropTypes.array.isRequired,
 };
 TopicTicketAccordion.defaultProps = {
   defaultExpanded: false,

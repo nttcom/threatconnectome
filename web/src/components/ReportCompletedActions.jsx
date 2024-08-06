@@ -14,17 +14,10 @@ import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import {
-  getTopicStatus,
-  getPTeamServiceTaggedTopicIds,
-  getPTeamServiceTagsSummary,
-  getPTeamTagsSummary,
-} from "../slices/pteam";
-import { createActionLog, createTopicStatus } from "../utils/api";
+import { createActionLog, setTicketStatus } from "../utils/api";
 
 import { ActionTypeChip } from "./ActionTypeChip";
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -32,21 +25,26 @@ import { RecommendedStar } from "./RecommendedStar";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function ReportCompletedActions(props) {
-  const { onConfirm, onSetShow, show, topicId, topicActions, serviceId } = props;
+  const {
+    pteamId,
+    serviceId,
+    ticketId,
+    topicId,
+    tagId,
+    topicActions,
+    onSucceeded,
+    onSetShow,
+    show,
+  } = props;
 
   const [note, setNote] = useState("");
   const [selectedAction, setSelectedAction] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
   const [skipped, setSkipped] = useState(new Set());
 
-  const { tagId } = useParams();
   const { enqueueSnackbar } = useSnackbar();
 
-  const pteamId = useSelector((state) => state.pteam.pteamId);
-  const topics = useSelector((state) => state.topics.topics); // dispatched by parent
   const user = useSelector((state) => state.user.user);
-
-  const dispatch = useDispatch();
 
   const handleAction = async () => {
     try {
@@ -57,6 +55,7 @@ export function ReportCompletedActions(props) {
               action_id: actionId,
               pteam_id: pteamId,
               service_id: serviceId,
+              ticket_id: ticketId,
               topic_id: topicId,
               user_id: user.user_id,
             }).then((response) => {
@@ -65,29 +64,23 @@ export function ReportCompletedActions(props) {
             }),
         ),
       );
-      await createTopicStatus(pteamId, serviceId, topicId, tagId, {
+      await setTicketStatus(pteamId, serviceId, ticketId, {
         topic_status: "completed",
-        logging_ids: actionLogs.map((logs) => logs.map((log) => log.logging_id)).flat(),
+        logging_ids: actionLogs.map((log) => log.logging_id),
+        assignees: [], // clear assignees
         note: note.trim() || null,
+        scheduled_at: "1970-01-01T00:00:00", // FIXME: clear scheduled date
       });
       handleClose();
-      onConfirm();
+      onSucceeded();
       setNote("");
-      dispatch(
-        getTopicStatus({ pteamId: pteamId, serviceId: serviceId, topicId: topicId, tagId: tagId }),
-      );
-      dispatch(
-        getPTeamServiceTaggedTopicIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
-      );
-      dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
-      dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
-      enqueueSnackbar("Set topicstatus 'completed' succeeded", { variant: "success" });
+      enqueueSnackbar("Set ticketstatus 'completed' succeeded", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`Operation failed: ${error}`, { variant: "error" });
     }
   };
 
-  if (!pteamId || !topicId || !topics[topicId] || !topicActions) return <></>;
+  if (!pteamId || !serviceId || !ticketId || !topicId || !tagId || !topicActions) return <></>;
 
   const handleClose = () => {
     onSetShow(false);
@@ -180,25 +173,24 @@ export function ReportCompletedActions(props) {
         )}
         {activeStep === 1 && (
           <>
-            {topics[topicId]?.actions &&
-              topics[topicId].actions
-                .filter((action) => selectedAction.includes(action.action_id))
-                .map((action) => (
-                  <Box
-                    alignItems="center"
-                    display="flex"
-                    flexDirection="row"
-                    key={action.action_id}
-                    mb={1}
-                  >
-                    <ActionTypeChip actionType={action.action_type} />
-                    <RecommendedStar disabled={!action.recommended} />
-                    <Box display="flex" flexDirection="column">
-                      <Typography>{action.action}</Typography>
-                      <UUIDTypography>{action.action_id}</UUIDTypography>
-                    </Box>
+            {topicActions
+              .filter((action) => selectedAction.includes(action.action_id))
+              .map((action) => (
+                <Box
+                  alignItems="center"
+                  display="flex"
+                  flexDirection="row"
+                  key={action.action_id}
+                  mb={1}
+                >
+                  <ActionTypeChip actionType={action.action_type} />
+                  <RecommendedStar disabled={!action.recommended} />
+                  <Box display="flex" flexDirection="column">
+                    <Typography>{action.action}</Typography>
+                    <UUIDTypography>{action.action_id}</UUIDTypography>
                   </Box>
-                ))}
+                </Box>
+              ))}
             <TextField
               fullWidth
               multiline
@@ -247,10 +239,13 @@ export function ReportCompletedActions(props) {
 }
 
 ReportCompletedActions.propTypes = {
-  onConfirm: PropTypes.func.isRequired,
+  pteamId: PropTypes.string.isRequired,
+  serviceId: PropTypes.string.isRequired,
+  ticketId: PropTypes.string.isRequired,
+  topicId: PropTypes.string.isRequired,
+  tagId: PropTypes.string.isRequired,
+  topicActions: PropTypes.array.isRequired,
+  onSucceeded: PropTypes.func.isRequired,
   onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
-  topicId: PropTypes.string.isRequired,
-  topicActions: PropTypes.array.isRequired,
-  serviceId: PropTypes.string.isRequired,
 };

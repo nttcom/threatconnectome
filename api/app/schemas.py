@@ -437,6 +437,7 @@ class ActionLogRequest(ORMModel):
     user_id: UUID
     pteam_id: UUID
     service_id: UUID
+    ticket_id: UUID
     executed_at: datetime | None = None
 
 
