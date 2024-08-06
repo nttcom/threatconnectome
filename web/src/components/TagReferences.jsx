@@ -47,7 +47,7 @@ export function TagReferences(props) {
                 {references.map(
                   (ref) =>
                     ref.service === serviceDict.service_name && (
-                      <TableRow key={ref.service + "-" + ref.target}>
+                      <TableRow key={ref.service + "-" + ref.target + "-" + ref.version}>
                         <TableCell component="th" scope="row">
                           {ref.target}
                         </TableCell>
