@@ -525,10 +525,12 @@ def set_ticket_status(
         )
 
     now = datetime.now()
+    if data.scheduled_at:
+        data_scheduled_at = data.scheduled_at.replace(tzinfo=None)
     if (
         data.topic_status == models.TopicStatusType.scheduled
         and data.scheduled_at
-        and data.scheduled_at < now
+        and data_scheduled_at < now
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -594,7 +596,7 @@ def set_ticket_status(
     if data.note is not None:
         new_status.note = data.note
     if data.scheduled_at is not None:
-        if data.scheduled_at > now and data.topic_status == models.TopicStatusType.scheduled:
+        if data_scheduled_at > now and data.topic_status == models.TopicStatusType.scheduled:
             new_status.scheduled_at = data.scheduled_at
         elif data.scheduled_at == datetime.fromtimestamp(0):
             new_status.scheduled_at = None
