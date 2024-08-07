@@ -77,6 +77,7 @@ export function AssigneesSelector(props) {
         inputProps={{
           "area-label": "Without label",
         }}
+        notched="true" /* to avoid Warning: Received `true` for a non-boolean attribute `notched` */
       >
         <MenuItem disabled value="">
           <em>select assignees</em>
