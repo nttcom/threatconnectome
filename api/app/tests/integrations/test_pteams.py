@@ -1405,3 +1405,80 @@ class TestPostUploadSBOMFileCycloneDX:
                 )
             else:
                 send_email.assert_not_called()
+
+    class TestCycloneDX16WithTrivy(Common):
+        @staticmethod
+        def gen_base_json(target_name: str) -> dict:
+            return {
+                "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+                "bomFormat": "CycloneDX",
+                "specVersion": "1.6",
+                "serialNumber": "urn:uuid:c427b10d-ce28-43b3-b11a-d8dace6b152f",
+                "version": 1,
+                "metadata": {
+                    "timestamp": "2024-08-06T00:45:35+00:00",
+                    "tools": {
+                        "components": [
+                            {
+                                "type": "application",
+                                "group": "aquasecurity",
+                                "name": "trivy",
+                                "version": "0.54.1",
+                            }
+                        ]
+                    },
+                    "component": {
+                        "bom-ref": "e6cf3443-266e-4ab4-910d-457e31244caa",
+                        "type": "application",
+                        "name": "threatconnectome",
+                        "properties": [{"name": "aquasecurity:trivy:SchemaVersion", "value": "2"}],
+                    },
+                },
+            }
+
+        @pytest.mark.parametrize(
+            "service_name, component_params, expected_dependency_params",
+        )
+        def test_create_dependencies_based_on_sbom(
+            self, service_name, component_params, expected_dependency_params
+        ) -> None:
+            target_name = "sample target1"
+            components_dict = {
+                self.ApplicationParam(**application_param): [
+                    self.LibraryParam(**library_param) for library_param in library_params
+                ]
+                for application_param, library_params in component_params
+            }
+            sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
+
+            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, True, None)
+
+            services = self.get_services()
+            service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+            assert service1
+            now = datetime.now()
+            datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
+            assert datetime.strptime(
+                service1["sbom_uploaded_at"], datetime_format
+            ) > now - timedelta(seconds=30)
+            assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
+
+            @dataclass(frozen=True, kw_only=True)
+            class DependencyParamsToCheck:
+                tag_name: str
+                target: str
+                version: str
+
+            created_dependencies = {
+                DependencyParamsToCheck(
+                    tag_name=self.get_tag(dependency["tag_id"])["tag_name"],
+                    target=dependency["target"],
+                    version=dependency["version"],
+                )
+                for dependency in self.get_service_dependencies(service1["service_id"])
+            }
+            expected_dependencies = {
+                DependencyParamsToCheck(**expected_dependency_param)
+                for expected_dependency_param in expected_dependency_params
+            }
+            assert created_dependencies == expected_dependencies
