@@ -205,7 +205,13 @@ export function TopicCard(props) {
       </Box>
       <Divider />
       <Box display="flex" sx={{ height: "350px" }}>
-        <Box flexGrow={1} display="flex" flexDirection="column" justifyContent="space-between">
+        <Box
+          flexGrow={1}
+          display="flex"
+          flexDirection="column"
+          justifyContent="space-between"
+          sx={{ overflowY: "auto" }}
+        >
           <CardContent>
             {!isSolved ? (
               topicActions && (
