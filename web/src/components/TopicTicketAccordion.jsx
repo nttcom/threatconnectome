@@ -64,12 +64,13 @@ export const TopicTicketAccordion = (props) => {
           </Typography>
           <Box sx={{ maxWidth: 150 }}>
             <AssigneesSelector
+              key={ticketStatus.assignees.join("")}
               pteamId={pteamId}
               serviceId={serviceId}
               topicId={topicId}
               tagId={tagId}
               ticketId={ticket.ticket_id}
-              currentAssigneeIds={ticket.current_ticket_status.assignees}
+              currentAssigneeIds={ticketStatus.assignees}
               members={members}
             />
           </Box>
