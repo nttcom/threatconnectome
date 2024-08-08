@@ -364,6 +364,29 @@ def set_ticket_status(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="If statsu is schduled, specify schduled_at",
         )
+    if (
+        data.topic_status != models.TopicStatusType.scheduled
+        and data.scheduled_at
+        and data.scheduled_at != datetime.fromtimestamp(0)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="If statsu is not schduled, do not specify schduled_at",
+        )
+
+    now = datetime.now()
+    if data.scheduled_at:
+        data_scheduled_at = data.scheduled_at.replace(tzinfo=None)
+    if (
+        data.topic_status == models.TopicStatusType.scheduled
+        and data.scheduled_at
+        and data_scheduled_at < now
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="If statsu is schduled, schduled_at must be a future time",
+        )
+
     for logging_id_ in data.logging_ids or []:
         if not (log := persistence.get_action_log_by_id(db, logging_id_)):
             raise HTTPException(
@@ -423,10 +446,10 @@ def set_ticket_status(
     if data.note is not None:
         new_status.note = data.note
     if data.scheduled_at is not None:
-        if data.scheduled_at == datetime.fromtimestamp(0):
-            new_status.scheduled_at = None
-        else:
+        if data_scheduled_at > now and data.topic_status == models.TopicStatusType.scheduled:
             new_status.scheduled_at = data.scheduled_at
+        elif data.scheduled_at == datetime.fromtimestamp(0):
+            new_status.scheduled_at = None
 
     persistence.create_ticket_status(db, new_status)
     ret_status = {**new_status.__dict__}
