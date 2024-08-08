@@ -388,16 +388,12 @@ def set_ticket_status(
             )
 
     current_ticket_status = ticket.current_ticket_status
-    fixed_assignees: list[str] | None = None
-    if (
-        current_ticket_status.topic_status == models.TopicStatusType.alerted
-        and data.topic_status == models.TopicStatusType.acknowledged
-        and not data.assignees
-    ):
-        # force assign current_user if no assignees given for the 1st ack
-        fixed_assignees = [current_user.user_id]
-    elif data.assignees is not None:
-        fixed_assignees = list(map(str, data.assignees))
+    if current_ticket_status.topic_status == models.TopicStatusType.alerted:
+        # this is the first update
+        if data.topic_status is None:
+            data.topic_status = models.TopicStatusType.acknowledged
+        if data.topic_status == models.TopicStatusType.acknowledged and not data.assignees:
+            data.assignees = [UUID(current_user.user_id)]
 
     # create base status inheriting current status
     if _current := current_ticket_status.ticket_status:
@@ -414,12 +410,12 @@ def set_ticket_status(
     else:
         new_status = models.TicketStatus(
             ticket_id=str(ticket_id),
-            topic_status=models.TopicStatusType.alerted,
+            topic_status=models.TopicStatusType.acknowledged,
             user_id=current_user.user_id,
         )
     # overwrite only if required
-    if fixed_assignees is not None:
-        new_status.assignees = fixed_assignees
+    if data.assignees is not None:
+        new_status.assignees = list(map(str, data.assignees))
     if data.topic_status is not None:
         new_status.topic_status = data.topic_status
     if data.logging_ids is not None:
