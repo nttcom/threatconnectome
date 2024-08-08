@@ -33,6 +33,7 @@ import { useLocation, useNavigate } from "react-router";
 import { Android12Switch } from "../components/Android12Switch";
 import { DeleteServiceIcon } from "../components/DeleteServiceIcon";
 import { PTeamLabel } from "../components/PTeamLabel";
+import { PTeamServiceDetails } from "../components/PTeamServiceDetails";
 import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamServicesListModal } from "../components/PTeamServicesListModal";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
@@ -426,6 +427,7 @@ export function Status() {
         />
       )}
       <CustomTabPanel value={isActiveUploadMode} index={0}>
+        <PTeamServiceDetails />
         <Box display="flex" mt={2}>
           {filterRow}
           <Box flexGrow={1} />
