@@ -30,7 +30,6 @@ import { dateTimeFormat } from "../utils/func";
 import { isComparable, parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import { ActionItem } from "./ActionItem";
-import { PTeamEditAction } from "./PTeamEditAction";
 import { TopicModal } from "./TopicModal";
 import { TopicTicketAccordion } from "./TopicTicketAccordion";
 import { UUIDTypography } from "./UUIDTypography";
@@ -42,7 +41,6 @@ export function TopicCard(props) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
-  const [pteamActionModalOpen, setPteamActionModalOpen] = useState(false);
 
   const members = useSelector((state) => state.pteam.members); // dispatched by Tag.jsx
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
@@ -384,17 +382,6 @@ export function TopicCard(props) {
               {detailOpen ? "Hide" : "Show"} Details
             </Button>
           </CardActions>
-          <PTeamEditAction
-            open={pteamActionModalOpen}
-            onSetOpen={setPteamActionModalOpen}
-            presetTopicId={topicId}
-            presetTagId={currentTagId}
-            presetParentTagId={currentTagDict.parent_id}
-            presetActions={pteamTopicActions}
-            currentTagDict={currentTagDict}
-            references={references}
-            serviceId={serviceId}
-          />
         </Box>
         <Divider flexItem={true} orientation="vertical" />
         <Box
