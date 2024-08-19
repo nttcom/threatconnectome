@@ -161,6 +161,149 @@ def get_pteam_services(
     return sorted(pteam.services, key=lambda x: x.service_name)
 
 
+@router.post("/{pteam_id}/services/{service_id}", response_model=schemas.PTeamServiceUpdateResponse)
+def update_pteam_service(
+    pteam_id: UUID,
+    service_id: UUID,
+    data: schemas.PTeamServiceUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Update params of the pteam service.
+    """
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not (
+        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+    ):
+        raise NO_SUCH_SERVICE
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    if data.description is not None:
+        if description := data.description.strip():
+            service.description = description
+        else:
+            service.description = None
+
+    db.commit()
+
+    return service
+
+
+@router.post("/{pteam_id}/services/{service_id}/thumbnail")
+async def upload_service_thumbnail(
+    pteam_id: UUID,
+    service_id: UUID,
+    uploaded: UploadFile,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Upload thumbnail image file of the pteam service.
+
+    Maximum file size: 512 KiB
+    Supported media types: image/png
+    """
+
+    max_size = 512 * 1024
+    error_filesize_exceeds_max = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, detail="Filesize exceeds max(512KiB)"
+    )
+    supported_media_types = {"image/png"}
+    # https://www.iana.org/assignments/media-types/media-types.xhtml
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not (
+        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+    ):
+        raise NO_SUCH_SERVICE
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    # check without loading file
+    if not uploaded.content_type:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing Content-Type")
+    media_type = uploaded.content_type.split(";", 1)[0].lower()
+    if media_type not in supported_media_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported media type"
+        )
+    if uploaded.size is not None and uploaded.size > max_size:
+        raise error_filesize_exceeds_max
+
+    # load file data
+    image_data = await uploaded.read()
+
+    # check actual data size
+    if len(image_data) > max_size:
+        raise error_filesize_exceeds_max
+
+    service.thumbnail = models.ServiceThumbnail(
+        service_id=str(service_id), media_type=media_type, image_data=image_data
+    )
+
+    db.commit()
+
+    return "OK"
+
+
+@router.get("/{pteam_id}/services/{service_id}/thumbnail", response_class=Response)
+def get_service_thumbnail(
+    pteam_id: UUID,
+    service_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get thumbnail image file of the pteam service.
+    """
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not (
+        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+    ):
+        raise NO_SUCH_SERVICE
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if service.thumbnail is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No thumbnail")
+
+    return Response(content=service.thumbnail.image_data, media_type=service.thumbnail.media_type)
+
+
+@router.delete(
+    "/{pteam_id}/services/{service_id}/thumbnail", status_code=status.HTTP_204_NO_CONTENT
+)
+def remove_service_thumbnail(
+    pteam_id: UUID,
+    service_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Remove thumbnail image file of the pteam service.
+    """
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not (
+        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+    ):
+        raise NO_SUCH_SERVICE
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    service.thumbnail = None
+
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.get(
     "/{pteam_id}/services/{service_id}/tags/summary", response_model=schemas.PTeamServiceTagsSummary
 )
