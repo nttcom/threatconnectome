@@ -118,14 +118,17 @@ class PTeamServiceResponse(ORMModel):
     service_id: UUID
     sbom_uploaded_at: datetime | None = None
     description: str | None
+    keywords: list[str]
 
 
 class PTeamServiceUpdateRequest(ORMModel):
     description: str | None = None
+    keywords: list[str] | None = None
 
 
 class PTeamServiceUpdateResponse(ORMModel):
     description: str | None
+    keywords: list[str]
 
 
 class PTeamtagRequest(ORMModel):
