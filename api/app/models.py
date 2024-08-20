@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import cast
 
-from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
 from sqlalchemy.sql.expression import join, outerjoin, text
 from sqlalchemy.sql.functions import current_timestamp
@@ -207,6 +207,7 @@ class Base(DeclarativeBase):
             dict: JSON,
             list[dict]: ARRAY(JSON),
             list[StrUUID]: ARRAY(String(36)),
+            bytes: LargeBinary(),
         }
     )
 
@@ -350,11 +351,23 @@ class Service(Base):
         server_default=MissionImpactEnum.MISSION_FAILURE
     )
     sbom_uploaded_at: Mapped[datetime | None]
+    description: Mapped[str | None]
 
     pteam = relationship("PTeam", back_populates="services")
     dependencies = relationship(
         "Dependency", back_populates="service", cascade="all, delete-orphan"
     )
+    thumbnail = relationship("ServiceThumbnail", uselist=False, cascade="all, delete-orphan")
+
+
+class ServiceThumbnail(Base):
+    __tablename__ = "servicethumbnail"
+
+    service_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("service.service_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    media_type: Mapped[Str255]
+    image_data: Mapped[bytes]
 
 
 class Threat(Base):
