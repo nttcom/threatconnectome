@@ -1405,3 +1405,33 @@ class TestPostUploadSBOMFileCycloneDX:
                 )
             else:
                 send_email.assert_not_called()
+
+    class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
+        @staticmethod
+        def gen_base_json(target_name: str) -> dict:
+            return {
+                "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+                "bomFormat": "CycloneDX",
+                "specVersion": "1.6",
+                "serialNumber": "urn:uuid:e8d7ac21-ced8-4fe8-851c-3325f90d8c18",
+                "version": 1,
+                "metadata": {
+                    "timestamp": "2024-08-05T03:50:17+00:00",
+                    "tools": {
+                        "components": [
+                            {
+                                "type": "application",
+                                "group": "aquasecurity",
+                                "name": "trivy",
+                                "version": "0.54.1",
+                            }
+                        ]
+                    },
+                    "component": {
+                        "bom-ref": "e6cf3443-266e-4ab4-910d-457e31244caa",
+                        "type": "application",
+                        "name": target_name,
+                        "properties": [{"name": "aquasecurity:trivy:SchemaVersion", "value": "2"}],
+                    },
+                },
+            }
