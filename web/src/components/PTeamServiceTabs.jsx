@@ -1,5 +1,5 @@
 import { UploadFile } from "@mui/icons-material";
-import { Tabs, Tab } from "@mui/material";
+import { Tabs, Tab, Tooltip } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
@@ -21,21 +21,22 @@ export function PTeamServiceTabs(props) {
         aria-label="scrollable auto tabs example"
       >
         {services.map((service) => (
-          <Tab
-            key={service.service_id}
-            label={service.service_name}
-            onClick={() => {
-              onChangeService(service.service_id);
-              setIsActiveUploadMode(0);
-            }}
-            sx={{
-              textTransform: "none",
-              border: `1px solid ${grey[300]}`,
-              borderRadius: "0.5rem 0.5rem 0 0",
-              width: "20%",
-              mt: 1,
-            }}
-          />
+          <Tooltip key={service.service_id} title={service.service_name}>
+            <Tab
+              label={service.service_name}
+              onClick={() => {
+                onChangeService(service.service_id);
+                setIsActiveUploadMode(0);
+              }}
+              sx={{
+                textTransform: "none",
+                border: `1px solid ${grey[300]}`,
+                borderRadius: "0.5rem 0.5rem 0 0",
+                width: "20%",
+                mt: 1,
+              }}
+            />
+          </Tooltip>
         ))}
         <Tab
           icon={<UploadFile />}
