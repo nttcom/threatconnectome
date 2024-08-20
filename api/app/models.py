@@ -207,6 +207,7 @@ class Base(DeclarativeBase):
             dict: JSON,
             list[dict]: ARRAY(JSON),
             list[StrUUID]: ARRAY(String(36)),
+            list[Str255]: ARRAY(String(255)),
             bytes: LargeBinary(),
         }
     )
@@ -352,6 +353,7 @@ class Service(Base):
     )
     sbom_uploaded_at: Mapped[datetime | None]
     description: Mapped[str | None]
+    keywords: Mapped[list[Str255]] = mapped_column(server_default="{}")
 
     pteam = relationship("PTeam", back_populates="services")
     dependencies = relationship(
