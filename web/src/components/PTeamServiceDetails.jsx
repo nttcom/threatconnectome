@@ -10,28 +10,51 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
+import { storeServiceThumbnail } from "../slices/pteam";
 import { getServiceThumbnail } from "../utils/api";
 
 export function PTeamServiceDetails(props) {
   const { pteamId, service } = props;
 
+  const dispatch = useDispatch();
+
+  const thumbnails = useSelector((state) => state.pteam.serviceThumbnails);
+
   const [isOpen, setIsOpen] = useState(false);
-  const [imageUrl, setImageUrl] = useState(undefined);
+  const [image, setImage] = useState(undefined);
 
-  useEffect(() => {
-    async function fixImageUrl(pteamId, serviceId) {
-      await getServiceThumbnail(pteamId, serviceId)
-        .then((response) => setImageUrl(URL.createObjectURL(response.data)))
-        .catch((error) => setImageUrl(null));
-    }
-
-    fixImageUrl(pteamId, service.service_id);
-  }, [pteamId, service.service_id]);
-
+  const thumbnail = thumbnails[service.service_id];
   const serviceName = service.service_name;
   const description = service.description;
   const keywords = service.keywords;
+
+  useEffect(() => {
+    if (thumbnail === undefined) {
+      getServiceThumbnail(pteamId, service.service_id)
+        .then(async (response) => {
+          const blobToBase64 = async (blob) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = (event) => resolve(event.target.result);
+              reader.onerror = (error) => reject(error);
+              reader.readAsDataURL(response.data);
+            });
+          const dataUrl = await blobToBase64(response.data);
+          dispatch(storeServiceThumbnail({ serviceId: service.service_id, data: dataUrl }));
+        })
+        .catch((error) => {
+          dispatch(storeServiceThumbnail({ serviceId: service.service_id, data: null }));
+        });
+    }
+  }, [pteamId, service.service_id, thumbnail, dispatch]);
+
+  useEffect(() => {
+    if (thumbnail !== undefined && image !== thumbnail) {
+      setImage(thumbnail);
+    }
+  }, [thumbnail, image]);
 
   return (
     <>
@@ -55,7 +78,7 @@ export function PTeamServiceDetails(props) {
         }
       >
         <Card sx={{ display: "flex" }}>
-          <CardMedia component="img" image={imageUrl} sx={{ width: 300 }} />
+          <CardMedia component="img" image={image} sx={{ width: 300 }} />
           <CardContent>
             <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
               {keywords.map((keyword) => (
