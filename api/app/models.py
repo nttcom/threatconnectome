@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import cast
 
-from sqlalchemy import ARRAY, JSON, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
 from sqlalchemy.sql.expression import join, outerjoin, text
 from sqlalchemy.sql.functions import current_timestamp
@@ -207,6 +207,8 @@ class Base(DeclarativeBase):
             dict: JSON,
             list[dict]: ARRAY(JSON),
             list[StrUUID]: ARRAY(String(36)),
+            list[Str255]: ARRAY(String(255)),
+            bytes: LargeBinary(),
         }
     )
 
@@ -226,14 +228,18 @@ class PTeamAccount(Base):
 class ATeamAccount(Base):
     __tablename__ = "ateamaccount"
 
-    ateam_id = mapped_column(ForeignKey("ateam.ateam_id"), primary_key=True, index=True)
+    ateam_id = mapped_column(
+        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
     user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
 
 
 class ATeamPTeam(Base):
     __tablename__ = "ateampteam"
 
-    ateam_id = mapped_column(ForeignKey("ateam.ateam_id"), primary_key=True, index=True)
+    ateam_id = mapped_column(
+        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
     pteam_id = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
     )
@@ -346,11 +352,24 @@ class Service(Base):
         server_default=MissionImpactEnum.MISSION_FAILURE
     )
     sbom_uploaded_at: Mapped[datetime | None]
+    description: Mapped[str | None]
+    keywords: Mapped[list[Str255]] = mapped_column(server_default="{}")
 
     pteam = relationship("PTeam", back_populates="services")
     dependencies = relationship(
         "Dependency", back_populates="service", cascade="all, delete-orphan"
     )
+    thumbnail = relationship("ServiceThumbnail", uselist=False, cascade="all, delete-orphan")
+
+
+class ServiceThumbnail(Base):
+    __tablename__ = "servicethumbnail"
+
+    service_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("service.service_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    media_type: Mapped[Str255]
+    image_data: Mapped[bytes]
 
 
 class Threat(Base):
@@ -561,7 +580,7 @@ class ATeamAuthority(Base):
     __tablename__ = "ateamauthority"
 
     ateam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("ateam.ateam_id"), primary_key=True, index=True
+        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
     )
     user_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("account.user_id"), primary_key=True, index=True
@@ -782,7 +801,9 @@ class ATeamInvitation(Base):
     __tablename__ = "ateaminvitation"
 
     invitation_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    ateam_id: Mapped[StrUUID] = mapped_column(ForeignKey("ateam.ateam_id"), index=True)
+    ateam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), index=True
+    )
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     expiration: Mapped[datetime]
     limit_count: Mapped[int | None]  # None for unlimited
@@ -802,7 +823,9 @@ class ATeamWatchingRequest(Base):
     __tablename__ = "ateamwatchingrequest"
 
     request_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    ateam_id: Mapped[StrUUID] = mapped_column(ForeignKey("ateam.ateam_id"), index=True)
+    ateam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), index=True
+    )
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     expiration: Mapped[datetime]
     limit_count: Mapped[int | None]  # None for unlimited
@@ -824,7 +847,9 @@ class ATeamTopicComment(Base):
     topic_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("topic.topic_id", ondelete="CASCADE"), index=True
     )
-    ateam_id: Mapped[StrUUID] = mapped_column(ForeignKey("ateam.ateam_id"), index=True)
+    ateam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), index=True
+    )
     user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     updated_at: Mapped[datetime | None]

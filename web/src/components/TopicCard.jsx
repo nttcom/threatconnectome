@@ -1,33 +1,22 @@
-import {
-  ArrowDropDown as ArrowDropDownIcon,
-  Edit as EditIcon,
-  Update as UpdateIcon,
-} from "@mui/icons-material";
+import { Edit as EditIcon, Update as UpdateIcon } from "@mui/icons-material";
 import {
   Alert,
   Box,
   Button,
-  ButtonGroup,
   Card,
   CardActions,
   CardContent,
   Chip,
-  ClickAwayListener,
   Collapse,
   Divider,
-  Grow,
   IconButton,
   List,
-  MenuList,
-  MenuItem,
   Switch,
   Typography,
-  Paper,
-  Popper,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
@@ -41,8 +30,6 @@ import { dateTimeFormat } from "../utils/func";
 import { isComparable, parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import { ActionItem } from "./ActionItem";
-import { PTeamEditAction } from "./PTeamEditAction";
-import { ReportCompletedActions } from "./ReportCompletedActions";
 import { TopicModal } from "./TopicModal";
 import { TopicTicketAccordion } from "./TopicTicketAccordion";
 import { UUIDTypography } from "./UUIDTypography";
@@ -53,14 +40,7 @@ export function TopicCard(props) {
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
-  const [actionModalOpen, setActionModalOpen] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
-  const [pteamActionModalOpen, setPteamActionModalOpen] = useState(false);
-
-  const anchorRef = useRef(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [openActionMenu, setOpenActionMenu] = useState(false);
-  const [actionColor, setActionColor] = useState("primary");
 
   const members = useSelector((state) => state.pteam.members); // dispatched by Tag.jsx
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
@@ -111,8 +91,6 @@ export function TopicCard(props) {
     }
   }, [dispatch, pteamId, topicId, pteamTopicActions]);
 
-  const handleActionMenuClose = () => {};
-
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
   if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets || !allTags) {
@@ -154,40 +132,6 @@ export function TopicCard(props) {
           isRelatedAction(action, currentTagDict.parent_name),
       )
     : pteamTopicActions ?? [];
-
-  const options = ["Report completed actions", "Add other actions"];
-
-  const handleClick = () => {
-    if (selectedIndex === 0) {
-      setActionModalOpen(true);
-    }
-    if (selectedIndex === 1) {
-      setPteamActionModalOpen(true);
-    }
-  };
-
-  const handleMenuItemClick = (index) => {
-    setSelectedIndex(index);
-    setOpenActionMenu(false);
-
-    if (index === 0) {
-      setActionColor("primary");
-    }
-    if (index === 1) {
-      setActionColor("success");
-    }
-  };
-
-  const handleToggle = () => {
-    setOpenActionMenu((prevOpen) => !prevOpen);
-  };
-
-  const handleClose = (event) => {
-    if (anchorRef.current && anchorRef.current.contains(event.target)) {
-      return;
-    }
-    setOpenActionMenu(false);
-  };
 
   const checkCompalable = () => {
     const tagNames = [currentTagDict.tag_name, currentTagDict.parent_name];
@@ -259,7 +203,13 @@ export function TopicCard(props) {
       </Box>
       <Divider />
       <Box display="flex" sx={{ height: "350px" }}>
-        <Box flexGrow={1} display="flex" flexDirection="column" justifyContent="space-between">
+        <Box
+          flexGrow={1}
+          display="flex"
+          flexDirection="column"
+          justifyContent="space-between"
+          sx={{ overflowY: "auto" }}
+        >
           <CardContent>
             {!isSolved ? (
               topicActions && (
@@ -437,80 +387,7 @@ export function TopicCard(props) {
             >
               {detailOpen ? "Hide" : "Show"} Details
             </Button>
-            {!isSolved && topicActions && (
-              <>
-                <ButtonGroup
-                  variant="contained"
-                  ref={anchorRef}
-                  aria-label="split button"
-                  color={actionColor}
-                >
-                  <Button onClick={handleClick} sx={{ textTransform: "none" }}>
-                    {options[selectedIndex]}
-                  </Button>
-                  <Button
-                    size="small"
-                    aria-controls={openActionMenu ? "split-button-menu" : undefined}
-                    aria-expanded={openActionMenu ? "true" : undefined}
-                    aria-haspopup="menu"
-                    onClick={handleToggle}
-                    // sx={{ textTransform: "none", backgroundColor: actionColor }}
-                  >
-                    <ArrowDropDownIcon />
-                  </Button>
-                </ButtonGroup>
-                <Popper
-                  sx={{
-                    zIndex: 1,
-                  }}
-                  open={openActionMenu}
-                  anchorEl={anchorRef.current}
-                  role={undefined}
-                  transition
-                >
-                  {({ TransitionProps }) => (
-                    <Grow {...TransitionProps}>
-                      <Paper>
-                        <ClickAwayListener onClickAway={handleClose}>
-                          <MenuList id="split-button-menu" autoFocusItem>
-                            {options.map((option, index) => (
-                              <MenuItem
-                                key={option}
-                                selected={index === selectedIndex}
-                                onClick={() => handleMenuItemClick(index)}
-                              >
-                                {option}
-                              </MenuItem>
-                            ))}
-                          </MenuList>
-                          z
-                        </ClickAwayListener>
-                      </Paper>
-                    </Grow>
-                  )}
-                </Popper>
-              </>
-            )}
           </CardActions>
-          <ReportCompletedActions
-            onConfirm={handleActionMenuClose}
-            onSetShow={setActionModalOpen}
-            show={actionModalOpen}
-            topicId={topicId}
-            topicActions={topicActions}
-            serviceId={serviceId}
-          />
-          <PTeamEditAction
-            open={pteamActionModalOpen}
-            onSetOpen={setPteamActionModalOpen}
-            presetTopicId={topicId}
-            presetTagId={currentTagId}
-            presetParentTagId={currentTagDict.parent_id}
-            presetActions={pteamTopicActions}
-            currentTagDict={currentTagDict}
-            references={references}
-            serviceId={serviceId}
-          />
         </Box>
         <Divider flexItem={true} orientation="vertical" />
         <Box
@@ -531,6 +408,7 @@ export function TopicCard(props) {
               ticket={ticket}
               members={members}
               defaultExpanded={index === 0}
+              topicActions={topicActions}
             />
           ))}
         </Box>

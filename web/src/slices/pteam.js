@@ -10,7 +10,6 @@ import {
   getPTeamTopicActions as apiGetPTeamTopicActions,
   getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
   getPTeamTagsSummary as apiGetPTeamTagsSummary,
-  getTopicStatus as apiGetTopicStatus,
   getTicketsRelatedToServiceTopicTag as apiGetTicketsRelatedToServiceTopicTag,
 } from "../utils/api";
 
@@ -95,20 +94,6 @@ export const getTicketsRelatedToServiceTopicTag = createAsyncThunk(
     })),
 );
 
-export const getTopicStatus = createAsyncThunk(
-  "pteam/getTopicStatus",
-  async (data) =>
-    await apiGetTopicStatus(data.pteamId, data.serviceId, data.topicId, data.tagId).then(
-      (response) => ({
-        data: response.data || {},
-        pteamId: data.pteamId,
-        serviceId: data.serviceId,
-        topicId: data.topicId,
-        tagId: data.tagId,
-      }),
-    ),
-);
-
 export const getPTeamTopicActions = createAsyncThunk(
   "pteam/getPTeamTopicActions",
   async (data) =>
@@ -147,7 +132,6 @@ const _initialState = {
   serviceDependencies: {}, // dict[serviceId: list[dependency]]
   taggedTopics: {},
   tickets: {}, // dict[serviceId: dict[tagId: dict[topicId: list[ticket]]]]
-  topicStatus: {},
   topicActions: {},
   serviceTagsSummaries: {},
   pteamTagsSummaries: {},
@@ -171,8 +155,8 @@ const pteamSlice = createSlice({
       ...state,
       /* Note: state.pteam.services should be fixed by dispatch(getPTeam(pteamId)) */
       serviceDependencies: { ...state.serviceDependencies, [action.payload]: undefined },
-      topicStatus: { ...state.topicStatus, [action.payload]: undefined },
       serviceTagsSummaries: { ...state.serviceTagsSummaries, [action.payload]: undefined },
+      tickets: { ...state.tickets, [action.payload]: undefined },
     }),
   },
   extraReducers: (builder) => {
@@ -219,19 +203,6 @@ const pteamSlice = createSlice({
             [action.payload.tagId]: {
               ...state.tickets[action.payload.serviceId]?.[action.payload.tagId],
               [action.payload.topicId]: action.payload.data,
-            },
-          },
-        },
-      }))
-      .addCase(getTopicStatus.fulfilled, (state, action) => ({
-        ...state,
-        topicStatus: {
-          ...state.topicStatus,
-          [action.payload.serviceId]: {
-            ...state.topicStatus[action.payload.serviceId],
-            [action.payload.topicId]: {
-              ...state.topicStatus[action.payload.topicId],
-              [action.payload.tagId]: action.payload.data,
             },
           },
         },

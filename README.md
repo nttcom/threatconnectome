@@ -36,7 +36,7 @@ Teams registerd in demo environment as following:
   - `Ubuntu 20.04+ or MacOS 12.0.1+`
 - `Docker`
   - `Docker Compose`
-- `Node v16+`
+- `Node v20+`
   - `npm v7+`
 
 ### Development environment

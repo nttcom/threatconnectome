@@ -35,13 +35,16 @@ import { setTicketStatus } from "../utils/api";
 import { topicStatusProps } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
+import { ReportCompletedActions } from "./ReportCompletedActions";
+
 export function TopicStatusSelector(props) {
-  const { pteamId, serviceId, topicId, tagId, ticketId, currentStatus } = props;
+  const { pteamId, serviceId, topicId, tagId, ticketId, currentStatus, topicActions } = props;
 
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
   const [datepickerOpen, setDatepickerOpen] = useState(false);
   const [schedule, setSchedule] = useState(null); // Date object
+  const [actionModalOpen, setActionModalOpen] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
@@ -54,7 +57,32 @@ export function TopicStatusSelector(props) {
       disabled: currentStatus.topic_status === "acknowledged",
     },
     { display: "Schedule", rawStatus: "scheduled", disabled: false },
+    {
+      display: "Complete",
+      rawStatus: "completed",
+      disabled: currentStatus.topic_status === "completed",
+    },
   ];
+
+  const dispatchRelatedSlices = () => {
+    dispatch(
+      getTicketsRelatedToServiceTopicTag({
+        pteamId: pteamId,
+        serviceId: serviceId,
+        topicId: topicId,
+        tagId: tagId,
+      }),
+    );
+    dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+    dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
+    dispatch(
+      getPTeamServiceTaggedTopicIds({
+        pteamId: pteamId,
+        serviceId: serviceId,
+        tagId: tagId,
+      }),
+    );
+  };
 
   const modifyTicketStatus = async (selectedStatus) => {
     let requestParams = { topic_status: selectedStatus };
@@ -64,23 +92,7 @@ export function TopicStatusSelector(props) {
     }
     await setTicketStatus(pteamId, serviceId, ticketId, requestParams)
       .then(() => {
-        dispatch(
-          getTicketsRelatedToServiceTopicTag({
-            pteamId: pteamId,
-            serviceId: serviceId,
-            topicId: topicId,
-            tagId: tagId,
-          }),
-        );
-        dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
-        dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
-        dispatch(
-          getPTeamServiceTaggedTopicIds({
-            pteamId: pteamId,
-            serviceId: serviceId,
-            tagId: tagId,
-          }),
-        );
+        dispatchRelatedSlices();
         enqueueSnackbar("Change ticket status succeeded", { variant: "success" });
       })
       .catch((error) => {
@@ -91,18 +103,28 @@ export function TopicStatusSelector(props) {
         );
       });
   };
+
   const handleUpdateStatus = async (event, item) => {
     setOpen(false);
-    if (item.rawStatus === "scheduled") {
-      setDatepickerOpen(true);
-      return;
+    switch (item.rawStatus) {
+      case "completed":
+        setActionModalOpen(true);
+        return;
+      case "scheduled":
+        setDatepickerOpen(true);
+        return;
+      default:
+        break;
     }
     modifyTicketStatus(item.rawStatus);
   };
+
   const handleUpdateSchedule = async () => {
     setDatepickerOpen(false);
     modifyTicketStatus("scheduled");
   };
+
+  const handleReportSucceeded = () => dispatchRelatedSlices();
 
   const handleClose = (event) => {
     if (anchorRef.current?.contains(event.target)) return;
@@ -119,6 +141,17 @@ export function TopicStatusSelector(props) {
 
   return (
     <>
+      <ReportCompletedActions
+        pteamId={pteamId}
+        serviceId={serviceId}
+        ticketId={ticketId}
+        topicId={topicId}
+        tagId={tagId}
+        topicActions={topicActions}
+        onSucceeded={handleReportSucceeded}
+        onSetShow={setActionModalOpen}
+        show={actionModalOpen}
+      />
       <Button
         endIcon={<ArrowDropDownIcon />}
         sx={{
@@ -228,4 +261,8 @@ TopicStatusSelector.propTypes = {
   tagId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentStatus: PropTypes.object.isRequired,
+  topicActions: PropTypes.array,
+};
+TopicStatusSelector.defaultProps = {
+  topicActions: [],
 };

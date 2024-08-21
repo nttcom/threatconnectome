@@ -35,15 +35,17 @@ from app.tests.medium.utils import (
     assert_200,
     create_ateam,
     create_pteam,
-    create_service_topicstatus,
     create_tag,
     create_topic,
     create_user,
     create_watching_request,
+    get_service_by_service_name,
+    get_tickets_related_to_topic_tag,
     headers,
     invite_to_ateam,
     invite_to_pteam,
     schema_to_dict,
+    set_ticket_status,
     upload_pteam_tags,
 )
 
@@ -1531,6 +1533,16 @@ def test_get_topic_status():
     # create topic1
     topic1 = create_topic(USER1, {**TOPIC1, "tags": [TAG1], "actions": [_gen_action([TAG1])]})
 
+    # tickets should be created
+    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, SERVICE1)
+    ticket1 = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic1.topic_id, tag1.tag_id
+    )[0]
+    service2 = get_service_by_service_name(USER1, pteam2.pteam_id, SERVICE2)
+    ticket2 = get_tickets_related_to_topic_tag(
+        USER1, pteam2.pteam_id, service2["service_id"], topic1.topic_id, tag1.tag_id
+    )[0]
+
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
     assert len(topic_statuses := data["topic_statuses"]) == 1
@@ -1555,9 +1567,7 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.acknowledged,
     }
-    create_service_topicstatus(
-        USER1, pteam1.pteam_id, pteam1.services[0].service_id, topic1.topic_id, tag1.tag_id, request
-    )
+    set_ticket_status(USER1, pteam1.pteam_id, service1["service_id"], ticket1["ticket_id"], request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1585,9 +1595,7 @@ def test_get_topic_status():
         "scheduled_at": str(datetime(3000, 1, 1)),
         "assignees": list(map(str, [user1.user_id, user2.user_id])),
     }
-    create_service_topicstatus(
-        USER1, pteam1.pteam_id, pteam1.services[0].service_id, topic1.topic_id, tag1.tag_id, request
-    )
+    set_ticket_status(USER1, pteam1.pteam_id, service1["service_id"], ticket1["ticket_id"], request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1614,9 +1622,7 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.completed,
     }
-    create_service_topicstatus(
-        USER1, pteam1.pteam_id, pteam1.services[0].service_id, topic1.topic_id, tag1.tag_id, request
-    )
+    set_ticket_status(USER1, pteam1.pteam_id, service1["service_id"], ticket1["ticket_id"], request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 0
@@ -1636,6 +1642,17 @@ def test_get_topic_status():
     topic2 = create_topic(
         USER1, {**TOPIC2, "tags": [TAG1, TAG2], "actions": [_gen_action([TAG1, TAG2])]}
     )
+
+    # tickets should be created
+    ticket1_2 = get_tickets_related_to_topic_tag(
+        USER1, pteam1.pteam_id, service1["service_id"], topic2.topic_id, tag1.tag_id
+    )[0]
+    ticket2_2a = get_tickets_related_to_topic_tag(
+        USER1, pteam2.pteam_id, service2["service_id"], topic2.topic_id, tag1.tag_id
+    )[0]
+    ticket2_2b = get_tickets_related_to_topic_tag(
+        USER1, pteam2.pteam_id, service2["service_id"], topic2.topic_id, tag2.tag_id
+    )[0]
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 2
@@ -1695,9 +1712,7 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.completed,
     }
-    create_service_topicstatus(
-        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic1.topic_id, tag1.tag_id, request
-    )
+    set_ticket_status(USER1, pteam2.pteam_id, service2["service_id"], ticket2["ticket_id"], request)
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
     assert data["num_topics"] == 1
@@ -1732,8 +1747,8 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.acknowledged,
     }
-    create_service_topicstatus(
-        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic2.topic_id, tag1.tag_id, request
+    set_ticket_status(
+        USER1, pteam2.pteam_id, service2["service_id"], ticket2_2a["ticket_id"], request
     )
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
@@ -1772,8 +1787,8 @@ def test_get_topic_status():
         "topic_status": models.TopicStatusType.scheduled,
         "scheduled_at": str(datetime(3000, 1, 1)),
     }
-    create_service_topicstatus(
-        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic2.topic_id, tag2.tag_id, request
+    set_ticket_status(
+        USER1, pteam2.pteam_id, service2["service_id"], ticket2_2b["ticket_id"], request
     )
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
@@ -1816,8 +1831,8 @@ def test_get_topic_status():
         "topic_status": models.TopicStatusType.scheduled,
         "scheduled_at": str(datetime(3000, 12, 31)),
     }
-    create_service_topicstatus(
-        USER1, pteam1.pteam_id, pteam1.services[0].service_id, topic2.topic_id, tag1.tag_id, request
+    set_ticket_status(
+        USER1, pteam1.pteam_id, service1["service_id"], ticket1_2["ticket_id"], request
     )
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
@@ -1856,10 +1871,11 @@ def test_get_topic_status():
 
     # PTEAM2 complete TOPIC2 TAG1
     request = {
+        "assignees": [],
         "topic_status": models.TopicStatusType.completed,
     }
-    create_service_topicstatus(
-        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic2.topic_id, tag1.tag_id, request
+    set_ticket_status(
+        USER1, pteam2.pteam_id, service2["service_id"], ticket2_2a["ticket_id"], request
     )
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
@@ -1891,8 +1907,8 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.completed,
     }
-    create_service_topicstatus(
-        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic2.topic_id, tag2.tag_id, request
+    set_ticket_status(
+        USER1, pteam2.pteam_id, service2["service_id"], ticket2_2b["ticket_id"], request
     )
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))
@@ -1915,8 +1931,8 @@ def test_get_topic_status():
     request = {
         "topic_status": models.TopicStatusType.acknowledged,
     }
-    create_service_topicstatus(
-        USER1, pteam2.pteam_id, pteam2.services[0].service_id, topic2.topic_id, tag1.tag_id, request
+    set_ticket_status(
+        USER1, pteam2.pteam_id, service2["service_id"], ticket2_2a["ticket_id"], request
     )
 
     data = assert_200(client.get(f"/ateams/{ateam1.ateam_id}/topicstatus", headers=headers(USER1)))

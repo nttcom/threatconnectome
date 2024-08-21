@@ -8,7 +8,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, U
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas, ticket_manager
+from app import command, models, persistence, schemas
 from app.alert import notify_sbom_upload_ended
 from app.auth import get_current_user
 from app.common import (
@@ -159,6 +159,156 @@ def get_pteam_services(
         raise NOT_A_PTEAM_MEMBER
 
     return sorted(pteam.services, key=lambda x: x.service_name)
+
+
+@router.post("/{pteam_id}/services/{service_id}", response_model=schemas.PTeamServiceUpdateResponse)
+def update_pteam_service(
+    pteam_id: UUID,
+    service_id: UUID,
+    data: schemas.PTeamServiceUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Update params of the pteam service.
+    """
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not (
+        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+    ):
+        raise NO_SUCH_SERVICE
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    if data.description is not None:
+        if description := data.description.strip():
+            service.description = description
+        else:
+            service.description = None
+    if data.keywords is not None:
+        fixed_words = {fixed_word for keyword in data.keywords if (fixed_word := keyword.strip())}
+        if any(len(fixed_word) > 255 for fixed_word in fixed_words):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Too long keyword. max length: 255"
+            )
+        service.keywords = sorted(fixed_words)
+
+    db.commit()
+
+    return service
+
+
+@router.post("/{pteam_id}/services/{service_id}/thumbnail")
+async def upload_service_thumbnail(
+    pteam_id: UUID,
+    service_id: UUID,
+    uploaded: UploadFile,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Upload thumbnail image file of the pteam service.
+
+    Maximum file size: 512 KiB
+    Supported media types: image/png
+    """
+
+    max_size = 512 * 1024
+    error_filesize_exceeds_max = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, detail="Filesize exceeds max(512KiB)"
+    )
+    supported_media_types = {"image/png"}
+    # https://www.iana.org/assignments/media-types/media-types.xhtml
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not (
+        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+    ):
+        raise NO_SUCH_SERVICE
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    # check without loading file
+    if not uploaded.content_type:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing Content-Type")
+    media_type = uploaded.content_type.split(";", 1)[0].lower()
+    if media_type not in supported_media_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported media type"
+        )
+    if uploaded.size is not None and uploaded.size > max_size:
+        raise error_filesize_exceeds_max
+
+    # load file data
+    image_data = await uploaded.read()
+
+    # check actual data size
+    if len(image_data) > max_size:
+        raise error_filesize_exceeds_max
+
+    service.thumbnail = models.ServiceThumbnail(
+        service_id=str(service_id), media_type=media_type, image_data=image_data
+    )
+
+    db.commit()
+
+    return "OK"
+
+
+@router.get("/{pteam_id}/services/{service_id}/thumbnail", response_class=Response)
+def get_service_thumbnail(
+    pteam_id: UUID,
+    service_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get thumbnail image file of the pteam service.
+    """
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not (
+        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+    ):
+        raise NO_SUCH_SERVICE
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if service.thumbnail is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No thumbnail")
+
+    return Response(content=service.thumbnail.image_data, media_type=service.thumbnail.media_type)
+
+
+@router.delete(
+    "/{pteam_id}/services/{service_id}/thumbnail", status_code=status.HTTP_204_NO_CONTENT
+)
+def remove_service_thumbnail(
+    pteam_id: UUID,
+    service_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Remove thumbnail image file of the pteam service.
+    """
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not (
+        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+    ):
+        raise NO_SUCH_SERVICE
+    if not check_pteam_membership(db, pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    service.thumbnail = None
+
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get(
@@ -388,16 +538,12 @@ def set_ticket_status(
             )
 
     current_ticket_status = ticket.current_ticket_status
-    fixed_assignees: list[str] | None = None
-    if (
-        current_ticket_status.topic_status == models.TopicStatusType.alerted
-        and data.topic_status == models.TopicStatusType.acknowledged
-        and not data.assignees
-    ):
-        # force assign current_user if no assignees given for the 1st ack
-        fixed_assignees = [current_user.user_id]
-    elif data.assignees is not None:
-        fixed_assignees = list(map(str, data.assignees))
+    if current_ticket_status.topic_status == models.TopicStatusType.alerted:
+        # this is the first update
+        if data.topic_status is None:
+            data.topic_status = models.TopicStatusType.acknowledged
+        if data.topic_status == models.TopicStatusType.acknowledged and not data.assignees:
+            data.assignees = [UUID(current_user.user_id)]
 
     # create base status inheriting current status
     if _current := current_ticket_status.ticket_status:
@@ -414,12 +560,12 @@ def set_ticket_status(
     else:
         new_status = models.TicketStatus(
             ticket_id=str(ticket_id),
-            topic_status=models.TopicStatusType.alerted,
+            topic_status=models.TopicStatusType.acknowledged,
             user_id=current_user.user_id,
         )
     # overwrite only if required
-    if fixed_assignees is not None:
-        new_status.assignees = fixed_assignees
+    if data.assignees is not None:
+        new_status.assignees = list(map(str, data.assignees))
     if data.topic_status is not None:
         new_status.topic_status = data.topic_status
     if data.logging_ids is not None:
@@ -489,157 +635,6 @@ def get_tickets_with_status_by_service_id_and_topic_id(
         for ticket in tickets
     ]
     return ret
-
-
-@router.get(
-    "/{pteam_id}/services/{service_id}/topicstatus/{topic_id}/{tag_id}",
-    response_model=schemas.TopicStatusResponse | None,
-)
-def get_service_topic_status(
-    pteam_id: UUID,
-    service_id: UUID,
-    topic_id: UUID,
-    tag_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get the current status (or None) of the service.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    oldest_status = get_oldest_status(service, topic_id, tag_id, db)
-
-    return (
-        command.ticket_status_to_response(db, oldest_status)
-        if oldest_status is not None
-        else {
-            "pteam_id": pteam_id,
-            "service_id": service_id,
-            "topic_id": topic_id,
-            "tag_id": tag_id,
-        }
-    )
-
-
-def get_oldest_status(
-    service: models.Service,
-    topic_id: UUID,
-    tag_id: UUID,
-    db: Session = Depends(get_db),
-):
-    oldest_status: models.TicketStatus | None = None
-    oldest_updated_at: datetime | None = None
-    for dependency in service.dependencies:
-        if dependency.tag_id != str(tag_id):
-            continue
-        for threat in persistence.search_threats(db, dependency.dependency_id, topic_id):
-            if not (ticket := threat.ticket):
-                continue
-            if not (current_ticket_status := ticket.current_ticket_status):
-                continue
-            if not (ticket_status := current_ticket_status.ticket_status):
-                continue
-
-            if oldest_status is None or (
-                oldest_updated_at is not None
-                and current_ticket_status.updated_at is not None
-                and current_ticket_status.updated_at < oldest_updated_at
-            ):
-                oldest_status = ticket_status
-                oldest_updated_at = current_ticket_status.updated_at
-
-    return oldest_status
-
-
-@router.post(
-    "/{pteam_id}/services/{service_id}/topicstatus/{topic_id}/{tag_id}",
-    response_model=schemas.TopicStatusResponse | None,
-)
-def set_services_topic_status(
-    pteam_id: UUID,
-    service_id: UUID,
-    topic_id: UUID,
-    tag_id: UUID,
-    data: schemas.TopicStatusRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Set topic status of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
-    if not (topic := persistence.get_topic_by_id(db, topic_id)):
-        raise NO_SUCH_TOPIC
-    if not (tag := persistence.get_tag_by_id(db, tag_id)):
-        raise NO_SUCH_TAG
-    if tag not in pteam.tags:
-        raise NO_SUCH_PTEAM_TAG
-
-    if not command.check_tag_is_related_to_topic(db, tag, topic):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tag mismatch")
-
-    if data.topic_status not in {
-        models.TopicStatusType.acknowledged,
-        models.TopicStatusType.scheduled,
-        models.TopicStatusType.completed,
-    }:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
-
-    for logging_id_ in data.logging_ids:
-        if not (log := persistence.get_action_log_by_id(db, logging_id_)):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No such actionlog",
-            )
-        if log.pteam_id != str(pteam_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Not an actionlog for the pteam",
-            )
-        if log.topic_id != str(topic_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Not an actionlog for the topic",
-            )
-    for assignee in data.assignees:
-        if not (a_user := persistence.get_account_by_id(db, assignee)):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No such user",
-            )
-        if not check_pteam_membership(db, pteam, a_user):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Not a pteam member",
-            )
-
-    response = ticket_manager.set_ticket_statuses_in_service(
-        db, current_user, service, topic, tag, data
-    )
-    db.commit()
-
-    return response
 
 
 @router.get("/{pteam_id}/topics", response_model=list[schemas.TopicResponse])

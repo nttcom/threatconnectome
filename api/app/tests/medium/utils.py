@@ -149,6 +149,11 @@ def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceRe
     return [schemas.PTeamServiceResponse(**item) for item in data]
 
 
+def get_service_by_service_name(user: dict, pteam_id: UUID | str, service_name: str):
+    data = assert_200(client.get(f"/pteams/{pteam_id}", headers=headers(user)))
+    return next(filter(lambda x: x["service_name"] == service_name, data["services"]), None)
+
+
 def create_ateam(user: dict, ateam: dict) -> schemas.ATeamInfo:
     request = {**ateam}
 
@@ -325,19 +330,21 @@ def create_action(
 
 def create_actionlog(
     user: dict,
-    action_id: UUID,
-    topic_id: UUID,
-    user_id: UUID,
-    pteam_id: UUID,
-    service_id: UUID,
+    action_id: UUID | str,
+    topic_id: UUID | str,
+    user_id: UUID | str,
+    pteam_id: UUID | str,
+    service_id: UUID | str,
+    ticket_id: UUID | str,
     executed_at: datetime | None,
-) -> list[schemas.ActionLogResponse]:
+) -> schemas.ActionLogResponse:
     request = {
         "action_id": str(action_id),
         "topic_id": str(topic_id),
         "user_id": str(user_id),
         "pteam_id": str(pteam_id),
         "service_id": str(service_id),
+        "ticket_id": str(ticket_id),
         "executed_at": str(executed_at) if executed_at else None,
     }
 
@@ -345,7 +352,7 @@ def create_actionlog(
 
     if response.status_code != 200:
         raise HTTPError(response)
-    return [schemas.ActionLogResponse(**row) for row in response.json()]
+    return schemas.ActionLogResponse(**response.json())
 
 
 def compare_tags(
@@ -376,15 +383,33 @@ def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     return _to_tuple_set(refs1) == _to_tuple_set(refs2)
 
 
-def create_service_topicstatus(
-    user: dict, pteam_id: UUID, service_id: UUID, topic_id: UUID, tag_id: UUID, json: dict
-) -> schemas.TopicStatusResponse:
+def get_tickets_related_to_topic_tag(
+    user: dict,
+    pteam_id: UUID | str,
+    service_id: UUID | str,
+    topic_id: UUID | str,
+    tag_id: UUID | str,
+) -> list[dict]:
+    response = client.get(
+        f"/pteams/{pteam_id}/services/{service_id}/topics/{topic_id}/tags/{tag_id}/tickets",
+        headers=headers(user),
+    )
+    if response.status_code != 200:
+        raise HTTPError(response)
+    return response.json()
+
+
+def set_ticket_status(
+    user: dict, pteam_id: UUID | str, service_id: UUID | str, ticket_id: UUID | str, json: dict
+) -> dict:
     response = client.post(
-        f"/pteams/{pteam_id}/services/{service_id}/topicstatus/{topic_id}/{tag_id}",
+        f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
         headers=headers(user),
         json=json,
     )
-    return schemas.TopicStatusResponse(**response.json())
+    if response.status_code != 200:
+        raise HTTPError(response)
+    return response.json()
 
 
 def common_put(user: dict, api_path: str, **kwargs) -> dict:

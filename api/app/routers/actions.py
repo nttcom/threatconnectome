@@ -142,7 +142,10 @@ def delete_action(
     if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
 
+    topic = action.topic
     persistence.delete_action(db, action)
+
+    fix_threats_for_topic(db, topic)
 
     db.commit()
 

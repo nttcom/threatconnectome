@@ -10,7 +10,7 @@
     "@mui/material": "^5.15.10",
     "@mui/x-date-pickers": "^6.19.4",
     "@reduxjs/toolkit": "^2.2.0",
-    "axios": "^1.6.7",
+    "axios": "^1.7.4",
     "date-fns": "^2.30.0",
     "firebase": "^10.11.0",
     "notistack": "^3.0.1",

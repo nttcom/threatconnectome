@@ -32,7 +32,7 @@ def get_logs(
     return result
 
 
-@router.post("", response_model=list[schemas.ActionLogResponse])
+@router.post("", response_model=schemas.ActionLogResponse)
 def create_log(
     data: schemas.ActionLogRequest,
     current_user: models.Account = Depends(get_current_user),
@@ -48,14 +48,14 @@ def create_log(
     """
     if not (pteam := persistence.get_pteam_by_id(db, data.pteam_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such pteam")
-    if not (
-        service := next(
-            filter(lambda x: x.service_id == str(data.service_id), pteam.services), None
-        )
-    ):
+    if not next(filter(lambda x: x.service_id == str(data.service_id), pteam.services), None):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
     if not check_pteam_membership(db, pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
+    if not (
+        ticket := persistence.get_ticket_by_id(db, data.ticket_id)
+    ) or ticket.threat.dependency.service_id != str(data.service_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
     if not (user := persistence.get_account_by_id(db, data.user_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
     if not check_pteam_membership(db, pteam, user):
@@ -67,32 +67,26 @@ def create_log(
     ) or topic_action.topic_id != str(data.topic_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
 
-    responses: list[schemas.ActionLogResponse] = []
     now = datetime.now()
-    for dependency in service.dependencies:
-        for threat in persistence.search_threats(db, dependency.dependency_id, data.topic_id):
-            if not (ticket := threat.ticket):
-                continue
-            log = models.ActionLog(
-                action_id=data.action_id,
-                topic_id=data.topic_id,
-                action=topic_action.action,
-                action_type=topic_action.action_type,
-                recommended=topic_action.recommended,
-                user_id=data.user_id,
-                pteam_id=data.pteam_id,
-                service_id=data.service_id,
-                ticket_id=ticket.ticket_id,
-                email=user.email,
-                executed_at=data.executed_at or now,
-                created_at=now,
-            )
-            persistence.create_action_log(db, log)
-            responses.append(schemas.ActionLogResponse(**log.__dict__))
+    log = models.ActionLog(
+        action_id=data.action_id,
+        topic_id=data.topic_id,
+        action=topic_action.action,
+        action_type=topic_action.action_type,
+        recommended=topic_action.recommended,
+        user_id=data.user_id,
+        pteam_id=data.pteam_id,
+        service_id=data.service_id,
+        ticket_id=data.ticket_id,
+        email=user.email,
+        executed_at=data.executed_at or now,
+        created_at=now,
+    )
+    persistence.create_action_log(db, log)
 
     db.commit()
 
-    return responses
+    return log
 
 
 @router.get("/topics/{topic_id}", response_model=list[schemas.ActionLogResponse])

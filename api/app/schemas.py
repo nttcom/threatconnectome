@@ -117,6 +117,18 @@ class PTeamServiceResponse(ORMModel):
     service_name: str
     service_id: UUID
     sbom_uploaded_at: datetime | None = None
+    description: str | None
+    keywords: list[str]
+
+
+class PTeamServiceUpdateRequest(ORMModel):
+    description: str | None = None
+    keywords: list[str] | None = None
+
+
+class PTeamServiceUpdateResponse(ORMModel):
+    description: str | None
+    keywords: list[str]
 
 
 class PTeamtagRequest(ORMModel):
@@ -437,6 +449,7 @@ class ActionLogRequest(ORMModel):
     user_id: UUID
     pteam_id: UUID
     service_id: UUID
+    ticket_id: UUID
     executed_at: datetime | None = None
 
 

@@ -143,12 +143,13 @@ class TrivyCDXParser(SBOMParser):
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
-            or sbom_info.spec_version not in {"1.5"}
+            or sbom_info.spec_version not in {"1.5", "1.6"}
             or sbom_info.tool_name != "trivy"
         ):
             raise ValueError(f"Not supported: {sbom_info}")
         actual_parse_func = {
             "1.5": cls.parse_func_1_5,
+            "1.6": cls.parse_func_1_5,
         }.get(sbom_info.spec_version)
         if not actual_parse_func:
             raise ValueError("Internal error: actual_parse_func not found")
