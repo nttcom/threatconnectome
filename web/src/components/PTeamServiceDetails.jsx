@@ -8,15 +8,30 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import PropTypes from "prop-types";
+import React, { useEffect, useState } from "react";
 
-export const PTeamServiceDetails = () => {
+import { getServiceThumbnail } from "../utils/api";
+
+export function PTeamServiceDetails(props) {
+  const { pteamId, service } = props;
+
   const [isOpen, setIsOpen] = useState(false);
-  const image = "./images/PXL_20240716_072606176.jpg";
-  const serviceName = "service_name";
-  const description =
-    "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except Antarctica";
-  const labelList = ["Chip", "Label", "Looooooooooooooong label"];
+  const [imageUrl, setImageUrl] = useState(undefined);
+
+  useEffect(() => {
+    async function fixImageUrl(pteamId, serviceId) {
+      await getServiceThumbnail(pteamId, serviceId)
+        .then((response) => setImageUrl(URL.createObjectURL(response.data)))
+        .catch((error) => setImageUrl(null));
+    }
+
+    fixImageUrl(pteamId, service.service_id);
+  }, [pteamId, service.service_id]);
+
+  const serviceName = service.service_name;
+  const description = service.description;
+  const keywords = service.keywords;
 
   return (
     <>
@@ -40,11 +55,11 @@ export const PTeamServiceDetails = () => {
         }
       >
         <Card sx={{ display: "flex" }}>
-          <CardMedia component="img" image={image} sx={{ width: 300 }} />
+          <CardMedia component="img" image={imageUrl} sx={{ width: 300 }} />
           <CardContent>
             <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-              {labelList.map((label) => (
-                <Chip key={label} label={label} size="small" />
+              {keywords.map((keyword) => (
+                <Chip key={keyword} label={keyword} size="small" />
               ))}
             </Stack>
             <Typography gutterBottom variant="h5">
@@ -61,4 +76,9 @@ export const PTeamServiceDetails = () => {
       </Button>
     </>
   );
+}
+
+PTeamServiceDetails.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+  service: PropTypes.object.isRequired,
 };

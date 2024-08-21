@@ -192,6 +192,11 @@ export function Status() {
     return <>Now loading...</>;
   }
 
+  const service =
+    isActiveAllServicesMode || !serviceId
+      ? undefined
+      : pteam.services.find((service) => service.service_id === serviceId);
+
   const handleSBOMUploaded = () => {
     dispatch(getPTeam(pteamId));
   };
@@ -427,7 +432,7 @@ export function Status() {
         />
       )}
       <CustomTabPanel value={isActiveUploadMode} index={0}>
-        <PTeamServiceDetails />
+        {service && <PTeamServiceDetails pteamId={pteamId} service={service} />}
         <Box display="flex" mt={2}>
           {filterRow}
           <Box flexGrow={1} />
