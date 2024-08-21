@@ -186,6 +186,13 @@ def update_pteam_service(
             service.description = description
         else:
             service.description = None
+    if data.keywords is not None:
+        fixed_words = {fixed_word for keyword in data.keywords if (fixed_word := keyword.strip())}
+        if any(len(fixed_word) > 255 for fixed_word in fixed_words):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Too long keyword. max length: 255"
+            )
+        service.keywords = sorted(fixed_words)
 
     db.commit()
 
