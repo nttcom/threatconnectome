@@ -512,22 +512,7 @@ def set_ticket_status(
     if data.topic_status == models.TopicStatusType.scheduled and data.scheduled_at is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="If statsu is schduled, specify schduled_at",
-        )
-
-    if _current := ticket.current_ticket_status.ticket_status:
-        prev_topic_status = _current.topic_status
-    else:
-        prev_topic_status = models.TopicStatusType.alerted
-
-    if (
-        prev_topic_status == models.TopicStatusType.scheduled
-        and data.topic_status is None
-        and data.scheduled_at is None
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="If statsu and scheduled_at is None, put values in status and scheduled_at",
+            detail="If status is schduled, specify schduled_at",
         )
 
     if (
@@ -537,20 +522,23 @@ def set_ticket_status(
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="If statsu is not schduled, do not specify schduled_at",
+            detail="If status is not schduled, do not specify schduled_at",
         )
 
     now = datetime.now()
     if data.scheduled_at:
         data_scheduled_at = data.scheduled_at.replace(tzinfo=None)
     if (
-        data.topic_status == models.TopicStatusType.scheduled
+        (
+            data.topic_status == models.TopicStatusType.scheduled
+            or ticket.current_ticket_status.status_id == models.TopicStatusType.scheduled
+        )
         and data.scheduled_at
         and data_scheduled_at < now
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="If statsu is schduled, schduled_at must be a future time",
+            detail="If status is schduled, schduled_at must be a future time",
         )
 
     for logging_id_ in data.logging_ids or []:

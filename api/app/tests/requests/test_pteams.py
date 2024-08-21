@@ -2950,7 +2950,7 @@ class TestTicketStatus:
             assert response.status_code == 400
 
             set_response = response.json()
-            assert set_response["detail"] == "If statsu is schduled, specify schduled_at"
+            assert set_response["detail"] == "If status is schduled, specify schduled_at"
 
         def test_it_should_return_400_when_topic_status_is_acknowledged_and_there_is_schduled_at(
             self, actionable_topic1
@@ -2975,7 +2975,7 @@ class TestTicketStatus:
             assert response.status_code == 400
 
             set_response = response.json()
-            assert set_response["detail"] == "If statsu is not schduled, do not specify schduled_at"
+            assert set_response["detail"] == "If status is not schduled, do not specify schduled_at"
 
         def test_it_should_return_400_when_topic_status_is_scheduled_and_schduled_at_is_in_the_past(
             self, actionable_topic1
@@ -3001,7 +3001,7 @@ class TestTicketStatus:
 
             set_response = response.json()
             assert (
-                set_response["detail"] == "If statsu is schduled, schduled_at must be a future time"
+                set_response["detail"] == "If status is schduled, schduled_at must be a future time"
             )
 
         def test_it_should_put_None_in_completed_at_when_schduled_at_is_datetime_fromtimestamp_zero(
