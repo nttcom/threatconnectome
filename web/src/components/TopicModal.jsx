@@ -214,8 +214,10 @@ export function TopicModal(props) {
   const handleUpdateTopic = async () => {
     if (!validateActionTags()) return;
 
+    // console.log(presetActions);
     const presetActionIds = new Set(presetActions.map((a) => a.action_id));
 
+    console.log(actions);
     actions.forEach(async (a) => {
       const actionRequest = {
         ...a,
@@ -224,8 +226,8 @@ export function TopicModal(props) {
       if (a.action_id === null) {
         await createAction(actionRequest).catch((error) => operationError(error));
       } else if (presetActionIds.has(a.action_id)) {
-        await updateAction(a.action_id, actionRequest).catch((error) => operationError(error));
         presetActionIds.delete(a.action_id);
+        await updateAction(a.action_id, actionRequest).catch((error) => operationError(error));
       }
     });
 
