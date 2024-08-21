@@ -1940,7 +1940,7 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_id(testdb):
         "topic_status": "acknowledged",
         "note": "string",
         "assignees": [],
-        "scheduled_at": str(datetime.now()),
+        "scheduled_at": None,
     }
     set_ticket_status(
         USER1,
@@ -1968,7 +1968,7 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_member(testdb):
         "topic_status": "acknowledged",
         "note": "string",
         "assignees": [],
-        "scheduled_at": str(datetime.now()),
+        "scheduled_at": None,
     }
     set_ticket_status(
         USER1,
@@ -1996,7 +1996,7 @@ def test_service_tagged_ticket_ids_with_wrong_service_id(testdb):
         "topic_status": "acknowledged",
         "note": "string",
         "assignees": [],
-        "scheduled_at": str(datetime.now()),
+        "scheduled_at": None,
     }
     set_ticket_status(
         USER1,
@@ -2025,7 +2025,7 @@ def test_service_tagged_ticket_ids_with_service_not_in_pteam(testdb):
         "topic_status": "acknowledged",
         "note": "string",
         "assignees": [],
-        "scheduled_at": str(datetime.now()),
+        "scheduled_at": None,
     }
     set_ticket_status(
         USER1,
@@ -2052,7 +2052,7 @@ def test_service_tagged_tikcet_ids_with_wrong_tag_id(testdb):
         "topic_status": "acknowledged",
         "note": "string",
         "assignees": [],
-        "scheduled_at": str(datetime.now()),
+        "scheduled_at": None,
     }
     set_ticket_status(
         USER1,
@@ -2080,7 +2080,7 @@ def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
         "topic_status": "acknowledged",
         "note": "string",
         "assignees": [],
-        "scheduled_at": str(datetime.now()),
+        "scheduled_at": None,
     }
     set_ticket_status(
         USER1,
@@ -2950,13 +2950,65 @@ class TestTicketStatus:
             assert response.status_code == 400
 
             set_response = response.json()
-            assert set_response["detail"] == "If statsu is schduled, specify schduled_at"
+            assert set_response["detail"] == "If status is schduled, specify schduled_at"
 
-        def test_it_should_put_None_in_schduled_at_when_schduled_at_is_datetime_fromtimestamp_zero(
+        def test_it_should_return_400_when_topic_status_is_acknowledged_and_there_is_schduled_at(
+            self, actionable_topic1
+        ):
+            status_request = {
+                "topic_status": models.TopicStatusType.completed.value,
+                "assignees": [str(self.user2.user_id)],
+                "note": "assign user2 and schedule at 2345/6/7",
+                "scheduled_at": "2345-06-07T08:09:10",
+            }
+            url = (
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+                f"/ticketstatus/{self.ticket_id1}"
+            )
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            response = client.post(url, headers=_headers, json=status_request)
+            assert response.status_code == 400
+
+            set_response = response.json()
+            assert set_response["detail"] == "If status is not schduled, do not specify schduled_at"
+
+        def test_it_should_return_400_when_topic_status_is_scheduled_and_schduled_at_is_in_the_past(
             self, actionable_topic1
         ):
             status_request = {
                 "topic_status": models.TopicStatusType.scheduled.value,
+                "assignees": [str(self.user2.user_id)],
+                "note": "assign user2 and schedule at 2345/6/7",
+                "scheduled_at": str(datetime.fromtimestamp(0)),
+            }
+            url = (
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+                f"/ticketstatus/{self.ticket_id1}"
+            )
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            response = client.post(url, headers=_headers, json=status_request)
+            assert response.status_code == 400
+
+            set_response = response.json()
+            assert (
+                set_response["detail"] == "If status is schduled, schduled_at must be a future time"
+            )
+
+        def test_it_should_put_None_in_completed_at_when_schduled_at_is_datetime_fromtimestamp_zero(
+            self, actionable_topic1
+        ):
+            status_request = {
+                "topic_status": models.TopicStatusType.completed.value,
                 "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
                 "scheduled_at": str(datetime.fromtimestamp(0)),

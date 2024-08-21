@@ -43,15 +43,15 @@ client = TestClient(app)
 
 
 @pytest.mark.parametrize(
-    "topic_status, solved_num, unsolved_num",
+    "topic_status, scheduled_at, solved_num, unsolved_num",
     [
-        (models.TopicStatusType.acknowledged, 0, 1),
-        (models.TopicStatusType.scheduled, 0, 1),
-        (models.TopicStatusType.completed, 1, 0),
+        (models.TopicStatusType.acknowledged, None, 0, 1),
+        (models.TopicStatusType.scheduled, "2345-06-07T08:09:10", 0, 1),
+        (models.TopicStatusType.completed, None, 1, 0),
     ],
 )
 def test_it_should_return_solved_or_unsolved_number_based_on_ticket_status(
-    testdb, topic_status, solved_num, unsolved_num
+    testdb, topic_status, scheduled_at, solved_num, unsolved_num
 ):
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -71,7 +71,7 @@ def test_it_should_return_solved_or_unsolved_number_based_on_ticket_status(
         "topic_status": topic_status,
         "note": "string",
         "assignees": [],
-        "scheduled_at": str(datetime.now()),
+        "scheduled_at": scheduled_at,
     }
     set_ticket_status(
         USER1, pteam1.pteam_id, service1["service_id"], ticket1["ticket_id"], json_data
@@ -153,7 +153,7 @@ def test_it_should_return_threat_impact_count_num_based_on_tickte_status(
             "topic_status": topic_status,
             "assignees": [],
             "note": "",
-            "scheduled_at": "2345-06-07T08:09:10",
+            "scheduled_at": str(datetime.fromtimestamp(0)),
         }
         client.post(
             post_topicstatus_url,
@@ -317,7 +317,7 @@ def test_it_shoud_return_solved_sorted_title_based_on_threat_impact(
         "topic_status": models.TopicStatusType.completed,
         "note": "string",
         "assignees": [],
-        "scheduled_at": str(datetime.now()),
+        "scheduled_at": None,
     }
     set_ticket_status(
         USER1,
@@ -477,7 +477,7 @@ def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
         "topic_status": models.TopicStatusType.acknowledged,
         "note": "string",
         "assignees": [],
-        "scheduled_at": str(datetime.now()),
+        "scheduled_at": None,
     }
     set_ticket_status(
         USER1,
