@@ -15,6 +15,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { storeServiceThumbnail } from "../slices/pteam";
 import { getServiceThumbnail } from "../utils/api";
 
+const noImageAvailableUrl = "images/no-image-available-512x512.png";
+
 export function PTeamServiceDetails(props) {
   const { pteamId, service } = props;
 
@@ -23,7 +25,7 @@ export function PTeamServiceDetails(props) {
   const thumbnails = useSelector((state) => state.pteam.serviceThumbnails);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [image, setImage] = useState(undefined);
+  const [image, setImage] = useState(noImageAvailableUrl);
 
   const thumbnail = thumbnails[service.service_id];
   const serviceName = service.service_name;
@@ -34,18 +36,20 @@ export function PTeamServiceDetails(props) {
     if (thumbnail === undefined) {
       getServiceThumbnail(pteamId, service.service_id)
         .then(async (response) => {
-          const blobToBase64 = async (blob) =>
+          const blobToDataURL = async (blob) =>
             new Promise((resolve, reject) => {
               const reader = new FileReader();
               reader.onload = (event) => resolve(event.target.result);
               reader.onerror = (error) => reject(error);
               reader.readAsDataURL(response.data);
             });
-          const dataUrl = await blobToBase64(response.data);
+          const dataUrl = await blobToDataURL(response.data);
           dispatch(storeServiceThumbnail({ serviceId: service.service_id, data: dataUrl }));
         })
         .catch((error) => {
-          dispatch(storeServiceThumbnail({ serviceId: service.service_id, data: null }));
+          dispatch(
+            storeServiceThumbnail({ serviceId: service.service_id, data: noImageAvailableUrl }),
+          );
         });
     }
   }, [pteamId, service.service_id, thumbnail, dispatch]);
