@@ -135,7 +135,7 @@ const _initialState = {
   topicActions: {},
   serviceTagsSummaries: {},
   pteamTagsSummaries: {},
-  serviceThumbnails: {}, // dict[serviceId: dataURL | None(=NoThumbnail)]
+  serviceThumbnails: {}, // dict[serviceId: dataURL | noImageAvailableUrl(=NoThumbnail)]
 };
 
 const pteamSlice = createSlice({
