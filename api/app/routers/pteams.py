@@ -509,11 +509,27 @@ def set_ticket_status(
     if data.topic_status == models.TopicStatusType.alerted:
         # user cannot set alerted
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
-    if data.topic_status == models.TopicStatusType.scheduled and not data.scheduled_at:
+    if data.topic_status == models.TopicStatusType.scheduled and data.scheduled_at is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="If statsu is schduled, specify schduled_at",
         )
+
+    if _current := ticket.current_ticket_status.ticket_status:
+        prev_topic_status = _current.topic_status
+    else:
+        prev_topic_status = models.TopicStatusType.alerted
+
+    if (
+        prev_topic_status == models.TopicStatusType.scheduled
+        and data.topic_status is None
+        and data.scheduled_at is None
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="If statsu and scheduled_at is None, put values in status and scheduled_at",
+        )
+
     if (
         data.topic_status != models.TopicStatusType.scheduled
         and data.scheduled_at
