@@ -14,6 +14,9 @@ import {
   MenuItem,
   Pagination,
   Select,
+  CardMedia,
+  CardContent,
+  Chip,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
@@ -79,6 +82,7 @@ export function PTeamServicesListModal(props) {
     params.set("serviceId", serviceId);
     navigate(`/tags/${tagId}?${params.toString()}`);
   };
+  const image = "./images/PXL_20240716_072606176.jpg";
 
   return (
     <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
@@ -103,12 +107,26 @@ export function PTeamServicesListModal(props) {
               onClick={() => handleNavigateTag(service.service_id)}
               variant="outlined"
               alignContent="space-between"
-              sx={{ margin: 1, width: "100%", "&:hover": { bgcolor: grey[100] } }}
+              sx={{
+                margin: 1,
+                width: "100%",
+                backgroundColor: grey[200],
+                "&:hover": { bgcolor: grey[100] },
+                display: "flex",
+              }}
             >
-              <CardHeader
-                title={service.service_name}
-                sx={{ backgroundColor: grey[200] }}
-              ></CardHeader>
+              <CardMedia component="img" image={image} sx={{ width: "250px" }} />
+              <CardContent>
+                {/* <Chip label="Chip" size="small" />
+                <Chip label="Chip" size="small" /> */}
+                <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+                  <CardHeader title={service.service_name}></CardHeader>
+                </Box>
+                {/* <Typography variant="body2" color="text.secondary">
+                  Lizards are a widespread group of squamate reptiles, with over 6,000 species,
+                  ranging across all continents except Antarctica
+                </Typography> */}
+              </CardContent>
             </Card>
           ))}
         </Box>
