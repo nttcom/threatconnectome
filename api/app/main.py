@@ -67,5 +67,5 @@ app = create_app()
 LOGLEVEL = os.environ.get("API_LOGLEVEL", "INFO").upper()
 logging.basicConfig(
     level=LOGLEVEL if LOGLEVEL != "" else "INFO",
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    format="%(levelname)s - %(asctime)s - %(name)s - %(message)s",
 )
