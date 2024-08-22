@@ -531,7 +531,7 @@ def set_ticket_status(
     if (
         (
             data.topic_status == models.TopicStatusType.scheduled
-            or ticket.current_ticket_status.status_id == models.TopicStatusType.scheduled
+            or ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled
         )
         and data.scheduled_at
         and data_scheduled_at < now
