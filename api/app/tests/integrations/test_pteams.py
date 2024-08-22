@@ -1438,7 +1438,11 @@ class TestPostUploadSBOMFileCycloneDX:
             )
             assert [
                 ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),
-                ("app.routers.pteams", ERROR, f"Failed uploading SBOM as a service: {service_name}"),
+                (
+                    "app.routers.pteams",
+                    ERROR,
+                    f"Failed uploading SBOM as a service: {service_name}",
+                ),
             ] == caplog.record_tuples
 
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
