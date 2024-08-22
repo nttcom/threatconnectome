@@ -1,3 +1,6 @@
+import logging
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -60,3 +63,9 @@ def create_app():
 
 
 app = create_app()
+
+LOGLEVEL = os.environ.get("API_LOGLEVEL", "INFO").upper()
+logging.basicConfig(
+    level=LOGLEVEL if LOGLEVEL != "" else "INFO",
+    format="%(levelname)s - %(asctime)s - %(name)s - %(message)s",
+)

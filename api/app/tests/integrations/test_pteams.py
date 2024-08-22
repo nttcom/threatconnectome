@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from logging import ERROR, INFO
 from uuid import UUID, uuid4
 
 import pytest
@@ -1405,6 +1406,44 @@ class TestPostUploadSBOMFileCycloneDX:
                 )
             else:
                 send_email.assert_not_called()
+
+        def test_notify_sbom_upload_succeeded_by_log(self, caplog) -> None:
+            service_name = "test service"
+            upload_filename = "sample-sbom.json"
+
+            # gen sbom with empty components
+            target_name = "sample target1"
+            sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), {})
+
+            caplog.set_level(INFO)
+            bg_create_tags_from_sbom_json(
+                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+            )
+            assert [
+                ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),
+                ("app.routers.pteams", INFO, f"SBOM uploaded as a service: {service_name}"),
+            ] == caplog.record_tuples
+
+        def test_notify_sbom_upload_failed_by_log(self, caplog) -> None:
+            service_name = "test service"
+            upload_filename = "sample-sbom.json"
+
+            # gen broken sbom which cause background task error
+            target_name = "sample target1"
+            sbom_json = self.gen_broken_sbom_json(self.gen_base_json(target_name))
+
+            caplog.set_level(INFO)
+            bg_create_tags_from_sbom_json(
+                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+            )
+            assert [
+                ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),
+                (
+                    "app.routers.pteams",
+                    ERROR,
+                    f"Failed uploading SBOM as a service: {service_name}",
+                ),
+            ] == caplog.record_tuples
 
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
         @staticmethod
