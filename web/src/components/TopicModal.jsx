@@ -214,10 +214,8 @@ export function TopicModal(props) {
   const handleUpdateTopic = async () => {
     if (!validateActionTags()) return;
 
-    // console.log(presetActions);
     const presetActionIds = new Set(presetActions.map((a) => a.action_id));
 
-    console.log(actions);
     actions.forEach(async (a) => {
       const actionRequest = {
         ...a,
