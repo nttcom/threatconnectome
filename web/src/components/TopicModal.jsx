@@ -224,8 +224,8 @@ export function TopicModal(props) {
       if (a.action_id === null) {
         await createAction(actionRequest).catch((error) => operationError(error));
       } else if (presetActionIds.has(a.action_id)) {
-        await updateAction(a.action_id, actionRequest).catch((error) => operationError(error));
         presetActionIds.delete(a.action_id);
+        await updateAction(a.action_id, actionRequest).catch((error) => operationError(error));
       }
     });
 
