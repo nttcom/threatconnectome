@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime
 from hashlib import sha256
 from io import DEFAULT_BUFFER_SIZE, BytesIO
@@ -885,6 +886,9 @@ def bg_create_tags_from_sbom_json(
     # TODO
     #   functions for background tasks should be divided to another source file.
 
+    log = logging.getLogger(__name__)
+    log.info(f"Start SBOM uploade as a service: {service_name}")
+
     with open_db_session() as db:
         if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
             # TODO: cannot notify error without pteam
@@ -901,6 +905,7 @@ def bg_create_tags_from_sbom_json(
             apply_service_tags(db, service, json_lines, auto_create_tags=force_mode)
         except ValueError:
             notify_sbom_upload_ended(service, filename, False)
+            log.error(f"Failed uploading SBOM as a service: {service_name}")
             return
 
         now = datetime.now()
@@ -909,6 +914,7 @@ def bg_create_tags_from_sbom_json(
         db.commit()
 
         notify_sbom_upload_ended(service, filename, True)
+        log.info(f"SBOM uploaded as a service: {service_name}")
 
 
 @router.post("/{pteam_id}/upload_sbom_file")
