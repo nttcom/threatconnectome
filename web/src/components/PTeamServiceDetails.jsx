@@ -81,8 +81,8 @@ export function PTeamServiceDetails(props) {
               }
         }
       >
-        <Card sx={{ display: "flex" }}>
-          <CardMedia component="img" image={image} sx={{ width: 300 }} />
+        <Card sx={{ display: "flex", height: 200 }}>
+          <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
           <CardContent>
             <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
               {keywords.map((keyword) => (
