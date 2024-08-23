@@ -16,7 +16,6 @@ import {
   Select,
   CardMedia,
   CardContent,
-  Chip,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
@@ -84,6 +83,9 @@ export function PTeamServicesListModal(props) {
   };
   const image = "./images/PXL_20240716_072606176.jpg";
 
+  const description =
+    "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except AntarcticaLizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except AntarcticaLizards are a widespread group of squamate reptile";
+
   return (
     <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>
@@ -113,19 +115,15 @@ export function PTeamServicesListModal(props) {
                 backgroundColor: grey[200],
                 "&:hover": { bgcolor: grey[100] },
                 display: "flex",
+                height: 200,
               }}
             >
-              <CardMedia component="img" image={image} sx={{ width: "250px" }} />
+              <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
               <CardContent>
-                {/* <Chip label="Chip" size="small" />
-                <Chip label="Chip" size="small" /> */}
-                <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-                  <CardHeader title={service.service_name}></CardHeader>
-                </Box>
-                {/* <Typography variant="body2" color="text.secondary">
-                  Lizards are a widespread group of squamate reptiles, with over 6,000 species,
-                  ranging across all continents except Antarctica
-                </Typography> */}
+                <CardHeader title={service.service_name} sx={{ px: 0 }}></CardHeader>
+                <Typography variant="body2" color="text.secondary">
+                  {description}
+                </Typography>
               </CardContent>
             </Card>
           ))}
