@@ -15,7 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { storeServiceThumbnail } from "../slices/pteam";
 import { getServiceThumbnail } from "../utils/api";
 
-const noImageAvailableUrl = "images/no-image-available-512x512.png";
+const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
 export function PTeamServiceDetails(props) {
   const { pteamId, service } = props;
