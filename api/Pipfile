@@ -19,6 +19,7 @@ univers = "*"
 packageurl-python = "*"
 sendgrid = "*"
 email-validator = "*"
+pillow = "*"
 
 [dev-packages]
 mypy = "*"
