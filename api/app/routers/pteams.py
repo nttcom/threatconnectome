@@ -1,3 +1,4 @@
+import io
 import json
 import logging
 from datetime import datetime
@@ -7,6 +8,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
@@ -214,7 +216,8 @@ async def upload_service_thumbnail(
     Maximum file size: 512 KiB
     Supported media types: image/png
     """
-
+    width_size = 720
+    height_size = 480
     max_size = 512 * 1024
     error_filesize_exceeds_max = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST, detail="Filesize exceeds max(512KiB)"
@@ -244,6 +247,15 @@ async def upload_service_thumbnail(
 
     # load file data
     image_data = await uploaded.read()
+
+    # check width, height size
+    thumbnail_image = Image.open(io.BytesIO(image_data))
+    width, height = thumbnail_image.size
+    if width != width_size or height != height_size:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Dimensions must be {width_size} x {height_size} px",
+        )
 
     # check actual data size
     if len(image_data) > max_size:

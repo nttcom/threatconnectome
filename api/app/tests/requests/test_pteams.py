@@ -1373,6 +1373,28 @@ def test_delete_member__last_admin_another():
     assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
 
+def test_failed_upload_service_thumbnail_when_wrong_image_size():
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    create_tag(USER1, TAG1)
+    refs0 = {TAG1: [("fake target", "fake version")]}
+    service_x = "service_x"
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
+
+    image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "error_image.png"
+    with open(image_filepath, "rb") as image_file:
+        response = client.post(
+            f"/pteams/{pteam1.pteam_id}/services/{service1.service_id}/thumbnail",
+            headers=file_upload_headers(USER1),
+            files={"uploaded": image_file},
+        )
+
+    assert response.status_code == 400
+    assert response.reason_phrase == "Bad Request"
+    assert response.json()["detail"] == "Dimensions must be 720 x 480 px"
+
+
 def test_delete_member__not_last_admin():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
