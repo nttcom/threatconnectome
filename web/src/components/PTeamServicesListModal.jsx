@@ -84,7 +84,7 @@ export function PTeamServicesListModal(props) {
   const image = "./images/PXL_20240716_072606176.jpg";
 
   const description =
-    "Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except AntarcticaLizards are a widespread group of squamate reptiles, with over 6,000 species, ranging across all continents except AntarcticaLizards are a widespread group of squamate reptile";
+    "Lizardsareawidespreadgroupofsquamatereptiles,withover6,000species,rangingacrossallcontinentsexceptAntarcticaLizardsareawidespreadgroupofsquamatereptiles,withover6,000species,rangingacrossallcontinentsexceptAntarcticaLizardsareawidespreadgroupofsquamatereptile";
 
   return (
     <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
@@ -121,7 +121,7 @@ export function PTeamServicesListModal(props) {
               <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
               <CardContent>
                 <CardHeader title={service.service_name} sx={{ px: 0 }}></CardHeader>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
                   {description}
                 </Typography>
               </CardContent>
