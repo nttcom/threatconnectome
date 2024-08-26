@@ -92,7 +92,7 @@ export function PTeamServiceDetails(props) {
             <Typography gutterBottom variant="h5">
               {serviceName}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
               {description}
             </Typography>
           </CardContent>
