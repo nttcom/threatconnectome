@@ -54,7 +54,7 @@ export const TopicTicketAccordion = (props) => {
           <Box sx={{ mr: 1 }}>
             <ThreatImpactStatusChip threatImpactName={threatImpactName} />
           </Box>
-          <Box>{target}</Box>
+          <Box sx={{ wordBreak: "break-all" }}>{target}</Box>
         </Box>
       </AccordionSummary>
       <AccordionDetails>
