@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Card,
   CardContent,
@@ -83,7 +84,7 @@ export function PTeamServiceDetails(props) {
       >
         <Card sx={{ display: "flex", height: 200 }}>
           <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
-          <CardContent>
+          <CardContent sx={{ flex: 1 }}>
             <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
               {keywords.map((keyword) => (
                 <Chip key={keyword} label={keyword} size="small" />
