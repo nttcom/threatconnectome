@@ -19,15 +19,23 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
+
+import { storeServiceThumbnail } from "../slices/pteam";
+import { getServiceThumbnail } from "../utils/api";
+
+const noImageAvailableUrl = "/dev/images/no-image-available-720x480.png";
 
 export function PTeamServicesListModal(props) {
   const { onSetShow, show, tagId, tagName, serviceIds } = props;
   const handleClose = () => onSetShow(false);
 
+  const dispatch = useDispatch();
+
   const pteam = useSelector((state) => state.pteam.pteam);
+  const thumbnails = useSelector((state) => state.pteam.serviceThumbnails);
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -35,15 +43,43 @@ export function PTeamServicesListModal(props) {
   const navigate = useNavigate();
 
   const params = new URLSearchParams(useLocation().search);
-
-  if (tagId === "") {
-    return;
-  }
+  const pteamId = params.get("pteamId");
 
   const targetServices = pteam.services
     .filter((service) => serviceIds.includes(service.service_id))
     .sort((a, b) => a.service_name.localeCompare(b.service_name));
   const pageServices = targetServices.slice(perPage * (page - 1), perPage * page);
+
+  useEffect(() => {
+    pageServices.forEach((service) => {
+      if (thumbnails[service.service_id] === undefined) {
+        getServiceThumbnail(pteamId, service.service_id)
+          .then(async (response) => {
+            const blobToDataURL = async (blob) =>
+              new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => resolve(event.target.result);
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(response.data);
+              });
+            const dataUrl = await blobToDataURL(response.data);
+            dispatch(storeServiceThumbnail({ serviceId: service.service_id, data: dataUrl }));
+          })
+          .catch((error) => {
+            dispatch(
+              storeServiceThumbnail({
+                serviceId: service.service_id,
+                data: noImageAvailableUrl,
+              }),
+            );
+          });
+      }
+    });
+  }, [pteamId, pageServices, thumbnails, dispatch]);
+
+  if (tagId === "") {
+    return;
+  }
 
   const paginationRow = (
     <Box display="flex" alignItems="center" sx={{ mt: 2 }}>
@@ -81,10 +117,6 @@ export function PTeamServicesListModal(props) {
     params.set("serviceId", serviceId);
     navigate(`/tags/${tagId}?${params.toString()}`);
   };
-  const image = "./images/PXL_20240716_072606176.jpg";
-
-  const description =
-    "Lizardsareawidespreadgroupofsquamatereptiles,withover6,000species,rangingacrossallcontinentsexceptAntarcticaLizardsareawidespreadgroupofsquamatereptiles,withover6,000species,rangingacrossallcontinentsexceptAntarcticaLizardsareawidespreadgroupofsquamatereptile";
 
   return (
     <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
@@ -118,11 +150,11 @@ export function PTeamServicesListModal(props) {
                 height: 200,
               }}
             >
-              <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
+              <CardMedia image={thumbnails[service.service_id]} sx={{ aspectRatio: "4 / 3" }} />
               <CardContent>
                 <CardHeader title={service.service_name} sx={{ px: 0 }}></CardHeader>
                 <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
-                  {description}
+                  {service.description}
                 </Typography>
               </CardContent>
             </Card>

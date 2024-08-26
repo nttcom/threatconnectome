@@ -135,6 +135,7 @@ const _initialState = {
   topicActions: {},
   serviceTagsSummaries: {},
   pteamTagsSummaries: {},
+  serviceThumbnails: {}, // dict[serviceId: dataURL | noImageAvailableUrl(=NoThumbnail)]
 };
 
 const pteamSlice = createSlice({
@@ -157,6 +158,14 @@ const pteamSlice = createSlice({
       serviceDependencies: { ...state.serviceDependencies, [action.payload]: undefined },
       serviceTagsSummaries: { ...state.serviceTagsSummaries, [action.payload]: undefined },
       tickets: { ...state.tickets, [action.payload]: undefined },
+      serviceThumbnails: { ...state.serviceThumbnails, [action.payload]: undefined },
+    }),
+    storeServiceThumbnail: (state, action) => ({
+      ...state,
+      serviceThumbnails: {
+        ...state.serviceThumbnails,
+        [action.payload.serviceId]: action.payload.data,
+      },
     }),
   },
   extraReducers: (builder) => {
@@ -233,6 +242,6 @@ const pteamSlice = createSlice({
 
 const { actions, reducer } = pteamSlice;
 
-export const { clearPTeam, setPTeamId, invalidateServiceId } = actions;
+export const { clearPTeam, setPTeamId, invalidateServiceId, storeServiceThumbnail } = actions;
 
 export default reducer;
