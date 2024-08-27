@@ -17,7 +17,7 @@ from app.auth import get_current_user
 from app.common import (
     check_pteam_auth,
     check_pteam_membership,
-    count_full_width_and_half_width_character,
+    count_full_width_and_half_width_characters,
     count_threat_impact_from_summary,
     create_topic_tag,
     fix_threats_for_dependency,
@@ -175,7 +175,35 @@ def update_pteam_service(
 ):
     """
     Update params of the pteam service.
+
+    - keywords
+      * max number: 5
+      * max length: 20 in half-width or 10 in full-width
+    - description
+      * max length: 300 in half-width or 150 in full-width
     """
+    max_keywords = 5
+    max_keyword_length_in_half = 20
+    max_description_length_in_half = 300
+    error_too_many_keywords = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=f"Too many keywords, max number: {max_keywords}",
+    )
+    error_too_long_keyword = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long keyword. Max length is {max_keyword_length_in_half} in half-width or "
+            f"{int(max_keyword_length_in_half / 2)} in full-width"
+        ),
+    )
+    error_too_long_description = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long description. Max length is {max_description_length_in_half} in half-width "
+            f"or {int(max_description_length_in_half / 2)} in full-width"
+        ),
+    )
+
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not (
@@ -187,22 +215,23 @@ def update_pteam_service(
 
     if data.description is not None:
         if description := data.description.strip():
+            if (
+                count_full_width_and_half_width_characters(description)
+                > max_description_length_in_half
+            ):
+                raise error_too_long_description
             service.description = description
         else:
             service.description = None
-    if data.keywords is not None and len(data.keywords) > 5:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Too many keywords, max number: 5"
-        )
     if data.keywords is not None:
         fixed_words = {fixed_word for keyword in data.keywords if (fixed_word := keyword.strip())}
+        if len(fixed_words) > max_keywords:
+            raise error_too_many_keywords
         if any(
-            count_full_width_and_half_width_character(fixed_word) > 20 for fixed_word in fixed_words
+            count_full_width_and_half_width_characters(fixed_word) > max_keyword_length_in_half
+            for fixed_word in fixed_words
         ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Too long keyword. Half-width are 20.full-width are 10.",
-            )
+            raise error_too_long_keyword
         service.keywords = sorted(fixed_words)
 
     db.commit()
