@@ -33,6 +33,7 @@ import { useLocation, useNavigate } from "react-router";
 import { Android12Switch } from "../components/Android12Switch";
 import { DeleteServiceIcon } from "../components/DeleteServiceIcon";
 import { PTeamLabel } from "../components/PTeamLabel";
+import { PTeamServiceDetails } from "../components/PTeamServiceDetails";
 import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamServicesListModal } from "../components/PTeamServicesListModal";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
@@ -190,6 +191,11 @@ export function Status() {
   if (!user.user_id || !pteamId || !pteam) {
     return <>Now loading...</>;
   }
+
+  const service =
+    isActiveAllServicesMode || !serviceId
+      ? undefined
+      : pteam.services.find((service) => service.service_id === serviceId);
 
   const handleSBOMUploaded = () => {
     dispatch(getPTeam(pteamId));
@@ -426,6 +432,7 @@ export function Status() {
         />
       )}
       <CustomTabPanel value={isActiveUploadMode} index={0}>
+        {service && <PTeamServiceDetails pteamId={pteamId} service={service} />}
         <Box display="flex" mt={2}>
           {filterRow}
           <Box flexGrow={1} />

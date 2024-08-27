@@ -85,6 +85,9 @@ export const deletePTeamService = async (pteamId, service) =>
 export const getDependencies = async (pteamId, serviceId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/dependencies`);
 
+export const getServiceThumbnail = async (pteamId, serviceId) =>
+  axios.get(`/pteams/${pteamId}/services/${serviceId}/thumbnail`, { responseType: "blob" });
+
 // ateams
 export const updateATeam = async (ateamId, data) => axios.put(`/ateams/${ateamId}`, data);
 
