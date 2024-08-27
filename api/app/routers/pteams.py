@@ -17,6 +17,7 @@ from app.auth import get_current_user
 from app.common import (
     check_pteam_auth,
     check_pteam_membership,
+    count_full_width_and_half_width_character,
     count_threat_impact_from_summary,
     create_topic_tag,
     fix_threats_for_dependency,
@@ -189,11 +190,18 @@ def update_pteam_service(
             service.description = description
         else:
             service.description = None
+    if data.keywords is not None and len(data.keywords) > 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Too many keywords, max number: 5"
+        )
     if data.keywords is not None:
         fixed_words = {fixed_word for keyword in data.keywords if (fixed_word := keyword.strip())}
-        if any(len(fixed_word) > 255 for fixed_word in fixed_words):
+        if any(
+            count_full_width_and_half_width_character(fixed_word) > 20 for fixed_word in fixed_words
+        ):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Too long keyword. max length: 255"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Too long keyword. Half-width are 20.full-width are 10.",
             )
         service.keywords = sorted(fixed_words)
 

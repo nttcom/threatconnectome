@@ -1,4 +1,5 @@
 import json
+import unicodedata
 from datetime import datetime
 from hashlib import md5
 from typing import Sequence
@@ -550,3 +551,14 @@ def count_threat_impact_from_summary(tags_summary: list[dict]):
     for tag_summary in tags_summary:
         threat_impact_count[str(tag_summary["threat_impact"] or 4)] += 1
     return threat_impact_count
+
+
+def count_full_width_and_half_width_character(character):
+    count = 0
+    for i in character:
+        if unicodedata.east_asian_width(i) in "WF":
+            count += 2
+        else:
+            count += 1
+
+    return count
