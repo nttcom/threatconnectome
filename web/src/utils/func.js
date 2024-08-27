@@ -79,3 +79,11 @@ export const tagsMatched = (allowedTags, actualTags) => {
 
 export const setEquals = (set1, set2) =>
   set1.size === set2.size && Array.from(set1).every((val) => set2.has(val));
+
+export const blobToDataURL = async (blob) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => resolve(event.target.result);
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(blob);
+  });
