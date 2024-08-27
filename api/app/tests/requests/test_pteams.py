@@ -49,6 +49,7 @@ from app.tests.medium.utils import (
     file_upload_headers,
     get_pteam_services,
     get_pteam_tags,
+    get_service_by_service_name,
     headers,
     invite_to_pteam,
     schema_to_dict,
@@ -3263,62 +3264,169 @@ class TestGetTickets:
         assert ticket1 == expected_ticket_response1
 
 
-def test_update_pteam_service_with_too_many_keywords():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM1)
-    tag1 = create_tag(USER1, TAG1)
+class TestUpdatePTeamService:
+    class Common:
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self):
+            self.user1 = create_user(USER1)
+            self.pteam1 = create_pteam(USER1, PTEAM1)
+            self.tag1 = create_tag(USER1, TAG1)
+            test_service = "test_service"
+            test_target = "test target"
+            test_version = "1.2.3"
+            refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
+            upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
+            self.service_id1 = get_service_by_service_name(
+                USER1, self.pteam1.pteam_id, test_service
+            )["service_id"]
 
-    # add test_service to pteam1
-    test_service = "test_service"
-    test_target = "test target"
-    test_version = "test version"
-    refs0 = {tag1.tag_name: [(test_target, test_version)]}
-    upload_pteam_tags(USER1, pteam.pteam_id, test_service, refs0)
+        @staticmethod
+        def _get_access_token(user: dict) -> str:
+            body = {
+                "username": user["email"],
+                "password": user["pass"],
+            }
+            response = client.post("/auth/token", data=body)
+            if response.status_code != 200:
+                raise HTTPError(response)
+            data = response.json()
+            return data["access_token"]
 
-    # get service_id
-    response_service = client.get(f"/pteams/{pteam.pteam_id}/services", headers=headers(USER1))
-    if response_service.status_code != 200:
-        raise HTTPError(response_service)
-    data = response_service.json()
-    service_id = data[0]["service_id"]
+    class TestKeywords(Common):
 
-    request = {"description": "test", "keywords": ["1", "2", "3", "4", "5", "6"]}
+        error_too_many_keywords = "Too many keywords, max number: 5"
 
-    response = client.post(
-        f"/pteams/{pteam.pteam_id}/services/{service_id}", headers=headers(USER1), json=request
-    )
+        @pytest.mark.parametrize(
+            "keywords, expected",
+            [
+                (None, []),
+                ([], []),
+                (["1"], ["1"]),
+                (["1", "2"], ["1", "2"]),
+                (["3", "1", "2"], ["1", "2", "3"]),
+                (["2", "4", "1", "3"], ["1", "2", "3", "4"]),
+                (["1", "2", "3", "4", "5"], ["1", "2", "3", "4", "5"]),
+                (["1", "2", "3", "4", "5", "6"], error_too_many_keywords),
+                (["1", "2", "3", "3", "1", "2"], ["1", "2", "3"]),  # duplications are unified
+            ],
+        )
+        def test_number_of_keywords(self, keywords, expected):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            request = {"keywords": keywords}
 
-    assert response.status_code == 400
-    set_response = response.json()
-    assert set_response["detail"] == "Too many keywords, max number: 5"
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
 
+            if isinstance(expected, str):  # error cases
+                assert response.status_code == 400
+                assert response.json()["detail"] == expected
+            else:
+                assert response.status_code == 200
+                assert response.json()["keywords"] == expected
 
-def test_update_pteam_service_with_too_long_keywords():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM1)
-    tag1 = create_tag(USER1, TAG1)
+        error_too_long_keyword = (
+            "Too long keyword. Max length is 20 in half-width or 10 in full-width"
+        )
+        chars_20_in_half = "123456789_123456789_"
+        chars_10_in_full = "１２３４５６７８９０"
+        complex_20_in_half = "123456789_１２３４５"
 
-    # add test_service to pteam1
-    test_service = "test_service"
-    test_target = "test target"
-    test_version = "test version"
-    refs0 = {tag1.tag_name: [(test_target, test_version)]}
-    upload_pteam_tags(USER1, pteam.pteam_id, test_service, refs0)
+        @pytest.mark.parametrize(
+            "keyword, expected",
+            [
+                ("", []),
+                ("   ", []),
+                (chars_20_in_half, [chars_20_in_half]),
+                (" " + chars_20_in_half + " ", [chars_20_in_half]),
+                (chars_20_in_half + "x", error_too_long_keyword),
+                (chars_10_in_full, [chars_10_in_full]),
+                (" " + chars_10_in_full + " ", [chars_10_in_full]),
+                ("　" + chars_10_in_full + "　", [chars_10_in_full]),  # \u3000 is also stripped
+                (chars_10_in_full + "x", error_too_long_keyword),
+                (chars_10_in_full + "ｘ", error_too_long_keyword),
+                (complex_20_in_half, [complex_20_in_half]),
+                (" " + complex_20_in_half + " ", [complex_20_in_half]),
+                ("　" + complex_20_in_half + "　", [complex_20_in_half]),
+                (complex_20_in_half + "x", error_too_long_keyword),
+                (complex_20_in_half + "ｘ", error_too_long_keyword),
+            ],
+        )
+        def test_length_of_keyword(self, keyword, expected):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            request = {"keywords": [keyword]}
 
-    # get service_id
-    response_service = client.get(f"/pteams/{pteam.pteam_id}/services", headers=headers(USER1))
-    if response_service.status_code != 200:
-        raise HTTPError(response_service)
-    data = response_service.json()
-    service_id = data[0]["service_id"]
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
 
-    keyword = "a" * 21
-    request = {"description": "test", "keywords": [keyword]}
+            if isinstance(expected, str):  # error cases
+                assert response.status_code == 400
+                assert response.json()["detail"] == expected
+            else:
+                assert response.status_code == 200
+                assert response.json()["keywords"] == expected
 
-    response = client.post(
-        f"/pteams/{pteam.pteam_id}/services/{service_id}", headers=headers(USER1), json=request
-    )
+    class TestDescription(Common):
 
-    assert response.status_code == 400
-    set_response = response.json()
-    assert set_response["detail"] == "Too long keyword. Half-width are 20.full-width are 10."
+        error_too_long_description = (  # HACK: define as a tuple instead of str
+            "Too long description. Max length is 300 in half-width or 150 in full-width",
+        )
+        chars_300_in_half = "123456789_" * 30
+        chars_150_in_full = "１２３４５６７８９＿" * 15
+        complex_300_in_half = "123456789_１２３４５６７８９＿" * 10
+
+        @pytest.mark.parametrize(
+            "description, expected",
+            [
+                ("", None),
+                ("   ", None),
+                (chars_300_in_half, chars_300_in_half),
+                (chars_300_in_half + "  ", chars_300_in_half),
+                (chars_300_in_half + "x", error_too_long_description),
+                (chars_150_in_full, chars_150_in_full),
+                (chars_150_in_full + " ", chars_150_in_full),
+                (chars_150_in_full + "　", chars_150_in_full),
+                (chars_150_in_full + "ｘ", error_too_long_description),
+                (complex_300_in_half, complex_300_in_half),
+                (complex_300_in_half + " ", complex_300_in_half),
+                (complex_300_in_half + "　", complex_300_in_half),
+                (complex_300_in_half + "x", error_too_long_description),
+                (complex_300_in_half + "ｘ", error_too_long_description),
+            ],
+        )
+        def test_length_of_description(self, description, expected):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            request = {"description": description}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            if isinstance(expected, tuple):  # error case
+                assert response.status_code == 400
+                assert response.json()["detail"] == expected[0]
+            else:
+                assert response.status_code == 200
+                assert response.json()["description"] == expected
