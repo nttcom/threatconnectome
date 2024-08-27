@@ -3261,3 +3261,64 @@ class TestGetTickets:
         assert len(data) == 1
         ticket1 = data[0]
         assert ticket1 == expected_ticket_response1
+
+
+def test_update_pteam_service_with_too_many_keywords():
+    create_user(USER1)
+    pteam = create_pteam(USER1, PTEAM1)
+    tag1 = create_tag(USER1, TAG1)
+
+    # add test_service to pteam1
+    test_service = "test_service"
+    test_target = "test target"
+    test_version = "test version"
+    refs0 = {tag1.tag_name: [(test_target, test_version)]}
+    upload_pteam_tags(USER1, pteam.pteam_id, test_service, refs0)
+
+    # get service_id
+    response_service = client.get(f"/pteams/{pteam.pteam_id}/services", headers=headers(USER1))
+    if response_service.status_code != 200:
+        raise HTTPError(response_service)
+    data = response_service.json()
+    service_id = data[0]["service_id"]
+
+    request = {"description": "test", "keywords": ["1", "2", "3", "4", "5", "6"]}
+
+    response = client.post(
+        f"/pteams/{pteam.pteam_id}/services/{service_id}", headers=headers(USER1), json=request
+    )
+
+    assert response.status_code == 400
+    set_response = response.json()
+    assert set_response["detail"] == "Too many keywords, max number: 5"
+
+
+def test_update_pteam_service_with_too_long_keywords():
+    create_user(USER1)
+    pteam = create_pteam(USER1, PTEAM1)
+    tag1 = create_tag(USER1, TAG1)
+
+    # add test_service to pteam1
+    test_service = "test_service"
+    test_target = "test target"
+    test_version = "test version"
+    refs0 = {tag1.tag_name: [(test_target, test_version)]}
+    upload_pteam_tags(USER1, pteam.pteam_id, test_service, refs0)
+
+    # get service_id
+    response_service = client.get(f"/pteams/{pteam.pteam_id}/services", headers=headers(USER1))
+    if response_service.status_code != 200:
+        raise HTTPError(response_service)
+    data = response_service.json()
+    service_id = data[0]["service_id"]
+
+    keyword = "a" * 21
+    request = {"description": "test", "keywords": [keyword]}
+
+    response = client.post(
+        f"/pteams/{pteam.pteam_id}/services/{service_id}", headers=headers(USER1), json=request
+    )
+
+    assert response.status_code == 400
+    set_response = response.json()
+    assert set_response["detail"] == "Too long keyword. Half-width are 20.full-width are 10."
