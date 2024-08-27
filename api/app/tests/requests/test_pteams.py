@@ -1,3 +1,4 @@
+import io
 import json
 import tempfile
 from datetime import datetime, timedelta
@@ -6,6 +7,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from PIL import Image, ImageChops
 from sqlalchemy import select
 
 from app import models, schemas
@@ -1373,6 +1375,27 @@ def test_delete_member__last_admin_another():
     assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
 
+def test_success_upload_service_thumbnail():
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    create_tag(USER1, TAG1)
+    refs0 = {TAG1: [("fake target", "fake version")]}
+    service_x = "service_x"
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
+
+    image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
+    with open(image_filepath, "rb") as image_file:
+        response = client.post(
+            f"/pteams/{pteam1.pteam_id}/services/{service1.service_id}/thumbnail",
+            headers=file_upload_headers(USER1),
+            files={"uploaded": image_file},
+        )
+
+    assert response.status_code == 200
+    assert response.reason_phrase == "OK"
+
+
 def test_failed_upload_service_thumbnail_when_wrong_image_size():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -1393,6 +1416,65 @@ def test_failed_upload_service_thumbnail_when_wrong_image_size():
     assert response.status_code == 400
     assert response.reason_phrase == "Bad Request"
     assert response.json()["detail"] == "Dimensions must be 720 x 480 px"
+
+
+def test_get_service_thumbnail():
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    create_tag(USER1, TAG1)
+    refs0 = {TAG1: [("fake target", "fake version")]}
+    service_x = "service_x"
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
+
+    image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
+    with open(image_filepath, "rb") as image_file:
+        client.post(
+            f"/pteams/{pteam1.pteam_id}/services/{service1.service_id}/thumbnail",
+            headers=file_upload_headers(USER1),
+            files={"uploaded": image_file},
+        )
+
+        response = client.get(
+            f"/pteams/{pteam1.pteam_id}/services/{service1.service_id}/thumbnail",
+            headers=headers(USER1),
+        )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/png"
+        diff_image = ImageChops.difference(
+            Image.open(image_file), Image.open(io.BytesIO(response.content))
+        )
+        assert diff_image.getbbox() is None
+
+
+def test_delete_service_thumbnail():
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    create_tag(USER1, TAG1)
+    refs0 = {TAG1: [("fake target", "fake version")]}
+    service_x = "service_x"
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
+
+    image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
+    with open(image_filepath, "rb") as image_file:
+        client.post(
+            f"/pteams/{pteam1.pteam_id}/services/{service1.service_id}/thumbnail",
+            headers=file_upload_headers(USER1),
+            files={"uploaded": image_file},
+        )
+
+    delete_response = client.delete(
+        f"/pteams/{pteam1.pteam_id}/services/{service1.service_id}/thumbnail",
+        headers=headers(USER1),
+    )
+    assert delete_response.status_code == 204
+
+    get_response = client.get(
+        f"/pteams/{pteam1.pteam_id}/services/{service1.service_id}/thumbnail",
+        headers=headers(USER1),
+    )
+    assert get_response.status_code == 404
 
 
 def test_delete_member__not_last_admin():
