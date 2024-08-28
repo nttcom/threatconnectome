@@ -25,8 +25,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { storeServiceThumbnail } from "../slices/pteam";
 import { getServiceThumbnail } from "../utils/api";
+import { blobToDataURL } from "../utils/func";
 
-const noImageAvailableUrl = "/images/no-image-available-720x480.png";
+const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
 export function PTeamServicesListModal(props) {
   const { onSetShow, show, tagId, tagName, serviceIds } = props;
@@ -55,13 +56,6 @@ export function PTeamServicesListModal(props) {
       if (thumbnails[service.service_id] === undefined) {
         getServiceThumbnail(pteamId, service.service_id)
           .then(async (response) => {
-            const blobToDataURL = async (blob) =>
-              new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (event) => resolve(event.target.result);
-                reader.onerror = (error) => reject(error);
-                reader.readAsDataURL(response.data);
-              });
             const dataUrl = await blobToDataURL(response.data);
             dispatch(storeServiceThumbnail({ serviceId: service.service_id, data: dataUrl }));
           })
