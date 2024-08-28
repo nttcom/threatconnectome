@@ -1,8 +1,8 @@
 import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
-import { grey } from "@mui/material/colors";
+import { grey, yellow, amber } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
 import { threatImpactNames, topicStatusProps } from "../utils/const";
@@ -111,6 +111,8 @@ StatusRatioGraph.propTypes = {
 
 export function PTeamStatusCard(props) {
   const { onHandleClick, tag, serviceIds } = props;
+  const [alertImpact, setAlertImpact] = useState(1);
+
   const pteam = useSelector((state) => state.pteam.pteam);
 
   const threatImpactNum = tag.threat_impact ?? 4;
@@ -119,12 +121,26 @@ export function PTeamStatusCard(props) {
       ? "safe" // solved all and at least 1 tickets
       : threatImpactNames[threatImpactNum];
 
+  useEffect(() => {
+    if (pteam) {
+      setAlertImpact(pteam.alert_threat_impact);
+    }
+  }, [pteam]);
+  console.log(alertImpact);
   return (
     <TableRow
       onClick={onHandleClick}
       sx={{
+        border: "2px",
+        borderBottom: "2px",
+        // Change the background color and border based on the Alert Threshold value set by the team.
+        ...(threatImpactNum <= alertImpact && {
+          boxShadow: `inset 0 0 0 4px ${amber[100]}`,
+          backgroundColor: yellow[50],
+        }),
         cursor: "pointer",
-        "&:last-child td, &:last-child th": { border: 0 },
+        "&:last-child td": { border: 0 },
+        "&:last-child th": { border: 0 },
         "&:hover": { bgcolor: grey[100] },
       }}
     >
