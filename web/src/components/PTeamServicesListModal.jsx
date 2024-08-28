@@ -27,7 +27,7 @@ import { storeServiceThumbnail } from "../slices/pteam";
 import { getServiceThumbnail } from "../utils/api";
 import { blobToDataURL } from "../utils/func";
 
-const noImageAvailableUrl = "/images/no-image-available-720x480.png";
+const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
 export function PTeamServicesListModal(props) {
   const { onSetShow, show, tagId, tagName, serviceIds } = props;
