@@ -556,7 +556,7 @@ def count_threat_impact_from_summary(tags_summary: list[dict]):
 def count_full_width_and_half_width_characters(string: str) -> int:
     count: int = 0
     for char in string:
-        if unicodedata.east_asian_width(char) in "WF":
+        if unicodedata.east_asian_width(char) in "WFA":
             count += 2
         else:
             count += 1
