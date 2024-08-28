@@ -126,7 +126,7 @@ export function PTeamStatusCard(props) {
       setAlertImpact(pteam.alert_threat_impact);
     }
   }, [pteam]);
-  console.log(alertImpact);
+
   return (
     <TableRow
       onClick={onHandleClick}
