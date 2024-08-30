@@ -135,6 +135,10 @@ class PTeamServiceUpdateRequest(ORMModel):
 class PTeamServiceUpdateResponse(ORMModel):
     description: str | None
     keywords: list[str]
+    system_exposure: SystemExposureEnum | None
+    service_mission_impact: MissionImpactEnum | None
+    safety_impact: SafetyImpactEnum | None
+
 
 
 class PTeamtagRequest(ORMModel):
