@@ -92,9 +92,8 @@ TOPIC1 = {
     "tags": [TAG1],
     "misp_tags": [MISPTAG1],
     "actions": [],
-    "safety_impact": "catastrophic",
     "exploitation": "active",
-    "automatable": True,
+    "automatable": "yes",
 }
 TOPIC2 = {
     "topic_id": uuid4(),
@@ -104,9 +103,8 @@ TOPIC2 = {
     "tags": [TAG1],
     "misp_tags": [],
     "actions": [],
-    "safety_impact": "hazardous",
     "exploitation": "active",
-    "automatable": True,
+    "automatable": "yes",
 }
 TOPIC3 = {
     "topic_id": uuid4(),
@@ -116,9 +114,8 @@ TOPIC3 = {
     "tags": [TAG1, TAG3],
     "misp_tags": [],
     "actions": [],
-    "safety_impact": "catastrophic",
     "exploitation": "active",
-    "automatable": True,
+    "automatable": "yes",
 }
 TOPIC4 = {
     "topic_id": uuid4(),
@@ -128,9 +125,8 @@ TOPIC4 = {
     "tags": [TAG3],
     "misp_tags": [],
     "actions": [],
-    "safety_impact": "hazardous",
     "exploitation": "active",
-    "automatable": True,
+    "automatable": "yes",
 }
 ACTION1 = {
     "action": "action one",

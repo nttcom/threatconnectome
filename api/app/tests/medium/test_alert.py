@@ -64,9 +64,8 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
                     },
                 },
             ],
-            "safety_impact": "catastrophic",
             "exploitation": "active",
-            "automatable": True,
+            "automatable": "yes",
         }
 
     pteam0 = create_pteam(USER1, _gen_pteam_params(0))
