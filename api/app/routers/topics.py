@@ -317,7 +317,6 @@ def create_topic(
         content_fingerprint=calculate_topic_content_fingerprint(
             fixed_title, fixed_abstract, data.threat_impact, data.tags
         ),
-        safety_impact=data.safety_impact,
         exploitation=data.exploitation,
         automatable=data.automatable,
     )
@@ -390,8 +389,6 @@ def update_topic(
         topic.abstract = new_abstract
     if data.threat_impact is not None:
         topic.threat_impact = data.threat_impact
-    if data.safety_impact is not None:
-        topic.safety_impact = data.safety_impact
     if data.exploitation is not None:
         topic.exploitation = data.exploitation
     if data.automatable is not None:

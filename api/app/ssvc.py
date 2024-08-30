@@ -10,7 +10,6 @@ def calculate_ssvc_deployer_priority(
     exposure = service.exposure  # noqa: F841
     automatable = topic.automatable  # noqa: F841
     mission_impact = calculate_mission_impact(threat.dependency)  # noqa: F841
-    safety_impact = topic.safety_impact  # noqa: F841
     # TODO Calculation not implemented.
 
     if threat.topic.threat_impact == 1:
