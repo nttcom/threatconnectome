@@ -5,7 +5,7 @@ from typing import cast
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
-from sqlalchemy.sql.expression import join, outerjoin, text
+from sqlalchemy.sql.expression import join, outerjoin
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
 
