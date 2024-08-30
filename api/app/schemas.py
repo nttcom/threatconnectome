@@ -10,8 +10,11 @@ from app.models import (
     ATeamAuthEnum,
     AutomatableEnum,
     ExploitationEnum,
+    MissionImpactEnum,
     PTeamAuthEnum,
+    SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
+    SystemExposureEnum,
     TopicStatusType,
 )
 
@@ -124,6 +127,9 @@ class PTeamServiceResponse(ORMModel):
 class PTeamServiceUpdateRequest(ORMModel):
     description: str | None = None
     keywords: list[str] | None = None
+    system_exposure: SystemExposureEnum | None = None
+    service_mission_impact: MissionImpactEnum | None = None
+    safety_impact: SafetyImpactEnum | None = None
 
 
 class PTeamServiceUpdateResponse(ORMModel):

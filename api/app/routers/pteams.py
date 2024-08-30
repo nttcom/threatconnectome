@@ -234,6 +234,15 @@ def update_pteam_service(
             raise error_too_long_keyword
         service.keywords = sorted(fixed_words)
 
+    if data.system_exposure is not None:
+        service.system_exposure = data.system_exposure
+
+    if data.service_mission_impact is not None:
+        service.service_mission_impact = data.service_mission_impact
+
+    if data.safety_impact is not None:
+        service.safety_impact = data.safety_impact
+
     db.commit()
 
     return service
