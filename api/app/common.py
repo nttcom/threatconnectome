@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app import models, persistence, schemas
 from app.alert import send_alert_to_pteam
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
-from app.ssvc import calculate_ssvc_deployer_priority
+from app.ssvc import ssvc_calculator
 from app.version import (
     PackageFamily,
     VulnerableRange,
@@ -349,7 +349,7 @@ def create_ticket_internal(
         threat_id=threat.threat_id,
         created_at=now,
         updated_at=now,
-        ssvc_deployer_priority=calculate_ssvc_deployer_priority(threat),
+        ssvc_deployer_priority=ssvc_calculator.calculate_ssvc_deployer_priority(threat),
     )
     persistence.create_ticket(db, ticket)
 

@@ -1,6 +1,7 @@
 import pytest
 
-from app import models, ssvc
+from app import models
+from app.ssvc import ssvc_calculator
 
 
 @pytest.mark.parametrize(
@@ -47,5 +48,5 @@ def test_calculate_mission_impact(
     )
     service.dependencies.append(dependency)
 
-    mission_impact = ssvc.calculate_mission_impact(dependency)
+    mission_impact = ssvc_calculator.calculate_mission_impact(dependency)
     assert mission_impact == expected_mission_impact
