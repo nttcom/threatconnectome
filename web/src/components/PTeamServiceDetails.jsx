@@ -5,6 +5,7 @@ import {
   CardMedia,
   Chip,
   Collapse,
+  Divider,
   Stack,
   Typography,
 } from "@mui/material";
@@ -77,6 +78,7 @@ export function PTeamServiceDetails(props) {
       >
         <Card sx={{ display: "flex", height: 200 }}>
           <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
+          <Divider orientation="vertical" variant="middle" flexItem />
           <CardContent sx={{ flex: 1 }}>
             <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
               {keywords.map((keyword) => (
