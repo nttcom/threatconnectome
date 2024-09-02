@@ -122,6 +122,7 @@ export function Status() {
 
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
+  const expandService = params.get("expandService") === "on" ? true : false;
 
   const user = useSelector((state) => state.user.user);
   const pteam = useSelector((state) => state.pteam.pteam);
@@ -143,6 +144,12 @@ export function Status() {
     tagName: "",
     serviceIds: [],
   });
+
+  const inheritExpandService = (_params) => {
+    if (expandService) _params.set("expandService", "on");
+    else _params.delete("expandService");
+    return _params;
+  };
 
   useEffect(() => {
     if (!user.user_id) return; // wait login completed
@@ -166,15 +173,17 @@ export function Status() {
     if (!serviceId) {
       if (pteam.services.length === 0) return; // nothing to do any more.
       // no service selected. force selecting one of services -- the first one
-      const newParams = new URLSearchParams();
+      let newParams = new URLSearchParams();
       newParams.set("pteamId", pteamId);
       newParams.set("serviceId", pteam.services[0].service_id);
+      newParams = inheritExpandService(newParams);
       navigate(location.pathname + "?" + newParams.toString());
       return;
     } else if (!pteam.services.find((service) => service.service_id === serviceId)) {
       alert("Invalid serviceId!");
-      const newParams = new URLSearchParams();
+      let newParams = new URLSearchParams();
       newParams.set("pteamId", pteamId);
+      newParams = inheritExpandService(newParams);
       navigate("/?" + newParams.toString());
       return;
     }
@@ -278,12 +287,13 @@ export function Status() {
   );
 
   const handleChangeService = (serviceId) => {
-    const newParams = new URLSearchParams();
+    let newParams = new URLSearchParams();
     newParams.set("pteamId", pteamId);
     newParams.set("serviceId", serviceId);
     if (searchWord) {
       newParams.set("word", searchWord);
     }
+    newParams = inheritExpandService(newParams);
     navigate(location.pathname + "?" + newParams.toString());
   };
 
@@ -333,6 +343,15 @@ export function Status() {
       params.set("allservices", "on");
       navigate(location.pathname + "?" + params.toString());
     }
+  };
+
+  const handleSwitchExpandService = () => {
+    if (expandService) {
+      params.delete("expandService");
+    } else {
+      params.set("expandService", "on");
+    }
+    navigate(location.pathname + "?" + params.toString());
   };
 
   const handleClick = (event) => {
@@ -432,7 +451,14 @@ export function Status() {
         />
       )}
       <CustomTabPanel value={isActiveUploadMode} index={0}>
-        {service && <PTeamServiceDetails pteamId={pteamId} service={service} />}
+        {service && (
+          <PTeamServiceDetails
+            pteamId={pteamId}
+            service={service}
+            expandService={expandService}
+            onSwitchExpandService={handleSwitchExpandService}
+          />
+        )}
         <Box display="flex" mt={2}>
           {filterRow}
           <Box flexGrow={1} />
