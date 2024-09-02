@@ -134,10 +134,11 @@ export function PTeamStatusCard(props) {
         border: "2px",
         borderBottom: "2px",
         // Change the background color and border based on the Alert Threshold value set by the team.
-        ...(threatImpactNum <= alertImpact && {
-          boxShadow: `inset 0 0 0 2px ${amber[100]}`,
-          backgroundColor: yellow[50],
-        }),
+        ...(alertImpact !== 4 &&
+          threatImpactNum <= alertImpact && {
+            boxShadow: `inset 0 0 0 2px ${amber[100]}`,
+            backgroundColor: yellow[50],
+          }),
         cursor: "pointer",
         "&:last-child td, &:last-child th": { border: 0 },
         "&:hover": { bgcolor: grey[100] },

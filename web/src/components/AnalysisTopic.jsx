@@ -135,12 +135,6 @@ export function AnalysisTopic(props) {
       .catch((error) => operationError(error));
   };
 
-  const pteamLinkURL = (pteamId) => {
-    const tmpParams = new URLSearchParams();
-    tmpParams.set("pteamId", pteamId);
-    return `${rootPrefix}/?` + tmpParams.toString();
-  };
-
   const pteamServiceTagLinkURL = (pteamId, serviceId, tagId) => {
     const tmpParams = new URLSearchParams();
     tmpParams.set("pteamId", pteamId);
@@ -225,7 +219,14 @@ export function AnalysisTopic(props) {
                         key={serviceStatus.service_id}
                       >
                         <TableCell sx={{ overflowWrap: "anywhere" }}>
-                          <Link href={pteamLinkURL(pteamStatus.pteam_id)} color="inherit">
+                          <Link
+                            href={pteamServiceTagLinkURL(
+                              pteamStatus.pteam_id,
+                              serviceStatus.service_id,
+                              serviceStatus.tag.tag_id,
+                            )}
+                            color="inherit"
+                          >
                             {pteamStatus.pteam_name}
                           </Link>
                           {serviceStatus.topic_status === "alerted" && (
@@ -235,19 +236,11 @@ export function AnalysisTopic(props) {
                           )}
                         </TableCell>
                         <TableCell align="left">
-                          <Link
-                            href={pteamServiceTagLinkURL(
-                              pteamStatus.pteam_id,
-                              serviceStatus.service_id,
-                              serviceStatus.tag.tag_id,
-                            )}
-                          >
-                            <Chip
-                              label={serviceStatus.tag.tag_name}
-                              sx={{ borderRadius: "3px", marginleft: "15px" }}
-                              size="small"
-                            />
-                          </Link>
+                          <Chip
+                            label={serviceStatus.tag.tag_name}
+                            sx={{ borderRadius: "3px", marginleft: "15px" }}
+                            size="small"
+                          />
                         </TableCell>
                         <TableCell align="left">
                           <Typography sx={{ overflowWrap: "anywhere" }}>
