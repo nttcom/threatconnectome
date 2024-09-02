@@ -140,7 +140,6 @@ class PTeamServiceUpdateResponse(ORMModel):
     safety_impact: SafetyImpactEnum | None
 
 
-
 class PTeamtagRequest(ORMModel):
     references: list[dict] | None = None
 
