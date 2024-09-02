@@ -146,8 +146,7 @@
 			    "child_label": "Situated Safety Impact",
 			    "child_key": "S",
 			    "child_option_labels":[
-				"none",
-				"minor"
+				"negligible"
 			    ]
 			},
 			  {
@@ -172,8 +171,7 @@
 			    "child_label": "Situated Safety Impact",
 			    "child_key": "S",
 			    "child_option_labels":[
-				"none",
-				"minor"
+				"negligible"
 			    ]
 			},
 			  {
@@ -189,7 +187,7 @@
 			    "child_label": "Situated Safety Impact",
 			    "child_key": "S",
 			    "child_option_labels":[
-				"major"
+				"marginal"
 			    ]
 			},
 			  {
@@ -214,14 +212,15 @@
 			    "child_label": "Situated Safety Impact",
 			    "child_key": "S",
 			    "child_option_labels":[
-				"major"
+				"critical"
 			    ]
 			},
 			  {
 			      "child_label": "Mission Impact",
 			      "child_key": "M",
 			      "child_option_labels":[
-				  "mef failure"
+				  "degraded",
+				  "crippled"
 			      ]
 			      
 			  }
@@ -230,15 +229,13 @@
 			    "child_label": "Situated Safety Impact",
 			    "child_key": "S",
 			    "child_option_labels":[
-				"hazardous"
+				"marginal"
 			    ]
 			},
 			  {
 			      "child_label": "Mission Impact",
 			      "child_key": "M",
 			      "child_option_labels":[
-				  "degraded",
-				  "crippled",
 				  "mef failure"
 			      ]
 			      
@@ -258,10 +255,6 @@
 			    "child_label": "Situated Safety Impact",
 			    "child_key": "S",
 			    "child_option_labels":[
-				"none",
-				"minor",
-				"major",
-				"hazardous",
 				"catastrophic"
 			    ]
 			},
@@ -269,25 +262,6 @@
 			      "child_label": "Mission Impact",
 			      "child_key": "M",
 			      "child_option_labels":[
-				  "mission failure"
-			      ]
-			      
-			  }
-			],
-			[ {
-			    "child_label": "Situated Safety Impact",
-			    "child_key": "S",
-			    "child_option_labels":[
-				"catastrophic"
-			    ]
-			},
-			  {
-			      "child_label": "Mission Impact",
-			      "child_key": "M",
-			      "child_option_labels":[
-				  "degraded",
-				  "crippled",
-				  "mef failure",
 				  "mission failure"
 			      ]
 			      
