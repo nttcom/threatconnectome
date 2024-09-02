@@ -131,7 +131,8 @@ export function Status() {
   const serviceTagsSummary = serviceTagsSummaries[serviceId];
   const pteamTagsSummary = pteamTagsSummaries[pteamId];
 
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [expandService, setExpandService] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const searchMenuOpen = Boolean(anchorEl);
 
   const isActiveAllServicesMode = params.get("allservices") === "on" ? true : false;
@@ -335,6 +336,8 @@ export function Status() {
     }
   };
 
+  const handleSwitchExpandService = () => setExpandService(!expandService);
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -432,7 +435,14 @@ export function Status() {
         />
       )}
       <CustomTabPanel value={isActiveUploadMode} index={0}>
-        {service && <PTeamServiceDetails pteamId={pteamId} service={service} />}
+        {service && (
+          <PTeamServiceDetails
+            pteamId={pteamId}
+            service={service}
+            expandService={expandService}
+            onSwitchExpandService={handleSwitchExpandService}
+          />
+        )}
         <Box display="flex" mt={2}>
           {filterRow}
           <Box flexGrow={1} />

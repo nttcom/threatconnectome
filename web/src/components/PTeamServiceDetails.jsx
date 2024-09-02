@@ -20,13 +20,12 @@ import { blobToDataURL } from "../utils/func";
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
 export function PTeamServiceDetails(props) {
-  const { pteamId, service } = props;
+  const { pteamId, service, expandService, onSwitchExpandService } = props;
 
   const dispatch = useDispatch();
 
   const thumbnails = useSelector((state) => state.pteam.serviceThumbnails);
 
-  const [isOpen, setIsOpen] = useState(false);
   const [image, setImage] = useState(noImageAvailableUrl);
 
   const thumbnail = thumbnails[service.service_id];
@@ -58,10 +57,10 @@ export function PTeamServiceDetails(props) {
   return (
     <>
       <Collapse
-        in={isOpen}
+        in={expandService}
         collapsedSize={100}
         sx={
-          isOpen
+          expandService
             ? {}
             : {
                 position: "relative",
@@ -94,8 +93,8 @@ export function PTeamServiceDetails(props) {
           </CardContent>
         </Card>
       </Collapse>
-      <Button onClick={() => setIsOpen(!isOpen)} sx={{ display: "block", m: "auto" }}>
-        {isOpen ? "- Read less" : "+ Read more"}
+      <Button onClick={onSwitchExpandService} sx={{ display: "block", m: "auto" }}>
+        {expandService ? "- READ LESS" : "+ READ MORE"}
       </Button>
     </>
   );
@@ -104,4 +103,6 @@ export function PTeamServiceDetails(props) {
 PTeamServiceDetails.propTypes = {
   pteamId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
+  expandService: PropTypes.bool.isRequired,
+  onSwitchExpandService: PropTypes.func.isRequired,
 };
