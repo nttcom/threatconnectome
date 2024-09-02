@@ -134,7 +134,6 @@ export function PTeamServicesListModal(props) {
               key={service.service_id}
               onClick={() => handleNavigateTag(service.service_id)}
               variant="outlined"
-              aligncontent="space-between"
               sx={{
                 margin: 1,
                 width: "100%",
