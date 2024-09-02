@@ -143,7 +143,10 @@ export function PTeamServicesListModal(props) {
                 height: 200,
               }}
             >
-              <CardMedia image={thumbnails[service.service_id]} sx={{ aspectRatio: "4 / 3" }} />
+              <CardMedia
+                image={thumbnails[service.service_id] ?? noImageAvailableUrl}
+                sx={{ aspectRatio: "4 / 3" }}
+              />
               <CardContent sx={{ flex: 1 }}>
                 <CardHeader title={service.service_name} sx={{ px: 0 }}></CardHeader>
                 <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
