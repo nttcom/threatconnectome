@@ -543,13 +543,6 @@ def main() -> None:
             ]
 
             convert_impact = {"CRITICAL": 1, "HIGH": 2, "MEDIUM": 3, "LOW": 3, "UNKNOWN": 4}
-            safety_impact = {
-                "CRITICAL": "catastrophic",
-                "HIGH": "hazardous",
-                "MEDIUM": "major",
-                "LOW": "minor",
-                "UNKNOWN": "none",
-            }
             topics[topic_id] = {
                 "title": title,
                 "abstract": abstract,
@@ -557,7 +550,6 @@ def main() -> None:
                 "tags": tags,
                 "misp_tags": misp_tags,
                 "actions": actions,
-                "safety_impact": safety_impact.get(severity, "none"),
             }
 
     tc_client = ThreatconnectomeClient(args.url, refresh_token, retry_max=3)

@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.main import app
 from app.models import (
+    AutomatableEnum,
     ExploitationEnum,
-    SafetyImpactEnum,
 )
 from app.tests.medium.constants import (
     ACTION1,
@@ -75,7 +75,6 @@ def test_create_topic():
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in topic1.misp_tags]
     assert ACTION1["action"] in [a.action for a in topic1.actions]
     assert ACTION2["action"] in [a.action for a in topic1.actions]
-    assert topic1.safety_impact == TOPIC1["safety_impact"]
     assert topic1.exploitation == TOPIC1["exploitation"]
     assert topic1.automatable == TOPIC1["automatable"]
 
@@ -166,19 +165,6 @@ def test_create_wrong_threat_level_topic():
         create_topic(USER1, _topic)
 
 
-def test_it_should_return_422_when_use_try_to_create_wrong_safety_impact_topic():
-    create_user(USER1)
-    create_tag(USER1, TAG1)
-    _topic = TOPIC1.copy()
-    _topic["safety_impact"] = "test"
-
-    request = {**_topic}
-    del request["topic_id"]
-
-    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
-    assert response.status_code == 422
-
-
 def test_it_should_return_422_when_use_try_to_create_wrong_exploitation_topic():
     create_user(USER1)
     create_tag(USER1, TAG1)
@@ -196,7 +182,6 @@ def test_default_value_is_set_when_ssvc_related_value_is_empty_in_creation():
     create_user(USER1)
     create_tag(USER1, TAG1)
     _topic = TOPIC1.copy()
-    del _topic["safety_impact"]
     del _topic["exploitation"]
     del _topic["automatable"]
 
@@ -207,9 +192,8 @@ def test_default_value_is_set_when_ssvc_related_value_is_empty_in_creation():
     assert response.status_code == 200
 
     responsed_topic = schemas.TopicCreateResponse(**response.json())
-    assert responsed_topic.safety_impact == SafetyImpactEnum.CATASTROPHIC
     assert responsed_topic.exploitation == ExploitationEnum.ACTIVE
-    assert responsed_topic.automatable is True
+    assert responsed_topic.automatable == AutomatableEnum.YES
 
 
 def test_create_too_long_action():
@@ -241,7 +225,6 @@ def test_get_topic():
     assert responsed_topic.updated_at == topic1.updated_at
     assert TOPIC1["tags"][0] in [t.tag_name for t in responsed_topic.tags]
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in responsed_topic.misp_tags]
-    assert responsed_topic.safety_impact == TOPIC1["safety_impact"]
     assert responsed_topic.exploitation == TOPIC1["exploitation"]
     assert responsed_topic.automatable == TOPIC1["automatable"]
     # actions are removed from TopicResponse.
@@ -284,9 +267,8 @@ def test_update_topic():
         "threat_impact": 2,
         "tags": [tag1.tag_name],
         "misp_tags": ["tlp:white"],
-        "safety_impact": "hazardous",
-        "exploitation": "poc",
-        "automatable": False,
+        "exploitation": "public_poc",
+        "automatable": "no",
     }
     response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
 
@@ -304,8 +286,6 @@ def test_update_topic():
     assert TOPIC1["misp_tags"][0] not in [
         misp_tag.tag_name for misp_tag in responsed_topic.misp_tags
     ]
-    assert responsed_topic.safety_impact == request["safety_impact"]
-    assert responsed_topic.safety_impact != TOPIC1["safety_impact"]
     assert responsed_topic.exploitation == request["exploitation"]
     assert responsed_topic.exploitation != TOPIC1["exploitation"]
     assert responsed_topic.automatable == request["automatable"]
@@ -806,9 +786,8 @@ class TestSearchTopics:
                 "abstract": "",
                 "threat_impact": 1,
                 **params,
-                "safety_impact": "catastrophic",
                 "exploitation": "active",
-                "automatable": True,
+                "automatable": "yes",
             }
             return create_topic(user, minimal_topic)
 
