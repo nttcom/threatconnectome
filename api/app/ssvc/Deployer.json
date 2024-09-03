@@ -262,6 +262,27 @@
 			      "child_label": "Mission Impact",
 			      "child_key": "M",
 			      "child_option_labels":[
+              "degraded",
+              "crippled",
+              "mef failure",
+              "mission failure"
+			      ]
+			  }
+			],
+			[ {
+			    "child_label": "Situated Safety Impact",
+			    "child_key": "S",
+			    "child_option_labels":[
+            "negligible",
+            "marginal",
+            "critical",
+            "catastrophic"
+			    ]
+			},
+			  {
+			      "child_label": "Mission Impact",
+			      "child_key": "M",
+			      "child_option_labels":[
 				  "mission failure"
 			      ]
 			      
