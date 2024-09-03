@@ -1,3 +1,4 @@
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
   Button,
   Card,
@@ -6,7 +7,9 @@ import {
   Chip,
   Collapse,
   Divider,
+  IconButton,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
@@ -33,6 +36,43 @@ export function PTeamServiceDetails(props) {
   const serviceName = service.service_name;
   const description = service.description;
   const keywords = service.keywords;
+  const CopyButton = ({ id }) => {
+    const [tooltipText, setTooltipText] = useState("Copy the service_id");
+    const [tooltipPlacement, setTooltipPlacement] = useState("bottom");
+
+    const handleClick = () => {
+      setTooltipText("Copied");
+      setTooltipPlacement("top");
+    };
+
+    const handleMouseLeave = () => {
+      if (tooltipText === "Copied") {
+        setTooltipText("Copy the service_id");
+        setTooltipPlacement("bottom");
+      }
+    };
+
+    return (
+      <>
+        <Tooltip title={tooltipText} placement={tooltipPlacement} onClose={handleMouseLeave}>
+          <IconButton
+            color="primary"
+            aria-label="copy-id"
+            onClick={() => {
+              navigator.clipboard.writeText(id);
+              handleClick();
+            }}
+          >
+            <InfoOutlinedIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </>
+    );
+  };
+
+  CopyButton.propTypes = {
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
+  };
 
   useEffect(() => {
     if (thumbnail === undefined) {
@@ -87,6 +127,7 @@ export function PTeamServiceDetails(props) {
             </Stack>
             <Typography gutterBottom variant="h5">
               {serviceName}
+              <CopyButton id={service.service_id} />
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
               {description}
