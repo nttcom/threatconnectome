@@ -18,6 +18,11 @@ from app.constants import (
     ZERO_FILLED_UUID,
 )
 from app.main import app
+from app.models import (
+    MissionImpactEnum,
+    SafetyImpactEnum,
+    SystemExposureEnum,
+)
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     ACTION1,
@@ -3512,3 +3517,218 @@ class TestUpdatePTeamService:
             else:
                 assert response.status_code == 200
                 assert response.json()["description"] == expected
+
+    class TestSystemExposure(Common):
+        @pytest.mark.parametrize(
+            "system_exposure, expected",
+            [
+                (
+                    None,
+                    SystemExposureEnum.OPEN,
+                ),  # When “None” is selected for the first time, “open” is entered by default.
+                (SystemExposureEnum.OPEN, SystemExposureEnum.OPEN),
+                (SystemExposureEnum.CONTROLLED, SystemExposureEnum.CONTROLLED),
+                (SystemExposureEnum.SMALL, SystemExposureEnum.SMALL),
+                ("open", SystemExposureEnum.OPEN),
+                ("controlled", SystemExposureEnum.CONTROLLED),
+                ("small", SystemExposureEnum.SMALL),
+            ],
+        )
+        def test_it_should_return_200_when_system_exposure_is_SystemExposureEnum_or_None(
+            self, system_exposure, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"system_exposure": system_exposure}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 200
+            assert response.json()["system_exposure"] == expected
+
+        error_msg = "Input should be 'open', 'controlled' or 'small'"
+
+        @pytest.mark.parametrize(
+            "system_exposure, expected",
+            [
+                (1, error_msg),
+                ("test", error_msg),
+            ],
+        )
+        def test_it_should_return_422_when_system_exposure_is_not_SystemExposureEnum(
+            self, system_exposure, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"system_exposure": system_exposure}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 422
+            assert response.json()["detail"][0]["msg"] == expected
+
+    class TestMissionImpact(Common):
+        @pytest.mark.parametrize(
+            "service_mission_impact, expected",
+            [
+                (
+                    None,
+                    MissionImpactEnum.MISSION_FAILURE,
+                ),  # When “None” is selected for the first time, “mission_failure”
+                    # is entered by default
+                (MissionImpactEnum.MISSION_FAILURE, MissionImpactEnum.MISSION_FAILURE),
+                (MissionImpactEnum.MEF_FAILURE, MissionImpactEnum.MEF_FAILURE),
+                (MissionImpactEnum.MEF_SUPPORT_CRIPPLED, MissionImpactEnum.MEF_SUPPORT_CRIPPLED),
+                (MissionImpactEnum.DEGRADED, MissionImpactEnum.DEGRADED),
+                ("mission_failure", MissionImpactEnum.MISSION_FAILURE),
+                ("mef_failure", MissionImpactEnum.MEF_FAILURE),
+                ("mef_support_crippled", MissionImpactEnum.MEF_SUPPORT_CRIPPLED),
+                ("degraded", MissionImpactEnum.DEGRADED),
+            ],
+        )
+        def test_it_should_return_200_when_mission_impact_is_MissionImpactEnum_or_None(
+            self, service_mission_impact, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"service_mission_impact": service_mission_impact}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 200
+            assert response.json()["service_mission_impact"] == expected
+
+
+        error_msg = ("Input should be 'mission_failure', 'mef_failure', 'mef_support_crippled'"
+                     " or 'degraded'")
+
+        @pytest.mark.parametrize(
+            "service_mission_impact, expected",
+            [
+                (
+                    1,
+                    error_msg,
+                ),
+                (
+                    "test",
+                    error_msg,
+                ),
+            ],
+        )
+        def test_it_should_return_422_when_mission_impact_is_not_MissionImpactEnum(
+            self, service_mission_impact, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"service_mission_impact": service_mission_impact}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 422
+            assert response.json()["detail"][0]["msg"] == expected
+
+    class TestSafetyImpactEnum(Common):
+        @pytest.mark.parametrize(
+            "safety_impact, expected",
+            [
+                (
+                    None,
+                    SafetyImpactEnum.NEGLIGIBLE,
+                ),  # When “None” is selected for the first time, “negligible” is entered by default
+                (SafetyImpactEnum.CATASTROPHIC, SafetyImpactEnum.CATASTROPHIC),
+                (SafetyImpactEnum.CRITICAL, SafetyImpactEnum.CRITICAL),
+                (SafetyImpactEnum.MARGINAL, SafetyImpactEnum.MARGINAL),
+                (SafetyImpactEnum.NEGLIGIBLE, SafetyImpactEnum.NEGLIGIBLE),
+                ("catastrophic", SafetyImpactEnum.CATASTROPHIC),
+                ("critical", SafetyImpactEnum.CRITICAL),
+                ("marginal", SafetyImpactEnum.MARGINAL),
+                ("negligible", SafetyImpactEnum.NEGLIGIBLE),
+            ],
+        )
+        def test_it_should_return_200_when_safety_impact_is_SafetyImpactEnum_or_None(
+            self, safety_impact, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"safety_impact": safety_impact}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 200
+            assert response.json()["safety_impact"] == expected
+
+
+        error_msg = "Input should be 'catastrophic', 'critical', 'marginal' or 'negligible'"
+
+        @pytest.mark.parametrize(
+            "safety_impact, expected",
+            [
+                (1, error_msg),
+                ("test", error_msg),
+            ],
+        )
+        def test_it_should_return_422_when_safety_impact_is_not_SafetyImpactEnum(
+            self, safety_impact, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"safety_impact": safety_impact}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 422
+            assert response.json()["detail"][0]["msg"] == expected
