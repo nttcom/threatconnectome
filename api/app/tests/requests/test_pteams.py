@@ -3555,13 +3555,13 @@ class TestUpdatePTeamService:
             assert response.status_code == 200
             assert response.json()["system_exposure"] == expected
 
-        error_msg = "Input should be 'open', 'controlled' or 'small'"
+        error_msg_system_exposure = "Input should be 'open', 'controlled' or 'small'"
 
         @pytest.mark.parametrize(
             "system_exposure, expected",
             [
-                (1, error_msg),
-                ("test", error_msg),
+                (1, error_msg_system_exposure),
+                ("test", error_msg_system_exposure),
             ],
         )
         def test_it_should_return_422_when_system_exposure_is_not_SystemExposureEnum(
@@ -3624,7 +3624,7 @@ class TestUpdatePTeamService:
             assert response.status_code == 200
             assert response.json()["service_mission_impact"] == expected
 
-        error_msg = (
+        error_msg_service_mission_impact = (
             "Input should be 'mission_failure', 'mef_failure', 'mef_support_crippled' or 'degraded'"
         )
 
@@ -3633,11 +3633,11 @@ class TestUpdatePTeamService:
             [
                 (
                     1,
-                    error_msg,
+                    error_msg_service_mission_impact,
                 ),
                 (
                     "test",
-                    error_msg,
+                    error_msg_service_mission_impact,
                 ),
             ],
         )
@@ -3701,13 +3701,15 @@ class TestUpdatePTeamService:
             assert response.status_code == 200
             assert response.json()["safety_impact"] == expected
 
-        error_msg = "Input should be 'catastrophic', 'critical', 'marginal' or 'negligible'"
+        error_msg_safety_impact = (
+            "Input should be 'catastrophic', 'critical', 'marginal' or 'negligible'"
+        )
 
         @pytest.mark.parametrize(
             "safety_impact, expected",
             [
-                (1, error_msg),
-                ("test", error_msg),
+                (1, error_msg_safety_impact),
+                ("test", error_msg_safety_impact),
             ],
         )
         def test_it_should_return_422_when_safety_impact_is_not_SafetyImpactEnum(
