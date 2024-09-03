@@ -3592,8 +3592,7 @@ class TestUpdatePTeamService:
                 (
                     None,
                     MissionImpactEnum.MISSION_FAILURE,
-                ),  # When “None” is selected for the first time, “mission_failure”
-                    # is entered by default
+                ),  # When “None” is selected for the first time, “mission_failure” is entered
                 (MissionImpactEnum.MISSION_FAILURE, MissionImpactEnum.MISSION_FAILURE),
                 (MissionImpactEnum.MEF_FAILURE, MissionImpactEnum.MEF_FAILURE),
                 (MissionImpactEnum.MEF_SUPPORT_CRIPPLED, MissionImpactEnum.MEF_SUPPORT_CRIPPLED),
@@ -3625,9 +3624,9 @@ class TestUpdatePTeamService:
             assert response.status_code == 200
             assert response.json()["service_mission_impact"] == expected
 
-
-        error_msg = ("Input should be 'mission_failure', 'mef_failure', 'mef_support_crippled'"
-                     " or 'degraded'")
+        error_msg = (
+            "Input should be 'mission_failure', 'mef_failure', 'mef_support_crippled' or 'degraded'"
+        )
 
         @pytest.mark.parametrize(
             "service_mission_impact, expected",
@@ -3701,7 +3700,6 @@ class TestUpdatePTeamService:
 
             assert response.status_code == 200
             assert response.json()["safety_impact"] == expected
-
 
         error_msg = "Input should be 'catastrophic', 'critical', 'marginal' or 'negligible'"
 
