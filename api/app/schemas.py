@@ -8,10 +8,13 @@ from app.constants import DEFAULT_ALERT_THREAT_IMPACT
 from app.models import (
     ActionType,
     ATeamAuthEnum,
+    AutomatableEnum,
     ExploitationEnum,
+    MissionImpactEnum,
     PTeamAuthEnum,
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
+    SystemExposureEnum,
     TopicStatusType,
 )
 
@@ -124,11 +127,17 @@ class PTeamServiceResponse(ORMModel):
 class PTeamServiceUpdateRequest(ORMModel):
     description: str | None = None
     keywords: list[str] | None = None
+    system_exposure: SystemExposureEnum | None = None
+    service_mission_impact: MissionImpactEnum | None = None
+    safety_impact: SafetyImpactEnum | None = None
 
 
 class PTeamServiceUpdateResponse(ORMModel):
     description: str | None
     keywords: list[str]
+    system_exposure: SystemExposureEnum | None
+    service_mission_impact: MissionImpactEnum | None
+    safety_impact: SafetyImpactEnum | None
 
 
 class PTeamtagRequest(ORMModel):
@@ -173,9 +182,8 @@ class Topic(TopicEntry):
     threat_impact: int
     created_by: UUID
     created_at: datetime
-    safety_impact: SafetyImpactEnum | None
     exploitation: ExploitationEnum | None
-    automatable: bool | None
+    automatable: AutomatableEnum | None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -230,9 +238,8 @@ class TopicCreateRequest(ORMModel):
     tags: list[str] = []
     misp_tags: list[str] = []
     actions: list[ActionCreateRequest] = []
-    safety_impact: SafetyImpactEnum | None = None
     exploitation: ExploitationEnum | None = None
-    automatable: bool | None = None
+    automatable: AutomatableEnum | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -243,9 +250,8 @@ class TopicUpdateRequest(ORMModel):
     threat_impact: int | None = None
     tags: list[str] | None = None
     misp_tags: list[str] | None = None
-    safety_impact: SafetyImpactEnum | None = None
     exploitation: ExploitationEnum | None = None
-    automatable: bool | None = None
+    automatable: AutomatableEnum | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
