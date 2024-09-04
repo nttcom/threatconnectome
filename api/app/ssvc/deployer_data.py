@@ -1,6 +1,31 @@
 import json
 from pathlib import Path
 
+"""
+Get Deployer.json from the repository below and extract the calculation logic from it.
+https://github.com/CERTCC/SSVC
+
+In threatconnectome, the following modifications were made to Deployer.json.
+
+1.
+  Change the Safety Impact selection from v1.0.0 to v2.0.0
+2.
+  Mission Impact v2.0.0 does not have None, so exclude the case where Mission Impact is None.
+3.
+  The following standards do not define a case where Safety Impact is Critical and Mission Impact
+  is MEF Failure.
+  https://certcc.github.io/SSVC/reference/decision_points/human_impact/
+  Human Impact v2.0.1
+
+  At threatconnectome, the Human Impact in this case is rated High.
+  Reason:
+  a.
+    The value of v1.0.0 that corresponds to "Critical" in Safety Impact v2.0.0 is "Hazardous".
+  b.
+    In the example below, the Human Impact is set to High for cases where Situated Safety Impact
+    is hazardous and Mission Impact is mef failure.
+"""
+
 human_impact_dict: dict = {}
 ssvc_priority_dict: dict = {}
 

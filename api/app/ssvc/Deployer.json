@@ -220,7 +220,8 @@
 			      "child_key": "M",
 			      "child_option_labels":[
 				  "degraded",
-				  "crippled"
+				  "crippled",
+				  "mef failure"
 			      ]
 			      
 			  }
