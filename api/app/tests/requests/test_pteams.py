@@ -302,7 +302,7 @@ def test_update_pteam_empty_data():
     assert data["alert_threat_impact"] == 3
 
 
-def test_get_pteam_services():
+def test_get_pteam_services_register_multiple_services():
     create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -339,7 +339,7 @@ def test_get_pteam_services():
 
     services1c = get_pteam_services(USER1, pteam1.pteam_id)
     services2c = get_pteam_services(USER1, pteam2.pteam_id)
-    print(services1c)
+
     assert services1c[0].service_name == service_x or service_y
     assert services1c[1].service_name == service_x or service_y
     assert services2c[0].service_name == service_y
@@ -347,6 +347,47 @@ def test_get_pteam_services():
     # only members get services
     with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
         get_pteam_services(USER2, pteam1.pteam_id)
+
+
+def test_get_pteam_services_verify_if_all_responses_are_filled():
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    create_tag(USER1, TAG1)
+
+    refs0 = {TAG1: [("fake target", "fake version")]}
+    service_name = "service_x"
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_name, refs0)
+
+    service_id1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name)["service_id"]
+
+    request = {
+        "keywords": ["test_keywords"],
+        "description": "test_description",
+        "system_exposure": models.SystemExposureEnum.SMALL.value,
+        "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
+        "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+    }
+
+    client.post(
+        f"/pteams/{pteam1.pteam_id}/services/{service_id1}",
+        headers=headers(USER1),
+        json=request,
+    )
+
+    response = client.get(
+        f"/pteams/{pteam1.pteam_id}/services",
+        headers=headers(USER1),
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data[0]["service_name"] == service_name
+    assert data[0]["service_id"] == service_id1
+    assert data[0]["description"] == request["description"]
+    assert data[0]["keywords"] == request["keywords"]
+    assert data[0]["system_exposure"] == request["system_exposure"]
+    assert data[0]["service_mission_impact"] == request["service_mission_impact"]
+    assert data[0]["safety_impact"] == request["safety_impact"]
 
 
 def test_get_pteam_tags():
