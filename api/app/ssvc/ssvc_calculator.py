@@ -87,18 +87,12 @@ def calculate_ssvc_priority_by_threat(
     exploitation = topic.exploitation
     system_exposure = service.system_exposure
     automatable = topic.automatable
-    mission_impact = calculate_mission_impact(threat.dependency)
+    mission_impact = mission_impact = (
+        threat.dependency.dependency_mission_impact or service.service_mission_impact
+    )
     safety_impact = service.safety_impact
     human_impact = calculate_human_impact(safety_impact, mission_impact)
     return _calculate_ssvc_priority(exploitation, system_exposure, automatable, human_impact)
-
-
-def calculate_mission_impact(
-    dependency: models.Dependency,
-) -> models.MissionImpactEnum:
-    if dependency and dependency.dependency_mission_impact:
-        return dependency.dependency_mission_impact
-    return dependency.service.service_mission_impact
 
 
 def calculate_human_impact(
