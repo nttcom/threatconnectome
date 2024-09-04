@@ -18,6 +18,7 @@ from app.routers import (
     topics,
     users,
 )
+from app.ssvc import deployer_data
 
 
 def create_app():
@@ -69,3 +70,10 @@ logging.basicConfig(
     level=LOGLEVEL if LOGLEVEL != "" else "INFO",
     format="%(levelname)s - %(asctime)s - %(name)s - %(message)s",
 )
+
+try:
+    deployer_data.initialize()
+except OSError as error:
+    raise Exception(f"Cannot open file Deployer.json. detail: {error}")
+except (KeyError, TypeError) as error:
+    raise Exception(f"File Deployer.json has invalid syntax. detail: {error}")
