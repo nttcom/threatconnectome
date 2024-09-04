@@ -2,7 +2,7 @@ from app import models
 from app.ssvc import deployer_data
 
 
-def get_automatable_value(automatable: models.AutomatableEnum) -> str:
+def _get_automatable_value(automatable: models.AutomatableEnum) -> str:
     match automatable:
         case models.AutomatableEnum.YES:
             return "yes"
@@ -10,7 +10,7 @@ def get_automatable_value(automatable: models.AutomatableEnum) -> str:
             return "no"
 
 
-def get_exploitation_value(exploitation: models.ExploitationEnum) -> str:
+def _get_exploitation_value(exploitation: models.ExploitationEnum) -> str:
     match exploitation:
         case models.ExploitationEnum.ACTIVE:
             return "active"
@@ -20,7 +20,7 @@ def get_exploitation_value(exploitation: models.ExploitationEnum) -> str:
             return "none"
 
 
-def get_system_exposure_value(system_exposure: models.SystemExposureEnum) -> str:
+def _get_system_exposure_value(system_exposure: models.SystemExposureEnum) -> str:
     match system_exposure:
         case models.SystemExposureEnum.OPEN:
             return "open"
@@ -30,7 +30,7 @@ def get_system_exposure_value(system_exposure: models.SystemExposureEnum) -> str
             return "small"
 
 
-def get_safety_impact_value(safety_impact: models.SafetyImpactEnum) -> str:
+def _get_safety_impact_value(safety_impact: models.SafetyImpactEnum) -> str:
     match safety_impact:
         case models.SafetyImpactEnum.CATASTROPHIC:
             return "catastrophic"
@@ -42,7 +42,7 @@ def get_safety_impact_value(safety_impact: models.SafetyImpactEnum) -> str:
             return "negligible"
 
 
-def get_mission_impact_value(mission_impact: models.MissionImpactEnum) -> str:
+def _get_mission_impact_value(mission_impact: models.MissionImpactEnum) -> str:
     match mission_impact:
         case models.MissionImpactEnum.MISSION_FAILURE:
             return "mission failure"
@@ -54,7 +54,16 @@ def get_mission_impact_value(mission_impact: models.MissionImpactEnum) -> str:
             return "degraded"
 
 
-def get_ssvc_priority_enum(ssvc_priority: str | None) -> models.SSVCDeployerPriorityEnum | None:
+def _get_human_impact_value_dict() -> dict:
+    return {
+        "low": models.HumanImpactEnum.LOW,
+        "medium": models.HumanImpactEnum.MEDIUM,
+        "high": models.HumanImpactEnum.HIGH,
+        "very high": models.HumanImpactEnum.VERY_HIGH,
+    }
+
+
+def _get_ssvc_priority_enum(ssvc_priority: str | None) -> models.SSVCDeployerPriorityEnum | None:
     if ssvc_priority is None:
         return None
     match ssvc_priority:
@@ -70,7 +79,7 @@ def get_ssvc_priority_enum(ssvc_priority: str | None) -> models.SSVCDeployerPrio
             return None
 
 
-def calculate_ssvc_deployer_priority(
+def calculate_ssvc_priority_by_threat(
     threat: models.Threat,
 ) -> models.SSVCDeployerPriorityEnum | None:
     topic = threat.topic
@@ -81,35 +90,37 @@ def calculate_ssvc_deployer_priority(
     mission_impact = service.service_mission_impact
     safety_impact = service.safety_impact
     human_impact = calculate_human_impact(safety_impact, mission_impact)
-    return calculate_ssvc_priority(exploitation, system_exposure, automatable, human_impact)
+    return _calculate_ssvc_priority(exploitation, system_exposure, automatable, human_impact)
 
 
 def calculate_human_impact(
-    situated_safety_impact: models.SafetyImpactEnum, mission_impact: models.MissionImpactEnum
-) -> str | None:
+    safety_impact: models.SafetyImpactEnum, mission_impact: models.MissionImpactEnum
+) -> models.HumanImpactEnum | None:
     key = (
-        get_safety_impact_value(situated_safety_impact),
-        get_mission_impact_value(mission_impact),
+        _get_safety_impact_value(safety_impact),
+        _get_mission_impact_value(mission_impact),
     )
     human_impact_dict = deployer_data.get_human_impact_dict()
-    if key in human_impact_dict.keys():
-        return human_impact_dict[key]
-    return None
+    human_impact_value = human_impact_dict.get(key)
+    return _get_human_impact_value_dict().get(human_impact_value)
 
 
-def calculate_ssvc_priority(
+def _calculate_ssvc_priority(
     exploitation: models.ExploitationEnum,
     system_exposure: models.SystemExposureEnum,
     automatable: models.AutomatableEnum,
-    human_impact: str | None,
+    human_impact: models.HumanImpactEnum | None,
 ) -> models.SSVCDeployerPriorityEnum | None:
+    human_impact_value = [
+        human_impact_value
+        for human_impact_value, human_impact_enum in _get_human_impact_value_dict().items()
+        if human_impact_enum == human_impact
+    ][0]
     key = (
-        get_exploitation_value(exploitation),
-        get_system_exposure_value(system_exposure),
-        get_automatable_value(automatable),
-        human_impact,
+        _get_exploitation_value(exploitation),
+        _get_system_exposure_value(system_exposure),
+        _get_automatable_value(automatable),
+        human_impact_value,
     )
     ssvc_priority_dict = deployer_data.get_ssvc_priority_dict()
-    if key in ssvc_priority_dict.keys():
-        return get_ssvc_priority_enum(ssvc_priority_dict[key])
-    return None
+    return _get_ssvc_priority_enum(ssvc_priority_dict.get(key))
