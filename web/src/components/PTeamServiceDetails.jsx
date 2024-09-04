@@ -22,6 +22,49 @@ import { blobToDataURL } from "../utils/func";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
+function ServiceIDCopyButton({ ServiceId }) {
+  const defaultMessage = "Copy the Service ID";
+  const defaultPosition = "bottom";
+
+  const [tooltipText, setTooltipText] = useState(defaultMessage);
+  const [tooltipPlacement, setTooltipPlacement] = useState(defaultPosition);
+
+  // change the message when clicked
+  const handleClick = () => {
+    setTooltipText("Copied");
+    setTooltipPlacement("top");
+  };
+
+  // reset the tooltip state when completed
+  const handleClose = () => {
+    if (tooltipText === "Copied") {
+      setTooltipText(defaultMessage);
+      setTooltipPlacement(defaultPosition);
+    }
+  };
+
+  return (
+    <>
+      <Tooltip title={tooltipText} placement={tooltipPlacement} onClose={handleClose}>
+        <IconButton
+          color="primary"
+          aria-label="copy-id"
+          onClick={() => {
+            navigator.clipboard.writeText(ServiceId);
+            handleClick();
+          }}
+        >
+          <InfoOutlinedIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    </>
+  );
+}
+
+ServiceIDCopyButton.propTypes = {
+  ServiceId: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
+};
+
 export function PTeamServiceDetails(props) {
   const { pteamId, service } = props;
 
@@ -36,43 +79,6 @@ export function PTeamServiceDetails(props) {
   const serviceName = service.service_name;
   const description = service.description;
   const keywords = service.keywords;
-  const CopyButton = ({ id }) => {
-    const [tooltipText, setTooltipText] = useState("Copy the service_id");
-    const [tooltipPlacement, setTooltipPlacement] = useState("bottom");
-
-    const handleClick = () => {
-      setTooltipText("Copied");
-      setTooltipPlacement("top");
-    };
-
-    const handleMouseLeave = () => {
-      if (tooltipText === "Copied") {
-        setTooltipText("Copy the service_id");
-        setTooltipPlacement("bottom");
-      }
-    };
-
-    return (
-      <>
-        <Tooltip title={tooltipText} placement={tooltipPlacement} onClose={handleMouseLeave}>
-          <IconButton
-            color="primary"
-            aria-label="copy-id"
-            onClick={() => {
-              navigator.clipboard.writeText(id);
-              handleClick();
-            }}
-          >
-            <InfoOutlinedIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </>
-    );
-  };
-
-  CopyButton.propTypes = {
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
-  };
 
   useEffect(() => {
     if (thumbnail === undefined) {
@@ -127,7 +133,7 @@ export function PTeamServiceDetails(props) {
             </Stack>
             <Typography gutterBottom variant="h5">
               {serviceName}
-              <CopyButton id={service.service_id} />
+              <ServiceIDCopyButton ServiceId={service.service_id} />
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
               {description}
