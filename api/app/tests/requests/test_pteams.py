@@ -3526,9 +3526,6 @@ class TestUpdatePTeamService:
                     None,
                     SystemExposureEnum.OPEN,
                 ),  # When “None” is selected for the first time, “open” is entered by default.
-                (SystemExposureEnum.OPEN, SystemExposureEnum.OPEN),
-                (SystemExposureEnum.CONTROLLED, SystemExposureEnum.CONTROLLED),
-                (SystemExposureEnum.SMALL, SystemExposureEnum.SMALL),
                 ("open", SystemExposureEnum.OPEN),
                 ("controlled", SystemExposureEnum.CONTROLLED),
                 ("small", SystemExposureEnum.SMALL),
@@ -3593,10 +3590,6 @@ class TestUpdatePTeamService:
                     None,
                     MissionImpactEnum.MISSION_FAILURE,
                 ),  # When “None” is selected for the first time, “mission_failure” is entered
-                (MissionImpactEnum.MISSION_FAILURE, MissionImpactEnum.MISSION_FAILURE),
-                (MissionImpactEnum.MEF_FAILURE, MissionImpactEnum.MEF_FAILURE),
-                (MissionImpactEnum.MEF_SUPPORT_CRIPPLED, MissionImpactEnum.MEF_SUPPORT_CRIPPLED),
-                (MissionImpactEnum.DEGRADED, MissionImpactEnum.DEGRADED),
                 ("mission_failure", MissionImpactEnum.MISSION_FAILURE),
                 ("mef_failure", MissionImpactEnum.MEF_FAILURE),
                 ("mef_support_crippled", MissionImpactEnum.MEF_SUPPORT_CRIPPLED),
@@ -3670,10 +3663,6 @@ class TestUpdatePTeamService:
                     None,
                     SafetyImpactEnum.NEGLIGIBLE,
                 ),  # When “None” is selected for the first time, “negligible” is entered by default
-                (SafetyImpactEnum.CATASTROPHIC, SafetyImpactEnum.CATASTROPHIC),
-                (SafetyImpactEnum.CRITICAL, SafetyImpactEnum.CRITICAL),
-                (SafetyImpactEnum.MARGINAL, SafetyImpactEnum.MARGINAL),
-                (SafetyImpactEnum.NEGLIGIBLE, SafetyImpactEnum.NEGLIGIBLE),
                 ("catastrophic", SafetyImpactEnum.CATASTROPHIC),
                 ("critical", SafetyImpactEnum.CRITICAL),
                 ("marginal", SafetyImpactEnum.MARGINAL),
