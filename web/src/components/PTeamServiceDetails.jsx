@@ -1,3 +1,4 @@
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
   Button,
   Card,
@@ -6,7 +7,9 @@ import {
   Chip,
   Collapse,
   Divider,
+  IconButton,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
@@ -18,6 +21,49 @@ import { getServiceThumbnail } from "../utils/api";
 import { blobToDataURL } from "../utils/func";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
+
+function ServiceIDCopyButton({ ServiceId }) {
+  const defaultMessage = "Copy the Service ID";
+  const defaultPosition = "bottom";
+
+  const [tooltipText, setTooltipText] = useState(defaultMessage);
+  const [tooltipPlacement, setTooltipPlacement] = useState(defaultPosition);
+
+  // change the message when clicked
+  const handleClick = () => {
+    setTooltipText("Copied");
+    setTooltipPlacement("top");
+  };
+
+  // reset the tooltip state when completed
+  const handleClose = () => {
+    if (tooltipText === "Copied") {
+      setTooltipText(defaultMessage);
+      setTooltipPlacement(defaultPosition);
+    }
+  };
+
+  return (
+    <>
+      <Tooltip title={tooltipText} placement={tooltipPlacement} onClose={handleClose}>
+        <IconButton
+          color="primary"
+          aria-label="copy-id"
+          onClick={() => {
+            navigator.clipboard.writeText(ServiceId);
+            handleClick();
+          }}
+        >
+          <InfoOutlinedIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    </>
+  );
+}
+
+ServiceIDCopyButton.propTypes = {
+  ServiceId: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
+};
 
 export function PTeamServiceDetails(props) {
   const { pteamId, service, expandService, onSwitchExpandService } = props;
@@ -86,6 +132,7 @@ export function PTeamServiceDetails(props) {
             </Stack>
             <Typography gutterBottom variant="h5">
               {serviceName}
+              <ServiceIDCopyButton ServiceId={service.service_id} />
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
               {description}
