@@ -349,7 +349,44 @@ def test_get_pteam_services_register_multiple_services():
         get_pteam_services(USER2, pteam1.pteam_id)
 
 
-def test_get_pteam_services_verify_if_all_responses_are_filled():
+@pytest.mark.parametrize(
+    "service_request, expected",
+    [
+        (
+            {
+                "keywords": ["test_keywords"],
+                "description": "test_description",
+                "system_exposure": models.SystemExposureEnum.SMALL.value,
+                "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
+                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+            },
+            {
+                "keywords": ["test_keywords"],
+                "description": "test_description",
+                "system_exposure": models.SystemExposureEnum.SMALL.value,
+                "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
+                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+            },
+        ),
+        (
+            {
+                "keywords": ["test_keywords"],
+                "description": "test_description",
+                "system_exposure": None,
+                "service_mission_impact": None,
+                "safety_impact": None,
+            },
+            {
+                "keywords": ["test_keywords"],
+                "description": "test_description",
+                "system_exposure": models.SystemExposureEnum.OPEN.value,
+                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
+                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+            },
+        ),
+    ],
+)
+def test_get_pteam_services_verify_if_all_responses_are_filled(service_request, expected):
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     create_tag(USER1, TAG1)
@@ -360,18 +397,10 @@ def test_get_pteam_services_verify_if_all_responses_are_filled():
 
     service_id1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name)["service_id"]
 
-    request = {
-        "keywords": ["test_keywords"],
-        "description": "test_description",
-        "system_exposure": models.SystemExposureEnum.SMALL.value,
-        "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
-        "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
-    }
-
     client.post(
         f"/pteams/{pteam1.pteam_id}/services/{service_id1}",
         headers=headers(USER1),
-        json=request,
+        json=service_request,
     )
 
     response = client.get(
@@ -383,11 +412,11 @@ def test_get_pteam_services_verify_if_all_responses_are_filled():
     data = response.json()
     assert data[0]["service_name"] == service_name
     assert data[0]["service_id"] == service_id1
-    assert data[0]["description"] == request["description"]
-    assert data[0]["keywords"] == request["keywords"]
-    assert data[0]["system_exposure"] == request["system_exposure"]
-    assert data[0]["service_mission_impact"] == request["service_mission_impact"]
-    assert data[0]["safety_impact"] == request["safety_impact"]
+    assert data[0]["description"] == expected["description"]
+    assert data[0]["keywords"] == expected["keywords"]
+    assert data[0]["system_exposure"] == expected["system_exposure"]
+    assert data[0]["service_mission_impact"] == expected["service_mission_impact"]
+    assert data[0]["safety_impact"] == expected["safety_impact"]
 
 
 def test_get_pteam_tags():
