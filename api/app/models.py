@@ -531,13 +531,17 @@ class PTeam(Base):
         super().__init__(*args, **kwargs)
         if not self.pteam_id:
             self.pteam_id = str(uuid.uuid4())
+        if not self.alert_ssvc_priority:
+            self.alert_ssvc_priority = SSVCDeployerPriorityEnum.IMMEDIATE
 
     __tablename__ = "pteam"
 
     pteam_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     pteam_name: Mapped[Str255]
     contact_info: Mapped[Str255]
-    alert_threat_impact: Mapped[int | None]
+    alert_ssvc_priority: Mapped[SSVCDeployerPriorityEnum] = mapped_column(
+        server_default=SSVCDeployerPriorityEnum.IMMEDIATE
+    )
 
     tags = relationship(  # PTeam - [Service - Dependency] - Tag
         "Tag",  # right most table is Tag
