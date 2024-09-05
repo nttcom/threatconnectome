@@ -122,9 +122,9 @@ class PTeamServiceResponse(ORMModel):
     sbom_uploaded_at: datetime | None = None
     description: str | None
     keywords: list[str]
-    system_exposure: SystemExposureEnum | None
-    service_mission_impact: MissionImpactEnum | None
-    safety_impact: SafetyImpactEnum | None
+    system_exposure: SystemExposureEnum
+    service_mission_impact: MissionImpactEnum
+    safety_impact: SafetyImpactEnum
 
 
 class PTeamServiceUpdateRequest(ORMModel):
