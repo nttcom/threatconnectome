@@ -242,22 +242,9 @@ def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
     # abort if deployer_priofiry is not yet calclated
     if ticket.ssvc_deployer_priority is None:
         return False
-    if not (
-        int_priority := {
-            models.SSVCDeployerPriorityEnum.IMMEDIATE: 1,
-            models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
-            models.SSVCDeployerPriorityEnum.SCHEDULED: 3,
-            models.SSVCDeployerPriorityEnum.DEFER: 4,
-        }.get(ticket.ssvc_deployer_priority)
-    ):
-        raise ValueError(f"Invalid SSVCDeployerPriority: {ticket.ssvc_deployer_priority}")
 
-    # WORKAROUND
-    # use pteam.alert_threat_impact as threshold for alert.
-    # threshold should be defined in pteam and/or service.
     pteam = ticket.threat.dependency.service.pteam
-    int_threshold = pteam.alert_threat_impact or 4
-    return int_priority <= int_threshold
+    return ticket.ssvc_deployer_priority <= pteam.alert_ssvc_priority
 
 
 def sum_threat_impact_count(topic_ids: list[str], topic_ids_dict: dict, count_key: str) -> dict:

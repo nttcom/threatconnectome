@@ -1,6 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
+from functools import total_ordering
 from typing import cast
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
@@ -202,12 +203,17 @@ class HumanImpactEnum(str, enum.Enum):
     VERY_HIGH = "very_high"
 
 
+@total_ordering
 class SSVCDeployerPriorityEnum(str, enum.Enum):
     # https://certcc.github.io/SSVC/howto/deployer_tree/#deployer-decision-outcomes
     IMMEDIATE = "immediate"
     OUT_OF_CYCLE = "out_of_cycle"
     SCHEDULED = "scheduled"
     DEFER = "defer"
+
+    def __lt__(self, other):
+        orders_map = {"immediate": 1, "out_of_cycle": 2, "scheduled": 3, "defer": 4}
+        return orders_map[self] < orders_map[other]
 
 
 # Base class

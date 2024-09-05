@@ -760,7 +760,7 @@ def create_pteam(
     pteam = models.PTeam(
         pteam_name=data.pteam_name.strip(),
         contact_info=data.contact_info.strip(),
-        alert_threat_impact=data.alert_threat_impact,
+        alert_ssvc_priority=data.alert_ssvc_priority,
     )
     pteam.alert_slack = models.PTeamSlack(
         pteam_id=pteam.pteam_id,
@@ -1191,8 +1191,8 @@ def update_pteam(
         pteam.pteam_name = data.pteam_name
     if data.contact_info is not None:
         pteam.contact_info = data.contact_info
-    if data.alert_threat_impact is not None:
-        pteam.alert_threat_impact = data.alert_threat_impact
+    if data.alert_ssvc_priority is not None:
+        pteam.alert_ssvc_priority = data.alert_ssvc_priority
     if data.alert_mail is not None:
         pteam.alert_mail = models.PTeamMail(**data.alert_mail.__dict__)
 

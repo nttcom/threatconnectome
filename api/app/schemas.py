@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.constants import DEFAULT_ALERT_THREAT_IMPACT
+from app.constants import DEFAULT_ALERT_SSVC_PRIORITY
 from app.models import (
     ActionType,
     ATeamAuthEnum,
@@ -258,38 +258,28 @@ class TopicUpdateRequest(ORMModel):
 
 class PTeamInfo(PTeamEntry):
     alert_slack: Slack
-    alert_threat_impact: int
+    alert_ssvc_priority: SSVCDeployerPriorityEnum
     services: list[PTeamServiceResponse]
     ateams: list[ATeamEntry]
     alert_mail: Mail
-
-    _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
-        threat_impact_range
-    )
 
 
 class PTeamCreateRequest(ORMModel):
     pteam_name: str
     contact_info: str = ""
     alert_slack: Slack | None = None
-    alert_threat_impact: int = DEFAULT_ALERT_THREAT_IMPACT
-    alert_mail: Mail | None = None
-
-    _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
-        threat_impact_range
+    alert_ssvc_priority: SSVCDeployerPriorityEnum = SSVCDeployerPriorityEnum(
+        DEFAULT_ALERT_SSVC_PRIORITY
     )
+    alert_mail: Mail | None = None
 
 
 class PTeamUpdateRequest(ORMModel):
     pteam_name: str | None = None
     contact_info: str | None = None
     alert_slack: Slack | None = None
-    alert_threat_impact: int | None = None
+    alert_ssvc_priority: SSVCDeployerPriorityEnum | None = None
     alert_mail: Mail | None = None
-
-    _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
-        threat_impact_range
-    )
 
 
 class PTeamAuthInfo(ORMModel):

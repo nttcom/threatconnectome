@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 from app import models, schemas
 from app.constants import (
-    DEFAULT_ALERT_THREAT_IMPACT,
+    DEFAULT_ALERT_SSVC_PRIORITY,
     MEMBER_UUID,
     NOT_MEMBER_UUID,
     ZERO_FILLED_UUID,
@@ -180,7 +180,7 @@ def test_create_pteam():
     assert pteam1.pteam_name == PTEAM1["pteam_name"]
     assert pteam1.contact_info == PTEAM1["contact_info"]
     assert pteam1.alert_slack.webhook_url == PTEAM1["alert_slack"]["webhook_url"]
-    assert pteam1.alert_threat_impact == PTEAM1["alert_threat_impact"]
+    assert pteam1.alert_ssvc_priority == PTEAM1["alert_ssvc_priority"]
     assert pteam1.pteam_id != ZERO_FILLED_UUID
 
     response = client.get("/users/me", headers=headers(USER1))
@@ -192,7 +192,7 @@ def test_create_pteam():
     assert pteam2.pteam_name == PTEAM2["pteam_name"]
     assert pteam2.contact_info == PTEAM2["contact_info"]
     assert pteam2.alert_slack.webhook_url == PTEAM2["alert_slack"]["webhook_url"]
-    assert pteam2.alert_threat_impact == PTEAM2["alert_threat_impact"]
+    assert pteam2.alert_ssvc_priority == PTEAM2["alert_ssvc_priority"]
     assert pteam2.pteam_id != ZERO_FILLED_UUID
 
     response = client.get("/users/me", headers=headers(USER1))
@@ -209,13 +209,13 @@ def test_create_pteam__by_default():
     _pteam = PTEAM1.copy()
     del _pteam["contact_info"]
     del _pteam["alert_slack"]
-    del _pteam["alert_threat_impact"]
+    del _pteam["alert_ssvc_priority"]
     del _pteam["alert_mail"]
     pteam1 = create_pteam(USER1, _pteam)
     assert pteam1.contact_info == ""
     assert pteam1.alert_slack.enable is True
     assert pteam1.alert_slack.webhook_url == ""
-    assert pteam1.alert_threat_impact == DEFAULT_ALERT_THREAT_IMPACT
+    assert pteam1.alert_ssvc_priority == DEFAULT_ALERT_SSVC_PRIORITY
     assert pteam1.alert_mail.enable is True
     assert pteam1.alert_mail.address == ""
 
@@ -249,7 +249,7 @@ def test_update_pteam():
     assert data["contact_info"] == PTEAM2["contact_info"]
     assert data["alert_slack"]["enable"] == PTEAM2["alert_slack"]["enable"]
     assert data["alert_slack"]["webhook_url"] == PTEAM2["alert_slack"]["webhook_url"]
-    assert data["alert_threat_impact"] == PTEAM2["alert_threat_impact"]
+    assert data["alert_ssvc_priority"] == PTEAM2["alert_ssvc_priority"]
     assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
     assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
 
@@ -269,7 +269,7 @@ def test_update_pteam__by_admin():
     assert data["contact_info"] == PTEAM2["contact_info"]
     assert data["alert_slack"]["enable"] == PTEAM2["alert_slack"]["enable"]
     assert data["alert_slack"]["webhook_url"] == PTEAM2["alert_slack"]["webhook_url"]
-    assert data["alert_threat_impact"] == PTEAM2["alert_threat_impact"]
+    assert data["alert_ssvc_priority"] == PTEAM2["alert_ssvc_priority"]
     assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
     assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
 
@@ -304,7 +304,7 @@ def test_update_pteam_empty_data():
     assert data["pteam_name"] == ""
     assert data["contact_info"] == ""
     assert data["alert_slack"]["webhook_url"] == ""
-    assert data["alert_threat_impact"] == 3
+    assert data["alert_ssvc_priority"] == PTEAM1["alert_ssvc_priority"]
 
 
 def test_get_pteam_services():
