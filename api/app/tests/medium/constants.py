@@ -58,7 +58,7 @@ PTEAM1 = {
     "pteam_name": "pteam alpha",
     "contact_info": "alpha@ml.com",
     "alert_slack": {"enable": True, "webhook_url": ""},
-    "alert_threat_impact": 3,
+    "alert_ssvc_priority": "scheduled",
     "alert_mail": {"enable": False, "address": "alpha@ml.com"},  # disable SendGrid if not needed
 }
 
@@ -66,7 +66,7 @@ PTEAM2 = {
     "pteam_name": "pteam bravo",
     "contact_info": "bravo@ml.com",
     "alert_slack": {"enable": True, "webhook_url": ""},
-    "alert_threat_impact": 2,
+    "alert_ssvc_priority": "out_of_cycle",
     "alert_mail": {"enable": False, "address": "bravo@ml.com"},  # disable SendGrid if not needed
 }
 PTEAM3 = {
