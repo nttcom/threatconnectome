@@ -95,7 +95,7 @@ def test_calculate_human_impact(
     mission_impact: models.MissionImpactEnum,
     expected_human_impact: models.HumanImpactEnum | None,
 ):
-    human_impact = ssvc_calculator.calculate_human_impact(safety_impact, mission_impact)
+    human_impact = ssvc_calculator._calculate_human_impact(safety_impact, mission_impact)
     assert human_impact == expected_human_impact
 
 
