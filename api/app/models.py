@@ -446,7 +446,7 @@ class Ticket(Base):
     ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
 
     threat = relationship("Threat", back_populates="ticket")
-    alerts = relationship("Alert", uselist=False, back_populates="ticket")
+    alerts = relationship("Alert", back_populates="ticket")
     ticket_statuses = relationship("TicketStatus", back_populates="ticket", cascade="all, delete")
     current_ticket_status: Mapped["CurrentTicketStatus"] = relationship(
         "CurrentTicketStatus", uselist=False, back_populates="ticket", cascade="all, delete"
