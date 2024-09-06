@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Card,
   CardContent,
@@ -15,6 +16,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { storeServiceThumbnail } from "../slices/pteam";
 import { getServiceThumbnail } from "../utils/api";
 import { blobToDataURL } from "../utils/func";
+
+import { PTeamStatusSSVCCards } from "./PTeamStatusSSVCCards";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
@@ -91,6 +94,9 @@ export function PTeamServiceDetails(props) {
             </Typography>
           </CardContent>
         </Card>
+        <Box sx={{ mt: 1 }}>
+          <PTeamStatusSSVCCards />
+        </Box>
       </Collapse>
       <Button onClick={() => setIsOpen(!isOpen)} sx={{ display: "block", m: "auto" }}>
         {isOpen ? "- Read less" : "+ Read more"}
