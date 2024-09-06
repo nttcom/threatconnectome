@@ -641,7 +641,7 @@ class ATeamTopicCommentResponse(ORMModel):
 
 
 class ServiceTaggedTopics(ORMModel):
-    threat_impact_count: dict[str, int]
+    ssvc_priority_count: dict[str, int]
     topic_ids: list[UUID]
 
 

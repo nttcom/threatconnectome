@@ -101,41 +101,41 @@ def test_it_should_return_solved_or_unsolved_number_based_on_ticket_status(
 
 
 @pytest.mark.parametrize(
-    "threat_impact, topic_status1, topic_status2, expected_solved_count, expected_unsolved_count",
+    "exploitation, topic_status1, topic_status2, expected_solved_count, expected_unsolved_count",
     [
         (
-            1,
+            "none",
             models.TopicStatusType.completed,
             models.TopicStatusType.completed,
-            {"1": 2, "2": 0, "3": 0, "4": 0},
-            {"1": 0, "2": 0, "3": 0, "4": 0},
+            {"immediate": 0, "out_of_cycle": 2, "scheduled": 0, "defer": 0},
+            {"immediate": 0, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
         ),
         (
-            2,
+            "none",
             models.TopicStatusType.completed,
             models.TopicStatusType.acknowledged,
-            {"1": 0, "2": 0, "3": 0, "4": 0},
-            {"1": 0, "2": 1, "3": 0, "4": 0},
+            {"immediate": 0, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
+            {"immediate": 0, "out_of_cycle": 1, "scheduled": 0, "defer": 0},
         ),
         (
-            3,
+            "public_poc",
             models.TopicStatusType.acknowledged,
             models.TopicStatusType.completed,
-            {"1": 0, "2": 0, "3": 0, "4": 0},
-            {"1": 0, "2": 0, "3": 1, "4": 0},
+            {"immediate": 0, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
+            {"immediate": 0, "out_of_cycle": 1, "scheduled": 0, "defer": 0},
         ),
         (
-            4,
+            "active",
             models.TopicStatusType.acknowledged,
             models.TopicStatusType.acknowledged,
-            {"1": 0, "2": 0, "3": 0, "4": 0},
-            {"1": 0, "2": 0, "3": 0, "4": 2},
+            {"immediate": 0, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
+            {"immediate": 2, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
         ),
     ],
 )
-def test_it_should_return_threat_impact_count_num_based_on_tickte_status(
+def test_it_should_return_ssvc_priority_count_num_based_on_tickte_status(
     testdb,
-    threat_impact,
+    exploitation,
     topic_status1,
     topic_status2,
     expected_solved_count,
@@ -166,7 +166,7 @@ def test_it_should_return_threat_impact_count_num_based_on_tickte_status(
     # create ticket
     topic = {
         **TOPIC1,
-        "threat_impact": threat_impact,
+        "exploitation": exploitation,
     }
 
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, topic)
@@ -206,68 +206,53 @@ def test_it_should_return_threat_impact_count_num_based_on_tickte_status(
     assert response["service_id"] == ticket_response["service_id"]
     assert response["tag_id"] == ticket_response["tag_id"]
     # solved
-    assert response["solved"]["threat_impact_count"] == expected_solved_count
+    assert response["solved"]["ssvc_priority_count"] == expected_solved_count
     # unsolved
-    assert response["unsolved"]["threat_impact_count"] == expected_unsolved_count
+    assert response["unsolved"]["ssvc_priority_count"] == expected_unsolved_count
 
 
 @pytest.mark.parametrize(
-    "_topic1, _topic2, _topic3, _topic4, titles_sorted_by_threat_impact",
+    "_topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority",
     [
         (
-            {"threat_impact": 1, "title": "topic one"},
-            {"threat_impact": 2, "title": "topic two"},
-            {"threat_impact": 3, "title": "topic three"},
-            {"threat_impact": 4, "title": "topic four"},
-            ["topic one", "topic two", "topic three", "topic four"],
+            {"exploitation": "active", "automatable": "no", "title": "topic one"},
+            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
+            {"exploitation": "none", "automatable": "no", "title": "topic three"},
+            ["topic one", "topic two", "topic three"],
         ),
         (
-            {"threat_impact": 4, "title": "topic one"},
-            {"threat_impact": 3, "title": "topic two"},
-            {"threat_impact": 2, "title": "topic three"},
-            {"threat_impact": 1, "title": "topic four"},
-            ["topic four", "topic three", "topic two", "topic one"],
+            {"exploitation": "none", "automatable": "no", "title": "topic one"},
+            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
+            {"exploitation": "active", "automatable": "no", "title": "topic three"},
+            ["topic three", "topic two", "topic one"],
         ),
         (
-            {"threat_impact": 1, "title": "topic one"},
-            {"threat_impact": 2, "title": "topic two"},
-            {"threat_impact": 3, "title": "topic three"},
-            {"threat_impact": 3, "title": "topic four"},
-            ["topic one", "topic two", "topic four", "topic three"],
-        ),
-        (
-            {"threat_impact": 1, "title": "topic one"},
-            {"threat_impact": 3, "title": "topic two"},
-            {"threat_impact": 3, "title": "topic three"},
-            {"threat_impact": 3, "title": "topic four"},
-            ["topic one", "topic four", "topic three", "topic two"],
-        ),
-        (
-            {"threat_impact": 3, "title": "topic one"},
-            {"threat_impact": 3, "title": "topic two"},
-            {"threat_impact": 3, "title": "topic three"},
-            {"threat_impact": 3, "title": "topic four"},
-            ["topic four", "topic three", "topic two", "topic one"],
+            {"exploitation": "none", "automatable": "no", "title": "topic one"},
+            {"exploitation": "none", "automatable": "no", "title": "topic two"},
+            {"exploitation": "none", "automatable": "no", "title": "topic three"},
+            ["topic one", "topic two", "topic three"],
         ),
     ],
 )
-def test_it_shoud_return_solved_sorted_title_based_on_threat_impact(
-    testdb, _topic1, _topic2, _topic3, _topic4, titles_sorted_by_threat_impact
+def test_it_shoud_return_solved_sorted_title_based_on_ssvc_priority(
+    _topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority
 ):
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     tag1 = create_tag(USER1, TAG1)
-    test_service = "test service"
+
+    test_service1 = "test service"
     refs0 = {TAG1: [("test target", "1.2.3")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service)
+    upload_pteam_tags(USER1, pteam1.pteam_id, test_service1, refs0)
+    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service1)
 
     topic1 = create_topic_with_versioned_actions(
         USER1,
         {
             **TOPIC1,
             "title": _topic1["title"],
-            "threat_impact": _topic1["threat_impact"],
+            "exploitation": _topic1["exploitation"],
+            "automatable": _topic1["automatable"],
         },
         [[TAG1]],
     )
@@ -277,7 +262,8 @@ def test_it_shoud_return_solved_sorted_title_based_on_threat_impact(
             **TOPIC1,
             "topic_id": uuid4(),
             "title": _topic2["title"],
-            "threat_impact": _topic2["threat_impact"],
+            "exploitation": _topic2["exploitation"],
+            "automatable": _topic2["automatable"],
         },
         [[TAG1]],
     )
@@ -287,17 +273,8 @@ def test_it_shoud_return_solved_sorted_title_based_on_threat_impact(
             **TOPIC1,
             "topic_id": uuid4(),
             "title": _topic3["title"],
-            "threat_impact": _topic3["threat_impact"],
-        },
-        [[TAG1]],
-    )
-    topic4 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "title": _topic4["title"],
-            "threat_impact": _topic4["threat_impact"],
+            "exploitation": _topic3["exploitation"],
+            "automatable": _topic3["automatable"],
         },
         [[TAG1]],
     )
@@ -309,9 +286,6 @@ def test_it_shoud_return_solved_sorted_title_based_on_threat_impact(
     )[0]
     ticket3 = get_tickets_related_to_topic_tag(
         USER1, pteam1.pteam_id, service1["service_id"], topic3.topic_id, tag1.tag_id
-    )[0]
-    ticket4 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic4.topic_id, tag1.tag_id
     )[0]
 
     json_data = {
@@ -341,13 +315,6 @@ def test_it_shoud_return_solved_sorted_title_based_on_threat_impact(
         ticket3["ticket_id"],
         json_data,
     )
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket4["ticket_id"],
-        json_data,
-    )
 
     response = client.get(
         f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
@@ -366,53 +333,36 @@ def test_it_shoud_return_solved_sorted_title_based_on_threat_impact(
         response_topic = client.get(f"/topics/{topic_id}", headers=headers(USER1))
         topic = response_topic.json()
         topic_title_list.append(topic["title"])
-    assert topic_title_list == titles_sorted_by_threat_impact
+    assert topic_title_list == titles_sorted_by_ssvc_priority
     # unsolved
     assert len(response_json["unsolved"]["topic_ids"]) == 0
 
 
 @pytest.mark.parametrize(
-    "_topic1, _topic2, _topic3, _topic4, titles_sorted_by_threat_impact",
+    "_topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority",
     [
         (
-            {"threat_impact": 1, "title": "topic one"},
-            {"threat_impact": 2, "title": "topic two"},
-            {"threat_impact": 3, "title": "topic three"},
-            {"threat_impact": 4, "title": "topic four"},
-            ["topic one", "topic two", "topic three", "topic four"],
+            {"exploitation": "active", "automatable": "no", "title": "topic one"},
+            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
+            {"exploitation": "none", "automatable": "no", "title": "topic three"},
+            ["topic one", "topic two", "topic three"],
         ),
         (
-            {"threat_impact": 4, "title": "topic one"},
-            {"threat_impact": 3, "title": "topic two"},
-            {"threat_impact": 2, "title": "topic three"},
-            {"threat_impact": 1, "title": "topic four"},
-            ["topic four", "topic three", "topic two", "topic one"],
+            {"exploitation": "none", "automatable": "no", "title": "topic one"},
+            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
+            {"exploitation": "active", "automatable": "no", "title": "topic three"},
+            ["topic three", "topic two", "topic one"],
         ),
         (
-            {"threat_impact": 1, "title": "topic one"},
-            {"threat_impact": 2, "title": "topic two"},
-            {"threat_impact": 3, "title": "topic three"},
-            {"threat_impact": 3, "title": "topic four"},
-            ["topic one", "topic two", "topic four", "topic three"],
-        ),
-        (
-            {"threat_impact": 1, "title": "topic one"},
-            {"threat_impact": 3, "title": "topic two"},
-            {"threat_impact": 3, "title": "topic three"},
-            {"threat_impact": 3, "title": "topic four"},
-            ["topic one", "topic four", "topic three", "topic two"],
-        ),
-        (
-            {"threat_impact": 3, "title": "topic one"},
-            {"threat_impact": 3, "title": "topic two"},
-            {"threat_impact": 3, "title": "topic three"},
-            {"threat_impact": 3, "title": "topic four"},
-            ["topic four", "topic three", "topic two", "topic one"],
+            {"exploitation": "none", "automatable": "no", "title": "topic one"},
+            {"exploitation": "none", "automatable": "no", "title": "topic two"},
+            {"exploitation": "none", "automatable": "no", "title": "topic three"},
+            ["topic one", "topic two", "topic three"],
         ),
     ],
 )
-def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
-    testdb, _topic1, _topic2, _topic3, _topic4, titles_sorted_by_threat_impact
+def test_it_shoud_return_unsolved_sorted_title_based_on_ssvc_priority(
+    _topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority
 ):
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -427,7 +377,8 @@ def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
         {
             **TOPIC1,
             "title": _topic1["title"],
-            "threat_impact": _topic1["threat_impact"],
+            "exploitation": _topic1["exploitation"],
+            "automatable": _topic1["automatable"],
         },
         [[TAG1]],
     )
@@ -437,7 +388,8 @@ def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
             **TOPIC1,
             "topic_id": uuid4(),
             "title": _topic2["title"],
-            "threat_impact": _topic2["threat_impact"],
+            "exploitation": _topic2["exploitation"],
+            "automatable": _topic2["automatable"],
         },
         [[TAG1]],
     )
@@ -447,17 +399,8 @@ def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
             **TOPIC1,
             "topic_id": uuid4(),
             "title": _topic3["title"],
-            "threat_impact": _topic3["threat_impact"],
-        },
-        [[TAG1]],
-    )
-    topic4 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "title": _topic4["title"],
-            "threat_impact": _topic4["threat_impact"],
+            "exploitation": _topic3["exploitation"],
+            "automatable": _topic3["automatable"],
         },
         [[TAG1]],
     )
@@ -469,9 +412,6 @@ def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
     )[0]
     ticket3 = get_tickets_related_to_topic_tag(
         USER1, pteam1.pteam_id, service1["service_id"], topic3.topic_id, tag1.tag_id
-    )[0]
-    ticket4 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic4.topic_id, tag1.tag_id
     )[0]
 
     json_data = {
@@ -501,13 +441,6 @@ def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
         ticket3["ticket_id"],
         json_data,
     )
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket4["ticket_id"],
-        json_data,
-    )
 
     response = client.get(
         f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
@@ -528,7 +461,7 @@ def test_it_shoud_return_unsolved_sorted_title_based_on_threat_impact(
         response_topic = client.get(f"/topics/{topic_id}", headers=headers(USER1))
         topic = response_topic.json()
         topic_title_list.append(topic["title"])
-    assert topic_title_list == titles_sorted_by_threat_impact
+    assert topic_title_list == titles_sorted_by_ssvc_priority
 
 
 def test_sbom_uploaded_at_with_called_upload_tags_file():
