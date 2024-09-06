@@ -42,8 +42,6 @@ def test_ticket_should_be_created_when_topic_action_exist_and_both_action_and_ta
     now = datetime.now()
     assert ticket.created_at > now - timedelta(seconds=30)
     assert ticket.created_at < now
-    assert ticket.updated_at > now - timedelta(seconds=30)
-    assert ticket.updated_at < now
 
 
 def test_ticket_ssvc_deployer_priority(

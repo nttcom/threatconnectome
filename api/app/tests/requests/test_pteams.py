@@ -3320,7 +3320,6 @@ class TestGetTickets:
             "ticket_id": str(db_ticket1.ticket_id),
             "threat_id": str(db_threat1.threat_id),
             "created_at": datetime.isoformat(db_ticket1.created_at),
-            "updated_at": datetime.isoformat(db_ticket1.updated_at),
             "ssvc_deployer_priority": (
                 None
                 if db_ticket1.ssvc_deployer_priority is None
@@ -3381,7 +3380,6 @@ class TestGetTickets:
             "ticket_id": str(db_ticket1.ticket_id),
             "threat_id": str(db_threat1.threat_id),
             "created_at": datetime.isoformat(db_ticket1.created_at),
-            "updated_at": datetime.isoformat(db_ticket1.updated_at),
             "ssvc_deployer_priority": (
                 None
                 if db_ticket1.ssvc_deployer_priority is None
