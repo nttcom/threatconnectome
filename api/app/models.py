@@ -437,19 +437,15 @@ class Ticket(Base):
             self.ticket_id = str(uuid.uuid4())
         if not self.created_at:
             self.created_at = now
-        if not self.updated_at:
-            self.updated_at = now
 
     ticket_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     threat_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True, unique=True
     )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-    updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
 
     threat = relationship("Threat", back_populates="ticket")
-    alert = relationship("Alert", uselist=False, back_populates="ticket")
     ticket_statuses = relationship("TicketStatus", back_populates="ticket", cascade="all, delete")
     current_ticket_status: Mapped["CurrentTicketStatus"] = relationship(
         "CurrentTicketStatus", uselist=False, back_populates="ticket", cascade="all, delete"
@@ -524,12 +520,10 @@ class Alert(Base):
 
     alert_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     ticket_id: Mapped[StrUUID | None] = mapped_column(
-        ForeignKey("ticket.ticket_id", ondelete="SET NULL"), index=True, nullable=True, unique=True
+        ForeignKey("ticket.ticket_id", ondelete="SET NULL"), index=True, nullable=True
     )
     alerted_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     alert_content: Mapped[str | None] = mapped_column(nullable=True)  # WORKAROUND
-
-    ticket = relationship("Ticket", back_populates="alert")
 
 
 class PTeam(Base):

@@ -335,7 +335,6 @@ def create_ticket_internal(
     ticket = models.Ticket(
         threat_id=threat.threat_id,
         created_at=now,
-        updated_at=now,
         ssvc_deployer_priority=ssvc_calculator.calculate_ssvc_priority_by_threat(threat),
     )
     persistence.create_ticket(db, ticket)
