@@ -391,7 +391,6 @@ def test_delete_topic(testdb: Session):
             ticket_id=ticket1_id,
             threat_id=threat1_id,
             created_at="2033-06-26 15:00:00",
-            updated_at="2033-06-26 15:00:00",
             ssvc_deployer_priority=models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE,
         )
     )
