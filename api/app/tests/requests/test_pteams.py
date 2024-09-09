@@ -3164,7 +3164,7 @@ class TestTicketStatus:
                 "topic_status": models.TopicStatusType.scheduled.value,
                 "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
-                "scheduled_at": str(datetime.fromtimestamp(0)),
+                "scheduled_at": "2000-01-01T00:00:00",
             }
             url = (
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
