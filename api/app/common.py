@@ -550,11 +550,15 @@ def fix_threats_for_dependency(db: Session, dependency: models.Dependency):
             persistence.delete_ticket(db, threat.ticket)
 
 
-def count_threat_impact_from_summary(tags_summary: list[dict]):
-    threat_impact_count: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+def count_ssvc_priority_from_summary(tags_summary: list[dict]):
+    ssvc_priority_count: dict[models.SSVCDeployerPriorityEnum, int] = {
+        priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
+    }
     for tag_summary in tags_summary:
-        threat_impact_count[str(tag_summary["threat_impact"] or 4)] += 1
-    return threat_impact_count
+        ssvc_priority_count[
+            tag_summary["ssvc_priority"] or models.SSVCDeployerPriorityEnum.DEFER
+        ] += 1
+    return ssvc_priority_count
 
 
 def count_full_width_and_half_width_characters(string: str) -> int:

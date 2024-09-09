@@ -87,3 +87,20 @@ export const blobToDataURL = async (blob) =>
     reader.onerror = (error) => reject(error);
     reader.readAsDataURL(blob);
   });
+
+export const compareSSVCPriority = (prio1, prio2) => {
+  const toIntDict = {
+    immediate: 1,
+    Immediate: 1,
+    out_of_cycle: 2,
+    "Out-of-cycle": 2,
+    scheduled: 3,
+    Scheduled: 3,
+    defer: 4,
+    Defer: 4,
+  };
+  const [int1, int2] = [toIntDict[prio1], toIntDict[prio2]];
+  if (int1 === int2) return 0;
+  else if (int1 < int2) return -1;
+  else return 1;
+};

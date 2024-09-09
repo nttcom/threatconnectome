@@ -5,10 +5,10 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
-import { threatImpactNames, topicStatusProps } from "../utils/const";
-import { calcTimestampDiff } from "../utils/func";
+import { ssvcPriorityProps, topicStatusProps } from "../utils/const";
+import { calcTimestampDiff, compareSSVCPriority } from "../utils/func";
 
-import { ThreatImpactStatusChip } from "./ThreatImpactStatusChip";
+import { SSVCPriorityStatusChip } from "./SSVCPriorityStatusChip";
 
 function LineWithTooltip(props) {
   const { topicStatus, ratio, num } = props;
@@ -77,10 +77,13 @@ function DisableLine() {
 }
 
 function StatusRatioGraph(props) {
-  const { counts, threatImpact } = props;
+  const { counts, ssvcPriority } = props;
   if ((counts ?? []).length === 0) return "";
   let keys = [];
-  if (threatImpact < 4 || (threatImpact === 4 && counts.completed > 0)) {
+  if (
+    compareSSVCPriority(ssvcPriority, "defer") < 0 ||
+    (compareSSVCPriority(ssvcPriority, "defer") === 0 && counts.completed > 0)
+  ) {
     keys = ["completed", "scheduled", "acknowledged", "alerted"];
   }
   const total = keys.reduce((ret, key) => ret + counts[key] ?? 0, 0);
@@ -106,24 +109,24 @@ function StatusRatioGraph(props) {
 
 StatusRatioGraph.propTypes = {
   counts: PropTypes.object,
-  threatImpact: PropTypes.number,
+  ssvcPriority: PropTypes.string,
 };
 
 export function PTeamStatusCard(props) {
   const { onHandleClick, tag, serviceIds } = props;
-  const [alertThreatImpact, setAlertThreatImpact] = useState(1);
+  const [alertThreshold, setAlertThreshold] = useState(null);
 
   const pteam = useSelector((state) => state.pteam.pteam);
 
-  const threatImpactNum = tag.threat_impact ?? 4;
-  const threatImpactName =
-    threatImpactNum === 4 && tag.status_count["completed"] > 0
+  const priorityProp = ssvcPriorityProps[tag.ssvc_priority || "defer"];
+  const ssvcPriority =
+    priorityProp.displayName === "Defer" && tag.status_count["completed"] > 0
       ? "safe" // solved all and at least 1 tickets
-      : threatImpactNames[threatImpactNum];
+      : priorityProp.displayName;
 
   useEffect(() => {
     if (pteam) {
-      setAlertThreatImpact(pteam.alert_threat_impact);
+      setAlertThreshold(pteam.alert_ssvc_priority);
     }
   }, [pteam]);
 
@@ -134,8 +137,9 @@ export function PTeamStatusCard(props) {
         border: "2px",
         borderBottom: "2px",
         // Change the background color and border based on the Alert Threshold value set by the team.
-        ...(alertThreatImpact !== 4 &&
-          threatImpactNum <= alertThreatImpact && {
+        ...(alertThreshold !== null &&
+          compareSSVCPriority(ssvcPriority, "defer") !== 0 &&
+          compareSSVCPriority(ssvcPriority, alertThreshold) <= 0 && {
             boxShadow: `inset 0 0 0 2px ${amber[100]}`,
             backgroundColor: yellow[50],
           }),
@@ -145,7 +149,7 @@ export function PTeamStatusCard(props) {
       }}
     >
       <TableCell component="th" scope="row" style={{ width: "5%" }}>
-        <ThreatImpactStatusChip threatImpactName={threatImpactName} />
+        <SSVCPriorityStatusChip ssvcPriority={ssvcPriority} />
       </TableCell>
       <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
@@ -164,7 +168,10 @@ export function PTeamStatusCard(props) {
               {`Updated ${calcTimestampDiff(tag.updated_at)}`}
             </Typography>
           </Box>
-          <StatusRatioGraph counts={tag.status_count ?? []} threatImpact={tag.threat_impact ?? 4} />
+          <StatusRatioGraph
+            counts={tag.status_count ?? []}
+            ssvcPriority={tag.ssvc_priority || "defer"}
+          />
         </Box>
       </TableCell>
     </TableRow>
@@ -178,7 +185,7 @@ PTeamStatusCard.propTypes = {
     tag_id: PropTypes.string,
     references: PropTypes.arrayOf(PropTypes.object),
     text: PropTypes.string,
-    threat_impact: PropTypes.number,
+    ssvc_priority: PropTypes.string,
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
   }).isRequired,
