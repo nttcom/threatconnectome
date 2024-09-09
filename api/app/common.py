@@ -1,7 +1,6 @@
 import json
 import unicodedata
 from datetime import datetime
-from functools import cmp_to_key
 from hashlib import md5
 from typing import Sequence
 from uuid import UUID
@@ -263,15 +262,6 @@ def sum_ssvc_priority_count(topic_ids: list[str], topic_ids_dict: dict, count_ke
     return sum_threat_impact_count
 
 
-def _compare_ssvc_priority(arg1, arg2):
-    if arg1["highest_ssvc_priority"] == arg2["highest_ssvc_priority"]:
-        return 0
-    if arg1["highest_ssvc_priority"] < arg2["highest_ssvc_priority"]:
-        return -1
-    else:
-        return 1
-
-
 def get_topic_ids_summary_by_service_id_and_tag_id(
     service: models.Service,
     tag_id: UUID | str,
@@ -320,7 +310,10 @@ def get_topic_ids_summary_by_service_id_and_tag_id(
     # Sort topic_id according to threat_impact and updated_at
     topic_ids_sorted = sorted(
         topic_ids_dict.values(),
-        key=cmp_to_key(_compare_ssvc_priority),
+        key=lambda x: (
+            x["highest_ssvc_priority"],
+            -(_dt.timestamp() if (_dt := x["topic_updated_at"]) else 0),
+        ),
     )
     solved_topic_ids = list(
         map(lambda item: item["topic_id"], filter(lambda item: item["is_solved"], topic_ids_sorted))

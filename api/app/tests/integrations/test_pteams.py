@@ -230,7 +230,7 @@ def test_it_should_return_ssvc_priority_count_num_based_on_tickte_status(
             {"exploitation": "none", "automatable": "no", "title": "topic one"},
             {"exploitation": "none", "automatable": "no", "title": "topic two"},
             {"exploitation": "none", "automatable": "no", "title": "topic three"},
-            ["topic one", "topic two", "topic three"],
+            ["topic three", "topic two", "topic one"],
         ),
     ],
 )
