@@ -18,7 +18,7 @@ from app.common import (
     check_pteam_auth,
     check_pteam_membership,
     count_full_width_and_half_width_characters,
-    count_threat_impact_from_summary,
+    count_ssvc_priority_from_summary,
     create_topic_tag,
     fix_threats_for_dependency,
     get_pteam_ext_tags,
@@ -391,10 +391,10 @@ def get_pteam_service_tags_summary(
 
     tags_summary = command.get_tags_summary_by_service_id(db, service_id)
 
-    threat_impact_count = count_threat_impact_from_summary(tags_summary)
+    ssvc_priority_count = count_ssvc_priority_from_summary(tags_summary)
 
     return {
-        "threat_impact_count": threat_impact_count,
+        "ssvc_priority_count": ssvc_priority_count,
         "tags": tags_summary,
     }
 
@@ -415,10 +415,10 @@ def get_pteam_tags_summary(
 
     tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
 
-    threat_impact_count = count_threat_impact_from_summary(tags_summary)
+    ssvc_priority_count = count_ssvc_priority_from_summary(tags_summary)
 
     return {
-        "threat_impact_count": threat_impact_count,
+        "ssvc_priority_count": ssvc_priority_count,
         "tags": tags_summary,
     }
 

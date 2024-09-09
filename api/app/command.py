@@ -503,16 +503,16 @@ def expire_ateam_watching_requests(db: Session) -> None:
 
 
 def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[dict]:
-    threat_impact = func.min(models.Topic.threat_impact).label("threat_impact")
-    updated_at = func.max(models.Topic.updated_at).label("updated_at")
+    min_ssvc_priority = func.min(models.Ticket.ssvc_deployer_priority).label("min_ssvc_priority")
+    max_updated_at = func.max(models.Topic.updated_at).label("max_updated_at")
     summarize_stmt = (
         select(
             models.Tag.tag_id,
             models.Tag.tag_name,
             models.Tag.parent_id,
             models.Tag.parent_name,
-            threat_impact,
-            updated_at,
+            min_ssvc_priority,
+            max_updated_at,
         )
         .join(
             models.Dependency,
@@ -533,8 +533,8 @@ def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[
         )
         .group_by(models.Tag.tag_id)
         .order_by(
-            func.coalesce(threat_impact, 4),
-            updated_at.desc().nullslast(),
+            min_ssvc_priority.nullslast(),
+            max_updated_at.desc().nullslast(),
             models.Tag.tag_name,
         )
     )
@@ -568,8 +568,8 @@ def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[
             "tag_name": row.tag_name,
             "parent_id": row.parent_id,
             "parent_name": row.parent_name,
-            "threat_impact": row.threat_impact,
-            "updated_at": row.updated_at,
+            "ssvc_priority": row.min_ssvc_priority,
+            "updated_at": row.max_updated_at,
             "status_count": {
                 status_type.value: status_count_dict.get((row.tag_id, status_type.value), 0)
                 for status_type in list(models.TopicStatusType)
@@ -581,8 +581,8 @@ def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[
 
 
 def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict]:
-    threat_impact = func.min(models.Topic.threat_impact).label("threat_impact")
-    updated_at = func.max(models.Topic.updated_at).label("updated_at")
+    min_ssvc_priority = func.min(models.Ticket.ssvc_deployer_priority).label("min_ssvc_priority")
+    max_updated_at = func.max(models.Topic.updated_at).label("max_updated_at")
     service_ids = func.array_agg(models.Service.service_id.distinct()).label("service_ids")
     summarize_stmt = (
         select(
@@ -590,8 +590,8 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
             models.Tag.tag_name,
             models.Tag.parent_id,
             models.Tag.parent_name,
-            threat_impact,
-            updated_at,
+            min_ssvc_priority,
+            max_updated_at,
             service_ids,
         )
         .join(
@@ -617,8 +617,8 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
         )
         .group_by(models.Tag.tag_id)
         .order_by(
-            func.coalesce(threat_impact, 4),
-            updated_at.desc().nullslast(),
+            min_ssvc_priority.nullslast(),
+            max_updated_at.desc().nullslast(),
             models.Tag.tag_name,
         )
     )
@@ -655,8 +655,8 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
             "parent_id": row.parent_id,
             "parent_name": row.parent_name,
             "service_ids": row.service_ids,
-            "threat_impact": row.threat_impact,
-            "updated_at": row.updated_at,
+            "ssvc_priority": row.min_ssvc_priority,
+            "updated_at": row.max_updated_at,
             "status_count": {
                 status_type.value: status_count_dict.get((row.tag_id, status_type.value), 0)
                 for status_type in list(models.TopicStatusType)
