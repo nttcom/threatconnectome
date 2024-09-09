@@ -243,6 +243,9 @@ def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
     if ticket.ssvc_deployer_priority is None:
         return False
 
+    if ticket.current_ticket_status.topic_status == models.TopicStatusType.completed:
+        return False
+
     pteam = ticket.threat.dependency.service.pteam
     return ticket.ssvc_deployer_priority <= pteam.alert_ssvc_priority
 
