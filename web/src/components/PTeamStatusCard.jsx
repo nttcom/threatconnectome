@@ -2,10 +2,9 @@ import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui
 import { grey, yellow, amber } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import React from "react";
 
-import { ssvcPriorityProps, topicStatusProps } from "../utils/const";
+import { topicStatusProps } from "../utils/const";
 import { calcTimestampDiff, compareSSVCPriority } from "../utils/func";
 
 import { SSVCPriorityStatusChip } from "./SSVCPriorityStatusChip";
@@ -113,22 +112,16 @@ StatusRatioGraph.propTypes = {
 };
 
 export function PTeamStatusCard(props) {
-  const { onHandleClick, tag, serviceIds } = props;
-  const [alertThreshold, setAlertThreshold] = useState(null);
+  const { onHandleClick, pteam, tag, serviceIds } = props;
 
-  const pteam = useSelector((state) => state.pteam.pteam);
-
-  const priorityProp = ssvcPriorityProps[tag.ssvc_priority || "defer"];
-  const ssvcPriority =
-    priorityProp.displayName === "Defer" && tag.status_count["completed"] > 0
+  const ssvcPriority = // detect "safe"
+    ["defer", null].includes(tag.ssvc_priority) && tag.status_count["completed"] > 0
       ? "safe" // solved all and at least 1 tickets
-      : priorityProp.displayName;
-
-  useEffect(() => {
-    if (pteam) {
-      setAlertThreshold(pteam.alert_ssvc_priority);
-    }
-  }, [pteam]);
+      : tag.ssvc_priority || "defer";
+  // Change the background color and border based on the Alert Threshold value set by the team.
+  const highlightCard =
+    pteam.alert_ssvc_priority !== "defer" && // disable highlight if threshold is "defer"
+    compareSSVCPriority(ssvcPriority, pteam.alert_ssvc_priority) <= 0;
 
   return (
     <TableRow
@@ -136,13 +129,10 @@ export function PTeamStatusCard(props) {
       sx={{
         border: "2px",
         borderBottom: "2px",
-        // Change the background color and border based on the Alert Threshold value set by the team.
-        ...(alertThreshold !== null &&
-          compareSSVCPriority(ssvcPriority, "defer") !== 0 &&
-          compareSSVCPriority(ssvcPriority, alertThreshold) <= 0 && {
-            boxShadow: `inset 0 0 0 2px ${amber[100]}`,
-            backgroundColor: yellow[50],
-          }),
+        ...(highlightCard && {
+          boxShadow: `inset 0 0 0 2px ${amber[100]}`,
+          backgroundColor: yellow[50],
+        }),
         cursor: "pointer",
         "&:last-child td, &:last-child th": { border: 0 },
         "&:hover": { bgcolor: grey[100] },
@@ -180,6 +170,7 @@ export function PTeamStatusCard(props) {
 
 PTeamStatusCard.propTypes = {
   onHandleClick: PropTypes.func.isRequired,
+  pteam: PropTypes.object.isRequired,
   tag: PropTypes.shape({
     tag_name: PropTypes.string,
     tag_id: PropTypes.string,

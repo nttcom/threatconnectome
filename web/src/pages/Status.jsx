@@ -476,6 +476,7 @@ export function Status() {
                       onHandleClick={() =>
                         handleNavigateServiceList(tag.tag_id, tag.tag_name, tag.service_ids)
                       }
+                      pteam={pteam}
                       tag={tag}
                       serviceIds={tag.service_ids}
                     />
@@ -487,6 +488,7 @@ export function Status() {
                     <PTeamStatusCard
                       key={tag.tag_id}
                       onHandleClick={() => handleNavigateTag(tag.tag_id)}
+                      pteam={pteam}
                       tag={tag}
                     />
                   ))}
