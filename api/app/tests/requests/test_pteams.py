@@ -18,11 +18,6 @@ from app.constants import (
     ZERO_FILLED_UUID,
 )
 from app.main import app
-from app.models import (
-    MissionImpactEnum,
-    SafetyImpactEnum,
-    SystemExposureEnum,
-)
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     ACTION1,
@@ -30,6 +25,7 @@ from app.tests.medium.constants import (
     ATEAM1,
     PTEAM1,
     PTEAM2,
+    SAMPLE_SLACK_WEBHOOK_URL,
     TAG1,
     TAG2,
     TOPIC1,
@@ -3592,11 +3588,11 @@ class TestUpdatePTeamService:
             [
                 (
                     None,
-                    SystemExposureEnum.OPEN,
+                    models.SystemExposureEnum.OPEN,
                 ),  # When “None” is selected for the first time, “open” is entered by default.
-                ("open", SystemExposureEnum.OPEN),
-                ("controlled", SystemExposureEnum.CONTROLLED),
-                ("small", SystemExposureEnum.SMALL),
+                ("open", models.SystemExposureEnum.OPEN),
+                ("controlled", models.SystemExposureEnum.CONTROLLED),
+                ("small", models.SystemExposureEnum.SMALL),
             ],
         )
         def test_it_should_return_200_when_system_exposure_is_SystemExposureEnum_or_None(
@@ -3656,12 +3652,12 @@ class TestUpdatePTeamService:
             [
                 (
                     None,
-                    MissionImpactEnum.MISSION_FAILURE,
+                    models.MissionImpactEnum.MISSION_FAILURE,
                 ),  # When “None” is selected for the first time, “mission_failure” is entered
-                ("mission_failure", MissionImpactEnum.MISSION_FAILURE),
-                ("mef_failure", MissionImpactEnum.MEF_FAILURE),
-                ("mef_support_crippled", MissionImpactEnum.MEF_SUPPORT_CRIPPLED),
-                ("degraded", MissionImpactEnum.DEGRADED),
+                ("mission_failure", models.MissionImpactEnum.MISSION_FAILURE),
+                ("mef_failure", models.MissionImpactEnum.MEF_FAILURE),
+                ("mef_support_crippled", models.MissionImpactEnum.MEF_SUPPORT_CRIPPLED),
+                ("degraded", models.MissionImpactEnum.DEGRADED),
             ],
         )
         def test_it_should_return_200_when_mission_impact_is_MissionImpactEnum_or_None(
@@ -3729,12 +3725,12 @@ class TestUpdatePTeamService:
             [
                 (
                     None,
-                    SafetyImpactEnum.NEGLIGIBLE,
+                    models.SafetyImpactEnum.NEGLIGIBLE,
                 ),  # When “None” is selected for the first time, “negligible” is entered by default
-                ("catastrophic", SafetyImpactEnum.CATASTROPHIC),
-                ("critical", SafetyImpactEnum.CRITICAL),
-                ("marginal", SafetyImpactEnum.MARGINAL),
-                ("negligible", SafetyImpactEnum.NEGLIGIBLE),
+                ("catastrophic", models.SafetyImpactEnum.CATASTROPHIC),
+                ("critical", models.SafetyImpactEnum.CRITICAL),
+                ("marginal", models.SafetyImpactEnum.MARGINAL),
+                ("negligible", models.SafetyImpactEnum.NEGLIGIBLE),
             ],
         )
         def test_it_should_return_200_when_safety_impact_is_SafetyImpactEnum_or_None(
@@ -3789,3 +3785,132 @@ class TestUpdatePTeamService:
 
             assert response.status_code == 422
             assert response.json()["detail"][0]["msg"] == expected
+
+    class TestNotification:
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self):
+            def _gen_pteam_params(idx: int) -> dict:
+                return {
+                    "pteam_name": f"pteam{idx}",
+                    "alert_slack": {
+                        "enable": True,
+                        "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+                    },
+                    "alert_mail": {
+                        "enable": True,
+                        "address": f"account{idx}@example.com",
+                    },
+                    "alert_ssvc_priority": DEFAULT_ALERT_SSVC_PRIORITY,
+                }
+
+            def _gen_topic_params(tags: list[schemas.TagResponse]) -> dict:
+                topic_id = str(uuid4())
+                return {
+                    "topic_id": topic_id,
+                    "title": "test topic " + topic_id,
+                    "abstract": "test abstract " + topic_id,
+                    "threat_impact": 1,
+                    "tags": [tag.tag_name for tag in tags],
+                    "misp_tags": [],
+                    "actions": [
+                        {
+                            "topic_id": topic_id,
+                            "action": "update to 999.9.9",
+                            "action_type": models.ActionType.elimination,
+                            "recommended": True,
+                            "ext": {
+                                "tags": [tag.tag_name for tag in tags],
+                                "vulnerable_versions": {
+                                    tag.tag_name: ["< 999.9.9"] for tag in tags
+                                },
+                            },
+                        },
+                    ],
+                    "exploitation": "active",
+                    "automatable": "yes",
+                }
+
+            self.user1 = create_user(USER1)
+            self.pteam0 = create_pteam(USER1, _gen_pteam_params(0))
+            self.tag1 = create_tag(USER1, TAG1)
+            test_service0 = "test_service0"
+            test_target = "test target"
+            test_version = "1.2.3"
+            refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
+            upload_pteam_tags(USER1, self.pteam0.pteam_id, test_service0, refs0)
+            self.service_id0 = get_service_by_service_name(
+                USER1, self.pteam0.pteam_id, test_service0
+            )["service_id"]
+            self.topic = create_topic(USER1, _gen_topic_params([self.tag1]))
+
+        @staticmethod
+        def _get_access_token(user: dict) -> str:
+            body = {
+                "username": user["email"],
+                "password": user["pass"],
+            }
+            response = client.post("/auth/token", data=body)
+            if response.status_code != 200:
+                raise HTTPError(response)
+            data = response.json()
+            return data["access_token"]
+
+        def test_alert_by_mail_if_vulnerabilities_are_found_when_updating_service(self, mocker):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {
+                "system_exposure": models.SystemExposureEnum.OPEN.value,
+                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
+                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+            }
+
+            send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
+            response = client.post(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
+                headers=_headers,
+                json=request,
+            )
+            assert response.status_code == 200
+            send_alert_to_pteam.assert_called_once()
+
+        def test_not_alert_with_current_ticket_status_is_completed(self, mocker):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            ## Change the status of the ticket to completed
+            response_ticket = client.get(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}/topics/{self.topic.topic_id}/tags/{self.tag1.tag_id}/tickets",
+                headers=_headers,
+            )
+            assert response_ticket.status_code == 200
+            data = response_ticket.json()
+            request_ticket_status = {"topic_status": models.TopicStatusType.completed.value}
+            response_ticket_status = client.post(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}/ticketstatus/{data[0]['ticket_id']}",
+                headers=_headers,
+                json=request_ticket_status,
+            )
+            assert response_ticket_status.status_code == 200
+
+            request = {
+                "system_exposure": models.SystemExposureEnum.OPEN.value,
+                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
+                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+            }
+            send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
+            response = client.post(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
+                headers=_headers,
+                json=request,
+            )
+            assert response.status_code == 200
+            send_alert_to_pteam.assert_not_called()

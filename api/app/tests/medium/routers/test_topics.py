@@ -8,6 +8,9 @@ from sqlalchemy import insert
 from sqlalchemy.orm import Session
 
 from app import models, schemas
+from app.constants import (
+    DEFAULT_ALERT_SSVC_PRIORITY,
+)
 from app.main import app
 from app.models import (
     AutomatableEnum,
@@ -23,6 +26,7 @@ from app.tests.medium.constants import (
     MISPTAG3,
     PTEAM1,
     PTEAM2,
+    SAMPLE_SLACK_WEBHOOK_URL,
     TAG1,
     TAG2,
     TAG3,
@@ -51,6 +55,7 @@ from app.tests.medium.utils import (
     random_string,
     search_topics,
     update_topic,
+    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -337,6 +342,71 @@ def test_update_topic_not_creater():
         assert_204(
             client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER2), json=request)
         )
+
+
+def test_update_topic_alert_by_mail_if_vulnerabilities_are_found_when_updating_topic(mocker):
+    def _gen_pteam_params(idx: int) -> dict:
+        return {
+            "pteam_name": f"pteam{idx}",
+            "alert_slack": {
+                "enable": True,
+                "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+            },
+            "alert_mail": {
+                "enable": True,
+                "address": f"account{idx}@example.com",
+            },
+            "alert_ssvc_priority": DEFAULT_ALERT_SSVC_PRIORITY,
+        }
+
+    def _gen_topic_params(tags: list[schemas.TagResponse]) -> dict:
+        topic_id = str(uuid4())
+        return {
+            "topic_id": topic_id,
+            "title": "test topic " + topic_id,
+            "abstract": "test abstract " + topic_id,
+            "threat_impact": 1,
+            "tags": [tag.tag_name for tag in tags],
+            "misp_tags": [],
+            "actions": [
+                {
+                    "topic_id": topic_id,
+                    "action": "update to 999.9.9",
+                    "action_type": models.ActionType.elimination,
+                    "recommended": True,
+                    "ext": {
+                        "tags": [tag.tag_name for tag in tags],
+                        "vulnerable_versions": {tag.tag_name: ["< 999.9.9"] for tag in tags},
+                    },
+                },
+            ],
+            "exploitation": "active",
+            "automatable": "yes",
+        }
+
+    create_user(USER1)
+    pteam0 = create_pteam(USER1, _gen_pteam_params(0))
+    tag = create_tag(USER1, TAG1)
+    test_service = "test_service"
+    test_target = "test target"
+    test_version = "1.2.3"
+    refs0 = {tag.tag_name: [(test_target, test_version)]}
+    upload_pteam_tags(USER1, pteam0.pteam_id, test_service, refs0)
+    topic = create_topic(USER1, _gen_topic_params([tag]))
+
+    request = {
+        "exploitation": ExploitationEnum.ACTIVE.value,
+        "automatable": AutomatableEnum.YES.value,
+    }
+
+    send_alert_to_pteam = mocker.patch("app.routers.topics.send_alert_to_pteam")
+    response = client.put(
+        f"/topics/{topic.topic_id}",
+        headers=headers(USER1),
+        json=request,
+    )
+    assert response.status_code == 200
+    send_alert_to_pteam.assert_called_once()
 
 
 def test_delete_topic(testdb: Session):
