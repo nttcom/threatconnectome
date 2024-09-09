@@ -31,7 +31,7 @@ import {
   checkSlack as postCheckSlack,
   checkMail as postCheckMail,
 } from "../utils/api";
-import { threatImpactNames, threatImpactProps, modalCommonButtonStyle } from "../utils/const";
+import { modalCommonButtonStyle, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
 
 import { CheckButton } from "./CheckButton";
 
@@ -42,7 +42,7 @@ export function PTeamNotificationSetting(props) {
   const [slackEnable, setSlackEnable] = useState(false);
   const [mailAddress, setMailAddress] = useState("");
   const [mailEnable, setMailEnable] = useState(false);
-  const [alertImpact, setAlertImpact] = useState(1);
+  const [alertThreshold, setAlertThreshold] = useState("");
   const [checkSlack, setCheckSlack] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
   const [slackMessage, setSlackMessage] = useState();
@@ -61,7 +61,7 @@ export function PTeamNotificationSetting(props) {
       setSlackEnable(pteam.alert_slack.enable);
       setMailAddress(pteam.alert_mail.address);
       setMailEnable(pteam.alert_mail.enable);
-      setAlertImpact(pteam.alert_threat_impact);
+      setAlertThreshold(pteam.alert_ssvc_priority);
     }
     setEdittingSlackUrl(false);
     setCheckSlack(false);
@@ -97,7 +97,7 @@ export function PTeamNotificationSetting(props) {
     const pteamInfo = {
       alert_slack: { enable: slackEnable, webhook_url: slackUrl },
       alert_mail: { enable: mailEnable, address: mailAddress },
-      alert_threat_impact: alertImpact,
+      alert_ssvc_priority: alertThreshold,
     };
     await updatePTeam(pteamId, pteamInfo)
       .then(() => {
@@ -176,14 +176,15 @@ export function PTeamNotificationSetting(props) {
           Alert threshold
         </Typography>
         <Select
-          value={alertImpact}
-          onChange={(event) => setAlertImpact(Number(event.target.value))}
+          value={alertThreshold}
+          onChange={(event) => setAlertThreshold(String(event.target.value))}
+          // use String() to prevent undefined from setting alertimpact
           sx={{ marginRight: "10px", minWidth: "800px" }}
           size="small"
         >
-          {Object.keys(threatImpactNames).map((key) => (
-            <MenuItem key={key} value={key}>
-              {key}: {threatImpactProps[threatImpactNames[key]].chipLabel}
+          {sortedSSVCPriorities.map((x) => (
+            <MenuItem key={x} value={x}>
+              {ssvcPriorityProps[x].displayName}
             </MenuItem>
           ))}
         </Select>
