@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
 import { PTeamStatusMenu } from "../components/PTeamStatusMenu";
+import { sortedSSVCPriorities } from "../utils/const";
 
-import { ThreatImpactCountChip } from "./ThreatImpactCountChip";
+import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 import { TopicCard } from "./TopicCard";
 
 export function PTeamTaggedTopics(props) {
@@ -59,11 +60,11 @@ export function PTeamTaggedTopics(props) {
   return (
     <>
       <Box alignItems="center" display="flex" flexDirection="row" my={2}>
-        {["1", "2", "3", "4"].map((impact) => (
-          <ThreatImpactCountChip
-            key={impact}
-            threatImpact={impact}
-            count={targets.threat_impact_count[impact]}
+        {sortedSSVCPriorities.map((ssvcPriority) => (
+          <SSVCPriorityCountChip
+            key={ssvcPriority}
+            ssvcPriority={ssvcPriority}
+            count={targets.ssvc_priority_count[ssvcPriority]}
             outerSx={{ mr: "10px" }}
           />
         ))}

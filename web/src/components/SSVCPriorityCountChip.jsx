@@ -2,18 +2,15 @@ import { Box, Paper, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { threatImpactNames, threatImpactProps } from "../utils/const";
+import { ssvcPriorityProps } from "../utils/const";
 
 const countMax = 99;
 
-export function ThreatImpactCountChip(props) {
-  const { count, threatImpact, reverse, sx, outerSx } = props;
+export function SSVCPriorityCountChip(props) {
+  const { count, ssvcPriority, reverse, sx, outerSx } = props;
 
-  const impactName = Object.keys(threatImpactProps).includes(threatImpact)
-    ? threatImpact
-    : threatImpactNames[threatImpact];
-  const Icon = threatImpactProps[impactName].icon;
-  const baseSx = threatImpactProps[impactName].style;
+  const Icon = ssvcPriorityProps[ssvcPriority].icon;
+  const baseSx = ssvcPriorityProps[ssvcPriority].style;
   const fixedSx = {
     ...baseSx,
     ...sx,
@@ -56,23 +53,23 @@ export function ThreatImpactCountChip(props) {
       >
         {count > countMax ? (
           <Tooltip title={count}>
-            <Typography id={"threat-impact-count-chip-" + threatImpact}>{countMax}+</Typography>
+            <Typography id={"ssvc-priority-count-chip-" + ssvcPriority}>{countMax}+</Typography>
           </Tooltip>
         ) : (
-          <Typography id={"threat-impact-count-chip-" + threatImpact}>{count}</Typography>
+          <Typography id={"ssvc-priority-count-chip-" + ssvcPriority}>{count}</Typography>
         )}
       </Paper>
     </Box>
   );
 }
 
-ThreatImpactCountChip.propTypes = {
-  threatImpact: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+SSVCPriorityCountChip.propTypes = {
+  ssvcPriority: PropTypes.string.isRequired,
   count: PropTypes.number.isRequired,
   reverse: PropTypes.bool,
   sx: PropTypes.object,
   outerSx: PropTypes.object,
 };
-ThreatImpactCountChip.defaultProps = {
+SSVCPriorityCountChip.defaultProps = {
   reverse: false,
 };
