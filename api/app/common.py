@@ -533,8 +533,8 @@ def fix_threats_for_dependency(db: Session, dependency: models.Dependency):
 
 
 def count_ssvc_priority_from_summary(tags_summary: list[dict]):
-    ssvc_priority_count: dict[str, int] = {
-        priority.value: 0 for priority in list(models.SSVCDeployerPriorityEnum)
+    ssvc_priority_count: dict[models.SSVCDeployerPriorityEnum, int] = {
+        priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
     }
     for tag_summary in tags_summary:
         ssvc_priority_count[
