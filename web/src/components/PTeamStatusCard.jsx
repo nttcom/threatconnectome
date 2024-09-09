@@ -111,7 +111,7 @@ StatusRatioGraph.propTypes = {
 
 export function PTeamStatusCard(props) {
   const { onHandleClick, tag, serviceIds } = props;
-  const [alertImpact, setAlertImpact] = useState(1);
+  const [alertThreatImpact, setAlertThreatImpact] = useState(1);
 
   const pteam = useSelector((state) => state.pteam.pteam);
 
@@ -123,7 +123,7 @@ export function PTeamStatusCard(props) {
 
   useEffect(() => {
     if (pteam) {
-      setAlertImpact(pteam.alert_threat_impact);
+      setAlertThreatImpact(pteam.alert_threat_impact);
     }
   }, [pteam]);
 
@@ -134,8 +134,8 @@ export function PTeamStatusCard(props) {
         border: "2px",
         borderBottom: "2px",
         // Change the background color and border based on the Alert Threshold value set by the team.
-        ...(alertImpact !== 4 &&
-          threatImpactNum <= alertImpact && {
+        ...(alertThreatImpact !== 4 &&
+          threatImpactNum <= alertThreatImpact && {
             boxShadow: `inset 0 0 0 2px ${amber[100]}`,
             backgroundColor: yellow[50],
           }),
