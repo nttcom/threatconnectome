@@ -560,7 +560,7 @@ class PTeamTagSummary(ORMModel):
 
 
 class PTeamTagsSummary(ORMModel):
-    ssvc_priority_count: dict[SSVCPriorityEnum, int]  # ssvc_priority: tags count
+    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # ssvc_priority: tags count
     tags: list[PTeamTagSummary]
 
 
