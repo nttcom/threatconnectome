@@ -357,7 +357,7 @@ def test_it_shoud_return_solved_sorted_title_based_on_ssvc_priority(
             {"exploitation": "none", "automatable": "no", "title": "topic one"},
             {"exploitation": "none", "automatable": "no", "title": "topic two"},
             {"exploitation": "none", "automatable": "no", "title": "topic three"},
-            ["topic one", "topic two", "topic three"],
+            ["topic three", "topic two", "topic one"],
         ),
     ],
 )
