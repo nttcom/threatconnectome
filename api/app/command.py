@@ -503,16 +503,35 @@ def expire_ateam_watching_requests(db: Session) -> None:
 
 
 def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[dict]:
-    min_ssvc_priority = func.min(models.Ticket.ssvc_deployer_priority).label("min_ssvc_priority")
-    max_updated_at = func.max(models.Topic.updated_at).label("max_updated_at")
+    unsolved_subq = (
+        select(
+            models.Threat.dependency_id,
+            models.Ticket.ssvc_deployer_priority,
+            models.Topic.updated_at,
+        )
+        .join(models.Ticket)
+        .join(
+            models.CurrentTicketStatus,
+            and_(
+                models.CurrentTicketStatus.ticket_id == models.Ticket.ticket_id,
+                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
+            ),
+        )
+        .join(models.Topic)
+        .subquery()
+    )
+    min_unsolved_ssvc_priority = func.min(unsolved_subq.c.ssvc_deployer_priority).label(
+        "min_ssvc_priority"
+    )
+    max_unsolved_updated_at = func.max(unsolved_subq.c.updated_at).label("max_updated_at")
     summarize_stmt = (
         select(
             models.Tag.tag_id,
             models.Tag.tag_name,
             models.Tag.parent_id,
             models.Tag.parent_name,
-            min_ssvc_priority,
-            max_updated_at,
+            min_unsolved_ssvc_priority,
+            max_unsolved_updated_at,
         )
         .join(
             models.Dependency,
@@ -521,20 +540,14 @@ def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[
                 models.Dependency.service_id == str(service_id),
             ),
         )
-        .outerjoin(models.Threat)
-        .outerjoin(models.Ticket)
-        .outerjoin(models.CurrentTicketStatus)
         .outerjoin(
-            models.Topic,  # do not count completed topic
-            and_(
-                models.Topic.topic_id == models.Threat.topic_id,
-                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
-            ),
+            unsolved_subq,
+            unsolved_subq.c.dependency_id == models.Dependency.dependency_id,
         )
         .group_by(models.Tag.tag_id)
         .order_by(
-            min_ssvc_priority.nullslast(),
-            max_updated_at.desc().nullslast(),
+            min_unsolved_ssvc_priority.nullslast(),
+            max_unsolved_updated_at.desc().nullslast(),
             models.Tag.tag_name,
         )
     )
@@ -581,8 +594,27 @@ def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[
 
 
 def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict]:
-    min_ssvc_priority = func.min(models.Ticket.ssvc_deployer_priority).label("min_ssvc_priority")
-    max_updated_at = func.max(models.Topic.updated_at).label("max_updated_at")
+    unsolved_subq = (
+        select(
+            models.Threat.dependency_id,
+            models.Ticket.ssvc_deployer_priority,
+            models.Topic.updated_at,
+        )
+        .join(models.Ticket)
+        .join(
+            models.CurrentTicketStatus,
+            and_(
+                models.CurrentTicketStatus.ticket_id == models.Ticket.ticket_id,
+                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
+            ),
+        )
+        .join(models.Topic)
+        .subquery()
+    )
+    min_unsolved_ssvc_priority = func.min(unsolved_subq.c.ssvc_deployer_priority).label(
+        "min_ssvc_priority"
+    )
+    max_unsolved_updated_at = func.max(unsolved_subq.c.updated_at).label("max_updated_at")
     service_ids = func.array_agg(models.Service.service_id.distinct()).label("service_ids")
     summarize_stmt = (
         select(
@@ -590,8 +622,8 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
             models.Tag.tag_name,
             models.Tag.parent_id,
             models.Tag.parent_name,
-            min_ssvc_priority,
-            max_updated_at,
+            min_unsolved_ssvc_priority,
+            max_unsolved_updated_at,
             service_ids,
         )
         .join(
@@ -605,20 +637,14 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
                 models.Service.pteam_id == str(pteam_id),
             ),
         )
-        .outerjoin(models.Threat)
-        .outerjoin(models.Ticket)
-        .outerjoin(models.CurrentTicketStatus)
         .outerjoin(
-            models.Topic,  # do not count completed topic
-            and_(
-                models.Topic.topic_id == models.Threat.topic_id,
-                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
-            ),
+            unsolved_subq,
+            unsolved_subq.c.dependency_id == models.Dependency.dependency_id,
         )
         .group_by(models.Tag.tag_id)
         .order_by(
-            min_ssvc_priority.nullslast(),
-            max_updated_at.desc().nullslast(),
+            min_unsolved_ssvc_priority.nullslast(),
+            max_unsolved_updated_at.desc().nullslast(),
             models.Tag.tag_name,
         )
     )
