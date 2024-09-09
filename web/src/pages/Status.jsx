@@ -44,8 +44,8 @@ import {
   getPTeamTagsSummary,
   setPTeamId,
 } from "../slices/pteam";
-import { noPTeamMessage, threatImpactNames, threatImpactProps } from "../utils/const";
-const threatImpactCountMax = 99999;
+import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
+const ssvcPriorityCountMax = 99999;
 
 function SearchField(props) {
   const { word, onApply } = props;
@@ -222,16 +222,18 @@ export function Status() {
     if (!serviceTagsSummary) return <>Now loading ServiceTagsSummary...</>;
   }
 
-  let impactFilters = params
-    .getAll("impactFilter")
-    .filter((filter) => Object.values(threatImpactNames).includes(filter));
+  let priorityFilters = params.getAll("priorityFilter").filter((filter) =>
+    Object.values(ssvcPriorityProps)
+      .map((prop) => prop.displayName)
+      .includes(filter),
+  );
 
   const summary = isActiveAllServicesMode ? pteamTagsSummary : serviceTagsSummary;
   const filteredTags = summary.tags.filter(
     (tag) =>
-      (impactFilters.length === 0
+      (priorityFilters.length === 0
         ? true // show all if selected none
-        : impactFilters.includes(threatImpactNames[parseInt(tag.threat_impact ?? 4)])) && // show only selected
+        : priorityFilters.includes(ssvcPriorityProps[tag.ssvc_priority || "defer"].displayName)) &&
       (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)),
   );
 
@@ -297,7 +299,7 @@ export function Status() {
   };
 
   function navigateArtifactPage(tagId) {
-    for (let key of ["impactFilter", "word", "perPage", "page", "allservices"]) {
+    for (let key of ["priorityFilter", "word", "perPage", "page", "allservices"]) {
       params.delete(key);
     }
     navigate(`/tags/${tagId}?${params.toString()}`);
@@ -317,8 +319,8 @@ export function Status() {
 
   const handleAllServices = () => {
     setIsActiveUploadMode(0);
-    if (params.get("impactFilter")) {
-      params.delete("impactFilter");
+    if (params.get("priorityFilter")) {
+      params.delete("priorityFilter");
     }
     if (params.get("page")) {
       params.delete("page");
@@ -346,7 +348,7 @@ export function Status() {
     setAnchorEl(null);
   };
 
-  const ThreatImpactMenu = (
+  const SSVCPriorityMenu = (
     <>
       <Menu
         id="basic-menu"
@@ -358,11 +360,12 @@ export function Status() {
         }}
         sx={{ left: -55 }}
       >
-        {[0, 1, 2, 3].map((idx) => {
-          const impactName = threatImpactNames[idx + 1];
-          const checked = impactFilters.includes(impactName);
+        {sortedSSVCPriorities.map((priorityApiKey) => {
+          const priorityProp = ssvcPriorityProps[priorityApiKey];
+          const priorityDisplayName = priorityProp.displayName;
+          const checked = priorityFilters.includes(priorityDisplayName);
           const summary = isActiveAllServicesMode ? pteamTagsSummary : serviceTagsSummary;
-          const threatImpactCount = summary.threat_impact_count[(idx + 1).toString()];
+          const ssvcPriorityCount = summary.ssvc_priority_count[priorityApiKey];
 
           const fixedSx = {
             ...(checked && {
@@ -372,36 +375,36 @@ export function Status() {
 
           const onClick = () => {
             if (checked) {
-              impactFilters = impactFilters.filter((filter) => filter !== impactName);
+              priorityFilters = priorityFilters.filter((filter) => filter !== priorityDisplayName);
             } else {
-              impactFilters.push(impactName);
+              priorityFilters.push(priorityDisplayName);
             }
-            params.delete("impactFilter");
-            impactFilters.map((filter) => params.append("impactFilter", filter));
+            params.delete("priorityFilter");
+            priorityFilters.map((filter) => params.append("priorityFilter", filter));
 
             params.set("page", 1); // reset page
             navigate(location.pathname + "?" + params.toString());
           };
 
           return (
-            <MenuList dense sx={{ width: 320, ...fixedSx }} key={idx}>
+            <MenuList dense sx={{ width: 320, ...fixedSx }} key={priorityApiKey}>
               <MenuItem onClick={onClick}>
                 {checked ? (
                   <>
                     <ListItemIcon>
                       <CheckIcon />
                     </ListItemIcon>
-                    <ListItemText>{threatImpactProps[impactName].chipLabel}</ListItemText>
+                    <ListItemText>{priorityDisplayName}</ListItemText>
                   </>
                 ) : (
                   <>
-                    <ListItemText inset>{threatImpactProps[impactName].chipLabel}</ListItemText>
+                    <ListItemText inset>{priorityDisplayName}</ListItemText>
                   </>
                 )}
-                {threatImpactCount > threatImpactCountMax ? (
-                  <Chip sx={{ ml: -1.5, mr: 2 }} size="small" label={threatImpactCountMax + "+"} />
+                {ssvcPriorityCount > ssvcPriorityCountMax ? (
+                  <Chip sx={{ ml: -1.5, mr: 2 }} size="small" label={ssvcPriorityCountMax + "+"} />
                 ) : (
-                  <Chip sx={{ ml: -1.5, mr: 2 }} size="small" label={threatImpactCount} />
+                  <Chip sx={{ ml: -1.5, mr: 2 }} size="small" label={ssvcPriorityCount} />
                 )}
               </MenuItem>
             </MenuList>
@@ -459,7 +462,7 @@ export function Status() {
             >
               {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
             </IconButton>
-            {ThreatImpactMenu}
+            {SSVCPriorityMenu}
           </Box>
         </Box>
         <TableContainer component={Paper} sx={{ mt: 0.5 }}>
