@@ -593,7 +593,7 @@ def set_ticket_status(
             or ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled
         )
         and data.scheduled_at
-        and data_scheduled_at < now
+        and (data_scheduled_at != datetime.fromtimestamp(0) and data_scheduled_at < now)
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
