@@ -32,7 +32,7 @@ import {
   checkMail as postCheckMail,
 } from "../utils/api";
 import {
-  defaultSSVCPriority,
+  defaultAlertThreshold,
   modalCommonButtonStyle,
   sortedSSVCPriorities,
   ssvcPriorityProps,
@@ -47,7 +47,7 @@ export function PTeamNotificationSetting(props) {
   const [slackEnable, setSlackEnable] = useState(false);
   const [mailAddress, setMailAddress] = useState("");
   const [mailEnable, setMailEnable] = useState(false);
-  const [alertThreshold, setAlertThreshold] = useState(defaultSSVCPriority);
+  const [alertThreshold, setAlertThreshold] = useState(defaultAlertThreshold);
   const [checkSlack, setCheckSlack] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
   const [slackMessage, setSlackMessage] = useState();

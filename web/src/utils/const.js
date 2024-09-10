@@ -197,7 +197,7 @@ export const ssvcPriorityProps = {
   safe: prop_safe,
   Safe: prop_safe,
 };
-export const defaultSSVCPriority = sortedSSVCPriorities[0];
+export const defaultAlertThreshold = sortedSSVCPriorities[0];
 
 export const topicStatusProps = {
   alerted: {
