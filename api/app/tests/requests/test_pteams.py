@@ -11,7 +11,7 @@ from PIL import Image, ImageChops
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import models, persistence, schemas
 from app.constants import (
     DEFAULT_ALERT_SSVC_PRIORITY,
     MEMBER_UUID,
@@ -3909,7 +3909,27 @@ class TestUpdatePTeamService:
                 json=request,
             )
             assert response.status_code == 200
+
+            ## get ticket_id
+            response_ticket = client.get(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}/topics/{self.topic.topic_id}/tags/{self.tag1.tag_id}/tickets",
+                headers=_headers,
+            )
+            ticket_id = response_ticket.json()[0]["ticket_id"]
+
+            alerts = persistence.get_alert_by_ticket_id(testdb, ticket_id)
+
+            assert alerts
+
+            if alerts[0].alerted_at > alerts[1].alerted_at:
+                alert = alerts[0]
+            else:
+                alert = alerts[1]
+
+            assert alert.ticket.threat.topic_id == str(self.topic.topic_id)
+
             send_alert_to_pteam.assert_called_once()
+            send_alert_to_pteam.assert_called_with(alert)
 
         def test_not_alert_with_current_ticket_status_is_completed(self, mocker):
             user1_access_token = self._get_access_token(USER1)

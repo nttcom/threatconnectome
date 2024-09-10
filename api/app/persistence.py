@@ -488,6 +488,10 @@ def get_alert_by_id(db: Session, alert_id: UUID | str) -> models.Alert | None:
     ).one_or_none()
 
 
+def get_alert_by_ticket_id(db: Session, ticket_id: UUID | str) -> Sequence[models.Alert] | None:
+    return db.scalars(select(models.Alert).where(models.Alert.ticket_id == str(ticket_id))).all()
+
+
 def create_alert(db: Session, alert: models.Alert) -> None:
     db.add(alert)
     db.flush()
