@@ -510,7 +510,7 @@ class TicketResponse(ORMModel):
     ticket_id: UUID
     threat_id: UUID
     created_at: datetime
-    ssvc_deployer_priority: SSVCDeployerPriorityEnum
+    ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     threat: ThreatResponse
     current_ticket_status: TicketStatusResponse
 

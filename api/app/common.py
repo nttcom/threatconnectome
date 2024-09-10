@@ -279,7 +279,9 @@ def get_topic_ids_summary_by_service_id_and_tag_id(
         for threat in dependency.threats:
             if not threat.ticket:
                 continue
-            ssvc_priority = threat.ticket.ssvc_deployer_priority
+            ssvc_priority = (
+                threat.ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
+            )
             _curent_ticket = threat.ticket.current_ticket_status
             if (tmp_topic_ids_dict := topic_ids_dict.get(threat.topic_id)) is None:
                 tmp_topic_ids_dict = {
