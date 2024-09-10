@@ -18,7 +18,6 @@ export function PTeamGeneralSetting(props) {
   const [pteamName, setPTeamName] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [slackUrl, setSlackUrl] = useState("");
-  const [alertImpact, setAlertImpact] = useState(1);
   const [flashsenseUrl, setFlashsenseUrl] = useState("");
   const [checkFlashsense, setCheckFlashsense] = useState(false);
   const [flashsenseMessage, setFlashsenseMessage] = useState();
@@ -46,7 +45,6 @@ export function PTeamGeneralSetting(props) {
       setPTeamName(pteam.pteam_name);
       setContactInfo(pteam.contact_info);
       setSlackUrl(pteam.alert_slack.webhook_url);
-      setAlertImpact(pteam.alert_threat_impact);
     }
     setCheckFlashsense(false);
     setFlashsenseMessage();
@@ -82,7 +80,6 @@ export function PTeamGeneralSetting(props) {
       pteam_name: pteamName,
       contact_info: contactInfo,
       alert_slack: { enable: true, webhook_url: slackUrl }, //todo change enable status
-      alert_threat_impact: alertImpact,
     };
     await updatePTeam(pteamId, pteamInfo)
       .then(() => {
