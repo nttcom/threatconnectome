@@ -9,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image, ImageChops
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.constants import (
@@ -3884,7 +3885,9 @@ class TestUpdatePTeamService:
             data = response.json()
             return data["access_token"]
 
-        def test_alert_by_mail_if_vulnerabilities_are_found_when_updating_service(self, mocker):
+        def test_alert_by_mail_if_vulnerabilities_are_found_when_updating_service(
+            self, mocker, testdb: Session
+        ):
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -3892,10 +3895,11 @@ class TestUpdatePTeamService:
                 "accept": "application/json",
             }
 
+            ## ssvc_deployer_priority is immediate
             request = {
                 "system_exposure": models.SystemExposureEnum.OPEN.value,
                 "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
-                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
             }
 
             send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
@@ -3930,11 +3934,38 @@ class TestUpdatePTeamService:
             )
             assert response_ticket_status.status_code == 200
 
+            ## ssvc_deployer_priority is immediate
             request = {
                 "system_exposure": models.SystemExposureEnum.OPEN.value,
                 "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
-                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
             }
+            send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
+            response = client.post(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
+                headers=_headers,
+                json=request,
+            )
+            assert response.status_code == 200
+            send_alert_to_pteam.assert_not_called()
+
+        def test_not_alert_when_ssvc_deployer_priority_is_lower_than_alert_ssvc_priority_in_pteam(
+            self, mocker
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            ## ssvc_deployer_priority is out_of_cycle
+            request = {
+                "system_exposure": models.SystemExposureEnum.CONTROLLED.value,
+                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
+                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
+            }
+
             send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
             response = client.post(
                 f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
