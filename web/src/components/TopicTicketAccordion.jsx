@@ -16,17 +16,9 @@ import { systemAccount } from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
 import { AssigneesSelector } from "./AssigneesSelector";
-import { ThreatImpactStatusChip } from "./ThreatImpactStatusChip";
+import { SSVCPriorityStatusChip } from "./SSVCPriorityStatusChip";
 import { TopicStatusSelector } from "./TopicStatusSelector";
 import { WarningTooltip } from "./WarningTooltip";
-
-const ssvcPriorityToThreatImpactName = (ssvcPriority) =>
-  ({
-    immediate: "immediate",
-    out_of_cycle: "offcycle",
-    scheduled: "acceptable",
-    defer: "none",
-  })[ssvcPriority];
 
 export const TopicTicketAccordion = (props) => {
   const { pteamId, dependency, topicId, ticket, members, defaultExpanded, topicActions } = props;
@@ -35,7 +27,7 @@ export const TopicTicketAccordion = (props) => {
   const tagId = dependency.tag_id;
   const target = dependency.target;
   const ticketStatus = ticket.current_ticket_status;
-  const threatImpactName = ssvcPriorityToThreatImpactName(ticket.ssvc_deployer_priority);
+  const ssvcPriority = ticket.ssvc_deployer_priority || "defer";
 
   return (
     <Accordion
@@ -52,7 +44,7 @@ export const TopicTicketAccordion = (props) => {
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: grey[50] }}>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Box sx={{ mr: 1 }}>
-            <ThreatImpactStatusChip threatImpactName={threatImpactName} />
+            <SSVCPriorityStatusChip ssvcPriority={ssvcPriority} />
           </Box>
           <Box sx={{ wordBreak: "break-all" }}>{target}</Box>
         </Box>
