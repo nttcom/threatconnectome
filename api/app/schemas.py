@@ -510,7 +510,7 @@ class TicketResponse(ORMModel):
     ticket_id: UUID
     threat_id: UUID
     created_at: datetime
-    ssvc_deployer_priority: SSVCDeployerPriorityEnum
+    ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     threat: ThreatResponse
     current_ticket_status: TicketStatusResponse
 
@@ -554,15 +554,13 @@ class PTeamTagSummary(ORMModel):
     parent_id: UUID | None
     parent_name: str | None
     service_ids: list[UUID]
-    threat_impact: int | None = None
-    updated_at: datetime | None = None
+    ssvc_priority: SSVCDeployerPriorityEnum | None
+    updated_at: datetime | None
     status_count: dict[str, int]
-
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
 
 class PTeamTagsSummary(ORMModel):
-    threat_impact_count: dict[str, int]  # str(threat_impact): tags count
+    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # ssvc_priority: tags count
     tags: list[PTeamTagSummary]
 
 
@@ -572,11 +570,11 @@ class PTeamServiceTagsSummary(ORMModel):
         tag_name: str
         parent_id: UUID | None
         parent_name: str | None
-        threat_impact: int | None
+        ssvc_priority: SSVCDeployerPriorityEnum | None
         updated_at: datetime | None
         status_count: dict[str, int]  # TopicStatusType.value: tickets count
 
-    threat_impact_count: dict[str, int]  # str(threat_impact): tags count
+    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # priority: tags count
     tags: list[PTeamServiceTagSummary]
 
 
@@ -641,7 +639,7 @@ class ATeamTopicCommentResponse(ORMModel):
 
 
 class ServiceTaggedTopics(ORMModel):
-    threat_impact_count: dict[str, int]
+    ssvc_priority_count: dict[str, int]
     topic_ids: list[UUID]
 
 

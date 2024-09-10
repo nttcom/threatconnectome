@@ -18,6 +18,7 @@ from app.constants import (
     ZERO_FILLED_UUID,
 )
 from app.main import app
+from app.ssvc.ssvc_calculator import calculate_ssvc_priority_by_threat
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     ACTION1,
@@ -2500,6 +2501,10 @@ def test_upload_pteam_sbom_file_wrong_content_format():
 
 
 class TestGetPTeamServiceTagsSummary:
+    ssvc_priority_count_zero: dict[str, int] = {
+        ssvc_priority.value: 0 for ssvc_priority in list(models.SSVCDeployerPriorityEnum)
+    }
+
     @staticmethod
     def _get_access_token(user: dict) -> str:
         body = {
@@ -2547,14 +2552,17 @@ class TestGetPTeamServiceTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 1}
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+        }
         assert summary["tags"] == [
             {
                 "tag_id": str(tag1.tag_id),
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "threat_impact": None,
+                "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TopicStatusType)
@@ -2590,14 +2598,17 @@ class TestGetPTeamServiceTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 1}
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+        }
         assert summary["tags"] == [
             {
                 "tag_id": str(tag1.tag_id),
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "threat_impact": None,
+                "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TopicStatusType)
@@ -2605,7 +2616,7 @@ class TestGetPTeamServiceTagsSummary:
             }
         ]
 
-    def test_returns_summary_if_having_alerted_ticket(self):
+    def test_returns_summary_if_having_alerted_ticket(self, testdb):
         create_user(USER1)
         pteam1 = create_pteam(USER1, PTEAM1)
         tag1 = create_tag(USER1, TAG1)
@@ -2629,6 +2640,7 @@ class TestGetPTeamServiceTagsSummary:
             },
         }
         topic1 = create_topic(USER1, TOPIC1, actions=[action1])  # Tag1
+        db_threat1 = testdb.scalars(select(models.Threat)).one()
 
         # get summary
         url = f"/pteams/{pteam1.pteam_id}/services/{service_id1}/tags/summary"
@@ -2642,9 +2654,10 @@ class TestGetPTeamServiceTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {
-            **{"1": 0, "2": 0, "3": 0, "4": 0},
-            str(topic1.threat_impact): 1,
+        expected_ssvc_priority = calculate_ssvc_priority_by_threat(db_threat1)
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            expected_ssvc_priority.value: 1,
         }
         assert summary["tags"] == [
             {
@@ -2652,7 +2665,7 @@ class TestGetPTeamServiceTagsSummary:
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "threat_impact": topic1.threat_impact,
+                "ssvc_priority": expected_ssvc_priority.value,
                 "updated_at": datetime.isoformat(topic1.updated_at),
                 "status_count": {
                     **{status_type.value: 0 for status_type in list(models.TopicStatusType)},
@@ -2663,6 +2676,10 @@ class TestGetPTeamServiceTagsSummary:
 
 
 class TestGetPTeamTagsSummary:
+    ssvc_priority_count_zero: dict[str, int] = {
+        ssvc_priority.value: 0 for ssvc_priority in list(models.SSVCDeployerPriorityEnum)
+    }
+
     @staticmethod
     def _get_access_token(user: dict) -> str:
         body = {
@@ -2710,7 +2727,10 @@ class TestGetPTeamTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 1}
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+        }
         assert summary["tags"] == [
             {
                 "tag_id": str(tag1.tag_id),
@@ -2718,7 +2738,7 @@ class TestGetPTeamTagsSummary:
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
                 "service_ids": [service_id1],
-                "threat_impact": None,
+                "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TopicStatusType)
@@ -2754,7 +2774,10 @@ class TestGetPTeamTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 1}
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+        }
         assert summary["tags"] == [
             {
                 "tag_id": str(tag1.tag_id),
@@ -2762,7 +2785,7 @@ class TestGetPTeamTagsSummary:
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
                 "service_ids": [service_id1],
-                "threat_impact": None,
+                "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TopicStatusType)
@@ -2770,7 +2793,7 @@ class TestGetPTeamTagsSummary:
             }
         ]
 
-    def test_returns_summary_if_having_alerted_ticket(self):
+    def test_returns_summary_if_having_alerted_ticket(self, testdb):
         create_user(USER1)
         pteam1 = create_pteam(USER1, PTEAM1)
         tag1 = create_tag(USER1, TAG1)
@@ -2794,6 +2817,7 @@ class TestGetPTeamTagsSummary:
             },
         }
         topic1 = create_topic(USER1, TOPIC1, actions=[action1])  # Tag1
+        db_threat1 = testdb.scalars(select(models.Threat)).one()
 
         # get summary
         url = f"/pteams/{pteam1.pteam_id}/tags/summary"
@@ -2807,9 +2831,10 @@ class TestGetPTeamTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {
-            **{"1": 0, "2": 0, "3": 0, "4": 0},
-            str(topic1.threat_impact): 1,
+        expected_ssvc_priority = calculate_ssvc_priority_by_threat(db_threat1)
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            expected_ssvc_priority.value: 1,
         }
         assert summary["tags"] == [
             {
@@ -2818,7 +2843,7 @@ class TestGetPTeamTagsSummary:
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
                 "service_ids": [service_id1],
-                "threat_impact": topic1.threat_impact,
+                "ssvc_priority": expected_ssvc_priority.value,
                 "updated_at": datetime.isoformat(topic1.updated_at),
                 "status_count": {
                     **{status_type.value: 0 for status_type in list(models.TopicStatusType)},
@@ -2827,7 +2852,7 @@ class TestGetPTeamTagsSummary:
             }
         ]
 
-    def test_returns_summary_even_if_multiple_services_are_registrered(self):
+    def test_returns_summary_even_if_multiple_services_are_registrered(self, testdb):
         create_user(USER1)
         pteam1 = create_pteam(USER1, PTEAM1)
         tag1 = create_tag(USER1, TAG1)
@@ -2855,6 +2880,7 @@ class TestGetPTeamTagsSummary:
             },
         }
         topic1 = create_topic(USER1, TOPIC1, actions=[action1])  # Tag1
+        db_threats = testdb.scalars(select(models.Threat)).all()
 
         # get summary
         url = f"/pteams/{pteam1.pteam_id}/tags/summary"
@@ -2868,9 +2894,12 @@ class TestGetPTeamTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {
-            **{"1": 0, "2": 0, "3": 0, "4": 0},
-            str(topic1.threat_impact): 1,
+        expected_ssvc_priority = min(  # we have only 1 tag
+            calculate_ssvc_priority_by_threat(db_threat) for db_threat in db_threats
+        )
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            expected_ssvc_priority: 1,
         }
 
         assert len(summary["tags"][0]["service_ids"]) == 2
@@ -2883,7 +2912,7 @@ class TestGetPTeamTagsSummary:
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "threat_impact": topic1.threat_impact,
+                "ssvc_priority": expected_ssvc_priority,
                 "updated_at": datetime.isoformat(topic1.updated_at),
                 "status_count": {
                     **{status_type.value: 0 for status_type in list(models.TopicStatusType)},
