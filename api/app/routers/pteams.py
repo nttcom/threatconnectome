@@ -237,17 +237,27 @@ def update_pteam_service(
         service.keywords = sorted(fixed_words)
 
     if data.system_exposure is not None:
+        previous_system_exposure = service.system_exposure
         service.system_exposure = data.system_exposure
 
     if data.service_mission_impact is not None:
+        previous_service_mission_impact = service.service_mission_impact
         service.service_mission_impact = data.service_mission_impact
 
     if data.safety_impact is not None:
+        previous_safety_impact = service.safety_impact
         service.safety_impact = data.safety_impact
     db.flush()
 
     # calculate ssvc priority and notify
-    if data.system_exposure or data.service_mission_impact or data.safety_impact:
+    if (
+        (data.system_exposure and data.system_exposure != previous_system_exposure)
+        or (
+            data.service_mission_impact
+            and data.service_mission_impact != previous_service_mission_impact
+        )
+        or (data.safety_impact and data.safety_impact != previous_safety_impact)
+    ):
         threats: list[models.Threat] = []
         for dependency in service.dependencies:
             threats.extend(persistence.search_threats(db, dependency.dependency_id, None))
@@ -258,7 +268,6 @@ def update_pteam_service(
             if ticket is not None:
                 _ssvc_deployer_priority = ssvc_calculator.calculate_ssvc_priority_by_threat(threat)
                 ticket.ssvc_deployer_priority = _ssvc_deployer_priority
-                db.flush
 
                 if ticket_meets_condition_to_create_alert(ticket):
                     alert = models.Alert(

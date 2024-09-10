@@ -393,8 +393,10 @@ def update_topic(
     if data.threat_impact is not None:
         topic.threat_impact = data.threat_impact
     if data.exploitation is not None:
+        previous_exploitation = topic.exploitation
         topic.exploitation = data.exploitation
     if data.automatable is not None:
+        previous_automatable = topic.automatable
         topic.automatable = data.automatable
 
     topic.content_fingerprint = calculate_topic_content_fingerprint(
@@ -409,7 +411,10 @@ def update_topic(
         fix_threats_for_topic(db, topic)
 
     # calculate ssvc priority
-    if data.exploitation or data.automatable:
+    if (data.exploitation and data.exploitation != previous_exploitation) or (
+        data.automatable and data.automatable != previous_automatable
+    ):
+
         threats: list[models.Threat] = []
         threats.extend(persistence.search_threats(db, None, topic.topic_id))
 
@@ -419,7 +424,6 @@ def update_topic(
             if ticket is not None:
                 _ssvc_deployer_priority = ssvc_calculator.calculate_ssvc_priority_by_threat(threat)
                 ticket.ssvc_deployer_priority = _ssvc_deployer_priority
-                db.flush
 
                 if ticket_meets_condition_to_create_alert(ticket):
                     alert = models.Alert(
