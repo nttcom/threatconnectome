@@ -31,7 +31,12 @@ import {
   checkSlack as postCheckSlack,
   checkMail as postCheckMail,
 } from "../utils/api";
-import { modalCommonButtonStyle, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
+import {
+  defaultSSVCPriority,
+  modalCommonButtonStyle,
+  sortedSSVCPriorities,
+  ssvcPriorityProps,
+} from "../utils/const";
 
 import { CheckButton } from "./CheckButton";
 
@@ -42,7 +47,7 @@ export function PTeamNotificationSetting(props) {
   const [slackEnable, setSlackEnable] = useState(false);
   const [mailAddress, setMailAddress] = useState("");
   const [mailEnable, setMailEnable] = useState(false);
-  const [alertThreshold, setAlertThreshold] = useState("");
+  const [alertThreshold, setAlertThreshold] = useState(defaultSSVCPriority);
   const [checkSlack, setCheckSlack] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
   const [slackMessage, setSlackMessage] = useState();
@@ -182,9 +187,9 @@ export function PTeamNotificationSetting(props) {
           sx={{ marginRight: "10px", minWidth: "800px" }}
           size="small"
         >
-          {sortedSSVCPriorities.map((x) => (
-            <MenuItem key={x} value={x}>
-              {ssvcPriorityProps[x].displayName}
+          {sortedSSVCPriorities.map((ssvcPriority) => (
+            <MenuItem key={ssvcPriority} value={ssvcPriority}>
+              {ssvcPriorityProps[ssvcPriority].displayName}
             </MenuItem>
           ))}
         </Select>
