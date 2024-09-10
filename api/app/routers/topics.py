@@ -407,8 +407,9 @@ def update_topic(
 
     db.flush()
 
+    created_ticket_ids: list[str] = []
     if tags_updated:
-        fix_threats_for_topic(db, topic)
+        created_ticket_ids = fix_threats_for_topic(db, topic)
 
     # calculate ssvc priority
     if (data.exploitation and data.exploitation != previous_exploitation) or (
@@ -425,7 +426,10 @@ def update_topic(
                 _ssvc_deployer_priority = ssvc_calculator.calculate_ssvc_priority_by_threat(threat)
                 ticket.ssvc_deployer_priority = _ssvc_deployer_priority
 
-                if ticket_meets_condition_to_create_alert(ticket):
+                if (
+                    ticket.ticket_id not in created_ticket_ids
+                    and ticket_meets_condition_to_create_alert(ticket)
+                ):
                     alert = models.Alert(
                         ticket_id=ticket.ticket_id,
                         alerted_at=now,
