@@ -82,10 +82,10 @@ def test_show_tag_page_directly(page: Page):
     # tag page
     expect(page).to_have_url(re.compile(path))
     expect(page.get_by_role("heading", name=TAG1)).to_have_text(TAG1)
-    expect(page.locator("#threat-impact-count-chip-1")).to_have_text("1")
-    expect(page.locator("#threat-impact-count-chip-2")).to_have_text("1")
-    expect(page.locator("#threat-impact-count-chip-3")).to_have_text("0")
-    expect(page.locator("#threat-impact-count-chip-4")).to_have_text("0")
+    expect(page.locator("#ssvc-priority-count-chip-immediate")).to_have_text("2")
+    expect(page.locator("#ssvc-priority-count-chip-out_of_cycle")).to_have_text("0")
+    expect(page.locator("#ssvc-priority-count-chip-scheduled")).to_have_text("0")
+    expect(page.locator("#ssvc-priority-count-chip-defer")).to_have_text("0")
     expect(page.get_by_role("heading", name=str(TOPIC1["title"]))).to_have_text(
         str(TOPIC1["title"])
     )
@@ -109,10 +109,10 @@ def test_show_tag_page(page: Page):
 
     # tag page
     expect(page.get_by_role("heading", name=TAG1)).to_have_text(TAG1)
-    expect(page.locator("#threat-impact-count-chip-1")).to_have_text("1")
-    expect(page.locator("#threat-impact-count-chip-2")).to_have_text("1")
-    expect(page.locator("#threat-impact-count-chip-3")).to_have_text("0")
-    expect(page.locator("#threat-impact-count-chip-4")).to_have_text("0")
+    expect(page.locator("#ssvc-priority-count-chip-immediate")).to_have_text("2")
+    expect(page.locator("#ssvc-priority-count-chip-out_of_cycle")).to_have_text("0")
+    expect(page.locator("#ssvc-priority-count-chip-scheduled")).to_have_text("0")
+    expect(page.locator("#ssvc-priority-count-chip-defer")).to_have_text("0")
     expect(page.get_by_role("heading", name=str(TOPIC1["title"]))).to_have_text(
         str(TOPIC1["title"])
     )
