@@ -699,9 +699,9 @@ class Topic(Base):
         if not self.topic_id:
             self.topic_id = str(uuid.uuid4())
         if not self.exploitation:
-            self.exploitation = ExploitationEnum.ACTIVE
+            self.exploitation = ExploitationEnum.NONE
         if not self.automatable:
-            self.automatable = AutomatableEnum.YES
+            self.automatable = AutomatableEnum.NO
 
     topic_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     title: Mapped[Str255]
@@ -711,8 +711,8 @@ class Topic(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     content_fingerprint: Mapped[str]
-    exploitation: Mapped[ExploitationEnum] = mapped_column(server_default=ExploitationEnum.ACTIVE)
-    automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.YES)
+    exploitation: Mapped[ExploitationEnum] = mapped_column(server_default=ExploitationEnum.NONE)
+    automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.NO)
 
     actions = relationship("TopicAction", back_populates="topic", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary=TopicTag.__tablename__, order_by="Tag.tag_name")
