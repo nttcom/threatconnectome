@@ -643,7 +643,7 @@ def set_ticket_status(
                     detail="If status is schduled, schduled_at must be a future time",
                 )
     else:
-        if ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled:  ##(2)
+        if ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled:
             if data.scheduled_at is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
