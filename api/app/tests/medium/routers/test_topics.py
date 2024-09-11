@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import insert
+from sqlalchemy import insert, select
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -51,6 +51,7 @@ from app.tests.medium.utils import (
     create_user,
     create_watching_request,
     file_upload_headers,
+    get_service_by_service_name,
     headers,
     random_string,
     search_topics,
@@ -394,9 +395,12 @@ class TestUpdateTopic:
         test_version = "1.2.3"
         refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
         upload_pteam_tags(USER1, self.pteam0.pteam_id, test_service, refs0)
+        self.service_id = get_service_by_service_name(USER1, self.pteam0.pteam_id, test_service)[
+            "service_id"
+        ]
         self.topic = create_topic(USER1, _gen_topic_params([self.tag1]))
 
-    def test_alert_by_mail_if_vulnerabilities_are_found_when_updating_topic(self, mocker):
+    def test_alert_by_mail_if_vulnerabilities_are_found_when_updating_topic(self, mocker, testdb):
         ## ssvc_deployer_priority is immediate
         request = {
             "exploitation": ExploitationEnum.ACTIVE.value,
@@ -410,7 +414,29 @@ class TestUpdateTopic:
             json=request,
         )
         assert response.status_code == 200
+
+        ## get ticket_id
+        response_ticket = client.get(
+            f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id}/topics/{self.topic.topic_id}/tags/{self.tag1.tag_id}/tickets",
+            headers=headers(USER1),
+        )
+        ticket_id = response_ticket.json()[0]["ticket_id"]
+
+        alerts = testdb.scalars(
+            select(models.Alert).where(models.Alert.ticket_id == str(ticket_id))
+        ).all()
+
+        assert alerts
+
+        if alerts[0].alerted_at > alerts[1].alerted_at:
+            alert = alerts[0]
+        else:
+            alert = alerts[1]
+
+        assert alert.ticket.threat.topic_id == str(self.topic.topic_id)
+
         send_alert_to_pteam.assert_called_once()
+        send_alert_to_pteam.assert_called_with(alert)
 
     def test_not_alert_when_ssvc_deployer_priority_is_lower_than_alert_ssvc_priority_in_pteam(
         self, mocker
