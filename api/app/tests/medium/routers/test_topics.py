@@ -198,8 +198,8 @@ def test_default_value_is_set_when_ssvc_related_value_is_empty_in_creation():
     assert response.status_code == 200
 
     responsed_topic = schemas.TopicCreateResponse(**response.json())
-    assert responsed_topic.exploitation == ExploitationEnum.ACTIVE
-    assert responsed_topic.automatable == AutomatableEnum.YES
+    assert responsed_topic.exploitation == ExploitationEnum.NONE
+    assert responsed_topic.automatable == AutomatableEnum.NO
 
 
 def test_create_too_long_action():
