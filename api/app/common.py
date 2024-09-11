@@ -243,6 +243,9 @@ def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
     if ticket.ssvc_deployer_priority is None:
         return False
 
+    if ticket.current_ticket_status.topic_status == models.TopicStatusType.completed:
+        return False
+
     pteam = ticket.threat.dependency.service.pteam
     return ticket.ssvc_deployer_priority <= pteam.alert_ssvc_priority
 
@@ -279,7 +282,9 @@ def get_topic_ids_summary_by_service_id_and_tag_id(
         for threat in dependency.threats:
             if not threat.ticket:
                 continue
-            ssvc_priority = threat.ticket.ssvc_deployer_priority
+            ssvc_priority = (
+                threat.ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
+            )
             _curent_ticket = threat.ticket.current_ticket_status
             if (tmp_topic_ids_dict := topic_ids_dict.get(threat.topic_id)) is None:
                 tmp_topic_ids_dict = {
@@ -380,7 +385,7 @@ def create_ticket_internal(
     return ticket
 
 
-def fix_threats_for_topic(db: Session, topic: models.Topic):
+def fix_threats_for_topic(db: Session, topic: models.Topic) -> list[str]:
     now = datetime.now()
 
     # remove threats which lost related dependency -- for the case Topic.tags updated
@@ -415,6 +420,7 @@ def fix_threats_for_topic(db: Session, topic: models.Topic):
                 pass  # ignore unexpected range strings
 
     # check and fix for each dependencies related to the topic
+    created_ticket_ids: list[str] = []
     for dependency in topic.dependencies_via_tag:
         tag = dependency.tag
         try:
@@ -460,11 +466,13 @@ def fix_threats_for_topic(db: Session, topic: models.Topic):
             persistence.create_threat(db, threat)
         if need_ticket:
             if not threat.ticket:
-                create_ticket_internal(db, threat, now=now)
+                ticket = create_ticket_internal(db, threat, now=now)
+                created_ticket_ids.append(ticket.ticket_id)
         elif threat.ticket:
             persistence.delete_ticket(db, threat.ticket)
 
         db.flush()
+    return created_ticket_ids
 
 
 def fix_threats_for_dependency(db: Session, dependency: models.Dependency):
@@ -550,11 +558,15 @@ def fix_threats_for_dependency(db: Session, dependency: models.Dependency):
             persistence.delete_ticket(db, threat.ticket)
 
 
-def count_threat_impact_from_summary(tags_summary: list[dict]):
-    threat_impact_count: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4": 0}
+def count_ssvc_priority_from_summary(tags_summary: list[dict]):
+    ssvc_priority_count: dict[models.SSVCDeployerPriorityEnum, int] = {
+        priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
+    }
     for tag_summary in tags_summary:
-        threat_impact_count[str(tag_summary["threat_impact"] or 4)] += 1
-    return threat_impact_count
+        ssvc_priority_count[
+            tag_summary["ssvc_priority"] or models.SSVCDeployerPriorityEnum.DEFER
+        ] += 1
+    return ssvc_priority_count
 
 
 def count_full_width_and_half_width_characters(string: str) -> int:

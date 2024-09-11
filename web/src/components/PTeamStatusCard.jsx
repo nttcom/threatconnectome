@@ -2,13 +2,12 @@ import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui
 import { grey, yellow, amber } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import React from "react";
 
-import { threatImpactNames, topicStatusProps } from "../utils/const";
-import { calcTimestampDiff } from "../utils/func";
+import { topicStatusProps } from "../utils/const";
+import { calcTimestampDiff, compareSSVCPriority } from "../utils/func";
 
-import { ThreatImpactStatusChip } from "./ThreatImpactStatusChip";
+import { SSVCPriorityStatusChip } from "./SSVCPriorityStatusChip";
 
 function LineWithTooltip(props) {
   const { topicStatus, ratio, num } = props;
@@ -77,10 +76,13 @@ function DisableLine() {
 }
 
 function StatusRatioGraph(props) {
-  const { counts, threatImpact } = props;
+  const { counts, ssvcPriority } = props;
   if ((counts ?? []).length === 0) return "";
   let keys = [];
-  if (threatImpact < 4 || (threatImpact === 4 && counts.completed > 0)) {
+  if (
+    compareSSVCPriority(ssvcPriority, "defer") < 0 ||
+    (compareSSVCPriority(ssvcPriority, "defer") === 0 && counts.completed > 0)
+  ) {
     keys = ["completed", "scheduled", "acknowledged", "alerted"];
   }
   const total = keys.reduce((ret, key) => ret + counts[key] ?? 0, 0);
@@ -106,26 +108,20 @@ function StatusRatioGraph(props) {
 
 StatusRatioGraph.propTypes = {
   counts: PropTypes.object,
-  threatImpact: PropTypes.number,
+  ssvcPriority: PropTypes.string,
 };
 
 export function PTeamStatusCard(props) {
-  const { onHandleClick, tag, serviceIds } = props;
-  const [alertThreatImpact, setAlertThreatImpact] = useState(1);
+  const { onHandleClick, pteam, tag, serviceIds } = props;
 
-  const pteam = useSelector((state) => state.pteam.pteam);
-
-  const threatImpactNum = tag.threat_impact ?? 4;
-  const threatImpactName =
-    threatImpactNum === 4 && tag.status_count["completed"] > 0
+  const ssvcPriority = // detect "safe"
+    ["defer", null].includes(tag.ssvc_priority) && tag.status_count["completed"] > 0
       ? "safe" // solved all and at least 1 tickets
-      : threatImpactNames[threatImpactNum];
-
-  useEffect(() => {
-    if (pteam) {
-      setAlertThreatImpact(pteam.alert_threat_impact);
-    }
-  }, [pteam]);
+      : tag.ssvc_priority || "defer";
+  // Change the background color and border based on the Alert Threshold value set by the team.
+  const highlightCard =
+    pteam.alert_ssvc_priority !== "defer" && // disable highlight if threshold is "defer"
+    compareSSVCPriority(ssvcPriority, pteam.alert_ssvc_priority) <= 0;
 
   return (
     <TableRow
@@ -133,19 +129,17 @@ export function PTeamStatusCard(props) {
       sx={{
         border: "2px",
         borderBottom: "2px",
-        // Change the background color and border based on the Alert Threshold value set by the team.
-        ...(alertThreatImpact !== 4 &&
-          threatImpactNum <= alertThreatImpact && {
-            boxShadow: `inset 0 0 0 2px ${amber[100]}`,
-            backgroundColor: yellow[50],
-          }),
+        ...(highlightCard && {
+          boxShadow: `inset 0 0 0 2px ${amber[100]}`,
+          backgroundColor: yellow[50],
+        }),
         cursor: "pointer",
         "&:last-child td, &:last-child th": { border: 0 },
         "&:hover": { bgcolor: grey[100] },
       }}
     >
       <TableCell component="th" scope="row" style={{ width: "5%" }}>
-        <ThreatImpactStatusChip threatImpactName={threatImpactName} />
+        <SSVCPriorityStatusChip ssvcPriority={ssvcPriority} />
       </TableCell>
       <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
@@ -164,7 +158,10 @@ export function PTeamStatusCard(props) {
               {`Updated ${calcTimestampDiff(tag.updated_at)}`}
             </Typography>
           </Box>
-          <StatusRatioGraph counts={tag.status_count ?? []} threatImpact={tag.threat_impact ?? 4} />
+          <StatusRatioGraph
+            counts={tag.status_count ?? []}
+            ssvcPriority={tag.ssvc_priority || "defer"}
+          />
         </Box>
       </TableCell>
     </TableRow>
@@ -173,12 +170,13 @@ export function PTeamStatusCard(props) {
 
 PTeamStatusCard.propTypes = {
   onHandleClick: PropTypes.func.isRequired,
+  pteam: PropTypes.object.isRequired,
   tag: PropTypes.shape({
     tag_name: PropTypes.string,
     tag_id: PropTypes.string,
     references: PropTypes.arrayOf(PropTypes.object),
     text: PropTypes.string,
-    threat_impact: PropTypes.number,
+    ssvc_priority: PropTypes.string,
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
   }).isRequired,
