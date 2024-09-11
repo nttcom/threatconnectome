@@ -385,7 +385,7 @@ def create_ticket_internal(
     return ticket
 
 
-def fix_threats_for_topic(db: Session, topic: models.Topic):
+def fix_threats_for_topic(db: Session, topic: models.Topic) -> list[str]:
     now = datetime.now()
 
     # remove threats which lost related dependency -- for the case Topic.tags updated
@@ -420,6 +420,7 @@ def fix_threats_for_topic(db: Session, topic: models.Topic):
                 pass  # ignore unexpected range strings
 
     # check and fix for each dependencies related to the topic
+    created_ticket_ids: list[str] = []
     for dependency in topic.dependencies_via_tag:
         tag = dependency.tag
         try:
@@ -465,11 +466,13 @@ def fix_threats_for_topic(db: Session, topic: models.Topic):
             persistence.create_threat(db, threat)
         if need_ticket:
             if not threat.ticket:
-                create_ticket_internal(db, threat, now=now)
+                ticket = create_ticket_internal(db, threat, now=now)
+                created_ticket_ids.append(ticket.ticket_id)
         elif threat.ticket:
             persistence.delete_ticket(db, threat.ticket)
 
         db.flush()
+    return created_ticket_ids
 
 
 def fix_threats_for_dependency(db: Session, dependency: models.Dependency):

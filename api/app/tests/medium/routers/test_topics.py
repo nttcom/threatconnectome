@@ -456,6 +456,38 @@ class TestUpdateTopic:
         assert response.status_code == 200
         send_alert_to_pteam.assert_not_called()
 
+    def test_alert_once_when_ticket_is_created_by_topic_update(self, mocker):
+        # delete ticket by different tag
+        tag2 = create_tag(USER1, TAG2)
+        request1 = {
+            "tags": [tag2.tag_name],
+        }
+
+        client.put(
+            f"/topics/{self.topic.topic_id}",
+            headers=headers(USER1),
+            json=request1,
+        )
+
+        # create ticket by matching tag
+        request2 = {
+            "exploitation": ExploitationEnum.ACTIVE.value,
+            "automatable": AutomatableEnum.YES.value,
+            "tags": [self.tag1.tag_name],
+        }
+
+        send_alert_to_pteam_in_common = mocker.patch("app.common.send_alert_to_pteam")
+        send_alert_to_pteam_in_topics = mocker.patch("app.routers.topics.send_alert_to_pteam")
+        response = client.put(
+            f"/topics/{self.topic.topic_id}",
+            headers=headers(USER1),
+            json=request2,
+        )
+        assert response.status_code == 200
+        # alert once
+        send_alert_to_pteam_in_common.assert_called_once()
+        send_alert_to_pteam_in_topics.assert_not_called()
+
 
 def test_delete_topic(testdb: Session):
     user1 = create_user(USER1)
