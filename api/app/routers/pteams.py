@@ -609,33 +609,17 @@ def set_ticket_status(
         data_scheduled_at = data.scheduled_at.replace(tzinfo=None)
 
     if data.topic_status == models.TopicStatusType.scheduled:
-        if ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled:
-            if data.scheduled_at == datetime.fromtimestamp(0):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "If current status and previous status is schduled, "
-                        "unable to reset schduled_at"
-                    ),
-                )
-            elif data_scheduled_at < now:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="If status is schduled, schduled_at must be a future time",
-                )
-        else:
-            if data.scheduled_at is None:
+        if data.scheduled_at is None:
+            if ticket.current_ticket_status.topic_status != models.TopicStatusType.scheduled:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="If status is schduled, specify schduled_at",
                 )
-            elif data.scheduled_at == datetime.fromtimestamp(0):
+        else:
+            if data.scheduled_at == datetime.fromtimestamp(0):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "If current status is schduled and previous status is not schduled, "
-                        "unable to reset schduled_at"
-                    ),
+                    detail="If status is schduled, unable to reset schduled_at",
                 )
             elif data_scheduled_at < now:
                 raise HTTPException(
@@ -643,19 +627,14 @@ def set_ticket_status(
                     detail="If status is schduled, schduled_at must be a future time",
                 )
     else:
-        if ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled:
-            if data.scheduled_at is None:
+        if data.scheduled_at is None:
+            if ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=(
                         "If current status is not schduled and previous status is schduled, "
                         "need to reset schduled_at"
                     ),
-                )
-            elif data.scheduled_at != datetime.fromtimestamp(0) and data.scheduled_at:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="If status is not schduled, do not specify schduled_at",
                 )
         else:
             if data.scheduled_at != datetime.fromtimestamp(0) and data.scheduled_at:
