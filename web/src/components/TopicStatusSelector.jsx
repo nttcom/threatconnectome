@@ -89,6 +89,8 @@ export function TopicStatusSelector(props) {
     if (selectedStatus === "scheduled") {
       if (!schedule) return;
       requestParams["scheduled_at"] = schedule.toISOString();
+    } else if (selectedStatus === "acknowledged") {
+      requestParams["scheduled_at"] = "1970-01-01T00:00:00";
     }
     await setTicketStatus(pteamId, serviceId, ticketId, requestParams)
       .then(() => {
