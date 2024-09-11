@@ -4,10 +4,10 @@ from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import insert
+from sqlalchemy import insert, select
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import models, schemas
 from app.constants import (
     DEFAULT_ALERT_SSVC_PRIORITY,
 )
@@ -422,7 +422,9 @@ class TestUpdateTopic:
         )
         ticket_id = response_ticket.json()[0]["ticket_id"]
 
-        alerts = persistence.get_alert_by_ticket_id(testdb, ticket_id)
+        alerts = testdb.scalars(
+            select(models.Alert).where(models.Alert.ticket_id == str(ticket_id))
+        ).all()
 
         assert alerts
 
