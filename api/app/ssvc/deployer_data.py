@@ -70,10 +70,10 @@ def _create_human_impact_dict(deployer_json) -> None:
         human_impact_value = rule["label"]
         for combination in rule["child_combinations"]:
             safety_impact_values = next(
-                filter(lambda x: x["child_label"] == "Situated Safety Impact", combination)
+                filter(lambda x: x["child_label"] == "Situated Safety Impact", combination), None
             )
             mission_impact_values = next(
-                filter(lambda x: x["child_label"] == "Mission Impact", combination)
+                filter(lambda x: x["child_label"] == "Mission Impact", combination), None
             )
             if not safety_impact_values or not mission_impact_values:
                 continue
