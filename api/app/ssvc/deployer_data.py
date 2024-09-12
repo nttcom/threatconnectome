@@ -66,7 +66,7 @@ def _create_human_impact_dict(deployer_json) -> None:
         filter(lambda x: x["label"] == "Human Impact", deployer_json["decision_points"])
     )
     for rule in human_imapct_rules["options"]:
-        # Get all chila comibinations data
+        # Get all child comibinations data
         human_impact_value = rule["label"]
         for combination in rule["child_combinations"]:
             safety_impact_values = next(
