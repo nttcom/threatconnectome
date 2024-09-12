@@ -42,5 +42,15 @@ def test_ticket_should_be_created_when_topic_action_exist_and_both_action_and_ta
     now = datetime.now()
     assert ticket.created_at > now - timedelta(seconds=30)
     assert ticket.created_at < now
-    assert ticket.updated_at > now - timedelta(seconds=30)
-    assert ticket.updated_at < now
+
+
+def test_ticket_ssvc_deployer_priority(
+    testdb: Session,
+):
+    threat = threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, ACTION1)
+
+    ticket = testdb.scalars(
+        select(models.Ticket).where(models.Ticket.threat_id == str(threat.threat_id))
+    ).one_or_none()
+    assert ticket
+    assert ticket.ssvc_deployer_priority == models.SSVCDeployerPriorityEnum.IMMEDIATE

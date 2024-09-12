@@ -4,14 +4,17 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.constants import DEFAULT_ALERT_THREAT_IMPACT
+from app.constants import DEFAULT_ALERT_SSVC_PRIORITY
 from app.models import (
     ActionType,
     ATeamAuthEnum,
+    AutomatableEnum,
     ExploitationEnum,
+    MissionImpactEnum,
     PTeamAuthEnum,
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
+    SystemExposureEnum,
     TopicStatusType,
 )
 
@@ -119,16 +122,25 @@ class PTeamServiceResponse(ORMModel):
     sbom_uploaded_at: datetime | None = None
     description: str | None
     keywords: list[str]
+    system_exposure: SystemExposureEnum
+    service_mission_impact: MissionImpactEnum
+    safety_impact: SafetyImpactEnum
 
 
 class PTeamServiceUpdateRequest(ORMModel):
     description: str | None = None
     keywords: list[str] | None = None
+    system_exposure: SystemExposureEnum | None = None
+    service_mission_impact: MissionImpactEnum | None = None
+    safety_impact: SafetyImpactEnum | None = None
 
 
 class PTeamServiceUpdateResponse(ORMModel):
     description: str | None
     keywords: list[str]
+    system_exposure: SystemExposureEnum | None
+    service_mission_impact: MissionImpactEnum | None
+    safety_impact: SafetyImpactEnum | None
 
 
 class PTeamtagRequest(ORMModel):
@@ -173,9 +185,8 @@ class Topic(TopicEntry):
     threat_impact: int
     created_by: UUID
     created_at: datetime
-    safety_impact: SafetyImpactEnum | None
     exploitation: ExploitationEnum | None
-    automatable: bool | None
+    automatable: AutomatableEnum | None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -230,9 +241,8 @@ class TopicCreateRequest(ORMModel):
     tags: list[str] = []
     misp_tags: list[str] = []
     actions: list[ActionCreateRequest] = []
-    safety_impact: SafetyImpactEnum | None = None
     exploitation: ExploitationEnum | None = None
-    automatable: bool | None = None
+    automatable: AutomatableEnum | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -243,47 +253,36 @@ class TopicUpdateRequest(ORMModel):
     threat_impact: int | None = None
     tags: list[str] | None = None
     misp_tags: list[str] | None = None
-    safety_impact: SafetyImpactEnum | None = None
     exploitation: ExploitationEnum | None = None
-    automatable: bool | None = None
+    automatable: AutomatableEnum | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
 
 class PTeamInfo(PTeamEntry):
     alert_slack: Slack
-    alert_threat_impact: int
+    alert_ssvc_priority: SSVCDeployerPriorityEnum
     services: list[PTeamServiceResponse]
     ateams: list[ATeamEntry]
     alert_mail: Mail
-
-    _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
-        threat_impact_range
-    )
 
 
 class PTeamCreateRequest(ORMModel):
     pteam_name: str
     contact_info: str = ""
     alert_slack: Slack | None = None
-    alert_threat_impact: int = DEFAULT_ALERT_THREAT_IMPACT
-    alert_mail: Mail | None = None
-
-    _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
-        threat_impact_range
+    alert_ssvc_priority: SSVCDeployerPriorityEnum = SSVCDeployerPriorityEnum(
+        DEFAULT_ALERT_SSVC_PRIORITY
     )
+    alert_mail: Mail | None = None
 
 
 class PTeamUpdateRequest(ORMModel):
     pteam_name: str | None = None
     contact_info: str | None = None
     alert_slack: Slack | None = None
-    alert_threat_impact: int | None = None
+    alert_ssvc_priority: SSVCDeployerPriorityEnum | None = None
     alert_mail: Mail | None = None
-
-    _threat_impact_range = field_validator("alert_threat_impact", mode="before")(
-        threat_impact_range
-    )
 
 
 class PTeamAuthInfo(ORMModel):
@@ -511,8 +510,7 @@ class TicketResponse(ORMModel):
     ticket_id: UUID
     threat_id: UUID
     created_at: datetime
-    updated_at: datetime
-    ssvc_deployer_priority: SSVCDeployerPriorityEnum
+    ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     threat: ThreatResponse
     current_ticket_status: TicketStatusResponse
 
@@ -556,15 +554,13 @@ class PTeamTagSummary(ORMModel):
     parent_id: UUID | None
     parent_name: str | None
     service_ids: list[UUID]
-    threat_impact: int | None = None
-    updated_at: datetime | None = None
+    ssvc_priority: SSVCDeployerPriorityEnum | None
+    updated_at: datetime | None
     status_count: dict[str, int]
-
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
 
 class PTeamTagsSummary(ORMModel):
-    threat_impact_count: dict[str, int]  # str(threat_impact): tags count
+    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # ssvc_priority: tags count
     tags: list[PTeamTagSummary]
 
 
@@ -574,11 +570,11 @@ class PTeamServiceTagsSummary(ORMModel):
         tag_name: str
         parent_id: UUID | None
         parent_name: str | None
-        threat_impact: int | None
+        ssvc_priority: SSVCDeployerPriorityEnum | None
         updated_at: datetime | None
         status_count: dict[str, int]  # TopicStatusType.value: tickets count
 
-    threat_impact_count: dict[str, int]  # str(threat_impact): tags count
+    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # priority: tags count
     tags: list[PTeamServiceTagSummary]
 
 
@@ -643,7 +639,7 @@ class ATeamTopicCommentResponse(ORMModel):
 
 
 class ServiceTaggedTopics(ORMModel):
-    threat_impact_count: dict[str, int]
+    ssvc_priority_count: dict[str, int]
     topic_ids: list[UUID]
 
 

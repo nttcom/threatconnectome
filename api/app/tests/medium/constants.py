@@ -58,7 +58,7 @@ PTEAM1 = {
     "pteam_name": "pteam alpha",
     "contact_info": "alpha@ml.com",
     "alert_slack": {"enable": True, "webhook_url": ""},
-    "alert_threat_impact": 3,
+    "alert_ssvc_priority": "scheduled",
     "alert_mail": {"enable": False, "address": "alpha@ml.com"},  # disable SendGrid if not needed
 }
 
@@ -66,7 +66,7 @@ PTEAM2 = {
     "pteam_name": "pteam bravo",
     "contact_info": "bravo@ml.com",
     "alert_slack": {"enable": True, "webhook_url": ""},
-    "alert_threat_impact": 2,
+    "alert_ssvc_priority": "out_of_cycle",
     "alert_mail": {"enable": False, "address": "bravo@ml.com"},  # disable SendGrid if not needed
 }
 PTEAM3 = {
@@ -92,9 +92,8 @@ TOPIC1 = {
     "tags": [TAG1],
     "misp_tags": [MISPTAG1],
     "actions": [],
-    "safety_impact": "catastrophic",
     "exploitation": "active",
-    "automatable": True,
+    "automatable": "yes",
 }
 TOPIC2 = {
     "topic_id": uuid4(),
@@ -104,9 +103,8 @@ TOPIC2 = {
     "tags": [TAG1],
     "misp_tags": [],
     "actions": [],
-    "safety_impact": "hazardous",
     "exploitation": "active",
-    "automatable": True,
+    "automatable": "yes",
 }
 TOPIC3 = {
     "topic_id": uuid4(),
@@ -116,9 +114,8 @@ TOPIC3 = {
     "tags": [TAG1, TAG3],
     "misp_tags": [],
     "actions": [],
-    "safety_impact": "catastrophic",
     "exploitation": "active",
-    "automatable": True,
+    "automatable": "yes",
 }
 TOPIC4 = {
     "topic_id": uuid4(),
@@ -128,9 +125,8 @@ TOPIC4 = {
     "tags": [TAG3],
     "misp_tags": [],
     "actions": [],
-    "safety_impact": "hazardous",
     "exploitation": "active",
-    "automatable": True,
+    "automatable": "yes",
 }
 ACTION1 = {
     "action": "action one",

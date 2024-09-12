@@ -10,6 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
+from app.alert import send_alert_to_pteam
 from app.auth import get_current_user, token_scheme
 from app.common import (
     calculate_topic_content_fingerprint,
@@ -18,8 +19,10 @@ from app.common import (
     fix_threats_for_topic,
     get_or_create_misp_tag,
     get_sorted_topics,
+    ticket_meets_condition_to_create_alert,
 )
 from app.database import get_db
+from app.ssvc import ssvc_calculator
 
 router = APIRouter(prefix="/topics", tags=["topics"])
 
@@ -317,7 +320,6 @@ def create_topic(
         content_fingerprint=calculate_topic_content_fingerprint(
             fixed_title, fixed_abstract, data.threat_impact, data.tags
         ),
-        safety_impact=data.safety_impact,
         exploitation=data.exploitation,
         automatable=data.automatable,
     )
@@ -390,11 +392,11 @@ def update_topic(
         topic.abstract = new_abstract
     if data.threat_impact is not None:
         topic.threat_impact = data.threat_impact
-    if data.safety_impact is not None:
-        topic.safety_impact = data.safety_impact
     if data.exploitation is not None:
+        previous_exploitation = topic.exploitation
         topic.exploitation = data.exploitation
     if data.automatable is not None:
+        previous_automatable = topic.automatable
         topic.automatable = data.automatable
 
     topic.content_fingerprint = calculate_topic_content_fingerprint(
@@ -405,8 +407,36 @@ def update_topic(
 
     db.flush()
 
+    created_ticket_ids: list[str] = []
     if tags_updated:
-        fix_threats_for_topic(db, topic)
+        created_ticket_ids = fix_threats_for_topic(db, topic)
+
+    # calculate ssvc priority
+    if (data.exploitation and data.exploitation != previous_exploitation) or (
+        data.automatable and data.automatable != previous_automatable
+    ):
+
+        threats: list[models.Threat] = []
+        threats.extend(persistence.search_threats(db, None, topic.topic_id))
+
+        now = datetime.now()
+        for threat in threats:
+            ticket = threat.ticket
+            if ticket is not None:
+                _ssvc_deployer_priority = ssvc_calculator.calculate_ssvc_priority_by_threat(threat)
+                ticket.ssvc_deployer_priority = _ssvc_deployer_priority
+
+                if (
+                    ticket.ticket_id not in created_ticket_ids
+                    and ticket_meets_condition_to_create_alert(ticket)
+                ):
+                    alert = models.Alert(
+                        ticket_id=ticket.ticket_id,
+                        alerted_at=now,
+                        alert_content="",  # alert_content is not used
+                    )
+                    persistence.create_alert(db, alert)
+                    send_alert_to_pteam(alert)
 
     db.commit()
 

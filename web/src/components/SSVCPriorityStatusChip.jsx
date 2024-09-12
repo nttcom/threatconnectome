@@ -3,23 +3,24 @@ import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { threatImpactProps } from "../utils/const";
+import { ssvcPriorityProps } from "../utils/const";
 
-export function ThreatImpactStatusChip(props) {
-  const { threatImpactName } = props;
-  const Icon = threatImpactProps[threatImpactName].icon;
+export function SSVCPriorityStatusChip(props) {
+  const { ssvcPriority } = props;
+  const ssvcPriorityProp = ssvcPriorityProps[ssvcPriority];
 
+  const Icon = ssvcPriorityProp.icon;
   const StyledTooltip = styled((styledProps) => (
     <Tooltip classes={{ popper: styledProps.className }} {...styledProps} />
   ))`
     & .MuiTooltip-tooltip {
-      background-color: ${threatImpactProps[threatImpactName].style.bgcolor};
-      color: ${threatImpactProps[threatImpactName].style.color};
+      background-color: ${ssvcPriorityProp.style.bgcolor};
+      color: ${ssvcPriorityProp.style.color};
     }
   `;
 
   return (
-    <StyledTooltip title={threatImpactProps[threatImpactName].statusLabel}>
+    <StyledTooltip title={ssvcPriorityProp.statusLabel}>
       <Paper
         variant="outlined"
         sx={{
@@ -27,7 +28,7 @@ export function ThreatImpactStatusChip(props) {
           alignItems: "center",
           justifyContent: "center",
           padding: "4px",
-          ...threatImpactProps[threatImpactName].style,
+          ...ssvcPriorityProp.style,
         }}
       >
         <Icon style={{ color: "white", fontSize: "20px" }} />
@@ -36,6 +37,6 @@ export function ThreatImpactStatusChip(props) {
   );
 }
 
-ThreatImpactStatusChip.propTypes = {
-  threatImpactName: PropTypes.string.isRequired,
+SSVCPriorityStatusChip.propTypes = {
+  ssvcPriority: PropTypes.string.isRequired,
 };

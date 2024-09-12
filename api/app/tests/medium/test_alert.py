@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 from app import models, schemas
 from app.alert import create_mail_alert_for_new_topic
-from app.constants import DEFAULT_ALERT_THREAT_IMPACT, SYSTEM_EMAIL
+from app.constants import DEFAULT_ALERT_SSVC_PRIORITY, SYSTEM_EMAIL
 from app.main import app
 from app.tests.medium.constants import (
     SAMPLE_SLACK_WEBHOOK_URL,
@@ -40,7 +40,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
                 "enable": True,
                 "address": f"account{idx}@example.com",
             },
-            "alert_threat_impact": DEFAULT_ALERT_THREAT_IMPACT,
+            "alert_ssvc_priority": DEFAULT_ALERT_SSVC_PRIORITY,
         }
 
     def _gen_topic_params(tags: list[schemas.TagResponse]) -> dict:
@@ -64,9 +64,8 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
                     },
                 },
             ],
-            "safety_impact": "catastrophic",
             "exploitation": "active",
-            "automatable": True,
+            "automatable": "yes",
         }
 
     pteam0 = create_pteam(USER1, _gen_pteam_params(0))

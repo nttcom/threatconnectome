@@ -12,24 +12,26 @@ from PIL import Image
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
-from app.alert import notify_sbom_upload_ended
+from app.alert import notify_sbom_upload_ended, send_alert_to_pteam
 from app.auth import get_current_user
 from app.common import (
     check_pteam_auth,
     check_pteam_membership,
     count_full_width_and_half_width_characters,
-    count_threat_impact_from_summary,
+    count_ssvc_priority_from_summary,
     create_topic_tag,
     fix_threats_for_dependency,
     get_pteam_ext_tags,
     get_sorted_topics,
     get_tag_ids_with_parent_ids,
     get_topic_ids_summary_by_service_id_and_tag_id,
+    ticket_meets_condition_to_create_alert,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db, open_db_session
 from app.sbom import sbom_json_to_artifact_json_lines
 from app.slack import validate_slack_webhook_url
+from app.ssvc import ssvc_calculator
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
 
@@ -234,6 +236,48 @@ def update_pteam_service(
             raise error_too_long_keyword
         service.keywords = sorted(fixed_words)
 
+    if data.system_exposure is not None:
+        previous_system_exposure = service.system_exposure
+        service.system_exposure = data.system_exposure
+
+    if data.service_mission_impact is not None:
+        previous_service_mission_impact = service.service_mission_impact
+        service.service_mission_impact = data.service_mission_impact
+
+    if data.safety_impact is not None:
+        previous_safety_impact = service.safety_impact
+        service.safety_impact = data.safety_impact
+    db.flush()
+
+    # calculate ssvc priority and notify
+    if (
+        (data.system_exposure and data.system_exposure != previous_system_exposure)
+        or (
+            data.service_mission_impact
+            and data.service_mission_impact != previous_service_mission_impact
+        )
+        or (data.safety_impact and data.safety_impact != previous_safety_impact)
+    ):
+        threats: list[models.Threat] = []
+        for dependency in service.dependencies:
+            threats.extend(persistence.search_threats(db, dependency.dependency_id, None))
+
+        now = datetime.now()
+        for threat in threats:
+            ticket = threat.ticket
+            if ticket is not None:
+                _ssvc_deployer_priority = ssvc_calculator.calculate_ssvc_priority_by_threat(threat)
+                ticket.ssvc_deployer_priority = _ssvc_deployer_priority
+
+                if ticket_meets_condition_to_create_alert(ticket):
+                    alert = models.Alert(
+                        ticket_id=ticket.ticket_id,
+                        alerted_at=now,
+                        alert_content="",  # alert_content is not used
+                    )
+                    persistence.create_alert(db, alert)
+                    send_alert_to_pteam(alert)
+
     db.commit()
 
     return service
@@ -382,10 +426,10 @@ def get_pteam_service_tags_summary(
 
     tags_summary = command.get_tags_summary_by_service_id(db, service_id)
 
-    threat_impact_count = count_threat_impact_from_summary(tags_summary)
+    ssvc_priority_count = count_ssvc_priority_from_summary(tags_summary)
 
     return {
-        "threat_impact_count": threat_impact_count,
+        "ssvc_priority_count": ssvc_priority_count,
         "tags": tags_summary,
     }
 
@@ -406,10 +450,10 @@ def get_pteam_tags_summary(
 
     tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
 
-    threat_impact_count = count_threat_impact_from_summary(tags_summary)
+    ssvc_priority_count = count_ssvc_priority_from_summary(tags_summary)
 
     return {
-        "threat_impact_count": threat_impact_count,
+        "ssvc_priority_count": ssvc_priority_count,
         "tags": tags_summary,
     }
 
@@ -559,37 +603,48 @@ def set_ticket_status(
     if data.topic_status == models.TopicStatusType.alerted:
         # user cannot set alerted
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
-    if data.topic_status == models.TopicStatusType.scheduled and data.scheduled_at is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="If status is schduled, specify schduled_at",
-        )
-
-    if (
-        data.topic_status != models.TopicStatusType.scheduled
-        and data.scheduled_at
-        and data.scheduled_at != datetime.fromtimestamp(0)
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="If status is not schduled, do not specify schduled_at",
-        )
 
     now = datetime.now()
     if data.scheduled_at:
         data_scheduled_at = data.scheduled_at.replace(tzinfo=None)
-    if (
-        (
-            data.topic_status == models.TopicStatusType.scheduled
-            or ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled
-        )
-        and data.scheduled_at
-        and data_scheduled_at < now
+
+    if data.topic_status == models.TopicStatusType.scheduled or (
+        data.topic_status is None
+        and ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled
     ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="If status is schduled, schduled_at must be a future time",
-        )
+        if data.scheduled_at is None:
+            if ticket.current_ticket_status.topic_status != models.TopicStatusType.scheduled:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="If status is scheduled, specify schduled_at",
+                )
+        else:
+            if data.scheduled_at == datetime.fromtimestamp(0):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="If status is scheduled, unable to reset schduled_at",
+                )
+            elif data_scheduled_at < now:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="If status is scheduled, schduled_at must be a future time",
+                )
+    else:
+        if data.scheduled_at is None:
+            if ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        "If current status is not scheduled and previous status is schduled, "
+                        "need to reset schduled_at"
+                    ),
+                )
+        else:
+            if data.scheduled_at != datetime.fromtimestamp(0) and data.scheduled_at:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="If status is not scheduled, do not specify schduled_at",
+                )
 
     for logging_id_ in data.logging_ids or []:
         if not (log := persistence.get_action_log_by_id(db, logging_id_)):
@@ -751,7 +806,7 @@ def create_pteam(
     pteam = models.PTeam(
         pteam_name=data.pteam_name.strip(),
         contact_info=data.contact_info.strip(),
-        alert_threat_impact=data.alert_threat_impact,
+        alert_ssvc_priority=data.alert_ssvc_priority,
     )
     pteam.alert_slack = models.PTeamSlack(
         pteam_id=pteam.pteam_id,
@@ -1182,8 +1237,8 @@ def update_pteam(
         pteam.pteam_name = data.pteam_name
     if data.contact_info is not None:
         pteam.contact_info = data.contact_info
-    if data.alert_threat_impact is not None:
-        pteam.alert_threat_impact = data.alert_threat_impact
+    if data.alert_ssvc_priority is not None:
+        pteam.alert_ssvc_priority = data.alert_ssvc_priority
     if data.alert_mail is not None:
         pteam.alert_mail = models.PTeamMail(**data.alert_mail.__dict__)
 

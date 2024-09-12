@@ -9,15 +9,17 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image, ImageChops
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.constants import (
-    DEFAULT_ALERT_THREAT_IMPACT,
+    DEFAULT_ALERT_SSVC_PRIORITY,
     MEMBER_UUID,
     NOT_MEMBER_UUID,
     ZERO_FILLED_UUID,
 )
 from app.main import app
+from app.ssvc.ssvc_calculator import calculate_ssvc_priority_by_threat
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     ACTION1,
@@ -25,6 +27,7 @@ from app.tests.medium.constants import (
     ATEAM1,
     PTEAM1,
     PTEAM2,
+    SAMPLE_SLACK_WEBHOOK_URL,
     TAG1,
     TAG2,
     TOPIC1,
@@ -175,7 +178,7 @@ def test_create_pteam():
     assert pteam1.pteam_name == PTEAM1["pteam_name"]
     assert pteam1.contact_info == PTEAM1["contact_info"]
     assert pteam1.alert_slack.webhook_url == PTEAM1["alert_slack"]["webhook_url"]
-    assert pteam1.alert_threat_impact == PTEAM1["alert_threat_impact"]
+    assert pteam1.alert_ssvc_priority == PTEAM1["alert_ssvc_priority"]
     assert pteam1.pteam_id != ZERO_FILLED_UUID
 
     response = client.get("/users/me", headers=headers(USER1))
@@ -187,7 +190,7 @@ def test_create_pteam():
     assert pteam2.pteam_name == PTEAM2["pteam_name"]
     assert pteam2.contact_info == PTEAM2["contact_info"]
     assert pteam2.alert_slack.webhook_url == PTEAM2["alert_slack"]["webhook_url"]
-    assert pteam2.alert_threat_impact == PTEAM2["alert_threat_impact"]
+    assert pteam2.alert_ssvc_priority == PTEAM2["alert_ssvc_priority"]
     assert pteam2.pteam_id != ZERO_FILLED_UUID
 
     response = client.get("/users/me", headers=headers(USER1))
@@ -204,13 +207,13 @@ def test_create_pteam__by_default():
     _pteam = PTEAM1.copy()
     del _pteam["contact_info"]
     del _pteam["alert_slack"]
-    del _pteam["alert_threat_impact"]
+    del _pteam["alert_ssvc_priority"]
     del _pteam["alert_mail"]
     pteam1 = create_pteam(USER1, _pteam)
     assert pteam1.contact_info == ""
     assert pteam1.alert_slack.enable is True
     assert pteam1.alert_slack.webhook_url == ""
-    assert pteam1.alert_threat_impact == DEFAULT_ALERT_THREAT_IMPACT
+    assert pteam1.alert_ssvc_priority == DEFAULT_ALERT_SSVC_PRIORITY
     assert pteam1.alert_mail.enable is True
     assert pteam1.alert_mail.address == ""
 
@@ -244,7 +247,7 @@ def test_update_pteam():
     assert data["contact_info"] == PTEAM2["contact_info"]
     assert data["alert_slack"]["enable"] == PTEAM2["alert_slack"]["enable"]
     assert data["alert_slack"]["webhook_url"] == PTEAM2["alert_slack"]["webhook_url"]
-    assert data["alert_threat_impact"] == PTEAM2["alert_threat_impact"]
+    assert data["alert_ssvc_priority"] == PTEAM2["alert_ssvc_priority"]
     assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
     assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
 
@@ -264,7 +267,7 @@ def test_update_pteam__by_admin():
     assert data["contact_info"] == PTEAM2["contact_info"]
     assert data["alert_slack"]["enable"] == PTEAM2["alert_slack"]["enable"]
     assert data["alert_slack"]["webhook_url"] == PTEAM2["alert_slack"]["webhook_url"]
-    assert data["alert_threat_impact"] == PTEAM2["alert_threat_impact"]
+    assert data["alert_ssvc_priority"] == PTEAM2["alert_ssvc_priority"]
     assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
     assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
 
@@ -299,10 +302,10 @@ def test_update_pteam_empty_data():
     assert data["pteam_name"] == ""
     assert data["contact_info"] == ""
     assert data["alert_slack"]["webhook_url"] == ""
-    assert data["alert_threat_impact"] == 3
+    assert data["alert_ssvc_priority"] == PTEAM1["alert_ssvc_priority"]
 
 
-def test_get_pteam_services():
+def test_get_pteam_services_register_multiple_services():
     create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -339,7 +342,7 @@ def test_get_pteam_services():
 
     services1c = get_pteam_services(USER1, pteam1.pteam_id)
     services2c = get_pteam_services(USER1, pteam2.pteam_id)
-    print(services1c)
+
     assert services1c[0].service_name == service_x or service_y
     assert services1c[1].service_name == service_x or service_y
     assert services2c[0].service_name == service_y
@@ -347,6 +350,76 @@ def test_get_pteam_services():
     # only members get services
     with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
         get_pteam_services(USER2, pteam1.pteam_id)
+
+
+@pytest.mark.parametrize(
+    "service_request, expected",
+    [
+        (
+            {
+                "keywords": ["test_keywords"],
+                "description": "test_description",
+                "system_exposure": models.SystemExposureEnum.SMALL.value,
+                "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
+                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+            },
+            {
+                "keywords": ["test_keywords"],
+                "description": "test_description",
+                "system_exposure": models.SystemExposureEnum.SMALL.value,
+                "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
+                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+            },
+        ),
+        (
+            {
+                "keywords": ["test_keywords"],
+                "description": "test_description",
+                "system_exposure": None,
+                "service_mission_impact": None,
+                "safety_impact": None,
+            },
+            {
+                "keywords": ["test_keywords"],
+                "description": "test_description",
+                "system_exposure": models.SystemExposureEnum.OPEN.value,
+                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
+                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+            },
+        ),
+    ],
+)
+def test_get_pteam_services_verify_if_all_responses_are_filled(service_request, expected):
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    create_tag(USER1, TAG1)
+
+    refs0 = {TAG1: [("fake target", "fake version")]}
+    service_name = "service_x"
+    upload_pteam_tags(USER1, pteam1.pteam_id, service_name, refs0)
+
+    service_id1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name)["service_id"]
+
+    client.post(
+        f"/pteams/{pteam1.pteam_id}/services/{service_id1}",
+        headers=headers(USER1),
+        json=service_request,
+    )
+
+    response = client.get(
+        f"/pteams/{pteam1.pteam_id}/services",
+        headers=headers(USER1),
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data[0]["service_name"] == service_name
+    assert data[0]["service_id"] == service_id1
+    assert data[0]["description"] == expected["description"]
+    assert data[0]["keywords"] == expected["keywords"]
+    assert data[0]["system_exposure"] == expected["system_exposure"]
+    assert data[0]["service_mission_impact"] == expected["service_mission_impact"]
+    assert data[0]["safety_impact"] == expected["safety_impact"]
 
 
 def test_get_pteam_tags():
@@ -2429,6 +2502,10 @@ def test_upload_pteam_sbom_file_wrong_content_format():
 
 
 class TestGetPTeamServiceTagsSummary:
+    ssvc_priority_count_zero: dict[str, int] = {
+        ssvc_priority.value: 0 for ssvc_priority in list(models.SSVCDeployerPriorityEnum)
+    }
+
     @staticmethod
     def _get_access_token(user: dict) -> str:
         body = {
@@ -2476,14 +2553,17 @@ class TestGetPTeamServiceTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 1}
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+        }
         assert summary["tags"] == [
             {
                 "tag_id": str(tag1.tag_id),
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "threat_impact": None,
+                "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TopicStatusType)
@@ -2519,14 +2599,17 @@ class TestGetPTeamServiceTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 1}
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+        }
         assert summary["tags"] == [
             {
                 "tag_id": str(tag1.tag_id),
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "threat_impact": None,
+                "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TopicStatusType)
@@ -2534,7 +2617,7 @@ class TestGetPTeamServiceTagsSummary:
             }
         ]
 
-    def test_returns_summary_if_having_alerted_ticket(self):
+    def test_returns_summary_if_having_alerted_ticket(self, testdb):
         create_user(USER1)
         pteam1 = create_pteam(USER1, PTEAM1)
         tag1 = create_tag(USER1, TAG1)
@@ -2558,6 +2641,7 @@ class TestGetPTeamServiceTagsSummary:
             },
         }
         topic1 = create_topic(USER1, TOPIC1, actions=[action1])  # Tag1
+        db_threat1 = testdb.scalars(select(models.Threat)).one()
 
         # get summary
         url = f"/pteams/{pteam1.pteam_id}/services/{service_id1}/tags/summary"
@@ -2571,9 +2655,10 @@ class TestGetPTeamServiceTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {
-            **{"1": 0, "2": 0, "3": 0, "4": 0},
-            str(topic1.threat_impact): 1,
+        expected_ssvc_priority = calculate_ssvc_priority_by_threat(db_threat1)
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            expected_ssvc_priority.value: 1,
         }
         assert summary["tags"] == [
             {
@@ -2581,7 +2666,7 @@ class TestGetPTeamServiceTagsSummary:
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "threat_impact": topic1.threat_impact,
+                "ssvc_priority": expected_ssvc_priority.value,
                 "updated_at": datetime.isoformat(topic1.updated_at),
                 "status_count": {
                     **{status_type.value: 0 for status_type in list(models.TopicStatusType)},
@@ -2592,6 +2677,10 @@ class TestGetPTeamServiceTagsSummary:
 
 
 class TestGetPTeamTagsSummary:
+    ssvc_priority_count_zero: dict[str, int] = {
+        ssvc_priority.value: 0 for ssvc_priority in list(models.SSVCDeployerPriorityEnum)
+    }
+
     @staticmethod
     def _get_access_token(user: dict) -> str:
         body = {
@@ -2639,7 +2728,10 @@ class TestGetPTeamTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 1}
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+        }
         assert summary["tags"] == [
             {
                 "tag_id": str(tag1.tag_id),
@@ -2647,7 +2739,7 @@ class TestGetPTeamTagsSummary:
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
                 "service_ids": [service_id1],
-                "threat_impact": None,
+                "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TopicStatusType)
@@ -2683,7 +2775,10 @@ class TestGetPTeamTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {"1": 0, "2": 0, "3": 0, "4": 1}
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+        }
         assert summary["tags"] == [
             {
                 "tag_id": str(tag1.tag_id),
@@ -2691,7 +2786,7 @@ class TestGetPTeamTagsSummary:
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
                 "service_ids": [service_id1],
-                "threat_impact": None,
+                "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TopicStatusType)
@@ -2699,7 +2794,7 @@ class TestGetPTeamTagsSummary:
             }
         ]
 
-    def test_returns_summary_if_having_alerted_ticket(self):
+    def test_returns_summary_if_having_alerted_ticket(self, testdb):
         create_user(USER1)
         pteam1 = create_pteam(USER1, PTEAM1)
         tag1 = create_tag(USER1, TAG1)
@@ -2723,6 +2818,7 @@ class TestGetPTeamTagsSummary:
             },
         }
         topic1 = create_topic(USER1, TOPIC1, actions=[action1])  # Tag1
+        db_threat1 = testdb.scalars(select(models.Threat)).one()
 
         # get summary
         url = f"/pteams/{pteam1.pteam_id}/tags/summary"
@@ -2736,9 +2832,10 @@ class TestGetPTeamTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {
-            **{"1": 0, "2": 0, "3": 0, "4": 0},
-            str(topic1.threat_impact): 1,
+        expected_ssvc_priority = calculate_ssvc_priority_by_threat(db_threat1)
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            expected_ssvc_priority.value: 1,
         }
         assert summary["tags"] == [
             {
@@ -2747,7 +2844,7 @@ class TestGetPTeamTagsSummary:
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
                 "service_ids": [service_id1],
-                "threat_impact": topic1.threat_impact,
+                "ssvc_priority": expected_ssvc_priority.value,
                 "updated_at": datetime.isoformat(topic1.updated_at),
                 "status_count": {
                     **{status_type.value: 0 for status_type in list(models.TopicStatusType)},
@@ -2756,7 +2853,7 @@ class TestGetPTeamTagsSummary:
             }
         ]
 
-    def test_returns_summary_even_if_multiple_services_are_registrered(self):
+    def test_returns_summary_even_if_multiple_services_are_registrered(self, testdb):
         create_user(USER1)
         pteam1 = create_pteam(USER1, PTEAM1)
         tag1 = create_tag(USER1, TAG1)
@@ -2784,6 +2881,7 @@ class TestGetPTeamTagsSummary:
             },
         }
         topic1 = create_topic(USER1, TOPIC1, actions=[action1])  # Tag1
+        db_threats = testdb.scalars(select(models.Threat)).all()
 
         # get summary
         url = f"/pteams/{pteam1.pteam_id}/tags/summary"
@@ -2797,9 +2895,12 @@ class TestGetPTeamTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        assert summary["threat_impact_count"] == {
-            **{"1": 0, "2": 0, "3": 0, "4": 0},
-            str(topic1.threat_impact): 1,
+        expected_ssvc_priority = min(  # we have only 1 tag
+            calculate_ssvc_priority_by_threat(db_threat) for db_threat in db_threats
+        )
+        assert summary["ssvc_priority_count"] == {
+            **self.ssvc_priority_count_zero,
+            expected_ssvc_priority: 1,
         }
 
         assert len(summary["tags"][0]["service_ids"]) == 2
@@ -2812,7 +2913,7 @@ class TestGetPTeamTagsSummary:
                 "tag_name": tag1.tag_name,
                 "parent_id": str(tag1.parent_id) if tag1.parent_id else None,
                 "parent_name": tag1.parent_name if tag1.parent_name else None,
-                "threat_impact": topic1.threat_impact,
+                "ssvc_priority": expected_ssvc_priority,
                 "updated_at": datetime.isoformat(topic1.updated_at),
                 "status_count": {
                     **{status_type.value: 0 for status_type in list(models.TopicStatusType)},
@@ -3055,7 +3156,7 @@ class TestTicketStatus:
             assert response.status_code == 400
 
             set_response = response.json()
-            assert set_response["detail"] == "If status is schduled, specify schduled_at"
+            assert set_response["detail"] == "If status is scheduled, specify schduled_at"
 
         def test_it_should_return_400_when_topic_status_is_acknowledged_and_there_is_schduled_at(
             self, actionable_topic1
@@ -3080,7 +3181,9 @@ class TestTicketStatus:
             assert response.status_code == 400
 
             set_response = response.json()
-            assert set_response["detail"] == "If status is not schduled, do not specify schduled_at"
+            assert (
+                set_response["detail"] == "If status is not scheduled, do not specify schduled_at"
+            )
 
         def test_it_should_return_400_when_topic_status_is_scheduled_and_schduled_at_is_in_the_past(
             self, actionable_topic1
@@ -3089,7 +3192,7 @@ class TestTicketStatus:
                 "topic_status": models.TopicStatusType.scheduled.value,
                 "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
-                "scheduled_at": str(datetime.fromtimestamp(0)),
+                "scheduled_at": "2000-01-01T00:00:00",
             }
             url = (
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
@@ -3106,7 +3209,8 @@ class TestTicketStatus:
 
             set_response = response.json()
             assert (
-                set_response["detail"] == "If status is schduled, schduled_at must be a future time"
+                set_response["detail"]
+                == "If status is scheduled, schduled_at must be a future time"
             )
 
         def test_it_should_put_None_in_completed_at_when_schduled_at_is_datetime_fromtimestamp_zero(
@@ -3245,7 +3349,6 @@ class TestGetTickets:
             "ticket_id": str(db_ticket1.ticket_id),
             "threat_id": str(db_threat1.threat_id),
             "created_at": datetime.isoformat(db_ticket1.created_at),
-            "updated_at": datetime.isoformat(db_ticket1.updated_at),
             "ssvc_deployer_priority": (
                 None
                 if db_ticket1.ssvc_deployer_priority is None
@@ -3306,7 +3409,6 @@ class TestGetTickets:
             "ticket_id": str(db_ticket1.ticket_id),
             "threat_id": str(db_threat1.threat_id),
             "created_at": datetime.isoformat(db_ticket1.created_at),
-            "updated_at": datetime.isoformat(db_ticket1.updated_at),
             "ssvc_deployer_priority": (
                 None
                 if db_ticket1.ssvc_deployer_priority is None
@@ -3512,3 +3614,388 @@ class TestUpdatePTeamService:
             else:
                 assert response.status_code == 200
                 assert response.json()["description"] == expected
+
+    class TestSystemExposure(Common):
+        @pytest.mark.parametrize(
+            "system_exposure, expected",
+            [
+                (
+                    None,
+                    models.SystemExposureEnum.OPEN,
+                ),  # When “None” is selected for the first time, “open” is entered by default.
+                ("open", models.SystemExposureEnum.OPEN),
+                ("controlled", models.SystemExposureEnum.CONTROLLED),
+                ("small", models.SystemExposureEnum.SMALL),
+            ],
+        )
+        def test_it_should_return_200_when_system_exposure_is_SystemExposureEnum_or_None(
+            self, system_exposure, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"system_exposure": system_exposure}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 200
+            assert response.json()["system_exposure"] == expected
+
+        error_msg_system_exposure = "Input should be 'open', 'controlled' or 'small'"
+
+        @pytest.mark.parametrize(
+            "system_exposure, expected",
+            [
+                (1, error_msg_system_exposure),
+                ("test", error_msg_system_exposure),
+            ],
+        )
+        def test_it_should_return_422_when_system_exposure_is_not_SystemExposureEnum(
+            self, system_exposure, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"system_exposure": system_exposure}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 422
+            assert response.json()["detail"][0]["msg"] == expected
+
+    class TestMissionImpact(Common):
+        @pytest.mark.parametrize(
+            "service_mission_impact, expected",
+            [
+                (
+                    None,
+                    models.MissionImpactEnum.MISSION_FAILURE,
+                ),  # When “None” is selected for the first time, “mission_failure” is entered
+                ("mission_failure", models.MissionImpactEnum.MISSION_FAILURE),
+                ("mef_failure", models.MissionImpactEnum.MEF_FAILURE),
+                ("mef_support_crippled", models.MissionImpactEnum.MEF_SUPPORT_CRIPPLED),
+                ("degraded", models.MissionImpactEnum.DEGRADED),
+            ],
+        )
+        def test_it_should_return_200_when_mission_impact_is_MissionImpactEnum_or_None(
+            self, service_mission_impact, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"service_mission_impact": service_mission_impact}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 200
+            assert response.json()["service_mission_impact"] == expected
+
+        error_msg_service_mission_impact = (
+            "Input should be 'mission_failure', 'mef_failure', 'mef_support_crippled' or 'degraded'"
+        )
+
+        @pytest.mark.parametrize(
+            "service_mission_impact, expected",
+            [
+                (
+                    1,
+                    error_msg_service_mission_impact,
+                ),
+                (
+                    "test",
+                    error_msg_service_mission_impact,
+                ),
+            ],
+        )
+        def test_it_should_return_422_when_mission_impact_is_not_MissionImpactEnum(
+            self, service_mission_impact, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"service_mission_impact": service_mission_impact}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 422
+            assert response.json()["detail"][0]["msg"] == expected
+
+    class TestSafetyImpactEnum(Common):
+        @pytest.mark.parametrize(
+            "safety_impact, expected",
+            [
+                (
+                    None,
+                    models.SafetyImpactEnum.NEGLIGIBLE,
+                ),  # When “None” is selected for the first time, “negligible” is entered by default
+                ("catastrophic", models.SafetyImpactEnum.CATASTROPHIC),
+                ("critical", models.SafetyImpactEnum.CRITICAL),
+                ("marginal", models.SafetyImpactEnum.MARGINAL),
+                ("negligible", models.SafetyImpactEnum.NEGLIGIBLE),
+            ],
+        )
+        def test_it_should_return_200_when_safety_impact_is_SafetyImpactEnum_or_None(
+            self, safety_impact, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"safety_impact": safety_impact}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 200
+            assert response.json()["safety_impact"] == expected
+
+        error_msg_safety_impact = (
+            "Input should be 'catastrophic', 'critical', 'marginal' or 'negligible'"
+        )
+
+        @pytest.mark.parametrize(
+            "safety_impact, expected",
+            [
+                (1, error_msg_safety_impact),
+                ("test", error_msg_safety_impact),
+            ],
+        )
+        def test_it_should_return_422_when_safety_impact_is_not_SafetyImpactEnum(
+            self, safety_impact, expected
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"safety_impact": safety_impact}
+
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 422
+            assert response.json()["detail"][0]["msg"] == expected
+
+    class TestNotification:
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self):
+            def _gen_pteam_params(idx: int) -> dict:
+                return {
+                    "pteam_name": f"pteam{idx}",
+                    "alert_slack": {
+                        "enable": True,
+                        "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
+                    },
+                    "alert_mail": {
+                        "enable": True,
+                        "address": f"account{idx}@example.com",
+                    },
+                    "alert_ssvc_priority": DEFAULT_ALERT_SSVC_PRIORITY,
+                }
+
+            def _gen_topic_params(tags: list[schemas.TagResponse]) -> dict:
+                topic_id = str(uuid4())
+                return {
+                    "topic_id": topic_id,
+                    "title": "test topic " + topic_id,
+                    "abstract": "test abstract " + topic_id,
+                    "threat_impact": 1,
+                    "tags": [tag.tag_name for tag in tags],
+                    "misp_tags": [],
+                    "actions": [
+                        {
+                            "topic_id": topic_id,
+                            "action": "update to 999.9.9",
+                            "action_type": models.ActionType.elimination,
+                            "recommended": True,
+                            "ext": {
+                                "tags": [tag.tag_name for tag in tags],
+                                "vulnerable_versions": {
+                                    tag.tag_name: ["< 999.9.9"] for tag in tags
+                                },
+                            },
+                        },
+                    ],
+                    "exploitation": "active",
+                    "automatable": "yes",
+                }
+
+            self.user1 = create_user(USER1)
+            self.pteam0 = create_pteam(USER1, _gen_pteam_params(0))
+            self.tag1 = create_tag(USER1, TAG1)
+            test_service0 = "test_service0"
+            test_target = "test target"
+            test_version = "1.2.3"
+            refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
+            upload_pteam_tags(USER1, self.pteam0.pteam_id, test_service0, refs0)
+            self.service_id0 = get_service_by_service_name(
+                USER1, self.pteam0.pteam_id, test_service0
+            )["service_id"]
+            self.topic = create_topic(USER1, _gen_topic_params([self.tag1]))
+
+        @staticmethod
+        def _get_access_token(user: dict) -> str:
+            body = {
+                "username": user["email"],
+                "password": user["pass"],
+            }
+            response = client.post("/auth/token", data=body)
+            if response.status_code != 200:
+                raise HTTPError(response)
+            data = response.json()
+            return data["access_token"]
+
+        def test_alert_by_mail_if_vulnerabilities_are_found_when_updating_service(
+            self, mocker, testdb: Session
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            ## ssvc_deployer_priority is immediate
+            request = {
+                "system_exposure": models.SystemExposureEnum.OPEN.value,
+                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
+                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
+            }
+
+            send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
+            response = client.post(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
+                headers=_headers,
+                json=request,
+            )
+            assert response.status_code == 200
+
+            ## get ticket_id
+            response_ticket = client.get(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}/topics/{self.topic.topic_id}/tags/{self.tag1.tag_id}/tickets",
+                headers=_headers,
+            )
+            ticket_id = response_ticket.json()[0]["ticket_id"]
+
+            alerts = testdb.scalars(
+                select(models.Alert).where(models.Alert.ticket_id == str(ticket_id))
+            ).all()
+
+            assert alerts
+
+            if alerts[0].alerted_at > alerts[1].alerted_at:
+                alert = alerts[0]
+            else:
+                alert = alerts[1]
+
+            assert alert.ticket.threat.topic_id == str(self.topic.topic_id)
+
+            send_alert_to_pteam.assert_called_once()
+            send_alert_to_pteam.assert_called_with(alert)
+
+        def test_not_alert_with_current_ticket_status_is_completed(self, mocker):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            ## Change the status of the ticket to completed
+            response_ticket = client.get(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}/topics/{self.topic.topic_id}/tags/{self.tag1.tag_id}/tickets",
+                headers=_headers,
+            )
+            assert response_ticket.status_code == 200
+            data = response_ticket.json()
+            request_ticket_status = {"topic_status": models.TopicStatusType.completed.value}
+            response_ticket_status = client.post(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}/ticketstatus/{data[0]['ticket_id']}",
+                headers=_headers,
+                json=request_ticket_status,
+            )
+            assert response_ticket_status.status_code == 200
+
+            ## ssvc_deployer_priority is immediate
+            request = {
+                "system_exposure": models.SystemExposureEnum.OPEN.value,
+                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
+                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
+            }
+            send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
+            response = client.post(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
+                headers=_headers,
+                json=request,
+            )
+            assert response.status_code == 200
+            send_alert_to_pteam.assert_not_called()
+
+        def test_not_alert_when_ssvc_deployer_priority_is_lower_than_alert_ssvc_priority_in_pteam(
+            self, mocker
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            ## ssvc_deployer_priority is out_of_cycle
+            request = {
+                "system_exposure": models.SystemExposureEnum.CONTROLLED.value,
+                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
+                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
+            }
+
+            send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
+            response = client.post(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
+                headers=_headers,
+                json=request,
+            )
+            assert response.status_code == 200
+            send_alert_to_pteam.assert_not_called()

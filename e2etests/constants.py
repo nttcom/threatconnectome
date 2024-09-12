@@ -52,30 +52,16 @@ EXT_TAG3 = {
 }
 MISPTAG1 = "tlp:amber"
 MISPTAG2 = "tlp:clear"
-ZONE1 = {
-    "zone_name": "metemcyber:org:nttcom",
-    "zone_info": "zone info one",
-}
-ZONE2 = {
-    "zone_name": "nttcom-ic",
-    "zone_info": "zone info two",
-}
-ZONE3 = {
-    "zone_name": "test:zones:3",
-    "zone_info": "zone info three",
-}
 PTEAM1 = {
     "pteam_name": "pteam alpha",
     "contact_info": "alpha@ml.com",
-    "alert_threat_impact": 3,
-    "zone_names": [],
+    "alert_ssvc_priority": "scheduled",
 }
 
 PTEAM2 = {
     "pteam_name": "pteam bravo",
     "contact_info": "bravo@ml.com",
-    "alert_threat_impact": 2,
-    "zone_names": [],
+    "alert_ssvc_priority": "out_of_cycle",
 }
 PTEAM3 = {
     "pteam_name": "pteam charlie",
@@ -89,14 +75,6 @@ ATEAM2 = {
     "ateam_name": "ateam a-two",
     "contact_info": "",
 }
-GTEAM1 = {
-    "gteam_name": "gteam g-one",
-    "contact_info": "g-one@ml.com",
-}
-GTEAM2 = {
-    "gteam_name": "gteam g-two",
-    "contact_info": "",
-}
 TOPIC1 = {
     "topic_id": uuid4(),
     "title": "topic one",
@@ -104,7 +82,6 @@ TOPIC1 = {
     "threat_impact": 1,
     "tags": [TAG1],
     "misp_tags": [MISPTAG1],
-    "zone_names": [],
     "actions": [],
 }
 TOPIC2 = {
@@ -114,7 +91,6 @@ TOPIC2 = {
     "threat_impact": 2,
     "tags": [TAG1],
     "misp_tags": [],
-    "zone_names": [],
     "actions": [],
 }
 TOPIC3 = {
@@ -124,7 +100,6 @@ TOPIC3 = {
     "threat_impact": 1,
     "tags": [TAG1, TAG3],
     "misp_tags": [],
-    "zone_names": [],
     "actions": [],
 }
 TOPIC4 = {
@@ -134,7 +109,6 @@ TOPIC4 = {
     "threat_impact": 2,
     "tags": [TAG3],
     "misp_tags": [],
-    "zone_names": [],
     "actions": [],
 }
 ACTION1 = {
@@ -145,7 +119,6 @@ ACTION1 = {
         "tags": [TAG1],
         "vulnerable_versions": {TAG1: [">=0", "<1.0.0"]},
     },
-    "zone_names": [],
 }
 ACTION2 = {
     "action": "action two",
@@ -155,40 +128,24 @@ ACTION2 = {
         "tags": [TAG1],
         "vulnerable_versions": {TAG1: [">=0", "<2.15.0"]},
     },
-    "zone_names": [],
 }
 ACTION3 = {
     "action": "action three",
     "action_type": "rejection",
     "recommended": False,
     "ext": {},
-    "zone_names": [],
 }
 ELIMINATED_ACTION = {
     "action": "eliminated action",
     "action_type": "elimination",
     "recommended": False,
     "ext": {},
-    "zone_names": [],
 }
 MITIGATED_ACTION = {
     "action": "mitigated action",
     "action_type": "mitigation",
     "recommended": False,
     "ext": {},
-    "zone_names": [],
-}
-BADGE1 = {
-    "badge_type": ["skill"],
-    "certifier_type": "trusted_third_party",
-}
-BADGE2 = {
-    "badge_type": ["performance"],
-    "certifier_type": "system",
-}
-BADGE3 = {
-    "badge_type": ["skill"],
-    "certifier_type": "myself",
 }
 
 SAMPLE_SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/T00000000/B00000000/XXXX"
