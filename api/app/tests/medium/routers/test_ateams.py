@@ -1621,6 +1621,7 @@ def test_get_topic_status():
     # complete
     request = {
         "topic_status": models.TopicStatusType.completed,
+        "scheduled_at": str(datetime.fromtimestamp(0)),
     }
     set_ticket_status(USER1, pteam1.pteam_id, service1["service_id"], ticket1["ticket_id"], request)
 
@@ -1906,6 +1907,7 @@ def test_get_topic_status():
     # PTEAM2 complete TOPIC2 TAG2
     request = {
         "topic_status": models.TopicStatusType.completed,
+        "scheduled_at": str(datetime.fromtimestamp(0)),
     }
     set_ticket_status(
         USER1, pteam2.pteam_id, service2["service_id"], ticket2_2b["ticket_id"], request
