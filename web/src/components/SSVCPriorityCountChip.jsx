@@ -28,17 +28,19 @@ export function SSVCPriorityCountChip(props) {
 
   return (
     <Box display="flex" sx={outerSx}>
-      <Paper
-        variant="outlined"
-        sx={{
-          ...fixedSx,
-          borderRightWidth: "0",
-          borderTopRightRadius: "0",
-          borderBottomRightRadius: "0",
-        }}
-      >
-        <Icon style={{ fontSize: "20px" }} />
-      </Paper>
+      <Tooltip title={ssvcPriorityProps[ssvcPriority].statusLabel} arrow>
+        <Paper
+          variant="outlined"
+          sx={{
+            ...fixedSx,
+            borderRightWidth: "0",
+            borderTopRightRadius: "0",
+            borderBottomRightRadius: "0",
+          }}
+        >
+          <Icon style={{ fontSize: "20px" }} />
+        </Paper>
+      </Tooltip>
       <Paper
         variant="outlined"
         sx={{
