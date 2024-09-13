@@ -199,6 +199,26 @@ export const ssvcPriorityProps = {
 };
 export const defaultAlertThreshold = sortedSSVCPriorities[0];
 
+export const sortedSystemExposure = ["open", "controlled", "small"];
+export const systemExposure = {
+  open: "Open",
+  controlled: "Controlled",
+  small: "Small",
+};
+
+export const sortedMissionImpat = [
+  "mission_failure",
+  "mef_failure",
+  "mef_support_crippled",
+  "degraded",
+];
+export const missionImpact = {
+  mission_failure: "Mission Failure",
+  mef_failure: "MEF Failure",
+  mef_support_crippled: "MEF Support Crippled",
+  degraded: "Degraded",
+};
+
 export const topicStatusProps = {
   alerted: {
     chipLabel: "alerted",

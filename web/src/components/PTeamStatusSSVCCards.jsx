@@ -11,35 +11,49 @@ import {
 import PropTypes from "prop-types";
 import React from "react";
 
-export function PTeamStatusSSVCCards(props) {
-  const { service, serviceTagsSummary } = props;
+import {
+  sortedSSVCPriorities,
+  ssvcPriorityProps,
+  sortedSystemExposure,
+  systemExposure,
+  sortedMissionImpat,
+  missionImpact,
+} from "../utils/const";
 
-  let highestSSVCPriority = serviceTagsSummary.tags[0].ssvc_priority;
-  if (highestSSVCPriority === null) {
-    highestSSVCPriority = "defer";
-  }
+export function PTeamStatusSSVCCards(props) {
+  const { service, highestSsvcPriority } = props;
 
   const SSVCValueList = [
-    highestSSVCPriority,
+    highestSsvcPriority,
     service.system_exposure,
     service.service_mission_impact,
   ];
+
+  let ssvcPriority = {
+    ...ssvcPriorityProps,
+  };
+  Object.keys(ssvcPriorityProps).forEach((key) => {
+    ssvcPriority[key] = ssvcPriorityProps[key]["displayName"];
+  });
 
   const SSVCCardsList = [
     {
       title: "Highest SSVC Priority",
       description: "The most serious security issue of the Service.",
-      item: ["Immediate", "Out-of-Cycle", "Scheduled", "Defer"],
+      items: sortedSSVCPriorities,
+      valuePairing: ssvcPriority,
     },
     {
       title: "System Exposure",
       description: "The Accessible Attack Surface of the Affected System or Service.",
-      item: ["Small", "Controlled", "Open"],
+      items: sortedSystemExposure,
+      valuePairing: systemExposure,
     },
     {
       title: "Mission Impact",
       description: "Impact on Mission Essential Functions of the Organization.",
-      item: ["Degraded", "MEF Support Crippled", "MEF Failure", "Mission Failure"],
+      items: sortedMissionImpat,
+      valuePairing: missionImpact,
     },
   ];
 
@@ -76,16 +90,11 @@ export function PTeamStatusSSVCCards(props) {
                 color="primary"
                 size="small"
                 orientation="vertical"
-                value={card.item.filter((item) =>
-                  SSVCValueList.find(
-                    (value) =>
-                      value === item.toLocaleLowerCase().replace(/ /g, "_").replace(/-/g, "_"),
-                  ),
-                )}
+                value={card.items.filter((item) => SSVCValueList.find((value) => value === item))}
               >
-                {card.item.map((item) => (
+                {card.items.map((item) => (
                   <ToggleButton key={item} value={item} disabled>
-                    {item}
+                    {card.valuePairing[item]}
                   </ToggleButton>
                 ))}
               </ToggleButtonGroup>
@@ -99,5 +108,5 @@ export function PTeamStatusSSVCCards(props) {
 
 PTeamStatusSSVCCards.propTypes = {
   service: PropTypes.object.isRequired,
-  serviceTagsSummary: PropTypes.object.isRequired,
+  highestSsvcPriority: PropTypes.object.isRequired,
 };
