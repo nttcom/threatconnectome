@@ -136,7 +136,8 @@ export const threatImpactProps = {
 const prop_immediate = {
   displayName: "Immediate",
   icon: RunningWithErrorsIcon,
-  statusLabel: "Your pteam has a immediate",
+  statusLabel:
+    "Immediate: Act immediately; focus all resources on applying the fix as quickly as possible, including, if necessary, pausing regular organization operations.",
   style: {
     bgcolor: red[600],
     color: "white",
@@ -146,7 +147,8 @@ const prop_immediate = {
 const prop_out_of_cycle = {
   displayName: "Out-of-cycle",
   icon: WarningIcon,
-  statusLabel: "Your pteam has a out-of-cycle",
+  statusLabel:
+    "Out-of-cycle: Act more quickly than usual to apply the mitigation or remediation out-of-cycle, during the next available opportunity, working overtime if necessary.",
   style: {
     bgcolor: orange[600],
     color: "white",
@@ -156,7 +158,7 @@ const prop_out_of_cycle = {
 const prop_scheduled = {
   displayName: "Scheduled",
   icon: PriorityHighIcon,
-  statusLabel: "Your pteam has a scheduled",
+  statusLabel: "Scheduled: Act during regularly scheduled maintenance time.",
   style: {
     bgcolor: amber[600],
     color: "white",
@@ -166,7 +168,7 @@ const prop_scheduled = {
 const prop_defer = {
   displayName: "Defer",
   icon: CheckIcon,
-  statusLabel: "Your pteam has defer",
+  statusLabel: "Defer: Do not act at present.",
   style: {
     bgcolor: grey[600],
     color: "white",
