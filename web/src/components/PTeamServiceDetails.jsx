@@ -69,7 +69,7 @@ ServiceIDCopyButton.propTypes = {
 };
 
 export function PTeamServiceDetails(props) {
-  const { pteamId, service, expandService, onSwitchExpandService, serviceTagsSummary } = props;
+  const { pteamId, service, expandService, onSwitchExpandService, highestSsvcPriority } = props;
 
   const dispatch = useDispatch();
 
@@ -143,7 +143,7 @@ export function PTeamServiceDetails(props) {
           </CardContent>
         </Card>
         <Box sx={{ mt: 1 }}>
-          <PTeamStatusSSVCCards service={service} serviceTagsSummary={serviceTagsSummary} />
+          <PTeamStatusSSVCCards service={service} highestSsvcPriority={highestSsvcPriority} />
         </Box>
       </Collapse>
       <Button onClick={onSwitchExpandService} sx={{ display: "block", m: "auto" }}>
@@ -158,5 +158,5 @@ PTeamServiceDetails.propTypes = {
   service: PropTypes.object.isRequired,
   expandService: PropTypes.bool.isRequired,
   onSwitchExpandService: PropTypes.func.isRequired,
-  serviceTagsSummary: PropTypes.object.isRequired,
+  highestSsvcPriority: PropTypes.object.isRequired,
 };
