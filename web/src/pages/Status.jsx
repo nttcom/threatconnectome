@@ -444,6 +444,7 @@ export function Status() {
             service={service}
             expandService={expandService}
             onSwitchExpandService={handleSwitchExpandService}
+            serviceTagsSummary={serviceTagsSummary}
           />
         )}
         <Box display="flex" mt={2}>

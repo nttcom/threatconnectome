@@ -8,23 +8,37 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import PropTypes from "prop-types";
 import React from "react";
 
-export function PTeamStatusSSVCCards() {
+export function PTeamStatusSSVCCards(props) {
+  const { service, serviceTagsSummary } = props;
+
+  let highestSSVCPriority = serviceTagsSummary.tags[0].ssvc_priority;
+  if (highestSSVCPriority === null) {
+    highestSSVCPriority = "defer";
+  }
+
+  const SSVCValueList = [
+    highestSSVCPriority,
+    service.system_exposure,
+    service.service_mission_impact,
+  ];
+
   const SSVCCardsList = [
     {
       title: "Highest SSVC Priority",
-      description: "Highest SSVC Priority description",
+      description: "The most serious security issue of the Service.",
       item: ["Immediate", "Out-of-Cycle", "Scheduled", "Defer"],
     },
     {
       title: "System Exposure",
-      description: "System Exposure description",
+      description: "The Accessible Attack Surface of the Affected System or Service.",
       item: ["Small", "Controlled", "Open"],
     },
     {
       title: "Mission Impact",
-      description: "Mission Impact description",
+      description: "Impact on Mission Essential Functions of the Organization.",
       item: ["Degraded", "MEF Support Crippled", "MEF Failure", "Mission Failure"],
     },
   ];
@@ -62,7 +76,12 @@ export function PTeamStatusSSVCCards() {
                 color="primary"
                 size="small"
                 orientation="vertical"
-                value={card.item[0]}
+                value={card.item.filter((item) =>
+                  SSVCValueList.find(
+                    (value) =>
+                      value === item.toLocaleLowerCase().replace(/ /g, "_").replace(/-/g, "_"),
+                  ),
+                )}
               >
                 {card.item.map((item) => (
                   <ToggleButton key={item} value={item} disabled>
@@ -77,3 +96,8 @@ export function PTeamStatusSSVCCards() {
     </Grid>
   );
 }
+
+PTeamStatusSSVCCards.propTypes = {
+  service: PropTypes.object.isRequired,
+  serviceTagsSummary: PropTypes.object.isRequired,
+};
