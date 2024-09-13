@@ -3905,7 +3905,7 @@ class TestUpdatePTeamService:
                 "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
             }
 
-            send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
+            send_alert_to_pteam = mocker.patch("app.common.send_alert_to_pteam")
             response = client.post(
                 f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
                 headers=_headers,
@@ -3965,7 +3965,7 @@ class TestUpdatePTeamService:
                 "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
                 "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
             }
-            send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
+            send_alert_to_pteam = mocker.patch("app.common.send_alert_to_pteam")
             response = client.post(
                 f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
                 headers=_headers,
@@ -3991,7 +3991,7 @@ class TestUpdatePTeamService:
                 "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
             }
 
-            send_alert_to_pteam = mocker.patch("app.routers.pteams.send_alert_to_pteam")
+            send_alert_to_pteam = mocker.patch("app.common.send_alert_to_pteam")
             response = client.post(
                 f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
                 headers=_headers,
