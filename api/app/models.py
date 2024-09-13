@@ -391,6 +391,12 @@ class Service(Base):
         "Dependency", back_populates="service", cascade="all, delete-orphan"
     )
     thumbnail = relationship("ServiceThumbnail", uselist=False, cascade="all, delete-orphan")
+    tickets = relationship(  # Service - [ Dependency - Threat ] - Ticket
+        "Ticket",
+        secondary="join(Dependency, Threat, Dependency.dependency_id == Threat.dependency_id)",
+        collection_class=set,
+        viewonly=True,
+    )
 
 
 class ServiceThumbnail(Base):
