@@ -1,4 +1,5 @@
 import { Box, Paper, Tooltip, Typography } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -8,8 +9,17 @@ const countMax = 99;
 
 export function SSVCPriorityCountChip(props) {
   const { count, ssvcPriority, reverse, sx, outerSx } = props;
+  const ssvcPriorityProp = ssvcPriorityProps[ssvcPriority];
 
   const Icon = ssvcPriorityProps[ssvcPriority].icon;
+  const StyledTooltip = styled((styledProps) => (
+    <Tooltip classes={{ popper: styledProps.className }} {...styledProps} />
+  ))`
+    & .MuiTooltip-tooltip {
+      background-color: ${ssvcPriorityProp.style.bgcolor};
+      color: ${ssvcPriorityProp.style.color};
+    }
+  `;
   const baseSx = ssvcPriorityProps[ssvcPriority].style;
   const fixedSx = {
     ...baseSx,
@@ -28,7 +38,7 @@ export function SSVCPriorityCountChip(props) {
 
   return (
     <Box display="flex" sx={outerSx}>
-      <Tooltip title={ssvcPriorityProps[ssvcPriority].statusLabel} arrow>
+      <StyledTooltip title={ssvcPriorityProp.statusLabel}>
         <Paper
           variant="outlined"
           sx={{
@@ -40,7 +50,7 @@ export function SSVCPriorityCountChip(props) {
         >
           <Icon style={{ fontSize: "20px" }} />
         </Paper>
-      </Tooltip>
+      </StyledTooltip>
       <Paper
         variant="outlined"
         sx={{
