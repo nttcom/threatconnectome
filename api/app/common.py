@@ -558,6 +558,27 @@ def fix_threats_for_dependency(db: Session, dependency: models.Dependency):
             persistence.delete_ticket(db, threat.ticket)
 
 
+def fix_tickets_for_service(db: Session, service: models.Service):
+    now = datetime.now()
+    for ticket in service.tickets:
+        fixed_priority = ssvc_calculator.calculate_ssvc_priority_by_threat(ticket.threat)
+        # TODO: omit redundant alerts
+        # if fixed_priority == ticket.ssvc_deployer_priority:
+        #     continue
+        ticket.ssvc_deployer_priority = fixed_priority
+        # omit flush -- should be flushed in create_alert
+        if ticket_meets_condition_to_create_alert(ticket):
+            alert = models.Alert(
+                ticket_id=ticket.ticket_id,
+                alerted_at=now,
+                alert_content="",  # not used currently
+            )
+            persistence.create_alert(db, alert)
+            send_alert_to_pteam(alert)
+
+    db.flush()
+
+
 def count_ssvc_priority_from_summary(tags_summary: list[dict]):
     ssvc_priority_count: dict[models.SSVCDeployerPriorityEnum, int] = {
         priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
