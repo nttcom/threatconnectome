@@ -1,5 +1,6 @@
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
+  Box,
   Button,
   Card,
   CardContent,
@@ -19,6 +20,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { storeServiceThumbnail } from "../slices/pteam";
 import { getServiceThumbnail } from "../utils/api";
 import { blobToDataURL } from "../utils/func";
+
+import { PTeamStatusSSVCCards } from "./PTeamStatusSSVCCards";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
@@ -66,7 +69,7 @@ ServiceIDCopyButton.propTypes = {
 };
 
 export function PTeamServiceDetails(props) {
-  const { pteamId, service, expandService, onSwitchExpandService } = props;
+  const { pteamId, service, expandService, onSwitchExpandService, highestSsvcPriority } = props;
 
   const dispatch = useDispatch();
 
@@ -139,6 +142,9 @@ export function PTeamServiceDetails(props) {
             </Typography>
           </CardContent>
         </Card>
+        <Box sx={{ mt: 1 }}>
+          <PTeamStatusSSVCCards service={service} highestSsvcPriority={highestSsvcPriority} />
+        </Box>
       </Collapse>
       <Button onClick={onSwitchExpandService} sx={{ display: "block", m: "auto" }}>
         {expandService ? "- READ LESS" : "+ READ MORE"}
@@ -152,4 +158,5 @@ PTeamServiceDetails.propTypes = {
   service: PropTypes.object.isRequired,
   expandService: PropTypes.bool.isRequired,
   onSwitchExpandService: PropTypes.func.isRequired,
+  highestSsvcPriority: PropTypes.object.isRequired,
 };

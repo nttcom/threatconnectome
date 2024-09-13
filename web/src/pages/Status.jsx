@@ -444,6 +444,7 @@ export function Status() {
             service={service}
             expandService={expandService}
             onSwitchExpandService={handleSwitchExpandService}
+            highestSsvcPriority={serviceTagsSummary.tags[0]?.ssvc_priority ?? "defer"}
           />
         )}
         <Box display="flex" mt={2}>
