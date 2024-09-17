@@ -50,23 +50,6 @@ export const TopicTicketAccordion = (props) => {
         </Box>
       </AccordionSummary>
       <AccordionDetails>
-        <CardActions sx={{ display: "flex", alignItems: "center", p: 2 }}>
-          <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
-            Assignees
-          </Typography>
-          <Box sx={{ maxWidth: 150 }}>
-            <AssigneesSelector
-              key={ticketStatus.assignees.join("")}
-              pteamId={pteamId}
-              serviceId={serviceId}
-              topicId={topicId}
-              tagId={tagId}
-              ticketId={ticket.ticket_id}
-              currentAssigneeIds={ticketStatus.assignees}
-              members={members}
-            />
-          </Box>
-        </CardActions>
         <Box p={2} display="flex" flexDirection="row" alignItems="flex-start">
           <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
             Status
@@ -115,6 +98,23 @@ export const TopicTicketAccordion = (props) => {
             </Box>
           </Box>
         )}
+        <CardActions sx={{ display: "flex", alignItems: "center", p: 2 }}>
+          <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
+            Assignees
+          </Typography>
+          <Box sx={{ maxWidth: 150 }}>
+            <AssigneesSelector
+              key={ticketStatus.assignees.join("")}
+              pteamId={pteamId}
+              serviceId={serviceId}
+              topicId={topicId}
+              tagId={tagId}
+              ticketId={ticket.ticket_id}
+              currentAssigneeIds={ticketStatus.assignees}
+              members={members}
+            />
+          </Box>
+        </CardActions>
       </AccordionDetails>
     </Accordion>
   );
