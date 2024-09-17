@@ -60,32 +60,26 @@ def _create_deployer_dict() -> None:
 
 def _create_human_impact_dict(deployer_json) -> None:
     human_impact_dict.clear()
-    for decision_point in deployer_json["decision_points"]:
-        if decision_point["label"] == "Human Impact":
-            _create_human_impact_dict_from_options(decision_point["options"])
-            break
 
-
-def _create_human_impact_dict_from_options(options) -> None:
-    for option in options:
-        human_impact_value = option["label"]
-        _create_human_impact_dict_from_child_combinations(
-            option["child_combinations"], human_impact_value
-        )
-
-
-def _create_human_impact_dict_from_child_combinations(
-    child_combinations: list, human_impact_value: str
-) -> None:
-    for child_combination in child_combinations:
-        for child_combination_data in child_combination:
-            if child_combination_data["child_label"] == "Situated Safety Impact":
-                safety_impacts = child_combination_data["child_option_labels"]
-            if child_combination_data["child_label"] == "Mission Impact":
-                mission_impacts = child_combination_data["child_option_labels"]
-        for safety_impact in safety_impacts:
-            for mission_impact in mission_impacts:
-                human_impact_dict[(safety_impact, mission_impact)] = human_impact_value
+    # Get human impact rule
+    human_imapct_rules = next(
+        filter(lambda x: x["label"] == "Human Impact", deployer_json["decision_points"])
+    )
+    for rule in human_imapct_rules["options"]:
+        # Get all child comibinations data
+        human_impact_value = rule["label"]
+        for combination in rule["child_combinations"]:
+            safety_impact_values = next(
+                filter(lambda x: x["child_label"] == "Situated Safety Impact", combination), None
+            )
+            mission_impact_values = next(
+                filter(lambda x: x["child_label"] == "Mission Impact", combination), None
+            )
+            if not safety_impact_values or not mission_impact_values:
+                continue
+            for safety_impact in safety_impact_values["child_option_labels"]:
+                for mission_impact in mission_impact_values["child_option_labels"]:
+                    human_impact_dict[(safety_impact, mission_impact)] = human_impact_value
 
 
 def _create_ssvc_priority_dict(deployer_json) -> None:
