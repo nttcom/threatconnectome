@@ -109,27 +109,3 @@ export function versionMatch(target, ge, gt, le, lt, eq, onError) {
     return onError;
   }
 }
-
-/**
- * Returns True if the two versions can be compared
- * @param {string} alpha - string of version
- * @param {string} bravo - string of version
- * @return {boolean}
- */
-export function isComparable(alpha, bravo) {
-  const replaceNumToZero = (str) => {
-    return str.replace(/[0-9]/g, "0");
-  };
-  if (typeof alpha !== "string" || typeof bravo !== "string") {
-    throw new Error("not string");
-  }
-  try {
-    // Replace all numbers to zero and put them into commonCompare function.
-    // This will check whether two versions can be compared
-    // using symbols and characters other than numbers.
-    commonCompare(replaceNumToZero(alpha), replaceNumToZero(bravo));
-  } catch (error) {
-    return false;
-  }
-  return true;
-}

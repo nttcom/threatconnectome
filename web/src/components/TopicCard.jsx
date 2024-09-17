@@ -27,7 +27,7 @@ import {
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { dateTimeFormat } from "../utils/func";
-import { isComparable, parseVulnerableVersions, versionMatch } from "../utils/versions";
+import { parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import { ActionItem } from "./ActionItem";
 import { TopicModal } from "./TopicModal";
@@ -133,27 +133,6 @@ export function TopicCard(props) {
       )
     : pteamTopicActions ?? [];
 
-  const checkCompalable = () => {
-    const tagNames = [currentTagDict.tag_name, currentTagDict.parent_name];
-    return tagNames.every((tagName) => {
-      return pteamTopicActions?.every((action) => {
-        return parseVulnerableVersions(action.ext?.vulnerable_versions?.[tagName]).every(
-          (actionVersion) => {
-            return references?.every((ref) => {
-              return (
-                (actionVersion.ge === undefined || isComparable(ref.version, actionVersion.ge)) &&
-                (actionVersion.gt === undefined || isComparable(ref.version, actionVersion.gt)) &&
-                (actionVersion.le === undefined || isComparable(ref.version, actionVersion.le)) &&
-                (actionVersion.lt === undefined || isComparable(ref.version, actionVersion.lt)) &&
-                (actionVersion.eq === undefined || isComparable(ref.version, actionVersion.eq))
-              );
-            });
-          },
-        );
-      });
-    });
-  };
-
   return (
     <Card variant="outlined" sx={{ marginTop: "8px", marginBottom: "20px", width: "100%" }}>
       <Box
@@ -177,16 +156,6 @@ export function TopicCard(props) {
           </Box>
         </Box>
         <Box mt={3} mr={2} display="flex" flexDirection="row">
-          {references?.length === 0 && (
-            <Alert severity="warning" ml={2}>
-              {"It cannot be auto-closed, because reference is not set."}
-            </Alert>
-          )}
-          {checkCompalable() === false && (
-            <Alert severity="warning" ml={2}>
-              {"It cannot be auto-closed, so please input it manually."}
-            </Alert>
-          )}
           <IconButton onClick={() => setTopicModalOpen(true)}>
             <EditIcon />
           </IconButton>
