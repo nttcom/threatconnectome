@@ -106,11 +106,9 @@ def _json_loads(filepath: str | bytes | bytearray):
             ) from error
 
 
-def _get_cve_data_from_json_data(vulnrichment_json: dict) -> dict[str, tuple]:
-    cve_data_dict: dict[str, tuple] = {}
-
+def _get_cve_data_from_json_data(vulnrichment_json: dict) -> tuple:
     if "adp" not in vulnrichment_json["containers"]:
-        return cve_data_dict
+        return ()
 
     adp_vulnrichment = next(
         filter(
@@ -132,29 +130,29 @@ def _get_cve_data_from_json_data(vulnrichment_json: dict) -> dict[str, tuple]:
             automatable = option["Automatable"]
 
     if exploitation is None or automatable is None:
-        return cve_data_dict
+        return ()
 
-    cve_data_dict[content["id"]] = (
-        exploitation,
-        automatable,
-    )
-
-    return cve_data_dict
+    return (content["id"], exploitation, automatable)
 
 
-def _get_cve_data(vulnrichment_path: str) -> dict[str, tuple]:
-    cve_data_dict: dict[str, tuple] = {}
+def _get_cve_data_list(vulnrichment_path: str) -> list[tuple]:
+    cve_data_list: list[tuple] = []
     for cve_filepath in glob.iglob(vulnrichment_path + "/**/CVE-*.json", recursive=True):
         try:
-            current_cve_data_dict = _get_cve_data_from_json_data(_json_loads(cve_filepath))
-            cve_data_dict.update(current_cve_data_dict)
+            current_cve_data = _get_cve_data_from_json_data(_json_loads(cve_filepath))
+            if len(current_cve_data) == 3:
+                cve_data_list.append(current_cve_data)
         except OSError as error:
             print(f"Json open error. filepath:{cve_filepath} detail:{error}")
             continue
         except (KeyError, TypeError) as error:
             print(f"Json parsing error. filepath:{cve_filepath} detail:{error}")
             continue
-    return cve_data_dict
+    cve_data_list.sort()
+    print(f"Find cve data. count:{len(cve_data_list)}")
+    for cve_data in cve_data_list:
+        print(cve_data[0])
+    return cve_data_list
 
 
 def _get_exploitation_value(exploitation: str) -> str:
@@ -185,8 +183,6 @@ def _update_topics_by_cve_data(
             "exploitation": _get_exploitation_value(exploitation),
             "automatable": _get_automatable_value(automatable),
         }
-        tc_client.update_topic(topic_id, topic_data)
-
         response = tc_client.update_topic(topic_id, topic_data)
         if response.status_code == 200:
             print(f"Success put topic. topic_id:{topic_id} cve_id:{cve_id} data: {topic_data}")
@@ -195,10 +191,10 @@ def _update_topics_by_cve_data(
 
 
 def _update_topics_by_cve_data_dict(
-    tc_client: ThreatconnectomeClient, cve_data_dict: dict[str, tuple]
+    tc_client: ThreatconnectomeClient, cve_data_list: list[tuple]
 ) -> None:
-    for cve_id, cve_tuple in cve_data_dict.items():
-        _update_topics_by_cve_data(tc_client, cve_id, cve_tuple[0], cve_tuple[1])
+    for cve_data in cve_data_list:
+        _update_topics_by_cve_data(tc_client, cve_data[0], cve_data[1], cve_data[2])
 
 
 def main() -> None:
@@ -229,8 +225,8 @@ def main() -> None:
 
     tc_client = ThreatconnectomeClient(args.url, refresh_token, retry_max=3)
 
-    cve_data_dict = _get_cve_data(args.vulnrichment_path)
-    _update_topics_by_cve_data_dict(tc_client, cve_data_dict)
+    cve_data_list = _get_cve_data_list(args.vulnrichment_path)
+    _update_topics_by_cve_data_dict(tc_client, cve_data_list)
 
 
 if __name__ == "__main__":
