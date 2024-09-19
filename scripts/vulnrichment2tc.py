@@ -20,6 +20,8 @@ class ThreatconnectomeClient:
     api_url: str
     refresh_token: str
     retry_max: int  # 0 for never, negative for forever
+    connect_timeout: float
+    read_timeout: float
     headers: dict
 
     def __init__(
@@ -27,10 +29,14 @@ class ThreatconnectomeClient:
         api_url: str,
         refresh_token: str,
         retry_max: int = -1,
+        connect_timeout: float = 3.0,
+        read_timeout: float = 60.0,
     ):
         self.api_url = api_url.rstrip("/")
         self.refresh_token = refresh_token
         self.retry_max = retry_max
+        self.connect_timeout = connect_timeout
+        self.read_timeout = read_timeout
         self.headers = self._refresh_auth_token(
             {  # headers except auth token
                 "accept": "application/json",
@@ -60,6 +66,7 @@ class ThreatconnectomeClient:
         #   func should have kwarg "headers":
         #     def func(*args, **kwargs, headers={}) -> Response:
         #   self.headers is used for kwarg "headers", and auto-refreshed on 401 error.
+        kwargs["timeout"] = (self.connect_timeout, self.read_timeout)
         _retry = self.retry_max
         _in_auth_retry = False
         _func = partial(func, *args, **{k: v for k, v in kwargs.items() if k != "headers"})
@@ -69,7 +76,15 @@ class ThreatconnectomeClient:
             return f"{resp.status_code}: {resp.reason}: {data.get('detail')}"
 
         while True:
-            resp = _func(headers=self.headers)
+            try:
+                resp = _func(headers=self.headers)
+            except requests.exceptions.Timeout as error:
+                if _retry == 0:
+                    raise error
+                elif _retry > 0:
+                    _retry -= 1
+                sleep(3)
+                continue
             if resp.status_code in {200, 204}:
                 return resp
             if resp.status_code == 401:
@@ -223,7 +238,13 @@ def main() -> None:
             "You can use 'export THREATCONNECTOME_REFRESHTOKEN=\"XXXXXX\"'."
         )
 
-    tc_client = ThreatconnectomeClient(args.url, refresh_token, retry_max=3)
+    tc_client = ThreatconnectomeClient(
+        args.url,
+        refresh_token,
+        retry_max=3,
+        connect_timeout=6.0,
+        read_timeout=60.0,
+    )
 
     cve_data_list = _get_cve_data_list(args.vulnrichment_path)
     _update_topics_by_cve_data_dict(tc_client, cve_data_list)
