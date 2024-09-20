@@ -200,7 +200,7 @@ export function TopicDetail() {
           </Box>
         </Card>
         {/* SSVC decision points */}
-        <TopicSSVCCards />
+        <TopicSSVCCards exploitation={topic.exploitation} automatable={topic.automatable} />
         {/* MISP Tag */}
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
