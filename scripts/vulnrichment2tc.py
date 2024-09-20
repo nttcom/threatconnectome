@@ -80,7 +80,7 @@ class ThreatconnectomeClient:
                 resp = _func(headers=self.headers)
             except requests.exceptions.Timeout as error:
                 if _retry == 0:
-                    raise error
+                    raise APIError(f"ERROR: Exceeded retry max: {error}")
                 elif _retry > 0:
                     _retry -= 1
                 sleep(3)
@@ -242,7 +242,7 @@ def main() -> None:
         args.url,
         refresh_token,
         retry_max=3,
-        connect_timeout=6.0,
+        connect_timeout=60.0,
         read_timeout=60.0,
     )
 
