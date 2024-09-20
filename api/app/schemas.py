@@ -143,20 +143,6 @@ class PTeamServiceUpdateResponse(ORMModel):
     safety_impact: SafetyImpactEnum | None
 
 
-class PTeamtagRequest(ORMModel):
-    references: list[dict] | None = None
-
-
-class PTeamtagResponse(ORMModel):
-    pteam_id: UUID
-    tag_id: UUID
-    references: list[dict]
-
-
-class PTeamtagExtResponse(PTeamtagResponse):
-    last_updated_at: datetime | None = None
-
-
 class MispTagRequest(ORMModel):
     tag_name: str
 
@@ -481,11 +467,6 @@ class ThreatResponse(ORMModel):
     topic_id: UUID
 
 
-class ThreatRequest(ORMModel):
-    dependency_id: UUID
-    topic_id: UUID
-
-
 class TicketStatusRequest(ORMModel):
     topic_status: TopicStatusType | None = None
     logging_ids: list[UUID] | None = None
@@ -520,19 +501,6 @@ class PTeamTaggedTopics(ORMModel):
     tag_id: UUID
     threat_impact_count: dict[str, int]
     topic_ids: list[UUID]
-
-
-class PTeamTopicStatusSummary(ORMModel):
-    topic_id: UUID
-    threat_impact: int
-    updated_at: datetime
-    topic_status: TopicStatusType
-    executed_at: datetime | None = None
-
-
-class PTeamTopicStatusesSummary(ORMModel):
-    tag_id: UUID
-    topics: list[PTeamTopicStatusSummary]
 
 
 class FsAction(ORMModel):
@@ -657,9 +625,3 @@ class DependencyResponse(ORMModel):
     tag_id: UUID
     version: str
     target: str
-
-
-class UploadSBOMAcceptedResponse(ORMModel):
-    pteam_id: UUID
-    service_name: str
-    sbom_file_sha256: str
