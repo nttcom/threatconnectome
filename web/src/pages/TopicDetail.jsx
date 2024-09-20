@@ -6,11 +6,12 @@ import {
 } from "@mui/icons-material";
 import { Badge, Box, Button, Card, Chip, MenuItem, Tooltip, Typography } from "@mui/material";
 import { amber, green, grey, orange, red, yellow } from "@mui/material/colors";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../components/ActionTypeIcon";
+import { TopicSSVCCards } from "../components/TopicSSVCCards";
 import { getTopic, getActions } from "../slices/topics";
 import { threatImpactNames, threatImpactProps } from "../utils/const";
 
@@ -198,6 +199,8 @@ export function TopicDetail() {
             )}
           </Box>
         </Card>
+        {/* SSVC decision points */}
+        <TopicSSVCCards exploitation={topic.exploitation} automatable={topic.automatable} />
         {/* MISP Tag */}
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
