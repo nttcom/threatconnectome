@@ -29,7 +29,7 @@ class ThreatconnectomeClient:
         api_url: str,
         refresh_token: str,
         retry_max: int = -1,
-        connect_timeout: float = 3.0,
+        connect_timeout: float = 60.0,
         read_timeout: float = 60.0,
     ):
         self.api_url = api_url.rstrip("/")
