@@ -2,10 +2,11 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from app import models, schemas
+from app import models, persistence, schemas
 from app.alert import create_mail_alert_for_new_topic
 from app.constants import DEFAULT_ALERT_SSVC_PRIORITY, SYSTEM_EMAIL
 from app.main import app
+from app.ssvc import ssvc_calculator
 from app.tests.medium.constants import (
     SAMPLE_SLACK_WEBHOOK_URL,
     SERVICE1,
@@ -24,7 +25,7 @@ from app.tests.medium.utils import (
 client = TestClient(app)
 
 
-def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) -> None:
+def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(testdb, mocker) -> None:
     create_user(USER1)
     parent_tag1 = create_tag(USER1, "pkg1:info1:")
     child_tag11 = create_tag(USER1, "pkg1:info1:mgr1")
@@ -80,11 +81,14 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
     # topic1: parent_tag1
     send_email = mocker.patch("app.alert.send_email")  # reset
     topic1 = create_topic(USER1, _gen_topic_params([parent_tag1]))
+    threats1 = persistence.search_threats(testdb, None, topic1.topic_id)
+    ssvc_priority1 = ssvc_calculator.calculate_ssvc_priority_by_threat(threats1[0])
+    assert ssvc_priority1
     exp_to_email = pteam0.alert_mail.address
     exp_from_email = SYSTEM_EMAIL
     exp_subject, exp_body = create_mail_alert_for_new_topic(
         topic1.title,
-        topic1.threat_impact,
+        ssvc_priority1,
         pteam0.pteam_name,
         pteam0.pteam_id,
         child_tag11.tag_name,  # pteamtag, not topictag
@@ -106,11 +110,14 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(mocker) 
     assert_200(client.put(f"/pteams/{pteam0.pteam_id}", headers=headers(USER1), json=request))
     send_email = mocker.patch("app.alert.send_email")  # reset
     topic3 = create_topic(USER1, _gen_topic_params([parent_tag1]))
+    threats2 = persistence.search_threats(testdb, None, topic3.topic_id)
+    ssvc_priority2 = ssvc_calculator.calculate_ssvc_priority_by_threat(threats2[0])
+    assert ssvc_priority2
     exp_to_email = pteam0.alert_mail.address
     exp_from_email = SYSTEM_EMAIL
     exp_subject, exp_body = create_mail_alert_for_new_topic(
         topic3.title,
-        topic3.threat_impact,
+        ssvc_priority2,
         pteam0.pteam_name,
         pteam0.pteam_id,
         child_tag11.tag_name,  # pteamtag, not topictag
