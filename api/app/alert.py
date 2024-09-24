@@ -66,7 +66,7 @@ def create_mail_alert_for_new_topic(
             "A new topic created.",
             "",
             f"Title: {topic_title}",
-            f"ThreatImpact: {ssvc_priority_label}",
+            f"SSVC Priority: {ssvc_priority_label}",
             "",
             f"PTeam: {pteam_name}",
             f"Services: {', '.join(services)}",
