@@ -43,7 +43,7 @@ import {
   deleteAction,
 } from "../utils/api";
 import { actionTypes } from "../utils/const";
-import { validateNotEmpty, validateUUID } from "../utils/func";
+import { validateNotEmpty, validateUUID, arrayComparison } from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
 import { ActionItem } from "./ActionItem";
@@ -211,37 +211,79 @@ export function TopicModal(props) {
       .catch((error) => operationError(error));
   };
 
-  const handleUpdateTopic = async () => {
+  const handleUpdateTopic = () => {
     if (!validateActionTags()) return;
 
     const presetActionIds = new Set(presetActions.map((a) => a.action_id));
 
-    actions.forEach(async (a) => {
-      const actionRequest = {
-        ...a,
-        topic_id: topicId,
+    function getNeedUpdateTopic() {
+      const presetMispTag = src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",");
+
+      const presetTag = src?.tags
+        ? src.tags.map((tag) => tag.tag_id)
+        : presetParentTagId
+          ? [presetParentTagId]
+          : presetTagId
+            ? [presetTagId]
+            : [];
+
+      const presetData = {
+        title: src?.title ?? "",
+        abstract: src?.abstract ?? "",
+        threat_impact: src?.threat_impact ?? 4,
+        tags: allTags.filter((tag) => presetTag.includes(tag.tag_id)).map((tag) => tag.tag_name),
+        misp_tags:
+          presetMispTag?.length > 0
+            ? presetMispTag.split(",").map((mispTag) => mispTag.trim())
+            : [],
       };
-      if (a.action_id === null) {
-        await createAction(actionRequest).catch((error) => operationError(error));
-      } else if (presetActionIds.has(a.action_id)) {
-        presetActionIds.delete(a.action_id);
-        await updateAction(a.action_id, actionRequest).catch((error) => operationError(error));
+
+      return JSON.stringify(data) !== JSON.stringify(presetData) && src.created_by === user.user_id;
+    }
+
+    function getNeedUpdateAction(currentActionIds, presetActionIdsArray) {
+      if (!arrayComparison(currentActionIds, presetActionIdsArray)) return true;
+
+      for (let i = 0; i < actions.length; i++) {
+        if (actions[i].recommended !== presetActions[i].recommended) {
+          return true;
+        }
       }
-    });
+      return false;
+    }
 
-    // delete actions that are not related to topic
-    presetActionIds.forEach(async (actionId) => {
-      await deleteAction(actionId).catch((error) => operationError(error));
-    });
+    async function updateTopicPromise() {
+      return updateTopic(topicId, data).catch((error) => operationError(error));
+    }
 
-    if (src.created_by !== user.user_id) {
-      enqueueSnackbar(
-        "Only actions have been changed, not topics. You can't update topic, because you are not topic creator.",
-        { variant: "warning" },
-      );
-      reloadTopicAfterAPI();
-      onSetOpen(false);
-      return;
+    async function updateActionPromise() {
+      let promiseArray = [];
+      for (let action of actions) {
+        const actionRequest = {
+          ...action,
+          topic_id: topicId,
+        };
+        if (action.action_id === null) {
+          promiseArray.push(createAction(actionRequest).catch((error) => operationError(error)));
+        } else if (presetActionIds.has(action.action_id)) {
+          presetActionIds.delete(action.action_id);
+          promiseArray.push(
+            updateAction(action.action_id, actionRequest).catch((error) => operationError(error)),
+          );
+        }
+      }
+
+      // delete actions that are not related to topic
+      for (let actionId of presetActionIds) {
+        promiseArray.push(deleteAction(actionId).catch((error) => operationError(error)));
+      }
+      if (src.created_by !== user.user_id) {
+        enqueueSnackbar(
+          "Only actions have been changed, not topics. You can't update topic, because you are not topic creator.",
+          { variant: "warning" },
+        );
+      }
+      return Promise.all(promiseArray);
     }
 
     const data = {
@@ -251,13 +293,36 @@ export function TopicModal(props) {
       tags: allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
       misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
     };
-    await updateTopic(topicId, data)
-      .then(async () => {
-        enqueueSnackbar("Update topic succeeded", { variant: "success" });
-        reloadTopicAfterAPI();
-        onSetOpen(false);
-      })
-      .catch((error) => operationError(error));
+
+    const currentActionIds = actions.map((action) => action.action_id);
+    const presetActionIdsArray = [...presetActionIds];
+
+    const needUpdateAction = getNeedUpdateAction(currentActionIds, presetActionIdsArray);
+    const needUpdateTopic = getNeedUpdateTopic();
+
+    if (needUpdateAction) {
+      if (needUpdateTopic) {
+        Promise.all([updateActionPromise(), updateTopicPromise()]).then(() => {
+          reloadTopicAfterAPI();
+          enqueueSnackbar("Update topic and action succeeded", { variant: "success" });
+          onSetOpen(false);
+        });
+      } else {
+        updateActionPromise().then(() => {
+          reloadTopicAfterAPI();
+          enqueueSnackbar("Update action succeeded", { variant: "success" });
+          onSetOpen(false);
+        });
+      }
+    } else {
+      if (needUpdateTopic) {
+        updateTopicPromise().then(() => {
+          reloadTopicAfterAPI();
+          enqueueSnackbar("Update topic succeeded", { variant: "success" });
+          onSetOpen(false);
+        });
+      }
+    }
   };
 
   const handleFetchFlashsense = async () => {
