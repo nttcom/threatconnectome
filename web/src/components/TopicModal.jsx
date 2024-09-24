@@ -216,6 +216,14 @@ export function TopicModal(props) {
 
     const presetActionIds = new Set(presetActions.map((a) => a.action_id));
 
+    const data = {
+      title: title,
+      abstract: abst,
+      threat_impact: parseInt(threatImpact),
+      tags: allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
+      misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
+    };
+
     function getNeedUpdateTopic() {
       const presetMispTag = src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",");
 
@@ -241,11 +249,14 @@ export function TopicModal(props) {
       return JSON.stringify(data) !== JSON.stringify(presetData) && src.created_by === user.user_id;
     }
 
-    function getNeedUpdateAction(currentActionIds, presetActionIdsArray) {
+    function getNeedUpdateAction(_actions, _presetActionIds) {
+      const currentActionIds = _actions.map((action) => action.action_id);
+      const presetActionIdsArray = [..._presetActionIds];
+
       if (!arrayComparison(currentActionIds, presetActionIdsArray)) return true;
 
-      for (let i = 0; i < actions.length; i++) {
-        if (actions[i].recommended !== presetActions[i].recommended) {
+      for (let i = 0; i < _actions.length; i++) {
+        if (_actions[i].recommended !== presetActions[i].recommended) {
           return true;
         }
       }
@@ -286,18 +297,7 @@ export function TopicModal(props) {
       return Promise.all(promiseArray);
     }
 
-    const data = {
-      title: title,
-      abstract: abst,
-      threat_impact: parseInt(threatImpact),
-      tags: allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
-      misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
-    };
-
-    const currentActionIds = actions.map((action) => action.action_id);
-    const presetActionIdsArray = [...presetActionIds];
-
-    const needUpdateAction = getNeedUpdateAction(currentActionIds, presetActionIdsArray);
+    const needUpdateAction = getNeedUpdateAction(actions, presetActionIds);
     const needUpdateTopic = getNeedUpdateTopic();
 
     if (needUpdateAction) {
