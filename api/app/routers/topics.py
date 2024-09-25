@@ -424,6 +424,8 @@ def update_topic(
             ticket = threat.ticket
             if ticket is not None:
                 _ssvc_deployer_priority = ssvc_calculator.calculate_ssvc_priority_by_threat(threat)
+                if _ssvc_deployer_priority == ticket.ssvc_deployer_priority:
+                    continue
                 ticket.ssvc_deployer_priority = _ssvc_deployer_priority
 
                 if (
