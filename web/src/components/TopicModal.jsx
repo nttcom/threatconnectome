@@ -43,7 +43,7 @@ import {
   deleteAction,
 } from "../utils/api";
 import { actionTypes } from "../utils/const";
-import { validateNotEmpty, validateUUID, arrayComparison } from "../utils/func";
+import { validateNotEmpty, validateUUID, setEquals } from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
 import { ActionItem } from "./ActionItem";
@@ -250,10 +250,9 @@ export function TopicModal(props) {
     }
 
     function isRequireUpdateAction(_actions, _presetActionIds) {
-      const currentActionIds = _actions.map((action) => action.action_id);
-      const presetActionIdsArray = [..._presetActionIds];
+      const currentActionIds = new Set(_actions.map((action) => action.action_id));
 
-      if (!arrayComparison(currentActionIds, presetActionIdsArray)) return true;
+      if (!setEquals(currentActionIds, _presetActionIds)) return true;
 
       for (let i = 0; i < _actions.length; i++) {
         if (_actions[i].recommended !== presetActions[i].recommended) {
