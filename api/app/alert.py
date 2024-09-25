@@ -45,7 +45,7 @@ def _pteam_service_tab_link(pteam_id: UUID | str, service_id: UUID | str) -> str
 
 def create_mail_alert_for_new_topic(
     topic_title: str,
-    threat_impact: int,
+    ssvc_priority: models.SSVCDeployerPriorityEnum,
     pteam_name: str,
     pteam_id: UUID | str,
     tag_name: str,  # should be pteamtag, not topictag
@@ -54,19 +54,19 @@ def create_mail_alert_for_new_topic(
 ) -> tuple[str, str]:  # subject, body
     # TODO
     # this mail-spacific-method should be divided away from this file, but to where?
-    threat_impact_label = {
-        1: "Immediate",
-        2: "Off-cycle",
-        3: "Acceptable",
-        4: "None",
-    }.get(threat_impact) or "WrongThreatImpact"
-    subject = f"[Tc Alert] {threat_impact_label}: {topic_title}"
+    ssvc_priority_label = {
+        models.SSVCDeployerPriorityEnum.IMMEDIATE: "Immediate",
+        models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: "Out-of-cycle",
+        models.SSVCDeployerPriorityEnum.SCHEDULED: "Scheduled",
+        models.SSVCDeployerPriorityEnum.DEFER: "Defer",
+    }.get(ssvc_priority) or "Defer"
+    subject = f"[Tc Alert] {ssvc_priority_label}: {topic_title}"
     body = "<br>".join(
         [
             "A new topic created.",
             "",
             f"Title: {topic_title}",
-            f"ThreatImpact: {threat_impact_label}",
+            f"SSVC Priority: {ssvc_priority_label}",
             "",
             f"PTeam: {pteam_name}",
             f"Services: {', '.join(services)}",
@@ -93,13 +93,6 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
     if not alert_by_slack and not alert_by_mail:
         return None
 
-    tmp_threat_impact = {  # WORKAROUND
-        models.SSVCDeployerPriorityEnum.IMMEDIATE: 1,
-        models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
-        models.SSVCDeployerPriorityEnum.SCHEDULED: 3,
-        models.SSVCDeployerPriorityEnum.DEFER: 4,
-    }.get(ticket.ssvc_deployer_priority, 4)
-
     if alert_by_slack:
         try:
             slack_message_blocks = create_slack_pteam_alert_blocks_for_new_topic(
@@ -109,7 +102,7 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
                 tag.tag_name,
                 topic.topic_id,
                 topic.title,  # WORKAROUND
-                tmp_threat_impact,  # WORKAROUND
+                ticket.ssvc_deployer_priority,
                 [service.service_name],  # WORKAROUND
             )
             send_slack(pteam.alert_slack.webhook_url, slack_message_blocks)
@@ -120,7 +113,7 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
         try:
             mail_subject, mail_body = create_mail_alert_for_new_topic(
                 topic.title,  # WORKAROUND
-                tmp_threat_impact,  # WORKAROUND
+                ticket.ssvc_deployer_priority,
                 pteam.pteam_name,
                 pteam.pteam_id,
                 tag.tag_name,

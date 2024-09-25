@@ -6,17 +6,19 @@ from fastapi import HTTPException, status
 from slack_sdk.errors import SlackApiError
 from slack_sdk.webhook import WebhookClient
 
+from app import models
+
 WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
 WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
 # CAUTION: do *NOT* urljoin subpath which starts with "/"
 STATUS_URL = urljoin(WEBUI_URL, "")
 TAG_URL = urljoin(WEBUI_URL, "tags/")
 ANALYSIS_URL = urljoin(WEBUI_URL, "analysis/")
-THREAT_IMPACT_LABEL = {
-    1: ":red_circle: Immediate",
-    2: ":large_orange_circle: Off-cycle",
-    3: ":large_yellow_circle: Acceptable",
-    4: ":white_circle: None",
+SSVC_PRIORITY_LABEL = {
+    models.SSVCDeployerPriorityEnum.IMMEDIATE: ":red_circle: Immediate",
+    models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: ":large_orange_circle: Out-of-cycle",
+    models.SSVCDeployerPriorityEnum.SCHEDULED: ":large_yellow_circle: Scheduled",
+    models.SSVCDeployerPriorityEnum.DEFER: ":white_circle: Defer",
 }
 
 
@@ -56,7 +58,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
     tag_name: str,
     topic_id: str,
     title: str,
-    threat_impact: int,
+    ssvc_priority: models.SSVCDeployerPriorityEnum,
     services: list[str],
 ):
     blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
@@ -73,7 +75,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
                             f"*<{TAG_URL}{str(tag_id)}?pteamId={pteam_id}|{tag_name}>*",
                             f"*{title}*",
                             f"*{services_name}*",
-                            THREAT_IMPACT_LABEL[threat_impact],
+                            SSVC_PRIORITY_LABEL[ssvc_priority],
                         ]
                     ),
                 },
