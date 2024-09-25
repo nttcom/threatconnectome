@@ -77,14 +77,8 @@ function DisableLine() {
 
 function StatusRatioGraph(props) {
   const { counts, ssvcPriority } = props;
-  if ((counts ?? []).length === 0) return "";
-  let keys = [];
-  if (
-    compareSSVCPriority(ssvcPriority, "defer") < 0 ||
-    (compareSSVCPriority(ssvcPriority, "defer") === 0 && counts.completed > 0)
-  ) {
-    keys = ["completed", "scheduled", "acknowledged", "alerted"];
-  }
+  if (!ssvcPriority && (counts ?? []).length === 0) return "";
+  const keys = ["completed", "scheduled", "acknowledged", "alerted"];
   const total = keys.reduce((ret, key) => ret + counts[key] ?? 0, 0);
   const ratios = keys.reduce((ret, key) => {
     ret[key] = (100 * (counts[key] ?? 0)) / total;
@@ -115,7 +109,7 @@ export function PTeamStatusCard(props) {
   const { onHandleClick, pteam, tag, serviceIds } = props;
 
   const ssvcPriority = // detect "safe"
-    ["defer", null].includes(tag.ssvc_priority) && tag.status_count["completed"] > 0
+    !tag.ssvc_priority && tag.status_count["completed"] > 0
       ? "safe" // solved all and at least 1 tickets
       : tag.ssvc_priority || "defer";
   // Change the background color and border based on the Alert Threshold value set by the team.
@@ -158,10 +152,7 @@ export function PTeamStatusCard(props) {
               {`Updated ${calcTimestampDiff(tag.updated_at)}`}
             </Typography>
           </Box>
-          <StatusRatioGraph
-            counts={tag.status_count ?? []}
-            ssvcPriority={tag.ssvc_priority || "defer"}
-          />
+          <StatusRatioGraph counts={tag.status_count} ssvcPriority={tag.ssvc_priority} />
         </Box>
       </TableCell>
     </TableRow>
