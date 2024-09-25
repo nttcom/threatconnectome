@@ -43,7 +43,7 @@ import {
   deleteAction,
 } from "../utils/api";
 import { actionTypes } from "../utils/const";
-import { validateNotEmpty, validateUUID } from "../utils/func";
+import { validateNotEmpty, validateUUID, arrayComparison } from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
 import { ActionItem } from "./ActionItem";
@@ -216,34 +216,6 @@ export function TopicModal(props) {
 
     const presetActionIds = new Set(presetActions.map((a) => a.action_id));
 
-    actions.forEach(async (a) => {
-      const actionRequest = {
-        ...a,
-        topic_id: topicId,
-      };
-      if (a.action_id === null) {
-        await createAction(actionRequest).catch((error) => operationError(error));
-      } else if (presetActionIds.has(a.action_id)) {
-        presetActionIds.delete(a.action_id);
-        await updateAction(a.action_id, actionRequest).catch((error) => operationError(error));
-      }
-    });
-
-    // delete actions that are not related to topic
-    presetActionIds.forEach(async (actionId) => {
-      await deleteAction(actionId).catch((error) => operationError(error));
-    });
-
-    if (src.created_by !== user.user_id) {
-      enqueueSnackbar(
-        "Only actions have been changed, not topics. You can't update topic, because you are not topic creator.",
-        { variant: "warning" },
-      );
-      reloadTopicAfterAPI();
-      onSetOpen(false);
-      return;
-    }
-
     const data = {
       title: title,
       abstract: abst,
@@ -251,13 +223,100 @@ export function TopicModal(props) {
       tags: allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
       misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
     };
-    await updateTopic(topicId, data)
-      .then(async () => {
-        enqueueSnackbar("Update topic succeeded", { variant: "success" });
-        reloadTopicAfterAPI();
-        onSetOpen(false);
-      })
-      .catch((error) => operationError(error));
+
+    function isRequireUpdateTopic() {
+      const presetMispTag = src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",");
+
+      const presetTag = src?.tags
+        ? src.tags.map((tag) => tag.tag_id)
+        : presetParentTagId
+          ? [presetParentTagId]
+          : presetTagId
+            ? [presetTagId]
+            : [];
+
+      const presetData = {
+        title: src?.title ?? "",
+        abstract: src?.abstract ?? "",
+        threat_impact: src?.threat_impact ?? 4,
+        tags: allTags.filter((tag) => presetTag.includes(tag.tag_id)).map((tag) => tag.tag_name),
+        misp_tags:
+          presetMispTag?.length > 0
+            ? presetMispTag.split(",").map((mispTag) => mispTag.trim())
+            : [],
+      };
+
+      return JSON.stringify(data) !== JSON.stringify(presetData) && src.created_by === user.user_id;
+    }
+
+    function isRequireUpdateAction(_actions, _presetActionIds) {
+      const currentActionIds = _actions.map((action) => action.action_id);
+      const presetActionIdsArray = [..._presetActionIds];
+
+      if (!arrayComparison(currentActionIds, presetActionIdsArray)) return true;
+
+      for (let i = 0; i < _actions.length; i++) {
+        if (_actions[i].recommended !== presetActions[i].recommended) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    async function updateTopicPromise() {
+      return updateTopic(topicId, data).catch((error) => operationError(error));
+    }
+
+    async function updateActionPromise() {
+      let promiseArray = [];
+      for (let action of actions) {
+        const actionRequest = {
+          ...action,
+          topic_id: topicId,
+        };
+        if (action.action_id === null) {
+          promiseArray.push(createAction(actionRequest).catch((error) => operationError(error)));
+        } else if (presetActionIds.has(action.action_id)) {
+          presetActionIds.delete(action.action_id);
+          promiseArray.push(
+            updateAction(action.action_id, actionRequest).catch((error) => operationError(error)),
+          );
+        }
+      }
+
+      // delete actions that are not related to topic
+      for (let actionId of presetActionIds) {
+        promiseArray.push(deleteAction(actionId).catch((error) => operationError(error)));
+      }
+      if (src.created_by !== user.user_id) {
+        enqueueSnackbar(
+          "Only actions have been changed, not topics. You can't update topic, because you are not topic creator.",
+          { variant: "warning" },
+        );
+      }
+      return Promise.all(promiseArray);
+    }
+
+    const needUpdateAction = isRequireUpdateAction(actions, presetActionIds);
+    const needUpdateTopic = isRequireUpdateTopic();
+
+    if (!needUpdateTopic && !needUpdateAction) {
+      // early return if no need to update
+      onSetOpen(false);
+      return;
+    }
+
+    if (needUpdateTopic) {
+      await updateTopicPromise();
+    }
+
+    if (needUpdateAction) {
+      await updateActionPromise();
+    }
+
+    reloadTopicAfterAPI();
+    enqueueSnackbar("Update topic succeeded", { variant: "success" });
+    onSetOpen(false);
   };
 
   const handleFetchFlashsense = async () => {
