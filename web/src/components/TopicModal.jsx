@@ -211,7 +211,7 @@ export function TopicModal(props) {
       .catch((error) => operationError(error));
   };
 
-  const handleUpdateTopic = () => {
+  const handleUpdateTopic = async () => {
     if (!validateActionTags()) return;
 
     const presetActionIds = new Set(presetActions.map((a) => a.action_id));
@@ -224,7 +224,7 @@ export function TopicModal(props) {
       misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
     };
 
-    function getNeedUpdateTopic() {
+    function isRequireUpdateTopic() {
       const presetMispTag = src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",");
 
       const presetTag = src?.tags
@@ -249,7 +249,7 @@ export function TopicModal(props) {
       return JSON.stringify(data) !== JSON.stringify(presetData) && src.created_by === user.user_id;
     }
 
-    function getNeedUpdateAction(_actions, _presetActionIds) {
+    function isRequireUpdateAction(_actions, _presetActionIds) {
       const currentActionIds = _actions.map((action) => action.action_id);
       const presetActionIdsArray = [..._presetActionIds];
 
@@ -297,32 +297,26 @@ export function TopicModal(props) {
       return Promise.all(promiseArray);
     }
 
-    const needUpdateAction = getNeedUpdateAction(actions, presetActionIds);
-    const needUpdateTopic = getNeedUpdateTopic();
+    const needUpdateAction = isRequireUpdateAction(actions, presetActionIds);
+    const needUpdateTopic = isRequireUpdateTopic();
+
+    if (!needUpdateTopic && !needUpdateAction) {
+      // early return if no need to update
+      onSetOpen(false);
+      return;
+    }
+
+    if (needUpdateTopic) {
+      await updateTopicPromise();
+    }
 
     if (needUpdateAction) {
-      if (needUpdateTopic) {
-        Promise.all([updateActionPromise(), updateTopicPromise()]).then(() => {
-          reloadTopicAfterAPI();
-          enqueueSnackbar("Update topic and action succeeded", { variant: "success" });
-          onSetOpen(false);
-        });
-      } else {
-        updateActionPromise().then(() => {
-          reloadTopicAfterAPI();
-          enqueueSnackbar("Update action succeeded", { variant: "success" });
-          onSetOpen(false);
-        });
-      }
-    } else {
-      if (needUpdateTopic) {
-        updateTopicPromise().then(() => {
-          reloadTopicAfterAPI();
-          enqueueSnackbar("Update topic succeeded", { variant: "success" });
-          onSetOpen(false);
-        });
-      }
+      await updateActionPromise();
     }
+
+    reloadTopicAfterAPI();
+    enqueueSnackbar("Update topic succeeded", { variant: "success" });
+    onSetOpen(false);
   };
 
   const handleFetchFlashsense = async () => {
