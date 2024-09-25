@@ -108,5 +108,5 @@ export function PTeamStatusSSVCCards(props) {
 
 PTeamStatusSSVCCards.propTypes = {
   service: PropTypes.object.isRequired,
-  highestSsvcPriority: PropTypes.object.isRequired,
+  highestSsvcPriority: PropTypes.string.isRequired,
 };

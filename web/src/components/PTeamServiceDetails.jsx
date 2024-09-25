@@ -158,5 +158,5 @@ PTeamServiceDetails.propTypes = {
   service: PropTypes.object.isRequired,
   expandService: PropTypes.bool.isRequired,
   onSwitchExpandService: PropTypes.func.isRequired,
-  highestSsvcPriority: PropTypes.object.isRequired,
+  highestSsvcPriority: PropTypes.string.isRequired,
 };
