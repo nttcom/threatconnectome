@@ -8,9 +8,6 @@ from sqlalchemy import insert, select
 from sqlalchemy.orm import Session
 
 from app import models, schemas
-from app.constants import (
-    DEFAULT_ALERT_SSVC_PRIORITY,
-)
 from app.main import app
 from app.models import (
     AutomatableEnum,
@@ -359,7 +356,7 @@ class TestUpdateTopic:
                     "enable": True,
                     "address": f"account{idx}@example.com",
                 },
-                "alert_ssvc_priority": DEFAULT_ALERT_SSVC_PRIORITY,
+                "alert_ssvc_priority": "out_of_cycle",
             }
 
         def _gen_topic_params(tags: list[schemas.TagResponse]) -> dict:
@@ -401,9 +398,9 @@ class TestUpdateTopic:
         self.topic = create_topic(USER1, _gen_topic_params([self.tag1]))
 
     def test_alert_by_mail_if_vulnerabilities_are_found_when_updating_topic(self, mocker, testdb):
-        ## ssvc_deployer_priority is immediate
+        ## ssvc_deployer_priority is out_of_cycle
         request = {
-            "exploitation": ExploitationEnum.ACTIVE.value,
+            "exploitation": ExploitationEnum.PUBLIC_POC.value,
             "automatable": AutomatableEnum.NO.value,
         }
 
@@ -423,28 +420,42 @@ class TestUpdateTopic:
         ticket_id = response_ticket.json()[0]["ticket_id"]
 
         alerts = testdb.scalars(
-            select(models.Alert).where(models.Alert.ticket_id == str(ticket_id))
+            select(models.Alert)
+            .where(models.Alert.ticket_id == str(ticket_id))
+            .order_by(models.Alert.alerted_at.desc())
         ).all()
 
         assert alerts
-
-        if alerts[0].alerted_at > alerts[1].alerted_at:
-            alert = alerts[0]
-        else:
-            alert = alerts[1]
-
-        assert alert.ticket.threat.topic_id == str(self.topic.topic_id)
+        assert alerts[0].ticket.threat.topic_id == str(self.topic.topic_id)
 
         send_alert_to_pteam.assert_called_once()
-        send_alert_to_pteam.assert_called_with(alert)
+        send_alert_to_pteam.assert_called_with(alerts[0])
+
+    def test_not_alert_by_mail_if_unchange_ssvc_priority_when_updating_topic_but(
+        self, mocker, testdb
+    ):
+        ## ssvc_deployer_priority is immediate
+        request = {
+            "exploitation": ExploitationEnum.ACTIVE.value,
+            "automatable": AutomatableEnum.NO.value,
+        }
+
+        send_alert_to_pteam = mocker.patch("app.routers.topics.send_alert_to_pteam")
+        response = client.put(
+            f"/topics/{self.topic.topic_id}",
+            headers=headers(USER1),
+            json=request,
+        )
+        assert response.status_code == 200
+        send_alert_to_pteam.assert_not_called()
 
     def test_not_alert_when_ssvc_deployer_priority_is_lower_than_alert_ssvc_priority_in_pteam(
         self, mocker
     ):
-        ## ssvc_deployer_priority is out_of_cycle
+        ## ssvc_deployer_priority is scheduled
         request = {
-            "exploitation": ExploitationEnum.PUBLIC_POC.value,
-            "automatable": AutomatableEnum.YES.value,
+            "exploitation": ExploitationEnum.NONE.value,
+            "automatable": AutomatableEnum.NO.value,
         }
 
         send_alert_to_pteam = mocker.patch("app.routers.topics.send_alert_to_pteam")

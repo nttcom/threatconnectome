@@ -3833,7 +3833,7 @@ class TestUpdatePTeamService:
                         "enable": True,
                         "address": f"account{idx}@example.com",
                     },
-                    "alert_ssvc_priority": DEFAULT_ALERT_SSVC_PRIORITY,
+                    "alert_ssvc_priority": "out_of_cycle",
                 }
 
             def _gen_topic_params(tags: list[schemas.TagResponse]) -> dict:
@@ -3898,11 +3898,11 @@ class TestUpdatePTeamService:
                 "accept": "application/json",
             }
 
-            ## ssvc_deployer_priority is immediate
+            ## ssvc_deployer_priority is out_of_cycle
             request = {
-                "system_exposure": models.SystemExposureEnum.OPEN.value,
-                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
-                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
+                "system_exposure": models.SystemExposureEnum.SMALL.value,
+                "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
+                "safety_impact": models.SafetyImpactEnum.CRITICAL.value,
             }
 
             send_alert_to_pteam = mocker.patch("app.common.send_alert_to_pteam")
@@ -3921,20 +3921,43 @@ class TestUpdatePTeamService:
             ticket_id = response_ticket.json()[0]["ticket_id"]
 
             alerts = testdb.scalars(
-                select(models.Alert).where(models.Alert.ticket_id == str(ticket_id))
+                select(models.Alert)
+                .where(models.Alert.ticket_id == str(ticket_id))
+                .order_by(models.Alert.alerted_at.desc())
             ).all()
 
             assert alerts
 
-            if alerts[0].alerted_at > alerts[1].alerted_at:
-                alert = alerts[0]
-            else:
-                alert = alerts[1]
-
-            assert alert.ticket.threat.topic_id == str(self.topic.topic_id)
+            assert alerts[0].ticket.threat.topic_id == str(self.topic.topic_id)
 
             send_alert_to_pteam.assert_called_once()
-            send_alert_to_pteam.assert_called_with(alert)
+            send_alert_to_pteam.assert_called_with(alerts[0])
+
+        def test_not_alert_by_mail_if_unchange_ssvc_priority_when_updating_service(
+            self, mocker, testdb: Session
+        ):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            ## ssvc_deployer_priority is immediate
+            request = {
+                "system_exposure": models.SystemExposureEnum.OPEN.value,
+                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
+                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
+            }
+
+            send_alert_to_pteam = mocker.patch("app.common.send_alert_to_pteam")
+            response = client.post(
+                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
+                headers=_headers,
+                json=request,
+            )
+            assert response.status_code == 200
+            send_alert_to_pteam.assert_not_called()
 
         def test_not_alert_with_current_ticket_status_is_completed(self, mocker):
             user1_access_token = self._get_access_token(USER1)
@@ -3984,11 +4007,11 @@ class TestUpdatePTeamService:
                 "accept": "application/json",
             }
 
-            ## ssvc_deployer_priority is out_of_cycle
+            ## ssvc_deployer_priority is scheduled
             request = {
-                "system_exposure": models.SystemExposureEnum.CONTROLLED.value,
-                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
-                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
+                "system_exposure": models.SystemExposureEnum.SMALL.value,
+                "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
+                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
             }
 
             send_alert_to_pteam = mocker.patch("app.common.send_alert_to_pteam")
