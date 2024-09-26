@@ -671,8 +671,8 @@ def set_ticket_status(
         # this is the first update
         if data.topic_status is None:
             data.topic_status = models.TopicStatusType.acknowledged
-    # avoid AttributionError
     if (
+        # there is no ticket_status in initial state
         ticket.current_ticket_status.ticket_status is None
         or ticket.current_ticket_status.ticket_status.assignees == []
     ) and data.assignees is None:
