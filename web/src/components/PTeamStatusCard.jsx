@@ -1,4 +1,4 @@
-import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { grey, yellow, amber } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
@@ -117,47 +117,59 @@ export function PTeamStatusCard(props) {
     pteam.alert_ssvc_priority !== "defer" && // disable highlight if threshold is "defer"
     compareSSVCPriority(ssvcPriority, pteam.alert_ssvc_priority) <= 0;
 
+  const testhandle = () => {
+    console.log(tag);
+    console.log(!tag.ssvc_priority);
+    console.log(tag.status_count["completed"] > 0);
+    console.log(ssvcPriority);
+    console.log(tag.ssvc_priority);
+    console.log(tag.ssvc_priority || "defer");
+  };
+
   return (
-    <TableRow
-      onClick={onHandleClick}
-      sx={{
-        border: "2px",
-        borderBottom: "2px",
-        ...(highlightCard && {
-          boxShadow: `inset 0 0 0 2px ${amber[100]}`,
-          backgroundColor: yellow[50],
-        }),
-        cursor: "pointer",
-        "&:last-child td, &:last-child th": { border: 0 },
-        "&:hover": { bgcolor: grey[100] },
-      }}
-    >
-      <TableCell component="th" scope="row" style={{ width: "5%" }}>
-        <SSVCPriorityStatusChip ssvcPriority={ssvcPriority} />
-      </TableCell>
-      <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
-        <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
-          {tag.tag_name}
-        </Typography>
-        {serviceIds &&
-          pteam.services
-            .filter((service) => serviceIds.includes(service.service_id))
-            .sort((a, b) => a.service_name.localeCompare(b.service_name))
-            .map((service) => <Chip key={service.service_id} label={service.service_name} />)}
-      </TableCell>
-      <TableCell align="right" style={{ width: "30%" }}>
-        <Box display="flex" flexDirection="column">
-          <Box display="flex" flexDirection="row" justifyContent="space-between">
-            <Typography variant="body2">
-              {!tag.ssvc_priority || tag.ssvc_priority === "defer"
-                ? ""
-                : `Updated ${calcTimestampDiff(tag.updated_at)}`}
-            </Typography>
+    <>
+      <Button onClick={testhandle}>test</Button>
+      <TableRow
+        onClick={onHandleClick}
+        sx={{
+          border: "2px",
+          borderBottom: "2px",
+          ...(highlightCard && {
+            boxShadow: `inset 0 0 0 2px ${amber[100]}`,
+            backgroundColor: yellow[50],
+          }),
+          cursor: "pointer",
+          "&:last-child td, &:last-child th": { border: 0 },
+          "&:hover": { bgcolor: grey[100] },
+        }}
+      >
+        <TableCell component="th" scope="row" style={{ width: "5%" }}>
+          <SSVCPriorityStatusChip ssvcPriority={ssvcPriority} />
+        </TableCell>
+        <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
+          <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
+            {tag.tag_name}
+          </Typography>
+          {serviceIds &&
+            pteam.services
+              .filter((service) => serviceIds.includes(service.service_id))
+              .sort((a, b) => a.service_name.localeCompare(b.service_name))
+              .map((service) => <Chip key={service.service_id} label={service.service_name} />)}
+        </TableCell>
+        <TableCell align="right" style={{ width: "30%" }}>
+          <Box display="flex" flexDirection="column">
+            <Box display="flex" flexDirection="row" justifyContent="space-between">
+              <Typography variant="body2">
+                {ssvcPriority === "safe" || ssvcPriority === "defer"
+                  ? ""
+                  : `Updated ${calcTimestampDiff(tag.updated_at)}`}
+              </Typography>
+            </Box>
+            <StatusRatioGraph counts={tag.status_count} ssvcPriority={tag.ssvc_priority} />
           </Box>
-          <StatusRatioGraph counts={tag.status_count} ssvcPriority={tag.ssvc_priority} />
-        </Box>
-      </TableCell>
-    </TableRow>
+        </TableCell>
+      </TableRow>
+    </>
   );
 }
 
