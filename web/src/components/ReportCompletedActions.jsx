@@ -67,7 +67,6 @@ export function ReportCompletedActions(props) {
       await setTicketStatus(pteamId, serviceId, ticketId, {
         topic_status: "completed",
         logging_ids: actionLogs.map((log) => log.logging_id),
-        assignees: [], // clear assignees
         note: note.trim() || null,
         scheduled_at: "1970-01-01T00:00:00", // FIXME: clear scheduled date
       });
