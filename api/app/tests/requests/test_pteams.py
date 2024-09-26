@@ -3246,6 +3246,31 @@ class TestTicketStatus:
 
             assert get_response["scheduled_at"] is None
 
+        def test_it_should_set_requester_if_assignee_is_None_and_saved_assignee_is_empty(
+            self, actionable_topic1
+        ):
+            status_request = {
+                "topic_status": models.TopicStatusType.completed.value,
+                "assignees": None,
+                "note": "assign None",
+            }
+            url = (
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+                f"/ticketstatus/{self.ticket_id1}"
+            )
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            response = client.post(url, headers=_headers, json=status_request)
+            if response.status_code != 200:
+                raise HTTPError(response)
+
+            data = response.json()
+            assert data["assignees"] == [str(self.user1.user_id)]
+
 
 class TestGetTickets:
 

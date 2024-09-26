@@ -1822,7 +1822,7 @@ def test_get_topic_status():
     assert st221["scheduled_at"] is None
     st222 = _pick_tag(tmp2["service_statuses"], tag2.tag_id)
     assert st222["topic_status"] == models.TopicStatusType.scheduled
-    assert st222["assignees"] == []
+    assert st222["assignees"] == list(map(str, [user1.user_id]))
     assert datetime.fromisoformat(st222["scheduled_at"]) == datetime.fromisoformat(
         request["scheduled_at"]
     )
@@ -1853,7 +1853,7 @@ def test_get_topic_status():
     st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211
     assert st211["topic_status"] == models.TopicStatusType.scheduled
-    assert st211["assignees"] == []
+    assert st211["assignees"] == list(map(str, [user1.user_id]))
     assert datetime.fromisoformat(st211["scheduled_at"]) == datetime.fromisoformat(
         request["scheduled_at"]
     )
@@ -1868,7 +1868,7 @@ def test_get_topic_status():
     assert st221["scheduled_at"] is None
     st222 = _pick_tag(tmp2["service_statuses"], tag2.tag_id)
     assert st222["topic_status"] == models.TopicStatusType.scheduled
-    assert st222["assignees"] == []
+    assert st222["assignees"] == list(map(str, [user1.user_id]))
 
     # PTEAM2 complete TOPIC2 TAG1
     request = {
@@ -1896,13 +1896,13 @@ def test_get_topic_status():
     st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211
     assert st211["topic_status"] == models.TopicStatusType.scheduled
-    assert st211["assignees"] == []
+    assert st211["assignees"] == list(map(str, [user1.user_id]))
     tmp2 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam2.pteam_id)
     assert tmp2
     assert len(tmp2["service_statuses"]) == 1
     st222 = _pick_tag(tmp2["service_statuses"], tag2.tag_id)
     assert st222["topic_status"] == models.TopicStatusType.scheduled
-    assert st222["assignees"] == []
+    assert st222["assignees"] == list(map(str, [user1.user_id]))
 
     # PTEAM2 complete TOPIC2 TAG2
     request = {
@@ -1927,7 +1927,7 @@ def test_get_topic_status():
     assert len(tmp1["service_statuses"]) == 1
     st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211["topic_status"] == models.TopicStatusType.scheduled
-    assert st211["assignees"] == []
+    assert st211["assignees"] == list(map(str, [user1.user_id]))
 
     # PTEAM2 ack TOPIC2 TAG1 again
     request = {
@@ -1953,13 +1953,13 @@ def test_get_topic_status():
     assert len(tmp1["service_statuses"]) == 1
     st211 = _pick_tag(tmp1["service_statuses"], tag1.tag_id)
     assert st211["topic_status"] == models.TopicStatusType.scheduled
-    assert st211["assignees"] == []
+    assert st211["assignees"] == list(map(str, [user1.user_id]))
     tmp2 = _pick_pteam(topic_statuses[0]["pteam_statuses"], pteam2.pteam_id)
     assert tmp2
     assert len(tmp2["service_statuses"]) == 1
     st221 = _pick_tag(tmp2["service_statuses"], tag1.tag_id)
     assert st221["topic_status"] == models.TopicStatusType.acknowledged
-    assert st221["assignees"] == []
+    assert st221["assignees"] == list(map(str, [user1.user_id]))
 
 
 class TestGetTopicStatusWithQueryParams:

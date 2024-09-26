@@ -671,8 +671,12 @@ def set_ticket_status(
         # this is the first update
         if data.topic_status is None:
             data.topic_status = models.TopicStatusType.acknowledged
-        if data.topic_status == models.TopicStatusType.acknowledged and not data.assignees:
-            data.assignees = [UUID(current_user.user_id)]
+    if (
+        # there is no ticket_status in initial state
+        ticket.current_ticket_status.ticket_status is None
+        or ticket.current_ticket_status.ticket_status.assignees == []
+    ) and data.assignees is None:
+        data.assignees = [UUID(current_user.user_id)]
 
     # create base status inheriting current status
     if _current := current_ticket_status.ticket_status:
