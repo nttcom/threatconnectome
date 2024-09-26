@@ -3246,7 +3246,7 @@ class TestTicketStatus:
 
             assert get_response["scheduled_at"] is None
 
-        def test_it_should_set_requester_as_assignee_if_assignee_is_None_and_saved_assignee_is_empty(
+        def test_it_should_set_requester_if_assignee_is_None_and_saved_assignee_is_empty(
             self, actionable_topic1
         ):
             status_request = {
