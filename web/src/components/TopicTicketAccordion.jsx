@@ -1,14 +1,21 @@
 import { CalendarMonth } from "@mui/icons-material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Box,
   CardActions,
+  Chip,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import { tooltipClasses } from "@mui/material/Tooltip";
 import { grey } from "@mui/material/colors";
+import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -28,6 +35,27 @@ export const TopicTicketAccordion = (props) => {
   const target = dependency.target;
   const ticketStatus = ticket.current_ticket_status;
   const ssvcPriority = ticket.ssvc_deployer_priority || "defer";
+
+  const StyledTooltip = styled(({ className, ...props }) => (
+    <Tooltip {...props} classes={{ popper: className }} />
+  ))(() => ({
+    [`& .${tooltipClasses.arrow}`]: {
+      "&:before": {
+        border: "1px solid #dadde9",
+      },
+      color: "#f5f5f9",
+    },
+    [`& .${tooltipClasses.tooltip}`]: {
+      backgroundColor: "#f5f5f9",
+      color: "rgba(0, 0, 0, 0.87)",
+      border: "1px solid #dadde9",
+    },
+  }));
+
+  const safetyImpact = {
+    description: "The safety impact of the vulnerability. (based on IEC 61508)",
+    values: ["Catastrophic", "Critical", "Marginal", "Negligible"],
+  };
 
   return (
     <Accordion
@@ -50,7 +78,45 @@ export const TopicTicketAccordion = (props) => {
         </Box>
       </AccordionSummary>
       <AccordionDetails>
-        <Box p={2} display="flex" flexDirection="row" alignItems="flex-start">
+        <Box p={2} display="flex" flexDirection="row" alignItems="center">
+          <Box sx={{ display: "flex", justifyContent: "start", minWidth: "110px", mr: 1 }}>
+            <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, mr: 0.5 }}>
+              Safety impact
+            </Typography>
+            <StyledTooltip
+              arrow
+              title={
+                <>
+                  <Typography variant="body2">{safetyImpact.description}</Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      p: 1,
+                    }}
+                  >
+                    <ToggleButtonGroup
+                      color="primary"
+                      size="small"
+                      orientation="vertical"
+                      value={safetyImpact.values[0]}
+                    >
+                      {safetyImpact.values.map((value) => (
+                        <ToggleButton key={value} value={value} disabled>
+                          {value}
+                        </ToggleButton>
+                      ))}
+                    </ToggleButtonGroup>
+                  </Box>
+                </>
+              }
+            >
+              <HelpOutlineOutlinedIcon color="action" fontSize="small" />
+            </StyledTooltip>
+          </Box>
+          <Chip label={safetyImpact.values[0]} />
+        </Box>
+        <Box p={2} display="flex" flexDirection="row" alignItems="center">
           <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
             Status
           </Typography>
