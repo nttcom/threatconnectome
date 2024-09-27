@@ -34,7 +34,7 @@ import { TopicTicketAccordion } from "./TopicTicketAccordion";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function TopicCard(props) {
-  const { pteamId, topicId, currentTagId, serviceId, references } = props;
+  const { pteamId, topicId, currentTagId, service, references } = props;
   const { tagId } = useParams();
 
   const [detailOpen, setDetailOpen] = useState(false);
@@ -48,6 +48,7 @@ export function TopicCard(props) {
   const topics = useSelector((state) => state.topics.topics);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
+  const serviceId = service?.service_id;
   const dependencies = serviceDependencies[serviceId];
   const topic = topics[topicId];
   const tickets = ticketsDict[serviceId]?.[tagId]?.[topicId];
@@ -374,6 +375,7 @@ export function TopicCard(props) {
               )}
               topicId={topicId}
               ticket={ticket}
+              serviceSafetyImpact={service.safety_impact}
               members={members}
               defaultExpanded={index === 0}
               topicActions={topicActions}
@@ -389,6 +391,6 @@ TopicCard.propTypes = {
   pteamId: PropTypes.string.isRequired,
   topicId: PropTypes.string.isRequired,
   currentTagId: PropTypes.string.isRequired,
-  serviceId: PropTypes.string.isRequired,
+  service: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
 };
