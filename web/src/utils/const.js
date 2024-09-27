@@ -223,6 +223,39 @@ export const missionImpact = {
   degraded: "Degraded",
 };
 
+/* Safety Impact */
+export const safetyImpactDescription =
+  "The safety impact of the vulnerability. (based on IEC 61508)";
+export const sortedSafetyImpacts = [
+  // should match with strings which api returns
+  "catastrophic",
+  "critical",
+  "marginal",
+  "negligible",
+];
+const propSafetyImpactCatastrophic = {
+  displayName: "Catastrophic",
+};
+const propSafetyImpactCritical = {
+  displayName: "Critical",
+};
+const propSafetyImpactMarginal = {
+  displayName: "Marginal",
+};
+const propSafetyImpactNegligible = {
+  displayName: "Negligible",
+};
+export const safetyImpactProps = {
+  catastrophic: propSafetyImpactCatastrophic,
+  Catastrophic: propSafetyImpactCatastrophic,
+  critical: propSafetyImpactCritical,
+  Critical: propSafetyImpactCritical,
+  marginal: propSafetyImpactMarginal,
+  Marginal: propSafetyImpactMarginal,
+  negligible: propSafetyImpactNegligible,
+  Negligible: propSafetyImpactNegligible,
+};
+
 export const sortedTopicStatus = ["alerted", "acknowledged", "scheduled", "completed"];
 export const topicStatusProps = {
   alerted: {
