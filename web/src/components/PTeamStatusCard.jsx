@@ -149,9 +149,9 @@ export function PTeamStatusCard(props) {
         <Box display="flex" flexDirection="column">
           <Box display="flex" flexDirection="row" justifyContent="space-between">
             <Typography variant="body2">
-              {ssvcPriority === "safe" || ssvcPriority === "defer"
-                ? ""
-                : `Updated ${calcTimestampDiff(tag.updated_at)}`}
+              {tag.ssvc_priority !== null //having unsolved tickets
+                ? `Updated ${calcTimestampDiff(tag.updated_at)}`
+                : ""}
             </Typography>
           </Box>
           <StatusRatioGraph counts={tag.status_count} ssvcPriority={tag.ssvc_priority} />
