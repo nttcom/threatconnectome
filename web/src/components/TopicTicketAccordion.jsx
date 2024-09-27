@@ -19,7 +19,12 @@ import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { systemAccount } from "../utils/const";
+import {
+  safetyImpactDescription,
+  safetyImpactProps,
+  sortedSafetyImpacts,
+  systemAccount,
+} from "../utils/const";
 import { dateTimeFormat } from "../utils/func";
 
 import { AssigneesSelector } from "./AssigneesSelector";
@@ -27,8 +32,17 @@ import { SSVCPriorityStatusChip } from "./SSVCPriorityStatusChip";
 import { TopicStatusSelector } from "./TopicStatusSelector";
 import { WarningTooltip } from "./WarningTooltip";
 
-export const TopicTicketAccordion = (props) => {
-  const { pteamId, dependency, topicId, ticket, members, defaultExpanded, topicActions } = props;
+export function TopicTicketAccordion(props) {
+  const {
+    pteamId,
+    dependency,
+    topicId,
+    ticket,
+    serviceSafetyImpact,
+    members,
+    defaultExpanded,
+    topicActions,
+  } = props;
 
   const serviceId = dependency.service_id;
   const tagId = dependency.tag_id;
@@ -52,10 +66,7 @@ export const TopicTicketAccordion = (props) => {
     },
   }));
 
-  const safetyImpact = {
-    description: "The safety impact of the vulnerability. (based on IEC 61508)",
-    values: ["Catastrophic", "Critical", "Marginal", "Negligible"],
-  };
+  const serviceSafetyImpactDisplayName = safetyImpactProps[serviceSafetyImpact].displayName;
 
   return (
     <Accordion
@@ -87,7 +98,7 @@ export const TopicTicketAccordion = (props) => {
               arrow
               title={
                 <>
-                  <Typography variant="body2">{safetyImpact.description}</Typography>
+                  <Typography variant="body2">{safetyImpactDescription}</Typography>
                   <Box
                     sx={{
                       display: "flex",
@@ -99,13 +110,16 @@ export const TopicTicketAccordion = (props) => {
                       color="primary"
                       size="small"
                       orientation="vertical"
-                      value={safetyImpact.values[0]}
+                      value={serviceSafetyImpactDisplayName}
                     >
-                      {safetyImpact.values.map((value) => (
-                        <ToggleButton key={value} value={value} disabled>
-                          {value}
-                        </ToggleButton>
-                      ))}
+                      {sortedSafetyImpacts.map((safetyImpact) => {
+                        const displayName = safetyImpactProps[safetyImpact].displayName;
+                        return (
+                          <ToggleButton key={safetyImpact} value={displayName} disabled>
+                            {displayName}
+                          </ToggleButton>
+                        );
+                      })}
                     </ToggleButtonGroup>
                   </Box>
                 </>
@@ -114,7 +128,7 @@ export const TopicTicketAccordion = (props) => {
               <HelpOutlineOutlinedIcon color="action" fontSize="small" />
             </StyledTooltip>
           </Box>
-          <Chip label={safetyImpact.values[0]} />
+          <Chip label={serviceSafetyImpactDisplayName} />
         </Box>
         <Box p={2} display="flex" flexDirection="row" alignItems="center">
           <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
@@ -184,13 +198,14 @@ export const TopicTicketAccordion = (props) => {
       </AccordionDetails>
     </Accordion>
   );
-};
+}
 
 TopicTicketAccordion.propTypes = {
   pteamId: PropTypes.string.isRequired,
   dependency: PropTypes.object.isRequired,
   topicId: PropTypes.string.isRequired,
   ticket: PropTypes.object.isRequired,
+  serviceSafetyImpact: PropTypes.string.isRequired,
   members: PropTypes.object.isRequired,
   defaultExpanded: PropTypes.bool,
   topicActions: PropTypes.array,

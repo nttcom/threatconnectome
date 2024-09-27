@@ -10,7 +10,7 @@ import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 import { TopicCard } from "./TopicCard";
 
 export function PTeamTaggedTopics(props) {
-  const { pteamId, tagId, serviceId, isSolved, references } = props;
+  const { pteamId, tagId, service, isSolved, references } = props;
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -18,7 +18,7 @@ export function PTeamTaggedTopics(props) {
   const taggedTopics = useSelector((state) => state.pteam.taggedTopics); // dispatched by parent
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
-  const targets = taggedTopics?.[serviceId]?.[tagId]?.[isSolved ? "solved" : "unsolved"];
+  const targets = taggedTopics?.[service?.service_id]?.[tagId]?.[isSolved ? "solved" : "unsolved"];
 
   if (targets === undefined || !allTags) {
     return <>Loading...</>;
@@ -72,7 +72,7 @@ export function PTeamTaggedTopics(props) {
         <PTeamStatusMenu
           presetTagId={presetTagId}
           presetParentTagId={presetParentTagId}
-          serviceId={serviceId}
+          serviceId={service.service_id}
         />
       </Box>
       {paginationRow}
@@ -84,7 +84,7 @@ export function PTeamTaggedTopics(props) {
               pteamId={pteamId}
               topicId={topicId}
               currentTagId={tagId}
-              serviceId={serviceId}
+              service={service}
               references={references}
             />
           </ListItem>
@@ -97,7 +97,7 @@ export function PTeamTaggedTopics(props) {
 PTeamTaggedTopics.propTypes = {
   pteamId: PropTypes.string.isRequired,
   tagId: PropTypes.string.isRequired,
-  serviceId: PropTypes.string.isRequired,
+  service: PropTypes.object.isRequired,
   isSolved: PropTypes.bool.isRequired,
   references: PropTypes.array.isRequired,
 };
