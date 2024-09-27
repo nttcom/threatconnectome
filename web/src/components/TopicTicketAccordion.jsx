@@ -83,7 +83,7 @@ export function TopicTicketAccordion(props) {
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: grey[50] }}>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Box sx={{ mr: 1 }}>
-            <SSVCPriorityStatusChip ssvcPriority={ssvcPriority} />
+            <SSVCPriorityStatusChip displaySSVCPriority={ssvcPriority} />
           </Box>
           <Box sx={{ wordBreak: "break-all" }}>{target}</Box>
         </Box>
