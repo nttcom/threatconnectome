@@ -167,6 +167,13 @@ const pteamSlice = createSlice({
         [action.payload.serviceId]: action.payload.data,
       },
     }),
+    storeServiceThumbnailDict: (state, action) => ({
+      ...state,
+      serviceThumbnails: {
+        ...state.serviceThumbnails,
+        ...action.payload,
+      },
+    }),
   },
   extraReducers: (builder) => {
     builder
@@ -242,6 +249,12 @@ const pteamSlice = createSlice({
 
 const { actions, reducer } = pteamSlice;
 
-export const { clearPTeam, setPTeamId, invalidateServiceId, storeServiceThumbnail } = actions;
+export const {
+  clearPTeam,
+  setPTeamId,
+  invalidateServiceId,
+  storeServiceThumbnail,
+  storeServiceThumbnailDict,
+} = actions;
 
 export default reducer;

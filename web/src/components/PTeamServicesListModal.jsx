@@ -23,7 +23,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { storeServiceThumbnail } from "../slices/pteam";
+import { storeServiceThumbnailDict } from "../slices/pteam";
 import { getServiceThumbnail } from "../utils/api";
 import { blobToDataURL } from "../utils/func";
 
@@ -52,23 +52,24 @@ export function PTeamServicesListModal(props) {
   const pageServices = targetServices.slice(perPage * (page - 1), perPage * page);
 
   useEffect(() => {
-    pageServices.forEach((service) => {
-      if (thumbnails[service.service_id] === undefined) {
-        getServiceThumbnail(pteamId, service.service_id)
-          .then(async (response) => {
-            const dataUrl = await blobToDataURL(response.data);
-            dispatch(storeServiceThumbnail({ serviceId: service.service_id, data: dataUrl }));
-          })
-          .catch((error) => {
-            dispatch(
-              storeServiceThumbnail({
-                serviceId: service.service_id,
-                data: noImageAvailableUrl,
-              }),
-            );
-          });
+    if (pageServices.every((service) => thumbnails[service.service_id] !== undefined)) {
+      return;
+    }
+    (async () => {
+      let serviceThumbnailDict = {};
+      for (let service of pageServices) {
+        if (thumbnails[service.service_id] !== undefined) {
+          continue;
+        }
+        serviceThumbnailDict[service.service_id] = await getServiceThumbnail(
+          pteamId,
+          service.service_id,
+        )
+          .then(async (response) => blobToDataURL(response.data))
+          .catch(() => noImageAvailableUrl);
       }
-    });
+      dispatch(storeServiceThumbnailDict(serviceThumbnailDict));
+    })();
   }, [pteamId, pageServices, thumbnails, dispatch]);
 
   if (tagId === "") {
