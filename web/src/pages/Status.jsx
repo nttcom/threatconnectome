@@ -173,7 +173,6 @@ export function Status() {
       navigate(location.pathname + "?" + newParams.toString());
       return;
     } else if (!pteam.services.find((service) => service.service_id === serviceId)) {
-      alert("Invalid serviceId!");
       const newParams = new URLSearchParams();
       newParams.set("pteamId", pteamId);
       navigate("/?" + newParams.toString());
