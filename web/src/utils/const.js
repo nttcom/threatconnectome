@@ -198,6 +198,8 @@ export const ssvcPriorityProps = {
   Defer: prop_defer,
   safe: prop_safe,
   Safe: prop_safe,
+  empty: prop_defer,
+  Empty: prop_defer,
 };
 export const defaultAlertThreshold = sortedSSVCPriorities[0];
 
@@ -254,6 +256,7 @@ export const safetyImpactProps = {
   Negligible: propSafetyImpactNegligible,
 };
 
+export const sortedTopicStatus = ["alerted", "acknowledged", "scheduled", "completed"];
 export const topicStatusProps = {
   alerted: {
     chipLabel: "alerted",

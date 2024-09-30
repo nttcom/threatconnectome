@@ -100,6 +100,8 @@ export const compareSSVCPriority = (prio1, prio2) => {
     Defer: 4,
     safe: 4,
     Safe: 4,
+    empty: 4,
+    Empty: 4,
   };
   const [int1, int2] = [toIntDict[prio1], toIntDict[prio2]];
   if (int1 === int2) return 0;

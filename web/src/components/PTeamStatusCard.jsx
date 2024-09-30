@@ -4,7 +4,7 @@ import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { topicStatusProps } from "../utils/const";
+import { topicStatusProps, sortedTopicStatus } from "../utils/const";
 import { calcTimestampDiff, compareSSVCPriority } from "../utils/func";
 
 import { SSVCPriorityStatusChip } from "./SSVCPriorityStatusChip";
@@ -76,8 +76,8 @@ function DisableLine() {
 }
 
 function StatusRatioGraph(props) {
-  const { counts, ssvcPriority } = props;
-  if (!ssvcPriority && (counts ?? []).length === 0) return "";
+  const { counts, displaySSVCPriority } = props;
+  if (displaySSVCPriority === "empty") return "";
   const keys = ["completed", "scheduled", "acknowledged", "alerted"];
   const total = keys.reduce((ret, key) => ret + counts[key] ?? 0, 0);
   const ratios = keys.reduce((ret, key) => {
@@ -102,20 +102,28 @@ function StatusRatioGraph(props) {
 
 StatusRatioGraph.propTypes = {
   counts: PropTypes.object,
-  ssvcPriority: PropTypes.string,
+  displaySSVCPriority: PropTypes.string,
 };
 
 export function PTeamStatusCard(props) {
   const { onHandleClick, pteam, tag, serviceIds } = props;
 
-  const ssvcPriority = // detect "safe"
-    !tag.ssvc_priority && tag.status_count["completed"] > 0
-      ? "safe" // solved all and at least 1 tickets
-      : tag.ssvc_priority || "defer";
+  let displaySSVCPriority = "";
+  if (!tag.ssvc_priority && tag.status_count["completed"] > 0) {
+    displaySSVCPriority = "safe"; // solved all and at least 1 tickets
+  } else if (
+    !tag.ssvc_priority &&
+    sortedTopicStatus.every((topicStatus) => tag.status_count[topicStatus] === 0)
+  ) {
+    displaySSVCPriority = "empty";
+  } else {
+    displaySSVCPriority = tag.ssvc_priority ?? "defer";
+  }
+
   // Change the background color and border based on the Alert Threshold value set by the team.
   const highlightCard =
     pteam.alert_ssvc_priority !== "defer" && // disable highlight if threshold is "defer"
-    compareSSVCPriority(ssvcPriority, pteam.alert_ssvc_priority) <= 0;
+    compareSSVCPriority(displaySSVCPriority, pteam.alert_ssvc_priority) <= 0;
 
   return (
     <TableRow
@@ -133,7 +141,7 @@ export function PTeamStatusCard(props) {
       }}
     >
       <TableCell component="th" scope="row" style={{ width: "5%" }}>
-        <SSVCPriorityStatusChip ssvcPriority={ssvcPriority} />
+        <SSVCPriorityStatusChip displaySSVCPriority={displaySSVCPriority} />
       </TableCell>
       <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
@@ -149,10 +157,12 @@ export function PTeamStatusCard(props) {
         <Box display="flex" flexDirection="column">
           <Box display="flex" flexDirection="row" justifyContent="space-between">
             <Typography variant="body2">
-              {`Updated ${calcTimestampDiff(tag.updated_at)}`}
+              {displaySSVCPriority === "safe" || displaySSVCPriority === "empty"
+                ? ""
+                : `Updated ${calcTimestampDiff(tag.updated_at)}`}
             </Typography>
           </Box>
-          <StatusRatioGraph counts={tag.status_count} ssvcPriority={tag.ssvc_priority} />
+          <StatusRatioGraph counts={tag.status_count} displaySSVCPriority={tag.ssvc_priority} />
         </Box>
       </TableCell>
     </TableRow>

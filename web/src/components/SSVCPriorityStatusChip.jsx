@@ -6,8 +6,8 @@ import React from "react";
 import { ssvcPriorityProps } from "../utils/const";
 
 export function SSVCPriorityStatusChip(props) {
-  const { ssvcPriority } = props;
-  const ssvcPriorityProp = ssvcPriorityProps[ssvcPriority];
+  const { displaySSVCPriority } = props;
+  const ssvcPriorityProp = ssvcPriorityProps[displaySSVCPriority];
 
   const Icon = ssvcPriorityProp.icon;
   const StyledTooltip = styled((styledProps) => (
@@ -38,5 +38,5 @@ export function SSVCPriorityStatusChip(props) {
 }
 
 SSVCPriorityStatusChip.propTypes = {
-  ssvcPriority: PropTypes.string.isRequired,
+  displaySSVCPriority: PropTypes.string.isRequired,
 };
