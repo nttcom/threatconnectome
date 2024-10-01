@@ -400,7 +400,7 @@ def test_get_pteam_services_verify_if_all_responses_are_filled(service_request, 
 
     service_id1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name)["service_id"]
 
-    client.post(
+    client.put(
         f"/pteams/{pteam1.pteam_id}/services/{service_id1}",
         headers=headers(USER1),
         json=service_request,
@@ -3528,7 +3528,7 @@ class TestUpdatePTeamService:
             }
             request = {"keywords": keywords}
 
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
                 headers=_headers,
                 json=request,
@@ -3577,7 +3577,7 @@ class TestUpdatePTeamService:
             }
             request = {"keywords": [keyword]}
 
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
                 headers=_headers,
                 json=request,
@@ -3627,7 +3627,7 @@ class TestUpdatePTeamService:
             }
             request = {"description": description}
 
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
                 headers=_headers,
                 json=request,
@@ -3665,7 +3665,7 @@ class TestUpdatePTeamService:
 
             request = {"system_exposure": system_exposure}
 
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
                 headers=_headers,
                 json=request,
@@ -3695,7 +3695,7 @@ class TestUpdatePTeamService:
 
             request = {"system_exposure": system_exposure}
 
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
                 headers=_headers,
                 json=request,
@@ -3730,7 +3730,7 @@ class TestUpdatePTeamService:
 
             request = {"service_mission_impact": service_mission_impact}
 
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
                 headers=_headers,
                 json=request,
@@ -3768,7 +3768,7 @@ class TestUpdatePTeamService:
 
             request = {"service_mission_impact": service_mission_impact}
 
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
                 headers=_headers,
                 json=request,
@@ -3803,7 +3803,7 @@ class TestUpdatePTeamService:
 
             request = {"safety_impact": safety_impact}
 
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
                 headers=_headers,
                 json=request,
@@ -3835,7 +3835,7 @@ class TestUpdatePTeamService:
 
             request = {"safety_impact": safety_impact}
 
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
                 headers=_headers,
                 json=request,
@@ -3931,7 +3931,7 @@ class TestUpdatePTeamService:
             }
 
             send_alert_to_pteam = mocker.patch("app.common.send_alert_to_pteam")
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
                 headers=_headers,
                 json=request,
@@ -3976,7 +3976,7 @@ class TestUpdatePTeamService:
             }
 
             send_alert_to_pteam = mocker.patch("app.common.send_alert_to_pteam")
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
                 headers=_headers,
                 json=request,
@@ -4014,7 +4014,7 @@ class TestUpdatePTeamService:
                 "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
             }
             send_alert_to_pteam = mocker.patch("app.common.send_alert_to_pteam")
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
                 headers=_headers,
                 json=request,
@@ -4040,7 +4040,7 @@ class TestUpdatePTeamService:
             }
 
             send_alert_to_pteam = mocker.patch("app.common.send_alert_to_pteam")
-            response = client.post(
+            response = client.put(
                 f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
                 headers=_headers,
                 json=request,
