@@ -1,7 +1,6 @@
 import enum
 import uuid
 from datetime import datetime
-from functools import total_ordering
 from typing import cast
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
@@ -203,7 +202,6 @@ class HumanImpactEnum(str, enum.Enum):
     VERY_HIGH = "very_high"
 
 
-@total_ordering
 class SSVCDeployerPriorityEnum(str, enum.Enum):
     # https://certcc.github.io/SSVC/howto/deployer_tree/#deployer-decision-outcomes
     IMMEDIATE = "immediate"
@@ -211,9 +209,34 @@ class SSVCDeployerPriorityEnum(str, enum.Enum):
     SCHEDULED = "scheduled"
     DEFER = "defer"
 
+    @property
+    def orders_map(self):
+        return {
+            SSVCDeployerPriorityEnum.IMMEDIATE: 1,
+            SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
+            SSVCDeployerPriorityEnum.SCHEDULED: 3,
+            SSVCDeployerPriorityEnum.DEFER: 4,
+        }
+
     def __lt__(self, other):
-        orders_map = {"immediate": 1, "out_of_cycle": 2, "scheduled": 3, "defer": 4}
-        return orders_map[self] < orders_map[other]
+        if not isinstance(other, SSVCDeployerPriorityEnum):
+            return NotImplemented
+        return self.orders_map[self] < self.orders_map[other]
+
+    def __le__(self, other):
+        if not isinstance(other, SSVCDeployerPriorityEnum):
+            return NotImplemented
+        return self.orders_map[self] <= self.orders_map[other]
+
+    def __gt__(self, other):
+        if not isinstance(other, SSVCDeployerPriorityEnum):
+            return NotImplemented
+        return self.orders_map[self] > self.orders_map[other]
+
+    def __ge__(self, other):
+        if not isinstance(other, SSVCDeployerPriorityEnum):
+            return NotImplemented
+        return self.orders_map[self] >= self.orders_map[other]
 
 
 # Base class
