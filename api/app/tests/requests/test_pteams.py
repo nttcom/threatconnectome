@@ -3210,7 +3210,7 @@ class TestTicketStatus:
                 ),
             ],
         )
-        def test_correct_response_is_received_by_changing_the_topicstatus_and_scheduled_at(
+        def test_correct_response_is_received_by_changing_the_topic_status_and_scheduled_at(
             self,
             actionable_topic1,
             topic_status,
