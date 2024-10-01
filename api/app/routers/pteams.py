@@ -187,7 +187,7 @@ def get_pteam_services(
     return sorted(pteam.services, key=lambda x: x.service_name)
 
 
-@router.post("/{pteam_id}/services/{service_id}", response_model=schemas.PTeamServiceUpdateResponse)
+@router.put("/{pteam_id}/services/{service_id}", response_model=schemas.PTeamServiceUpdateResponse)
 def update_pteam_service(
     pteam_id: UUID,
     service_id: UUID,
