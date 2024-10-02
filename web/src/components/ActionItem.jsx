@@ -98,7 +98,7 @@ export function ActionItem(props) {
               style: {
                 whiteSpace: "normal",
                 overflow: "auto",
-                width: "92%",
+                width: "100%",
               },
             }}
           />
