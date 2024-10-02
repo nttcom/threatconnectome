@@ -12,6 +12,40 @@ from typing_extensions import Annotated
 # ENUMs
 
 
+class ComparableStringEnum(str, enum.Enum):
+
+    @property
+    # Note: this method can be a classmethod in python3.10, but chaining classmethod descriptors
+    #       is depricated in python3.11.
+    def _orders_map(self):
+        # Note: list(Enum) returns enums in definition order.
+        #       see enum.EnumMeta.__iter__()
+        return {element.value: index for index, element in enumerate(self.__class__)}
+
+    def _comparable(self, other):
+        return isinstance(other, self.__class__)
+
+    def __lt__(self, other):
+        if not self._comparable(other):
+            return NotImplemented
+        return self._orders_map[self] < self._orders_map[other]
+
+    def __le__(self, other):
+        if not self._comparable(other):
+            return NotImplemented
+        return self._orders_map[self] <= self._orders_map[other]
+
+    def __gt__(self, other):
+        if not self._comparable(other):
+            return NotImplemented
+        return self._orders_map[self] > self._orders_map[other]
+
+    def __ge__(self, other):
+        if not self._comparable(other):
+            return NotImplemented
+        return self._orders_map[self] >= self._orders_map[other]
+
+
 class ActionType(str, enum.Enum):
     elimination = "elimination"
     transfer = "transfer"
@@ -202,41 +236,12 @@ class HumanImpactEnum(str, enum.Enum):
     VERY_HIGH = "very_high"
 
 
-class SSVCDeployerPriorityEnum(str, enum.Enum):
+class SSVCDeployerPriorityEnum(ComparableStringEnum):
     # https://certcc.github.io/SSVC/howto/deployer_tree/#deployer-decision-outcomes
     IMMEDIATE = "immediate"
     OUT_OF_CYCLE = "out_of_cycle"
     SCHEDULED = "scheduled"
     DEFER = "defer"
-
-    @property
-    def orders_map(self):
-        return {
-            SSVCDeployerPriorityEnum.IMMEDIATE: 1,
-            SSVCDeployerPriorityEnum.OUT_OF_CYCLE: 2,
-            SSVCDeployerPriorityEnum.SCHEDULED: 3,
-            SSVCDeployerPriorityEnum.DEFER: 4,
-        }
-
-    def __lt__(self, other):
-        if not isinstance(other, SSVCDeployerPriorityEnum):
-            return NotImplemented
-        return self.orders_map[self] < self.orders_map[other]
-
-    def __le__(self, other):
-        if not isinstance(other, SSVCDeployerPriorityEnum):
-            return NotImplemented
-        return self.orders_map[self] <= self.orders_map[other]
-
-    def __gt__(self, other):
-        if not isinstance(other, SSVCDeployerPriorityEnum):
-            return NotImplemented
-        return self.orders_map[self] > self.orders_map[other]
-
-    def __ge__(self, other):
-        if not isinstance(other, SSVCDeployerPriorityEnum):
-            return NotImplemented
-        return self.orders_map[self] >= self.orders_map[other]
 
 
 # Base class
