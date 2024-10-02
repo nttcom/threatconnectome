@@ -91,35 +91,33 @@ export function ActionItem(props) {
     <>
       <ListItem alignItems="flex-start" disablePadding>
         {decoratedAction}
-        <ListItemText
-          primary={action}
-          primaryTypographyProps={{
-            style: {
-              whiteSpace: "normal",
-              overflow: "auto",
-              width: "92%",
-            },
-          }}
-          secondary={
-            <Box flexDirection="column">
-              <Typography
-                sx={{ display: "inline" }}
-                component="span"
-                variant="body2"
-                color="text.primary"
-              >
-                <Box display="flex" flexDirection="column">
-                  {extInfo}
-                  <UUIDTypography>{actionId}</UUIDTypography>
-                  <Typography color={grey[600]} variant="caption">
-                    {dateTimeFormat(createdAt)}
-                  </Typography>
-                </Box>
+        <Box flexDirection="column">
+          <ListItemText
+            primary={action}
+            primaryTypographyProps={{
+              style: {
+                whiteSpace: "normal",
+                overflow: "auto",
+                width: "92%",
+              },
+            }}
+          />
+          <Typography
+            sx={{ display: "inline" }}
+            component="span"
+            variant="body2"
+            color="text.primary"
+          >
+            <Box display="flex" flexDirection="column">
+              {extInfo}
+              <UUIDTypography>{actionId}</UUIDTypography>
+              <Typography color={grey[600]} variant="caption">
+                {dateTimeFormat(createdAt)}
               </Typography>
             </Box>
-          }
-        />
-        {dustbox}
+          </Typography>
+          {dustbox}
+        </Box>
       </ListItem>
     </>
   );
