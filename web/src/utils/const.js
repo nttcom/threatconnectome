@@ -178,7 +178,7 @@ const prop_defer = {
 const prop_safe = {
   chipLabel: "Safe",
   icon: HealthAndSafetyIcon,
-  statusLabel: "Your pteam has safe",
+  statusLabel: "All vulnerabilities have been resolved",
   style: {
     bgcolor: green[600],
     color: "white",
