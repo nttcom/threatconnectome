@@ -58,13 +58,12 @@ export function AnalysisNoThreatsMsg(props) {
               <ListItemIcon>
                 <CheckCircleRoundedIcon color="success" fontSize="small" />
               </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography display="flex">{pteam.pteam_name}</Typography>
-                  </Box>
-                }
-              />
+              <Box display="flex" justifyContent="space-between">
+                <ListItemText
+                  primary={pteam.pteam_name}
+                  primaryTypographyProps={{ display: "flex", variant: "body1" }}
+                />
+              </Box>
             </ListItem>
           ))}
         </List>
