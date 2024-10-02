@@ -124,7 +124,9 @@ export function PTeamStatusSSVCCards(props) {
                       <Button
                         display="flex"
                         alignItems="center"
-                        startIcon={<SSVCPriorityStatusChip ssvcPriority={highestSsvcPriority} />}
+                        startIcon={
+                          <SSVCPriorityStatusChip displaySSVCPriority={highestSsvcPriority} />
+                        }
                         sx={{ color: "white" }}
                       >
                         {card.valuePairing[item]}
