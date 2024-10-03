@@ -593,7 +593,12 @@ class PTeam(Base):
         collection_class=set,  # avoid duplications
         viewonly=True,  # block updating via this relationship
     )
-    services = relationship("Service", back_populates="pteam", cascade="all, delete-orphan")
+    services = relationship(
+        "Service",
+        order_by="Service.service_name",
+        back_populates="pteam",
+        cascade="all, delete-orphan",
+    )
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
     invitations = relationship("PTeamInvitation", back_populates="pteam")
     ateams = relationship("ATeam", secondary=ATeamPTeam.__tablename__, back_populates="pteams")
