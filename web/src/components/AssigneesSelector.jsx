@@ -1,4 +1,4 @@
-import { Checkbox, ListItemText, MenuItem, Input, Select } from "@mui/material";
+import { Checkbox, ListItemText, MenuItem, Input, Select, FormControl } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
@@ -58,16 +58,16 @@ export function AssigneesSelector(props) {
   if (!pteamId || !serviceId || !topicId || !tagId || !ticketId || !members) return <></>;
 
   return (
-    <>
+    <FormControl size="small">
       <Select
         multiple
         displayEmpty
         value={assigneeEmails}
         onChange={handleAssigneesChange}
         onClose={handleApply}
-        input={<Input sx={{ display: "flex" }} />}
+        input={<Input sx={{ display: "flex", fontSize: 14 }} />}
         renderValue={(selected) => {
-          return selected.length === 0 ? <em>select</em> : selected.join(", ");
+          return selected.length === 0 ? <em>Select assignees</em> : selected.join(", ");
         }}
         MenuProps={{
           PaperProps: {
@@ -79,17 +79,17 @@ export function AssigneesSelector(props) {
         }}
         notched="true" /* to avoid Warning: Received `true` for a non-boolean attribute `notched` */
       >
-        <MenuItem disabled value="">
-          <em>select assignees</em>
+        <MenuItem disabled value="" sx={{ fontSize: 14 }}>
+          <em>Select assignees</em>
         </MenuItem>
         {Object.values(members).map((member) => (
           <MenuItem key={member.user_id} value={member.email}>
             <Checkbox checked={assigneeEmails.includes(member.email)} />
-            <ListItemText primary={member.email} />
+            <ListItemText primary={member.email} sx={{ "& span": { fontSize: 14 } }} />
           </MenuItem>
         ))}
       </Select>
-    </>
+    </FormControl>
   );
 }
 
