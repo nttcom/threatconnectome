@@ -132,8 +132,16 @@ export function PTeamStatusSSVCCards(props) {
                       </Button>
                     </ToggleButton>
                   ) : (
-                    <ToggleButton key={item} value={item} disabled>
-                      <Button display="flex" alignItems="center">
+                    <ToggleButton key={item} value={item}>
+                      <Button
+                        display="flex"
+                        alignItems="center"
+                        disabled={
+                          item !== highestSsvcPriority &&
+                          item !== service.system_exposure &&
+                          item !== service.service_mission_impact
+                        }
+                      >
                         {card.valuePairing[item]}
                       </Button>
                     </ToggleButton>
