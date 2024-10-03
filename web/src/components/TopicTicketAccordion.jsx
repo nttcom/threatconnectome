@@ -184,15 +184,13 @@ export function TopicTicketAccordion(props) {
           </Grid>
         </Grid>
         {(ticketStatus.topic_status ?? "alerted") !== "alerted" && (
-          <Box display="flex" justifyContent="flex-end" sx={{ color: grey[600] }}>
-            <Box display="flex" alignItems="flex-end">
-              <Typography variant="caption">Last updated by</Typography>
-              <Typography ml={0.5} variant="caption" fontWeight={900}>
-                {ticketStatus.user_id === systemAccount.uuid
-                  ? systemAccount.email
-                  : members[ticketStatus.user_id]?.email ?? "not a pteam member"}
-              </Typography>
-            </Box>
+          <Box sx={{ textAlign: "right", color: grey[600] }}>
+            <Typography variant="caption">Last updated by</Typography>
+            <Typography ml={0.5} variant="caption" fontWeight={900}>
+              {ticketStatus.user_id === systemAccount.uuid
+                ? systemAccount.email
+                : members[ticketStatus.user_id]?.email ?? "not a pteam member"}
+            </Typography>
           </Box>
         )}
       </AccordionDetails>
