@@ -21,8 +21,6 @@ import {
   missionImpact,
 } from "../utils/const";
 
-import { SSVCPriorityStatusChip } from "./SSVCPriorityStatusChip";
-
 export function PTeamStatusSSVCCards(props) {
   const { service, highestSsvcPriority } = props;
 
@@ -31,6 +29,9 @@ export function PTeamStatusSSVCCards(props) {
     service.system_exposure,
     service.service_mission_impact,
   ];
+
+  const ssvcPriorityProp = ssvcPriorityProps[highestSsvcPriority];
+  const Icon = ssvcPriorityProp.icon;
 
   let ssvcPriority = {
     ...ssvcPriorityProps,
@@ -124,9 +125,7 @@ export function PTeamStatusSSVCCards(props) {
                       <Button
                         display="flex"
                         alignItems="center"
-                        startIcon={
-                          <SSVCPriorityStatusChip displaySSVCPriority={highestSsvcPriority} />
-                        }
+                        startIcon={<Icon />}
                         sx={{ color: "white" }}
                       >
                         {card.valuePairing[item]}
