@@ -3101,6 +3101,25 @@ class TestTicketStatus:
 
     class TestSet(Common):
 
+        def common_setup_for_set_ticket_status(self, topic_status, scheduled_at):
+            status_request = {
+                "topic_status": topic_status,
+                "assignees": [str(self.user2.user_id)],
+                "scheduled_at": scheduled_at,
+            }
+            url = (
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+                f"/ticketstatus/{self.ticket_id1}"
+            )
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            response = client.post(url, headers=_headers, json=status_request)
+            return response
+
         def test_set_requested_status(self, actionable_topic1):
             status_request = {
                 "topic_status": models.TopicStatusType.scheduled.value,
@@ -3134,117 +3153,277 @@ class TestTicketStatus:
             }
             assert data == expected_status
 
-        def test_it_should_return_400_when_topic_status_is_scheduled_and_there_is_no_schduled_at(
-            self, actionable_topic1
+        @pytest.mark.parametrize(
+            "topic_status, scheduled_at, expected_response_detail",
+            [
+                (models.TopicStatusType.alerted.value, None, "Wrong topic status"),
+                (
+                    models.TopicStatusType.alerted.value,
+                    str(datetime.fromtimestamp(0)),
+                    "Wrong topic status",
+                ),
+                (
+                    models.TopicStatusType.alerted.value,
+                    "2000-01-01T00:00:00",
+                    "Wrong topic status",
+                ),
+                (
+                    models.TopicStatusType.alerted.value,
+                    "2345-06-07T08:09:10",
+                    "Wrong topic status",
+                ),
+            ],
+        )
+        def test_it_should_return_400_when_topic_status_is_alerted(
+            self,
+            actionable_topic1,
+            topic_status,
+            scheduled_at,
+            expected_response_detail,
         ):
-            status_request = {
-                "topic_status": models.TopicStatusType.scheduled.value,
-                "assignees": [str(self.user2.user_id)],
-                "note": "assign user2 and schedule at 2345/6/7",
-            }
-            url = (
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-                f"/ticketstatus/{self.ticket_id1}"
-            )
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-            response = client.post(url, headers=_headers, json=status_request)
+            response = self.common_setup_for_set_ticket_status(topic_status, scheduled_at)
             assert response.status_code == 400
+            assert response.json()["detail"] == expected_response_detail
 
-            set_response = response.json()
-            assert set_response["detail"] == "If status is scheduled, specify schduled_at"
-
-        def test_it_should_return_400_when_topic_status_is_acknowledged_and_there_is_schduled_at(
-            self, actionable_topic1
+        @pytest.mark.parametrize(
+            "topic_status, scheduled_at, expected_response_detail",
+            [
+                (
+                    models.TopicStatusType.acknowledged.value,
+                    "2000-01-01T00:00:00",
+                    "If status is not scheduled, do not specify schduled_at",
+                ),
+                (
+                    models.TopicStatusType.acknowledged.value,
+                    "2345-06-07T08:09:10",
+                    "If status is not scheduled, do not specify schduled_at",
+                ),
+                (
+                    models.TopicStatusType.completed.value,
+                    "2000-01-01T00:00:00",
+                    "If status is not scheduled, do not specify schduled_at",
+                ),
+                (
+                    models.TopicStatusType.completed.value,
+                    "2345-06-07T08:09:10",
+                    "If status is not scheduled, do not specify schduled_at",
+                ),
+            ],
+        )
+        def test_it_should_return_400_when_topic_status_is_not_scheduled_and_schduled_at_is_time(
+            self,
+            actionable_topic1,
+            topic_status,
+            scheduled_at,
+            expected_response_detail,
         ):
-            status_request = {
-                "topic_status": models.TopicStatusType.completed.value,
-                "assignees": [str(self.user2.user_id)],
-                "note": "assign user2 and schedule at 2345/6/7",
-                "scheduled_at": "2345-06-07T08:09:10",
-            }
-            url = (
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-                f"/ticketstatus/{self.ticket_id1}"
-            )
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-            response = client.post(url, headers=_headers, json=status_request)
+            response = self.common_setup_for_set_ticket_status(topic_status, scheduled_at)
             assert response.status_code == 400
+            assert response.json()["detail"] == expected_response_detail
 
-            set_response = response.json()
-            assert (
-                set_response["detail"] == "If status is not scheduled, do not specify schduled_at"
-            )
-
-        def test_it_should_return_400_when_topic_status_is_scheduled_and_schduled_at_is_in_the_past(
-            self, actionable_topic1
+        @pytest.mark.parametrize(
+            "topic_status, scheduled_at, expected_response_detail",
+            [
+                (
+                    models.TopicStatusType.scheduled.value,
+                    None,
+                    "If status is scheduled, specify schduled_at",
+                ),
+                (
+                    models.TopicStatusType.scheduled.value,
+                    str(datetime.fromtimestamp(0)),
+                    "If status is scheduled, unable to reset schduled_at",
+                ),
+                (
+                    models.TopicStatusType.scheduled.value,
+                    "2000-01-01T00:00:00",
+                    "If status is scheduled, schduled_at must be a future time",
+                ),
+            ],
+        )
+        def test_it_should_return_400_when_schduled_at_is_not_future_time(
+            self,
+            actionable_topic1,
+            topic_status,
+            scheduled_at,
+            expected_response_detail,
         ):
-            status_request = {
-                "topic_status": models.TopicStatusType.scheduled.value,
-                "assignees": [str(self.user2.user_id)],
-                "note": "assign user2 and schedule at 2345/6/7",
-                "scheduled_at": "2000-01-01T00:00:00",
-            }
-            url = (
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-                f"/ticketstatus/{self.ticket_id1}"
-            )
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-            response = client.post(url, headers=_headers, json=status_request)
+            # when topic_status is schduled and schduled at is not future time, return 200.
+
+            response = self.common_setup_for_set_ticket_status(topic_status, scheduled_at)
             assert response.status_code == 400
+            assert response.json()["detail"] == expected_response_detail
 
-            set_response = response.json()
-            assert (
-                set_response["detail"]
-                == "If status is scheduled, schduled_at must be a future time"
-            )
-
-        def test_it_should_put_None_in_completed_at_when_schduled_at_is_datetime_fromtimestamp_zero(
-            self, actionable_topic1
+        @pytest.mark.parametrize(
+            "topic_status, scheduled_at, expected_response_status_code",
+            [
+                (models.TopicStatusType.acknowledged.value, None, 200),
+                (
+                    models.TopicStatusType.acknowledged.value,
+                    str(datetime.fromtimestamp(0)),
+                    200,
+                ),
+                (models.TopicStatusType.scheduled.value, "2345-06-07T08:09:10", 200),
+                (models.TopicStatusType.completed.value, None, 200),
+                (models.TopicStatusType.completed.value, str(datetime.fromtimestamp(0)), 200),
+            ],
+        )
+        def test_it_should_return_200_when_topic_status_and_schduled_at_have_the_correct_values(
+            self,
+            actionable_topic1,
+            topic_status,
+            scheduled_at,
+            expected_response_status_code,
         ):
-            status_request = {
-                "topic_status": models.TopicStatusType.completed.value,
-                "assignees": [str(self.user2.user_id)],
-                "note": "assign user2 and schedule at 2345/6/7",
-                "scheduled_at": str(datetime.fromtimestamp(0)),
-            }
-            url = (
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-                f"/ticketstatus/{self.ticket_id1}"
+            response = self.common_setup_for_set_ticket_status(topic_status, scheduled_at)
+            assert response.status_code == expected_response_status_code
+            set_response = response.json()
+            assert set_response["ticket_id"] == self.ticket_id1
+            assert set_response["topic_status"] == topic_status
+            assert set_response["user_id"] == str(self.user1.user_id)
+            assert set_response["assignees"] == [str(self.user2.user_id)]
+            _scheduled_at = scheduled_at
+            if scheduled_at == str(datetime.fromtimestamp(0)):
+                _scheduled_at = None
+            assert set_response["scheduled_at"] == _scheduled_at
+
+        @pytest.mark.parametrize(
+            "current_topic_status, current_scheduled_at, expected_response_detail",
+            [
+                (
+                    models.TopicStatusType.completed.value,
+                    None,
+                    "If current status is not scheduled and previous status is schduled, "
+                    "need to reset schduled_at",
+                ),
+                (
+                    models.TopicStatusType.acknowledged.value,
+                    None,
+                    "If current status is not scheduled and previous status is schduled, "
+                    "need to reset schduled_at",
+                ),
+            ],
+        )
+        def test_it_should_return_400_when_previous_status_is_schduled_and_schduled_at_is_reset(
+            self,
+            actionable_topic1,
+            current_topic_status,
+            current_scheduled_at,
+            expected_response_detail,
+        ):
+            # When previou topic_status is schduled and current topic_status is not schduled,
+            # return 400 if current_scheduled_at does not contain
+            # a value to reset (datetime.fromtimestamp(0)).
+
+            previous_topic_status = models.TopicStatusType.scheduled.value
+            previous_scheduled_at = "2345-06-07T08:09:10"
+            previous_response = self.common_setup_for_set_ticket_status(
+                previous_topic_status, previous_scheduled_at
             )
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-            response = client.post(url, headers=_headers, json=status_request)
-            if response.status_code != 200:
-                raise HTTPError(response)
+            assert previous_response.status_code == 200
 
-            data = response.json()
-            assert data["scheduled_at"] is None
-
-            # verification of correct registration in DB
-            get_response = self._get_ticket_status(
-                self.pteam1.pteam_id, self.service_id1, self.ticket_id1
+            current_response = self.common_setup_for_set_ticket_status(
+                current_topic_status, current_scheduled_at
             )
+            assert current_response.status_code == 400
+            assert current_response.json()["detail"] == expected_response_detail
 
-            assert get_response["scheduled_at"] is None
+        @pytest.mark.parametrize(
+            "current_topic_status, current_scheduled_at, expected_response_detail",
+            [
+                (
+                    None,
+                    str(datetime.fromtimestamp(0)),
+                    "If status is scheduled, unable to reset schduled_at",
+                ),
+                (
+                    None,
+                    "2000-01-01T00:00:00",
+                    "If status is scheduled, schduled_at must be a future time",
+                ),
+            ],
+        )
+        def test_it_should_return_400_when_topic_status_and_scheduled_at_is_not_appropriate(
+            self,
+            actionable_topic1,
+            current_topic_status,
+            current_scheduled_at,
+            expected_response_detail,
+        ):
+            # When previou topic_status is schduled and current topic_status is None,
+            # return 400 if current_scheduled_at does not contain
+            # future time or None.
+
+            previous_topic_status = models.TopicStatusType.scheduled.value
+            previous_scheduled_at = "2345-06-07T08:09:10"
+            previous_response = self.common_setup_for_set_ticket_status(
+                previous_topic_status, previous_scheduled_at
+            )
+            assert previous_response.status_code == 200
+
+            current_response = self.common_setup_for_set_ticket_status(
+                current_topic_status, current_scheduled_at
+            )
+            assert current_response.status_code == 400
+            assert current_response.json()["detail"] == expected_response_detail
+
+        @pytest.mark.parametrize(
+            "current_topic_status, current_scheduled_at, expected_response_status_code",
+            [
+                (
+                    None,
+                    None,
+                    200,
+                ),
+                (
+                    models.TopicStatusType.completed.value,
+                    str(datetime.fromtimestamp(0)),
+                    200,
+                ),
+            ],
+        )
+        def test_it_should_return_200_when_previous_and_current_status_have_the_correct_values(
+            self,
+            actionable_topic1,
+            current_topic_status,
+            current_scheduled_at,
+            expected_response_status_code,
+        ):
+            # When previou topic_status is schduled and current topic_status is None,
+            # return 200 if current_scheduled_at contain None.
+
+            # When previou topic_status is schduled and current topic_status is completed,
+            # return 200 if current_scheduled_at contain
+            # a value to reset (datetime.fromtimestamp(0)).
+
+            previous_topic_status = models.TopicStatusType.scheduled.value
+            previous_scheduled_at = "2345-06-07T08:09:10"
+            previous_response = self.common_setup_for_set_ticket_status(
+                previous_topic_status, previous_scheduled_at
+            )
+            assert previous_response.status_code == 200
+
+            current_response = self.common_setup_for_set_ticket_status(
+                current_topic_status, current_scheduled_at
+            )
+            assert current_response.status_code == expected_response_status_code
+
+            set_response = current_response.json()
+            assert set_response["ticket_id"] == self.ticket_id1
+            assert set_response["user_id"] == str(self.user1.user_id)
+            assert set_response["assignees"] == [str(self.user2.user_id)]
+
+            _current_topic_status = current_topic_status
+            if current_topic_status is None:
+                _current_topic_status = models.TopicStatusType.scheduled.value
+            assert set_response["topic_status"] == _current_topic_status
+
+            _scheduled_at = current_scheduled_at
+            if current_scheduled_at == str(datetime.fromtimestamp(0)):
+                _scheduled_at = None
+            elif current_scheduled_at is None:
+                _scheduled_at = previous_scheduled_at
+            assert set_response["scheduled_at"] == _scheduled_at
 
         def test_it_should_set_requester_if_assignee_is_None_and_saved_assignee_is_empty(
             self, actionable_topic1
