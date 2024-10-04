@@ -156,10 +156,16 @@ export function PTeamStatusCard(props) {
       <TableCell align="right" style={{ width: "30%" }}>
         <Box display="flex" flexDirection="column">
           <Box display="flex" flexDirection="row" justifyContent="space-between">
-            <Typography variant="body2">
-              {displaySSVCPriority === "safe" || displaySSVCPriority === "empty"
-                ? ""
-                : `Updated ${calcTimestampDiff(tag.updated_at)}`}
+            <Typography
+              variant="body2"
+              sx={{
+                visibility:
+                  displaySSVCPriority === "safe" || displaySSVCPriority === "empty"
+                    ? "hidden"
+                    : "visible",
+              }}
+            >
+              Updated ${calcTimestampDiff(tag.updated_at)}
             </Typography>
           </Box>
           <StatusRatioGraph counts={tag.status_count} displaySSVCPriority={tag.ssvc_priority} />
