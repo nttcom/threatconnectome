@@ -6,8 +6,8 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
-  CardActions,
   Chip,
+  Grid,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
@@ -88,10 +88,10 @@ export function TopicTicketAccordion(props) {
           <Box sx={{ wordBreak: "break-all" }}>{target}</Box>
         </Box>
       </AccordionSummary>
-      <AccordionDetails>
-        <Box p={2} display="flex" flexDirection="row" alignItems="center">
-          <Box sx={{ display: "flex", justifyContent: "start", minWidth: "110px", mr: 1 }}>
-            <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, mr: 0.5 }}>
+      <AccordionDetails sx={{ p: 3 }}>
+        <Grid container sx={{ alignItems: "center", pb: 2 }}>
+          <Grid item xs={5} sx={{ display: "flex" }}>
+            <Typography mr={1} variant="subtitle2" sx={{ fontWeight: "bold", mr: 0.5 }}>
               Safety impact
             </Typography>
             <StyledTooltip
@@ -127,14 +127,18 @@ export function TopicTicketAccordion(props) {
             >
               <HelpOutlineOutlinedIcon color="action" fontSize="small" />
             </StyledTooltip>
-          </Box>
-          <Chip label={serviceSafetyImpactDisplayName} />
-        </Box>
-        <Box p={2} display="flex" flexDirection="row" alignItems="center">
-          <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
-            Status
-          </Typography>
-          <Box display="flex" flexDirection="column">
+          </Grid>
+          <Grid item xs={7}>
+            <Chip label={serviceSafetyImpactDisplayName} />
+          </Grid>
+        </Grid>
+        <Grid container sx={{ alignItems: "center", pb: 2 }}>
+          <Grid item xs={5}>
+            <Typography mr={1} variant="subtitle2" sx={{ fontWeight: "bold", minWidth: "110px" }}>
+              Status
+            </Typography>
+          </Grid>
+          <Grid item xs={7}>
             <Box display="flex" alignItems="center">
               <TopicStatusSelector
                 pteamId={pteamId}
@@ -158,13 +162,15 @@ export function TopicTicketAccordion(props) {
                   </Typography>
                 </Box>
               )}
-          </Box>
-        </Box>
-        <CardActions sx={{ display: "flex", alignItems: "center", p: 2 }}>
-          <Typography mr={1} variant="subtitle2" sx={{ fontWeight: 900, minWidth: "110px" }}>
-            Assignees
-          </Typography>
-          <Box sx={{ maxWidth: 150 }}>
+          </Grid>
+        </Grid>
+        <Grid container sx={{ alignItems: "center", pb: 2 }}>
+          <Grid item xs={5}>
+            <Typography mr={1} variant="subtitle2" sx={{ fontWeight: "bold", minWidth: "110px" }}>
+              Assignees
+            </Typography>
+          </Grid>
+          <Grid item xs={7}>
             <AssigneesSelector
               key={ticketStatus.assignees.join("")}
               pteamId={pteamId}
@@ -175,24 +181,16 @@ export function TopicTicketAccordion(props) {
               currentAssigneeIds={ticketStatus.assignees}
               members={members}
             />
-          </Box>
-        </CardActions>
+          </Grid>
+        </Grid>
         {(ticketStatus.topic_status ?? "alerted") !== "alerted" && (
-          <Box
-            p={1.5}
-            display="flex"
-            flexDirection="row"
-            justifyContent="flex-end"
-            sx={{ color: grey[600] }}
-          >
-            <Box display="flex" alignItems="flex-end">
-              <Typography variant="caption">Last updated by</Typography>
-              <Typography ml={0.5} variant="caption" fontWeight={900}>
-                {ticketStatus.user_id === systemAccount.uuid
-                  ? systemAccount.email
-                  : members[ticketStatus.user_id]?.email ?? "not a pteam member"}
-              </Typography>
-            </Box>
+          <Box sx={{ textAlign: "right", color: grey[600] }}>
+            <Typography variant="caption">Last updated by</Typography>
+            <Typography ml={0.5} variant="caption" fontWeight={900}>
+              {ticketStatus.user_id === systemAccount.uuid
+                ? systemAccount.email
+                : members[ticketStatus.user_id]?.email ?? "not a pteam member"}
+            </Typography>
           </Box>
         )}
       </AccordionDetails>

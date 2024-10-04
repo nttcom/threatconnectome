@@ -362,8 +362,8 @@ export function TopicCard(props) {
         <Box
           sx={{
             overflowY: "auto",
-            minWidth: "320px",
-            maxWidth: "350px",
+            minWidth: "480px",
+            maxWidth: "480px",
           }}
         >
           {tickets.map((ticket, index) => (
