@@ -97,31 +97,21 @@ export function PTeamStatusSSVCCards(props) {
                 mb: 1,
               }}
             >
-              <ToggleButtonGroup
-                color="primary"
-                size="small"
-                orientation="vertical"
-                value={card.items.filter((item) => SSVCValueList.find((value) => value === item))}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  "& .MuiToggleButton-root": {
-                    width: "100%",
-                    "&.Mui-selected": {
-                      backgroundColor:
-                        card.title === "Highest SSVC Priority"
-                          ? ssvcPriorityProps[highestSsvcPriority].style.bgcolor
-                          : "primary",
-                    },
-                  },
-                }}
-              >
+              <ToggleButtonGroup color="primary" size="small" orientation="vertical">
                 {card.items.map((item, index) =>
                   // Highlight the toggle button for Highest SSVC priority
                   index ===
                     sortedSSVCPriorities.findIndex((item) => item === highestSsvcPriority) &&
                   card.title === "Highest SSVC Priority" ? (
-                    <ToggleButton key={item} value={item} disabled>
+                    <ToggleButton
+                      key={item}
+                      value={item}
+                      disabled
+                      sx={{
+                        backgroundColor: ssvcPriorityProps[highestSsvcPriority].style.bgcolor,
+                        "& .MuiToggleButton-root": { width: "100%" },
+                      }}
+                    >
                       <Button
                         display="flex"
                         alignItems="center"
@@ -132,7 +122,15 @@ export function PTeamStatusSSVCCards(props) {
                       </Button>
                     </ToggleButton>
                   ) : (
-                    <ToggleButton key={item} value={item}>
+                    <ToggleButton
+                      key={item}
+                      value={item}
+                      disabled
+                      sx={{
+                        backgroundcolor: "primary",
+                        "& .MuiToggleButton-root": { width: "100%" },
+                      }}
+                    >
                       <Button
                         display="flex"
                         alignItems="center"
