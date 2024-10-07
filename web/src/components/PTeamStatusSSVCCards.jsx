@@ -104,10 +104,7 @@ export function PTeamStatusSSVCCards(props) {
                 "& .MuiToggleButton-root": {
                   width: "100%",
                   "&.Mui-selected": {
-                    backgroundColor:
-                      HighestSSVCPriorityList.title === "Highest SSVC Priority"
-                        ? ssvcPriorityProps[highestSsvcPriority].style.bgcolor
-                        : "primary",
+                    backgroundColor: ssvcPriorityProps[highestSsvcPriority].style.bgcolor,
                   },
                 },
               }}
