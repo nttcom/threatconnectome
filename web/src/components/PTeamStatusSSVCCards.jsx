@@ -23,13 +23,11 @@ import {
 
 export function PTeamStatusSSVCCards(props) {
   const { service, highestSsvcPriority } = props;
-
   const SSVCValueList = [
     highestSsvcPriority,
     service.system_exposure,
     service.service_mission_impact,
   ];
-
   const ssvcPriorityProp = ssvcPriorityProps[highestSsvcPriority];
   const Icon = ssvcPriorityProp.icon;
 
@@ -40,13 +38,14 @@ export function PTeamStatusSSVCCards(props) {
     ssvcPriority[key] = ssvcPriorityProps[key]["displayName"];
   });
 
+  const HighestSSVCPriorityList = {
+    title: "Highest SSVC Priority",
+    description: "The most serious security issue of the Service.",
+    items: sortedSSVCPriorities,
+    valuePairing: ssvcPriority,
+  };
+
   const SSVCCardsList = [
-    {
-      title: "Highest SSVC Priority",
-      description: "The most serious security issue of the Service.",
-      items: sortedSSVCPriorities,
-      valuePairing: ssvcPriority,
-    },
     {
       title: "System Exposure",
       description: "The Accessible Attack Surface of the Affected System or Service.",
@@ -62,8 +61,74 @@ export function PTeamStatusSSVCCards(props) {
   ];
 
   return (
+    // Create Highest SSVC Priority card
     <Grid container spacing={2}>
+      <Grid key={HighestSSVCPriorityList.title} item xs={4}>
+        <Paper
+          sx={{
+            textAlign: "center",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", my: 1 }}>
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                pr: 0.5,
+                fontWeight: "bold",
+              }}
+            >
+              {HighestSSVCPriorityList.title}
+            </Typography>
+            <Tooltip title={HighestSSVCPriorityList.description}>
+              <HelpOutlineOutlinedIcon color="action" fontSize="small" />
+            </Tooltip>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              height: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+              mb: 1,
+            }}
+          >
+            <ToggleButtonGroup
+              size="small"
+              orientation="vertical"
+              value={highestSsvcPriority}
+              sx={{
+                "& .MuiToggleButton-root": {
+                  width: "100%",
+                  "&.Mui-selected": {
+                    backgroundColor: ssvcPriorityProps[highestSsvcPriority].style.bgcolor,
+                  },
+                },
+              }}
+            >
+              {HighestSSVCPriorityList.items.map((item) =>
+                item === highestSsvcPriority ? (
+                  <ToggleButton key={item} value={item} sx={{ padding: "0" }}>
+                    <Button startIcon={<Icon />} sx={{ color: "white" }}>
+                      {HighestSSVCPriorityList.valuePairing[item]}
+                    </Button>
+                  </ToggleButton>
+                ) : (
+                  <ToggleButton key={item} value={item} sx={{ padding: "0" }}>
+                    <Button disabled>{HighestSSVCPriorityList.valuePairing[item]}</Button>
+                  </ToggleButton>
+                ),
+              )}
+            </ToggleButtonGroup>
+          </Box>
+        </Paper>
+      </Grid>
+
       {SSVCCardsList.map((card) => (
+        // Create System Exposure card and Mission Impact
         <Grid key={card.title} item xs={4}>
           <Paper
             sx={{
@@ -102,43 +167,12 @@ export function PTeamStatusSSVCCards(props) {
                 size="small"
                 orientation="vertical"
                 value={card.items.filter((item) => SSVCValueList.find((value) => value === item))}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  "& .MuiToggleButton-root": {
-                    width: "100%",
-                    "&.Mui-selected": {
-                      backgroundColor:
-                        card.title === "Highest SSVC Priority"
-                          ? ssvcPriorityProps[highestSsvcPriority].style.bgcolor
-                          : "primary",
-                    },
-                  },
-                }}
               >
-                {card.items.map((item, index) =>
-                  // Highlight the toggle button for Highest SSVC priority
-                  index ===
-                    sortedSSVCPriorities.findIndex((item) => item === highestSsvcPriority) &&
-                  card.title === "Highest SSVC Priority" ? (
-                    <ToggleButton key={item} value={item} disabled>
-                      <Button
-                        display="flex"
-                        alignItems="center"
-                        startIcon={<Icon />}
-                        sx={{ color: "white" }}
-                      >
-                        {card.valuePairing[item]}
-                      </Button>
-                    </ToggleButton>
-                  ) : (
-                    <ToggleButton key={item} value={item} disabled>
-                      <Button display="flex" alignItems="center">
-                        {card.valuePairing[item]}
-                      </Button>
-                    </ToggleButton>
-                  ),
-                )}
+                {card.items.map((item) => (
+                  <ToggleButton key={item} value={item} disabled>
+                    {card.valuePairing[item]}
+                  </ToggleButton>
+                ))}
               </ToggleButtonGroup>
             </Box>
           </Paper>
