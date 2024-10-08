@@ -141,8 +141,8 @@ export function TopicStatusSelector(props) {
     }
     setDatepickerOpen(false);
   };
-
   const now = new Date();
+
   return (
     <>
       <ReportCompletedActions
