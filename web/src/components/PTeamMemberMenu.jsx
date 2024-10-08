@@ -10,7 +10,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { PTeamAuthEditor } from "../components/PTeamAuthEditor";
 import { PTeamMemberRemoveModal } from "../components/PTeamMemberRemoveModal";
+import { useGetPTeamQuery } from "../services/tcApi";
 import { getUser } from "../slices/user";
+import { errorToString } from "../utils/func";
 
 export function PTeamMemberMenu(props) {
   const { userId, userEmail, isAdmin } = props;
@@ -23,9 +25,18 @@ export function PTeamMemberMenu(props) {
   const dispatch = useDispatch();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const pteam = useSelector((state) => state.pteam.pteam);
-  const authorities = useSelector((state) => state.pteam.authorities);
   const userMe = useSelector((state) => state.user.user);
+
+  const skip = pteamId === undefined;
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip });
+
+  if (!userMe || !pteamId) return <></>;
+  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading PTeam...</>;
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -37,8 +48,6 @@ export function PTeamMemberMenu(props) {
     handleClose();
     setOpenRemove(true);
   };
-
-  if (!userMe || !pteamId || !pteam || !authorities) return <></>;
 
   return (
     <>
@@ -74,6 +83,7 @@ export function PTeamMemberMenu(props) {
       <Dialog open={openAuth} onClose={() => setOpenAuth(false)}>
         <DialogContent>
           <PTeamAuthEditor
+            pteamId={pteamId}
             userId={userId}
             userEmail={userEmail}
             onClose={() => setOpenAuth(false)}
