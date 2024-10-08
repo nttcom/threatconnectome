@@ -134,14 +134,8 @@ export function TopicStatusSelector(props) {
   };
 
   if (!pteamId || !serviceId || !topicId || !tagId || !currentStatus) return <></>;
-
-  //Validate whether it is a valid date object
-  const isValidDate = (date) => {
-    return date instanceof Date && !isNaN(date.getTime());
-  };
-
   const handleHideDatepicker = () => {
-    if (currentStatus.scheduled_at && isValidDate(currentStatus.scheduled_at)) {
+    if (currentStatus.scheduled_at && currentStatus.scheduled_at instanceof Date) {
       setSchedule(dateTimeFormat(currentStatus.scheduled_at));
     }
     setDatepickerOpen(false);
