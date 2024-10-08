@@ -72,6 +72,11 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(testdb, 
     pteam0 = create_pteam(USER1, _gen_pteam_params(0))
     ext_tags = {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]}
     upload_pteam_tags(USER1, pteam0.pteam_id, SERVICE1, ext_tags)
+    response = client.get(f"/pteams/{pteam0.pteam_id}/services", headers=headers(USER1))
+    assert response.status_code == 200
+    data = response.json()
+    service = next(filter(lambda x: x["service_name"] == SERVICE1, data))
+    service_id = service["service_id"]
 
     # topic0: no tags
     send_email = mocker.patch("app.alert.send_email")
@@ -93,6 +98,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(testdb, 
         pteam0.pteam_id,
         child_tag11.tag_name,  # pteamtag, not topictag
         child_tag11.tag_id,  # pteamtag, not topictag
+        service_id,
         [SERVICE1],
     )
     send_email.assert_called_once()
@@ -122,6 +128,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(testdb, 
         pteam0.pteam_id,
         child_tag11.tag_name,  # pteamtag, not topictag
         child_tag11.tag_id,  # pteamtag, not topictag
+        service_id,
         [SERVICE1],
     )
     send_email.assert_called_once()
