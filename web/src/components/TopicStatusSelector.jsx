@@ -134,12 +134,14 @@ export function TopicStatusSelector(props) {
   };
 
   if (!pteamId || !serviceId || !topicId || !tagId || !currentStatus) return <></>;
+
   const handleHideDatepicker = () => {
     if (currentStatus.scheduled_at && currentStatus.scheduled_at instanceof Date) {
       setSchedule(dateTimeFormat(currentStatus.scheduled_at));
     }
     setDatepickerOpen(false);
   };
+
   const now = new Date();
   return (
     <>
