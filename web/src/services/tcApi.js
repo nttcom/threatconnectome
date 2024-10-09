@@ -58,6 +58,21 @@ export const tcApi = createApi({
         responseHandler: _responseListToDictConverter("user_id"),
       }),
     }),
+
+    /* SBOM */
+    uploadSBOMFile: builder.mutation({
+      query: ({ pteamId, serviceName, sbomFile, forceMode = true }) => {
+        const sbomFormData = new FormData();
+        sbomFormData.append("file", sbomFile);
+        return {
+          url: `pteams/${pteamId}/upload_sbom_file`,
+          params: { service: serviceName, force_mode: forceMode },
+          method: "POST",
+          body: sbomFormData,
+          /* Note: Content-Type is fixed to multipart/form-data automatically. */
+        };
+      },
+    }),
   }),
 });
 
@@ -67,4 +82,5 @@ export const {
   useGetPTeamAuthInfoQuery,
   useGetPTeamAuthQuery,
   useGetPTeamMembersQuery,
+  useUploadSBOMFileMutation,
 } = tcApi;

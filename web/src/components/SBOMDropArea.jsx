@@ -16,7 +16,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { WaitingModal } from "../components/WaitingModal";
 import dialogStyle from "../cssModule/dialog.module.css";
-import { uploadSBOMFile } from "../utils/api";
+import { useUploadSBOMFileMutation } from "../services/tcApi";
 import { errorToString } from "../utils/func";
 
 function PreUploadModal(props) {
@@ -87,6 +87,8 @@ export function SBOMDropArea(props) {
   const [preModalOpen, setPreModalOpen] = useState(false);
   const [isOpenWaitingModal, setIsOpenWaitingModal] = useState(false);
 
+  const [uploadSBOMFile] = useUploadSBOMFileMutation();
+
   useEffect(() => {
     dropRef.current.addEventListener("dragover", handleDragOver);
     dropRef.current.addEventListener("drop", handleDrop);
@@ -121,14 +123,15 @@ export function SBOMDropArea(props) {
     processUploadSBOM(sbomFile, service);
   };
 
-  const processUploadSBOM = (file, service) => {
-    if (!file || !service) {
+  const processUploadSBOM = (sbomFile, serviceName) => {
+    if (!sbomFile || !serviceName) {
       alert("Something went wrong: missing file or service.");
       return;
     }
     setIsOpenWaitingModal(true);
-    enqueueSnackbar(`Uploading SBOM file: ${file.name}`, { variant: "info" });
-    uploadSBOMFile(pteamId, service, file)
+    enqueueSnackbar(`Uploading SBOM file: ${sbomFile.name}`, { variant: "info" });
+    uploadSBOMFile({ pteamId, serviceName, sbomFile })
+      .unwrap()
       .then((response) => {
         enqueueSnackbar("SBOM Update Request was accepted. Please reload later", {
           variant: "success",
