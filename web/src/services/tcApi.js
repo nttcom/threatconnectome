@@ -40,7 +40,7 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/authority`,
         responseHandler: _responseListToDictConverter("user_id", "authorities"),
       }),
-      providesTags: (result, error, id) => [{ type: "PTeamAuth", id }],
+      providesTags: (result, error, pteamId) => [{ type: "PTeamAuth", id: pteamId }],
     }),
     updatePTeamAuth: builder.mutation({
       query: ({ pteamId, data }) => ({
@@ -48,7 +48,7 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: "PTeamAuth", id }],
+      invalidatesTags: (result, error, arg) => [{ type: "PTeamAuth", id: arg.pteamId }],
     }),
 
     /* PTeam Members */
