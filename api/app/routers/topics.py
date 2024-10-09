@@ -12,10 +12,9 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 from app.alert import send_alert_to_pteam
 from app.auth import get_current_user, token_scheme
+from app.business.tag_business import check_topic_action_tags_integrity
 from app.common import (
     calculate_topic_content_fingerprint,
-    check_pteam_membership,
-    check_topic_action_tags_integrity,
     fix_threats_for_topic,
     get_or_create_misp_tag,
     get_sorted_topics,
@@ -23,6 +22,7 @@ from app.common import (
 )
 from app.database import get_db
 from app.ssvc import ssvc_calculator
+from app.validators.account_validator import check_pteam_membership
 
 router = APIRouter(prefix="/topics", tags=["topics"])
 

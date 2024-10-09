@@ -14,15 +14,15 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 from app.alert import notify_sbom_upload_ended
 from app.auth import get_current_user
+from app.business.tag_business import (
+    create_topic_tag,
+    get_pteam_ext_tags,
+)
 from app.common import (
-    check_pteam_auth,
-    check_pteam_membership,
     count_full_width_and_half_width_characters,
     count_ssvc_priority_from_summary,
-    create_topic_tag,
     fix_threats_for_dependency,
     fix_tickets_for_service,
-    get_pteam_ext_tags,
     get_sorted_topics,
     get_tag_ids_with_parent_ids,
     get_topic_ids_summary_by_service_id_and_tag_id,
@@ -31,6 +31,10 @@ from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db, open_db_session
 from app.sbom import sbom_json_to_artifact_json_lines
 from app.slack import validate_slack_webhook_url
+from app.validators.account_validator import (
+    check_pteam_auth,
+    check_pteam_membership,
+)
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
 

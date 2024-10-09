@@ -7,92 +7,14 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import models, persistence
 from app.alert import send_alert_to_pteam
-from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 from app.ssvc import ssvc_calculator
 from app.version import (
     PackageFamily,
     VulnerableRange,
     gen_version_instance,
 )
-
-
-def check_pteam_membership(
-    db: Session,
-    pteam: models.PTeam | None,
-    user: models.Account | None,
-    ignore_ateam: bool = False,
-) -> bool:
-    if not pteam or not user:
-        return False
-    if user.user_id == str(SYSTEM_UUID):
-        return True
-    if user in pteam.members:
-        return True
-    if ignore_ateam:
-        return False
-    # check if a member of ateam which watches the pteam
-    if any(user in ateam.members for ateam in pteam.ateams):
-        return True
-    return False
-
-
-def check_pteam_auth(
-    db: Session,
-    pteam: models.PTeam,
-    user: models.Account,
-    required: models.PTeamAuthIntFlag,
-) -> bool:
-    if user.user_id == str(SYSTEM_UUID):
-        return True
-
-    user_auth = persistence.get_pteam_authority(db, pteam.pteam_id, user.user_id)
-    int_auth = int(user_auth.authority) if user_auth else 0
-    # append auth via pseudo-users
-    if not_member_auth := persistence.get_pteam_authority(db, pteam.pteam_id, NOT_MEMBER_UUID):
-        int_auth |= not_member_auth.authority
-    if user in pteam.members and (
-        member_auth := persistence.get_pteam_authority(db, pteam.pteam_id, MEMBER_UUID)
-    ):
-        int_auth |= member_auth.authority
-
-    return int_auth & required == required
-
-
-def check_ateam_membership(
-    ateam: models.ATeam | None,
-    user: models.Account | None,
-) -> bool:
-    if not ateam or not user:
-        return False
-    if user.user_id == str(SYSTEM_UUID):
-        return True
-    if user in ateam.members:
-        return True
-    return False
-
-
-def check_ateam_auth(
-    db: Session,
-    ateam: models.ATeam,
-    user: models.Account,
-    required: models.ATeamAuthIntFlag,
-) -> bool:
-    if user.user_id == str(SYSTEM_UUID):
-        return True
-
-    user_auth = persistence.get_ateam_authority(db, ateam.ateam_id, user.user_id)
-    int_auth = int(user_auth.authority) if user_auth else 0
-    # append auth via pseudo-users
-    if not_member_auth := persistence.get_ateam_authority(db, ateam.ateam_id, NOT_MEMBER_UUID):
-        int_auth |= not_member_auth.authority
-    if user in ateam.members and (
-        member_auth := persistence.get_ateam_authority(db, ateam.ateam_id, MEMBER_UUID)
-    ):
-        int_auth |= member_auth.authority
-
-    return int_auth & required == required
 
 
 def get_tag_ids_with_parent_ids(tags: Sequence[models.Tag]) -> Sequence[str]:
@@ -117,26 +39,6 @@ def get_sorted_topics(topics: Sequence[models.Topic]) -> Sequence[models.Topic]:
     )
 
 
-def _pick_parent_tag(tag_name: str) -> str | None:
-    if len(tag_name.split(":", 2)) == 3:  # supported format
-        return tag_name.rsplit(":", 1)[0] + ":"  # trim the right most field
-    return None
-
-
-def check_topic_action_tags_integrity(
-    topic_tags: Sequence[str] | Sequence[models.Tag],  # tag_name list or topic.tags
-    action_tags: Sequence[str] | None,  # action.ext.get("tags")
-) -> bool:
-    if not action_tags:
-        return True
-
-    topic_tag_strs = {x if isinstance(x, str) else x.tag_name for x in topic_tags}
-    for action_tag in action_tags:
-        if action_tag not in topic_tag_strs and _pick_parent_tag(action_tag) not in topic_tag_strs:
-            return False
-    return True
-
-
 def get_or_create_misp_tag(db: Session, tag_name: str) -> models.MispTag:
     if misp_tag := persistence.get_misp_tag_by_name(db, tag_name):
         return misp_tag
@@ -144,34 +46,6 @@ def get_or_create_misp_tag(db: Session, tag_name: str) -> models.MispTag:
     misp_tag = models.MispTag(tag_name=tag_name)
     persistence.create_misp_tag(db, misp_tag)
     return misp_tag
-
-
-def get_or_create_topic_tag(db: Session, tag_name: str) -> models.Tag:
-    if tag := persistence.get_tag_by_name(db, tag_name):  # already exists
-        return tag
-
-    return create_topic_tag(db, tag_name)
-
-
-def create_topic_tag(db: Session, tag_name: str) -> models.Tag:
-    tag = models.Tag(tag_name=tag_name, parent_id=None, parent_name=None)
-    if not (parent_name := _pick_parent_tag(tag_name)):  # no parent: e.g. "tag1"
-        persistence.create_tag(db, tag)
-        return tag
-
-    if parent_name == tag_name:  # parent is myself
-        tag.parent_id = tag.tag_id
-        tag.parent_name = tag_name
-    else:
-        parent = persistence.get_tag_by_name(db, parent_name)
-        if not parent:
-            parent = create_topic_tag(db, parent_name)
-        tag.parent_id = parent.tag_id
-        tag.parent_name = parent.tag_name
-
-    persistence.create_tag(db, tag)
-
-    return tag
 
 
 def calculate_topic_content_fingerprint(
@@ -187,32 +61,6 @@ def calculate_topic_content_fingerprint(
         "tag_names": sorted(set(tag_names)),
     }
     return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
-
-
-def get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> Sequence[schemas.ExtTagResponse]:
-    ext_tags_dict: dict[str, schemas.ExtTagResponse] = {}
-    for service in pteam.services:
-        for dependency in service.dependencies:
-            ext_tag = ext_tags_dict.get(
-                dependency.tag_id,
-                schemas.ExtTagResponse(
-                    tag_id=dependency.tag_id,
-                    tag_name=dependency.tag.tag_name,
-                    parent_id=dependency.tag.parent_id,
-                    parent_name=dependency.tag.parent_name,
-                    references=[],
-                ),
-            )
-            ext_tag.references.append(
-                {
-                    "service": service.service_name,
-                    "target": dependency.target,
-                    "version": dependency.version,
-                }
-            )
-            ext_tags_dict[dependency.tag_id] = ext_tag
-
-    return sorted(ext_tags_dict.values(), key=lambda x: x.tag_name)
 
 
 def threat_meets_condition_to_create_ticket(db: Session, threat: models.Threat) -> bool:

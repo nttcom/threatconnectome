@@ -1,4 +1,4 @@
-from app.common import check_topic_action_tags_integrity
+from app.business.tag_business import check_topic_action_tags_integrity
 
 
 class TestCheckTopicActionTagsIntegrity:
