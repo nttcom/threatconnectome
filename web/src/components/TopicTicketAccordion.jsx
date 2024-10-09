@@ -189,7 +189,7 @@ export function TopicTicketAccordion(props) {
             <Typography ml={0.5} variant="caption" fontWeight={900}>
               {ticketStatus.user_id === systemAccount.uuid
                 ? systemAccount.email
-                : members[ticketStatus.user_id]?.email ?? "not a pteam member"}
+                : (members[ticketStatus.user_id]?.email ?? "not a pteam member")}
             </Typography>
           </Box>
         )}
