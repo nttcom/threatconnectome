@@ -495,7 +495,7 @@ def get_pteam_tags(
     if not check_pteam_membership(db, pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    return get_pteam_ext_tags(db, pteam)
+    return get_pteam_ext_tags(pteam)
 
 
 @router.get(
@@ -1123,7 +1123,7 @@ def upload_pteam_tags_file(
 
     db.commit()
 
-    return get_pteam_ext_tags(db, pteam)
+    return get_pteam_ext_tags(pteam)
 
 
 def apply_service_tags(

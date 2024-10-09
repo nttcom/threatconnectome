@@ -52,7 +52,7 @@ def create_topic_tag(db: Session, tag_name: str) -> models.Tag:
     return tag
 
 
-def get_pteam_ext_tags(db: Session, pteam: models.PTeam) -> Sequence[schemas.ExtTagResponse]:
+def get_pteam_ext_tags(pteam: models.PTeam) -> Sequence[schemas.ExtTagResponse]:
     ext_tags_dict: dict[str, schemas.ExtTagResponse] = {}
     for service in pteam.services:
         for dependency in service.dependencies:
