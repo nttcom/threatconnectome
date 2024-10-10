@@ -5,7 +5,6 @@ from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 
 
 def check_pteam_membership(
-    db: Session,
     pteam: models.PTeam | None,
     user: models.Account | None,
     ignore_ateam: bool = False,
