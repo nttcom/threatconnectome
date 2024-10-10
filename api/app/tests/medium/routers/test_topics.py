@@ -487,7 +487,9 @@ class TestUpdateTopic:
             "tags": [self.tag1.tag_name],
         }
 
-        send_alert_to_pteam_in_common = mocker.patch("app.common.send_alert_to_pteam")
+        send_alert_to_pteam_in_common = mocker.patch(
+            "app.business.ticket_business.send_alert_to_pteam"
+        )
         send_alert_to_pteam_in_topics = mocker.patch("app.routers.topics.send_alert_to_pteam")
         response = client.put(
             f"/topics/{self.topic.topic_id}",
