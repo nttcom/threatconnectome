@@ -1,8 +1,5 @@
-import json
 import unicodedata
 from datetime import datetime
-from hashlib import md5
-from typing import Sequence
 
 from sqlalchemy.orm import Session
 
@@ -14,52 +11,6 @@ from app.version import (
     VulnerableRange,
     gen_version_instance,
 )
-
-
-def get_tag_ids_with_parent_ids(tags: Sequence[models.Tag]) -> Sequence[str]:
-    tag_ids_set: set[str] = set()
-    for tag in tags:
-        tag_ids_set.add(tag.tag_id)
-        if tag.parent_id and tag.parent_id != tag.tag_id:
-            tag_ids_set.add(tag.parent_id)
-    return list(tag_ids_set)
-
-
-def get_sorted_topics(topics: Sequence[models.Topic]) -> Sequence[models.Topic]:
-    """
-    Sort topics with standard sort rules -- (threat_impact ASC, updated_at DESC)
-    """
-    return sorted(
-        topics,
-        key=lambda topic: (
-            topic.threat_impact,
-            -(dt.timestamp() if (dt := topic.updated_at) else 0),
-        ),
-    )
-
-
-def get_or_create_misp_tag(db: Session, tag_name: str) -> models.MispTag:
-    if misp_tag := persistence.get_misp_tag_by_name(db, tag_name):
-        return misp_tag
-
-    misp_tag = models.MispTag(tag_name=tag_name)
-    persistence.create_misp_tag(db, misp_tag)
-    return misp_tag
-
-
-def calculate_topic_content_fingerprint(
-    title: str,
-    abstract: str,
-    threat_impact: int,
-    tag_names: Sequence[str],
-) -> str:
-    data = {
-        "title": title,
-        "abstract": abstract,
-        "threat_impact": threat_impact,
-        "tag_names": sorted(set(tag_names)),
-    }
-    return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
 
 
 def threat_meets_condition_to_create_ticket(db: Session, threat: models.Threat) -> bool:

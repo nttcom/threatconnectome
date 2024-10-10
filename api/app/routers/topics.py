@@ -12,12 +12,14 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 from app.alert import send_alert_to_pteam
 from app.auth import get_current_user, token_scheme
+from app.business.misp_tag_business import get_or_create_misp_tag
 from app.business.tag_business import check_topic_action_tags_integrity
-from app.common import (
+from app.business.topic_business import (
     calculate_topic_content_fingerprint,
-    fix_threats_for_topic,
-    get_or_create_misp_tag,
     get_sorted_topics,
+)
+from app.common import (
+    fix_threats_for_topic,
     ticket_meets_condition_to_create_alert,
 )
 from app.database import get_db

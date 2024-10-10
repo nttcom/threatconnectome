@@ -18,14 +18,14 @@ from app.business.ssvc_business import get_topic_ids_summary_by_service_id_and_t
 from app.business.tag_business import (
     create_topic_tag,
     get_pteam_ext_tags,
+    get_tag_ids_with_parent_ids,
 )
+from app.business.topic_business import get_sorted_topics
 from app.common import (
     count_full_width_and_half_width_characters,
     count_ssvc_priority_from_summary,
     fix_threats_for_dependency,
     fix_tickets_for_service,
-    get_sorted_topics,
-    get_tag_ids_with_parent_ids,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db, open_db_session

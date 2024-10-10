@@ -5,6 +5,15 @@ from sqlalchemy.orm import Session
 from app import models, persistence, schemas
 
 
+def get_tag_ids_with_parent_ids(tags: Sequence[models.Tag]) -> Sequence[str]:
+    tag_ids_set: set[str] = set()
+    for tag in tags:
+        tag_ids_set.add(tag.tag_id)
+        if tag.parent_id and tag.parent_id != tag.tag_id:
+            tag_ids_set.add(tag.parent_id)
+    return list(tag_ids_set)
+
+
 def _pick_parent_tag(tag_name: str) -> str | None:
     if len(tag_name.split(":", 2)) == 3:  # supported format
         return tag_name.rsplit(":", 1)[0] + ":"  # trim the right most field
