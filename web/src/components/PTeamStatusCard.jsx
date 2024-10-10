@@ -165,7 +165,7 @@ export function PTeamStatusCard(props) {
                     : "visible",
               }}
             >
-              Updated ${calcTimestampDiff(tag.updated_at)}
+              Updated {calcTimestampDiff(tag.updated_at)}
             </Typography>
           </Box>
           <StatusRatioGraph counts={tag.status_count} displaySSVCPriority={tag.ssvc_priority} />
