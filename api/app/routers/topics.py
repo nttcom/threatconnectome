@@ -14,14 +14,12 @@ from app.alert import send_alert_to_pteam
 from app.auth import get_current_user, token_scheme
 from app.business.misp_tag_business import get_or_create_misp_tag
 from app.business.tag_business import check_topic_action_tags_integrity
+from app.business.ticket_business import ticket_meets_condition_to_create_alert
 from app.business.topic_business import (
     calculate_topic_content_fingerprint,
     get_sorted_topics,
 )
-from app.common import (
-    fix_threats_for_topic,
-    ticket_meets_condition_to_create_alert,
-)
+from app.business.vulnerability_detector import fix_threats_for_topic
 from app.database import get_db
 from app.ssvc import ssvc_calculator
 from app.validators.account_validator import check_pteam_membership

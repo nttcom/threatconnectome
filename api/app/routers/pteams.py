@@ -20,12 +20,12 @@ from app.business.tag_business import (
     get_pteam_ext_tags,
     get_tag_ids_with_parent_ids,
 )
+from app.business.ticket_business import fix_tickets_for_service
 from app.business.topic_business import get_sorted_topics
+from app.business.vulnerability_detector import fix_threats_for_dependency
 from app.common import (
     count_full_width_and_half_width_characters,
     count_ssvc_priority_from_summary,
-    fix_threats_for_dependency,
-    fix_tickets_for_service,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db, open_db_session
