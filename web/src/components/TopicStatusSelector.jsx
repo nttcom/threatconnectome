@@ -136,7 +136,9 @@ export function TopicStatusSelector(props) {
   if (!pteamId || !serviceId || !topicId || !tagId || !currentStatus) return <></>;
 
   const handleHideDatepicker = () => {
-    setSchedule(currentStatus.scheduled_at ? dateTimeFormat(currentStatus.scheduled_at) : null);
+    if (currentStatus.scheduled_at && currentStatus.scheduled_at instanceof Date) {
+      setSchedule(dateTimeFormat(currentStatus.scheduled_at));
+    }
     setDatepickerOpen(false);
   };
   const now = new Date();
@@ -158,11 +160,12 @@ export function TopicStatusSelector(props) {
         endIcon={<ArrowDropDownIcon />}
         sx={{
           ...topicStatusProps[currentStatus.topic_status].buttonStyle,
-          fontSize: 14,
+          fontSize: 12,
           padding: "1px 3px",
           minHeight: "25px",
           maxHeight: "25px",
           textTransform: "none",
+          fontWeight: 900,
           borderStyle: "none",
           mr: 1,
           "&:hover": {
