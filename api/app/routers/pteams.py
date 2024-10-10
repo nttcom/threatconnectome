@@ -11,6 +11,7 @@ from fastapi.responses import Response
 from PIL import Image
 from sqlalchemy.orm import Session
 
+from api.app.utility.unicode_tool import count_full_width_and_half_width_characters
 from app import command, models, persistence, schemas
 from app.alert import notify_sbom_upload_ended
 from app.auth import get_current_user
@@ -23,10 +24,6 @@ from app.business.tag_business import (
 from app.business.ticket_business import fix_tickets_for_service
 from app.business.topic_business import get_sorted_topics
 from app.business.vulnerability_detector import fix_threats_for_dependency
-from app.common import (
-    count_full_width_and_half_width_characters,
-    count_ssvc_priority_from_summary,
-)
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db, open_db_session
 from app.sbom import sbom_json_to_artifact_json_lines
@@ -406,6 +403,17 @@ def remove_service_thumbnail(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+def _count_ssvc_priority_from_summary(tags_summary: list[dict]):
+    ssvc_priority_count: dict[models.SSVCDeployerPriorityEnum, int] = {
+        priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
+    }
+    for tag_summary in tags_summary:
+        ssvc_priority_count[
+            tag_summary["ssvc_priority"] or models.SSVCDeployerPriorityEnum.DEFER
+        ] += 1
+    return ssvc_priority_count
+
+
 @router.get(
     "/{pteam_id}/services/{service_id}/tags/summary", response_model=schemas.PTeamServiceTagsSummary
 )
@@ -427,7 +435,7 @@ def get_pteam_service_tags_summary(
 
     tags_summary = command.get_tags_summary_by_service_id(db, service_id)
 
-    ssvc_priority_count = count_ssvc_priority_from_summary(tags_summary)
+    ssvc_priority_count = _count_ssvc_priority_from_summary(tags_summary)
 
     return {
         "ssvc_priority_count": ssvc_priority_count,
@@ -451,7 +459,7 @@ def get_pteam_tags_summary(
 
     tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
 
-    ssvc_priority_count = count_ssvc_priority_from_summary(tags_summary)
+    ssvc_priority_count = _count_ssvc_priority_from_summary(tags_summary)
 
     return {
         "ssvc_priority_count": ssvc_priority_count,
