@@ -484,7 +484,7 @@ def get_pteam_topic_actions(
         raise NO_SUCH_TOPIC
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
 
     # Note: no limitations currently, thus return all topic actions

@@ -150,7 +150,7 @@ def get_pteam(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     return pteam
@@ -185,7 +185,7 @@ def get_pteam_services(
 ):
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     return sorted(pteam.services, key=lambda x: x.service_name)
@@ -236,7 +236,7 @@ def update_pteam_service(
         service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
     ):
         raise NO_SUCH_SERVICE
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     if data.description is not None:
@@ -313,7 +313,7 @@ async def upload_service_thumbnail(
         service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
     ):
         raise NO_SUCH_SERVICE
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     # check without loading file
@@ -369,7 +369,7 @@ def get_service_thumbnail(
         service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
     ):
         raise NO_SUCH_SERVICE
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if service.thumbnail is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No thumbnail")
@@ -396,7 +396,7 @@ def remove_service_thumbnail(
         service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
     ):
         raise NO_SUCH_SERVICE
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     service.thumbnail = None
@@ -422,7 +422,7 @@ def get_pteam_service_tags_summary(
         raise NO_SUCH_PTEAM
     if not next(filter(lambda x: x.service_id == str(service_id), pteam.services), None):
         raise NO_SUCH_SERVICE
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     tags_summary = command.get_tags_summary_by_service_id(db, service_id)
@@ -446,7 +446,7 @@ def get_pteam_tags_summary(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
@@ -471,7 +471,7 @@ def get_dependencies(
 ):
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if not (
         service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
@@ -492,7 +492,7 @@ def get_pteam_tags(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     return get_pteam_ext_tags(pteam)
@@ -511,7 +511,7 @@ def get_service_tagged_topic_ids(
 ):
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if not (service := persistence.get_service_by_id(db, service_id)):
         raise NO_SUCH_SERVICE
@@ -549,7 +549,7 @@ def get_ticket_status(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if not (service := persistence.get_service_by_id(db, service_id)):
         raise NO_SUCH_SERVICE
@@ -590,7 +590,7 @@ def set_ticket_status(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if not (service := persistence.get_service_by_id(db, service_id)):
         raise NO_SUCH_SERVICE
@@ -664,7 +664,7 @@ def set_ticket_status(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No such user",
             )
-        if not check_pteam_membership(db, pteam, a_user):
+        if not check_pteam_membership(pteam, a_user):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Not a pteam member",
@@ -744,7 +744,7 @@ def get_tickets_with_status_by_service_id_and_topic_id(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if not (service := persistence.get_service_by_id(db, service_id)):
         raise NO_SUCH_SERVICE
@@ -785,7 +785,7 @@ def get_pteam_topics(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     if not pteam.tags:
@@ -890,7 +890,7 @@ def update_pteam_auth(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid user id",
                 )
-            if not check_pteam_membership(db, pteam, user, ignore_ateam=True):
+            if not check_pteam_membership(pteam, user, ignore_ateam=True):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Not a pteam member",
@@ -1047,7 +1047,7 @@ async def upload_pteam_sbom_file(
 
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if not service:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
@@ -1094,7 +1094,7 @@ def upload_pteam_tags_file(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if not service:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
@@ -1192,7 +1192,7 @@ def remove_pteam_tags_by_service(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     if not (
@@ -1263,7 +1263,7 @@ def get_pteam_members(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     return pteam.members
 
@@ -1415,7 +1415,7 @@ def get_pteam_watchers(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     return pteam.ateams

@@ -48,7 +48,7 @@ def create_log(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such pteam")
     if not next(filter(lambda x: x.service_id == str(data.service_id), pteam.services), None):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
     if not (
         ticket := persistence.get_ticket_by_id(db, data.ticket_id)
@@ -56,7 +56,7 @@ def create_log(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
     if not (user := persistence.get_account_by_id(db, data.user_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
-    if not check_pteam_membership(db, pteam, user):
+    if not check_pteam_membership(pteam, user):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam member")
     if not (persistence.get_topic_by_id(db, data.topic_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
