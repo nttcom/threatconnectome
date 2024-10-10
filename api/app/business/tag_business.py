@@ -1,7 +1,8 @@
 from typing import Sequence
 
-from app import models, persistence, schemas
 from sqlalchemy.orm import Session
+
+from app import models, persistence, schemas
 
 
 def _pick_parent_tag(tag_name: str) -> str | None:

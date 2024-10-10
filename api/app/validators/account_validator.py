@@ -1,6 +1,7 @@
+from sqlalchemy.orm import Session
+
 from app import models, persistence
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
-from sqlalchemy.orm import Session
 
 
 def check_pteam_membership(
