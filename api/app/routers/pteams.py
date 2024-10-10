@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 from app.alert import notify_sbom_upload_ended
 from app.auth import get_current_user
+from app.business.ssvc_business import get_topic_ids_summary_by_service_id_and_tag_id
 from app.business.tag_business import (
     create_topic_tag,
     get_pteam_ext_tags,
@@ -25,7 +26,6 @@ from app.common import (
     fix_tickets_for_service,
     get_sorted_topics,
     get_tag_ids_with_parent_ids,
-    get_topic_ids_summary_by_service_id_and_tag_id,
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db, open_db_session
