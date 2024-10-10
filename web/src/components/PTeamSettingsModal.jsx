@@ -22,7 +22,7 @@ import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
 import { PTeamNotificationSetting } from "./PTeamNotificationSetting";
 
 export function PTeamSettingsModal(props) {
-  const { onSetShow, show, defaultTabIndex } = props;
+  const { pteamId, onSetShow, show, defaultTabIndex } = props;
   const [tab, setTab] = useState(defaultTabIndex ?? 0);
 
   const handleClose = () => onSetShow(false);
@@ -56,13 +56,14 @@ export function PTeamSettingsModal(props) {
           <PTeamNotificationSetting show={show} />
         </TabPanel>
         <TabPanel index={2} value={tab}>
-          <PTeamAuthEditor />
+          <PTeamAuthEditor pteamId={pteamId} />
         </TabPanel>
       </DialogContent>
     </Dialog>
   );
 }
 PTeamSettingsModal.propTypes = {
+  pteamId: PropTypes.string.isRequired,
   onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
   defaultTabIndex: PropTypes.number,

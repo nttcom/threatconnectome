@@ -9,6 +9,7 @@ import { AppBar } from "../components/AppBar";
 import { Drawer } from "../components/Drawer";
 import { Main } from "../components/Main";
 import { setATeamId } from "../slices/ateam";
+import { setAuthToken } from "../slices/auth";
 import { setPTeamId } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
 import { getTags } from "../slices/tags";
@@ -38,8 +39,10 @@ export function App() {
     if (user.user_id) return;
     const _checkToken = async () => {
       try {
-        if (!cookies[authCookieName]) throw new Error("Missing cookie");
-        setToken(cookies[authCookieName]);
+        const accessToken = cookies[authCookieName];
+        if (!accessToken) throw new Error("Missing cookie");
+        dispatch(setAuthToken(accessToken));
+        setToken(accessToken);
         await getMyUserInfo()
           .then((ret) => {
             dispatch(getUser());

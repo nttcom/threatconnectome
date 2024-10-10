@@ -60,10 +60,17 @@ export const validateNotEmpty = (str) => str?.length > 0;
 export const validateUUID = (str) =>
   str?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 
-export const errorToString = (error) =>
-  typeof error.response?.data?.detail === "string"
-    ? error.response.data.detail
-    : `${error.response?.status}: ${error.response?.statusText}`; // maybe 422 by Pydantic
+export const errorToString = (error) => {
+  if (typeof error === "string") return error;
+  if (error.status && error.data?.detail) return `${error.status}: ${error.data.detail}`; // RTKQ
+  if (typeof error.response?.data?.detail === "string")
+    // error message from api
+    return error.response.data.detail;
+  if (error.response?.status && error.response.statusText)
+    // maybe 422 by Pydantic
+    return `${error.response?.status}: ${error.response?.statusText}`;
+  return JSON.stringify(error); // not expected case
+};
 
 export const tagsMatched = (allowedTags, actualTags) => {
   if (allowedTags.length === 0 && actualTags.length === 0) return true;

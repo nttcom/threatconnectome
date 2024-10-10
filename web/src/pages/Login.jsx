@@ -21,6 +21,7 @@ import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { clearATeam } from "../slices/ateam";
+import { clearAuth, setAuthToken } from "../slices/auth";
 import { clearPTeam } from "../slices/pteam";
 import { clearTopics } from "../slices/topics";
 import { clearUser } from "../slices/user";
@@ -44,6 +45,7 @@ export function Login() {
   const metemcyberAuthUrl = process.env.REACT_APP_METEMCYBER_AUTH_URL;
 
   useEffect(() => {
+    dispatch(clearAuth());
     dispatch(clearUser());
     dispatch(clearPTeam());
     dispatch(clearATeam());
@@ -82,6 +84,7 @@ export function Login() {
 
   const navigateInternalPage = async (userCredential) => {
     const accessToken = userCredential.user.accessToken;
+    dispatch(setAuthToken(accessToken));
     setToken(accessToken);
     setCookie(authCookieName, accessToken, cookiesOptions);
     try {

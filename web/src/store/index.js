@@ -1,7 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import reducer from "../slices";
+import { tcApi } from "../services/tcApi";
+import { sliceReducers } from "../slices";
 
-const store = configureStore({ reducer });
+const store = configureStore({
+  reducer: {
+    ...sliceReducers,
+    [tcApi.reducerPath]: tcApi.reducer,
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(tcApi.middleware),
+});
 
 export default store;
