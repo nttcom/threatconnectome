@@ -21,8 +21,8 @@ from app.business.topic_business import (
 from app.database import get_db
 from app.detector.vulnerability_detector import fix_threats_for_topic
 from app.notification.alert import send_alert_to_pteam
+from app.routers.validators.account_validator import check_pteam_membership
 from app.ssvc import ssvc_calculator
-from app.validators.account_validator import check_pteam_membership
 
 router = APIRouter(prefix="/topics", tags=["topics"])
 

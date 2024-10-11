@@ -10,7 +10,7 @@ from app.auth import get_current_user
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
 from app.database import get_db
 from app.notification.slack import validate_slack_webhook_url
-from app.validators.account_validator import (
+from app.routers.validators.account_validator import (
     check_ateam_auth,
     check_ateam_membership,
     check_pteam_auth,

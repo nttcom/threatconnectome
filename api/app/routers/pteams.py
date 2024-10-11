@@ -26,12 +26,12 @@ from app.database import get_db, open_db_session
 from app.detector.vulnerability_detector import fix_threats_for_dependency
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
-from app.sbom import sbom_json_to_artifact_json_lines
-from app.utility.unicode_tool import count_full_width_and_half_width_characters
-from app.validators.account_validator import (
+from app.routers.validators.account_validator import (
     check_pteam_auth,
     check_pteam_membership,
 )
+from app.sbom import sbom_json_to_artifact_json_lines
+from app.utility.unicode_tool import count_full_width_and_half_width_characters
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
 
