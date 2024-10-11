@@ -5,6 +5,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
+import { firebaseApi } from "../services/firebaseApi";
 import { tcApi } from "../services/tcApi";
 import { setDrawerOpen } from "../slices/system";
 import { drawerWidth } from "../utils/const";
@@ -41,6 +42,7 @@ export function AppBar() {
   const handleDrawerOpen = () => dispatch(setDrawerOpen(!system.drawerOpen));
 
   const handleLogout = () => {
+    dispatch(firebaseApi.util.resetApiState()); // reset RTKQ
     dispatch(tcApi.util.resetApiState()); // reset RTKQ
     navigate("/login", {
       state: { message: "Logged out successfully.", from: null, search: null },
