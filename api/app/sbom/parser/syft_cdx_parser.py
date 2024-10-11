@@ -6,7 +6,6 @@ from typing import (
     ClassVar,
     NamedTuple,
     Pattern,
-    TypeAlias,
 )
 
 from packageurl import PackageURL
@@ -14,9 +13,10 @@ from packageurl import PackageURL
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.debug_info_outputer import error_message
 from app.sbom.parser.sbom_info import SBOMInfo
-from app.sbom.parser.sbom_parser import SBOMParser
-
-SBOM: TypeAlias = dict
+from app.sbom.parser.sbom_parser import (
+    SBOM,
+    SBOMParser,
+)
 
 
 class SyftCDXParser(SBOMParser):

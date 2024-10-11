@@ -1,14 +1,14 @@
 from typing import (
     Type,
-    TypeAlias,
 )
 
 from app.sbom.parser.sbom_info import SBOMInfo
-from app.sbom.parser.sbom_parser import SBOMParser
+from app.sbom.parser.sbom_parser import (
+    SBOM,
+    SBOMParser,
+)
 from app.sbom.parser.syft_cdx_parser import SyftCDXParser
 from app.sbom.parser.trivy_cdx_parser import TrivyCDXParser
-
-SBOM: TypeAlias = dict
 
 
 def _inspect_cyclonedx(sbom: SBOM) -> tuple[str, str | None]:  # tool_name, tool_version
