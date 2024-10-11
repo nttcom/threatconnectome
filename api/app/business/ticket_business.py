@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app import models, persistence
-from app.alert import send_alert_to_pteam
+from app.notification.alert import send_alert_to_pteam
 from app.ssvc import ssvc_calculator
 
 
