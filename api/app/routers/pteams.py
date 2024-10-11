@@ -11,7 +11,6 @@ from fastapi.responses import Response
 from PIL import Image
 from sqlalchemy.orm import Session
 
-from api.app.utility.unicode_tool import count_full_width_and_half_width_characters
 from app import command, models, persistence, schemas
 from app.alert import notify_sbom_upload_ended
 from app.auth import get_current_user
@@ -23,11 +22,12 @@ from app.business.tag_business import (
 )
 from app.business.ticket_business import fix_tickets_for_service
 from app.business.topic_business import get_sorted_topics
-from app.business.vulnerability_detector import fix_threats_for_dependency
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db, open_db_session
+from app.detector.vulnerability_detector import fix_threats_for_dependency
 from app.sbom import sbom_json_to_artifact_json_lines
 from app.slack import validate_slack_webhook_url
+from app.utility.unicode_tool import count_full_width_and_half_width_characters
 from app.validators.account_validator import (
     check_pteam_auth,
     check_pteam_membership,
