@@ -3,7 +3,11 @@ import json
 import os
 import re
 import sys
-from typing import Any, ClassVar, Pattern
+from typing import (
+    Any,
+    ClassVar,
+    Pattern,
+)
 
 from cyclonedx.exception import MissingOptionalDependencyException
 from cyclonedx.schema import SchemaVersion

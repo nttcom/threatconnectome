@@ -29,7 +29,7 @@ from app.common import (
 )
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db, open_db_session
-from app.sbom import sbom_json_to_artifact_json_lines
+from app.sbom.sbom_analyzer import sbom_json_to_artifact_json_lines
 from app.slack import validate_slack_webhook_url
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
