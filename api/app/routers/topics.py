@@ -19,8 +19,8 @@ from app.business.topic_business import (
     calculate_topic_content_fingerprint,
     get_sorted_topics,
 )
-from app.business.vulnerability_detector import fix_threats_for_topic
 from app.database import get_db
+from app.detector.vulnerability_detector import fix_threats_for_topic
 from app.ssvc import ssvc_calculator
 from app.validators.account_validator import check_pteam_membership
 
