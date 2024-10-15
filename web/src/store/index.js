@@ -11,7 +11,23 @@ const store = configureStore({
     [firebaseApi.reducerPath]: firebaseApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(tcApi.middleware).concat(firebaseApi.middleware),
+    getDefaultMiddleware({
+      serializableCheck: {
+        /* disable serializableCheck for firebase to avoid error:
+         *   A non-serializable value was detected, ...
+         * https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data
+         * https://redux-toolkit.js.org/api/serializabilityMiddleware#options
+         */
+        ignoredActions: [
+          "firebaseApi/executeMutation/fulfilled",
+          "firebaseApi/executeMutation/pending",
+          "firebaseApi/executeMutation/rejected",
+        ],
+        ignoredPaths: [new RegExp("^firebaseApi.mutations.*")],
+      },
+    })
+      .concat(tcApi.middleware)
+      .concat(firebaseApi.middleware),
 });
 
 export default store;
