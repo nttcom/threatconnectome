@@ -10,18 +10,18 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
-from app.alert import send_alert_to_pteam
 from app.auth import get_current_user, token_scheme
-from app.common import (
+from app.business.misp_tag_business import get_or_create_misp_tag
+from app.business.tag_business import check_topic_action_tags_integrity
+from app.business.ticket_business import ticket_meets_condition_to_create_alert
+from app.business.topic_business import (
     calculate_topic_content_fingerprint,
-    check_pteam_membership,
-    check_topic_action_tags_integrity,
-    fix_threats_for_topic,
-    get_or_create_misp_tag,
     get_sorted_topics,
-    ticket_meets_condition_to_create_alert,
 )
 from app.database import get_db
+from app.detector.vulnerability_detector import fix_threats_for_topic
+from app.notification.alert import send_alert_to_pteam
+from app.routers.validators.account_validator import check_pteam_membership
 from app.ssvc import ssvc_calculator
 
 router = APIRouter(prefix="/topics", tags=["topics"])
@@ -484,7 +484,7 @@ def get_pteam_topic_actions(
         raise NO_SUCH_TOPIC
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
-    if not check_pteam_membership(db, pteam, current_user):
+    if not check_pteam_membership(pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
 
     # Note: no limitations currently, thus return all topic actions
