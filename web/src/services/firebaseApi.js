@@ -38,7 +38,7 @@ export const firebaseApi = createApi({
     signInWithSamlPopup: builder.mutation({
       queryFn: async (_, { dispatch }) => {
         if (!samlProvider) {
-          throw new Error("SAML not supported");
+          return { error: "SAML not supported" };
         }
         return await signInWithPopup(auth, samlProvider)
           .then((credential) => {
