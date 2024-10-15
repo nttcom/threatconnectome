@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app import models, persistence, schemas
 from app.auth import get_current_user
 from app.business.tag_business import check_topic_action_tags_integrity
+from app.data_checker.topic_checker import check_and_get_topic
 from app.database import get_db
 from app.detector.vulnerability_detector import fix_threats_for_topic
 
@@ -28,8 +29,7 @@ def create_action(
     """
     if not data.topic_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing topic_id")
-    if not (topic := persistence.get_topic_by_id(db, data.topic_id)):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
+    topic = check_and_get_topic(db, data.topic_id)
     if data.action_id and persistence.get_action_by_id(db, data.action_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

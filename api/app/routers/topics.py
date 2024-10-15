@@ -18,16 +18,15 @@ from app.business.topic_business import (
     calculate_topic_content_fingerprint,
     get_sorted_topics,
 )
+from app.data_checker.pteam_checker import check_and_get_pteam
+from app.data_checker.topic_checker import check_and_get_topic
 from app.database import get_db
 from app.detector.vulnerability_detector import fix_threats_for_topic
 from app.notification.alert import send_alert_to_pteam
-from app.routers.validators.account_validator import check_pteam_membership
+from app.routers.validators.account_validator import validate_pteam_membership
 from app.ssvc import ssvc_calculator
 
 router = APIRouter(prefix="/topics", tags=["topics"])
-
-
-NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
 
 
 @router.get("", response_model=list[schemas.TopicEntry])
@@ -236,8 +235,7 @@ def get_topic(
     """
     Get a topic.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)):
-        raise NO_SUCH_TOPIC
+    topic = check_and_get_topic(db, topic_id)
 
     return topic
 
@@ -358,8 +356,7 @@ def update_topic(
     """
     Update a topic.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)):
-        raise NO_SUCH_TOPIC
+    topic = check_and_get_topic(db, topic_id)
     if topic.created_by != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -454,8 +451,7 @@ def delete_topic(
     """
     Delete a topic and related records except actionlog.
     """
-    if not (topic := persistence.get_topic_by_id(db, topic_id)):
-        raise NO_SUCH_TOPIC
+    topic = check_and_get_topic(db, topic_id)
 
     if topic.created_by != current_user.user_id:
         raise HTTPException(
@@ -480,11 +476,9 @@ def get_pteam_topic_actions(
     """
     Get actions list of the topic for specified pteam.
     """
-    if not (persistence.get_topic_by_id(db, topic_id)):
-        raise NO_SUCH_TOPIC
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
-    if not check_pteam_membership(pteam, current_user):
+    check_and_get_topic(db, topic_id)
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
 
     # Note: no limitations currently, thus return all topic actions
@@ -506,8 +500,7 @@ def get_user_topic_actions(
     """
     Get actions list of the topic for current user.
     """
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
+    check_and_get_topic(db, topic_id)
 
     # Note: no limitations currently, thus return all topic actions
     actions = persistence.get_actions_by_topic_id(db, topic_id)

@@ -22,13 +22,19 @@ from app.business.tag_business import (
 from app.business.ticket_business import fix_tickets_for_service
 from app.business.topic_business import get_sorted_topics
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
+from app.data_checker.account_checker import check_and_get_account, check_pteam_auth
+from app.data_checker.pteam_checker import check_and_get_pteam
+from app.data_checker.service_checker import check_and_get_pteam_and_service, check_and_get_service
+from app.data_checker.ticket_checker import check_and_get_ticket
+from app.data_checker.topic_checker import check_and_get_topic
 from app.database import get_db, open_db_session
 from app.detector.vulnerability_detector import fix_threats_for_dependency
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
-from app.routers.validators.account_validator import (
-    check_pteam_auth,
-    check_pteam_membership,
+from app.routers.validators.account_validator import validate_pteam_membership
+from app.routers.validators.file_validator import (
+    validate_empty_file,
+    validate_file_extention,
 )
 from app.sbom.sbom_analyzer import sbom_json_to_artifact_json_lines
 from app.utility.unicode_tool import count_full_width_and_half_width_characters
@@ -45,12 +51,7 @@ NOT_HAVE_AUTH = HTTPException(
     detail="You do not have authority",
 )
 NO_SUCH_ATEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ateam")
-NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
-NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
 NO_SUCH_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
-NO_SUCH_SERVICE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
-NO_SUCH_PTEAM_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam tag")
-NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 
 
 @router.get("", response_model=list[schemas.PTeamEntry])
@@ -145,9 +146,8 @@ def get_pteam(
     """
     Get pteam details. members only.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     return pteam
@@ -164,8 +164,7 @@ def force_calculate_ssvc_priority(
 
     Note: Many alerts may occur. Check your Alert-Threshold setting.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
+    pteam = check_and_get_pteam(db, pteam_id)
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
         raise NOT_HAVE_AUTH
     for service in pteam.services:
@@ -180,9 +179,8 @@ def get_pteam_services(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     return sorted(pteam.services, key=lambda x: x.service_name)
@@ -227,13 +225,8 @@ def update_pteam_service(
         ),
     )
 
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not (
-        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
-    ):
-        raise NO_SUCH_SERVICE
-    if not check_pteam_membership(pteam, current_user):
+    pteam, service = check_and_get_pteam_and_service(db, pteam_id, service_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     if data.description is not None:
@@ -259,15 +252,15 @@ def update_pteam_service(
 
     need_fix_tickets = False
 
-    if data.system_exposure not in {None, service.system_exposure}:
+    if data.system_exposure is not None:
         service.system_exposure = data.system_exposure
         need_fix_tickets = True
 
-    if data.service_mission_impact not in {None, service.service_mission_impact}:
+    if data.service_mission_impact is not None:
         service.service_mission_impact = data.service_mission_impact
         need_fix_tickets = True
 
-    if data.safety_impact not in {None, service.safety_impact}:
+    if data.safety_impact is not None:
         service.safety_impact = data.safety_impact
         need_fix_tickets = True
 
@@ -304,13 +297,8 @@ async def upload_service_thumbnail(
     supported_media_types = {"image/png"}
     # https://www.iana.org/assignments/media-types/media-types.xhtml
 
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not (
-        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
-    ):
-        raise NO_SUCH_SERVICE
-    if not check_pteam_membership(pteam, current_user):
+    pteam, service = check_and_get_pteam_and_service(db, pteam_id, service_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     # check without loading file
@@ -360,13 +348,8 @@ def get_service_thumbnail(
     Get thumbnail image file of the pteam service.
     """
 
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not (
-        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
-    ):
-        raise NO_SUCH_SERVICE
-    if not check_pteam_membership(pteam, current_user):
+    pteam, service = check_and_get_pteam_and_service(db, pteam_id, service_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if service.thumbnail is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No thumbnail")
@@ -387,13 +370,8 @@ def remove_service_thumbnail(
     Remove thumbnail image file of the pteam service.
     """
 
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not (
-        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
-    ):
-        raise NO_SUCH_SERVICE
-    if not check_pteam_membership(pteam, current_user):
+    pteam, service = check_and_get_pteam_and_service(db, pteam_id, service_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     service.thumbnail = None
@@ -426,11 +404,8 @@ def get_pteam_service_tags_summary(
     """
     Get tags summary of the pteam service.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not next(filter(lambda x: x.service_id == str(service_id), pteam.services), None):
-        raise NO_SUCH_SERVICE
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam_and_service(db, pteam_id, service_id)[0]
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     tags_summary = command.get_tags_summary_by_service_id(db, service_id)
@@ -452,9 +427,8 @@ def get_pteam_tags_summary(
     """
     Get tags summary of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
@@ -477,14 +451,9 @@ def get_dependencies(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam, service = check_and_get_pteam_and_service(db, pteam_id, service_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (
-        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
-    ):
-        raise NO_SUCH_SERVICE
 
     return service.dependencies
 
@@ -498,9 +467,8 @@ def get_pteam_tags(
     """
     Get tags of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     return get_pteam_ext_tags(pteam)
@@ -517,14 +485,10 @@ def get_service_tagged_topic_ids(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
+    service = check_and_get_service(db, pteam_id, service_id)
     if not persistence.get_tag_by_id(db, tag_id):
         raise NO_SUCH_TAG
     if not persistence.get_dependency_from_service_id_and_tag_id(db, service_id, tag_id):
@@ -555,18 +519,11 @@ def get_ticket_status(
     """
     Get the current status of the ticket.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
-    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
-        raise NO_SUCH_TICKET
-    if ticket.threat.dependency.service_id != str(service_id):
-        raise NO_SUCH_TICKET
+    check_and_get_service(db, pteam_id, service_id)
+    ticket = check_and_get_ticket(db, service_id, ticket_id)
 
     fixed_status = (
         {**ticket.current_ticket_status.ticket_status.__dict__}
@@ -596,18 +553,11 @@ def set_ticket_status(
 
     scheduled_at is necessary to make topic_status "scheduled".
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
-    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
-        raise NO_SUCH_TICKET
-    if ticket.threat.dependency.service_id != str(service_id):
-        raise NO_SUCH_TICKET
+    check_and_get_service(db, pteam_id, service_id)
+    ticket = check_and_get_ticket(db, service_id, ticket_id)
 
     if data.topic_status == models.TopicStatusType.alerted:
         # user cannot set alerted
@@ -672,7 +622,7 @@ def set_ticket_status(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No such user",
             )
-        if not check_pteam_membership(pteam, a_user):
+        if not validate_pteam_membership(pteam, a_user):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Not a pteam member",
@@ -750,16 +700,11 @@ def get_tickets_with_status_by_service_id_and_topic_id(
     """
     Get tickets (with status) related to the service, topic and tag.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
+    check_and_get_service(db, pteam_id, service_id)
+    check_and_get_topic(db, topic_id)
     if not persistence.get_tag_by_id(db, tag_id):
         raise NO_SUCH_TAG
 
@@ -791,9 +736,8 @@ def get_pteam_topics(
     """
     Get topics of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     if not pteam.tags:
@@ -875,8 +819,7 @@ def update_pteam_auth(
       - 00000000-0000-0000-0000-0000cafe0001 : pteam member
       - 00000000-0000-0000-0000-0000cafe0002 : not pteam member
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
+    pteam = check_and_get_pteam(db, pteam_id)
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
         raise NOT_HAVE_AUTH
 
@@ -893,12 +836,8 @@ def update_pteam_auth(
                     detail="Cannot give ADMIN to pseudo account",
                 )
         else:
-            if not (user := persistence.get_account_by_id(db, user_id)):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid user id",
-                )
-            if not check_pteam_membership(pteam, user, ignore_ateam=True):
+            user = check_and_get_account(db, user_id)
+            if not validate_pteam_membership(pteam, user, ignore_ateam=True):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Not a pteam member",
@@ -944,9 +883,7 @@ def get_pteam_auth(
       - 00000000-0000-0000-0000-0000cafe0001 : pteam member
       - 00000000-0000-0000-0000-0000cafe0002 : not pteam member
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-
+    pteam = check_and_get_pteam(db, pteam_id)
     if current_user in pteam.members:  # member can get all authorities
         authorities = persistence.get_pteam_all_authorities(db, pteam_id)
     else:  # not member can get only for NOT_MEMBER_UUID
@@ -958,29 +895,6 @@ def get_pteam_auth(
         enums = models.PTeamAuthIntFlag(auth.authority).to_enums()
         response.append({"user_id": auth.user_id, "authorities": enums})
     return response
-
-
-def _check_file_extention(file: UploadFile, extention: str):
-    """
-    Error when file don't have a specified extention
-    """
-    if file.filename is None or not file.filename.endswith(extention):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Please upload a file with {extention} as extension",
-        )
-
-
-def _check_empty_file(file: UploadFile):
-    """
-    Error when file is empty
-    """
-    if len(file.file.read().decode()) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Upload file is empty",
-        )
-    file.file.seek(0)  # move the cursor back to the beginning
 
 
 def _json_loads(s: str | bytes | bytearray):
@@ -1053,14 +967,13 @@ async def upload_pteam_sbom_file(
             detail="Length of Service name exceeds 255 characters",
         )
 
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if not service:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
-    _check_file_extention(file, ".json")
-    _check_empty_file(file)
+    validate_file_extention(file, ".json")
+    validate_empty_file(file)
 
     sbom_sha256 = sha256()
     while data := await file.read(DEFAULT_BUFFER_SIZE):
@@ -1100,14 +1013,13 @@ def upload_pteam_tags_file(
 
     Format of file content must be JSON Lines.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     if not service:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
-    _check_file_extention(file, ".jsonl")
-    _check_empty_file(file)
+    validate_file_extention(file, ".jsonl")
+    validate_empty_file(file)
 
     # Read from file
     json_lines = []
@@ -1198,9 +1110,8 @@ def remove_pteam_tags_by_service(
     """
     Remove pteam tags filtered by service.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     if not (
@@ -1228,8 +1139,7 @@ def update_pteam(
 
     Note: monitoring tags cannot be update with this api. use (add|update|remove)_pteamtag instead.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
+    pteam = check_and_get_pteam(db, pteam_id)
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
         raise NOT_HAVE_AUTH
     if data.alert_slack and data.alert_slack.webhook_url:
@@ -1269,9 +1179,8 @@ def get_pteam_members(
     """
     Get members of the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
     return pteam.members
 
@@ -1286,8 +1195,7 @@ def delete_member(
     """
     User leaves the pteam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
+    pteam = check_and_get_pteam(db, pteam_id)
     if current_user.user_id != str(user_id) and not check_pteam_auth(
         db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN
     ):
@@ -1324,8 +1232,7 @@ def create_invitation(
     """
     Create a new pteam invitation token.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
+    pteam = check_and_get_pteam(db, pteam_id)
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
         raise NOT_HAVE_AUTH
     # only ADMIN can set authorities to the invitation
@@ -1372,8 +1279,7 @@ def list_invitations(
     """
     list effective invitations.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
+    pteam = check_and_get_pteam(db, pteam_id)
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
         raise NOT_HAVE_AUTH
 
@@ -1396,8 +1302,7 @@ def delete_invitation(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
+    pteam = check_and_get_pteam(db, pteam_id)
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
         raise NOT_HAVE_AUTH
 
@@ -1421,9 +1326,8 @@ def get_pteam_watchers(
     """
     Get watching pteams of the ateam.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam(db, pteam_id)
+    if not validate_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
     return pteam.ateams
@@ -1439,8 +1343,7 @@ def remove_watcher_ateam(
     """
     Remove ateam from watchers list.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
+    pteam = check_and_get_pteam(db, pteam_id)
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
         raise NOT_HAVE_AUTH
     if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):

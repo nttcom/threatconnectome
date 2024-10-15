@@ -6,8 +6,12 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
 from app.auth import get_current_user
+from app.data_checker.account_checker import check_and_get_account
+from app.data_checker.service_checker import check_and_get_pteam_and_service
+from app.data_checker.ticket_checker import check_and_get_ticket
+from app.data_checker.topic_checker import check_and_get_topic
 from app.database import get_db
-from app.routers.validators.account_validator import check_pteam_membership
+from app.routers.validators.account_validator import validate_pteam_membership
 
 router = APIRouter(prefix="/actionlogs", tags=["actionlogs"])
 
@@ -44,22 +48,14 @@ def create_log(
     The format of `executed_at` is ISO-8601.
     In linux, you can check it with `date --iso-8601=seconds`.
     """
-    if not (pteam := persistence.get_pteam_by_id(db, data.pteam_id)):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such pteam")
-    if not next(filter(lambda x: x.service_id == str(data.service_id), pteam.services), None):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
-    if not check_pteam_membership(pteam, current_user):
+    pteam = check_and_get_pteam_and_service(db, data.pteam_id, data.service_id)[0]
+    if not validate_pteam_membership(pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
-    if not (
-        ticket := persistence.get_ticket_by_id(db, data.ticket_id)
-    ) or ticket.threat.dependency.service_id != str(data.service_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
-    if not (user := persistence.get_account_by_id(db, data.user_id)):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
-    if not check_pteam_membership(pteam, user):
+    check_and_get_ticket(db, data.service_id, data.ticket_id)
+    user = check_and_get_account(db, data.user_id)
+    if not validate_pteam_membership(pteam, user):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam member")
-    if not (persistence.get_topic_by_id(db, data.topic_id)):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
+    check_and_get_topic(db, data.topic_id)
     if not (
         topic_action := persistence.get_action_by_id(db, data.action_id)
     ) or topic_action.topic_id != str(data.topic_id):
@@ -96,9 +92,6 @@ def get_topic_logs(
     """
     Get actionlogs associated with the specified topic.
     """
-    topic = persistence.get_topic_by_id(db, topic_id)
-    if topic is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
-    assert topic
+    check_and_get_topic(db, topic_id)
     rows = persistence.get_topic_logs_by_user_id(db, topic_id, current_user.user_id)
     return sorted(rows, key=lambda x: x.executed_at, reverse=True)

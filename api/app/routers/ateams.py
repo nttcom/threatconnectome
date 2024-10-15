@@ -8,18 +8,19 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 from app.auth import get_current_user
 from app.constants import MEMBER_UUID, NOT_MEMBER_UUID, SYSTEM_UUID
-from app.database import get_db
-from app.notification.slack import validate_slack_webhook_url
-from app.routers.validators.account_validator import (
+from app.data_checker.account_checker import (
+    check_and_get_account,
     check_ateam_auth,
-    check_ateam_membership,
     check_pteam_auth,
 )
+from app.data_checker.topic_checker import check_and_get_topic
+from app.database import get_db
+from app.notification.slack import validate_slack_webhook_url
+from app.routers.validators.account_validator import validate_ateam_membership
 
 router = APIRouter(prefix="/ateams", tags=["ateams"])
 
 NO_SUCH_ATEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ateam")
-NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
 NOT_AN_ATEAM_MEMBER = HTTPException(
     status_code=status.HTTP_403_FORBIDDEN,
     detail="Not an ateam member",
@@ -212,7 +213,7 @@ def get_ateam(
     ateam = persistence.get_ateam_by_id(db, ateam_id)
     if ateam is None:
         raise NO_SUCH_ATEAM
-    if not check_ateam_membership(ateam, current_user):
+    if not validate_ateam_membership(ateam, current_user):
         raise NOT_AN_ATEAM_MEMBER
     return _make_ateam_info(ateam)
 
@@ -289,12 +290,8 @@ def update_ateam_auth(
                     detail="Cannot give ADMIN to pseudo account",
                 )
         else:
-            if not (user := persistence.get_account_by_id(db, user_id)):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid user id",
-                )
-            if not check_ateam_membership(ateam, user):
+            user = check_and_get_account(db, user_id)
+            if not validate_ateam_membership(ateam, user):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Not an ateam member",
@@ -368,7 +365,7 @@ def get_ateam_members(
     ateam = persistence.get_ateam_by_id(db, ateam_id)
     if ateam is None:
         raise NO_SUCH_ATEAM
-    if not check_ateam_membership(ateam, current_user):
+    if not validate_ateam_membership(ateam, current_user):
         raise NOT_AN_ATEAM_MEMBER
 
     return ateam.members
@@ -544,7 +541,7 @@ def get_watching_pteams(
     ateam = persistence.get_ateam_by_id(db, ateam_id)
     if ateam is None:
         raise NO_SUCH_ATEAM
-    if not check_ateam_membership(ateam, current_user):
+    if not validate_ateam_membership(ateam, current_user):
         raise NOT_AN_ATEAM_MEMBER
     return ateam.pteams
 
@@ -698,7 +695,7 @@ def get_topic_status(
     """
     if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
         raise NO_SUCH_ATEAM
-    if not check_ateam_membership(ateam, current_user):
+    if not validate_ateam_membership(ateam, current_user):
         raise NOT_AN_ATEAM_MEMBER
     # ignore empty search.
     search = search if search else None
@@ -781,9 +778,8 @@ def get_topic_comments(
     """
     if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
         raise NO_SUCH_ATEAM
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
-    if not check_ateam_membership(ateam, current_user):
+    check_and_get_topic(db, topic_id)
+    if not validate_ateam_membership(ateam, current_user):
         raise NOT_AN_ATEAM_MEMBER
     return command.get_ateam_topic_comments(db, ateam_id, topic_id)
 
@@ -803,9 +799,8 @@ def add_topic_comment(
     """
     if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
         raise NO_SUCH_ATEAM
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
-    if not check_ateam_membership(ateam, current_user):
+    check_and_get_topic(db, topic_id)
+    if not validate_ateam_membership(ateam, current_user):
         raise NOT_AN_ATEAM_MEMBER
 
     comment = models.ATeamTopicComment(
@@ -843,8 +838,7 @@ def update_topic_comment(
     """
     if not persistence.get_ateam_by_id(db, ateam_id):
         raise NO_SUCH_ATEAM
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
+    check_and_get_topic(db, topic_id)
     comment = persistence.get_ateam_topic_comment_by_id(db, comment_id)
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such comment")
@@ -874,8 +868,7 @@ def delete_topic_comment(
     """
     if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
         raise NO_SUCH_ATEAM
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
+    check_and_get_topic(db, topic_id)
     comment = persistence.get_ateam_topic_comment_by_id(db, comment_id)
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such comment")

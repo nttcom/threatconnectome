@@ -101,7 +101,7 @@ class TestActionLog:
                 )
 
         def test_it_shoud_return_400_when_create_actionlog_with_wrong_topic(self):
-            with pytest.raises(HTTPError, match="400: Bad Request"):
+            with pytest.raises(HTTPError, match="404: Not Found: No such topic"):
                 create_actionlog(
                     USER1,
                     self.action1.action_id,
@@ -127,7 +127,7 @@ class TestActionLog:
                 )
 
         def test_it_should_return_400_when_create_log_with_wrong_pteam(self):
-            with pytest.raises(HTTPError, match="400: Bad Request"):
+            with pytest.raises(HTTPError, match="404: Not Found: No such pteam"):
                 create_actionlog(
                     USER1,
                     self.action1.action_id,
