@@ -6,8 +6,11 @@ from email_validator import validate_email
 
 from app import models
 from app.constants import SYSTEM_EMAIL
-from app.sendgrid import ready_to_send_email, send_email
-from app.slack import (
+from app.notification.sendgrid import (
+    ready_to_send_email,
+    send_email,
+)
+from app.notification.slack import (
     create_slack_blocks_to_notify_sbom_upload_failed,
     create_slack_blocks_to_notify_sbom_upload_succeeded,
     create_slack_pteam_alert_blocks_for_new_topic,

@@ -9,9 +9,17 @@ from fastapi.security import HTTPAuthorizationCredentials
 from app.auth import get_current_user, token_scheme
 from app.constants import SYSTEM_EMAIL
 from app.models import Account
+from app.notification.sendgrid import (
+    SendgridFailStatusError,
+    SendgridHttpError,
+    ready_to_send_email,
+    send_email,
+)
+from app.notification.slack import (
+    send_slack,
+    validate_slack_webhook_url,
+)
 from app.schemas import EmailCheckRequest, FsServerInfo, SlackCheckRequest
-from app.sendgrid import SendgridFailStatusError, SendgridHttpError, ready_to_send_email, send_email
-from app.slack import send_slack, validate_slack_webhook_url
 
 router = APIRouter(prefix="/external", tags=["external"])
 

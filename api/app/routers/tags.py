@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth import get_current_user
-from app.common import get_or_create_topic_tag
+from app.business.tag_business import get_or_create_topic_tag
 from app.database import get_db
 
 router = APIRouter(prefix="/tags", tags=["tags"])

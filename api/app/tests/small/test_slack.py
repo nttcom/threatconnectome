@@ -1,5 +1,5 @@
 from app import models
-from app.slack import (
+from app.notification.slack import (
     SSVC_PRIORITY_LABEL,
     TAG_URL,
     create_slack_pteam_alert_blocks_for_new_topic,

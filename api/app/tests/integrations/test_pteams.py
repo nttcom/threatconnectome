@@ -8,17 +8,17 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from app import models
-from app.alert import (
+from app.constants import SYSTEM_EMAIL
+from app.main import app
+from app.notification.alert import (
     create_mail_to_notify_sbom_upload_failed,
     create_mail_to_notify_sbom_upload_succeeded,
 )
-from app.constants import SYSTEM_EMAIL
-from app.main import app
-from app.routers.pteams import bg_create_tags_from_sbom_json
-from app.slack import (
+from app.notification.slack import (
     create_slack_blocks_to_notify_sbom_upload_failed,
     create_slack_blocks_to_notify_sbom_upload_succeeded,
 )
+from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     PTEAM1,
@@ -1164,7 +1164,7 @@ class TestPostUploadSBOMFileCycloneDX:
             upload_filename = "sample-sbom.json"
 
             # setup mocker
-            send_slack = mocker.patch("app.alert.send_slack")
+            send_slack = mocker.patch("app.notification.alert.send_slack")
 
             # enable pteam notification
             if enable_slack:
@@ -1212,7 +1212,7 @@ class TestPostUploadSBOMFileCycloneDX:
             upload_filename = "sample-sbom.json"
 
             # setup mocker
-            send_slack = mocker.patch("app.alert.send_slack")
+            send_slack = mocker.patch("app.notification.alert.send_slack")
 
             # enable pteam notification
             if enable_slack:
@@ -1256,7 +1256,7 @@ class TestPostUploadSBOMFileCycloneDX:
             upload_filename = "sample-sbom.json"
 
             # setup mocker
-            send_email = mocker.patch("app.alert.send_email")
+            send_email = mocker.patch("app.notification.alert.send_email")
 
             # enable pteam notification
             if enable_mail:
@@ -1308,7 +1308,7 @@ class TestPostUploadSBOMFileCycloneDX:
             upload_filename = "sample-sbom.json"
 
             # setup mocker
-            send_email = mocker.patch("app.alert.send_email")
+            send_email = mocker.patch("app.notification.alert.send_email")
 
             # enable pteam notification
             if enable_mail:
