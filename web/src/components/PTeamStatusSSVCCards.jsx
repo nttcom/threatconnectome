@@ -112,13 +112,15 @@ export function PTeamStatusSSVCCards(props) {
               {HighestSSVCPriorityList.items.map((item) =>
                 item === highestSsvcPriority ? (
                   <ToggleButton key={item} value={item} sx={{ padding: "0" }} disabled>
-                    <Button startIcon={<Icon />} sx={{ color: "white" }}>
+                    <Button component="div" startIcon={<Icon />} sx={{ color: "white" }}>
                       {HighestSSVCPriorityList.valuePairing[item]}
                     </Button>
                   </ToggleButton>
                 ) : (
                   <ToggleButton key={item} value={item} sx={{ padding: "0" }} disabled>
-                    <Button disabled>{HighestSSVCPriorityList.valuePairing[item]}</Button>
+                    <Button component="div" disabled>
+                      {HighestSSVCPriorityList.valuePairing[item]}
+                    </Button>
                   </ToggleButton>
                 ),
               )}
