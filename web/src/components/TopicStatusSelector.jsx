@@ -33,7 +33,6 @@ import {
 } from "../slices/pteam";
 import { setTicketStatus } from "../utils/api";
 import { topicStatusProps } from "../utils/const";
-import { dateTimeFormat } from "../utils/func";
 
 import { ReportCompletedActions } from "./ReportCompletedActions";
 
@@ -136,9 +135,6 @@ export function TopicStatusSelector(props) {
   if (!pteamId || !serviceId || !topicId || !tagId || !currentStatus) return <></>;
 
   const handleHideDatepicker = () => {
-    if (currentStatus.scheduled_at && currentStatus.scheduled_at instanceof Date) {
-      setSchedule(dateTimeFormat(currentStatus.scheduled_at));
-    }
     setDatepickerOpen(false);
   };
   const now = new Date();
@@ -160,12 +156,11 @@ export function TopicStatusSelector(props) {
         endIcon={<ArrowDropDownIcon />}
         sx={{
           ...topicStatusProps[currentStatus.topic_status].buttonStyle,
-          fontSize: 12,
+          fontSize: 14,
           padding: "1px 3px",
           minHeight: "25px",
           maxHeight: "25px",
           textTransform: "none",
-          fontWeight: 900,
           borderStyle: "none",
           mr: 1,
           "&:hover": {
