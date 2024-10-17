@@ -59,6 +59,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
     topic_id: str,
     title: str,
     ssvc_priority: models.SSVCDeployerPriorityEnum,
+    service_id: str,
     services: list[str],
 ):
     blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
@@ -72,7 +73,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
                     "type": "mrkdwn",
                     "text": "\n".join(
                         [
-                            f"*<{TAG_URL}{str(tag_id)}?pteamId={pteam_id}|{tag_name}>*",
+                            f"*<{TAG_URL}{str(tag_id)}?pteamId={pteam_id}&serviceId={service_id}|{tag_name}>*",
                             f"*{title}*",
                             f"*{services_name}*",
                             SSVC_PRIORITY_LABEL[ssvc_priority],

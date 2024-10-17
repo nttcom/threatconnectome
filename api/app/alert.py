@@ -28,10 +28,10 @@ def _ready_alert_by_email() -> bool:
     return True
 
 
-def _pteam_tag_page_link(pteam_id: UUID | str, tag_id: UUID | str) -> str:
+def _pteam_tag_page_link(pteam_id: UUID | str, tag_id: UUID | str, service_id: UUID | str) -> str:
     return urljoin(
         os.getenv("WEBUI_URL", "http://localhost"),
-        f"/tags/{str(tag_id)}?pteam_id={str(pteam_id)}",
+        f"/tags/{str(tag_id)}?pteamId={str(pteam_id)}&serviceId={str(service_id)}",
     )
 
 
@@ -50,6 +50,7 @@ def create_mail_alert_for_new_topic(
     pteam_id: UUID | str,
     tag_name: str,  # should be pteamtag, not topictag
     tag_id: UUID | str,  # should be pteamtag, not topictag
+    service_id: UUID | str,
     services: list[str],
 ) -> tuple[str, str]:  # subject, body
     # TODO
@@ -72,7 +73,10 @@ def create_mail_alert_for_new_topic(
             f"Services: {', '.join(services)}",
             f"Artifact: {tag_name}",
             "",
-            f"<a href={_pteam_tag_page_link(pteam_id, tag_id)}>Link to Artifact page</a>",
+            (
+                f"<a href={_pteam_tag_page_link(pteam_id, tag_id, service_id)}>Link to"
+                " Artifact page</a>"
+            ),
         ]
     )
     return subject, body
@@ -103,6 +107,7 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
                 topic.topic_id,
                 topic.title,  # WORKAROUND
                 ticket.ssvc_deployer_priority,
+                service.service_id,
                 [service.service_name],  # WORKAROUND
             )
             send_slack(pteam.alert_slack.webhook_url, slack_message_blocks)
@@ -118,6 +123,7 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
                 pteam.pteam_id,
                 tag.tag_name,
                 tag.tag_id,
+                service.service_id,
                 [service.service_name],  # WORKAROUND
             )
             send_email(pteam.alert_mail.address, SYSTEM_EMAIL, mail_subject, mail_body)
