@@ -420,7 +420,7 @@ export function TopicEditModal(props) {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Automatable
               </Typography>
-              <ToggleButtonGroup color="primary" value="no" exclusive aria-label="Platform">
+              <ToggleButtonGroup color="primary" value="no">
                 <ToggleButton value="no">No</ToggleButton>
                 <ToggleButton value="yes">Yes</ToggleButton>
               </ToggleButtonGroup>
@@ -429,7 +429,7 @@ export function TopicEditModal(props) {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Exploitation
               </Typography>
-              <ToggleButtonGroup color="primary" value="none" exclusive aria-label="Platform">
+              <ToggleButtonGroup color="primary" value="none">
                 <ToggleButton value="none">None</ToggleButton>
                 <ToggleButton value="public_poc">Public PoC</ToggleButton>
                 <ToggleButton value="active">Active</ToggleButton>
