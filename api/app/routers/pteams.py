@@ -26,6 +26,7 @@ from app.database import get_db, open_db_session
 from app.detector.vulnerability_detector import fix_threats_for_dependency
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
+from app.presenters import pteam_presenter
 from app.routers.validators.account_validator import (
     check_pteam_auth,
     check_pteam_membership,
@@ -403,17 +404,6 @@ def remove_service_thumbnail(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _count_ssvc_priority_from_summary(tags_summary: list[dict]):
-    ssvc_priority_count: dict[models.SSVCDeployerPriorityEnum, int] = {
-        priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
-    }
-    for tag_summary in tags_summary:
-        ssvc_priority_count[
-            tag_summary["ssvc_priority"] or models.SSVCDeployerPriorityEnum.DEFER
-        ] += 1
-    return ssvc_priority_count
-
-
 @router.get(
     "/{pteam_id}/services/{service_id}/tags/summary", response_model=schemas.PTeamServiceTagsSummary
 )
@@ -433,14 +423,7 @@ def get_pteam_service_tags_summary(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    tags_summary = command.get_tags_summary_by_service_id(db, service_id)
-
-    ssvc_priority_count = _count_ssvc_priority_from_summary(tags_summary)
-
-    return {
-        "ssvc_priority_count": ssvc_priority_count,
-        "tags": tags_summary,
-    }
+    return pteam_presenter.get_pteam_service_tags_summary(service_id, db)
 
 
 @router.get("/{pteam_id}/tags/summary", response_model=schemas.PTeamTagsSummary)
@@ -457,14 +440,7 @@ def get_pteam_tags_summary(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
-
-    ssvc_priority_count = _count_ssvc_priority_from_summary(tags_summary)
-
-    return {
-        "ssvc_priority_count": ssvc_priority_count,
-        "tags": tags_summary,
-    }
+    return pteam_presenter.get_pteam_tags_summary(pteam_id, db)
 
 
 @router.get(
