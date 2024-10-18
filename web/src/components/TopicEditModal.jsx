@@ -22,6 +22,9 @@ import {
   List,
   ListItem,
   ListItemText,
+  ToggleButtonGroup,
+  ToggleButton,
+  Stack,
 } from "@mui/material";
 import { blue, green, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
@@ -223,7 +226,7 @@ export function TopicEditModal(props) {
   if (!allTags) return <>Now loading...</>;
 
   return (
-    <Dialog open={open === true} maxWidth="md" fullWidth sx={{ maxHeight: "100vh" }}>
+    <Dialog open={open === true} maxWidth="md" sx={{ maxHeight: "100vh" }}>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           <Typography flexGrow={1} className={dialogStyle.dialog_title}>
@@ -240,6 +243,7 @@ export function TopicEditModal(props) {
             <Tab label="Content" {...a11yProps(0)} />
             <Tab label="Dissemination" {...a11yProps(1)} />
             <Tab label="Response planning" {...a11yProps(2)} />
+            <Tab label="SSVC" {...a11yProps(3)} />
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
@@ -409,6 +413,29 @@ export function TopicEditModal(props) {
               ))}
             </List>
           </Box>
+        </TabPanel>
+        <TabPanel index={3} value={tab}>
+          <Stack spacing={1}>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                Automatable
+              </Typography>
+              <ToggleButtonGroup color="primary" value="no" exclusive aria-label="Platform">
+                <ToggleButton value="no">No</ToggleButton>
+                <ToggleButton value="yes">Yes</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                Exploitation
+              </Typography>
+              <ToggleButtonGroup color="primary" value="none" exclusive aria-label="Platform">
+                <ToggleButton value="none">None</ToggleButton>
+                <ToggleButton value="public_poc">Public PoC</ToggleButton>
+                <ToggleButton value="active">Active</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Stack>
         </TabPanel>
       </DialogContent>
       <DialogActions className={dialogStyle.action_area}>
