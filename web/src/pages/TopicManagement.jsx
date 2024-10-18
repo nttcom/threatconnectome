@@ -25,7 +25,6 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
-import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,8 +34,8 @@ import { useLocation } from "react-router-dom";
 import { FormattedDateTimeWithTooltip } from "../components/FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "../components/TopicSearchModal";
 import styles from "../cssModule/button.module.css";
+import { useSearchTopicsQuery } from "../services/tcApi";
 import { getActions, getTopic } from "../slices/topics";
-import { searchTopics } from "../utils/api";
 import { difficulty, difficultyColors } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -121,57 +120,33 @@ export function TopicManagement() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
-  const [searchResult, setSearchResult] = useState(undefined);
 
-  const { enqueueSnackbar } = useSnackbar();
   const user = useSelector((state) => state.user.user);
-
-  const pageMax = Math.ceil((searchResult?.num_topics ?? 0) / perPage);
 
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
   const ateamId = params.get("ateamId");
 
-  const evalSearchTopics = async () => {
-    let queryParams = {};
-    if (checkedPteam === true && pteamId) {
-      queryParams = {
-        offset: perPage * (page - 1),
-        limit: perPage,
-        sort_key: "updated_at_desc",
-        pteam_id: pteamId,
-        ...searchConditions,
-      };
-    } else if (checkedAteam === true && ateamId) {
-      queryParams = {
-        offset: perPage * (page - 1),
-        limit: perPage,
-        sort_key: "updated_at_desc",
-        ateam_id: ateamId,
-        ...searchConditions,
-      };
-    } else {
-      queryParams = {
-        offset: perPage * (page - 1),
-        limit: perPage,
-        sort_key: "updated_at_desc",
-        ...searchConditions,
-      };
-    }
-    await searchTopics(queryParams)
-      .then((response) => setSearchResult(response.data))
-      .catch((error) =>
-        enqueueSnackbar(`Search topics failed: ${errorToString(error)}`, {
-          variant: "error",
-        }),
-      );
+  const searchParams = {
+    offset: perPage * (page - 1),
+    limit: perPage,
+    sort_key: "updated_at_desc",
+    pteam_id: (checkedPteam === true && pteamId) ? pteamId : null,
+    ateam_id: (checkedAteam === true && ateamId) ? ateamId : null,
+    ...searchConditions,
   };
+  const {
+    data: searchResult,
+    error: searchResultError,
+    isLoading: searchResultIsLoading,
+  } = useSearchTopicsQuery(searchParams, { refetchOnMountOrArgChange: true });
 
-  useEffect(() => {
-    if (!user?.user_id) return;
-    evalSearchTopics();
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [page, perPage, searchConditions, user, checkedPteam, checkedAteam, pteamId, ateamId]);
+  if (!user.user_id) return <></>;
+  if (searchResultError) return <>{`Search topics failed: ${errorToString(searchResultError)}`}</>;
+  if (searchResultIsLoading) return <>Now searching topics...</>;
+
+  const topics = searchResult.topics;
+  const pageMax = Math.ceil((searchResult?.num_topics ?? 0) / perPage);
 
   const paramsToSearchQuery = (params) => {
     const delimiter = "|";
@@ -264,10 +239,6 @@ export function TopicManagement() {
       margin: 2,
     },
   }));
-
-  const topics = searchResult?.topics;
-
-  if (!topics) return <>Loading...</>;
 
   return (
     <>
