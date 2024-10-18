@@ -14,18 +14,23 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { sendEmailVerification, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { sendEmailVerification } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import {
+  useSignInWithEmailAndPasswordMutation,
+  useSignInWithSamlPopupMutation,
+} from "../services/firebaseApi";
 import { clearATeam } from "../slices/ateam";
+import { clearAuth } from "../slices/auth";
 import { clearPTeam } from "../slices/pteam";
 import { clearTopics } from "../slices/topics";
 import { clearUser } from "../slices/user";
 import { createUser, getMyUserInfo, removeToken, setToken } from "../utils/api";
-import { auth, samlProvider } from "../utils/firebase";
+import { samlProvider } from "../utils/firebase";
 
 export const authCookieName = "Authorization";
 export const cookiesOptions = { path: process.env.PUBLIC_URL || "/" };
@@ -43,7 +48,11 @@ export function Login() {
 
   const metemcyberAuthUrl = process.env.REACT_APP_METEMCYBER_AUTH_URL;
 
+  const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
+  const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
+
   useEffect(() => {
+    dispatch(clearAuth());
     dispatch(clearUser());
     dispatch(clearPTeam());
     dispatch(clearATeam());
@@ -54,30 +63,30 @@ export function Login() {
   }, [dispatch, location, removeCookie]);
 
   const callSignInWithEmailAndPassword = async (email, password) => {
-    try {
-      return await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      switch (error.code) {
-        case "auth/invalid-email":
-          setMessage("Invalid email format.");
-          break;
-        case "auth/too-many-requests":
-          setMessage("Too many requests.");
-          break;
-        case "auth/user-disabled":
-          setMessage("Disabled user.");
-          break;
-        case "auth/user-not-found":
-          setMessage("User not found.");
-          break;
-        case "auth/wrong-password":
-          setMessage("Wrong password.");
-          break;
-        default:
-          setMessage("Something went wrong.");
-      }
-      return;
-    }
+    return await signInWithEmailAndPassword({ email, password })
+      .unwrap()
+      .catch((error) => {
+        switch (error.code) {
+          case "auth/invalid-email":
+            setMessage("Invalid email format.");
+            break;
+          case "auth/too-many-requests":
+            setMessage("Too many requests.");
+            break;
+          case "auth/user-disabled":
+            setMessage("Disabled user.");
+            break;
+          case "auth/user-not-found":
+            setMessage("User not found.");
+            break;
+          case "auth/wrong-password":
+            setMessage("Wrong password.");
+            break;
+          default:
+            setMessage("Something went wrong.");
+        }
+        return undefined;
+      });
   };
 
   const navigateInternalPage = async (userCredential) => {
@@ -132,7 +141,7 @@ export function Login() {
   };
 
   const handleLoginWithSaml = () => {
-    signInWithPopup(auth, samlProvider)
+    signInWithSamlPopup()
       .then(async (userCredential) => {
         navigateInternalPage(userCredential);
       })
