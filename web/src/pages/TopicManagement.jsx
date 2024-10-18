@@ -131,8 +131,8 @@ export function TopicManagement() {
     offset: perPage * (page - 1),
     limit: perPage,
     sort_key: "updated_at_desc",
-    pteam_id: (checkedPteam === true && pteamId) ? pteamId : null,
-    ateam_id: (checkedAteam === true && ateamId) ? ateamId : null,
+    pteam_id: checkedPteam === true && pteamId ? pteamId : null,
+    ateam_id: checkedAteam === true && ateamId ? ateamId : null,
     ...searchConditions,
   };
   const {
