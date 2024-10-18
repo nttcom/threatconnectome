@@ -7,11 +7,9 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
 from app.auth import get_current_user
-from app.common import (
-    check_topic_action_tags_integrity,
-    fix_threats_for_topic,
-)
+from app.business.tag_business import check_topic_action_tags_integrity
 from app.database import get_db
+from app.detector.vulnerability_detector import fix_threats_for_topic
 
 router = APIRouter(prefix="/actions", tags=["actions"])
 

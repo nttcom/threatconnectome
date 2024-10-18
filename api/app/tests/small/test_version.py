@@ -2,7 +2,7 @@ from operator import ge, gt, le, lt
 
 import pytest
 
-from app.version import (
+from app.detector.version import (
     ExtDebianVersion,
     ExtPypiVersion,
     GolangVersion,
