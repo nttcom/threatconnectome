@@ -51,7 +51,7 @@ import { rootPrefix, threatImpactNames } from "../utils/const";
 import { a11yProps, dateTimeFormat, tagsMatched } from "../utils/func.js";
 
 export function AnalysisTopic(props) {
-  const { user, ateam, targetTopic, isAdmin } = props;
+  const { user, ateam, targetTopic, isAdmin = false } = props;
   const [editable, setEditable] = useState(null);
   const [newComment, setNewComment] = useState("");
   const [deleteComment, setDeleteComment] = useState(null);
@@ -633,7 +633,4 @@ AnalysisTopic.propTypes = {
   ateam: PropTypes.object.isRequired,
   targetTopic: PropTypes.object.isRequired,
   isAdmin: PropTypes.bool,
-};
-AnalysisTopic.defaultProps = {
-  isAdmin: false,
 };

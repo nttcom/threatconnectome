@@ -37,7 +37,7 @@ import { topicStatusProps } from "../utils/const";
 import { ReportCompletedActions } from "./ReportCompletedActions";
 
 export function TopicStatusSelector(props) {
-  const { pteamId, serviceId, topicId, tagId, ticketId, currentStatus, topicActions } = props;
+  const { pteamId, serviceId, topicId, tagId, ticketId, currentStatus, topicActions = [] } = props;
 
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
@@ -261,7 +261,4 @@ TopicStatusSelector.propTypes = {
   ticketId: PropTypes.string.isRequired,
   currentStatus: PropTypes.object.isRequired,
   topicActions: PropTypes.array,
-};
-TopicStatusSelector.defaultProps = {
-  topicActions: [],
 };

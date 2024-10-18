@@ -15,7 +15,7 @@ export function ActionItem(props) {
     actionId,
     actionType,
     createdAt,
-    recommended,
+    recommended = false,
     ext,
     focusTags,
     onChangeRecommended,
@@ -134,7 +134,4 @@ ActionItem.propTypes = {
   onChangeRecommended: PropTypes.func,
   onDelete: PropTypes.func,
   sx: PropTypes.object,
-};
-ActionItem.defaultProps = {
-  recommended: false,
 };

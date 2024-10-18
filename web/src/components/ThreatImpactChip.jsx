@@ -5,7 +5,7 @@ import React from "react";
 import { threatImpactNames, threatImpactProps } from "../utils/const";
 
 export function ThreatImpactChip(props) {
-  const { threatImpact, reverse, sx } = props;
+  const { threatImpact, reverse = false, sx } = props;
 
   const impactName = Object.keys(threatImpactProps).includes(threatImpact)
     ? threatImpact
@@ -36,7 +36,4 @@ ThreatImpactChip.propTypes = {
   threatImpact: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   reverse: PropTypes.bool,
   sx: PropTypes.object,
-};
-ThreatImpactChip.defaultProps = {
-  reverse: false,
 };

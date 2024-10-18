@@ -6,7 +6,7 @@ import React from "react";
 import { utcStringToLocalDate } from "../utils/func";
 
 export function FormattedDateTimeWithTooltip(props) {
-  const { utcString, formatString, sx } = props;
+  const { utcString, formatString = "PPp", sx } = props; // see https://date-fns.org/v3.0.0/docs/format for details
 
   try {
     if (!utcString) throw new Error("empty string");
@@ -26,7 +26,4 @@ FormattedDateTimeWithTooltip.propTypes = {
   utcString: PropTypes.string,
   formatString: PropTypes.string,
   sx: PropTypes.object,
-};
-FormattedDateTimeWithTooltip.defaultProps = {
-  formatString: "PPp", // see https://date-fns.org/v3.0.0/docs/format for details
 };

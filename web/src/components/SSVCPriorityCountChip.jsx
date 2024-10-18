@@ -8,7 +8,7 @@ import { ssvcPriorityProps } from "../utils/const";
 const countMax = 99;
 
 export function SSVCPriorityCountChip(props) {
-  const { count, ssvcPriority, reverse, sx, outerSx } = props;
+  const { count, ssvcPriority, reverse = false, sx, outerSx } = props;
   const ssvcPriorityProp = ssvcPriorityProps[ssvcPriority];
 
   const Icon = ssvcPriorityProps[ssvcPriority].icon;
@@ -81,7 +81,4 @@ SSVCPriorityCountChip.propTypes = {
   reverse: PropTypes.bool,
   sx: PropTypes.object,
   outerSx: PropTypes.object,
-};
-SSVCPriorityCountChip.defaultProps = {
-  reverse: false,
 };
