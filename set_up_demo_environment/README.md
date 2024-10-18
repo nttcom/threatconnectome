@@ -21,7 +21,7 @@ Under the set_up_demo_data directory, do the following.
 sh set_up.sh
 ```
 
-2. Access `http://localhost:8000`
+2. Access `http://localhost`
 
-Please access local port 8000.
+Please access http://localhost to see Web UI.
 The account and password required to login are the same as for the [demo environment](https://github.com/nttcom/threatconnectome?tab=readme-ov-file#demo-environment).
