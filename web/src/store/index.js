@@ -28,6 +28,7 @@ const store = configureStore({
     })
       .concat(tcApi.middleware)
       .concat(firebaseApi.middleware),
+  devTools: process.env.NODE_ENV !== "production",
 });
 
 export default store;
