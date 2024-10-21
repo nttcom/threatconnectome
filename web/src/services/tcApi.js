@@ -99,14 +99,14 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [
         { type: "UpdatePTeamService", id: arg.pteamId + arg.serviceId },
       ],
-      
+    }),
+
     /* Topics */
     searchTopics: builder.query({
       query: (params) => ({
         url: "topics/search",
         params: params,
       }),
-
     }),
   }),
 });
