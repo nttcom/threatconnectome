@@ -43,6 +43,20 @@ export const tcApi = createApi({
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
     }),
+    createPTeam: builder.mutation({
+      query: (data) => ({
+        url: "/pteams",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updatePTeam: builder.mutation({
+      query: ({ pteamId, data }) => ({
+        url: `/pteams/${pteamId}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
 
     /* PTeam Auth Info */
     getPTeamAuthInfo: builder.query({
@@ -101,6 +115,8 @@ export const tcApi = createApi({
 
 export const {
   useGetPTeamQuery,
+  useCreatePTeamMutation,
+  useUpdatePTeamMutation,
   useUpdatePTeamAuthMutation,
   useGetPTeamAuthInfoQuery,
   useGetPTeamAuthQuery,
