@@ -39,6 +39,15 @@ export const tcApi = createApi({
         .join("&"),
   }),
   endpoints: (builder) => ({
+    /* Action Log */
+    createActionLog: builder.mutation({
+      query: (data) => ({
+        url: "actionlogs",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
@@ -109,6 +118,15 @@ export const tcApi = createApi({
       },
     }),
 
+    /* Ticket Status */
+    createTicketStatus: builder.mutation({
+      query: ({ pteamId, serviceId, ticketId, data }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/ticketstatus/${ticketId}`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     /* Topics */
     searchTopics: builder.query({
       query: (params) => ({
@@ -136,6 +154,7 @@ export const tcApi = createApi({
 });
 
 export const {
+  useCreateActionLogMutation,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
@@ -145,6 +164,7 @@ export const {
   useGetPTeamMembersQuery,
   useDeletePTeamMemberMutation,
   useUploadSBOMFileMutation,
+  useCreateTicketStatusMutation,
   useSearchTopicsQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
