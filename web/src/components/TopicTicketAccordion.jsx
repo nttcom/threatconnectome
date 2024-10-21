@@ -40,8 +40,8 @@ export function TopicTicketAccordion(props) {
     ticket,
     serviceSafetyImpact,
     members,
-    defaultExpanded,
-    topicActions,
+    defaultExpanded = false,
+    topicActions = [],
   } = props;
 
   const serviceId = dependency.service_id;
@@ -207,8 +207,4 @@ TopicTicketAccordion.propTypes = {
   members: PropTypes.object.isRequired,
   defaultExpanded: PropTypes.bool,
   topicActions: PropTypes.array,
-};
-TopicTicketAccordion.defaultProps = {
-  defaultExpanded: false,
-  topicActions: [],
 };
