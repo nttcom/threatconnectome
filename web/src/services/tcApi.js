@@ -79,6 +79,18 @@ export const tcApi = createApi({
         };
       },
     }),
+
+    /* Update PTeam Service */
+    updatePTeamService: builder.mutation({
+      query: ({ pteamId, serviceId, data }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "UpdatePTeamService", id: arg.pteamId + arg.serviceId },
+      ],
+    }),
   }),
 });
 
@@ -89,4 +101,5 @@ export const {
   useGetPTeamAuthQuery,
   useGetPTeamMembersQuery,
   useUploadSBOMFileMutation,
+  useUpdatePTeamServiceMutation,
 } = tcApi;
