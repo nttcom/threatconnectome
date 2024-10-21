@@ -39,9 +39,32 @@ export const tcApi = createApi({
         .join("&"),
   }),
   endpoints: (builder) => ({
+    /* Action Log */
+    createActionLog: builder.mutation({
+      query: (data) => ({
+        url: "actionlogs",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
+    }),
+    createPTeam: builder.mutation({
+      query: (data) => ({
+        url: "/pteams",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updatePTeam: builder.mutation({
+      query: ({ pteamId, data }) => ({
+        url: `/pteams/${pteamId}`,
+        method: "PUT",
+        body: data,
+      }),
     }),
 
     /* PTeam Auth Info */
@@ -66,11 +89,33 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [{ type: "PTeamAuth", id: arg.pteamId }],
     }),
 
+    /* PTeam Invitation */
+    createPTeamInvitation: builder.mutation({
+      query: ({ pteamId, data }) => ({
+        url: `pteams/${pteamId}/invitation`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    applyPTeamInvitation: builder.mutation({
+      query: (data) => ({
+        url: "pteams/apply_invitation",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     /* PTeam Members */
     getPTeamMembers: builder.query({
       query: (pteamId) => ({
         url: `pteams/${pteamId}/members`,
         responseHandler: _responseListToDictConverter("user_id"),
+      }),
+    }),
+    deletePTeamMember: builder.mutation({
+      query: ({ pteamId, userId }) => ({
+        url: `pteams/${pteamId}/members/${userId}`,
+        method: "DELETE",
       }),
     }),
 
@@ -89,11 +134,36 @@ export const tcApi = createApi({
       },
     }),
 
+    /* Ticket Status */
+    createTicketStatus: builder.mutation({
+      query: ({ pteamId, serviceId, ticketId, data }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/ticketstatus/${ticketId}`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     /* Topics */
     searchTopics: builder.query({
       query: (params) => ({
         url: "topics/search",
         params: params,
+      }),
+    }),
+
+    /* User */
+    createUser: builder.mutation({
+      query: (data) => ({
+        url: "/users",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updateUser: builder.mutation({
+      query: ({ userId, data }) => ({
+        url: `/users/${userId}`,
+        method: "PUT",
+        body: data,
       }),
     }),
 
@@ -116,13 +186,22 @@ export const tcApi = createApi({
 });
 
 export const {
+  useCreateActionLogMutation,
   useGetPTeamQuery,
+  useCreatePTeamMutation,
+  useUpdatePTeamMutation,
   useUpdatePTeamAuthMutation,
   useGetPTeamAuthInfoQuery,
   useGetPTeamAuthQuery,
+  useCreatePTeamInvitationMutation,
+  useApplyPTeamInvitationMutation,
   useGetPTeamMembersQuery,
+  useDeletePTeamMemberMutation,
   useUploadSBOMFileMutation,
+  useCreateTicketStatusMutation,
   useSearchTopicsQuery,
+  useCreateUserMutation,
+  useUpdateUserMutation,
   useCheckMailMutation,
   useCheckSlackMutation,
 } = tcApi;

@@ -14,13 +14,16 @@ import React from "react";
 import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useDeletePTeamMemberMutation } from "../services/tcApi";
 import { getPTeamAuth, getPTeamMembers } from "../slices/pteam";
-import { deletePTeamMember } from "../utils/api";
+import { errorToString } from "../utils/func";
 
 export function PTeamMemberRemoveModal(props) {
   const { userId, userName, pteamId, pteamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const [deletePTeamMember] = useDeletePTeamMemberMutation();
 
   const dispatch = useDispatch();
 
@@ -32,11 +35,10 @@ export function PTeamMemberRemoveModal(props) {
       if (onClose) onClose();
     }
     function onError(error) {
-      enqueueSnackbar(`Remove member failed: ${error.response?.data?.detail}`, {
-        variant: "error",
-      });
+      enqueueSnackbar(`Remove member failed: ${errorToString(error)}`, { variant: "error" });
     }
-    await deletePTeamMember(pteamId, userId)
+    await deletePTeamMember({ pteamId, userId })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };

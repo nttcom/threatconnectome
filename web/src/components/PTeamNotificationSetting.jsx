@@ -24,10 +24,12 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { useCheckMailMutation, useCheckSlackMutation } from "../services/tcApi";
+import { useCheckMailMutation, useCheckSlackMutation, useUpdatePTeamMutation  } from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
 import { getUser } from "../slices/user";
-import { updatePTeam } from "../utils/api";
+import { } from "../services/tcApi";
+import { getPTeam } from "../slices/pteam";
+import { getUser } from "../slices/user";
 import {
   defaultAlertThreshold,
   modalCommonButtonStyle,
@@ -55,6 +57,7 @@ export function PTeamNotificationSetting(props) {
 
   const [postCheckMail] = useCheckMailMutation();
   const [postCheckSlack] = useCheckSlackMutation();
+  const [updatePTeam] = useUpdatePTeamMutation();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const pteam = useSelector((state) => state.pteam.pteam);
@@ -74,12 +77,8 @@ export function PTeamNotificationSetting(props) {
     setSlackMessage();
   }, [show, pteam]);
 
-  const operationError = (error) => {
-    const resp = error.response;
-    enqueueSnackbar(`Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`, {
-      variant: "error",
-    });
-  };
+  const operationError = (error) =>
+    enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
 
   const connectSuccessMessage = () => {
     return (
@@ -100,12 +99,13 @@ export function PTeamNotificationSetting(props) {
   };
 
   const handleUpdatePTeam = async () => {
-    const pteamInfo = {
+    const data = {
       alert_slack: { enable: slackEnable, webhook_url: slackUrl },
       alert_mail: { enable: mailEnable, address: mailAddress },
       alert_ssvc_priority: alertThreshold,
     };
-    await updatePTeam(pteamId, pteamInfo)
+    await updatePTeam({ pteamId, data })
+      .unwrap()
       .then(() => {
         dispatch(getPTeam(pteamId));
         dispatch(getUser());
