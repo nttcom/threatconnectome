@@ -43,19 +43,18 @@ export function PTeamStatusSSVCCards(props) {
 
   const [isSystemExposureEditable, setIsSystemExposureEditable] = useState(false);
   const [isMissionImpactEditable, setIsMissionImpactEditable] = useState(false);
-  const [isSystemExposureValue, setSystemExposureValue] = useState(service.system_exposure);
-  const [isMissionImpactValue, setMissionImpactValue] = useState(service.service_mission_impact);
+  const [systemExposureValue, setSystemExposureValue] = useState(service.system_exposure);
+  const [missionImpactValue, setMissionImpactValue] = useState(service.service_mission_impact);
 
   const [updatePTeamService] = useUpdatePTeamServiceMutation();
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
 
   const handleUpdatePTeamService = async (card) => {
-    console.log(card.title);
     const data =
       card.title === "System Exposure"
-        ? { system_exposure: isSystemExposureValue }
-        : { service_mission_impact: isMissionImpactValue };
+        ? { system_exposure: systemExposureValue }
+        : { service_mission_impact: missionImpactValue };
     const serviceId = service.service_id;
     await updatePTeamService({ pteamId, serviceId, data })
       .unwrap()
@@ -227,10 +226,7 @@ export function PTeamStatusSSVCCards(props) {
                 size="small"
                 color="primary"
                 orientation="vertical"
-                // value={card.items.filter((item) => SSVCValueList.find((value) => value === item))}
-                value={
-                  card.title === "System Exposure" ? isSystemExposureValue : isMissionImpactValue
-                }
+                value={card.title === "System Exposure" ? systemExposureValue : missionImpactValue}
               >
                 {card.items.map((item) => (
                   <ToggleButton
