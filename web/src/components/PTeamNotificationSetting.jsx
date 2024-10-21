@@ -27,9 +27,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useCheckMailMutation, useCheckSlackMutation, useUpdatePTeamMutation  } from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
 import { getUser } from "../slices/user";
-import { } from "../services/tcApi";
-import { getPTeam } from "../slices/pteam";
-import { getUser } from "../slices/user";
 import {
   defaultAlertThreshold,
   modalCommonButtonStyle,
