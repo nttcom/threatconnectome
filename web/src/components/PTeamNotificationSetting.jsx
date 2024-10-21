@@ -24,7 +24,11 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { useCheckMailMutation, useCheckSlackMutation, useUpdatePTeamMutation  } from "../services/tcApi";
+import {
+  useCheckMailMutation,
+  useCheckSlackMutation,
+  useUpdatePTeamMutation,
+} from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
 import { getUser } from "../slices/user";
 import {
