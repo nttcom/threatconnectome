@@ -74,6 +74,13 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
+    applyPTeamInvitation: builder.mutation({
+      query: (data) => ({
+        url: "pteams/apply_invitation",
+        method: "POST",
+        body: data,
+      }),
+    }),
 
     /* PTeam Members */
     getPTeamMembers: builder.query({
@@ -114,6 +121,7 @@ export const {
   useGetPTeamAuthInfoQuery,
   useGetPTeamAuthQuery,
   useCreatePTeamInvitationMutation,
+  useApplyPTeamInvitationMutation,
   useGetPTeamMembersQuery,
   useUploadSBOMFileMutation,
   useSearchTopicsQuery,
