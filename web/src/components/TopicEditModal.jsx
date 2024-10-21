@@ -52,7 +52,8 @@ export function TopicEditModal(props) {
   const [abst, setAbst] = useState("");
   const [actions, setActions] = useState([]);
   const [actionTagOptions, setActionTagOptions] = useState([]);
-
+  const [automatable, setAutomatable] = useState("no");
+  const [exploitation, setExploitation] = useState("None");
   const [tagIds, setTagIds] = useState([]);
   const [tab, setTab] = useState(0);
   const [updating, setUpdating] = useState(false);
@@ -88,6 +89,8 @@ export function TopicEditModal(props) {
     setTagIds(newTagIds);
     setActionTagOptions(createActionTagOptions(newTagIds));
     setActions(currentActions);
+    setAutomatable(currentTopic.automatable);
+    setExploitation(currentTopic.exploitation);
   };
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
@@ -105,6 +108,8 @@ export function TopicEditModal(props) {
         tags: setEquals(new Set(tagIds), new Set(currentTopic.tags.map((tag) => tag.tag_id)))
           ? null
           : allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
+        automatable: automatable === currentTopic.automatable ? null : automatable,
+        exploitation: exploitation === currentTopic.exploitation ? null : exploitation,
       };
       if (Object.values(topicData).filter((item) => item !== null).length > 0) {
         // something modified
@@ -174,6 +179,8 @@ export function TopicEditModal(props) {
     (title !== currentTopic.title ||
       threatImpact !== currentTopic.threat_impact ||
       abst !== currentTopic.abstract ||
+      automatable !== currentTopic.automatable ||
+      exploitation !== currentTopic.Exploitation ||
       !setEquals(new Set(tagIds), new Set(currentTopic.tags.map((tag) => tag.tag_id))) ||
       JSON.stringify(actions) !== JSON.stringify(currentActions));
 
@@ -420,19 +427,29 @@ export function TopicEditModal(props) {
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Automatable
               </Typography>
-              <ToggleButtonGroup color="primary" value="no">
-                <ToggleButton value="no">No</ToggleButton>
-                <ToggleButton value="yes">Yes</ToggleButton>
+              <ToggleButtonGroup color="primary" value={automatable}>
+                <ToggleButton value="no" onClick={() => setAutomatable("no")}>
+                  No
+                </ToggleButton>
+                <ToggleButton value="yes" onClick={() => setAutomatable("yes")}>
+                  Yes
+                </ToggleButton>
               </ToggleButtonGroup>
             </Box>
             <Box>
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Exploitation
               </Typography>
-              <ToggleButtonGroup color="primary" value="none">
-                <ToggleButton value="none">None</ToggleButton>
-                <ToggleButton value="public_poc">Public PoC</ToggleButton>
-                <ToggleButton value="active">Active</ToggleButton>
+              <ToggleButtonGroup color="primary" value={exploitation}>
+                <ToggleButton value="none" onClick={() => setExploitation("none")}>
+                  None
+                </ToggleButton>
+                <ToggleButton value="public_poc" onClick={() => setExploitation("public_poc")}>
+                  Public PoC
+                </ToggleButton>
+                <ToggleButton value="active" onClick={() => setExploitation("active")}>
+                  Active
+                </ToggleButton>
               </ToggleButtonGroup>
             </Box>
           </Stack>

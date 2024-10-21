@@ -65,6 +65,15 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* Ateam TopicId */
+    updateTopic: builder.mutation({
+      query: ({ topicId, data }) => ({
+        url: `topics/${topicId}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
     /* SBOM */
     uploadSBOMFile: builder.mutation({
       query: ({ pteamId, serviceName, sbomFile, forceMode = true }) => {
@@ -85,6 +94,7 @@ export const tcApi = createApi({
 export const {
   useGetPTeamQuery,
   useUpdatePTeamAuthMutation,
+  useUpdateTopicMutation,
   useGetPTeamAuthInfoQuery,
   useGetPTeamAuthQuery,
   useGetPTeamMembersQuery,
