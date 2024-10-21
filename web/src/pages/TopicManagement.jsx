@@ -34,6 +34,7 @@ import { useLocation } from "react-router-dom";
 import { FormattedDateTimeWithTooltip } from "../components/FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "../components/TopicSearchModal";
 import styles from "../cssModule/button.module.css";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useSearchTopicsQuery } from "../services/tcApi";
 import { getActions, getTopic } from "../slices/topics";
 import { difficulty, difficultyColors } from "../utils/const";
@@ -121,7 +122,7 @@ export function TopicManagement() {
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
 
-  const user = useSelector((state) => state.user.user);
+  const skip = useSkipUntilAuthTokenIsReady();
 
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
@@ -139,11 +140,10 @@ export function TopicManagement() {
     data: searchResult,
     error: searchResultError,
     isLoading: searchResultIsLoading,
-  } = useSearchTopicsQuery(searchParams, { refetchOnMountOrArgChange: true });
+  } = useSearchTopicsQuery(searchParams, { skip, refetchOnMountOrArgChange: true });
 
-  if (!user.user_id) return <></>;
   if (searchResultError) return <>{`Search topics failed: ${errorToString(searchResultError)}`}</>;
-  if (searchResultIsLoading) return <>Now searching topics...</>;
+  if (searchResultIsLoading || !searchResult) return <>Now searching topics...</>;
 
   const topics = searchResult.topics;
   const pageMax = Math.ceil((searchResult?.num_topics ?? 0) / perPage);
