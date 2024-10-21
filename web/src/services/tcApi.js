@@ -28,6 +28,15 @@ export const tcApi = createApi({
       }
       return headers;
     },
+    paramsSerializer: (params) =>
+      Object.keys(params)
+        .filter((key) => ![null, undefined].includes(params[key]))
+        .flatMap((key) =>
+          params[key] instanceof Array
+            ? params[key].map((item) => `${encodeURIComponent(key)}=${encodeURIComponent(item)}`)
+            : `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`,
+        )
+        .join("&"),
   }),
   endpoints: (builder) => ({
     /* PTeam */
@@ -90,6 +99,14 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [
         { type: "UpdatePTeamService", id: arg.pteamId + arg.serviceId },
       ],
+      
+    /* Topics */
+    searchTopics: builder.query({
+      query: (params) => ({
+        url: "topics/search",
+        params: params,
+      }),
+
     }),
   }),
 });
@@ -102,4 +119,5 @@ export const {
   useGetPTeamMembersQuery,
   useUploadSBOMFileMutation,
   useUpdatePTeamServiceMutation,
+  useSearchTopicsQuery,
 } = tcApi;
