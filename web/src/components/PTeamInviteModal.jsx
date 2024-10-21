@@ -23,7 +23,8 @@ import { useSelector } from "react-redux";
 
 import styles from "../cssModule/button.module.css";
 import dialogStyle from "../cssModule/dialog.module.css";
-import { createPTeamInvitation } from "../utils/api";
+import { useCreatePTeamInvitationMutation } from "../services/tcApi";
+import { errorToString } from "../utils/func";
 
 import { CopiedIcon } from "./CopiedIcon";
 
@@ -38,6 +39,8 @@ export function PTeamInviteModal(props) {
   const [invitationLink, setInvitationLink] = useState(null);
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const [createPTeamInvitation] = useCreatePTeamInvitationMutation();
 
   const tokenToLink = (token) =>
     `${window.location.origin}${process.env.PUBLIC_URL}/pteam/join?token=${token}`;
@@ -54,20 +57,19 @@ export function PTeamInviteModal(props) {
     setOpen(false);
   };
   const handleCreate = async () => {
-    function onSuccess(success) {
-      setInvitationLink(tokenToLink(success.data.invitation_id));
+    function onSuccess(data) {
+      setInvitationLink(tokenToLink(data.invitation_id));
       enqueueSnackbar("Create new invitation succeeded", { variant: "success" });
     }
     function onError(error) {
-      enqueueSnackbar(`Create invitation failed: ${error.response?.data?.detail ?? error}`, {
-        variant: "error",
-      });
+      enqueueSnackbar(`Create invitation failed: ${errorToString(error)}`, { variant: "error" });
     }
-    const query = {
+    const data = {
       expiration: expiration.toISOString(),
       max_uses: maxUses || null,
     };
-    await createPTeamInvitation(pteamId, query)
+    await createPTeamInvitation({ pteamId, data })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
