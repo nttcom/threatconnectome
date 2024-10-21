@@ -89,6 +89,22 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [{ type: "PTeamAuth", id: arg.pteamId }],
     }),
 
+    /* PTeam Invitation */
+    createPTeamInvitation: builder.mutation({
+      query: ({ pteamId, data }) => ({
+        url: `pteams/${pteamId}/invitation`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    applyPTeamInvitation: builder.mutation({
+      query: (data) => ({
+        url: "pteams/apply_invitation",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     /* PTeam Members */
     getPTeamMembers: builder.query({
       query: (pteamId) => ({
@@ -161,6 +177,8 @@ export const {
   useUpdatePTeamAuthMutation,
   useGetPTeamAuthInfoQuery,
   useGetPTeamAuthQuery,
+  useCreatePTeamInvitationMutation,
+  useApplyPTeamInvitationMutation,
   useGetPTeamMembersQuery,
   useDeletePTeamMemberMutation,
   useUploadSBOMFileMutation,

@@ -4,15 +4,19 @@ import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useApplyPTeamInvitationMutation } from "../services/tcApi";
 import { getUser } from "../slices/user";
-import { getPTeamInvited, applyPTeamInvitation } from "../utils/api";
+import { getPTeamInvited } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 export function AcceptPTeamInvitation() {
   const [detail, setDetail] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const [applyPTeamInvitation] = useApplyPTeamInvitationMutation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -38,11 +42,10 @@ export function AcceptPTeamInvitation() {
       navigate("/pteam?" + params.toString());
     }
     function onError(error) {
-      enqueueSnackbar(`Accepting invitation failed: ${error.response?.data?.detail}`, {
-        variant: "error",
-      });
+      enqueueSnackbar(`Accepting invitation failed: ${errorToString(error)}`, { variant: "error" });
     }
-    await applyPTeamInvitation(tokenId)
+    await applyPTeamInvitation({ invitation_id: tokenId })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
