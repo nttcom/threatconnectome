@@ -25,14 +25,15 @@ import React, { useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useCreateTicketStatusMutation } from "../services/tcApi";
 import {
   getPTeamServiceTaggedTopicIds,
   getPTeamServiceTagsSummary,
   getPTeamTagsSummary,
   getTicketsRelatedToServiceTopicTag,
 } from "../slices/pteam";
-import { setTicketStatus } from "../utils/api";
 import { topicStatusProps } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 import { ReportCompletedActions } from "./ReportCompletedActions";
 
@@ -46,6 +47,9 @@ export function TopicStatusSelector(props) {
   const [actionModalOpen, setActionModalOpen] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const [createTicketStatus] = useCreateTicketStatusMutation();
+
   const dispatch = useDispatch();
 
   const dateFormat = "yyyy/MM/dd HH:mm";
@@ -91,18 +95,15 @@ export function TopicStatusSelector(props) {
     } else if (selectedStatus === "acknowledged") {
       requestParams["scheduled_at"] = "1970-01-01T00:00:00";
     }
-    await setTicketStatus(pteamId, serviceId, ticketId, requestParams)
+    await createTicketStatus({ pteamId, serviceId, ticketId, data: requestParams })
+      .unwrap()
       .then(() => {
         dispatchRelatedSlices();
         enqueueSnackbar("Change ticket status succeeded", { variant: "success" });
       })
-      .catch((error) => {
-        const resp = error.response;
-        enqueueSnackbar(
-          `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
-          { variant: "error" },
-        );
-      });
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+      );
   };
 
   const handleUpdateStatus = async (event, item) => {

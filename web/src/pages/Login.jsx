@@ -24,12 +24,13 @@ import {
   useSignInWithEmailAndPasswordMutation,
   useSignInWithSamlPopupMutation,
 } from "../services/firebaseApi";
+import { useCreateUserMutation } from "../services/tcApi";
 import { clearATeam } from "../slices/ateam";
 import { clearAuth } from "../slices/auth";
 import { clearPTeam } from "../slices/pteam";
 import { clearTopics } from "../slices/topics";
 import { clearUser } from "../slices/user";
-import { createUser, getMyUserInfo, removeToken, setToken } from "../utils/api";
+import { getMyUserInfo, removeToken, setToken } from "../utils/api";
 import { samlProvider } from "../utils/firebase";
 
 export const authCookieName = "Authorization";
@@ -50,6 +51,7 @@ export function Login() {
 
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
   const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
+  const [createUser] = useCreateUserMutation();
 
   useEffect(() => {
     dispatch(clearAuth());
@@ -112,7 +114,7 @@ export function Login() {
           break;
         }
         case "No such user":
-          await createUser({}); // other values are default
+          await createUser({}); // should get uid & email via firebase credential in api.
           // TODO: navigate to the first time login page, or say hello on snackbar.
           navigate("/account", {
             state: {
