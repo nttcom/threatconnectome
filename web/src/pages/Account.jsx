@@ -10,17 +10,24 @@ import {
   Typography,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
+import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { UUIDTypography } from "../components/UUIDTypography";
-import { updateUser } from "../slices/user";
+import { useUpdateUserMutation } from "../services/tcApi";
+import { getUser } from "../slices/user";
+import { errorToString } from "../utils/func";
 
 export function Account() {
   const [editInfo, setEditInfo] = useState({
     years: 0,
   });
   const [editMode, setEditMode] = useState(false);
+
+  const [updateUser] = useUpdateUserMutation();
+
+  const { enqueueSnackbar } = useSnackbar();
 
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user);
@@ -40,13 +47,17 @@ export function Account() {
   };
 
   const handleSave = async () => {
-    dispatch(
-      updateUser({
-        userId: user.user_id,
-        user: { years: editInfo.years },
-      }),
-    );
-    handleEditMode();
+    updateUser({
+      userId: user.user_id,
+      data: { years: editInfo.years },
+    })
+      .unwrap()
+      .then((succeeded) => {
+        enqueueSnackbar("Update user info succeeded", { variant: "success" });
+        dispatch(getUser());
+        handleEditMode();
+      })
+      .catch((error) => enqueueSnackbar(errorToString(error), { variant: "error" }));
   };
 
   return (
