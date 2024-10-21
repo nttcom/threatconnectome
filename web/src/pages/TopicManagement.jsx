@@ -142,8 +142,9 @@ export function TopicManagement() {
     isLoading: searchResultIsLoading,
   } = useSearchTopicsQuery(searchParams, { skip, refetchOnMountOrArgChange: true });
 
+  if (skip) return <>Now loading auth token...</>;
   if (searchResultError) return <>{`Search topics failed: ${errorToString(searchResultError)}`}</>;
-  if (searchResultIsLoading || !searchResult) return <>Now searching topics...</>;
+  if (searchResultIsLoading) return <>Now searching topics...</>;
 
   const topics = searchResult.topics;
   const pageMax = Math.ceil((searchResult?.num_topics ?? 0) / perPage);
