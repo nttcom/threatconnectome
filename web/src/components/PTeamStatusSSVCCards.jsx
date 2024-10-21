@@ -15,7 +15,10 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
 
+import { useUpdatePTeamServiceMutation } from "../services/tcApi";
+import { getPTeam, getPTeamServiceTagsSummary } from "../slices/pteam";
 import {
   sortedSSVCPriorities,
   ssvcPriorityProps,
@@ -24,14 +27,10 @@ import {
   sortedMissionImpat,
   missionImpact,
 } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 export function PTeamStatusSSVCCards(props) {
-  const { service, highestSsvcPriority } = props;
-  const SSVCValueList = [
-    highestSsvcPriority,
-    service.system_exposure,
-    service.service_mission_impact,
-  ];
+  const { pteamId, service, highestSsvcPriority } = props;
   const ssvcPriorityProp = ssvcPriorityProps[highestSsvcPriority];
   const Icon = ssvcPriorityProp.icon;
 
@@ -42,15 +41,34 @@ export function PTeamStatusSSVCCards(props) {
     ssvcPriority[key] = ssvcPriorityProps[key]["displayName"];
   });
 
-  const HighestSSVCPriorityList = {
-    title: "Highest SSVC Priority",
-    description: "The most serious security issue of the Service.",
-    items: sortedSSVCPriorities,
-    valuePairing: ssvcPriority,
-  };
-
   const [isSystemExposureEditable, setIsSystemExposureEditable] = useState(false);
   const [isMissionImpactEditable, setIsMissionImpactEditable] = useState(false);
+  const [isSystemExposureValue, setSystemExposureValue] = useState(service.system_exposure);
+  const [isMissionImpactValue, setMissionImpactValue] = useState(service.service_mission_impact);
+
+  const [updatePTeamService] = useUpdatePTeamServiceMutation();
+  const { enqueueSnackbar } = useSnackbar();
+  const dispatch = useDispatch();
+
+  const handleUpdatePTeamService = async (card) => {
+    console.log(card.title);
+    const data =
+      card.title === "System Exposure"
+        ? { system_exposure: isSystemExposureValue }
+        : { service_mission_impact: isMissionImpactValue };
+    const serviceId = service.service_id;
+    await updatePTeamService({ pteamId, serviceId, data })
+      .unwrap()
+      .then(() => {
+        dispatch(getPTeam(pteamId));
+        dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+        enqueueSnackbar("Update succeeded", { variant: "success" });
+      })
+      .catch((error) => {
+        enqueueSnackbar(`Update failed: ${errorToString(error)}`, { variant: "error" });
+      });
+  };
+
   const SSVCCardsList = [
     {
       title: "System Exposure",
@@ -58,7 +76,8 @@ export function PTeamStatusSSVCCards(props) {
       items: sortedSystemExposure,
       valuePairing: systemExposure,
       isEditable: isSystemExposureEditable,
-      handleClick: setIsSystemExposureEditable,
+      handleClickIconButton: setIsSystemExposureEditable,
+      handleClickToggleButton: setSystemExposureValue,
     },
     {
       title: "Mission Impact",
@@ -66,11 +85,17 @@ export function PTeamStatusSSVCCards(props) {
       items: sortedMissionImpat,
       valuePairing: missionImpact,
       isEditable: isMissionImpactEditable,
-      handleClick: setIsMissionImpactEditable,
+      handleClickIconButton: setIsMissionImpactEditable,
+      handleClickToggleButton: setMissionImpactValue,
     },
   ];
 
-  const { enqueueSnackbar } = useSnackbar();
+  const HighestSSVCPriorityList = {
+    title: "Highest SSVC Priority",
+    description: "The most serious security issue of the Service.",
+    items: sortedSSVCPriorities,
+    valuePairing: ssvcPriority,
+  };
 
   return (
     // Create Highest SSVC Priority card
@@ -184,7 +209,7 @@ export function PTeamStatusSSVCCards(props) {
                 </Tooltip>
               </Box>
               {!card.isEditable && (
-                <IconButton onClick={() => card.handleClick(true)}>
+                <IconButton onClick={() => card.handleClickIconButton(true)}>
                   <EditIcon />
                 </IconButton>
               )}
@@ -202,10 +227,20 @@ export function PTeamStatusSSVCCards(props) {
                 size="small"
                 color="primary"
                 orientation="vertical"
-                value={card.items.filter((item) => SSVCValueList.find((value) => value === item))}
+                // value={card.items.filter((item) => SSVCValueList.find((value) => value === item))}
+                value={
+                  card.title === "System Exposure" ? isSystemExposureValue : isMissionImpactValue
+                }
               >
                 {card.items.map((item) => (
-                  <ToggleButton key={item} value={item} disabled={card.isEditable ? false : true}>
+                  <ToggleButton
+                    key={item}
+                    value={item}
+                    disabled={card.isEditable ? false : true}
+                    onClick={() => {
+                      card.handleClickToggleButton(item);
+                    }}
+                  >
                     {card.valuePairing[item]}
                   </ToggleButton>
                 ))}
@@ -213,16 +248,23 @@ export function PTeamStatusSSVCCards(props) {
             </Box>
             {card.isEditable && (
               <Stack direction="row" spacing={1} sx={{ mx: 1, mb: 1, justifyContent: "end" }}>
-                <Button size="small" onClick={() => card.handleClick(false)}>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    card.handleClickIconButton(false);
+                    card.title === "System Exposure"
+                      ? card.handleClickToggleButton(service.system_exposure)
+                      : card.handleClickToggleButton(service.service_mission_impact);
+                  }}
+                >
                   Cancel
                 </Button>
                 <Button
                   variant="contained"
                   size="small"
-                  disabled
                   onClick={() => {
-                    enqueueSnackbar("update succeeded", { variant: "success" });
-                    card.handleClick(false);
+                    card.handleClickIconButton(false);
+                    handleUpdatePTeamService(card);
                   }}
                 >
                   Update
@@ -237,6 +279,7 @@ export function PTeamStatusSSVCCards(props) {
 }
 
 PTeamStatusSSVCCards.propTypes = {
+  pteamId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
   highestSsvcPriority: PropTypes.string.isRequired,
 };

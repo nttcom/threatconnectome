@@ -143,7 +143,11 @@ export function PTeamServiceDetails(props) {
           </CardContent>
         </Card>
         <Box sx={{ mt: 1 }}>
-          <PTeamStatusSSVCCards service={service} highestSsvcPriority={highestSsvcPriority} />
+          <PTeamStatusSSVCCards
+            pteamId={pteamId}
+            service={service}
+            highestSsvcPriority={highestSsvcPriority}
+          />
         </Box>
       </Collapse>
       <Button onClick={onSwitchExpandService} sx={{ display: "block", m: "auto" }}>
