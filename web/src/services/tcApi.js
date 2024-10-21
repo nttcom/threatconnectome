@@ -96,6 +96,22 @@ export const tcApi = createApi({
         params: params,
       }),
     }),
+
+    /* External */
+    checkMail: builder.mutation({
+      query: (data) => ({
+        url: "external/email/check",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    checkSlack: builder.mutation({
+      query: (data) => ({
+        url: "external/slack/check",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -107,4 +123,6 @@ export const {
   useGetPTeamMembersQuery,
   useUploadSBOMFileMutation,
   useSearchTopicsQuery,
+  useCheckMailMutation,
+  useCheckSlackMutation,
 } = tcApi;

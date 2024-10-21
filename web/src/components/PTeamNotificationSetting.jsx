@@ -24,19 +24,17 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { useCheckMailMutation, useCheckSlackMutation } from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
 import { getUser } from "../slices/user";
-import {
-  updatePTeam,
-  checkSlack as postCheckSlack,
-  checkMail as postCheckMail,
-} from "../utils/api";
+import { updatePTeam } from "../utils/api";
 import {
   defaultAlertThreshold,
   modalCommonButtonStyle,
   sortedSSVCPriorities,
   ssvcPriorityProps,
 } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 import { CheckButton } from "./CheckButton";
 
@@ -54,6 +52,9 @@ export function PTeamNotificationSetting(props) {
   const [emailMessage, setEmailMessage] = useState();
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const [postCheckMail] = useCheckMailMutation();
+  const [postCheckSlack] = useCheckSlackMutation();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const pteam = useSelector((state) => state.pteam.pteam);
@@ -93,7 +94,7 @@ export function PTeamNotificationSetting(props) {
     return (
       <Box display="flex" sx={{ color: "error.main" }}>
         <ErrorOutlineIcon />
-        <Typography>Connection failed. Reason: {error.response?.data.detail} </Typography>
+        <Typography>Connection failed. Reason: {errorToString(error)}</Typography>
       </Box>
     );
   };
@@ -117,6 +118,7 @@ export function PTeamNotificationSetting(props) {
     setCheckSlack(true);
     setSlackMessage();
     await postCheckSlack({ slack_webhook_url: slackUrl })
+      .unwrap()
       .then(() => {
         setCheckSlack(false);
         setSlackMessage(connectSuccessMessage);
@@ -131,6 +133,7 @@ export function PTeamNotificationSetting(props) {
     setCheckEmail(true);
     setEmailMessage();
     await postCheckMail({ email: mailAddress })
+      .unwrap()
       .then(() => {
         setCheckEmail(false);
         setEmailMessage(connectSuccessMessage);
