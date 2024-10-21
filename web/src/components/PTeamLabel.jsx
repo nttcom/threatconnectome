@@ -8,7 +8,7 @@ import { PTeamSettingsModal } from "./PTeamSettingsModal";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function PTeamLabel(props) {
-  const { defaultTabIndex } = props;
+  const { defaultTabIndex = 0 } = props;
 
   const [pteamSettingsModalOpen, setPTeamSettingsModalOpen] = useState(false);
 
@@ -30,6 +30,7 @@ export function PTeamLabel(props) {
         <UUIDTypography>{pteamId}</UUIDTypography>
       </Box>
       <PTeamSettingsModal
+        pteamId={pteamId}
         onSetShow={setPTeamSettingsModalOpen}
         show={pteamSettingsModalOpen}
         defaultTabIndex={defaultTabIndex}
@@ -40,7 +41,4 @@ export function PTeamLabel(props) {
 
 PTeamLabel.propTypes = {
   defaultTabIndex: PropTypes.number,
-};
-PTeamLabel.defaultProps = {
-  defaultTabIndex: 0,
 };

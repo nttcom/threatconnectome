@@ -1,46 +1,55 @@
 import { Avatar, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 
 import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamMember } from "../components/PTeamMember";
 import { PTeamWatcher } from "../components/PTeamWatcher";
 import { TabPanel } from "../components/TabPanel";
-import { getPTeam, getPTeamAuth, getPTeamMembers } from "../slices/pteam";
+import { useGetPTeamAuthQuery, useGetPTeamQuery, useGetPTeamMembersQuery } from "../services/tcApi";
 import { experienceColors, noPTeamMessage } from "../utils/const";
-import { a11yProps } from "../utils/func.js";
+import { a11yProps, errorToString } from "../utils/func.js";
 
 export function PTeam() {
   const [filterMode, setFilterMode] = useState("PTeam");
   const [tabValue, setTabValue] = useState(0);
 
-  const user = useSelector((state) => state.user.user);
-  const pteam = useSelector((state) => state.pteam.pteam);
-  const pteamId = useSelector((state) => state.pteam.pteamId);
-  const members = useSelector((state) => state.pteam.members);
-  const authorities = useSelector((state) => state.pteam.authorities);
-  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user.user); // TODO: RTKQ
+  const pteamId = useSelector((state) => state.pteam.pteamId); // TODO: RTKQ or QueryParam?
 
-  useEffect(() => {
-    if (!pteamId) return;
-    if (!pteam) dispatch(getPTeam(pteamId));
-    if (!members) dispatch(getPTeamMembers(pteamId));
-    if (!authorities) dispatch(getPTeamAuth(pteamId));
-  }, [dispatch, pteamId, pteam, members, authorities]);
+  const skip = pteamId === undefined;
+  const {
+    data: authorities,
+    error: authoritiesError,
+    isLoading: authoritiesIsLoading,
+  } = useGetPTeamAuthQuery(pteamId, { skip });
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip });
+  const {
+    data: members,
+    error: membersError,
+    isLoading: membersIsLoading,
+  } = useGetPTeamMembersQuery(pteamId, { skip });
 
-  const checkAdmin = (userId) => {
-    return (authorities?.find((x) => x.user_id === userId)?.authorities ?? []).includes("admin");
-  };
+  if (!user.user_id) return <></>;
+  if (!pteamId) return <>{noPTeamMessage}</>;
 
+  if (authoritiesError) return <>{`Cannot get Authorities: ${errorToString(authoritiesError)}`}</>;
+  if (authoritiesIsLoading) return <>Now loading Authorities...</>;
+  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (membersError) return <>{`Cannot get PTeam: ${errorToString(membersError)}`}</>;
+  if (membersIsLoading) return <>Now loading Members...</>;
+
+  const isAdmin = (authorities[user.user_id] ?? []).includes("admin");
   const filterModes = ["All", "PTeam"];
 
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);
   };
-
-  if (!pteamId) return <>{noPTeamMessage}</>;
-  if (!user || !pteam || !members || !authorities) return <></>;
-  const isAdmin = checkAdmin(user.user_id);
 
   return (
     <>

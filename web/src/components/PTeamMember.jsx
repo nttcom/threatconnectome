@@ -23,9 +23,7 @@ import { UUIDTypography } from "./UUIDTypography";
 export function PTeamMember(props) {
   const { pteamId, members, authorities, isAdmin } = props;
 
-  const checkAdmin = (userId) => {
-    return (authorities?.find((x) => x.user_id === userId)?.authorities ?? []).includes("admin");
-  };
+  const checkAdmin = (userId) => (authorities[userId] ?? []).includes("admin");
 
   return (
     <>
@@ -102,6 +100,6 @@ PTeamMember.propTypes = {
     disabled: PropTypes.bool,
     years: PropTypes.number,
   }).isRequired,
-  authorities: PropTypes.arrayOf(PropTypes.object).isRequired,
+  authorities: PropTypes.object.isRequired,
   isAdmin: PropTypes.bool.isRequired,
 };
