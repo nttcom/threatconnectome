@@ -110,6 +110,22 @@ export const tcApi = createApi({
         params: params,
       }),
     }),
+
+    /* User */
+    createUser: builder.mutation({
+      query: (data) => ({
+        url: "/users",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updateUser: builder.mutation({
+      query: ({ userId, data }) => ({
+        url: `/users/${userId}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -123,4 +139,6 @@ export const {
   useGetPTeamMembersQuery,
   useUploadSBOMFileMutation,
   useSearchTopicsQuery,
+  useCreateUserMutation,
+  useUpdateUserMutation,
 } = tcApi;
