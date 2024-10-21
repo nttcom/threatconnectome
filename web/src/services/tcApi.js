@@ -64,6 +64,12 @@ export const tcApi = createApi({
         responseHandler: _responseListToDictConverter("user_id"),
       }),
     }),
+    deletePTeamMember: builder.mutation({
+      query: ({ pteamId, userId }) => ({
+        url: `pteams/${pteamId}/members/${userId}`,
+        method: "DELETE",
+      }),
+    }),
 
     /* SBOM */
     uploadSBOMFile: builder.mutation({
@@ -88,5 +94,6 @@ export const {
   useGetPTeamAuthInfoQuery,
   useGetPTeamAuthQuery,
   useGetPTeamMembersQuery,
+  useDeletePTeamMemberMutation,
   useUploadSBOMFileMutation,
 } = tcApi;
