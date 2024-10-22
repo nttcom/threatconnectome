@@ -27,6 +27,7 @@ import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useCreateActionMutation } from "../services/tcApi";
 import {
   getPTeamTopicActions,
   getPTeamServiceTaggedTopicIds,
@@ -38,7 +39,6 @@ import {
   createTopic,
   fetchFlashsense,
   updateTopic,
-  createAction,
   updateAction,
   deleteAction,
 } from "../utils/api";
@@ -88,6 +88,7 @@ export function TopicModal(props) {
   const [editActionOpen, setEditActionOpen] = useState(false);
   const [editActionTarget, setEditActionTarget] = useState({});
 
+  const [createAction] = useCreateActionMutation();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -274,7 +275,11 @@ export function TopicModal(props) {
           topic_id: topicId,
         };
         if (action.action_id === null) {
-          promiseArray.push(createAction(actionRequest).catch((error) => operationError(error)));
+          promiseArray.push(
+            createAction({ actionRequest })
+              .unwrap()
+              .catch((error) => operationError(error)),
+          );
         } else if (presetActionIds.has(action.action_id)) {
           presetActionIds.delete(action.action_id);
           promiseArray.push(

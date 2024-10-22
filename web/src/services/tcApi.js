@@ -175,6 +175,15 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
+
+    /* Actions */
+    createAction: builder.mutation({
+      query: (data) => ({
+        url: "/actions",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -196,4 +205,5 @@ export const {
   useSearchTopicsQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
+  useCreateActionMutation,
 } = tcApi;

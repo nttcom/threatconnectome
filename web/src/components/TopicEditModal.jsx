@@ -31,8 +31,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useCreateActionMutation } from "../services/tcApi";
 import { getActions, getTopic } from "../slices/topics";
-import { createAction, deleteAction, updateAction, updateTopic } from "../utils/api";
+import { deleteAction, updateAction, updateTopic } from "../utils/api";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -58,6 +59,7 @@ export function TopicEditModal(props) {
   const userMe = useSelector((state) => state.user.user);
 
   const { enqueueSnackbar } = useSnackbar();
+  const [createAction] = useCreateActionMutation();
   const dispatch = useDispatch();
 
   useEffect(() => {
