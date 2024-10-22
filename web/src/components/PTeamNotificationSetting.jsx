@@ -24,10 +24,13 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { useUpdatePTeamMutation } from "../services/tcApi";
+import {
+  useCheckMailMutation,
+  useCheckSlackMutation,
+  useUpdatePTeamMutation,
+} from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
 import { getUser } from "../slices/user";
-import { checkSlack as postCheckSlack, checkMail as postCheckMail } from "../utils/api";
 import {
   defaultAlertThreshold,
   modalCommonButtonStyle,
@@ -53,6 +56,8 @@ export function PTeamNotificationSetting(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const [postCheckMail] = useCheckMailMutation();
+  const [postCheckSlack] = useCheckSlackMutation();
   const [updatePTeam] = useUpdatePTeamMutation();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
@@ -89,7 +94,7 @@ export function PTeamNotificationSetting(props) {
     return (
       <Box display="flex" sx={{ color: "error.main" }}>
         <ErrorOutlineIcon />
-        <Typography>Connection failed. Reason: {error.response?.data.detail} </Typography>
+        <Typography>Connection failed. Reason: {errorToString(error)}</Typography>
       </Box>
     );
   };
@@ -114,6 +119,7 @@ export function PTeamNotificationSetting(props) {
     setCheckSlack(true);
     setSlackMessage();
     await postCheckSlack({ slack_webhook_url: slackUrl })
+      .unwrap()
       .then(() => {
         setCheckSlack(false);
         setSlackMessage(connectSuccessMessage);
@@ -128,6 +134,7 @@ export function PTeamNotificationSetting(props) {
     setCheckEmail(true);
     setEmailMessage();
     await postCheckMail({ email: mailAddress })
+      .unwrap()
       .then(() => {
         setCheckEmail(false);
         setEmailMessage(connectSuccessMessage);
