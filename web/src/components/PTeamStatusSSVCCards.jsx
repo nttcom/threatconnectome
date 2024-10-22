@@ -198,7 +198,7 @@ export function PTeamStatusSSVCCards(props) {
                   component="div"
                   sx={{
                     pr: 0.5,
-                    fontWeight: card.title === "Highest SSVC Priority" ? "bold" : "none",
+                    fontWeight: "none",
                   }}
                 >
                   {card.title}
