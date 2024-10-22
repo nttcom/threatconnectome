@@ -1,17 +1,24 @@
+import EditIcon from "@mui/icons-material/Edit";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import {
   Box,
   Button,
   Grid,
+  IconButton,
   Paper,
+  Stack,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
   Typography,
 } from "@mui/material";
+import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React from "react";
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
 
+import { useUpdatePTeamServiceMutation } from "../services/tcApi";
+import { getPTeam, getPTeamServiceTagsSummary } from "../slices/pteam";
 import {
   sortedSSVCPriorities,
   ssvcPriorityProps,
@@ -20,14 +27,10 @@ import {
   sortedMissionImpat,
   missionImpact,
 } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 export function PTeamStatusSSVCCards(props) {
-  const { service, highestSsvcPriority } = props;
-  const SSVCValueList = [
-    highestSsvcPriority,
-    service.system_exposure,
-    service.service_mission_impact,
-  ];
+  const { pteamId, service, highestSsvcPriority } = props;
   const ssvcPriorityProp = ssvcPriorityProps[highestSsvcPriority];
   const Icon = ssvcPriorityProp.icon;
 
@@ -38,11 +41,31 @@ export function PTeamStatusSSVCCards(props) {
     ssvcPriority[key] = ssvcPriorityProps[key]["displayName"];
   });
 
-  const HighestSSVCPriorityList = {
-    title: "Highest SSVC Priority",
-    description: "The most serious security issue of the Service.",
-    items: sortedSSVCPriorities,
-    valuePairing: ssvcPriority,
+  const [isSystemExposureEditable, setIsSystemExposureEditable] = useState(false);
+  const [isMissionImpactEditable, setIsMissionImpactEditable] = useState(false);
+  const [systemExposureValue, setSystemExposureValue] = useState(service.system_exposure);
+  const [missionImpactValue, setMissionImpactValue] = useState(service.service_mission_impact);
+
+  const [updatePTeamService] = useUpdatePTeamServiceMutation();
+  const { enqueueSnackbar } = useSnackbar();
+  const dispatch = useDispatch();
+
+  const handleUpdatePTeamService = async (card) => {
+    const data =
+      card.title === "System Exposure"
+        ? { system_exposure: systemExposureValue }
+        : { service_mission_impact: missionImpactValue };
+    const serviceId = service.service_id;
+    await updatePTeamService({ pteamId, serviceId, data })
+      .unwrap()
+      .then(() => {
+        dispatch(getPTeam(pteamId));
+        dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
+        enqueueSnackbar("Update succeeded", { variant: "success" });
+      })
+      .catch((error) => {
+        enqueueSnackbar(`Update failed: ${errorToString(error)}`, { variant: "error" });
+      });
   };
 
   const SSVCCardsList = [
@@ -51,14 +74,27 @@ export function PTeamStatusSSVCCards(props) {
       description: "The Accessible Attack Surface of the Affected System or Service.",
       items: sortedSystemExposure,
       valuePairing: systemExposure,
+      isEditable: isSystemExposureEditable,
+      handleClickIconButton: setIsSystemExposureEditable,
+      handleClickToggleButton: setSystemExposureValue,
     },
     {
       title: "Mission Impact",
       description: "Impact on Mission Essential Functions of the Organization.",
       items: sortedMissionImpat,
       valuePairing: missionImpact,
+      isEditable: isMissionImpactEditable,
+      handleClickIconButton: setIsMissionImpactEditable,
+      handleClickToggleButton: setMissionImpactValue,
     },
   ];
+
+  const HighestSSVCPriorityList = {
+    title: "Highest SSVC Priority",
+    description: "The most serious security issue of the Service.",
+    items: sortedSSVCPriorities,
+    valuePairing: ssvcPriority,
+  };
 
   return (
     // Create Highest SSVC Priority card
@@ -140,20 +176,42 @@ export function PTeamStatusSSVCCards(props) {
               flexDirection: "column",
             }}
           >
-            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", my: 1 }}>
-              <Typography
-                variant="h6"
-                component="div"
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "50px auto 50px",
+                justifyItems: "center",
+                alignItems: "center",
+              }}
+            >
+              <Box
                 sx={{
-                  pr: 0.5,
-                  fontWeight: card.title === "Highest SSVC Priority" ? "bold" : "none",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  my: 1,
+                  gridColumn: 2,
                 }}
               >
-                {card.title}
-              </Typography>
-              <Tooltip title={card.description}>
-                <HelpOutlineOutlinedIcon color="action" fontSize="small" />
-              </Tooltip>
+                <Typography
+                  variant="h6"
+                  component="div"
+                  sx={{
+                    pr: 0.5,
+                    fontWeight: "none",
+                  }}
+                >
+                  {card.title}
+                </Typography>
+                <Tooltip title={card.description}>
+                  <HelpOutlineOutlinedIcon color="action" fontSize="small" />
+                </Tooltip>
+              </Box>
+              {!card.isEditable && (
+                <IconButton onClick={() => card.handleClickIconButton(true)}>
+                  <EditIcon />
+                </IconButton>
+              )}
             </Box>
             <Box
               sx={{
@@ -165,18 +223,50 @@ export function PTeamStatusSSVCCards(props) {
               }}
             >
               <ToggleButtonGroup
-                color="primary"
                 size="small"
+                color="primary"
                 orientation="vertical"
-                value={card.items.filter((item) => SSVCValueList.find((value) => value === item))}
+                value={card.title === "System Exposure" ? systemExposureValue : missionImpactValue}
               >
                 {card.items.map((item) => (
-                  <ToggleButton key={item} value={item} disabled>
+                  <ToggleButton
+                    key={item}
+                    value={item}
+                    disabled={card.isEditable ? false : true}
+                    onClick={() => {
+                      card.handleClickToggleButton(item);
+                    }}
+                  >
                     {card.valuePairing[item]}
                   </ToggleButton>
                 ))}
               </ToggleButtonGroup>
             </Box>
+            {card.isEditable && (
+              <Stack direction="row" spacing={1} sx={{ mx: 1, mb: 1, justifyContent: "end" }}>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    card.handleClickIconButton(false);
+                    card.title === "System Exposure"
+                      ? card.handleClickToggleButton(service.system_exposure)
+                      : card.handleClickToggleButton(service.service_mission_impact);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => {
+                    card.handleClickIconButton(false);
+                    handleUpdatePTeamService(card);
+                  }}
+                >
+                  Update
+                </Button>
+              </Stack>
+            )}
           </Paper>
         </Grid>
       ))}
@@ -185,6 +275,7 @@ export function PTeamStatusSSVCCards(props) {
 }
 
 PTeamStatusSSVCCards.propTypes = {
+  pteamId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
   highestSsvcPriority: PropTypes.string.isRequired,
 };

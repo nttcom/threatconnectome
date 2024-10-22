@@ -119,6 +119,15 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* PTeam Service */
+    updatePTeamService: builder.mutation({
+      query: ({ pteamId, serviceId, data }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
     /* SBOM */
     uploadSBOMFile: builder.mutation({
       query: ({ pteamId, serviceName, sbomFile, forceMode = true }) => {
@@ -182,6 +191,7 @@ export const {
   useGetPTeamMembersQuery,
   useDeletePTeamMemberMutation,
   useUploadSBOMFileMutation,
+  useUpdatePTeamServiceMutation,
   useCreateTicketStatusMutation,
   useSearchTopicsQuery,
   useCreateUserMutation,
