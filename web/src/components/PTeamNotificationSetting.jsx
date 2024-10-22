@@ -24,19 +24,17 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { useUpdatePTeamMutation } from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
 import { getUser } from "../slices/user";
-import {
-  updatePTeam,
-  checkSlack as postCheckSlack,
-  checkMail as postCheckMail,
-} from "../utils/api";
+import { checkSlack as postCheckSlack, checkMail as postCheckMail } from "../utils/api";
 import {
   defaultAlertThreshold,
   modalCommonButtonStyle,
   sortedSSVCPriorities,
   ssvcPriorityProps,
 } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 import { CheckButton } from "./CheckButton";
 
@@ -54,6 +52,8 @@ export function PTeamNotificationSetting(props) {
   const [emailMessage, setEmailMessage] = useState();
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const [updatePTeam] = useUpdatePTeamMutation();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const pteam = useSelector((state) => state.pteam.pteam);
@@ -73,12 +73,8 @@ export function PTeamNotificationSetting(props) {
     setSlackMessage();
   }, [show, pteam]);
 
-  const operationError = (error) => {
-    const resp = error.response;
-    enqueueSnackbar(`Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`, {
-      variant: "error",
-    });
-  };
+  const operationError = (error) =>
+    enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
 
   const connectSuccessMessage = () => {
     return (
@@ -99,12 +95,13 @@ export function PTeamNotificationSetting(props) {
   };
 
   const handleUpdatePTeam = async () => {
-    const pteamInfo = {
+    const data = {
       alert_slack: { enable: slackEnable, webhook_url: slackUrl },
       alert_mail: { enable: mailEnable, address: mailAddress },
       alert_ssvc_priority: alertThreshold,
     };
-    await updatePTeam(pteamId, pteamInfo)
+    await updatePTeam({ pteamId, data })
+      .unwrap()
       .then(() => {
         dispatch(getPTeam(pteamId));
         dispatch(getUser());

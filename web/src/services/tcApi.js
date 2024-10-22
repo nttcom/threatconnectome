@@ -28,11 +28,43 @@ export const tcApi = createApi({
       }
       return headers;
     },
+    paramsSerializer: (params) =>
+      Object.keys(params)
+        .filter((key) => ![null, undefined].includes(params[key]))
+        .flatMap((key) =>
+          params[key] instanceof Array
+            ? params[key].map((item) => `${encodeURIComponent(key)}=${encodeURIComponent(item)}`)
+            : `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`,
+        )
+        .join("&"),
   }),
   endpoints: (builder) => ({
+    /* Action Log */
+    createActionLog: builder.mutation({
+      query: (data) => ({
+        url: "actionlogs",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
+    }),
+    createPTeam: builder.mutation({
+      query: (data) => ({
+        url: "/pteams",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updatePTeam: builder.mutation({
+      query: ({ pteamId, data }) => ({
+        url: `/pteams/${pteamId}`,
+        method: "PUT",
+        body: data,
+      }),
     }),
 
     /* PTeam Auth Info */
@@ -57,11 +89,42 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [{ type: "PTeamAuth", id: arg.pteamId }],
     }),
 
+    /* PTeam Invitation */
+    createPTeamInvitation: builder.mutation({
+      query: ({ pteamId, data }) => ({
+        url: `pteams/${pteamId}/invitation`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    applyPTeamInvitation: builder.mutation({
+      query: (data) => ({
+        url: "pteams/apply_invitation",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     /* PTeam Members */
     getPTeamMembers: builder.query({
       query: (pteamId) => ({
         url: `pteams/${pteamId}/members`,
         responseHandler: _responseListToDictConverter("user_id"),
+      }),
+    }),
+    deletePTeamMember: builder.mutation({
+      query: ({ pteamId, userId }) => ({
+        url: `pteams/${pteamId}/members/${userId}`,
+        method: "DELETE",
+      }),
+    }),
+
+    /* PTeam Service */
+    updatePTeamService: builder.mutation({
+      query: ({ pteamId, serviceId, data }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/`,
+        method: "PUT",
+        body: data,
       }),
     }),
 
@@ -88,15 +151,59 @@ export const tcApi = createApi({
         };
       },
     }),
+
+    /* Ticket Status */
+    createTicketStatus: builder.mutation({
+      query: ({ pteamId, serviceId, ticketId, data }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/ticketstatus/${ticketId}`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    /* Topics */
+    searchTopics: builder.query({
+      query: (params) => ({
+        url: "topics/search",
+        params: params,
+      }),
+    }),
+
+    /* User */
+    createUser: builder.mutation({
+      query: (data) => ({
+        url: "/users",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updateUser: builder.mutation({
+      query: ({ userId, data }) => ({
+        url: `/users/${userId}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
   }),
 });
 
 export const {
+  useCreateActionLogMutation,
   useGetPTeamQuery,
+  useCreatePTeamMutation,
+  useUpdatePTeamMutation,
   useUpdatePTeamAuthMutation,
   useUpdateTopicMutation,
   useGetPTeamAuthInfoQuery,
   useGetPTeamAuthQuery,
+  useCreatePTeamInvitationMutation,
+  useApplyPTeamInvitationMutation,
   useGetPTeamMembersQuery,
+  useDeletePTeamMemberMutation,
   useUploadSBOMFileMutation,
+  useUpdatePTeamServiceMutation,
+  useCreateTicketStatusMutation,
+  useSearchTopicsQuery,
+  useCreateUserMutation,
+  useUpdateUserMutation,
 } = tcApi;

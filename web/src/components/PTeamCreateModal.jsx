@@ -17,8 +17,9 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useCreatePTeamMutation } from "../services/tcApi";
 import { getUser } from "../slices/user";
-import { createPTeam } from "../utils/api";
+import { errorToString } from "../utils/func";
 
 export function PTeamCreateModal(props) {
   const { open, onSetOpen, onCloseTeamSelector } = props;
@@ -29,6 +30,8 @@ export function PTeamCreateModal(props) {
   const [pteamName, setPTeamName] = useState(null);
   const [contactInfo, setContactInfo] = useState("");
   const [slackUrl, setSlackUrl] = useState("");
+
+  const [createPTeam] = useCreatePTeamMutation();
 
   useEffect(() => {
     onCloseTeamSelector();
@@ -45,22 +48,19 @@ export function PTeamCreateModal(props) {
       alert_slack: { enable: true, webhook_url: slackUrl },
     };
     await createPTeam(data)
-      .then(async (response) => {
+      .unwrap()
+      .then(async (data) => {
         enqueueSnackbar("create pteam succeeded", { variant: "success" });
         onSetOpen(false);
         // fix user.pteams before navigating, to avoid overwriting pteamId by pages/App.jsx.
         await dispatch(getUser());
         const newParams = new URLSearchParams();
-        newParams.set("pteamId", response.data.pteam_id);
+        newParams.set("pteamId", data.pteam_id);
         navigate("/pteam?" + newParams.toString());
       })
-      .catch((error) => {
-        const resp = error.response;
-        enqueueSnackbar(
-          `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
-          { variant: "error" },
-        );
-      });
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+      );
   };
 
   return (

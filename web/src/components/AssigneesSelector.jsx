@@ -4,9 +4,9 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 
+import { useCreateTicketStatusMutation } from "../services/tcApi";
 import { getTicketsRelatedToServiceTopicTag } from "../slices/pteam";
-import { setTicketStatus } from "../utils/api";
-import { setEquals } from "../utils/func";
+import { errorToString, setEquals } from "../utils/func";
 
 export function AssigneesSelector(props) {
   const { pteamId, serviceId, topicId, tagId, ticketId, currentAssigneeIds, members } = props;
@@ -21,13 +21,16 @@ export function AssigneesSelector(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const [createTicketStatus] = useCreateTicketStatusMutation();
+
   const handleApply = async () => {
     const newAssigneeIds = Object.values(members)
       .filter((member) => assigneeEmails.includes(member.email))
       .map((member) => member.user_id);
     if (setEquals(new Set(newAssigneeIds), new Set(currentAssigneeIds))) return; // not modified
 
-    await setTicketStatus(pteamId, serviceId, ticketId, { assignees: newAssigneeIds })
+    await createTicketStatus({ pteamId, serviceId, ticketId, data: { assignees: newAssigneeIds } })
+      .unwrap()
       .then(() => {
         dispatch(
           getTicketsRelatedToServiceTopicTag({
@@ -39,13 +42,9 @@ export function AssigneesSelector(props) {
         );
         enqueueSnackbar("Change assignees succeeded", { variant: "success" });
       })
-      .catch((error) => {
-        const resp = error.response;
-        enqueueSnackbar(
-          `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
-          { variant: "error" },
-        );
-      });
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+      );
   };
 
   const handleAssigneesChange = (event) => {

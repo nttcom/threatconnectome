@@ -6,10 +6,12 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { useUpdatePTeamMutation } from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
 import { getUser } from "../slices/user";
-import { updatePTeam, checkFs as postCheckFs, getFsInfo } from "../utils/api";
+import { checkFs as postCheckFs, getFsInfo } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 import { CheckButton } from "./CheckButton";
 
@@ -21,6 +23,8 @@ export function PTeamGeneralSetting(props) {
   const [flashsenseUrl, setFlashsenseUrl] = useState("");
   const [checkFlashsense, setCheckFlashsense] = useState(false);
   const [flashsenseMessage, setFlashsenseMessage] = useState();
+
+  const [updatePTeam] = useUpdatePTeamMutation();
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -50,12 +54,8 @@ export function PTeamGeneralSetting(props) {
     setFlashsenseMessage();
   }, [show, pteam]);
 
-  const operationError = (error) => {
-    const resp = error.response;
-    enqueueSnackbar(`Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`, {
-      variant: "error",
-    });
-  };
+  const operationError = (error) =>
+    enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
 
   const connectSuccessMessage = () => {
     return (
@@ -76,12 +76,13 @@ export function PTeamGeneralSetting(props) {
   };
 
   const handleUpdatePTeam = async () => {
-    const pteamInfo = {
+    const data = {
       pteam_name: pteamName,
       contact_info: contactInfo,
       alert_slack: { enable: true, webhook_url: slackUrl }, //todo change enable status
     };
-    await updatePTeam(pteamId, pteamInfo)
+    await updatePTeam({ pteamId, data })
+      .unwrap()
       .then(() => {
         dispatch(getPTeam(pteamId));
         dispatch(getUser());

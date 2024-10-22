@@ -62,7 +62,11 @@ export const validateUUID = (str) =>
 
 export const errorToString = (error) => {
   if (typeof error === "string") return error;
-  if (error.status && error.data?.detail) return `${error.status}: ${error.data.detail}`; // RTKQ
+  if (error.status && error.data?.detail) {
+    // RTKQ
+    if (typeof error.data?.detail === "string") return `${error.status}: ${error.data.detail}`;
+    return `${error.status}: ${JSON.stringify(error.data.detail)}`; // maybe 422
+  }
   if (typeof error.response?.data?.detail === "string")
     // error message from api
     return error.response.data.detail;

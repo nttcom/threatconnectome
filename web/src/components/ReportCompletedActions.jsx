@@ -17,7 +17,8 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { createActionLog, setTicketStatus } from "../utils/api";
+import { useCreateActionLogMutation, useCreateTicketStatusMutation } from "../services/tcApi";
+import { errorToString } from "../utils/func";
 
 import { ActionTypeChip } from "./ActionTypeChip";
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -44,40 +45,53 @@ export function ReportCompletedActions(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const [createActionLog] = useCreateActionLogMutation();
+  const [createTicketStatus] = useCreateTicketStatusMutation();
+
   const user = useSelector((state) => state.user.user);
 
-  const handleAction = async () => {
-    try {
-      const actionLogs = await Promise.all(
-        selectedAction.map(
-          async (actionId) =>
-            await createActionLog({
-              action_id: actionId,
-              pteam_id: pteamId,
-              service_id: serviceId,
-              ticket_id: ticketId,
-              topic_id: topicId,
-              user_id: user.user_id,
-            }).then((response) => {
+  const handleAction = async () =>
+    await Promise.all(
+      selectedAction.map(
+        async (actionId) =>
+          await createActionLog({
+            action_id: actionId,
+            pteam_id: pteamId,
+            service_id: serviceId,
+            ticket_id: ticketId,
+            topic_id: topicId,
+            user_id: user.user_id,
+          })
+            .unwrap()
+            .then((data) => {
               enqueueSnackbar("Action succeeded", { variant: "success" });
-              return response.data;
+              return data;
             }),
-        ),
+      ),
+    )
+      .then(
+        async (actionLogs) =>
+          await createTicketStatus({
+            pteamId,
+            serviceId,
+            ticketId,
+            data: {
+              topic_status: "completed",
+              logging_ids: actionLogs.map((log) => log.logging_id),
+              note: note.trim() || null,
+              scheduled_at: "1970-01-01T00:00:00", // clear scheduled date
+            },
+          }).unwrap(),
+      )
+      .then((data) => {
+        handleClose();
+        onSucceeded();
+        setNote("");
+        enqueueSnackbar("Set ticketstatus 'completed' succeeded", { variant: "success" });
+      })
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
       );
-      await setTicketStatus(pteamId, serviceId, ticketId, {
-        topic_status: "completed",
-        logging_ids: actionLogs.map((log) => log.logging_id),
-        note: note.trim() || null,
-        scheduled_at: "1970-01-01T00:00:00", // FIXME: clear scheduled date
-      });
-      handleClose();
-      onSucceeded();
-      setNote("");
-      enqueueSnackbar("Set ticketstatus 'completed' succeeded", { variant: "success" });
-    } catch (error) {
-      enqueueSnackbar(`Operation failed: ${error}`, { variant: "error" });
-    }
-  };
 
   if (!pteamId || !serviceId || !ticketId || !topicId || !tagId || !topicActions) return <></>;
 
