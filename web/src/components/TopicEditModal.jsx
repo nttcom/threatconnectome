@@ -31,9 +31,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
-import { useCreateActionMutation } from "../services/tcApi";
+import { useCreateActionMutation, useUpdateActionMutation } from "../services/tcApi";
 import { getActions, getTopic } from "../slices/topics";
-import { deleteAction, updateAction, updateTopic } from "../utils/api";
+import { deleteAction, updateTopic } from "../utils/api";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -60,6 +60,7 @@ export function TopicEditModal(props) {
 
   const { enqueueSnackbar } = useSnackbar();
   const [createAction] = useCreateActionMutation();
+  const [updateAction] = useUpdateActionMutation();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -143,7 +144,10 @@ export function TopicEditModal(props) {
       if (updatedActions.length > 0) {
         enqueueSnackbar("Updating actions", { variant: "info" });
         for (const action of updatedActions) {
-          await updateAction(action.action_id, { recommended: action.recommended });
+          await updateAction({
+            actionId: action.action_id,
+            data: { recommended: action.recommended },
+          });
         }
         enqueueSnackbar("Updating actions succeeded", { variant: "success" });
       }

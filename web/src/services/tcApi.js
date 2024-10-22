@@ -184,6 +184,13 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
+    updateAction: builder.mutation({
+      query: ({ actionId, data }) => ({
+        url: `/actions/${actionId}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -206,4 +213,5 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useCreateActionMutation,
+  useUpdateActionMutation,
 } = tcApi;

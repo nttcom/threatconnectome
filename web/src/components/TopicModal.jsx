@@ -27,7 +27,7 @@ import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { useCreateActionMutation } from "../services/tcApi";
+import { useCreateActionMutation, useUpdateActionMutation } from "../services/tcApi";
 import {
   getPTeamTopicActions,
   getPTeamServiceTaggedTopicIds,
@@ -35,13 +35,7 @@ import {
   getPTeamTagsSummary,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
-import {
-  createTopic,
-  fetchFlashsense,
-  updateTopic,
-  updateAction,
-  deleteAction,
-} from "../utils/api";
+import { createTopic, fetchFlashsense, updateTopic, deleteAction } from "../utils/api";
 import { actionTypes } from "../utils/const";
 import { validateNotEmpty, validateUUID, setEquals } from "../utils/func";
 
@@ -89,6 +83,7 @@ export function TopicModal(props) {
   const [editActionTarget, setEditActionTarget] = useState({});
 
   const [createAction] = useCreateActionMutation();
+  const [updateAction] = useUpdateActionMutation();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -283,7 +278,9 @@ export function TopicModal(props) {
         } else if (presetActionIds.has(action.action_id)) {
           presetActionIds.delete(action.action_id);
           promiseArray.push(
-            updateAction(action.action_id, actionRequest).catch((error) => operationError(error)),
+            updateAction({ actionId: action.action_id, data: actionRequest })
+              .unwrap()
+              .catch((error) => operationError(error)),
           );
         }
       }
