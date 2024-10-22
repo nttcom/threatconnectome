@@ -119,6 +119,15 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* PTeam Service */
+    updatePTeamService: builder.mutation({
+      query: ({ pteamId, serviceId, data }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
     /* SBOM */
     uploadSBOMFile: builder.mutation({
       query: ({ pteamId, serviceName, sbomFile, forceMode = true }) => {
@@ -173,6 +182,22 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
+
+    /* External */
+    checkMail: builder.mutation({
+      query: (data) => ({
+        url: "external/email/check",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    checkSlack: builder.mutation({
+      query: (data) => ({
+        url: "external/slack/check",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -189,9 +214,12 @@ export const {
   useGetPTeamMembersQuery,
   useDeletePTeamMemberMutation,
   useUploadSBOMFileMutation,
+  useUpdatePTeamServiceMutation,
   useCreateTicketStatusMutation,
   useSearchTopicsQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
   useCreateTopicMutation,
+  useCheckMailMutation,
+  useCheckSlackMutation,
 } = tcApi;
