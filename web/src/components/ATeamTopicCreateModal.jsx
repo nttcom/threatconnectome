@@ -27,9 +27,9 @@ import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useCreateTopicMutation } from "../services/tcApi";
 import { getATeamTopics } from "../slices/ateam";
 import { getTopic } from "../slices/topics";
-import { createTopic } from "../utils/api";
 import { actionTypes } from "../utils/const";
 import { pickMismatchedTopicActionTags, validateNotEmpty, validateUUID } from "../utils/func";
 
@@ -59,6 +59,7 @@ export function ATeamTopicCreateModal(props) {
 
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
+  const [createTopic] = useCreateTopicMutation();
 
   const resetParams = () => {
     setActiveStep(0);
@@ -117,7 +118,8 @@ export function ATeamTopicCreateModal(props) {
         return obj;
       }),
     };
-    await createTopic(topicId, data)
+    await createTopic({ topicId, data })
+      .unwrap()
       .then(async (response) => {
         // fix topic state
         await Promise.all([
