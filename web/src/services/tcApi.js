@@ -150,6 +150,13 @@ export const tcApi = createApi({
         params: params,
       }),
     }),
+    createTopic: builder.mutation({
+      query: ({ topicId, data }) => ({
+        url: `/topics/${topicId}`,
+        method: "POST",
+        body: data,
+      }),
+    }),
 
     /* User */
     createUser: builder.mutation({
@@ -186,4 +193,5 @@ export const {
   useSearchTopicsQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
+  useCreateTopicMutation,
 } = tcApi;
