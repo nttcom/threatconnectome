@@ -31,7 +31,12 @@ import { useCreateTopicMutation } from "../services/tcApi";
 import { getATeamTopics } from "../slices/ateam";
 import { getTopic } from "../slices/topics";
 import { actionTypes } from "../utils/const";
-import { pickMismatchedTopicActionTags, validateNotEmpty, validateUUID } from "../utils/func";
+import {
+  errorToString,
+  pickMismatchedTopicActionTags,
+  validateNotEmpty,
+  validateUUID,
+} from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
 import { ActionItem } from "./ActionItem";
@@ -69,13 +74,6 @@ export function ATeamTopicCreateModal(props) {
     setThreatImpact(1);
     setTagIds([]);
     setActions([]);
-  };
-
-  const operationError = (error) => {
-    const resp = error.response ?? { status: "???", statusText: error.toString() };
-    enqueueSnackbar(`Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`, {
-      variant: "error",
-    });
   };
 
   const validateTopicParams = () => validateUUID(topicId) && validateNotEmpty(title);
@@ -128,7 +126,11 @@ export function ATeamTopicCreateModal(props) {
           dispatch(getATeamTopics(ateamId)),
         ]);
       })
-      .catch((error) => operationError(error));
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+          variant: "error",
+        }),
+      );
     resetParams();
     onSetOpen(false);
   };

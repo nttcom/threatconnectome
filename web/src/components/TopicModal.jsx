@@ -43,7 +43,7 @@ import {
   deleteAction,
 } from "../utils/api";
 import { actionTypes } from "../utils/const";
-import { validateNotEmpty, validateUUID, setEquals } from "../utils/func";
+import { validateNotEmpty, validateUUID, setEquals, errorToString } from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
 import { ActionItem } from "./ActionItem";
@@ -211,7 +211,11 @@ export function TopicModal(props) {
         reloadTopicAfterAPI();
         onSetOpen(false);
       })
-      .catch((error) => operationError(error));
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+          variant: "error",
+        }),
+      );
   };
 
   const handleUpdateTopic = async () => {
