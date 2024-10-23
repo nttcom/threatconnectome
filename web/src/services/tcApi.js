@@ -167,6 +167,14 @@ export const tcApi = createApi({
       }),
     }),
 
+    updateTopic: builder.mutation({
+      query: ({ topicId, data }) => ({
+        url: `topics/${topicId}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
     /* User */
     createUser: builder.mutation({
       query: (data) => ({
@@ -207,6 +215,7 @@ export const {
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
   useUpdatePTeamAuthMutation,
+  useUpdateTopicMutation,
   useGetPTeamAuthInfoQuery,
   useGetPTeamAuthQuery,
   useCreatePTeamInvitationMutation,

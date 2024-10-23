@@ -22,6 +22,9 @@ import {
   List,
   ListItem,
   ListItemText,
+  ToggleButtonGroup,
+  ToggleButton,
+  Stack,
 } from "@mui/material";
 import { blue, green, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
@@ -31,8 +34,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useUpdateTopicMutation } from "../services/tcApi";
 import { getActions, getTopic } from "../slices/topics";
-import { createAction, deleteAction, updateAction, updateTopic } from "../utils/api";
+import { createAction, deleteAction, updateAction } from "../utils/api";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -49,10 +53,12 @@ export function TopicEditModal(props) {
   const [abst, setAbst] = useState("");
   const [actions, setActions] = useState([]);
   const [actionTagOptions, setActionTagOptions] = useState([]);
-
+  const [automatable, setAutomatable] = useState(currentTopic.automatable);
+  const [exploitation, setExploitation] = useState(currentTopic.exploitation);
   const [tagIds, setTagIds] = useState([]);
   const [tab, setTab] = useState(0);
   const [updating, setUpdating] = useState(false);
+  const [updateTopic] = useUpdateTopicMutation();
 
   const allTags = useSelector((state) => state.tags.allTags);
   const userMe = useSelector((state) => state.user.user);
@@ -85,6 +91,8 @@ export function TopicEditModal(props) {
     setTagIds(newTagIds);
     setActionTagOptions(createActionTagOptions(newTagIds));
     setActions(currentActions);
+    setAutomatable(currentTopic.automatable);
+    setExploitation(currentTopic.exploitation);
   };
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
@@ -102,17 +110,21 @@ export function TopicEditModal(props) {
         tags: setEquals(new Set(tagIds), new Set(currentTopic.tags.map((tag) => tag.tag_id)))
           ? null
           : allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
+        automatable: automatable === currentTopic.automatable ? null : automatable,
+        exploitation: exploitation === currentTopic.exploitation ? null : exploitation,
       };
       if (Object.values(topicData).filter((item) => item !== null).length > 0) {
         // something modified
         if (currentTopic.created_by === userMe.user_id) {
           enqueueSnackbar("Updating topic.", { variant: "info" });
-          await updateTopic(topicId, topicData).then(async (response) => {
-            await Promise.all([
-              enqueueSnackbar("Updating topic succeeded", { variant: "success" }),
-              dispatch(getTopic(topicId)),
-            ]);
-          });
+          await updateTopic({ topicId, data: topicData })
+            .unwrap()
+            .then(async (response) => {
+              await Promise.all([
+                enqueueSnackbar("Updating topic succeeded", { variant: "success" }),
+                dispatch(getTopic(topicId)),
+              ]);
+            });
         } else {
           enqueueSnackbar("Skip updating topic params (Not a topic creator)", {
             variant: "warning",
@@ -171,6 +183,8 @@ export function TopicEditModal(props) {
     (title !== currentTopic.title ||
       threatImpact !== currentTopic.threat_impact ||
       abst !== currentTopic.abstract ||
+      automatable !== currentTopic.automatable ||
+      exploitation !== currentTopic.Exploitation ||
       !setEquals(new Set(tagIds), new Set(currentTopic.tags.map((tag) => tag.tag_id))) ||
       JSON.stringify(actions) !== JSON.stringify(currentActions));
 
@@ -223,7 +237,7 @@ export function TopicEditModal(props) {
   if (!allTags) return <>Now loading...</>;
 
   return (
-    <Dialog open={open === true} maxWidth="md" fullWidth sx={{ maxHeight: "100vh" }}>
+    <Dialog open={open === true} maxWidth="md" sx={{ maxHeight: "100vh" }}>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           <Typography flexGrow={1} className={dialogStyle.dialog_title}>
@@ -240,6 +254,7 @@ export function TopicEditModal(props) {
             <Tab label="Content" {...a11yProps(0)} />
             <Tab label="Dissemination" {...a11yProps(1)} />
             <Tab label="Response planning" {...a11yProps(2)} />
+            <Tab label="SSVC" {...a11yProps(3)} />
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
@@ -409,6 +424,39 @@ export function TopicEditModal(props) {
               ))}
             </List>
           </Box>
+        </TabPanel>
+        <TabPanel index={3} value={tab}>
+          <Stack spacing={1}>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                Automatable
+              </Typography>
+              <ToggleButtonGroup color="primary" value={automatable}>
+                <ToggleButton value="no" onClick={() => setAutomatable("no")}>
+                  No
+                </ToggleButton>
+                <ToggleButton value="yes" onClick={() => setAutomatable("yes")}>
+                  Yes
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                Exploitation
+              </Typography>
+              <ToggleButtonGroup color="primary" value={exploitation}>
+                <ToggleButton value="none" onClick={() => setExploitation("none")}>
+                  None
+                </ToggleButton>
+                <ToggleButton value="public_poc" onClick={() => setExploitation("public_poc")}>
+                  Public PoC
+                </ToggleButton>
+                <ToggleButton value="active" onClick={() => setExploitation("active")}>
+                  Active
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          </Stack>
         </TabPanel>
       </DialogContent>
       <DialogActions className={dialogStyle.action_area}>
