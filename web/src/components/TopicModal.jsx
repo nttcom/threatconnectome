@@ -27,6 +27,7 @@ import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useCreateTopicMutation } from "../services/tcApi";
 import {
   useCreateActionMutation,
   useUpdateActionMutation,
@@ -39,7 +40,7 @@ import {
   getPTeamTagsSummary,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
-import { createTopic, fetchFlashsense, updateTopic } from "../utils/api";
+import { fetchFlashsense, updateTopic } from "../utils/api";
 import { actionTypes } from "../utils/const";
 import { validateNotEmpty, validateUUID, setEquals, errorToString } from "../utils/func";
 
@@ -86,9 +87,12 @@ export function TopicModal(props) {
   const [editActionOpen, setEditActionOpen] = useState(false);
   const [editActionTarget, setEditActionTarget] = useState({});
 
+
   const [createAction] = useCreateActionMutation();
   const [updateAction] = useUpdateActionMutation();
   const [deleteAction] = useDeleteActionMutation();
+  const [createTopic] = useCreateTopicMutation();
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -203,7 +207,8 @@ export function TopicModal(props) {
         return obj;
       }),
     };
-    await createTopic(topicId, data)
+    await createTopic({ topicId, data })
+      .unwrap()
       .then(async () => {
         enqueueSnackbar("Create topic succeeded", { variant: "success" });
         reloadTopicAfterAPI();
