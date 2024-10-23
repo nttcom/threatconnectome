@@ -87,7 +87,6 @@ export function TopicModal(props) {
   const [editActionOpen, setEditActionOpen] = useState(false);
   const [editActionTarget, setEditActionTarget] = useState({});
 
-
   const [createAction] = useCreateActionMutation();
   const [updateAction] = useUpdateActionMutation();
   const [deleteAction] = useDeleteActionMutation();
