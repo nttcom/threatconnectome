@@ -27,8 +27,8 @@ import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { useCreateTopicMutation } from "../services/tcApi";
 import {
+  useCreateTopicMutation,
   useCreateActionMutation,
   useUpdateActionMutation,
   useDeleteActionMutation,
