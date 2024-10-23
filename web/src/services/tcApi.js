@@ -39,6 +39,28 @@ export const tcApi = createApi({
         .join("&"),
   }),
   endpoints: (builder) => ({
+    /* Actions */
+    createAction: builder.mutation({
+      query: (data) => ({
+        url: "/actions",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updateAction: builder.mutation({
+      query: ({ actionId, data }) => ({
+        url: `/actions/${actionId}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+    deleteAction: builder.mutation({
+      query: (actionId) => ({
+        url: `/actions/${actionId}`,
+        method: "DELETE",
+      }),
+    }),
+
     /* Action Log */
     createActionLog: builder.mutation({
       query: (data) => ({
@@ -175,22 +197,6 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
-
-    /* Actions */
-    createAction: builder.mutation({
-      query: (data) => ({
-        url: "/actions",
-        method: "POST",
-        body: data,
-      }),
-    }),
-    updateAction: builder.mutation({
-      query: ({ actionId, data }) => ({
-        url: `/actions/${actionId}`,
-        method: "PUT",
-        body: data,
-      }),
-    }),
   }),
 });
 
@@ -214,4 +220,5 @@ export const {
   useUpdateUserMutation,
   useCreateActionMutation,
   useUpdateActionMutation,
+  useDeleteActionMutation,
 } = tcApi;
