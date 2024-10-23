@@ -201,6 +201,9 @@ export const tcApi = createApi({
 });
 
 export const {
+  useCreateActionMutation,
+  useUpdateActionMutation,
+  useDeleteActionMutation,
   useCreateActionLogMutation,
   useGetPTeamQuery,
   useCreatePTeamMutation,
@@ -218,7 +221,4 @@ export const {
   useSearchTopicsQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
-  useCreateActionMutation,
-  useUpdateActionMutation,
-  useDeleteActionMutation,
 } = tcApi;
