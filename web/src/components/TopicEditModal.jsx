@@ -117,7 +117,7 @@ export function TopicEditModal(props) {
         // something modified
         if (currentTopic.created_by === userMe.user_id) {
           enqueueSnackbar("Updating topic.", { variant: "info" });
-          await updateTopic(topicId, topicData)
+          await updateTopic({ topicId, data: topicData })
             .unwrap()
             .then(async (response) => {
               await Promise.all([
