@@ -38,7 +38,7 @@ import {
   useCreateActionMutation,
   useUpdateActionMutation,
   useDeleteActionMutation,
-  useUpdateTopicMutation
+  useUpdateTopicMutation,
 } from "../services/tcApi";
 import { getActions, getTopic } from "../slices/topics";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
