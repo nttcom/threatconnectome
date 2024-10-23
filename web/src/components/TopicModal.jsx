@@ -213,7 +213,11 @@ export function TopicModal(props) {
         reloadTopicAfterAPI();
         onSetOpen(false);
       })
-      .catch((error) => operationError(error));
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+          variant: "error",
+        }),
+      );
   };
 
   const handleUpdateTopic = async () => {
