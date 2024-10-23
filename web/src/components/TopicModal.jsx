@@ -27,7 +27,12 @@ import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { useCreateTopicMutation } from "../services/tcApi";
+import {
+  useCreateTopicMutation,
+  useCreateActionMutation,
+  useUpdateActionMutation,
+  useDeleteActionMutation,
+} from "../services/tcApi";
 import {
   getPTeamTopicActions,
   getPTeamServiceTaggedTopicIds,
@@ -35,15 +40,9 @@ import {
   getPTeamTagsSummary,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
-import {
-  fetchFlashsense,
-  updateTopic,
-  createAction,
-  updateAction,
-  deleteAction,
-} from "../utils/api";
+import { fetchFlashsense, updateTopic } from "../utils/api";
 import { actionTypes } from "../utils/const";
-import { validateNotEmpty, validateUUID, setEquals } from "../utils/func";
+import { validateNotEmpty, validateUUID, setEquals, errorToString } from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
 import { ActionItem } from "./ActionItem";
@@ -88,6 +87,9 @@ export function TopicModal(props) {
   const [editActionOpen, setEditActionOpen] = useState(false);
   const [editActionTarget, setEditActionTarget] = useState({});
 
+  const [createAction] = useCreateActionMutation();
+  const [updateAction] = useUpdateActionMutation();
+  const [deleteAction] = useDeleteActionMutation();
   const [createTopic] = useCreateTopicMutation();
 
   const dispatch = useDispatch();
@@ -277,18 +279,40 @@ export function TopicModal(props) {
           topic_id: topicId,
         };
         if (action.action_id === null) {
-          promiseArray.push(createAction(actionRequest).catch((error) => operationError(error)));
+          promiseArray.push(
+            createAction({ actionRequest })
+              .unwrap()
+              .catch((error) => {
+                enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+                  variant: "error",
+                });
+              }),
+          );
         } else if (presetActionIds.has(action.action_id)) {
           presetActionIds.delete(action.action_id);
           promiseArray.push(
-            updateAction(action.action_id, actionRequest).catch((error) => operationError(error)),
+            updateAction({ actionId: action.action_id, data: actionRequest })
+              .unwrap()
+              .catch((error) =>
+                enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+                  variant: "error",
+                }),
+              ),
           );
         }
       }
 
       // delete actions that are not related to topic
       for (let actionId of presetActionIds) {
-        promiseArray.push(deleteAction(actionId).catch((error) => operationError(error)));
+        promiseArray.push(
+          deleteAction(actionId)
+            .unwrap()
+            .catch((error) =>
+              enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+                variant: "error",
+              }),
+            ),
+        );
       }
       if (src.created_by !== user.user_id) {
         enqueueSnackbar(
