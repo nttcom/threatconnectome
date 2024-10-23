@@ -128,15 +128,6 @@ export const tcApi = createApi({
       }),
     }),
 
-    /* Ateam TopicId */
-    updateTopic: builder.mutation({
-      query: ({ topicId, data }) => ({
-        url: `topics/${topicId}`,
-        method: "PUT",
-        body: data,
-      }),
-    }),
-
     /* SBOM */
     uploadSBOMFile: builder.mutation({
       query: ({ pteamId, serviceName, sbomFile, forceMode = true }) => {
@@ -166,6 +157,14 @@ export const tcApi = createApi({
       query: (params) => ({
         url: "topics/search",
         params: params,
+      }),
+    }),
+
+    updateTopic: builder.mutation({
+      query: ({ topicId, data }) => ({
+        url: `topics/${topicId}`,
+        method: "PUT",
+        body: data,
       }),
     }),
 

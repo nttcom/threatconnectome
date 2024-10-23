@@ -34,8 +34,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useUpdateTopicMutation } from "../services/tcApi";
 import { getActions, getTopic } from "../slices/topics";
-import { createAction, deleteAction, updateAction, updateTopic } from "../utils/api";
+import { createAction, deleteAction, updateAction } from "../utils/api";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -52,11 +53,12 @@ export function TopicEditModal(props) {
   const [abst, setAbst] = useState("");
   const [actions, setActions] = useState([]);
   const [actionTagOptions, setActionTagOptions] = useState([]);
-  const [automatable, setAutomatable] = useState("no");
-  const [exploitation, setExploitation] = useState("None");
+  const [automatable, setAutomatable] = useState(currentTopic.automatable);
+  const [exploitation, setExploitation] = useState(currentTopic.exploitation);
   const [tagIds, setTagIds] = useState([]);
   const [tab, setTab] = useState(0);
   const [updating, setUpdating] = useState(false);
+  const [updateTopic] = useUpdateTopicMutation();
 
   const allTags = useSelector((state) => state.tags.allTags);
   const userMe = useSelector((state) => state.user.user);
