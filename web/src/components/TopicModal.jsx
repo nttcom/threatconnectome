@@ -282,14 +282,22 @@ export function TopicModal(props) {
           promiseArray.push(
             createAction({ actionRequest })
               .unwrap()
-              .catch((error) => errorToString(error)),
+              .catch((error) => {
+                enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+                  variant: "error",
+                });
+              }),
           );
         } else if (presetActionIds.has(action.action_id)) {
           presetActionIds.delete(action.action_id);
           promiseArray.push(
             updateAction({ actionId: action.action_id, data: actionRequest })
               .unwrap()
-              .catch((error) => errorToString(error)),
+              .catch((error) =>
+                enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+                  variant: "error",
+                }),
+              ),
           );
         }
       }
@@ -299,7 +307,11 @@ export function TopicModal(props) {
         promiseArray.push(
           deleteAction(actionId)
             .unwrap()
-            .catch((error) => errorToString(error)),
+            .catch((error) =>
+              enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+                variant: "error",
+              }),
+            ),
         );
       }
       if (src.created_by !== user.user_id) {
