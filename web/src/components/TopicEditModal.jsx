@@ -117,12 +117,14 @@ export function TopicEditModal(props) {
         // something modified
         if (currentTopic.created_by === userMe.user_id) {
           enqueueSnackbar("Updating topic.", { variant: "info" });
-          await updateTopic(topicId, topicData).then(async (response) => {
-            await Promise.all([
-              enqueueSnackbar("Updating topic succeeded", { variant: "success" }),
-              dispatch(getTopic(topicId)),
-            ]);
-          });
+          await updateTopic(topicId, topicData)
+            .unwrap()
+            .then(async (response) => {
+              await Promise.all([
+                enqueueSnackbar("Updating topic succeeded", { variant: "success" }),
+                dispatch(getTopic(topicId)),
+              ]);
+            });
         } else {
           enqueueSnackbar("Skip updating topic params (Not a topic creator)", {
             variant: "warning",
