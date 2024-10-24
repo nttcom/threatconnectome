@@ -4,15 +4,18 @@ import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useApplyATeamInvitationMutation } from "../services/tcApi";
 import { getUser } from "../slices/user";
-import { getATeamInvited, applyATeamInvitation } from "../utils/api";
+import { getATeamInvited } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 export function AcceptATeamInvitation() {
   const [detail, setDetail] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
 
   const { enqueueSnackbar } = useSnackbar();
+  const [applyATeamInvitation] = useApplyATeamInvitationMutation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -38,11 +41,12 @@ export function AcceptATeamInvitation() {
       navigate("/ateam?" + params.toString());
     }
     function onError(error) {
-      enqueueSnackbar(`Accepting invitation failed: ${error.response?.data?.detail}`, {
+      enqueueSnackbar(`Accepting invitation failed: ${errorToString(error)}`, {
         variant: "error",
       });
     }
-    await applyATeamInvitation(tokenId)
+    await applyATeamInvitation({ invitation_id: tokenId })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };

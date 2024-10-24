@@ -23,7 +23,8 @@ import { useSelector } from "react-redux";
 
 import styles from "../cssModule/button.module.css";
 import dialogStyle from "../cssModule/dialog.module.css";
-import { createATeamInvitation } from "../utils/api";
+import { useCreateATeamInvitationMutation } from "../services/tcApi";
+import { errorToString } from "../utils/func";
 
 import { CopiedIcon } from "./CopiedIcon";
 
@@ -38,6 +39,7 @@ export function ATeamInviteModal(props) {
   const [invitationLink, setInvitationLink] = useState(null);
 
   const { enqueueSnackbar } = useSnackbar();
+  const [createATeamInvitation] = useCreateATeamInvitationMutation();
 
   const tokenToLink = (token) =>
     `${window.location.origin}${process.env.PUBLIC_URL}/ateam/join?token=${token}`;
@@ -55,11 +57,11 @@ export function ATeamInviteModal(props) {
   };
   const handleCreate = async () => {
     function onSuccess(success) {
-      setInvitationLink(tokenToLink(success.data.invitation_id));
+      setInvitationLink(tokenToLink(success.invitation_id));
       enqueueSnackbar("Create new invitation succeeded", { variant: "success" });
     }
     function onError(error) {
-      enqueueSnackbar(`Create invitation failed: ${error.response?.data?.detail ?? error}`, {
+      enqueueSnackbar(`Create invitation failed: ${errorToString(error)}`, {
         variant: "error",
       });
     }
@@ -67,7 +69,8 @@ export function ATeamInviteModal(props) {
       expiration: expiration.toISOString(),
       max_uses: maxUses || null,
     };
-    await createATeamInvitation(ateamId, query)
+    await createATeamInvitation({ ateamId: ateamId, data: query })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };

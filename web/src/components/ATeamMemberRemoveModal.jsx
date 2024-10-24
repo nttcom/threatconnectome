@@ -14,13 +14,15 @@ import React from "react";
 import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useDeleteATeamMemberMutation } from "../services/tcApi";
 import { getATeamAuth, getATeamMembers } from "../slices/ateam";
-import { deleteATeamMember } from "../utils/api";
+import { errorToString } from "../utils/func";
 
 export function ATeamMemberRemoveModal(props) {
   const { userId, userName, ateamId, ateamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
+  const [deleteATeamMember] = useDeleteATeamMemberMutation();
 
   const dispatch = useDispatch();
 
@@ -32,11 +34,12 @@ export function ATeamMemberRemoveModal(props) {
       if (onClose) onClose();
     }
     function onError(error) {
-      enqueueSnackbar(`Remove member failed: ${error.response?.data?.detail}`, {
+      enqueueSnackbar(`Remove member failed: ${errorToString(error)}`, {
         variant: "error",
       });
     }
-    await deleteATeamMember(ateamId, userId)
+    await deleteATeamMember({ ateamId, userId })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
