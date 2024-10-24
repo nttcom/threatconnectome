@@ -89,6 +89,23 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* ATeam Invitation */
+    createATeamInvitation: builder.mutation({
+      query: ({ ateamId, data }) => ({
+        url: `ateams/${ateamId}/invitation`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    /* ATeam Members */
+    deleteATeamMember: builder.mutation({
+      query: ({ ateamId, userId }) => ({
+        url: `ateams/${ateamId}/members/${userId}`,
+        method: "DELETE",
+      }),
+    }),
+
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
@@ -257,6 +274,8 @@ export const {
   useCreateActionLogMutation,
   useCreateATeamMutation,
   useUpdateATeamMutation,
+  useCreateATeamInvitationMutation,
+  useDeleteATeamMemberMutation,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
