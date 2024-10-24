@@ -1,12 +1,8 @@
-# Threatconnectome
-
 <h3 align="center">Vulnerability Management with SBOM</h3>
 
-<h3 align="center"><img width="700" style="border: 0.1rem solid #e6e6e6;border-radius:5px;" alt="demo" src="threatconnectome.png"></h3>
+<h3 align="center"><img width="700" style="border: 0.1rem solid #e6e6e6;border-radius:5px;" alt="screenshot" src="threatconnectome.png"></h3>
 
-
-
-## :bulb: Overview
+## Threatconnectome
 
 Threatconnectome supports vulnerability management in industries where products are hard to update, such as automotive, manufacturing and communications infrastructure.
 
@@ -14,7 +10,7 @@ Threatconnectome supports vulnerability management in industries where products 
 - PSIRT-friendly UI and Web API
 - SPDX 2.3 and CycloneDX 1.6 support
 
-## Demo environment
+## :bulb: Demo environment
 
 :warning: Do not input personal information.
 
