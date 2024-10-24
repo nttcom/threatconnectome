@@ -51,7 +51,7 @@ export function AcceptATeamWatchingRequest() {
       navigate("/pteam?" + params.toString());
     }
     function onError(error) {
-      enqueueSnackbar(`Accepting watching request failed: ${errorToString}`, {
+      enqueueSnackbar(`Accepting watching request failed: ${errorToString(error)}`, {
         variant: "error",
       });
     }
