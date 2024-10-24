@@ -28,7 +28,6 @@ export function ATeamMemberRemoveModal(props) {
 
   const handleRemove = async () => {
     function onSuccess(success) {
-      console.log("aaa");
       dispatch(getATeamAuth(ateamId));
       dispatch(getATeamMembers(ateamId));
       enqueueSnackbar(`Remove ${userName} from ${ateamName} succeeded`, { variant: "success" });

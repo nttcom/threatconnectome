@@ -57,13 +57,10 @@ export function ATeamInviteModal(props) {
   };
   const handleCreate = async () => {
     function onSuccess(success) {
-      console.log(success);
-      console.log(success.invitation_id);
       setInvitationLink(tokenToLink(success.invitation_id));
       enqueueSnackbar("Create new invitation succeeded", { variant: "success" });
     }
     function onError(error) {
-      console.log(error);
       enqueueSnackbar(`Create invitation failed: ${errorToString(error)}`, {
         variant: "error",
       });
