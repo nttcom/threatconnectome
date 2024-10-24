@@ -21,14 +21,12 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { useUpdateATeamMutation } from "../services/tcApi";
 import { getATeam } from "../slices/ateam";
 import { getUser } from "../slices/user";
-import {
-  updateATeam,
-  checkSlack as postCheckSlack,
-  checkMail as postCheckMail,
-} from "../utils/api";
+import { checkSlack as postCheckSlack, checkMail as postCheckMail } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 import { CheckButton } from "./CheckButton";
 
@@ -45,6 +43,7 @@ export function ATeamNotificationSetting(props) {
   const [emailMessage, setEmailMessage] = useState();
 
   const { enqueueSnackbar } = useSnackbar();
+  const [updateATeam] = useUpdateATeamMutation();
 
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const ateam = useSelector((state) => state.ateam.ateam);
@@ -62,13 +61,6 @@ export function ATeamNotificationSetting(props) {
     setCheckSlack(false);
     setSlackMessage();
   }, [show, ateam]);
-
-  const operationError = (error) => {
-    const resp = error.response;
-    enqueueSnackbar(`Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`, {
-      variant: "error",
-    });
-  };
 
   const connectSuccessMessage = () => {
     return (
@@ -93,13 +85,16 @@ export function ATeamNotificationSetting(props) {
       alert_slack: { enable: slackEnable, webhook_url: slackUrl },
       alert_mail: { enable: mailEnable, address: mailAddress },
     };
-    await updateATeam(ateamId, ateamInfo)
+    await updateATeam({ ateamId: ateamId, data: ateamInfo })
+      .unwrap()
       .then(() => {
         dispatch(getATeam(ateamId));
         dispatch(getUser());
         enqueueSnackbar("update ateam info succeeded", { variant: "success" });
       })
-      .catch((error) => operationError(error));
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+      );
   };
 
   const handleCheckSlack = async () => {
