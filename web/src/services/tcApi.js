@@ -2,8 +2,10 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const _responseListToDictConverter =
   (keyName, valueName = undefined) =>
-  async (response) =>
-    (await response.json()).reduce((ret, item) => {
+  async (response) => {
+    const jsonData = await response.json();
+    if (response.status !== 200) return jsonData; // error
+    return jsonData.reduce((ret, item) => {
       /* convert array to dict,
        *    [{x: a, y: b}, ...] => {a: {x: a, y: b}, ...} // if keyName = "x"
        * or [{x: a, y: b}, ...] => {a: b, ...} // and if valueName = "y"
@@ -15,6 +17,7 @@ const _responseListToDictConverter =
         [key]: value,
       };
     }, {});
+  };
 
 export const tcApi = createApi({
   reducerPath: "tcApi",
