@@ -1,5 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+import { blobToDataURL } from "../utils/func";
+
 const _responseListToDictConverter =
   (keyName, valueName = undefined) =>
   async (response) => {
@@ -169,6 +171,14 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* PTeam Service Thumbnail */
+    getPTeamServiceThumbnail: builder.query({
+      query: ({ pteamId, serviceId }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/thumbnail`,
+        responseHandler: async (response) => await blobToDataURL(await response.blob()),
+      }),
+    }),
+
     /* SBOM */
     uploadSBOMFile: builder.mutation({
       query: ({ pteamId, serviceName, sbomFile, forceMode = true }) => {
@@ -270,6 +280,7 @@ export const {
   useDeletePTeamMemberMutation,
   useUploadSBOMFileMutation,
   useUpdatePTeamServiceMutation,
+  useGetPTeamServiceThumbnailQuery,
   useCreateTicketStatusMutation,
   useSearchTopicsQuery,
   useCreateUserMutation,

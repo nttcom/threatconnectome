@@ -19,24 +19,57 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { storeServiceThumbnailDict } from "../slices/pteam";
-import { getServiceThumbnail } from "../utils/api";
-import { blobToDataURL } from "../utils/func";
+import { useGetPTeamServiceThumbnailQuery } from "../services/tcApi";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
+
+function ServiceCard(props) {
+  const { pteamId, service, onClickService } = props;
+
+  const { data: thumbnail } = useGetPTeamServiceThumbnailQuery({
+    pteamId,
+    serviceId: service.service_id,
+  });
+  const image = thumbnail ?? noImageAvailableUrl;
+
+  return (
+    <Card
+      onClick={() => onClickService(service.service_id)}
+      variant="outlined"
+      sx={{
+        margin: 1,
+        width: "100%",
+        backgroundColor: grey[200],
+        "&:hover": { bgcolor: grey[100] },
+        display: "flex",
+        height: 200,
+      }}
+    >
+      <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
+      <CardContent sx={{ flex: 1 }}>
+        <CardHeader title={service.service_name} sx={{ px: 0 }}></CardHeader>
+        <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
+          {service.description}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
+}
+ServiceCard.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+  service: PropTypes.object.isRequired,
+  onClickService: PropTypes.func.isRequired,
+};
 
 export function PTeamServicesListModal(props) {
   const { onSetShow, show, tagId, tagName, serviceIds } = props;
   const handleClose = () => onSetShow(false);
 
-  const dispatch = useDispatch();
-
   const pteam = useSelector((state) => state.pteam.pteam);
-  const thumbnails = useSelector((state) => state.pteam.serviceThumbnails);
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -50,27 +83,6 @@ export function PTeamServicesListModal(props) {
     .filter((service) => serviceIds.includes(service.service_id))
     .sort((a, b) => a.service_name.localeCompare(b.service_name));
   const pageServices = targetServices.slice(perPage * (page - 1), perPage * page);
-
-  useEffect(() => {
-    if (pageServices.every((service) => thumbnails[service.service_id] !== undefined)) {
-      return;
-    }
-    (async () => {
-      let serviceThumbnailDict = {};
-      for (let service of pageServices) {
-        if (thumbnails[service.service_id] !== undefined) {
-          continue;
-        }
-        serviceThumbnailDict[service.service_id] = await getServiceThumbnail(
-          pteamId,
-          service.service_id,
-        )
-          .then(async (response) => blobToDataURL(response.data))
-          .catch(() => noImageAvailableUrl);
-      }
-      dispatch(storeServiceThumbnailDict(serviceThumbnailDict));
-    })();
-  }, [pteamId, pageServices, thumbnails, dispatch]);
 
   if (tagId === "") {
     return;
@@ -131,30 +143,12 @@ export function PTeamServicesListModal(props) {
         <Box alignItems="center" display="flex" flexWrap="wrap" flexDirection="row" flexGrow={1}>
           {paginationRow}
           {pageServices.map((service) => (
-            <Card
+            <ServiceCard
               key={service.service_id}
-              onClick={() => handleNavigateTag(service.service_id)}
-              variant="outlined"
-              sx={{
-                margin: 1,
-                width: "100%",
-                backgroundColor: grey[200],
-                "&:hover": { bgcolor: grey[100] },
-                display: "flex",
-                height: 200,
-              }}
-            >
-              <CardMedia
-                image={thumbnails[service.service_id] ?? noImageAvailableUrl}
-                sx={{ aspectRatio: "4 / 3" }}
-              />
-              <CardContent sx={{ flex: 1 }}>
-                <CardHeader title={service.service_name} sx={{ px: 0 }}></CardHeader>
-                <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
-                  {service.description}
-                </Typography>
-              </CardContent>
-            </Card>
+              pteamId={pteamId}
+              service={service}
+              onClickService={handleNavigateTag}
+            />
           ))}
         </Box>
       </DialogContent>
