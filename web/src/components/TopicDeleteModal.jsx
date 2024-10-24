@@ -15,12 +15,13 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { deleteTopic } from "../utils/api";
+import { useDeleteTopicMutation } from "../services/tcApi";
 import { commonButtonStyle } from "../utils/const";
 
 export function TopicDeleteModal(props) {
   const { topicId, onSetOpenTopicModal, onDelete } = props;
   const [open, setOpen] = useState(false);
+  const [deleteTopic] = useDeleteTopicMutation();
 
   const { enqueueSnackbar } = useSnackbar();
 
