@@ -1,10 +1,14 @@
-# Threatconnectome
+<h3 align="center">Vulnerability Management with SBOM</h3>
 
-Security Action Management Portal
+<h3 align="center"><img width="700" style="border: 0.1rem solid #e6e6e6;border-radius:5px;" alt="screenshot" src="threatconnectome.png"></h3>
 
-## :bulb: Overview
+## Threatconnectome
 
-A web interface for security posture management
+Threatconnectome supports vulnerability management in industries where products are hard to update, such as automotive, manufacturing and communications infrastructure.
+
+- Alerts and Actions based on SSVC
+- PSIRT-friendly UI and Web API
+- SPDX 2.3 and CycloneDX 1.6 support
 
 ## Demo environment
 
