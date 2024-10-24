@@ -17,14 +17,16 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useCreateATeamMutation } from "../services/tcApi";
 import { getUser } from "../slices/user";
-import { createATeam } from "../utils/api";
+import { errorToString } from "../utils/func";
 
 export function ATeamCreateModal(props) {
   const { open, onOpen, onCloseTeamSelector } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
+  const [createATeam] = useCreateATeamMutation();
 
   const [ateamName, setATeamName] = useState(null);
   const [contactInfo, setContactInfo] = useState("");
@@ -42,22 +44,19 @@ export function ATeamCreateModal(props) {
       contact_info: contactInfo,
     };
     await createATeam(data)
-      .then(async (response) => {
+      .unwrap()
+      .then(async (data) => {
         enqueueSnackbar("create ateam succeeded", { variant: "success" });
         onOpen(false);
         // fix user.ateams before navigating, to avoid overwriting ateamId by pages/App.jsx.
         await dispatch(getUser());
         const newParams = new URLSearchParams();
-        newParams.set("ateamId", response.data.ateam_id);
+        newParams.set("ateamId", data.ateam_id);
         navigate("/ateam?" + newParams.toString());
       })
-      .catch((error) => {
-        const resp = error.response;
-        enqueueSnackbar(
-          `Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`,
-          { variant: "error" },
-        );
-      });
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+      );
   };
 
   return (

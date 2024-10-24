@@ -70,6 +70,22 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* ATeam */
+    createATeam: builder.mutation({
+      query: (data) => ({
+        url: "/ateams",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updateATeam: builder.mutation({
+      query: ({ ateamId, data }) => ({
+        url: `/ateams/${ateamId}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
@@ -236,6 +252,8 @@ export const {
   useUpdateActionMutation,
   useDeleteActionMutation,
   useCreateActionLogMutation,
+  useCreateATeamMutation,
+  useUpdateATeamMutation,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,

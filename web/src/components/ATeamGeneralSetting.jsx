@@ -6,10 +6,12 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { useUpdateATeamMutation } from "../services/tcApi";
 import { getATeam } from "../slices/ateam";
 import { getUser } from "../slices/user";
-import { updateATeam, checkFs as postCheckFs, getFsInfo } from "../utils/api";
+import { checkFs as postCheckFs, getFsInfo } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 import { CheckButton } from "./CheckButton";
 
@@ -23,6 +25,7 @@ export function ATeamGeneralSetting(props) {
   const [flashsenseMessage, setFlashsenseMessage] = useState();
 
   const { enqueueSnackbar } = useSnackbar();
+  const [updateATeam] = useUpdateATeamMutation();
 
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const ateam = useSelector((state) => state.ateam.ateam);
@@ -50,13 +53,6 @@ export function ATeamGeneralSetting(props) {
     setFlashsenseMessage();
   }, [show, ateam]);
 
-  const operationError = (error) => {
-    const resp = error.response;
-    enqueueSnackbar(`Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`, {
-      variant: "error",
-    });
-  };
-
   const connectSuccessMessage = () => {
     return (
       <Box display="flex" sx={{ color: "success.main" }}>
@@ -81,13 +77,16 @@ export function ATeamGeneralSetting(props) {
       contact_info: contactInfo,
       alert_slack: { enable: true, webhook_url: slackUrl }, //todo change enable status
     };
-    await updateATeam(ateamId, ateamInfo)
+    await updateATeam({ ateamId: ateamId, data: ateamInfo })
+      .unwrap()
       .then(() => {
         dispatch(getATeam(ateamId));
         dispatch(getUser());
         enqueueSnackbar("update ateam info succeeded", { variant: "success" });
       })
-      .catch((error) => operationError(error));
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+      );
   };
 
   const handleCheckFlashsense = async () => {
