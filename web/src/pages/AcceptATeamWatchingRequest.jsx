@@ -4,15 +4,18 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useApplyATeamWatchingRequestMutation } from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
-import { getATeamRequested, applyATeamWatchingRequest } from "../utils/api";
+import { getATeamRequested } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 export function AcceptATeamWatchingRequest() {
   const [detail, setDetail] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
 
   const { enqueueSnackbar } = useSnackbar();
+  const [applyATeamWatchingRequest] = useApplyATeamWatchingRequestMutation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -48,7 +51,7 @@ export function AcceptATeamWatchingRequest() {
       navigate("/pteam?" + params.toString());
     }
     function onError(error) {
-      enqueueSnackbar(`Accepting watching request failed: ${error.response?.data?.detail}`, {
+      enqueueSnackbar(`Accepting watching request failed: ${errorToString}`, {
         variant: "error",
       });
     }
@@ -57,6 +60,7 @@ export function AcceptATeamWatchingRequest() {
       pteam_id: pteamId,
     };
     await applyATeamWatchingRequest(data)
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };

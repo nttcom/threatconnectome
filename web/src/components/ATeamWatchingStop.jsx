@@ -14,13 +14,15 @@ import React from "react";
 import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useRemoveWatchingPTeamMutation } from "../services/tcApi";
 import { getATeam } from "../slices/ateam";
-import { removeWatchingPTeam } from "../utils/api";
+import { errorToString } from "../utils/func";
 
 export function ATeamWatchingStop(props) {
   const { watchingPteamId, watchingPteamName, ateamId, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
+  const [removeWatchingPTeam] = useRemoveWatchingPTeamMutation();
 
   const dispatch = useDispatch();
 
@@ -33,11 +35,12 @@ export function ATeamWatchingStop(props) {
       if (onClose) onClose();
     }
     function onError(error) {
-      enqueueSnackbar(`Stop watching target failed: ${error.response?.data?.detail}`, {
+      enqueueSnackbar(`Stop watching target failed: ${errorToString(error)}`, {
         variant: "error",
       });
     }
-    await removeWatchingPTeam(ateamId, watchingPteamId)
+    await removeWatchingPTeam({ ateamId: ateamId, pteamId: watchingPteamId })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
