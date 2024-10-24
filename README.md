@@ -10,7 +10,7 @@ Threatconnectome supports vulnerability management in industries where products 
 - PSIRT-friendly UI and Web API
 - SPDX 2.3 and CycloneDX 1.6 support
 
-## :bulb: Demo environment
+## Demo environment
 
 :warning: Do not input personal information.
 
