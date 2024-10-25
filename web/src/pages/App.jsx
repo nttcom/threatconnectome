@@ -66,7 +66,7 @@ export function App() {
   useEffect(() => {
     if (!userMe || userMeIsFetching) return;
     const params = new URLSearchParams(location.search);
-    if (["/analysis", "/ateam"].includes(location.pathname)) {
+    if (["/SSVCPriority", "/analysis", "/ateam"].includes(location.pathname)) {
       dispatch(setTeamMode("ateam"));
       if (!userMe.ateams.length > 0) {
         dispatch(setATeamId(undefined));
