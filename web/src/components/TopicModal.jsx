@@ -27,9 +27,11 @@ import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useCreateTopicMutation,
   useCreateActionMutation,
+  useGetUserMeQuery,
   useUpdateActionMutation,
   useDeleteActionMutation,
 } from "../services/tcApi";
@@ -70,7 +72,13 @@ export function TopicModal(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const user = useSelector((state) => state.user.user);
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const topics = useSelector((state) => state.topics.topics);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
@@ -126,6 +134,8 @@ export function TopicModal(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (!pteamId || !allTags) return <></>;
 
   const operationError = (error) => {
@@ -255,7 +265,9 @@ export function TopicModal(props) {
             : [],
       };
 
-      return JSON.stringify(data) !== JSON.stringify(presetData) && src.created_by === user.user_id;
+      return (
+        JSON.stringify(data) !== JSON.stringify(presetData) && src.created_by === userMe.user_id
+      );
     }
 
     function isRequireUpdateAction(_actions, _presetActionIds) {
@@ -318,7 +330,7 @@ export function TopicModal(props) {
             ),
         );
       }
-      if (src.created_by !== user.user_id) {
+      if (src.created_by !== userMe.user_id) {
         enqueueSnackbar(
           "Only actions have been changed, not topics. You can't update topic, because you are not topic creator.",
           { variant: "warning" },

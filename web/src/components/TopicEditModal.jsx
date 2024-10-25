@@ -34,10 +34,12 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useCreateActionMutation,
-  useUpdateActionMutation,
   useDeleteActionMutation,
+  useGetUserMeQuery,
+  useUpdateActionMutation,
   useUpdateTopicMutation,
 } from "../services/tcApi";
 import { getActions, getTopic } from "../slices/topics";
@@ -65,7 +67,6 @@ export function TopicEditModal(props) {
   const [updateTopic] = useUpdateTopicMutation();
 
   const allTags = useSelector((state) => state.tags.allTags);
-  const userMe = useSelector((state) => state.user.user);
 
   const { enqueueSnackbar } = useSnackbar();
   const [createAction] = useCreateActionMutation();
@@ -73,12 +74,23 @@ export function TopicEditModal(props) {
   const [deleteAction] = useDeleteActionMutation();
   const dispatch = useDispatch();
 
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+
   useEffect(() => {
     if (!open) return;
     if (topicId === currentTopic.topic_id) return;
     resetParams();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  if (skip) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const createActionTagOptions = (tagIdList) => {
     if (!allTags) return [];

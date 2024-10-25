@@ -4,6 +4,10 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetUserMeQuery } from "../services/tcApi";
+import { errorToString } from "../utils/func";
+
 import { PTeamSettingsModal } from "./PTeamSettingsModal";
 import { UUIDTypography } from "./UUIDTypography";
 
@@ -12,9 +16,20 @@ export function PTeamLabel(props) {
 
   const [pteamSettingsModalOpen, setPTeamSettingsModalOpen] = useState(false);
 
-  const user = useSelector((state) => state.user.user);
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+
   const pteamId = useSelector((state) => state.pteam.pteamId); // dispatched by App or PTeamSelector
-  const pteamName = user.pteams.find((pteam) => pteam.pteam_id === pteamId)?.pteam_name ?? "-";
+
+  if (skip) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+
+  const pteamName = userMe.pteams.find((pteam) => pteam.pteam_id === pteamId)?.pteam_name ?? "-";
 
   return (
     <>

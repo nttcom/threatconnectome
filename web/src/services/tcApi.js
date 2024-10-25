@@ -188,6 +188,12 @@ export const tcApi = createApi({
     }),
 
     /* PTeam Invitation */
+    getPTeamInvitation: builder.query({
+      query: (tokenId) => ({
+        url: `pteams/invitation/${tokenId}`,
+        providesTags: (result, error, tokenId) => [{ type: "PTeamInvitation", id: tokenId }],
+      }),
+    }),
     createPTeamInvitation: builder.mutation({
       query: ({ pteamId, data }) => ({
         url: `pteams/${pteamId}/invitation`,
@@ -201,6 +207,10 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "PTeamInvitation", id: arg.invitation_id },
+        { type: "Account" }, // drop all because we do not know current user's id...
+      ],
     }),
 
     /* PTeam Members */
@@ -289,6 +299,14 @@ export const tcApi = createApi({
     }),
 
     /* User */
+    getUserMe: builder.query({
+      query: () => "users/me",
+      providesTags: (result, error, _) => [{ type: "Account", id: result?.user_id }],
+    }),
+    tryLogin: builder.mutation({
+      query: () => "users/me",
+      method: "GET",
+    }),
     createUser: builder.mutation({
       query: (data) => ({
         url: "/users",
@@ -302,6 +320,7 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => result && [{ type: "Account", id: result?.user_id }],
     }),
 
     /* External */
@@ -343,6 +362,7 @@ export const {
   useUpdateTopicMutation,
   useGetPTeamAuthInfoQuery,
   useGetPTeamAuthQuery,
+  useGetPTeamInvitationQuery,
   useCreatePTeamInvitationMutation,
   useApplyPTeamInvitationMutation,
   useGetPTeamMembersQuery,
@@ -353,6 +373,8 @@ export const {
   useGetPTeamServiceThumbnailQuery,
   useCreateTicketStatusMutation,
   useSearchTopicsQuery,
+  useGetUserMeQuery,
+  useTryLoginMutation,
   useCreateUserMutation,
   useUpdateUserMutation,
   useCreateTopicMutation,

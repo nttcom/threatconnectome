@@ -14,10 +14,14 @@ import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { useCreateActionLogMutation, useCreateTicketStatusMutation } from "../services/tcApi";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import {
+  useCreateActionLogMutation,
+  useCreateTicketStatusMutation,
+  useGetUserMeQuery,
+} from "../services/tcApi";
 import { errorToString } from "../utils/func";
 
 import { ActionTypeChip } from "./ActionTypeChip";
@@ -45,10 +49,18 @@ export function ReportCompletedActions(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
   const [createActionLog] = useCreateActionLogMutation();
   const [createTicketStatus] = useCreateTicketStatusMutation();
 
-  const user = useSelector((state) => state.user.user);
+  if (skip) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const handleAction = async () =>
     await Promise.all(
@@ -60,7 +72,7 @@ export function ReportCompletedActions(props) {
             service_id: serviceId,
             ticket_id: ticketId,
             topic_id: topicId,
-            user_id: user.user_id,
+            user_id: userMe.user_id,
           })
             .unwrap()
             .then((data) => {

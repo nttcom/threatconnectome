@@ -9,6 +9,7 @@ import { PTeamTaggedTopics } from "../components/PTeamTaggedTopics";
 import { TabPanel } from "../components/TabPanel";
 import { TagReferences } from "../components/TagReferences";
 import { UUIDTypography } from "../components/UUIDTypography";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   getDependencies,
   getPTeam,
@@ -20,7 +21,8 @@ import { a11yProps } from "../utils/func.js";
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
 
-  const user = useSelector((state) => state.user.user);
+  const skip = useSkipUntilAuthTokenIsReady();
+
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by App
   const pteam = useSelector((state) => state.pteam.pteam);
   const members = useSelector((state) => state.pteam.members);
@@ -41,7 +43,7 @@ export function Tag() {
   const taggedTopics = taggedTopicsDict?.[serviceId]?.[tagId];
 
   useEffect(() => {
-    if (!user.user_id) return; // wait login completed
+    if (skip) return; // wait login completed
     if (!pteamId) return; // wait fixed by App
     if (!pteam) {
       dispatch(getPTeam(pteamId));
@@ -76,7 +78,7 @@ export function Tag() {
       return;
     }
   }, [
-    user.user_id,
+    skip,
     pteam,
     dependencies,
     currentTagDependencies,
@@ -90,14 +92,14 @@ export function Tag() {
   ]);
 
   useEffect(() => {
-    if (!user.user_id) return;
+    if (skip) return;
     if (!pteamId) return;
     if (!members) {
       dispatch(getPTeamMembers(pteamId));
     }
-  }, [dispatch, user.user_id, pteamId, members]);
+  }, [dispatch, skip, pteamId, members]);
 
-  if (!allTags || !pteam || !members || !currentTagDependencies || !taggedTopics) {
+  if (skip || !allTags || !pteam || !members || !currentTagDependencies || !taggedTopics) {
     return <>Now loading...</>;
   }
 

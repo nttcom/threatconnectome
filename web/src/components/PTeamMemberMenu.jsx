@@ -10,7 +10,8 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { PTeamAuthEditor } from "../components/PTeamAuthEditor";
 import { PTeamMemberRemoveModal } from "../components/PTeamMemberRemoveModal";
-import { useGetPTeamQuery } from "../services/tcApi";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetPTeamQuery, useGetUserMeQuery } from "../services/tcApi";
 import { getUser } from "../slices/user";
 import { errorToString } from "../utils/func";
 
@@ -25,16 +26,23 @@ export function PTeamMemberMenu(props) {
   const dispatch = useDispatch();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const userMe = useSelector((state) => state.user.user);
 
-  const skip = pteamId === undefined;
+  const skip = useSkipUntilAuthTokenIsReady();
+  const skipByPTeamId = pteamId === undefined;
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
   const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip });
+  } = useGetPTeamQuery(pteamId, { skip: skip || skipByPTeamId });
 
-  if (!userMe || !pteamId) return <></>;
+  if (skip || skipByPTeamId) return <></>;
+  if (userMeError) return <>{`Cannot get userInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
   if (pteamIsLoading) return <>Now loading PTeam...</>;
 

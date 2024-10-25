@@ -6,15 +6,24 @@ import { ATeamLabel } from "../components/ATeamLabel";
 import { ATeamMember } from "../components/ATeamMember";
 import { ATeamWatching } from "../components/ATeamWatching";
 import { TabPanel } from "../components/TabPanel";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetUserMeQuery } from "../services/tcApi";
 import { getATeam, getATeamAuth, getATeamMembers } from "../slices/ateam";
 import { noATeamMessage, experienceColors } from "../utils/const";
-import { a11yProps } from "../utils/func.js";
+import { a11yProps, errorToString } from "../utils/func.js";
 
 export function ATeam() {
   const [filterMode, setFilterMode] = useState("ATeam");
   const [tabValue, setTabValue] = useState(0);
 
-  const user = useSelector((state) => state.user.user);
+  const skip = useSkipUntilAuthTokenIsReady();
+
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const ateam = useSelector((state) => state.ateam.ateam);
   const members = useSelector((state) => state.ateam.members);
@@ -35,11 +44,15 @@ export function ATeam() {
     setTabValue(newValue);
   };
 
+  if (skip) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+
   if (!ateamId) return <>{noATeamMessage}</>;
-  if (!user || !ateam || !members || !authorities) return <></>;
+  if (!ateam || !members || !authorities) return <></>;
 
   const isAdmin = (
-    authorities?.find((x) => x.user_id === user.user_id)?.authorities ?? []
+    authorities?.find((x) => x.user_id === userMe.user_id)?.authorities ?? []
   ).includes("admin");
 
   return (
