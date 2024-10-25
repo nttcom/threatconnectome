@@ -22,8 +22,9 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useUpdateATeamAuthMutation } from "../services/tcApi";
 import { getATeamAuth, getATeamAuthInfo } from "../slices/ateam";
-import { updateATeamAuth } from "../utils/api";
+import { errorToString } from "../utils/func";
 
 export function ATeamAuthEditor(props) {
   const { userId, userEmail, onClose } = props;
@@ -36,6 +37,7 @@ export function ATeamAuthEditor(props) {
   const [pseudoEdit, setPseudoEdit] = useState(userId ? false : true);
 
   const { enqueueSnackbar } = useSnackbar();
+  const [updateATeamAuth] = useUpdateATeamAuthMutation();
 
   const dispatch = useDispatch();
 
@@ -101,7 +103,7 @@ export function ATeamAuthEditor(props) {
       enqueueSnackbar("Update ateam authority succeeded", { variant: "success" });
     }
     function onError(error) {
-      enqueueSnackbar(`Update ateam authority failed: ${error.response?.data?.detail}`, {
+      enqueueSnackbar(`Update ateam authority failed: ${errorToString(error)}`, {
         variant: "error",
       });
     }
@@ -111,7 +113,8 @@ export function ATeamAuthEditor(props) {
           { user_id: uuidMember, authorities: newAuth.member },
         ]
       : [{ user_id: userId, authorities: newAuth.user }];
-    await updateATeamAuth(ateamId, request)
+    await updateATeamAuth({ ateamId: ateamId, data: request })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };

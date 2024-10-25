@@ -91,6 +91,15 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* ATeam Auth */
+    updateATeamAuth: builder.mutation({
+      query: ({ ateamId, data }) => ({
+        url: `ateams/${ateamId}/authority`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     /* ATeam Invitation */
     createATeamInvitation: builder.mutation({
       query: ({ ateamId, data }) => ({
@@ -320,6 +329,7 @@ export const {
   useCreateActionLogMutation,
   useCreateATeamMutation,
   useUpdateATeamMutation,
+  useUpdateATeamAuthMutation,
   useCreateATeamInvitationMutation,
   useApplyATeamInvitationMutation,
   useDeleteATeamMemberMutation,
