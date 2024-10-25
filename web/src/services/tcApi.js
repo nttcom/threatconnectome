@@ -272,6 +272,13 @@ export const tcApi = createApi({
       }),
     }),
 
+    deleteTopic: builder.mutation({
+      query: (topicId) => ({
+        url: `topics/${topicId}`,
+        method: "DELETE",
+      }),
+    }),
+
     /* User */
     createUser: builder.mutation({
       query: (data) => ({
@@ -330,6 +337,7 @@ export const {
   useApplyPTeamInvitationMutation,
   useGetPTeamMembersQuery,
   useDeletePTeamMemberMutation,
+  useDeleteTopicMutation,
   useUploadSBOMFileMutation,
   useUpdatePTeamServiceMutation,
   useGetPTeamServiceThumbnailQuery,
