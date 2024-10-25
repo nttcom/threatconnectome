@@ -115,6 +115,28 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* ATeam Watching Request */
+    createATeamWatchingRequest: builder.mutation({
+      query: ({ ateamId, date }) => ({
+        url: `/ateams/${ateamId}/watching_request`,
+        method: "POST",
+        body: date,
+      }),
+    }),
+    applyATeamWatchingRequest: builder.mutation({
+      query: (data) => ({
+        url: "/ateams/apply_watching_request",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    removeWatchingPTeam: builder.mutation({
+      query: ({ ateamId, pteamId }) => ({
+        url: `/ateams/${ateamId}/watching_pteams/${pteamId}`,
+        method: "DELETE",
+      }),
+    }),
+
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
@@ -294,6 +316,9 @@ export const {
   useCreateATeamInvitationMutation,
   useApplyATeamInvitationMutation,
   useDeleteATeamMemberMutation,
+  useCreateATeamWatchingRequestMutation,
+  useApplyATeamWatchingRequestMutation,
+  useRemoveWatchingPTeamMutation,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,

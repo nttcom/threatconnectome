@@ -23,7 +23,8 @@ import { useSelector } from "react-redux";
 
 import styles from "../cssModule/button.module.css";
 import dialogStyle from "../cssModule/dialog.module.css";
-import { createATeamWatchingRequest } from "../utils/api";
+import { useCreateATeamWatchingRequestMutation } from "../services/tcApi";
+import { errorToString } from "../utils/func";
 
 export function ATeamRequestModal(props) {
   const { text } = props;
@@ -36,6 +37,7 @@ export function ATeamRequestModal(props) {
   const [requestLink, setRequestLink] = useState(null);
 
   const { enqueueSnackbar } = useSnackbar();
+  const [createATeamWatchingRequest] = useCreateATeamWatchingRequestMutation();
 
   const tokenToLink = (token) =>
     `${window.location.origin}${process.env.PUBLIC_URL}/pteam/watching_request?token=${token}`;
@@ -54,11 +56,11 @@ export function ATeamRequestModal(props) {
   };
   const handleCreate = async () => {
     function onSuccess(success) {
-      setRequestLink(tokenToLink(success.data.request_id));
+      setRequestLink(tokenToLink(success.request_id));
       enqueueSnackbar("Create new watching request succeeded", { variant: "success" });
     }
     function onError(error) {
-      enqueueSnackbar(`Create watching request failed: ${error.response?.data?.detail ?? error}`, {
+      enqueueSnackbar(`Create watching request failed: ${errorToString(error)}`, {
         variant: "error",
       });
     }
@@ -66,7 +68,8 @@ export function ATeamRequestModal(props) {
       expiration: expiration.toISOString(),
       max_uses: maxUses || null,
     };
-    await createATeamWatchingRequest(ateamId, query)
+    await createATeamWatchingRequest({ ateamId, date: query })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
