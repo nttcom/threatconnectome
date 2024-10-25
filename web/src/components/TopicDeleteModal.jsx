@@ -34,6 +34,7 @@ export function TopicDeleteModal(props) {
 
   function handleDelete() {
     deleteTopic(topicId)
+      .unwrap()
       .then(async () => {
         await Promise.all([
           onDelete && onDelete(),
