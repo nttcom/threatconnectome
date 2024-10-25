@@ -225,6 +225,14 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* PTeam Watchers */
+    removeWatcherATeam: builder.mutation({
+      query: ({ pteamId, ateamId }) => ({
+        url: `/pteams/${pteamId}/watchers/${ateamId}`,
+        method: "DELETE",
+      }),
+    }),
+
     /* SBOM */
     uploadSBOMFile: builder.mutation({
       query: ({ pteamId, serviceName, sbomFile, forceMode = true }) => {
@@ -341,6 +349,7 @@ export const {
   useUploadSBOMFileMutation,
   useUpdatePTeamServiceMutation,
   useGetPTeamServiceThumbnailQuery,
+  useRemoveWatcherATeamMutation,
   useCreateTicketStatusMutation,
   useSearchTopicsQuery,
   useCreateUserMutation,
