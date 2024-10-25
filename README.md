@@ -1,6 +1,6 @@
 <h3 align="center">Vulnerability Management with SBOM</h3>
 
-<h3 align="center"><img width="700" style="border: 0.1rem solid #e6e6e6;border-radius:5px;" alt="screenshot" src="threatconnectome.png"></h3>
+<h3 align="center"><img width="700" alt="screenshot" src="threatconnectome.png"></h3>
 
 ## Threatconnectome
 
