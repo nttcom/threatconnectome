@@ -17,6 +17,7 @@ import React, { useState } from "react";
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useDeleteTopicMutation } from "../services/tcApi";
 import { commonButtonStyle } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 export function TopicDeleteModal(props) {
   const { topicId, onSetOpenTopicModal, onDelete } = props;
@@ -24,13 +25,6 @@ export function TopicDeleteModal(props) {
   const [deleteTopic] = useDeleteTopicMutation();
 
   const { enqueueSnackbar } = useSnackbar();
-
-  const operationError = (error) => {
-    const resp = error.response ?? { status: "???", statusText: error.toString() };
-    enqueueSnackbar(`Operation failed: ${resp.status} ${resp.statusText} - ${resp.data?.detail}`, {
-      variant: "error",
-    });
-  };
 
   function handleDelete() {
     deleteTopic(topicId)
@@ -41,8 +35,13 @@ export function TopicDeleteModal(props) {
           enqueueSnackbar("delete topic succeeded", { variant: "success" }),
         ]);
       })
-      .catch((error) => operationError(error));
-    onSetOpenTopicModal(false);
+      .catch(
+        (error) =>
+          enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+            variant: "error",
+          }),
+        onSetOpenTopicModal(false),
+      );
   }
 
   return (
