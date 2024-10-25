@@ -14,13 +14,15 @@ import React from "react";
 import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useRemoveWatcherATeamMutation } from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
-import { removeWatcherATeam } from "../utils/api";
+import { errorToString } from "../utils/func";
 
 export function PTeamWatcherRemoveModal(props) {
   const { watcherAteamId, watcherAteamName, pteamId, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
+  const [removeWatcherATeam] = useRemoveWatcherATeamMutation();
 
   const dispatch = useDispatch();
 
@@ -33,11 +35,12 @@ export function PTeamWatcherRemoveModal(props) {
       if (onClose) onClose();
     }
     function onError(error) {
-      enqueueSnackbar(`Remove watcher failed: ${error.response?.data?.detail}`, {
+      enqueueSnackbar(`Remove watcher failed: ${errorToString(error)}`, {
         variant: "error",
       });
     }
-    await removeWatcherATeam(pteamId, watcherAteamId)
+    await removeWatcherATeam({ pteamId: pteamId, ateamId: watcherAteamId })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
