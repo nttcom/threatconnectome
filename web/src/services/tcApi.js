@@ -225,6 +225,13 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
+    deletePTeamService: builder.mutation({
+      query: ({ pteamId, serviceName }) => ({
+        url: `/pteams/${pteamId}/tags`,
+        params: { service: serviceName },
+        method: "DELETE",
+      }),
+    }),
 
     /* PTeam Service Thumbnail */
     getPTeamServiceThumbnail: builder.query({
@@ -358,6 +365,7 @@ export const {
   useDeleteTopicMutation,
   useUploadSBOMFileMutation,
   useUpdatePTeamServiceMutation,
+  useDeletePTeamServiceMutation,
   useGetPTeamServiceThumbnailQuery,
   useRemoveWatcherATeamMutation,
   useCreateTicketStatusMutation,
