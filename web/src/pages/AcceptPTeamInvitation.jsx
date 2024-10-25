@@ -3,6 +3,7 @@ import { useSnackbar } from "notistack";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useApplyPTeamInvitationMutation, useGetPTeamInvitationQuery } from "../services/tcApi";
 import { commonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
@@ -17,12 +18,14 @@ export function AcceptPTeamInvitation() {
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
 
+  const skip = useSkipUntilAuthTokenIsReady();
   const {
     data: detail,
     error: detailError,
     isLoading: detailIsLoading,
-  } = useGetPTeamInvitationQuery(tokenId);
+  } = useGetPTeamInvitationQuery(tokenId, { skip });
 
+  if (skip) return <></>;
   if (detailError) return <>{`Cannot get user info: ${errorToString(detailError)}`}</>;
   if (detailIsLoading) return <>Now loading user info...</>;
 
