@@ -27,20 +27,20 @@ export function PTeamMemberMenu(props) {
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
   const skipByPTeamId = pteamId === undefined;
   const {
     data: userMe,
     error: userMeError,
     isLoading: userMeIsLoading,
-  } = useGetUserMeQuery(undefined, { skip });
+  } = useGetUserMeQuery(undefined, { skip: skipByAuth });
   const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip: skip || skipByPTeamId });
+  } = useGetPTeamQuery(pteamId, { skip: skipByAuth || skipByPTeamId });
 
-  if (skip || skipByPTeamId) return <></>;
+  if (skipByAuth || skipByPTeamId) return <></>;
   if (userMeError) return <>{`Cannot get userInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
