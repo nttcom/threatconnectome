@@ -111,8 +111,12 @@ export function AnalysisTopic(props) {
       enqueueSnackbar("Invalid comment", { variant: "error" });
       return;
     }
-    await apiCreateATeamTopicComment(ateam.ateam_id, targetTopic.topic_id, {
-      comment: newComment.trim(),
+    await apiCreateATeamTopicComment({
+      ateamId: ateam.ateam_id,
+      topicId: targetTopic.topic_id,
+      data: {
+        comment: newComment.trim(),
+      },
     })
       .unwrap()
       .then(() => {
@@ -127,8 +131,13 @@ export function AnalysisTopic(props) {
       enqueueSnackbar("Invalid comment", { variant: "error" });
       return;
     }
-    await apiUpdateATeamTopicComment(ateam.ateam_id, targetTopic.topic_id, commentId, {
-      comment: editComment.trim(),
+    await apiUpdateATeamTopicComment({
+      ateamId: ateam.ateam_id,
+      topicId: targetTopic.topic_id,
+      commentId,
+      data: {
+        comment: editComment.trim(),
+      },
     })
       .unwrap()
       .then(() => {

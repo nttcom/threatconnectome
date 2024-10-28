@@ -26,7 +26,11 @@ export function CommentDeleteModal(props) {
   const [apiDeleteATeamTopicComment] = useDeleteATeamTopicCommentMutation();
 
   const handleAction = async () => {
-    await apiDeleteATeamTopicComment(comment.ateam_id, comment.topic_id, comment.comment_id)
+    await apiDeleteATeamTopicComment({
+      ateamId: comment.ateam_id,
+      topicId: comment.topic_id,
+      commentId: comment.comment_id,
+    })
       .unwrap()
       .then(() => onClose())
       .catch((error) => {
