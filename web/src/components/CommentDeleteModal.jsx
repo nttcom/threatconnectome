@@ -16,16 +16,18 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { deleteATeamTopicComment as apiDeleteATeamTopicComment } from "../utils/api";
+import useDeleteATeamTopicCommentMutation from "../services/tcApi";
 import { dateTimeFormat } from "../utils/func";
 
 export function CommentDeleteModal(props) {
   const { comment, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
+  const [apiDeleteATeamTopicComment] = useDeleteATeamTopicCommentMutation();
 
   const handleAction = async () => {
     await apiDeleteATeamTopicComment(comment.ateam_id, comment.topic_id, comment.comment_id)
+      .unwrap()
       .then(() => onClose())
       .catch((error) => {
         enqueueSnackbar(

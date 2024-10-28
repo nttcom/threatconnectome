@@ -43,10 +43,10 @@ import { WarningTooltip } from "../components/WarningTooltip";
 import styles from "../cssModule/button.module.css";
 import { getActions, getTopic } from "../slices/topics";
 import {
-  createATeamTopicComment as apiCreateATeamTopicComment,
-  getATeamTopicComments as apiGetATeamTopicComments,
-  updateATeamTopicComment as apiUpdateATeamTopicComment,
-} from "../utils/api";
+  useCreateATeamTopicCommentMutation,
+  useUpdateATeamTopicCommentMutation,
+} from "../services/tcApi";
+import { getATeamTopicComments as apiGetATeamTopicComments } from "../utils/api";
 import { rootPrefix, threatImpactNames } from "../utils/const";
 import { a11yProps, dateTimeFormat, tagsMatched } from "../utils/func.js";
 
@@ -62,6 +62,8 @@ export function AnalysisTopic(props) {
   const [listHeight, setListHeight] = useState(0);
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionExpanded, setActionExpanded] = useState(false);
+  const [apiCreateATeamTopicComment] = useCreateATeamTopicCommentMutation();
+  const [apiUpdateATeamTopicComment] = useUpdateATeamTopicCommentMutation();
 
   const topics = useSelector((state) => state.topics.topics);
   const actions = useSelector((state) => state.topics.actions);
@@ -112,6 +114,7 @@ export function AnalysisTopic(props) {
     await apiCreateATeamTopicComment(ateam.ateam_id, targetTopic.topic_id, {
       comment: newComment.trim(),
     })
+      .unwrap()
       .then(() => {
         handleReloadComments(targetTopic.topic_id);
         setNewComment("");
@@ -127,6 +130,7 @@ export function AnalysisTopic(props) {
     await apiUpdateATeamTopicComment(ateam.ateam_id, targetTopic.topic_id, commentId, {
       comment: editComment.trim(),
     })
+      .unwrap()
       .then(() => {
         handleReloadComments(targetTopic.topic_id);
         setEditComment("");

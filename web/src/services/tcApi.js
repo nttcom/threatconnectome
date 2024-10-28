@@ -249,6 +249,30 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* Topic Comment */
+    createATeamTopicComment: builder.mutation({
+      query: ({ ateamId, topicId, data }) => ({
+        url: `ateams/${ateamId}/topiccomment/${topicId}`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    updateATeamTopicComment: builder.mutation({
+      query: ({ ateamId, topicId, commentId, data }) => ({
+        url: `ateams/${ateamId}/topiccomment/${topicId}/${commentId}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
+    deleteATeamTopicComment: builder.mutation({
+      query: ({ ateamId, topicId, commentId }) => ({
+        url: `ateams/${ateamId}/topiccomment/${topicId}/${commentId}`,
+        method: "DELETE",
+      }),
+    }),
+
     /* Topics */
     searchTopics: builder.query({
       query: (params) => ({
@@ -323,11 +347,14 @@ export const {
   useCreateATeamInvitationMutation,
   useApplyATeamInvitationMutation,
   useDeleteATeamMemberMutation,
+  useDeleteATeamTopicCommentMutation,
+  useCreateATeamTopicCommentMutation,
   useCreateATeamWatchingRequestMutation,
   useApplyATeamWatchingRequestMutation,
   useRemoveWatchingPTeamMutation,
   useGetPTeamQuery,
   useCreatePTeamMutation,
+  useUpdateATeamTopicCommentMutation,
   useUpdatePTeamMutation,
   useUpdatePTeamAuthMutation,
   useUpdateTopicMutation,
