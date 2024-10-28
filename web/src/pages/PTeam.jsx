@@ -29,7 +29,7 @@ export function PTeam() {
     data: userMe,
     error: userMeError,
     isLoading: userMeIsLoading,
-  } = useGetUserMeQuery({ skip: skipByAuth });
+  } = useGetUserMeQuery(undefined, { skip: skipByAuth });
   const {
     data: authorities,
     error: authoritiesError,
