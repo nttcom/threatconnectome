@@ -4,10 +4,8 @@ import { blobToDataURL } from "../utils/func";
 
 const _responseListToDictConverter =
   (keyName, valueName = undefined) =>
-  async (response) => {
-    const jsonData = await response.json();
-    if (response.status !== 200) return jsonData; // error
-    return jsonData.reduce((ret, item) => {
+  (data, meta, arg) => {
+    return data.reduce((ret, item) => {
       /* convert array to dict,
        *    [{x: a, y: b}, ...] => {a: {x: a, y: b}, ...} // if keyName = "x"
        * or [{x: a, y: b}, ...] => {a: b, ...} // and if valueName = "y"
@@ -179,10 +177,8 @@ export const tcApi = createApi({
 
     /* PTeam Auth */
     getPTeamAuth: builder.query({
-      query: (pteamId) => ({
-        url: `pteams/${pteamId}/authority`,
-        responseHandler: _responseListToDictConverter("user_id", "authorities"),
-      }),
+      query: (pteamId) => `pteams/${pteamId}/authority`,
+      transformResponse: _responseListToDictConverter("user_id", "authorities"),
       providesTags: (result, error, pteamId) => [{ type: "PTeamAuth", id: pteamId }],
     }),
     updatePTeamAuth: builder.mutation({
@@ -225,10 +221,8 @@ export const tcApi = createApi({
 
     /* PTeam Members */
     getPTeamMembers: builder.query({
-      query: (pteamId) => ({
-        url: `pteams/${pteamId}/members`,
-        responseHandler: _responseListToDictConverter("user_id"),
-      }),
+      query: (pteamId) => `pteams/${pteamId}/members`,
+      transformResponse: _responseListToDictConverter("user_id"),
     }),
     deletePTeamMember: builder.mutation({
       query: ({ pteamId, userId }) => ({
@@ -245,12 +239,27 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
+    deletePTeamService: builder.mutation({
+      query: ({ pteamId, serviceName }) => ({
+        url: `/pteams/${pteamId}/tags`,
+        params: { service: serviceName },
+        method: "DELETE",
+      }),
+    }),
 
     /* PTeam Service Thumbnail */
     getPTeamServiceThumbnail: builder.query({
       query: ({ pteamId, serviceId }) => ({
         url: `pteams/${pteamId}/services/${serviceId}/thumbnail`,
         responseHandler: async (response) => await blobToDataURL(await response.blob()),
+      }),
+    }),
+
+    /* PTeam Watchers */
+    removeWatcherATeam: builder.mutation({
+      query: ({ pteamId, ateamId }) => ({
+        url: `/pteams/${pteamId}/watchers/${ateamId}`,
+        method: "DELETE",
       }),
     }),
 
@@ -385,7 +394,9 @@ export const {
   useDeleteTopicMutation,
   useUploadSBOMFileMutation,
   useUpdatePTeamServiceMutation,
+  useDeletePTeamServiceMutation,
   useGetPTeamServiceThumbnailQuery,
+  useRemoveWatcherATeamMutation,
   useCreateTicketStatusMutation,
   useSearchTopicsQuery,
   useGetUserMeQuery,

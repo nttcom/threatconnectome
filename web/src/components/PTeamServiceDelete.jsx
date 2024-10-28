@@ -15,8 +15,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import styles from "../cssModule/dialog.module.css";
+import { useDeletePTeamServiceMutation } from "../services/tcApi";
 import { getPTeam, invalidateServiceId, getPTeamTagsSummary } from "../slices/pteam";
-import { deletePTeamService } from "../utils/api.js";
+import { errorToString } from "../utils/func";
 
 export function PTeamServiceDelete() {
   const [checked, setChecked] = useState([]);
@@ -25,6 +26,7 @@ export function PTeamServiceDelete() {
   const services = useSelector((state) => state.pteam.pteam.services);
 
   const { enqueueSnackbar } = useSnackbar();
+  const [deletePTeamService] = useDeletePTeamServiceMutation();
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -53,13 +55,14 @@ export function PTeamServiceDelete() {
       enqueueSnackbar("Remove service succeeded", { variant: "success" });
     }
     function onError(error) {
-      enqueueSnackbar(`Remove service failed: ${error.response?.data?.detail}`, {
+      enqueueSnackbar(`Remove service failed: ${errorToString(error)}`, {
         variant: "error",
       });
     }
     checked.map(
       async (service) =>
-        await deletePTeamService(pteamId, service.service_name)
+        await deletePTeamService({ pteamId: pteamId, serviceName: service.service_name })
+          .unwrap()
           .then((success) => onSuccess(success, service.service_id))
           .catch((error) => onError(error)),
     );
