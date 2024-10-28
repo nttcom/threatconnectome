@@ -41,11 +41,11 @@ import { TopicEditModal } from "../components/TopicEditModal";
 import { UUIDTypography } from "../components/UUIDTypography";
 import { WarningTooltip } from "../components/WarningTooltip";
 import styles from "../cssModule/button.module.css";
-import { getActions, getTopic } from "../slices/topics";
 import {
   useCreateATeamTopicCommentMutation,
   useUpdateATeamTopicCommentMutation,
 } from "../services/tcApi";
+import { getActions, getTopic } from "../slices/topics";
 import { getATeamTopicComments as apiGetATeamTopicComments } from "../utils/api";
 import { rootPrefix, threatImpactNames } from "../utils/const";
 import { a11yProps, dateTimeFormat, tagsMatched } from "../utils/func.js";

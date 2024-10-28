@@ -16,7 +16,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import useDeleteATeamTopicCommentMutation from "../services/tcApi";
+import { useDeleteATeamTopicCommentMutation } from "../services/tcApi";
 import { dateTimeFormat } from "../utils/func";
 
 export function CommentDeleteModal(props) {
