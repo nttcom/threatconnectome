@@ -62,8 +62,8 @@ export function AnalysisTopic(props) {
   const [listHeight, setListHeight] = useState(0);
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionExpanded, setActionExpanded] = useState(false);
-  const [apiCreateATeamTopicComment] = useCreateATeamTopicCommentMutation();
-  const [apiUpdateATeamTopicComment] = useUpdateATeamTopicCommentMutation();
+  const [createATeamTopicComment] = useCreateATeamTopicCommentMutation();
+  const [updateATeamTopicComment] = useUpdateATeamTopicCommentMutation();
 
   const topics = useSelector((state) => state.topics.topics);
   const actions = useSelector((state) => state.topics.actions);
@@ -111,7 +111,7 @@ export function AnalysisTopic(props) {
       enqueueSnackbar("Invalid comment", { variant: "error" });
       return;
     }
-    await apiCreateATeamTopicComment({
+    await createATeamTopicComment({
       ateamId: ateam.ateam_id,
       topicId: targetTopic.topic_id,
       data: {
@@ -131,10 +131,10 @@ export function AnalysisTopic(props) {
       enqueueSnackbar("Invalid comment", { variant: "error" });
       return;
     }
-    await apiUpdateATeamTopicComment({
+    await updateATeamTopicComment({
       ateamId: ateam.ateam_id,
       topicId: targetTopic.topic_id,
-      commentId,
+      commentId: commentId,
       data: {
         comment: editComment.trim(),
       },

@@ -23,10 +23,10 @@ export function CommentDeleteModal(props) {
   const { comment, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
-  const [apiDeleteATeamTopicComment] = useDeleteATeamTopicCommentMutation();
+  const [deleteATeamTopicComment] = useDeleteATeamTopicCommentMutation();
 
   const handleAction = async () => {
-    await apiDeleteATeamTopicComment({
+    await deleteATeamTopicComment({
       ateamId: comment.ateam_id,
       topicId: comment.topic_id,
       commentId: comment.comment_id,
