@@ -312,7 +312,14 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
-
+    /* tags */
+    createTag: builder.mutation({
+      query: (data) => ({
+        url: "/tags",
+        method: "POST",
+        body: data,
+      }),
+    }),
     /* External */
     checkMail: builder.mutation({
       query: (data) => ({
@@ -367,6 +374,7 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useCreateTopicMutation,
+  useCreateTagMutation,
   useCheckMailMutation,
   useCheckSlackMutation,
 } = tcApi;
