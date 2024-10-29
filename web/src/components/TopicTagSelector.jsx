@@ -57,7 +57,7 @@ export function TopicTagSelector(props) {
       setSearch("");
     }
     function onError(error) {
-      enqueueSnackbar(`Create tag failed: ${error.response?.data?.detail}`, { variant: "error" });
+      enqueueSnackbar(`Create tag failed: ${errorToString(error)}`, { variant: "error" });
     }
     await createTag({ tag_name: search.trim() })
       .unwrap()
