@@ -198,7 +198,6 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [
         { type: "PTeam", id: arg.pteamId },
         { type: "PTeam", id: "ALL" },
-        { type: "PTeamAccount", id: "ALL" },
       ],
     }),
 
@@ -212,10 +211,7 @@ export const tcApi = createApi({
     getPTeamAuth: builder.query({
       query: (pteamId) => `pteams/${pteamId}/authority`,
       transformResponse: _responseListToDictConverter("user_id", "authorities"),
-      providesTags: (result, error, pteamId) => [
-        { type: "PTeamAuthority", id: pteamId },
-        { type: "PTeamAuthority", id: "ALL" },
-      ],
+      providesTags: (result, error, pteamId) => [{ type: "PTeamAuthority", id: pteamId }],
     }),
     updatePTeamAuth: builder.mutation({
       query: ({ pteamId, data }) => ({
@@ -252,7 +248,7 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [
         { type: "PTeamAccount", id: "ALL" },
-        { type: "PTeamAuthority", id: "ALL" },
+        { type: "PTeamAuthority", id: result?.pteam_id },
         { type: "PTeamInvitation", id: "ALL" },
       ],
     }),
