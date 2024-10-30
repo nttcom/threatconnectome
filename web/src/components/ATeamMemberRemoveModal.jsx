@@ -15,7 +15,7 @@ import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useDeleteATeamMemberMutation } from "../services/tcApi";
-import { getATeamAuth, getATeamMembers } from "../slices/ateam";
+import { getATeamAuth } from "../slices/ateam";
 import { errorToString } from "../utils/func";
 
 export function ATeamMemberRemoveModal(props) {
@@ -29,7 +29,6 @@ export function ATeamMemberRemoveModal(props) {
   const handleRemove = async () => {
     function onSuccess(success) {
       dispatch(getATeamAuth(ateamId));
-      dispatch(getATeamMembers(ateamId));
       enqueueSnackbar(`Remove ${userName} from ${ateamName} succeeded`, { variant: "success" });
       if (onClose) onClose();
     }

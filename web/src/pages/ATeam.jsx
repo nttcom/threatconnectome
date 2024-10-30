@@ -6,9 +6,11 @@ import { ATeamLabel } from "../components/ATeamLabel";
 import { ATeamMember } from "../components/ATeamMember";
 import { ATeamWatching } from "../components/ATeamWatching";
 import { TabPanel } from "../components/TabPanel";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetATeamMembersQuery } from "../services/tcApi";
 import { getATeam, getATeamAuth, getATeamMembers } from "../slices/ateam";
 import { noATeamMessage, experienceColors } from "../utils/const";
-import { a11yProps } from "../utils/func.js";
+import { a11yProps, errorToString } from "../utils/func.js";
 
 export function ATeam() {
   const [filterMode, setFilterMode] = useState("ATeam");
@@ -17,12 +19,19 @@ export function ATeam() {
   const user = useSelector((state) => state.user.user);
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const ateam = useSelector((state) => state.ateam.ateam);
-  const members = useSelector((state) => state.ateam.members);
   const authorities = useSelector((state) => state.ateam.authorities);
 
   const dispatch = useDispatch();
 
   const filterModes = ["All", "ATeam"];
+
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const skip = skipByAuth || ateamId === undefined;
+  const {
+    data: members,
+    error: membersError,
+    isLoading: membersIsLoading,
+  } = useGetATeamMembersQuery(ateamId, { skip });
 
   useEffect(() => {
     if (!ateamId) return;
@@ -35,8 +44,12 @@ export function ATeam() {
     setTabValue(newValue);
   };
 
+  if (skip) return <></>;
   if (!ateamId) return <>{noATeamMessage}</>;
   if (!user || !ateam || !members || !authorities) return <></>;
+
+  if (membersError) return <>{`Cannot get Members: ${errorToString(membersError)}`}</>;
+  if (membersIsLoading) return <>Now loading Members...</>;
 
   const isAdmin = (
     authorities?.find((x) => x.user_id === user.user_id)?.authorities ?? []
