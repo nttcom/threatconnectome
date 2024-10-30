@@ -17,7 +17,7 @@ import React from "react";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useDeleteATeamTopicCommentMutation } from "../services/tcApi";
-import { dateTimeFormat } from "../utils/func";
+import { dateTimeFormat, errorToString } from "../utils/func";
 
 export function CommentDeleteModal(props) {
   const { comment, onClose } = props;
@@ -33,13 +33,11 @@ export function CommentDeleteModal(props) {
     })
       .unwrap()
       .then(() => onClose())
-      .catch((error) => {
-        enqueueSnackbar(
-          "Operation failed: " +
-            `${error.response.status} ${error.response.statusText} ${error.response.data?.detail}`,
-          { variant: "error" },
-        );
-      });
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+          variant: "error",
+        }),
+      );
   };
 
   return (

@@ -48,7 +48,7 @@ import {
 import { getActions, getTopic } from "../slices/topics";
 import { getATeamTopicComments as apiGetATeamTopicComments } from "../utils/api";
 import { rootPrefix, threatImpactNames } from "../utils/const";
-import { a11yProps, dateTimeFormat, tagsMatched } from "../utils/func.js";
+import { a11yProps, dateTimeFormat, errorToString, tagsMatched } from "../utils/func.js";
 
 export function AnalysisTopic(props) {
   const { user, ateam, targetTopic, isAdmin = false } = props;
@@ -123,7 +123,11 @@ export function AnalysisTopic(props) {
         handleReloadComments(targetTopic.topic_id);
         setNewComment("");
       })
-      .catch((error) => operationError(error));
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+          variant: "error",
+        }),
+      );
   };
 
   const handleUpdateComment = async (commentId) => {
@@ -145,7 +149,11 @@ export function AnalysisTopic(props) {
         setEditComment("");
         setEditable(false);
       })
-      .catch((error) => operationError(error));
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+          variant: "error",
+        }),
+      );
   };
 
   const pteamServiceTagLinkURL = (pteamId, serviceId, tagId) => {
