@@ -134,6 +134,7 @@ export function TopicModal(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (!pteamId || !allTags) return <></>;
