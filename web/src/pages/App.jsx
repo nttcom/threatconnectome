@@ -42,6 +42,7 @@ export function App() {
     data: userMe,
     error: userMeError,
     isLoading: userMeIsLoading,
+    isFetching: userMeIsFetching,
   } = useGetUserMeQuery(undefined, { skip });
   const [tryLogin] = useTryLoginMutation();
 
@@ -68,7 +69,7 @@ export function App() {
   }, [cookies, dispatch, location, navigate, skip, tryLogin]);
 
   useEffect(() => {
-    if (!userMe) return;
+    if (!userMe || userMeIsFetching) return;
     const params = new URLSearchParams(location.search);
     if (["/analysis", "/ateam"].includes(location.pathname)) {
       dispatch(setTeamMode("ateam"));
@@ -115,7 +116,7 @@ export function App() {
       }
       dispatch(setPTeamId(pteamIdx));
     }
-  }, [dispatch, enqueueSnackbar, navigate, location, userMe, system.teamMode]);
+  }, [dispatch, enqueueSnackbar, navigate, location, userMe, userMeIsFetching, system.teamMode]);
 
   useEffect(() => {
     if (!loadTags && allTags === undefined && !skip) {
