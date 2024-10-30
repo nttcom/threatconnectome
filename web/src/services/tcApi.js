@@ -124,14 +124,13 @@ export const tcApi = createApi({
         method: "GET",
       }),
       providesTags: (result, error, arg) => [
+        { type: "ATeam", id: "ALL" },
+        { type: "ATeamAccount", id: "ALL" },
+        { type: "PTeam", id: "ALL" },
+        { type: "PTeamAccount", id: "ALL" },
         ...(Object.keys(result).reduce(
           (ret, userId) => [...ret, { type: "Account", id: userId }],
-          [
-            { type: "ATeam", id: "ALL" },
-            { type: "ATeamAccount", id: "ALL" },
-            { type: "PTeam", id: "ALL" },
-            { type: "PTeamAccount", id: "ALL" },
-          ],
+          [],
         ) ?? []),
       ],
       transformResponse: _responseListToDictConverter("user_id"),
