@@ -16,24 +16,28 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { deleteATeamTopicComment as apiDeleteATeamTopicComment } from "../utils/api";
-import { dateTimeFormat } from "../utils/func";
+import { useDeleteATeamTopicCommentMutation } from "../services/tcApi";
+import { dateTimeFormat, errorToString } from "../utils/func";
 
 export function CommentDeleteModal(props) {
   const { comment, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
+  const [deleteATeamTopicComment] = useDeleteATeamTopicCommentMutation();
 
   const handleAction = async () => {
-    await apiDeleteATeamTopicComment(comment.ateam_id, comment.topic_id, comment.comment_id)
+    await deleteATeamTopicComment({
+      ateamId: comment.ateam_id,
+      topicId: comment.topic_id,
+      commentId: comment.comment_id,
+    })
+      .unwrap()
       .then(() => onClose())
-      .catch((error) => {
-        enqueueSnackbar(
-          "Operation failed: " +
-            `${error.response.status} ${error.response.statusText} ${error.response.data?.detail}`,
-          { variant: "error" },
-        );
-      });
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+          variant: "error",
+        }),
+      );
   };
 
   return (
