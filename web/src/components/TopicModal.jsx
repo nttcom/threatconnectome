@@ -29,6 +29,7 @@ import { useDispatch, useSelector } from "react-redux";
 import dialogStyle from "../cssModule/dialog.module.css";
 import {
   useCreateTopicMutation,
+  useUpdateTopicMutation,
   useCreateActionMutation,
   useUpdateActionMutation,
   useDeleteActionMutation,
@@ -40,7 +41,6 @@ import {
   getPTeamTagsSummary,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
-import { useUpdateTopicMutation } from "../services/tcApi";
 import { fetchFlashsense } from "../utils/api";
 import { actionTypes } from "../utils/const";
 import { validateNotEmpty, validateUUID, setEquals, errorToString } from "../utils/func";
