@@ -261,15 +261,17 @@ export const tcApi = createApi({
     getPTeamMembers: builder.query({
       query: (pteamId) => `pteams/${pteamId}/members`,
       providesTags: (result, error, pteamId) => [
-        ...(Object.keys(result).reduce(
-          (ret, userId) => [...ret, { type: "Account", id: userId }],
-          [
-            { type: "ATeam", id: "ALL" },
-            { type: "ATeamAccount", id: "ALL" },
-            { type: "PTeam", id: "ALL" },
-            { type: "PTeamAccount", id: "ALL" },
-          ],
-        ) ?? []),
+        ...(result
+          ? Object.keys(result).reduce(
+              (ret, userId) => [...ret, { type: "Account", id: userId }],
+              [
+                { type: "ATeam", id: "ALL" },
+                { type: "ATeamAccount", id: "ALL" },
+                { type: "PTeam", id: "ALL" },
+                { type: "PTeamAccount", id: "ALL" },
+              ],
+            )
+          : []),
       ],
       transformResponse: _responseListToDictConverter("user_id"),
     }),
