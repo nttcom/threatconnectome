@@ -15,8 +15,6 @@ export const createUser = async (data) => axios.post("/users", data);
 
 export const updateUser = async (userId, data) => axios.put(`/users/${userId}`, data);
 
-export const deleteUser = async () => axios.delete("/users");
-
 // pteams
 export const createPTeam = async (data) => axios.post("/pteams", data);
 
@@ -35,8 +33,6 @@ export const getPTeamAuth = async (pteamId) => axios.get(`/pteams/${pteamId}/aut
 
 export const updatePTeamAuth = async (pteamId, data) =>
   axios.post(`/pteams/${pteamId}/authority`, data);
-
-export const getPTeamTopics = async (pteamId) => axios.get(`/pteams/${pteamId}/topics`);
 
 export const getPTeamServiceTaggedTopicIds = async (pteamId, serviceId, tagId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/${tagId}/topic_ids`);

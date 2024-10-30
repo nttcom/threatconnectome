@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import {
   createUser as apiCreateUser,
-  deleteUser as apiDeleteUser,
   getMyUserInfo as apiGetUser,
   updateUser as apiUpdateUser,
 } from "../utils/api";
@@ -11,8 +10,6 @@ export const createUser = createAsyncThunk(
   "user/create",
   async (data) => await apiCreateUser(data).then((response) => response.data),
 );
-
-export const deleteUser = createAsyncThunk("user/delete", async () => await apiDeleteUser());
 
 export const getUser = createAsyncThunk(
   "user/get",
@@ -42,10 +39,6 @@ const userSlice = createSlice({
       .addCase(createUser.fulfilled, (state, action) => ({
         ...state,
         user: action.payload,
-      }))
-      .addCase(deleteUser.fulfilled, (state, _action) => ({
-        ...state,
-        user: {},
       }))
       .addCase(getUser.fulfilled, (state, action) => ({
         ...state,
