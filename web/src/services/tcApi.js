@@ -80,6 +80,7 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "ATeamAccount", id: "ALL" }],
     }),
     updateATeam: builder.mutation({
       query: ({ ateamId, data }) => ({
@@ -87,6 +88,11 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeam", id: arg.ateamId },
+        { type: "ATeam", id: "ALL" },
+        { type: "ATeamAccount", id: "ALL" },
+      ],
     }),
 
     /* ATeam Auth */
@@ -112,6 +118,10 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamAccount", id: "ALL" },
+        { type: "ATeamAuthority", id: "ALL" },
+      ],
     }),
 
     /* ATeam Members */
@@ -120,6 +130,10 @@ export const tcApi = createApi({
         url: `ateams/${ateamId}/members/${userId}`,
         method: "DELETE",
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamAccount", id: `${arg.ateamId}:${arg.userId}` },
+        { type: "ATeamAccount", id: "ALL" },
+      ],
     }),
 
     /* ATeam Watching Request */
@@ -136,18 +150,36 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "ATeamPTeam", id: "ALL" }],
     }),
     removeWatchingPTeam: builder.mutation({
       query: ({ ateamId, pteamId }) => ({
         url: `/ateams/${ateamId}/watching_pteams/${pteamId}`,
         method: "DELETE",
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamPTeam", id: `${arg.ateamId}:${arg.pteamId}` },
+      ],
     }),
 
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
-      providesTags: (result, error, pteamId) => [{ type: "PTeam", id: pteamId }],
+      providesTags: (result, error, pteamId) => [
+        ...(result?.ateams.reduce(
+          (ret, ateam) => [
+            ...ret,
+            { type: "ATeam", id: ateam.ateam_id },
+            { type: "ATeamPTeam", id: `${ateam.ateam_id}:${pteamId}` },
+          ],
+          [{ type: "ATeamPTeam", id: "ALL" }],
+        ) ?? []),
+        { type: "PTeam", id: pteamId },
+        ...(result?.services.reduce(
+          (ret, service) => [...ret, { type: "Service", id: service.service_id }],
+          [{ type: "Service", id: "ALL" }],
+        ) ?? []),
+      ],
     }),
     createPTeam: builder.mutation({
       query: (data) => ({
@@ -155,7 +187,7 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: (result, error, pteamId) => [{ type: "PTeamAccount" }], // userMe.pteams
+      invalidatesTags: (result, error, arg) => [{ type: "PTeamAccount", id: "ALL" }],
     }),
     updatePTeam: builder.mutation({
       query: ({ pteamId, data }) => ({
@@ -163,9 +195,10 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, pteamId) => [
-        { type: "PTeam", id: pteamId },
-        { type: "PTeamAccount" }, // userMe.pteams
+      invalidatesTags: (result, error, arg) => [
+        { type: "PTeam", id: arg.pteamId },
+        { type: "PTeam", id: "ALL" },
+        { type: "PTeamAccount", id: "ALL" },
       ],
     }),
 
@@ -179,7 +212,10 @@ export const tcApi = createApi({
     getPTeamAuth: builder.query({
       query: (pteamId) => `pteams/${pteamId}/authority`,
       transformResponse: _responseListToDictConverter("user_id", "authorities"),
-      providesTags: (result, error, pteamId) => [{ type: "PTeamAuth", id: pteamId }],
+      providesTags: (result, error, pteamId) => [
+        { type: "PTeamAuthority", id: pteamId },
+        { type: "PTeamAuthority", id: "ALL" },
+      ],
     }),
     updatePTeamAuth: builder.mutation({
       query: ({ pteamId, data }) => ({
@@ -187,7 +223,7 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "PTeamAuth", id: arg.pteamId }],
+      invalidatesTags: (result, error, arg) => [{ type: "PTeamAuthority", id: arg.pteamId }],
     }),
 
     /* PTeam Invitation */
@@ -196,8 +232,8 @@ export const tcApi = createApi({
         url: `pteams/invitation/${invitationId}`,
       }),
       providesTags: (result, error, invitationId) => [
-        { type: "PTeamInvitation", id: invitationId },
         { type: "PTeam", id: result?.pteam_id },
+        { type: "PTeamInvitation", id: "ALL" },
       ],
     }),
     createPTeamInvitation: builder.mutation({
@@ -206,6 +242,7 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "PTeamInvitation", id: "ALL" }],
     }),
     applyPTeamInvitation: builder.mutation({
       query: (data) => ({
@@ -214,14 +251,26 @@ export const tcApi = createApi({
         body: data,
       }),
       invalidatesTags: (result, error, arg) => [
-        { type: "PTeamInvitation", id: arg.invitation_id },
-        { type: "PTeamAccount" }, // drop all because we do not know current user's id...
+        { type: "PTeamAccount", id: "ALL" },
+        { type: "PTeamAuthority", id: "ALL" },
+        { type: "PTeamInvitation", id: "ALL" },
       ],
     }),
 
     /* PTeam Members */
     getPTeamMembers: builder.query({
       query: (pteamId) => `pteams/${pteamId}/members`,
+      providesTags: (result, error, pteamId) => [
+        ...(Object.keys(result).reduce(
+          (ret, userId) => [...ret, { type: "Account", id: userId }],
+          [
+            { type: "ATeam", id: "ALL" },
+            { type: "ATeamAccount", id: "ALL" },
+            { type: "PTeam", id: "ALL" },
+            { type: "PTeamAccount", id: "ALL" },
+          ],
+        ) ?? []),
+      ],
       transformResponse: _responseListToDictConverter("user_id"),
     }),
     deletePTeamMember: builder.mutation({
@@ -229,6 +278,11 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/members/${userId}`,
         method: "DELETE",
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "PTeamAccount", id: `${arg.pteamId}:${arg.userId}` },
+        { type: "PTeamAccount", id: "ALL" },
+        { type: "PTeamAuthority", id: arg.pteamId },
+      ],
     }),
 
     /* PTeam Service */
@@ -238,6 +292,7 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "Service", id: arg.serviceId }],
     }),
     deletePTeamService: builder.mutation({
       query: ({ pteamId, serviceName }) => ({
@@ -245,6 +300,7 @@ export const tcApi = createApi({
         params: { service: serviceName },
         method: "DELETE",
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
 
     /* PTeam Service Thumbnail */
@@ -261,6 +317,9 @@ export const tcApi = createApi({
         url: `/pteams/${pteamId}/watchers/${ateamId}`,
         method: "DELETE",
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamPTeam", id: `${arg.ateamId}:${arg.pteamId}` },
+      ],
     }),
 
     /* SBOM */
@@ -323,8 +382,20 @@ export const tcApi = createApi({
       query: () => "users/me",
       providesTags: (result, error, _) => [
         { type: "Account", id: result?.user_id },
-        { type: "ATeamAccount", id: result?.user_id },
-        { type: "PTeamAccount", id: result?.user_id },
+        ...(result?.ateams.reduce(
+          (ret, ateam) => [
+            ...ret,
+            { type: "ATeamAccount", id: `${ateam.ateam_id}:${result?.user_id}` },
+          ],
+          [{ type: "ATeamAccount", id: "ALL" }],
+        ) ?? []),
+        ...(result?.pteams.reduce(
+          (ret, pteam) => [
+            ...ret,
+            { type: "PTeamAccount", id: `${pteam.pteam_id}:${result?.user_id}` },
+          ],
+          [{ type: "PTeamAccount", id: "ALL" }],
+        ) ?? []),
       ],
     }),
     tryLogin: builder.mutation({
@@ -344,7 +415,7 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => result && [{ type: "Account", id: result?.user_id }],
+      invalidatesTags: (result, error, arg) => [{ type: "Account", id: result?.user_id }],
     }),
 
     /* External */
