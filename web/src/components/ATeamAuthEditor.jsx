@@ -22,7 +22,8 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { useUpdateATeamAuthMutation } from "../services/tcApi";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetUserMeQuery, useUpdateATeamAuthMutation } from "../services/tcApi";
 import { getATeamAuth, getATeamAuthInfo } from "../slices/ateam";
 import { errorToString } from "../utils/func";
 
@@ -44,7 +45,13 @@ export function ATeamAuthEditor(props) {
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const authorities = useSelector((state) => state.ateam.authorities);
   const authInfo = useSelector((state) => state.ateam.authInfo);
-  const userMe = useSelector((state) => state.user.user);
+
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
 
   useEffect(() => {
     if (!ateamId) return;
@@ -87,6 +94,10 @@ export function ATeamAuthEditor(props) {
       else if (elm.name === "member") setUuidMember(elm.uuid);
     });
   }, [authInfo, dispatch]);
+
+  if (skip) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const switchPseudoEdit = () => {
     setNewAuth({

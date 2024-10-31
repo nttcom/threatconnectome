@@ -6,7 +6,13 @@ import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamMember } from "../components/PTeamMember";
 import { PTeamWatcher } from "../components/PTeamWatcher";
 import { TabPanel } from "../components/TabPanel";
-import { useGetPTeamAuthQuery, useGetPTeamQuery, useGetPTeamMembersQuery } from "../services/tcApi";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import {
+  useGetPTeamAuthQuery,
+  useGetPTeamQuery,
+  useGetPTeamMembersQuery,
+  useGetUserMeQuery,
+} from "../services/tcApi";
 import { experienceColors, noPTeamMessage } from "../utils/const";
 import { a11yProps, errorToString } from "../utils/func.js";
 
@@ -14,10 +20,16 @@ export function PTeam() {
   const [filterMode, setFilterMode] = useState("PTeam");
   const [tabValue, setTabValue] = useState(0);
 
-  const user = useSelector((state) => state.user.user); // TODO: RTKQ
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+
   const pteamId = useSelector((state) => state.pteam.pteamId); // TODO: RTKQ or QueryParam?
 
-  const skip = pteamId === undefined;
+  const skip = skipByAuth || pteamId === undefined;
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip: skipByAuth });
   const {
     data: authorities,
     error: authoritiesError,
@@ -34,9 +46,11 @@ export function PTeam() {
     isLoading: membersIsLoading,
   } = useGetPTeamMembersQuery(pteamId, { skip });
 
-  if (!user.user_id) return <></>;
+  if (skip) return <></>;
   if (!pteamId) return <>{noPTeamMessage}</>;
 
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (authoritiesError) return <>{`Cannot get Authorities: ${errorToString(authoritiesError)}`}</>;
   if (authoritiesIsLoading) return <>Now loading Authorities...</>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
@@ -44,7 +58,7 @@ export function PTeam() {
   if (membersError) return <>{`Cannot get PTeam: ${errorToString(membersError)}`}</>;
   if (membersIsLoading) return <>Now loading Members...</>;
 
-  const isAdmin = (authorities[user.user_id] ?? []).includes("admin");
+  const isAdmin = (authorities[userMe.user_id] ?? []).includes("admin");
   const filterModes = ["All", "PTeam"];
 
   const tabHandleChange = (event, newValue) => {

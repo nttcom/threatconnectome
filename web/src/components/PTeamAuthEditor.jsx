@@ -19,12 +19,13 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useGetPTeamAuthQuery,
   useGetPTeamAuthInfoQuery,
+  useGetUserMeQuery,
   useUpdatePTeamAuthMutation,
 } from "../services/tcApi";
 import { errorToString } from "../utils/func";
@@ -236,21 +237,27 @@ PTeamAuthEditorMain.propTypes = {
 export function PTeamAuthEditor(props) {
   const { pteamId, userId, userEmail, onClose } = props;
 
-  const userMe = useSelector((state) => state.user.user); // TODO: fix to use RTKQ
-
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
   const {
     data: authInfo,
     error: authInfoError,
     isLoading: authInfoIsLoading,
-  } = useGetPTeamAuthInfoQuery();
+  } = useGetPTeamAuthInfoQuery(undefined, { skip });
   const {
     data: pteamAuth,
     error: pteamAuthError,
     isLoading: pteamAuthIsLoading,
-  } = useGetPTeamAuthQuery(pteamId, { skip: !pteamId });
+  } = useGetPTeamAuthQuery(pteamId, { skip: skip || !pteamId });
 
-  if (!userMe.user_id) return <></>;
-  if (authInfoError) return <>{`Cannot get PTeam: ${JSON.stringify(authInfoError)}`}</>;
+  if (skip || !pteamId) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (authInfoError) return <>{`Cannot get PTeam: ${errorToString(authInfoError)}`}</>;
   if (authInfoIsLoading) return <>Now loading Auth Info...</>;
   if (pteamAuthError) return <>{`Cannot get Authorities: ${errorToString(pteamAuthError)}`}</>;
   if (pteamAuthIsLoading) return <>Now loading Authorities...</>;

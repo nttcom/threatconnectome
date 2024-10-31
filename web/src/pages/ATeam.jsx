@@ -7,7 +7,7 @@ import { ATeamMember } from "../components/ATeamMember";
 import { ATeamWatching } from "../components/ATeamWatching";
 import { TabPanel } from "../components/TabPanel";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetATeamMembersQuery } from "../services/tcApi";
+import { useGetATeamMembersQuery, useGetUserMeQuery } from "../services/tcApi";
 import { getATeam, getATeamAuth, getATeamMembers } from "../slices/ateam";
 import { noATeamMessage, experienceColors } from "../utils/const";
 import { a11yProps, errorToString } from "../utils/func.js";
@@ -16,7 +16,6 @@ export function ATeam() {
   const [filterMode, setFilterMode] = useState("ATeam");
   const [tabValue, setTabValue] = useState(0);
 
-  const user = useSelector((state) => state.user.user);
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const ateam = useSelector((state) => state.ateam.ateam);
   const authorities = useSelector((state) => state.ateam.authorities);
@@ -26,12 +25,17 @@ export function ATeam() {
   const filterModes = ["All", "ATeam"];
 
   const skipByAuth = useSkipUntilAuthTokenIsReady();
-  const skip = skipByAuth || ateamId === undefined;
+  const skipByATeamId = ateamId === undefined;
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip: skipByAuth });
   const {
     data: members,
     error: membersError,
     isLoading: membersIsLoading,
-  } = useGetATeamMembersQuery(ateamId, { skip });
+  } = useGetATeamMembersQuery(ateamId, { skip: skipByAuth || skipByATeamId });
 
   useEffect(() => {
     if (!ateamId) return;
@@ -44,15 +48,17 @@ export function ATeam() {
     setTabValue(newValue);
   };
 
-  if (skip) return <></>;
-  if (!ateamId) return <>{noATeamMessage}</>;
-  if (!user || !ateam || !members || !authorities) return <></>;
-
+  if (skipByAuth || skipByATeamId) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (membersError) return <>{`Cannot get Members: ${errorToString(membersError)}`}</>;
   if (membersIsLoading) return <>Now loading Members...</>;
 
+  if (!ateamId) return <>{noATeamMessage}</>;
+  if (!ateam || !authorities) return <></>;
+
   const isAdmin = (
-    authorities?.find((x) => x.user_id === user.user_id)?.authorities ?? []
+    authorities?.find((x) => x.user_id === userMe.user_id)?.authorities ?? []
   ).includes("admin");
 
   return (

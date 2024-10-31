@@ -8,9 +8,6 @@ export const removeToken = () => {
   delete axios.defaults.headers.common["Authorization"];
 };
 
-// users
-export const getMyUserInfo = async () => axios.get("/users/me");
-
 // pteams
 export const getPTeam = async (pteamId) => axios.get(`/pteams/${pteamId}`);
 
@@ -25,8 +22,6 @@ export const getPTeamServiceTaggedTopicIds = async (pteamId, serviceId, tagId) =
 
 export const getTicketsRelatedToServiceTopicTag = async (pteamId, serviceId, topicId, tagId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/topics/${topicId}/tags/${tagId}/tickets`);
-
-export const getPTeamInvited = async (tokenId) => axios.get(`/pteams/invitation/${tokenId}`);
 
 export const getPTeamTopicActions = async (pteamId, topicId) =>
   axios.get(`/topics/${topicId}/actions/pteam/${pteamId}`);

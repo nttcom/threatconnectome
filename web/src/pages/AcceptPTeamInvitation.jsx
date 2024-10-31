@@ -1,41 +1,37 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
-import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useApplyPTeamInvitationMutation } from "../services/tcApi";
-import { getUser } from "../slices/user";
-import { getPTeamInvited } from "../utils/api";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useApplyPTeamInvitationMutation, useGetPTeamInvitationQuery } from "../services/tcApi";
 import { commonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
 export function AcceptPTeamInvitation() {
-  const [detail, setDetail] = useState({});
-  const [errorMessage, setErrorMessage] = useState(null);
-
   const { enqueueSnackbar } = useSnackbar();
 
   const [applyPTeamInvitation] = useApplyPTeamInvitationMutation();
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
 
-  useEffect(() => {
-    getPTeamInvited(tokenId)
-      .then((response) => setDetail(response.data))
-      .catch((error) => {
-        setErrorMessage(<Typography>This invitation is invalid or already expired.</Typography>);
-      });
-  }, [tokenId]);
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: detail,
+    error: detailError,
+    isLoading: detailIsLoading,
+  } = useGetPTeamInvitationQuery(tokenId, { skip });
+
+  if (skip) return <></>;
+  if (detailError) return <>{`Cannot get user info: ${errorToString(detailError)}`}</>;
+  if (detailIsLoading) return <>Now loading user info...</>;
 
   const handleAccept = async (event) => {
     event.preventDefault();
     async function onSuccess(success) {
-      await dispatch(getUser());
       enqueueSnackbar(`Now you are a member of '${detail.pteam_name}'`, { variant: "info" });
       params.delete("token");
       params.set("pteamId", detail.pteam_id);
@@ -50,7 +46,7 @@ export function AcceptPTeamInvitation() {
       .catch((error) => onError(error));
   };
 
-  return detail.pteam_id ? (
+  return (
     <>
       <Typography variant="h6">Do you accept the invitation to the pteam below?</Typography>
       <Typography>PTeam Name: {detail.pteam_name}</Typography>
@@ -64,7 +60,5 @@ export function AcceptPTeamInvitation() {
         </Button>
       </Box>
     </>
-  ) : (
-    <>{errorMessage}</>
   );
 }

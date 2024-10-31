@@ -30,7 +30,6 @@ import {
   useUpdatePTeamMutation,
 } from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
-import { getUser } from "../slices/user";
 import {
   defaultAlertThreshold,
   modalCommonButtonStyle,
@@ -109,7 +108,6 @@ export function PTeamNotificationSetting(props) {
       .unwrap()
       .then(() => {
         dispatch(getPTeam(pteamId));
-        dispatch(getUser());
         enqueueSnackbar("update pteam info succeeded", { variant: "success" });
       })
       .catch((error) => operationError(error));

@@ -6,11 +6,13 @@ import {
 import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { ATeamAuthEditor } from "../components/ATeamAuthEditor";
 import { ATeamMemberRemoveModal } from "../components/ATeamMemberRemoveModal";
-import { getUser } from "../slices/user";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetUserMeQuery } from "../services/tcApi";
+import { errorToString } from "../utils/func";
 
 export function ATeamMemberMenu(props) {
   const { userId, userEmail, isAdmin } = props;
@@ -20,12 +22,16 @@ export function ATeamMemberMenu(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  const dispatch = useDispatch();
-
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const ateam = useSelector((state) => state.ateam.ateam);
   const authorities = useSelector((state) => state.ateam.authorities);
-  const userMe = useSelector((state) => state.user.user);
+
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -38,7 +44,9 @@ export function ATeamMemberMenu(props) {
     setOpenRemove(true);
   };
 
-  if (!userMe || !ateamId || !ateam || !authorities) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (!ateamId || !ateam || !authorities) return <></>;
 
   return (
     <>
@@ -86,10 +94,7 @@ export function ATeamMemberMenu(props) {
           userName={userEmail}
           ateamId={ateamId}
           ateamName={ateam.ateam_name}
-          onClose={() => {
-            if (userId === userMe.user_id) dispatch(getUser()); // update user.ateams
-            setOpenRemove(false);
-          }}
+          onClose={() => setOpenRemove(false)}
         />
       </Dialog>
     </>

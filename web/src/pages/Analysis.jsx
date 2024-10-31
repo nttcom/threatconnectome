@@ -36,6 +36,8 @@ import { ATeamLabel } from "../components/ATeamLabel";
 import { ATeamTopicMenu } from "../components/ATeamTopicMenu";
 import { AnalysisNoThreatsMsg } from "../components/AnalysisNoThreatsMsg";
 import { AnalysisTopic } from "../components/AnalysisTopic";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetUserMeQuery } from "../services/tcApi";
 import { getATeam, getATeamAuth } from "../slices/ateam";
 import { getATeamTopics } from "../utils/api";
 import { difficulty, difficultyColors, noATeamMessage } from "../utils/const";
@@ -48,7 +50,14 @@ export function Analysis() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
 
-  const user = useSelector((state) => state.user.user);
+  const skip = useSkipUntilAuthTokenIsReady();
+
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+
   const ateam = useSelector((state) => state.ateam.ateam);
   const authorities = useSelector((state) => state.ateam.authorities);
 
@@ -87,7 +96,7 @@ export function Analysis() {
 
   useEffect(() => {
     /* Note: state.ateam.* are re-initialized when ateamId is changed. */
-    if (!user.user_id || !ateamId || !ateam) return;
+    if (skip || !ateamId || !ateam) return;
     async function fetchPageInfo() {
       const queryParams = {
         offset: perPage * (page - 1),
@@ -115,20 +124,24 @@ export function Analysis() {
      */
 
     fetchPageInfo();
-  }, [user, ateamId, ateam, page, perPage, sortKey, actualSearch, enqueueSnackbar]);
+  }, [skip, ateamId, ateam, page, perPage, sortKey, actualSearch, enqueueSnackbar]);
 
   useEffect(() => {
-    if (!user.user_id || !ateamId) return;
+    if (skip || !ateamId) return;
     if (!ateam) dispatch(getATeam(ateamId));
-  }, [dispatch, ateam, user, ateamId]);
+  }, [dispatch, ateam, skip, ateamId]);
 
   useEffect(() => {
-    if (!user.user_id || !ateamId || !ateam) return;
+    if (skip || !ateamId || !ateam) return;
     if (!authorities) dispatch(getATeamAuth(ateamId));
-  }, [dispatch, ateamId, ateam, authorities, user]);
+  }, [dispatch, ateamId, ateam, authorities, skip]);
+
+  if (skip) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   if (!ateamId) return <>{noATeamMessage}</>;
-  if (!user.user_id || !ateam || !authorities || !pageInfo) return <>Now loading...</>;
+  if (!ateam || !authorities || !pageInfo) return <>Now loading...</>;
 
   const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
 
@@ -148,9 +161,9 @@ export function Analysis() {
     navigate(location.pathname + "?" + params.toString());
   };
 
-  const isAdmin = (authorities.find((x) => x.user_id === user.user_id)?.authorities ?? []).includes(
-    "admin",
-  );
+  const isAdmin = (
+    authorities.find((x) => x.user_id === userMe.user_id)?.authorities ?? []
+  ).includes("admin");
   const pageMax = Math.ceil(pageInfo.num_topics / perPage);
   if (page > pageMax && pageMax > 0) setPage(pageMax);
 
@@ -359,7 +372,12 @@ export function Analysis() {
         {/* Topic detail */}
         {targetTopic && (
           <Box sx={{ width: "65%" }}>
-            <AnalysisTopic user={user} ateam={ateam} targetTopic={targetTopic} isAdmin={isAdmin} />
+            <AnalysisTopic
+              user={userMe}
+              ateam={ateam}
+              targetTopic={targetTopic}
+              isAdmin={isAdmin}
+            />
           </Box>
         )}
       </Box>

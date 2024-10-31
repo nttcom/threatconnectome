@@ -38,6 +38,7 @@ import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
 import { PTeamServicesListModal } from "../components/PTeamServicesListModal";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   getPTeam,
   getPTeamServiceTagsSummary,
@@ -123,7 +124,8 @@ export function Status() {
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
-  const user = useSelector((state) => state.user.user);
+  const skip = useSkipUntilAuthTokenIsReady();
+
   const pteam = useSelector((state) => state.pteam.pteam);
   const serviceTagsSummaries = useSelector((state) => state.pteam.serviceTagsSummaries);
   const pteamTagsSummaries = useSelector((state) => state.pteam.pteamTagsSummaries);
@@ -146,7 +148,7 @@ export function Status() {
   });
 
   useEffect(() => {
-    if (!user.user_id) return; // wait login completed
+    if (skip) return; // wait login completed
     if (!pteamId) return; // wait fixed by App
     if (!pteam) {
       dispatch(getPTeam(pteamId));
@@ -185,10 +187,11 @@ export function Status() {
       dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
     }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [user.user_id, pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
+  }, [skip, pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
 
+  if (skip) return <></>;
   if (!pteamId) return <>{noPTeamMessage}</>;
-  if (!user.user_id || !pteamId || !pteam) {
+  if (!pteamId || !pteam) {
     return <>Now loading...</>;
   }
 
