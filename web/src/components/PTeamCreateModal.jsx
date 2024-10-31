@@ -13,17 +13,14 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useCreatePTeamMutation } from "../services/tcApi";
-import { getUser } from "../slices/user";
 import { errorToString } from "../utils/func";
 
 export function PTeamCreateModal(props) {
   const { open, onSetOpen, onCloseTeamSelector } = props;
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -53,7 +50,6 @@ export function PTeamCreateModal(props) {
         enqueueSnackbar("create pteam succeeded", { variant: "success" });
         onSetOpen(false);
         // fix user.pteams before navigating, to avoid overwriting pteamId by pages/App.jsx.
-        await dispatch(getUser());
         const newParams = new URLSearchParams();
         newParams.set("pteamId", data.pteam_id);
         navigate("/pteam?" + newParams.toString());

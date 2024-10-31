@@ -6,13 +6,12 @@ import {
 import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { PTeamAuthEditor } from "../components/PTeamAuthEditor";
 import { PTeamMemberRemoveModal } from "../components/PTeamMemberRemoveModal";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetPTeamQuery, useGetUserMeQuery } from "../services/tcApi";
-import { getUser } from "../slices/user";
 import { errorToString } from "../utils/func";
 
 export function PTeamMemberMenu(props) {
@@ -22,8 +21,6 @@ export function PTeamMemberMenu(props) {
   const [openRemove, setOpenRemove] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-
-  const dispatch = useDispatch();
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
 
@@ -104,10 +101,7 @@ export function PTeamMemberMenu(props) {
           userName={userEmail}
           pteamId={pteamId}
           pteamName={pteam.pteam_name}
-          onClose={() => {
-            if (userId === userMe.user_id) dispatch(getUser()); // update user.pteam_ids
-            setOpenRemove(false);
-          }}
+          onClose={() => setOpenRemove(false)}
         />
       </Dialog>
     </>

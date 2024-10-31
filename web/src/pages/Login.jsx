@@ -24,13 +24,12 @@ import {
   useSignInWithEmailAndPasswordMutation,
   useSignInWithSamlPopupMutation,
 } from "../services/firebaseApi";
-import { useCreateUserMutation } from "../services/tcApi";
+import { useCreateUserMutation, useTryLoginMutation } from "../services/tcApi";
 import { clearATeam } from "../slices/ateam";
 import { clearAuth } from "../slices/auth";
 import { clearPTeam } from "../slices/pteam";
 import { clearTopics } from "../slices/topics";
-import { clearUser } from "../slices/user";
-import { getMyUserInfo, removeToken, setToken } from "../utils/api";
+import { removeToken, setToken } from "../utils/api";
 import { samlProvider } from "../utils/firebase";
 
 export const authCookieName = "Authorization";
@@ -52,10 +51,10 @@ export function Login() {
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
   const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
   const [createUser] = useCreateUserMutation();
+  const [tryLogin] = useTryLoginMutation();
 
   useEffect(() => {
     dispatch(clearAuth());
-    dispatch(clearUser());
     dispatch(clearPTeam());
     dispatch(clearATeam());
     dispatch(clearTopics());
@@ -96,13 +95,13 @@ export function Login() {
     setToken(accessToken);
     setCookie(authCookieName, accessToken, cookiesOptions);
     try {
-      await getMyUserInfo();
+      await tryLogin().unwrap();
       navigate({
         pathname: location.state?.from ?? "/",
         search: location.state?.search ?? "",
       });
     } catch (error) {
-      switch (error.response?.data?.detail) {
+      switch (error.data?.detail) {
         case "Email is not verified. Try logging in on UI and verify email.": {
           const actionCodeSettings = {
             url: `${window.location.origin}${process.env.PUBLIC_URL}/login`,

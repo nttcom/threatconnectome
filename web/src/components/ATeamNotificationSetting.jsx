@@ -27,7 +27,6 @@ import {
   useUpdateATeamMutation,
 } from "../services/tcApi";
 import { getATeam } from "../slices/ateam";
-import { getUser } from "../slices/user";
 import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -95,7 +94,6 @@ export function ATeamNotificationSetting(props) {
       .unwrap()
       .then(() => {
         dispatch(getATeam(ateamId));
-        dispatch(getUser());
         enqueueSnackbar("update ateam info succeeded", { variant: "success" });
       })
       .catch((error) =>
