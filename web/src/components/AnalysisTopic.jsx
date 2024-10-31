@@ -41,14 +41,14 @@ import { TopicEditModal } from "../components/TopicEditModal";
 import { UUIDTypography } from "../components/UUIDTypography";
 import { WarningTooltip } from "../components/WarningTooltip";
 import styles from "../cssModule/button.module.css";
-import { getActions, getTopic } from "../slices/topics";
 import {
-  createATeamTopicComment as apiCreateATeamTopicComment,
-  getATeamTopicComments as apiGetATeamTopicComments,
-  updateATeamTopicComment as apiUpdateATeamTopicComment,
-} from "../utils/api";
+  useCreateATeamTopicCommentMutation,
+  useUpdateATeamTopicCommentMutation,
+} from "../services/tcApi";
+import { getActions, getTopic } from "../slices/topics";
+import { getATeamTopicComments as apiGetATeamTopicComments } from "../utils/api";
 import { rootPrefix, threatImpactNames } from "../utils/const";
-import { a11yProps, dateTimeFormat, tagsMatched } from "../utils/func.js";
+import { a11yProps, dateTimeFormat, errorToString, tagsMatched } from "../utils/func.js";
 
 export function AnalysisTopic(props) {
   const { user, ateam, targetTopic, isAdmin = false } = props;
@@ -62,6 +62,8 @@ export function AnalysisTopic(props) {
   const [listHeight, setListHeight] = useState(0);
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionExpanded, setActionExpanded] = useState(false);
+  const [createATeamTopicComment] = useCreateATeamTopicCommentMutation();
+  const [updateATeamTopicComment] = useUpdateATeamTopicCommentMutation();
 
   const topics = useSelector((state) => state.topics.topics);
   const actions = useSelector((state) => state.topics.actions);
@@ -109,14 +111,23 @@ export function AnalysisTopic(props) {
       enqueueSnackbar("Invalid comment", { variant: "error" });
       return;
     }
-    await apiCreateATeamTopicComment(ateam.ateam_id, targetTopic.topic_id, {
-      comment: newComment.trim(),
+    await createATeamTopicComment({
+      ateamId: ateam.ateam_id,
+      topicId: targetTopic.topic_id,
+      data: {
+        comment: newComment.trim(),
+      },
     })
+      .unwrap()
       .then(() => {
         handleReloadComments(targetTopic.topic_id);
         setNewComment("");
       })
-      .catch((error) => operationError(error));
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+          variant: "error",
+        }),
+      );
   };
 
   const handleUpdateComment = async (commentId) => {
@@ -124,15 +135,25 @@ export function AnalysisTopic(props) {
       enqueueSnackbar("Invalid comment", { variant: "error" });
       return;
     }
-    await apiUpdateATeamTopicComment(ateam.ateam_id, targetTopic.topic_id, commentId, {
-      comment: editComment.trim(),
+    await updateATeamTopicComment({
+      ateamId: ateam.ateam_id,
+      topicId: targetTopic.topic_id,
+      commentId: commentId,
+      data: {
+        comment: editComment.trim(),
+      },
     })
+      .unwrap()
       .then(() => {
         handleReloadComments(targetTopic.topic_id);
         setEditComment("");
         setEditable(false);
       })
-      .catch((error) => operationError(error));
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+          variant: "error",
+        }),
+      );
   };
 
   const pteamServiceTagLinkURL = (pteamId, serviceId, tagId) => {

@@ -21,10 +21,13 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { useUpdateATeamMutation } from "../services/tcApi";
+import {
+  useCheckMailMutation,
+  useCheckSlackMutation,
+  useUpdateATeamMutation,
+} from "../services/tcApi";
 import { getATeam } from "../slices/ateam";
 import { getUser } from "../slices/user";
-import { checkSlack as postCheckSlack, checkMail as postCheckMail } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -43,6 +46,9 @@ export function ATeamNotificationSetting(props) {
   const [emailMessage, setEmailMessage] = useState();
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const [postCheckMail] = useCheckMailMutation();
+  const [postCheckSlack] = useCheckSlackMutation();
   const [updateATeam] = useUpdateATeamMutation();
 
   const ateamId = useSelector((state) => state.ateam.ateamId);
@@ -75,7 +81,7 @@ export function ATeamNotificationSetting(props) {
     return (
       <Box display="flex" sx={{ color: "error.main" }}>
         <ErrorOutlineIcon />
-        <Typography>Connection failed. Reason: {error.response?.data.detail} </Typography>
+        <Typography>Connection failed. Reason: {errorToString(error)}</Typography>
       </Box>
     );
   };
@@ -101,6 +107,7 @@ export function ATeamNotificationSetting(props) {
     setCheckSlack(true);
     setSlackMessage();
     await postCheckSlack({ slack_webhook_url: slackUrl })
+      .unwrap()
       .then(() => {
         setCheckSlack(false);
         setSlackMessage(connectSuccessMessage);
@@ -115,6 +122,7 @@ export function ATeamNotificationSetting(props) {
     setCheckEmail(true);
     setEmailMessage();
     await postCheckMail({ email: mailAddress })
+      .unwrap()
       .then(() => {
         setCheckEmail(false);
         setEmailMessage(connectSuccessMessage);

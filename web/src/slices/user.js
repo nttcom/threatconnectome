@@ -1,28 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import {
-  createUser as apiCreateUser,
-  deleteUser as apiDeleteUser,
-  getMyUserInfo as apiGetUser,
-  updateUser as apiUpdateUser,
-} from "../utils/api";
-
-export const createUser = createAsyncThunk(
-  "user/create",
-  async (data) => await apiCreateUser(data).then((response) => response.data),
-);
-
-export const deleteUser = createAsyncThunk("user/delete", async () => await apiDeleteUser());
+import { getMyUserInfo as apiGetUser } from "../utils/api";
 
 export const getUser = createAsyncThunk(
   "user/get",
   async () => await apiGetUser().then((response) => response.data),
-);
-
-export const updateUser = createAsyncThunk(
-  "user/update",
-  async (data) =>
-    await apiUpdateUser(data.userId, { ...data.user }).then((response) => response.data),
 );
 
 const _initialUserState = {
@@ -38,23 +20,10 @@ const userSlice = createSlice({
     }),
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(createUser.fulfilled, (state, action) => ({
-        ...state,
-        user: action.payload,
-      }))
-      .addCase(deleteUser.fulfilled, (state, _action) => ({
-        ...state,
-        user: {},
-      }))
-      .addCase(getUser.fulfilled, (state, action) => ({
-        ...state,
-        user: action.payload,
-      }))
-      .addCase(updateUser.fulfilled, (state, action) => ({
-        ...state,
-        user: action.payload,
-      }));
+    builder.addCase(getUser.fulfilled, (state, action) => ({
+      ...state,
+      user: action.payload,
+    }));
   },
 });
 

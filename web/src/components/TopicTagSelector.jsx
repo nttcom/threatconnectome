@@ -22,9 +22,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { FixedSizeList } from "react-window";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useCreateTagMutation } from "../services/tcApi";
 import { getTags } from "../slices/tags";
-import { createTag } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 export function TopicTagSelector(props) {
   const { currentSelectedIds, onCancel, onApply, sx } = props;
@@ -36,6 +37,8 @@ export function TopicTagSelector(props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const dispatch = useDispatch();
+
+  const [createTag] = useCreateTagMutation();
 
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
@@ -54,9 +57,10 @@ export function TopicTagSelector(props) {
       setSearch("");
     }
     function onError(error) {
-      enqueueSnackbar(`Create tag failed: ${error.response?.data?.detail}`, { variant: "error" });
+      enqueueSnackbar(`Create tag failed: ${errorToString(error)}`, { variant: "error" });
     }
     await createTag({ tag_name: search.trim() })
+      .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
