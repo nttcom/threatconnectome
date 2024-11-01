@@ -8,14 +8,16 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AppBar } from "../components/AppBar";
 import { Drawer } from "../components/Drawer";
 import { Main } from "../components/Main";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetUserMeQuery, useTryLoginMutation } from "../services/tcApi";
 import { setATeamId } from "../slices/ateam";
 import { setAuthToken } from "../slices/auth";
 import { setPTeamId } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
 import { getTags } from "../slices/tags";
-import { getUser } from "../slices/user";
-import { getMyUserInfo, setToken } from "../utils/api";
+import { setToken } from "../utils/api";
 import { mainMaxWidth } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 import { authCookieName } from "./Login";
 
@@ -27,29 +29,32 @@ export function App() {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const skip = useSkipUntilAuthTokenIsReady();
+
   const dispatch = useDispatch();
   const system = useSelector((state) => state.system);
-  const user = useSelector((state) => state.user.user);
   const allTags = useSelector((state) => state.tags.allTags);
 
   const location = useLocation();
   const navigate = useNavigate();
 
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+    isFetching: userMeIsFetching,
+  } = useGetUserMeQuery(undefined, { skip });
+  const [tryLogin] = useTryLoginMutation();
+
   useEffect(() => {
-    if (user.user_id) return;
+    if (!skip) return; // auth token is ready
     const _checkToken = async () => {
       try {
         const accessToken = cookies[authCookieName];
         if (!accessToken) throw new Error("Missing cookie");
         dispatch(setAuthToken(accessToken));
         setToken(accessToken);
-        await getMyUserInfo()
-          .then((ret) => {
-            dispatch(getUser());
-          })
-          .catch((err) => {
-            throw err;
-          });
+        await tryLogin().unwrap(); // throw error if accessToken is expired
       } catch (error) {
         navigate("/login", {
           state: {
@@ -61,23 +66,23 @@ export function App() {
       }
     };
     _checkToken();
-  }, [cookies, dispatch, location, navigate, user]);
+  }, [cookies, dispatch, location, navigate, skip, tryLogin]);
 
   useEffect(() => {
-    if (!user.user_id) return;
+    if (!userMe || userMeIsFetching) return;
     const params = new URLSearchParams(location.search);
     if (["/analysis", "/ateam"].includes(location.pathname)) {
       dispatch(setTeamMode("ateam"));
-      if (!user.ateams.length > 0) {
+      if (!userMe.ateams.length > 0) {
         dispatch(setATeamId(undefined));
         return;
       }
-      const ateamIdx = params.get("ateamId") || user.ateams[0].ateam_id;
-      if (!user.ateams.find((ateam) => ateam.ateam_id === ateamIdx)) {
-        enqueueSnackbar(`Wrong ateamId. Force switching to '${user.ateams[0].ateam_name}'.`, {
+      const ateamIdx = params.get("ateamId") || userMe.ateams[0].ateam_id;
+      if (!userMe.ateams.find((ateam) => ateam.ateam_id === ateamIdx)) {
+        enqueueSnackbar(`Wrong ateamId. Force switching to '${userMe.ateams[0].ateam_name}'.`, {
           variant: "error",
         });
-        params.set("ateamId", user.ateams[0].ateam_id);
+        params.set("ateamId", userMe.ateams[0].ateam_id);
         navigate(location.pathname + "?" + params.toString());
         return;
       }
@@ -91,16 +96,16 @@ export function App() {
       ["/", "/pteam", "/pteam/watching_request"].includes(location.pathname) ||
       /\/tags\//.test(location.pathname)
     ) {
-      if (!user.pteams.length > 0) {
+      if (!userMe.pteams.length > 0) {
         dispatch(setPTeamId(undefined));
         return;
       }
-      const pteamIdx = params.get("pteamId") || user.pteams[0].pteam_id;
-      if (!user.pteams.find((pteam) => pteam.pteam_id === pteamIdx)) {
-        enqueueSnackbar(`Wrong pteamId. Force switching to '${user.pteams[0].pteam_name}'.`, {
+      const pteamIdx = params.get("pteamId") || userMe.pteams[0].pteam_id;
+      if (!userMe.pteams.find((pteam) => pteam.pteam_id === pteamIdx)) {
+        enqueueSnackbar(`Wrong pteamId. Force switching to '${userMe.pteams[0].pteam_name}'.`, {
           variant: "error",
         });
-        params.set("pteamId", user.pteams[0].pteam_id);
+        params.set("pteamId", userMe.pteams[0].pteam_id);
         navigate(location.pathname + "?" + params.toString());
         return;
       }
@@ -111,14 +116,14 @@ export function App() {
       }
       dispatch(setPTeamId(pteamIdx));
     }
-  }, [dispatch, enqueueSnackbar, navigate, location, user, system.teamMode]);
+  }, [dispatch, enqueueSnackbar, navigate, location, userMe, userMeIsFetching, system.teamMode]);
 
   useEffect(() => {
-    if (!loadTags && allTags === undefined && user.user_id) {
+    if (!loadTags && allTags === undefined && !skip) {
       setLoadTags(true);
     }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [user]);
+  }, [skip]);
 
   useEffect(() => {
     if (!loadTags) return;
@@ -126,6 +131,9 @@ export function App() {
     dispatch(getTags());
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [loadTags]);
+
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   return (
     <>

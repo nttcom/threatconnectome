@@ -5,10 +5,13 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetUserMeQuery } from "../services/tcApi";
 import { clearATeam } from "../slices/ateam";
 import { clearPTeam } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
 import { teamColor } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 import { ATeamCreateModal } from "./ATeamCreateModal";
 import { PTeamCreateModal } from "./PTeamCreateModal";
@@ -26,7 +29,6 @@ export function TeamSelector() {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user.user);
   const teamMode = useSelector((state) => state.system.teamMode);
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const ateamId = useSelector((state) => state.ateam.ateamId);
@@ -41,23 +43,34 @@ export function TeamSelector() {
   const [openATeamCreationModal, setOpenATeamCreationModal] = useState(false);
   const { tagId } = useParams();
 
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+
   useEffect(() => {
-    if (!user) return;
+    if (!userMe) return;
     switch (teamMode) {
       case "pteam":
-        setCurrentTeamName(user.pteams?.find((x) => x.pteam_id === pteamId)?.pteam_name);
+        setCurrentTeamName(userMe.pteams?.find((x) => x.pteam_id === pteamId)?.pteam_name);
         break;
       case "ateam":
-        setCurrentTeamName(user.ateams?.find((x) => x.ateam_id === ateamId)?.ateam_name);
+        setCurrentTeamName(userMe.ateams?.find((x) => x.ateam_id === ateamId)?.ateam_name);
         break;
       default:
         break;
     }
-  }, [teamMode, user, pteamId, ateamId]);
+  }, [teamMode, userMe, pteamId, ateamId]);
+
+  if (skip) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const switchToPTeam = (teamId) => {
     handleClose();
-    setCurrentTeamName(user.pteams?.find((x) => x.pteam_id === teamId)?.pteam_name);
+    setCurrentTeamName(userMe.pteams?.find((x) => x.pteam_id === teamId)?.pteam_name);
 
     if (teamMode === "pteam") {
       if (tagId) {
@@ -83,7 +96,7 @@ export function TeamSelector() {
 
   const switchToATeam = (teamId) => {
     handleClose();
-    setCurrentTeamName(user.ateams?.find((x) => x.ateam_id === teamId)?.ateam_name);
+    setCurrentTeamName(userMe.ateams?.find((x) => x.ateam_id === teamId)?.ateam_name);
     const newParams = new URLSearchParams();
     newParams.set("ateamId", teamId);
     if (teamMode === "ateam") {
@@ -126,8 +139,8 @@ export function TeamSelector() {
           onClose={handleClose}
         >
           <ListSubheader sx={{ color: teamColor.pteam.hoverColor }}>Product Team</ListSubheader>
-          {user?.pteams &&
-            [...user.pteams]
+          {userMe?.pteams &&
+            [...userMe.pteams]
               .sort((a, b) => a.pteam_name.localeCompare(b.pteam_name)) // alphabetically
               .map((pteam) => (
                 <MenuItem
@@ -144,8 +157,8 @@ export function TeamSelector() {
           </MenuItem>
           <Divider />
           <ListSubheader sx={{ color: teamColor.ateam.hoverColor }}>Analysis Team</ListSubheader>
-          {user?.ateams &&
-            [...user.ateams]
+          {userMe?.ateams &&
+            [...userMe.ateams]
               .sort((a, b) => a.ateam_name.localeCompare(b.ateam_name)) // alphabetically
               .map((ateam) => (
                 <MenuItem

@@ -11,12 +11,11 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
 
 import { UUIDTypography } from "../components/UUIDTypography";
-import { useUpdateUserMutation } from "../services/tcApi";
-import { getUser } from "../slices/user";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetUserMeQuery, useUpdateUserMutation } from "../services/tcApi";
 import { errorToString } from "../utils/func";
 
 export function Account() {
@@ -25,53 +24,50 @@ export function Account() {
   });
   const [editMode, setEditMode] = useState(false);
 
-  const [updateUser] = useUpdateUserMutation();
-
   const { enqueueSnackbar } = useSnackbar();
 
-  const dispatch = useDispatch();
-  const user = useSelector((state) => state.user.user);
+  const [updateUser] = useUpdateUserMutation();
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
 
-  useEffect(() => {
-    if (!user?.user_id) return;
-    setEditInfo({ years: user.years });
-  }, [dispatch, user]);
-
-  useEffect(() => {
-    if (!user.user_id) return;
-  }, [dispatch, user]);
+  if (skip) return <></>;
+  if (userMeError) return <>{`Cannot get user info: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const handleEditMode = () => {
-    setEditInfo({ years: user.years });
+    setEditInfo({ years: userMe.years });
     setEditMode(!editMode);
   };
 
   const handleSave = async () => {
     updateUser({
-      userId: user.user_id,
+      userId: userMe.user_id,
       data: { years: editInfo.years },
     })
       .unwrap()
       .then((succeeded) => {
         enqueueSnackbar("Update user info succeeded", { variant: "success" });
-        dispatch(getUser());
         handleEditMode();
       })
       .catch((error) => enqueueSnackbar(errorToString(error), { variant: "error" }));
   };
 
   return (
-    user && (
+    userMe && (
       <>
         <Box display="flex" flexDirection="row" flexGrow={1} mb={1}>
           <Box display="flex" flexDirection="column" flexGrow={1}>
             <Box alignItems="baseline" display="flex" flexDirection="row">
-              <Typography variant="h4">{user.email?.split("@")[0]}</Typography>
+              <Typography variant="h4">{userMe.email?.split("@")[0]}</Typography>
               <Typography color={grey[500]} variant="subtitle">
-                {`@${user.email?.split("@")[1]}`}
+                {`@${userMe.email?.split("@")[1]}`}
               </Typography>
             </Box>
-            <UUIDTypography>{user.user_id}</UUIDTypography>
+            <UUIDTypography>{userMe.user_id}</UUIDTypography>
           </Box>
           <Box justifyContent="center" display="flex" flexDirection="column">
             <ButtonGroup>
@@ -100,7 +96,7 @@ export function Account() {
             <Typography>Email:</Typography>
           </Box>
           <Box display="flex" flexDirection="row" width="70%">
-            <Typography>{user.email}</Typography>
+            <Typography>{userMe.email}</Typography>
           </Box>
         </Box>
         <Box alignItems="center" display="flex" flexDirection="row" mt={1}>
@@ -108,7 +104,7 @@ export function Account() {
             <Typography>User ID:</Typography>
           </Box>
           <Box display="flex" flexDirection="row" width="70%">
-            <Typography>{user.user_id}</Typography>
+            <Typography>{userMe.user_id}</Typography>
           </Box>
         </Box>
         <Box alignItems="center" display="flex" flexDirection="row" my={1}>
@@ -116,8 +112,8 @@ export function Account() {
             <Typography>PTeam:</Typography>
           </Box>
           <Box display="flex" flexDirection="column" width="70%">
-            {user.pteams?.length >= 1 ? (
-              user.pteams.map((pteam, index) => (
+            {userMe.pteams?.length >= 1 ? (
+              userMe.pteams.map((pteam, index) => (
                 <Box alignItems="baseline" display="flex" flexDirection="row" key={index}>
                   <Typography mr={1}>{pteam.pteam_name}</Typography>
                   <UUIDTypography>{pteam.pteam_id}</UUIDTypography>
@@ -133,8 +129,8 @@ export function Account() {
             <Typography>ATeam:</Typography>
           </Box>
           <Box display="flex" flexDirection="column" width="70%">
-            {user.ateams?.length >= 1 ? (
-              user.ateams.map((ateam, index) => (
+            {userMe.ateams?.length >= 1 ? (
+              userMe.ateams.map((ateam, index) => (
                 <Box alignItems="baseline" display="flex" flexDirection="row" key={index}>
                   <Typography mr={1}>{ateam.ateam_name}</Typography>
                   <UUIDTypography>{ateam.ateam_id}</UUIDTypography>
@@ -172,7 +168,7 @@ export function Account() {
               </TextField>
             ) : (
               <Typography>
-                {user.years}+ year{user.years <= 1 ? "" : "s"}
+                {userMe.years}+ year{userMe.years <= 1 ? "" : "s"}
               </Typography>
             )}
           </Box>

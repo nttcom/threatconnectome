@@ -12,6 +12,7 @@ import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../components/ActionTypeIcon";
 import { TopicSSVCCards } from "../components/TopicSSVCCards";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { getTopic, getActions } from "../slices/topics";
 import { threatImpactNames, threatImpactProps } from "../utils/const";
 
@@ -54,7 +55,8 @@ export function TopicDetail() {
 
   const [showAllArtifacts, setShowAllArtifacts] = useState(false);
 
-  const user = useSelector((state) => state.user.user);
+  const skip = useSkipUntilAuthTokenIsReady();
+
   const topics = useSelector((state) => state.topics.topics);
   const topicActions = useSelector((state) => state.topics.actions);
 
@@ -64,19 +66,20 @@ export function TopicDetail() {
   const actions = topicId && topicActions ? topicActions[topicId] : undefined;
 
   useEffect(() => {
-    if (!user.user_id) return; // wait for login completed
+    if (skip) return; // wait for login completed
     if (!topicId) return; // will never happen
     if (topic) return; // nothing to do any more
     dispatch(getTopic(topicId));
-  }, [user.user_id, topicId, topic, dispatch]);
+  }, [skip, topicId, topic, dispatch]);
 
   useEffect(() => {
-    if (!user.user_id) return; // wait for login completed
+    if (skip) return; // wait for login completed
     if (!topicId) return; // will never happen
     if (actions) return; // nothing to do any more
     dispatch(getActions(topicId));
-  }, [user.user_id, topicId, actions, dispatch]);
+  }, [skip, topicId, actions, dispatch]);
 
+  if (skip) return <></>;
   if (!topic || !actions) return <>Now loading...</>;
 
   const threatImpactName = threatImpactNames[topic.threat_impact];

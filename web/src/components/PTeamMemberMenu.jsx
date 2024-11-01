@@ -6,12 +6,12 @@ import {
 import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { PTeamAuthEditor } from "../components/PTeamAuthEditor";
 import { PTeamMemberRemoveModal } from "../components/PTeamMemberRemoveModal";
-import { useGetPTeamQuery } from "../services/tcApi";
-import { getUser } from "../slices/user";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetPTeamQuery, useGetUserMeQuery } from "../services/tcApi";
 import { errorToString } from "../utils/func";
 
 export function PTeamMemberMenu(props) {
@@ -22,19 +22,24 @@ export function PTeamMemberMenu(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  const dispatch = useDispatch();
-
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const userMe = useSelector((state) => state.user.user);
 
-  const skip = pteamId === undefined;
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const skipByPTeamId = pteamId === undefined;
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip: skipByAuth });
   const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip });
+  } = useGetPTeamQuery(pteamId, { skip: skipByAuth || skipByPTeamId });
 
-  if (!userMe || !pteamId) return <></>;
+  if (skipByAuth || skipByPTeamId) return <></>;
+  if (userMeError) return <>{`Cannot get userInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
   if (pteamIsLoading) return <>Now loading PTeam...</>;
 
@@ -96,10 +101,7 @@ export function PTeamMemberMenu(props) {
           userName={userEmail}
           pteamId={pteamId}
           pteamName={pteam.pteam_name}
-          onClose={() => {
-            if (userId === userMe.user_id) dispatch(getUser()); // update user.pteam_ids
-            setOpenRemove(false);
-          }}
+          onClose={() => setOpenRemove(false)}
         />
       </Dialog>
     </>

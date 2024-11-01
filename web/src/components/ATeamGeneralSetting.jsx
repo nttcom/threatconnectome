@@ -8,7 +8,6 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { useUpdateATeamMutation } from "../services/tcApi";
 import { getATeam } from "../slices/ateam";
-import { getUser } from "../slices/user";
 import { checkFs as postCheckFs, getFsInfo } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
@@ -81,7 +80,6 @@ export function ATeamGeneralSetting(props) {
       .unwrap()
       .then(() => {
         dispatch(getATeam(ateamId));
-        dispatch(getUser());
         enqueueSnackbar("update ateam info succeeded", { variant: "success" });
       })
       .catch((error) =>

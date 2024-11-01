@@ -13,17 +13,14 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useCreateATeamMutation } from "../services/tcApi";
-import { getUser } from "../slices/user";
 import { errorToString } from "../utils/func";
 
 export function ATeamCreateModal(props) {
   const { open, onOpen, onCloseTeamSelector } = props;
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [createATeam] = useCreateATeamMutation();
@@ -48,8 +45,6 @@ export function ATeamCreateModal(props) {
       .then(async (data) => {
         enqueueSnackbar("create ateam succeeded", { variant: "success" });
         onOpen(false);
-        // fix user.ateams before navigating, to avoid overwriting ateamId by pages/App.jsx.
-        await dispatch(getUser());
         const newParams = new URLSearchParams();
         newParams.set("ateamId", data.ateam_id);
         navigate("/ateam?" + newParams.toString());

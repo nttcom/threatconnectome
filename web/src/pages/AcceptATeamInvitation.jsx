@@ -1,11 +1,9 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useApplyATeamInvitationMutation } from "../services/tcApi";
-import { getUser } from "../slices/user";
 import { getATeamInvited } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
@@ -17,7 +15,6 @@ export function AcceptATeamInvitation() {
   const { enqueueSnackbar } = useSnackbar();
   const [applyATeamInvitation] = useApplyATeamInvitationMutation();
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const params = new URLSearchParams(useLocation().search);
@@ -34,7 +31,6 @@ export function AcceptATeamInvitation() {
   const handleAccept = async (event) => {
     event.preventDefault();
     async function onSuccess(success) {
-      await dispatch(getUser());
       enqueueSnackbar(`Now you are a member of '${detail.ateam_name}'`, { variant: "info" });
       params.delete("token");
       params.set("ateamId", detail.ateam_id);

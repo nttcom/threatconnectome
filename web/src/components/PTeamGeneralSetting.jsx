@@ -8,7 +8,6 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { useUpdatePTeamMutation } from "../services/tcApi";
 import { getPTeam } from "../slices/pteam";
-import { getUser } from "../slices/user";
 import { checkFs as postCheckFs, getFsInfo } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
@@ -85,7 +84,6 @@ export function PTeamGeneralSetting(props) {
       .unwrap()
       .then(() => {
         dispatch(getPTeam(pteamId));
-        dispatch(getUser());
         enqueueSnackbar("update pteam info succeeded", { variant: "success" });
       })
       .catch((error) => operationError(error));
