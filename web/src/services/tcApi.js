@@ -127,7 +127,7 @@ export const tcApi = createApi({
     /* ATeam Members */
     getATeamMembers: builder.query({
       query: (ateamId) => ({
-        url: `/ateams/${ateamId}/members`,
+        url: `ateams/${ateamId}/members`,
         method: "GET",
       }),
       providesTags: (result, error, arg) => [

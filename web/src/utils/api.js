@@ -40,8 +40,6 @@ export const getServiceThumbnail = async (pteamId, serviceId) =>
 // ateams
 export const getATeam = async (ateamId) => axios.get(`/ateams/${ateamId}`);
 
-export const getATeamMembers = async (ateamId) => axios.get(`/ateams/${ateamId}/members`);
-
 export const getATeamInvited = async (tokenId) => axios.get(`/ateams/invitation/${tokenId}`);
 
 export const getATeamAuthInfo = async () => axios.get("/ateams/auth_info");
