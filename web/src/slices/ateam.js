@@ -4,7 +4,6 @@ import {
   getATeam as apiGetATeam,
   getATeamAuth as apiGetATeamAuth,
   getATeamAuthInfo as apiGetATeamAuthInfo,
-  getATeamMembers as apiGetATeamMembers,
   getATeamTopics as apiGetATeamTopics,
 } from "../utils/api";
 
@@ -34,21 +33,6 @@ export const getATeamAuth = createAsyncThunk(
     })),
 );
 
-export const getATeamMembers = createAsyncThunk(
-  "ateam/getATeamMembers",
-  async (ateamId) =>
-    await apiGetATeamMembers(ateamId).then((response) => ({
-      data: response.data.reduce(
-        (ret, val) => ({
-          ...ret,
-          [val.user_id]: val,
-        }),
-        {},
-      ),
-      ateamId: ateamId,
-    })),
-);
-
 export const getATeamTopics = createAsyncThunk(
   "ateam/getATeamTopics",
   async (ateamId) =>
@@ -63,7 +47,6 @@ const _initialState = {
   ateam: undefined,
   authInfo: undefined,
   authorities: undefined,
-  members: undefined,
   ateamTopics: undefined,
 };
 
@@ -95,10 +78,6 @@ const ateamSlice = createSlice({
       .addCase(getATeamAuth.fulfilled, (state, action) => ({
         ...state,
         authorities: action.payload.data,
-      }))
-      .addCase(getATeamMembers.fulfilled, (state, action) => ({
-        ...state,
-        members: action.payload.data,
       }))
       .addCase(getATeamTopics.fulfilled, (state, action) => ({
         ...state,

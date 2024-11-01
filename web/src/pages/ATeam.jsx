@@ -8,7 +8,7 @@ import { ATeamWatching } from "../components/ATeamWatching";
 import { TabPanel } from "../components/TabPanel";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetATeamMembersQuery, useGetUserMeQuery } from "../services/tcApi";
-import { getATeam, getATeamAuth, getATeamMembers } from "../slices/ateam";
+import { getATeam, getATeamAuth } from "../slices/ateam";
 import { noATeamMessage, experienceColors } from "../utils/const";
 import { a11yProps, errorToString } from "../utils/func.js";
 
@@ -40,9 +40,8 @@ export function ATeam() {
   useEffect(() => {
     if (!ateamId) return;
     if (!ateam) dispatch(getATeam(ateamId));
-    if (!members) dispatch(getATeamMembers(ateamId));
     if (!authorities) dispatch(getATeamAuth(ateamId));
-  }, [dispatch, ateamId, ateam, members, authorities]);
+  }, [dispatch, ateamId, ateam, authorities]);
 
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);
