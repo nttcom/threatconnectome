@@ -30,6 +30,7 @@ import dialogStyle from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useCreateTopicMutation,
+  useUpdateTopicMutation,
   useCreateActionMutation,
   useGetUserMeQuery,
   useUpdateActionMutation,
@@ -42,7 +43,7 @@ import {
   getPTeamTagsSummary,
 } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
-import { fetchFlashsense, updateTopic } from "../utils/api";
+import { fetchFlashsense } from "../utils/api";
 import { actionTypes } from "../utils/const";
 import { validateNotEmpty, validateUUID, setEquals, errorToString } from "../utils/func";
 
@@ -99,6 +100,7 @@ export function TopicModal(props) {
   const [updateAction] = useUpdateActionMutation();
   const [deleteAction] = useDeleteActionMutation();
   const [createTopic] = useCreateTopicMutation();
+  const [updateTopic] = useUpdateTopicMutation();
 
   const dispatch = useDispatch();
 
@@ -285,7 +287,13 @@ export function TopicModal(props) {
     }
 
     async function updateTopicPromise() {
-      return updateTopic(topicId, data).catch((error) => operationError(error));
+      return updateTopic({ topicId: topicId, data: data })
+        .unwrap()
+        .catch((error) =>
+          enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+            variant: "error",
+          }),
+        );
     }
 
     async function updateActionPromise() {
