@@ -38,3 +38,6 @@ jobs:
           scan-type: "fs"
           scan-ref: "./web"
           trivy-config: trivy.yaml
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
+          TRIVY_JAVA_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-java-db,public.ecr.aws/aquasecurity/trivy-java-db
