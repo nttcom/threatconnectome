@@ -144,7 +144,6 @@ export const tcApi = createApi({
       ],
       transformResponse: _responseListToDictConverter("user_id"),
     }),
-
     deleteATeamMember: builder.mutation({
       query: ({ ateamId, userId }) => ({
         url: `ateams/${ateamId}/members/${userId}`,
@@ -372,7 +371,6 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
-
     updateATeamTopicComment: builder.mutation({
       query: ({ ateamId, topicId, commentId, data }) => ({
         url: `ateams/${ateamId}/topiccomment/${topicId}/${commentId}`,
@@ -380,7 +378,6 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
-
     deleteATeamTopicComment: builder.mutation({
       query: ({ ateamId, topicId, commentId }) => ({
         url: `ateams/${ateamId}/topiccomment/${topicId}/${commentId}`,
@@ -403,7 +400,6 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
-
     updateTopic: builder.mutation({
       query: ({ topicId, data }) => ({
         url: `topics/${topicId}`,
@@ -411,7 +407,6 @@ export const tcApi = createApi({
         body: data,
       }),
     }),
-
     deleteTopic: builder.mutation({
       query: (topicId) => ({
         url: `topics/${topicId}`,
