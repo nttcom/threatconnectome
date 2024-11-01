@@ -303,7 +303,7 @@ export function TopicModal(props) {
         };
         if (action.action_id === null) {
           promiseArray.push(
-            createAction({ actionRequest })
+            createAction(actionRequest)
               .unwrap()
               .catch((error) => {
                 enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
