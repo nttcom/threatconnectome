@@ -370,7 +370,7 @@ export const tcApi = createApi({
     /* TopicAction */
     getPTeamTopicActions: builder.query({
       query: ({ topicId, pteamId }) => ({
-        url: `/topics/${topicId}/actions/pteam/${pteamId}`,
+        url: `topics/${topicId}/actions/pteam/${pteamId}`,
         method: "GET",
       }),
       providesTags: (result, error, arg) => [
