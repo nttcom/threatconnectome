@@ -49,6 +49,7 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "TopicAction", id: "ALL" }],
     }),
     updateAction: builder.mutation({
       query: ({ actionId, data }) => ({
@@ -56,12 +57,14 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "TopicAction", id: arg.actionId }],
     }),
     deleteAction: builder.mutation({
       query: (actionId) => ({
         url: `/actions/${actionId}`,
         method: "DELETE",
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "TopicAction", id: arg.actionId }],
     }),
 
     /* Action Log */
@@ -295,6 +298,21 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* TopicAction */
+    getPTeamTopicActions: builder.query({
+      query: ({ topicId, pteamId }) => ({
+        url: `/topics/${topicId}/actions/pteam/${pteamId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        ...(result?.actions.reduce(
+          (ret, action) => [...ret, { type: "TopicAction", id: action.action_id }],
+          [],
+        ) ?? []),
+        { type: "TopicAction", id: "ALL" },
+      ],
+    }),
+
     /* Topic Comment */
     createATeamTopicComment: builder.mutation({
       query: ({ ateamId, topicId, data }) => ({
@@ -402,6 +420,7 @@ export const {
   useCreateATeamInvitationMutation,
   useApplyATeamInvitationMutation,
   useGetATeamMembersQuery,
+  useGetPTeamTopicActionsQuery,
   useDeleteATeamMemberMutation,
   useDeleteATeamTopicCommentMutation,
   useCreateATeamTopicCommentMutation,

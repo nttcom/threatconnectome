@@ -7,7 +7,6 @@ import {
   getPTeamAuthInfo as apiGetPTeamAuthInfo,
   getPTeamMembers as apiGetPTeamMembers,
   getPTeamServiceTaggedTopicIds as apiGetPTeamServiceTaggedTopicIds,
-  getPTeamTopicActions as apiGetPTeamTopicActions,
   getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
   getPTeamTagsSummary as apiGetPTeamTagsSummary,
   getTicketsRelatedToServiceTopicTag as apiGetTicketsRelatedToServiceTopicTag,
@@ -94,16 +93,6 @@ export const getTicketsRelatedToServiceTopicTag = createAsyncThunk(
     })),
 );
 
-export const getPTeamTopicActions = createAsyncThunk(
-  "pteam/getPTeamTopicActions",
-  async (data) =>
-    await apiGetPTeamTopicActions(data.pteamId, data.topicId).then((response) => ({
-      actions: response.data.actions,
-      pteamId: data.pteamId,
-      topicId: data.topicId,
-    })),
-);
-
 export const getPTeamServiceTagsSummary = createAsyncThunk(
   "pteam/getPTeamServiceTagsSummary",
   async (data) =>
@@ -132,7 +121,6 @@ const _initialState = {
   serviceDependencies: {}, // dict[serviceId: list[dependency]]
   taggedTopics: {},
   tickets: {}, // dict[serviceId: dict[tagId: dict[topicId: list[ticket]]]]
-  topicActions: {},
   serviceTagsSummaries: {},
   pteamTagsSummaries: {},
   serviceThumbnails: {}, // dict[serviceId: dataURL | noImageAvailableUrl(=NoThumbnail)]
@@ -221,13 +209,6 @@ const pteamSlice = createSlice({
               [action.payload.topicId]: action.payload.data,
             },
           },
-        },
-      }))
-      .addCase(getPTeamTopicActions.fulfilled, (state, action) => ({
-        ...state,
-        topicActions: {
-          ...state.topicActions,
-          [action.payload.topicId]: action.payload.actions,
         },
       }))
       .addCase(getPTeamServiceTagsSummary.fulfilled, (state, action) => ({
