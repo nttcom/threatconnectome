@@ -23,9 +23,6 @@ export const getPTeamServiceTaggedTopicIds = async (pteamId, serviceId, tagId) =
 export const getTicketsRelatedToServiceTopicTag = async (pteamId, serviceId, topicId, tagId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/topics/${topicId}/tags/${tagId}/tickets`);
 
-export const getPTeamTopicActions = async (pteamId, topicId) =>
-  axios.get(`/topics/${topicId}/actions/pteam/${pteamId}`);
-
 export const getPTeamServiceTagsSummary = async (pteamId, serviceId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/summary`);
 

@@ -37,7 +37,6 @@ import {
   useDeleteActionMutation,
 } from "../services/tcApi";
 import {
-  getPTeamTopicActions,
   getPTeamServiceTaggedTopicIds,
   getPTeamServiceTagsSummary,
   getPTeamTagsSummary,
@@ -186,7 +185,6 @@ export function TopicModal(props) {
     // fix topic state
     await Promise.all([
       dispatch(getTopic(topicId)),
-      dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
       dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
       dispatch(getPTeamTagsSummary({ pteamId: pteamId })),
     ]);

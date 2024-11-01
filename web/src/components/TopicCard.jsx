@@ -19,13 +19,11 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import {
-  getDependencies,
-  getPTeamTopicActions,
-  getTicketsRelatedToServiceTopicTag,
-} from "../slices/pteam";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetPTeamTopicActionsQuery } from "../services/tcApi";
+import { getDependencies, getTicketsRelatedToServiceTopicTag } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
-import { dateTimeFormat } from "../utils/func";
+import { dateTimeFormat, errorToString } from "../utils/func";
 import { parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import { ActionItem } from "./ActionItem";
@@ -44,15 +42,25 @@ export function TopicCard(props) {
   const members = useSelector((state) => state.pteam.members); // dispatched by Tag.jsx
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
   const ticketsDict = useSelector((state) => state.pteam.tickets);
-  const pteamTopicActionsDict = useSelector((state) => state.pteam.topicActions);
   const topics = useSelector((state) => state.topics.topics);
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
+
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const skipByPTeamId = pteamId === undefined;
+  const skipByTopicId = topicId === undefined;
+  const {
+    data: pteamTopicActionsData,
+    error: pteamTopicActionsError,
+    isLoading: pteamTopicActionsIsLoading,
+  } = useGetPTeamTopicActionsQuery(
+    { topicId, pteamId },
+    { skip: skipByAuth || skipByPTeamId || skipByTopicId },
+  );
 
   const serviceId = service?.service_id;
   const dependencies = serviceDependencies[serviceId];
   const topic = topics[topicId];
   const tickets = ticketsDict[serviceId]?.[tagId]?.[topicId];
-  const pteamTopicActions = pteamTopicActionsDict[topicId];
 
   const dispatch = useDispatch();
 
@@ -84,18 +92,17 @@ export function TopicCard(props) {
     }
   }, [dispatch, topicId, topic]);
 
-  useEffect(() => {
-    if (!pteamId || !topicId) return;
-    if (pteamTopicActions === undefined) {
-      dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId }));
-    }
-  }, [dispatch, pteamId, topicId, pteamTopicActions]);
-
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
+  if (skipByAuth || skipByPTeamId || skipByTopicId) return <></>;
+  if (pteamTopicActionsError)
+    return <>{`Cannot get topicActions: ${errorToString(pteamTopicActionsError)}`}</>;
+  if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
   if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets || !allTags) {
     return <>Now Loading...</>;
   }
+
+  const pteamTopicActions = pteamTopicActionsData.actions;
 
   const isSolved = !tickets.find(
     (ticket) => ticket.current_ticket_status?.topic_status !== "completed",
