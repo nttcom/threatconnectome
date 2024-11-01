@@ -6,7 +6,6 @@ import {
   getPTeamAuth as apiGetPTeamAuth,
   getPTeamAuthInfo as apiGetPTeamAuthInfo,
   getPTeamMembers as apiGetPTeamMembers,
-  getPTeamServiceTaggedTopicIds as apiGetPTeamServiceTaggedTopicIds,
   getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
   getPTeamTagsSummary as apiGetPTeamTagsSummary,
   getTicketsRelatedToServiceTopicTag as apiGetTicketsRelatedToServiceTopicTag,
@@ -61,19 +60,6 @@ export const getDependencies = createAsyncThunk(
       serviceId: data.serviceId,
       data: response.data,
     })),
-);
-
-export const getPTeamServiceTaggedTopicIds = createAsyncThunk(
-  "pteam/getPTeamServiceTaggedTopicIds",
-  async (data) =>
-    await apiGetPTeamServiceTaggedTopicIds(data.pteamId, data.serviceId, data.tagId).then(
-      (response) => ({
-        pteamId: data.pteamId,
-        serviceId: data.serviceId,
-        tagId: data.tagId,
-        data: response.data,
-      }),
-    ),
 );
 
 export const getTicketsRelatedToServiceTopicTag = createAsyncThunk(
@@ -186,16 +172,6 @@ const pteamSlice = createSlice({
         serviceDependencies: {
           ...state.serviceDependencies,
           [action.payload.serviceId]: action.payload.data,
-        },
-      }))
-      .addCase(getPTeamServiceTaggedTopicIds.fulfilled, (state, action) => ({
-        ...state,
-        taggedTopics: {
-          ...state.taggedTopics,
-          [action.payload.serviceId]: {
-            ...state.taggedTopics[action.payload.serviceId],
-            [action.payload.tagId]: action.payload.data,
-          },
         },
       }))
       .addCase(getTicketsRelatedToServiceTopicTag.fulfilled, (state, action) => ({

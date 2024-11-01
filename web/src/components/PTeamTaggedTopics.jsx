@@ -10,15 +10,14 @@ import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 import { TopicCard } from "./TopicCard";
 
 export function PTeamTaggedTopics(props) {
-  const { pteamId, tagId, service, isSolved, references } = props;
+  const { pteamId, tagId, service, isSolved, references, taggedTopics } = props;
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
-  const taggedTopics = useSelector((state) => state.pteam.taggedTopics); // dispatched by parent
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
-  const targets = taggedTopics?.[service?.service_id]?.[tagId]?.[isSolved ? "solved" : "unsolved"];
+  const targets = taggedTopics?.[isSolved ? "solved" : "unsolved"];
 
   if (targets === undefined || !allTags) {
     return <>Loading...</>;
@@ -100,4 +99,5 @@ PTeamTaggedTopics.propTypes = {
   service: PropTypes.object.isRequired,
   isSolved: PropTypes.bool.isRequired,
   references: PropTypes.array.isRequired,
+  taggedTopics: PropTypes.object.isRequired,
 };
