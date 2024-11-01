@@ -105,7 +105,6 @@ const _initialState = {
   authorities: undefined,
   members: undefined,
   serviceDependencies: {}, // dict[serviceId: list[dependency]]
-  taggedTopics: {},
   tickets: {}, // dict[serviceId: dict[tagId: dict[topicId: list[ticket]]]]
   serviceTagsSummaries: {},
   pteamTagsSummaries: {},
