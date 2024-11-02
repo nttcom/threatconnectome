@@ -35,6 +35,7 @@ import {
   useGetUserMeQuery,
   useUpdateActionMutation,
   useDeleteActionMutation,
+  useGetTagsQuery,
 } from "../services/tcApi";
 import { getPTeamServiceTagsSummary, getPTeamTagsSummary } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
@@ -77,7 +78,12 @@ export function TopicModal(props) {
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const topics = useSelector((state) => state.topics.topics);
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip });
 
   const src = topics[presetTopicId];
   const [topicId, setTopicId] = useState("");
@@ -132,6 +138,8 @@ export function TopicModal(props) {
   }, [open]);
 
   if (skip) return <></>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (!pteamId || !allTags) return <></>;

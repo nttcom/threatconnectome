@@ -41,6 +41,7 @@ import {
   useGetUserMeQuery,
   useUpdateActionMutation,
   useUpdateTopicMutation,
+  useGetTagsQuery,
 } from "../services/tcApi";
 import { getTopic } from "../slices/topics";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
@@ -66,7 +67,12 @@ export function TopicEditModal(props) {
   const [updating, setUpdating] = useState(false);
   const [updateTopic] = useUpdateTopicMutation();
 
-  const allTags = useSelector((state) => state.tags.allTags);
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip });
 
   const { enqueueSnackbar } = useSnackbar();
   const [createAction] = useCreateActionMutation();
@@ -74,7 +80,6 @@ export function TopicEditModal(props) {
   const [deleteAction] = useDeleteActionMutation();
   const dispatch = useDispatch();
 
-  const skip = useSkipUntilAuthTokenIsReady();
   const {
     data: userMe,
     error: userMeError,
@@ -91,6 +96,8 @@ export function TopicEditModal(props) {
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   const createActionTagOptions = (tagIdList) => {
     if (!allTags) return [];

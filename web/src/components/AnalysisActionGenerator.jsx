@@ -17,11 +17,13 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
 
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetTagsQuery } from "../services/tcApi";
 import { actionTypes } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 export function AnalysisActionGenerator(props) {
   const { text, tagIds, action, onGenerate, onEdit, onCancel } = props;
@@ -30,7 +32,12 @@ export function AnalysisActionGenerator(props) {
     throw new Error("Internal Error: Ambiguous mode");
   }
 
-  const allTags = useSelector((state) => state.tags.allTags);
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip });
 
   const [actionType, setActionType] = useState(action?.action_type ?? null);
   const [actionTemplate, setActionTemplate] = useState(null);
@@ -38,9 +45,15 @@ export function AnalysisActionGenerator(props) {
   const [productName, setProductName] = useState(null);
   const [productVersion, setProductVersion] = useState(null);
   const [description, setDescription] = useState(action?.action ?? null);
-  const [actionTagIds, setActionTagIds] = useState(
-    allTags.filter((tag) => action?.ext?.tags?.includes(tag.tag_name)).map((tag) => tag.tag_id),
-  );
+  const [actionTagIds, setActionTagIds] = useState([]);
+  useEffect(() => {
+    if (allTags) {
+      setActionTagIds(
+        allTags.filter((tag) => action?.ext?.tags?.includes(tag.tag_name)).map((tag) => tag.tag_id),
+      );
+    }
+  }, [allTags, action]);
+
   const [actionVulnerables, setActionVulnerables] = useState(
     action?.ext?.vulnerable_versions
       ? Object.entries(action.ext.vulnerable_versions).reduce(
@@ -52,6 +65,10 @@ export function AnalysisActionGenerator(props) {
         )
       : {},
   );
+
+  if (skip) return <></>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   const cancelButton = onCancel ? (
     <IconButton onClick={onCancel}>

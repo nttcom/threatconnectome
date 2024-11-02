@@ -9,12 +9,11 @@ import { AppBar } from "../components/AppBar";
 import { Drawer } from "../components/Drawer";
 import { Main } from "../components/Main";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetUserMeQuery, useTryLoginMutation } from "../services/tcApi";
+import { useGetUserMeQuery, useTryLoginMutation, useGetTagsQuery } from "../services/tcApi";
 import { setATeamId } from "../slices/ateam";
 import { setAuthToken } from "../slices/auth";
 import { setPTeamId } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
-import { getTags } from "../slices/tags";
 import { setToken } from "../utils/api";
 import { mainMaxWidth } from "../utils/const";
 import { errorToString } from "../utils/func";
@@ -33,7 +32,11 @@ export function App() {
 
   const dispatch = useDispatch();
   const system = useSelector((state) => state.system);
-  const allTags = useSelector((state) => state.tags.allTags);
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip });
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -128,13 +131,14 @@ export function App() {
   useEffect(() => {
     if (!loadTags) return;
     setLoadTags(false);
-    dispatch(getTags());
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [loadTags]);
 
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   return (
     <>

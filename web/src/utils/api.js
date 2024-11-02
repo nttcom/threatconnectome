@@ -61,8 +61,20 @@ export const searchTopics = async (params) => axios.get("topics/search", { param
 
 export const fetchFlashsense = async (topicId) => axios.get(`/topics/fetch_fs/${topicId}`);
 
+// actions
+export const createAction = async (data) => axios.post("/actions", data);
+
+export const updateAction = async (actionId, data) => axios.put(`/actions/${actionId}`, data);
+
+export const deleteAction = async (actionId) => axios.delete(`/actions/${actionId}`);
+
 // tags
 export const getTags = async () => axios.get("/tags");
+
+export const createTag = async (data) => axios.post("/tags", data);
+
+// actionlogs
+export const createActionLog = async (data) => axios.post("/actionlogs", data);
 
 // external
 export const checkSlack = async (data) => axios.post("/external/slack/check", data);
