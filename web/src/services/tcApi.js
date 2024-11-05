@@ -381,6 +381,19 @@ export const tcApi = createApi({
         { type: "TopicAction", id: "ALL" },
       ],
     }),
+    getTopicActions: builder.query({
+      query: (topicId) => ({
+        url: `topics/${topicId}/actions/user/me`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        ...(result?.reduce(
+          (ret, action) => [...ret, { type: "TopicAction", id: action.action_id }],
+          [],
+        ) ?? []),
+        { type: "TopicAction", id: "ALL" },
+      ],
+    }),
 
     /* Topic Comment */
     createATeamTopicComment: builder.mutation({
@@ -517,6 +530,7 @@ export const {
   useApplyATeamInvitationMutation,
   useGetATeamMembersQuery,
   useGetPTeamTopicActionsQuery,
+  useGetTopicActionsQuery,
   useDeleteATeamMemberMutation,
   useDeleteATeamTopicCommentMutation,
   useCreateATeamTopicCommentMutation,
