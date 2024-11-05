@@ -107,12 +107,23 @@ export const tcApi = createApi({
     }),
 
     /* ATeam Invitation */
+    getATeamInvited: builder.query({
+      query: (invitationId) => ({
+        url: `ateams/invitation/${invitationId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, invitationId) => [
+        { type: "AteamInvitation", id: "ALL" },
+        { type: "Ateam", id: "ateamId" },
+      ],
+    }),
     createATeamInvitation: builder.mutation({
       query: ({ ateamId, data }) => ({
         url: `ateams/${ateamId}/invitation`,
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "ATeamInvitation", id: "ALL" }],
     }),
     applyATeamInvitation: builder.mutation({
       query: (data) => ({
@@ -515,6 +526,7 @@ export const {
   useUpdateATeamAuthMutation,
   useCreateATeamInvitationMutation,
   useApplyATeamInvitationMutation,
+  useGetATeamInvitedQuery,
   useGetATeamMembersQuery,
   useGetPTeamTopicActionsQuery,
   useDeleteATeamMemberMutation,
