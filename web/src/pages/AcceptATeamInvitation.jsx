@@ -26,8 +26,8 @@ export function AcceptATeamInvitation() {
   } = useGetATeamInvitedQuery(tokenId, { skip });
 
   if (skip) return <></>;
-  if (invitationError) return <>{`Cannot get Members: ${errorToString(invitationError)}`}</>;
-  if (invitationIsLoading) return <>Now loading Members...</>;
+  if (invitationError) return <>This invitation is invalid or already expired.</>;
+  if (invitationIsLoading) return <>Now loading ATeamInvitation...</>;
 
   const handleAccept = async (event) => {
     event.preventDefault();
