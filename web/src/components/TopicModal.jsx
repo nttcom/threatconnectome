@@ -36,11 +36,7 @@ import {
   useUpdateActionMutation,
   useDeleteActionMutation,
 } from "../services/tcApi";
-import {
-  getPTeamServiceTaggedTopicIds,
-  getPTeamServiceTagsSummary,
-  getPTeamTagsSummary,
-} from "../slices/pteam";
+import { getPTeamServiceTagsSummary, getPTeamTagsSummary } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { fetchFlashsense } from "../utils/api";
 import { actionTypes } from "../utils/const";
@@ -188,18 +184,6 @@ export function TopicModal(props) {
       dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
       dispatch(getPTeamTagsSummary({ pteamId: pteamId })),
     ]);
-    // update only if needed
-    if (pteamId && presetTagId) {
-      await Promise.all([
-        dispatch(
-          getPTeamServiceTaggedTopicIds({
-            pteamId: pteamId,
-            serviceId: serviceId,
-            tagId: presetTagId,
-          }),
-        ),
-      ]);
-    }
   };
 
   const handleCreateTopic = async () => {
@@ -443,15 +427,6 @@ export function TopicModal(props) {
   };
 
   const handleDeleteTopic = () => {
-    if (presetTagId) {
-      dispatch(
-        getPTeamServiceTaggedTopicIds({
-          pteamId: pteamId,
-          serviceId: serviceId,
-          tagId: presetTagId,
-        }),
-      );
-    }
     dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
     dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
   };

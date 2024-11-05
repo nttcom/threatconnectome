@@ -10,21 +10,18 @@ import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 import { TopicCard } from "./TopicCard";
 
 export function PTeamTaggedTopics(props) {
-  const { pteamId, tagId, service, isSolved, references } = props;
+  const { pteamId, tagId, service, references, taggedTopics } = props;
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
-  const taggedTopics = useSelector((state) => state.pteam.taggedTopics); // dispatched by parent
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
-  const targets = taggedTopics?.[service?.service_id]?.[tagId]?.[isSolved ? "solved" : "unsolved"];
-
-  if (targets === undefined || !allTags) {
+  if (taggedTopics === undefined || !allTags) {
     return <>Loading...</>;
   }
 
-  const targetTopicIds = targets.topic_ids.slice(perPage * (page - 1), perPage * page);
+  const targetTopicIds = taggedTopics.topic_ids.slice(perPage * (page - 1), perPage * page);
   const presetTagId = tagId;
   const presetParentTagId = allTags.find((tag) => tag.tag_id === tagId)?.parent_id;
 
@@ -33,7 +30,7 @@ export function PTeamTaggedTopics(props) {
       <Pagination
         shape="rounded"
         page={page}
-        count={Math.ceil(targets.topic_ids.length / perPage)}
+        count={Math.ceil(taggedTopics.topic_ids.length / perPage)}
         onChange={(event, value) => setPage(value)}
       />
       <Select
@@ -64,7 +61,7 @@ export function PTeamTaggedTopics(props) {
           <SSVCPriorityCountChip
             key={ssvcPriority}
             ssvcPriority={ssvcPriority}
-            count={targets.ssvc_priority_count[ssvcPriority]}
+            count={taggedTopics.ssvc_priority_count[ssvcPriority]}
             outerSx={{ mr: "10px" }}
           />
         ))}
@@ -98,6 +95,6 @@ PTeamTaggedTopics.propTypes = {
   pteamId: PropTypes.string.isRequired,
   tagId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
-  isSolved: PropTypes.bool.isRequired,
   references: PropTypes.array.isRequired,
+  taggedTopics: PropTypes.object.isRequired,
 };
