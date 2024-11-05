@@ -42,7 +42,7 @@ import {
   useUpdateActionMutation,
   useUpdateTopicMutation,
 } from "../services/tcApi";
-import { getActions, getTopic } from "../slices/topics";
+import { getTopic } from "../slices/topics";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -185,9 +185,6 @@ export function TopicEditModal(props) {
           await deleteAction(actionId);
         }
         enqueueSnackbar("Remofing actions succeeded", { variant: "success" });
-      }
-      if (newActions.length + updatedActions.length + removedActionIds.length > 0) {
-        await dispatch(getActions(currentTopic.topic_id));
       }
       setTopicId(""); // mark reset at next open, only if succeeded
     } catch (error) {

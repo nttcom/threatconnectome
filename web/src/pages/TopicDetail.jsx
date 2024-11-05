@@ -13,8 +13,10 @@ import { useParams } from "react-router-dom";
 import { ActionTypeIcon } from "../components/ActionTypeIcon";
 import { TopicSSVCCards } from "../components/TopicSSVCCards";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { getTopic, getActions } from "../slices/topics";
+import { useGetTopicActionsQuery } from "../services/tcApi";
+import { getTopic } from "../slices/topics";
 import { threatImpactNames, threatImpactProps } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 const threatImpactColor = {
   immediate: {
@@ -39,8 +41,8 @@ const artifactTagChip = (chipNumber) => {
   return chipNumber <= artifactTagMax ? chipNumber : `${artifactTagMax}+`;
 };
 
-function pickAffectedVersions(actions, tagName) {
-  const versions = actions.reduce(
+function pickAffectedVersions(topicActions, tagName) {
+  const versions = topicActions.reduce(
     (ret, action) => [...ret, ...(action.ext?.vulnerable_versions?.[tagName] ?? [])],
     [],
   );
@@ -58,12 +60,10 @@ export function TopicDetail() {
   const skip = useSkipUntilAuthTokenIsReady();
 
   const topics = useSelector((state) => state.topics.topics);
-  const topicActions = useSelector((state) => state.topics.actions);
 
   const dispatch = useDispatch();
 
   const topic = topicId && topics ? topics[topicId] : undefined;
-  const actions = topicId && topicActions ? topicActions[topicId] : undefined;
 
   useEffect(() => {
     if (skip) return; // wait for login completed
@@ -72,15 +72,17 @@ export function TopicDetail() {
     dispatch(getTopic(topicId));
   }, [skip, topicId, topic, dispatch]);
 
-  useEffect(() => {
-    if (skip) return; // wait for login completed
-    if (!topicId) return; // will never happen
-    if (actions) return; // nothing to do any more
-    dispatch(getActions(topicId));
-  }, [skip, topicId, actions, dispatch]);
+  const {
+    data: topicActions,
+    error: topicActionsError,
+    isLoading: topicActionsIsLoading,
+  } = useGetTopicActionsQuery(topicId, { skip });
 
   if (skip) return <></>;
-  if (!topic || !actions) return <>Now loading...</>;
+  if (!topic) return <>Now loading...</>;
+  if (topicActionsError)
+    return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
+  if (topicActionsIsLoading) return <>Now loading topicActions...</>;
 
   const threatImpactName = threatImpactNames[topic.threat_impact];
   const baseStyle = threatImpactProps[threatImpactName].style;
@@ -134,7 +136,7 @@ export function TopicDetail() {
                       flexDirection="column"
                       sx={{ width: "50%", minWidth: "50%" }}
                     >
-                      {pickAffectedVersions(actions, artifactTag.tag_name).map(
+                      {pickAffectedVersions(topicActions, artifactTag.tag_name).map(
                         (affectedVersion) => (
                           <Box
                             key={affectedVersion}
@@ -234,12 +236,12 @@ export function TopicDetail() {
             <Box alignItems="center" display="flex" flexDirection="row">
               <Typography sx={{ fontWeight: "bold" }}>Action</Typography>
             </Box>
-            {actions.length === 0 ? (
+            {topicActions.length === 0 ? (
               <Typography sx={{ margin: 1 }}>No data</Typography>
             ) : (
               <>
                 <Box>
-                  {actions.map((action) => (
+                  {topicActions.map((action) => (
                     <MenuItem
                       key={action.action_id}
                       sx={{

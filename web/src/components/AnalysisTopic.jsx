@@ -41,11 +41,13 @@ import { TopicEditModal } from "../components/TopicEditModal";
 import { UUIDTypography } from "../components/UUIDTypography";
 import { WarningTooltip } from "../components/WarningTooltip";
 import styles from "../cssModule/button.module.css";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useCreateATeamTopicCommentMutation,
+  useGetTopicActionsQuery,
   useUpdateATeamTopicCommentMutation,
 } from "../services/tcApi";
-import { getActions, getTopic } from "../slices/topics";
+import { getTopic } from "../slices/topics";
 import { getATeamTopicComments as apiGetATeamTopicComments } from "../utils/api";
 import { rootPrefix, threatImpactNames } from "../utils/const";
 import { a11yProps, dateTimeFormat, errorToString, tagsMatched } from "../utils/func.js";
@@ -66,7 +68,6 @@ export function AnalysisTopic(props) {
   const [updateATeamTopicComment] = useUpdateATeamTopicCommentMutation();
 
   const topics = useSelector((state) => state.topics.topics);
-  const actions = useSelector((state) => state.topics.actions);
 
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
@@ -77,10 +78,16 @@ export function AnalysisTopic(props) {
     setActionExpanded(isExpanded ? panel : false);
   };
 
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: topicActions,
+    error: topicActionsError,
+    isLoading: topicActionsIsLoading,
+  } = useGetTopicActionsQuery(targetTopic.topic_id, { skip });
+
   useEffect(() => {
     handleReloadComments(targetTopic.topic_id);
     if (topics?.[targetTopic.topic_id] === undefined) dispatch(getTopic(targetTopic.topic_id));
-    if (actions?.[targetTopic.topic_id] === undefined) dispatch(getActions(targetTopic.topic_id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetTopic.topic_id]);
 
@@ -163,17 +170,18 @@ export function AnalysisTopic(props) {
     return `${rootPrefix}/tags/${tagId}?` + tmpParams.toString();
   };
   const topicDetail = topics?.[targetTopic.topic_id];
-  const topicActions = actions?.[targetTopic.topic_id];
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
   /* block rendering until data ready */
-  if (!ateam.ateam_id || !topicDetail || !topicActions) return <Box sx={{ m: 2 }}>Loading...</Box>;
+  if (skip) return <></>;
+  if (!ateam.ateam_id || !topicDetail) return <Box sx={{ m: 2 }}>Loading...</Box>;
+  if (topicActionsError)
+    return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
+  if (topicActionsIsLoading) return <>Now loading topicActions...</>;
 
   const topicTagNames = topicDetail.tags.map((tag) => tag.tag_name);
-  const recommendedActions = actions?.[targetTopic.topic_id]?.filter(
-    (action) => action.recommended,
-  );
-  const otherActions = actions?.[targetTopic.topic_id]?.filter((action) => !action.recommended);
+  const recommendedActions = topicActions.filter((action) => action.recommended);
+  const otherActions = topicActions.filter((action) => !action.recommended);
 
   const pteamContactInfoDict = ateam.pteams.reduce(
     (dict, pteam) => ({

@@ -35,8 +35,8 @@ import { FormattedDateTimeWithTooltip } from "../components/FormattedDateTimeWit
 import { TopicSearchModal } from "../components/TopicSearchModal";
 import styles from "../cssModule/button.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useSearchTopicsQuery } from "../services/tcApi";
-import { getActions, getTopic } from "../slices/topics";
+import { useGetTopicActionsQuery, useSearchTopicsQuery } from "../services/tcApi";
+import { getTopic } from "../slices/topics";
 import { difficulty, difficultyColors } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -48,17 +48,26 @@ function TopicManagementTableRow(props) {
   const location = useLocation();
 
   const topics = useSelector((state) => state.topics.topics);
-  const actions = useSelector((state) => state.topics.actions);
   const params = new URLSearchParams(location.search);
 
   useEffect(() => {
     if (topics?.[topicId] === undefined) dispatch(getTopic(topicId));
-    if (actions?.[topicId] === undefined) dispatch(getActions(topicId));
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, []);
 
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: topicActions,
+    error: topicActionsError,
+    isLoading: topicActionsIsLoading,
+  } = useGetTopicActionsQuery(topicId, { skip });
+
+  if (skip) return <></>;
+  if (topicActionsError)
+    return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
+  if (topicActionsIsLoading) return <>Now loading topicActions...</>;
+
   const topic = topics?.[topicId];
-  const actionList = actions?.[topicId];
 
   if (!topic) {
     return (
@@ -84,7 +93,7 @@ function TopicManagementTableRow(props) {
         <FormattedDateTimeWithTooltip utcString={topic.updated_at} />
       </TableCell>
       <TableCell align="center">
-        {actionList?.length > 0 ? (
+        {topicActions?.length > 0 ? (
           <CheckCircleOutlineIcon color="success" />
         ) : (
           <HorizontalRuleIcon sx={{ color: grey[500] }} />

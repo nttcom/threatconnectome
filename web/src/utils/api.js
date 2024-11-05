@@ -65,9 +65,6 @@ export const updateTopic = async (topicId, data) => axios.put(`/topics/${topicId
 
 export const searchTopics = async (params) => axios.get("topics/search", { params: params ?? {} });
 
-export const getUserTopicActions = async (topicId) =>
-  axios.get(`/topics/${topicId}/actions/user/me`);
-
 export const fetchFlashsense = async (topicId) => axios.get(`/topics/fetch_fs/${topicId}`);
 
 // tags
