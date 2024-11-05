@@ -17,7 +17,7 @@ import { a11yProps, errorToString } from "../utils/func.js";
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
 
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by App
   const pteam = useSelector((state) => state.pteam.pteam);
@@ -40,7 +40,7 @@ export function Tag() {
   } = useGetPTeamServiceTaggedTopicIdsQuery(
     { pteamId, serviceId, tagId },
     {
-      skip: skip || !pteamId || !serviceId || !tagId,
+      skip: skipByAuth || !pteamId || !serviceId || !tagId,
     },
   );
 
@@ -48,7 +48,7 @@ export function Tag() {
   const currentTagDependencies = dependencies?.filter((dependency) => dependency.tag_id === tagId);
 
   useEffect(() => {
-    if (skip) return; // wait login completed
+    if (skipByAuth) return; // wait login completed
     if (!pteamId) return; // wait fixed by App
     if (!pteam) {
       dispatch(getPTeam(pteamId));
@@ -75,7 +75,7 @@ export function Tag() {
       return;
     }
   }, [
-    skip,
+    skipByAuth,
     pteam,
     dependencies,
     currentTagDependencies,
@@ -89,14 +89,14 @@ export function Tag() {
   ]);
 
   useEffect(() => {
-    if (skip) return;
+    if (skipByAuth) return;
     if (!pteamId) return;
     if (!members) {
       dispatch(getPTeamMembers(pteamId));
     }
-  }, [dispatch, skip, pteamId, members]);
+  }, [dispatch, skipByAuth, pteamId, members]);
 
-  if (skip || !allTags || !pteam || !members || !currentTagDependencies) {
+  if (skipByAuth || !allTags || !pteam || !members || !currentTagDependencies) {
     return <>Now loading...</>;
   }
 
@@ -114,6 +114,9 @@ export function Tag() {
     version: dependency.version,
     service: serviceDict.service_name,
   }));
+
+  const taggedTopicsUnsolved = taggedTopics?.["unsolved"];
+  const taggedTopicsSolved = taggedTopics?.["solved"];
 
   const handleTabChange = (event, value) => setTabValue(value);
 
@@ -158,9 +161,8 @@ export function Tag() {
             pteamId={pteamId}
             tagId={tagId}
             service={serviceDict}
-            isSolved={false}
             references={references}
-            taggedTopics={taggedTopics}
+            taggedTopics={taggedTopicsUnsolved}
           />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
@@ -168,9 +170,8 @@ export function Tag() {
             pteamId={pteamId}
             tagId={tagId}
             service={serviceDict}
-            isSolved={true}
             references={references}
-            taggedTopics={taggedTopics}
+            taggedTopics={taggedTopicsSolved}
           />
         </TabPanel>
       </Box>
