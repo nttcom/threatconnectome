@@ -132,6 +132,7 @@ export function App() {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [loadTags]);
 
+  if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
