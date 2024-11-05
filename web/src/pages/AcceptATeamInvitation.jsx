@@ -1,17 +1,14 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useApplyATeamInvitationMutation } from "../services/tcApi";
-import { getATeamInvited } from "../utils/api";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useApplyATeamInvitationMutation, useGetATeamInvitedQuery } from "../services/tcApi";
 import { commonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
 export function AcceptATeamInvitation() {
-  const [detail, setDetail] = useState({});
-  const [errorMessage, setErrorMessage] = useState(null);
-
   const { enqueueSnackbar } = useSnackbar();
   const [applyATeamInvitation] = useApplyATeamInvitationMutation();
 
@@ -20,13 +17,17 @@ export function AcceptATeamInvitation() {
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
 
-  useEffect(() => {
-    getATeamInvited(tokenId)
-      .then((response) => setDetail(response.data))
-      .catch((error) => {
-        setErrorMessage(<Typography>This invitation is invalid or already expired.</Typography>);
-      });
-  }, [tokenId]);
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const skip = skipByAuth || tokenId === undefined;
+  const {
+    data: detail,
+    error: invitationError,
+    isLoading: invitationIsLoading,
+  } = useGetATeamInvitedQuery(tokenId, { skip });
+
+  if (skip) return <></>;
+  if (invitationError) return <>This invitation is invalid or already expired.</>;
+  if (invitationIsLoading) return <>Now loading ATeamInvitation...</>;
 
   const handleAccept = async (event) => {
     event.preventDefault();
@@ -47,7 +48,7 @@ export function AcceptATeamInvitation() {
       .catch((error) => onError(error));
   };
 
-  return detail.ateam_id ? (
+  return (
     <>
       <Typography variant="h6">Do you accept the invitation to the ateam below?</Typography>
       <Typography>ATeam Name: {detail.ateam_name}</Typography>
@@ -61,7 +62,5 @@ export function AcceptATeamInvitation() {
         </Button>
       </Box>
     </>
-  ) : (
-    <>{errorMessage}</>
   );
 }
