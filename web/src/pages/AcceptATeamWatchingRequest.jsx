@@ -1,11 +1,11 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useApplyATeamWatchingRequestMutation } from "../services/tcApi";
-import { getPTeam } from "../slices/pteam";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useApplyATeamWatchingRequestMutation, useGetPTeamQuery } from "../services/tcApi";
 import { getATeamRequested } from "../utils/api";
 import { commonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
@@ -17,13 +17,11 @@ export function AcceptATeamWatchingRequest() {
   const { enqueueSnackbar } = useSnackbar();
   const [applyATeamWatchingRequest] = useApplyATeamWatchingRequestMutation();
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const pteam = useSelector((state) => state.pteam.pteam);
 
   useEffect(() => {
     getATeamRequested(tokenId)
@@ -33,10 +31,16 @@ export function AcceptATeamWatchingRequest() {
       });
   }, [tokenId]);
 
-  useEffect(() => {
-    if (!pteamId) return;
-    if (!pteam) dispatch(getPTeam(pteamId));
-  }, [dispatch, pteamId, pteam]);
+  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip });
+
+  if (skip) return <></>;
+  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading PTeam...</>;
 
   const handleAccept = async (event) => {
     event.preventDefault();
@@ -45,7 +49,6 @@ export function AcceptATeamWatchingRequest() {
         `Now pteam '${pteam?.pteam_name}' is watched by ateam '${detail.ateam_name}'`,
         { variant: "info" },
       );
-      dispatch(getPTeam(pteamId));
       params.delete("token");
       params.set("pteamId", pteamId);
       navigate("/pteam?" + params.toString());

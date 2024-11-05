@@ -39,13 +39,11 @@ import { PTeamServicesListModal } from "../components/PTeamServicesListModal";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import {
-  getPTeam,
-  getPTeamServiceTagsSummary,
-  getPTeamTagsSummary,
-  setPTeamId,
-} from "../slices/pteam";
+import { useGetPTeamQuery } from "../services/tcApi";
+import { getPTeamServiceTagsSummary, getPTeamTagsSummary, setPTeamId } from "../slices/pteam";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
+import { errorToString } from "../utils/func";
+
 const ssvcPriorityCountMax = 99999;
 
 function SearchField(props) {
@@ -124,9 +122,6 @@ export function Status() {
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
-  const skip = useSkipUntilAuthTokenIsReady();
-
-  const pteam = useSelector((state) => state.pteam.pteam);
   const serviceTagsSummaries = useSelector((state) => state.pteam.serviceTagsSummaries);
   const pteamTagsSummaries = useSelector((state) => state.pteam.pteamTagsSummaries);
 
@@ -147,13 +142,16 @@ export function Status() {
     serviceIds: [],
   });
 
+  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip });
+
   useEffect(() => {
-    if (skip) return; // wait login completed
     if (!pteamId) return; // wait fixed by App
-    if (!pteam) {
-      dispatch(getPTeam(pteamId));
-      return;
-    }
+    if (!pteam) return; // wait getQuery
     if (pteam && pteam.pteam_id !== pteamId) {
       // for the case pteam switched. -- looks redundant but necessary, uhmm...
       dispatch(setPTeamId(pteamId));
@@ -187,22 +185,19 @@ export function Status() {
       dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
     }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [skip, pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
+  }, [pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
 
   if (skip) return <></>;
   if (!pteamId) return <>{noPTeamMessage}</>;
-  if (!pteamId || !pteam) {
-    return <>Now loading...</>;
-  }
+  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading PTeam...</>;
 
   const service =
     isActiveAllServicesMode || !serviceId
       ? undefined
       : pteam.services.find((service) => service.service_id === serviceId);
 
-  const handleSBOMUploaded = () => {
-    dispatch(getPTeam(pteamId));
-  };
+  const handleSBOMUploaded = () => {};
 
   if (!serviceId) {
     if (pteam.services.length === 0) {

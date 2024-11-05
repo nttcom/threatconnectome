@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import {
   getDependencies as apiGetDependencies,
-  getPTeam as apiGetPTeam,
   getPTeamAuth as apiGetPTeamAuth,
   getPTeamAuthInfo as apiGetPTeamAuthInfo,
   getPTeamMembers as apiGetPTeamMembers,
@@ -10,15 +9,6 @@ import {
   getPTeamTagsSummary as apiGetPTeamTagsSummary,
   getTicketsRelatedToServiceTopicTag as apiGetTicketsRelatedToServiceTopicTag,
 } from "../utils/api";
-
-export const getPTeam = createAsyncThunk(
-  "pteam/getPTeam",
-  async (pteamId) =>
-    await apiGetPTeam(pteamId).then((response) => ({
-      data: response.data,
-      pteamId: pteamId,
-    })),
-);
 
 export const getPTeamAuthInfo = createAsyncThunk(
   "pteams/getAuthInfo",
@@ -100,7 +90,6 @@ export const getPTeamTagsSummary = createAsyncThunk(
 
 const _initialState = {
   pteamId: undefined,
-  pteam: undefined,
   authInfo: undefined,
   authorities: undefined,
   members: undefined,
@@ -150,10 +139,6 @@ const pteamSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getPTeam.fulfilled, (state, action) => ({
-        ...state,
-        pteam: action.payload.data,
-      }))
       .addCase(getPTeamAuthInfo.fulfilled, (state, action) => ({
         ...state,
         authInfo: action.payload.data,

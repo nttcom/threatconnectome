@@ -21,33 +21,27 @@ import {
 import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
 
 import {
   useCheckMailMutation,
   useCheckSlackMutation,
   useUpdatePTeamMutation,
 } from "../services/tcApi";
-import { getPTeam } from "../slices/pteam";
-import {
-  defaultAlertThreshold,
-  modalCommonButtonStyle,
-  sortedSSVCPriorities,
-  ssvcPriorityProps,
-} from "../utils/const";
+import { modalCommonButtonStyle, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
 import { errorToString } from "../utils/func";
 
 import { CheckButton } from "./CheckButton";
 
 export function PTeamNotificationSetting(props) {
-  const { show } = props;
+  const { pteam } = props;
+
   const [edittingSlackUrl, setEdittingSlackUrl] = useState(false);
-  const [slackUrl, setSlackUrl] = useState("");
-  const [slackEnable, setSlackEnable] = useState(false);
-  const [mailAddress, setMailAddress] = useState("");
-  const [mailEnable, setMailEnable] = useState(false);
-  const [alertThreshold, setAlertThreshold] = useState(defaultAlertThreshold);
+  const [slackUrl, setSlackUrl] = useState(pteam.alert_slack.webhook_url);
+  const [slackEnable, setSlackEnable] = useState(pteam.alert_slack.enable);
+  const [mailAddress, setMailAddress] = useState(pteam.alert_mail.address);
+  const [mailEnable, setMailEnable] = useState(pteam.alert_mail.enable);
+  const [alertThreshold, setAlertThreshold] = useState(pteam.alert_ssvc_priority);
   const [checkSlack, setCheckSlack] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
   const [slackMessage, setSlackMessage] = useState();
@@ -58,24 +52,6 @@ export function PTeamNotificationSetting(props) {
   const [postCheckMail] = useCheckMailMutation();
   const [postCheckSlack] = useCheckSlackMutation();
   const [updatePTeam] = useUpdatePTeamMutation();
-
-  const pteamId = useSelector((state) => state.pteam.pteamId);
-  const pteam = useSelector((state) => state.pteam.pteam);
-
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (pteam) {
-      setSlackUrl(pteam.alert_slack.webhook_url);
-      setSlackEnable(pteam.alert_slack.enable);
-      setMailAddress(pteam.alert_mail.address);
-      setMailEnable(pteam.alert_mail.enable);
-      setAlertThreshold(pteam.alert_ssvc_priority);
-    }
-    setEdittingSlackUrl(false);
-    setCheckSlack(false);
-    setSlackMessage();
-  }, [show, pteam]);
 
   const operationError = (error) =>
     enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
@@ -104,10 +80,9 @@ export function PTeamNotificationSetting(props) {
       alert_mail: { enable: mailEnable, address: mailAddress },
       alert_ssvc_priority: alertThreshold,
     };
-    await updatePTeam({ pteamId, data })
+    await updatePTeam({ pteamId: pteam.pteam_id, data })
       .unwrap()
       .then(() => {
-        dispatch(getPTeam(pteamId));
         enqueueSnackbar("update pteam info succeeded", { variant: "success" });
       })
       .catch((error) => operationError(error));
@@ -280,5 +255,5 @@ export function PTeamNotificationSetting(props) {
   );
 }
 PTeamNotificationSetting.propTypes = {
-  show: PropTypes.bool.isRequired,
+  pteam: PropTypes.object.isRequired,
 };

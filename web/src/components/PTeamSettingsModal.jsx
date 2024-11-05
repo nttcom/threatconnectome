@@ -15,7 +15,9 @@ import React, { useState } from "react";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
-import { a11yProps } from "../utils/func.js";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetPTeamQuery } from "../services/tcApi";
+import { a11yProps, errorToString } from "../utils/func.js";
 
 import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
@@ -24,6 +26,18 @@ import { PTeamNotificationSetting } from "./PTeamNotificationSetting";
 export function PTeamSettingsModal(props) {
   const { pteamId, onSetShow, show, defaultTabIndex } = props;
   const [tab, setTab] = useState(defaultTabIndex ?? 0);
+
+  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip });
+
+  if (skip) return <></>;
+  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading PTeam...</>;
 
   const handleClose = () => onSetShow(false);
 
@@ -50,10 +64,10 @@ export function PTeamSettingsModal(props) {
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
-          <PTeamGeneralSetting show={show} />
+          <PTeamGeneralSetting show={show} pteam={pteam} />
         </TabPanel>
         <TabPanel index={1} value={tab}>
-          <PTeamNotificationSetting show={show} />
+          <PTeamNotificationSetting pteam={pteam} />
         </TabPanel>
         <TabPanel index={2} value={tab}>
           <PTeamAuthEditor pteamId={pteamId} />

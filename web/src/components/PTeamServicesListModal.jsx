@@ -20,10 +20,11 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { useGetPTeamServiceThumbnailQuery } from "../services/tcApi";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetPTeamServiceThumbnailQuery, useGetPTeamQuery } from "../services/tcApi";
+import { errorToString } from "../utils/func";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
@@ -69,8 +70,6 @@ export function PTeamServicesListModal(props) {
   const { onSetShow, show, tagId, tagName, serviceIds } = props;
   const handleClose = () => onSetShow(false);
 
-  const pteam = useSelector((state) => state.pteam.pteam);
-
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
@@ -78,6 +77,17 @@ export function PTeamServicesListModal(props) {
 
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
+
+  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip });
+
+  if (skip) return <></>;
+  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading PTeam...</>;
 
   const targetServices = pteam.services
     .filter((service) => serviceIds.includes(service.service_id))

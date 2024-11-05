@@ -20,16 +20,14 @@ export function PTeam() {
   const [filterMode, setFilterMode] = useState("PTeam");
   const [tabValue, setTabValue] = useState(0);
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
-
   const pteamId = useSelector((state) => state.pteam.pteamId); // TODO: RTKQ or QueryParam?
 
-  const skip = skipByAuth || pteamId === undefined;
+  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
   const {
     data: userMe,
     error: userMeError,
     isLoading: userMeIsLoading,
-  } = useGetUserMeQuery(undefined, { skip: skipByAuth });
+  } = useGetUserMeQuery(undefined, { skip });
   const {
     data: authorities,
     error: authoritiesError,
