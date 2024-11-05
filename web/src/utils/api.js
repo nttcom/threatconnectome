@@ -9,8 +9,6 @@ export const removeToken = () => {
 };
 
 // pteams
-export const getPTeam = async (pteamId) => axios.get(`/pteams/${pteamId}`);
-
 export const getPTeamMembers = async (pteamId) => axios.get(`/pteams/${pteamId}/members`);
 
 export const getPTeamAuthInfo = async () => axios.get("/pteams/auth_info");

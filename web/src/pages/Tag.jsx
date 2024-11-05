@@ -10,17 +10,14 @@ import { TabPanel } from "../components/TabPanel";
 import { TagReferences } from "../components/TagReferences";
 import { UUIDTypography } from "../components/UUIDTypography";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetPTeamServiceTaggedTopicIdsQuery } from "../services/tcApi";
-import { getDependencies, getPTeam, getPTeamMembers } from "../slices/pteam";
+import { useGetPTeamQuery, useGetPTeamServiceTaggedTopicIdsQuery } from "../services/tcApi";
+import { getDependencies, getPTeamMembers } from "../slices/pteam";
 import { a11yProps, errorToString } from "../utils/func.js";
 
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
-
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by App
-  const pteam = useSelector((state) => state.pteam.pteam);
   const members = useSelector((state) => state.pteam.members);
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
 
@@ -33,27 +30,28 @@ export function Tag() {
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const getPTeamReady = !skipByAuth && pteamId;
+  const getTopicIdsReady = getPTeamReady && serviceId && tagId;
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip: !getPTeamReady });
   const {
     data: taggedTopics,
     error: taggedTopicsError,
     isLoading: taggedTopicsIsLoading,
   } = useGetPTeamServiceTaggedTopicIdsQuery(
     { pteamId, serviceId, tagId },
-    {
-      skip: skipByAuth || !pteamId || !serviceId || !tagId,
-    },
+    { skip: !getTopicIdsReady },
   );
 
   const dependencies = serviceDependencies[serviceId];
   const currentTagDependencies = dependencies?.filter((dependency) => dependency.tag_id === tagId);
 
   useEffect(() => {
-    if (skipByAuth) return; // wait login completed
-    if (!pteamId) return; // wait fixed by App
-    if (!pteam) {
-      dispatch(getPTeam(pteamId));
-      return;
-    }
+    if (!pteam) return; // wait getQuery
     if (!serviceId || !pteam.services.find((service) => service.service_id === serviceId)) {
       const msg = `${serviceId ? "Invalid" : "Missing"} serviceId`;
       enqueueSnackbar(msg, { variant: "error" });
@@ -75,7 +73,6 @@ export function Tag() {
       return;
     }
   }, [
-    skipByAuth,
     pteam,
     dependencies,
     currentTagDependencies,
@@ -96,13 +93,14 @@ export function Tag() {
     }
   }, [dispatch, skipByAuth, pteamId, members]);
 
-  if (skipByAuth || !allTags || !pteam || !members || !currentTagDependencies) {
-    return <>Now loading...</>;
-  }
-
+  if (!getTopicIdsReady) return <></>;
+  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading PTeam...</>;
   if (taggedTopicsError)
     return <>{`Cannot get TaggedTopics: ${errorToString(taggedTopicsError)}`}</>;
-  if (taggedTopicsIsLoading) return <>Now loading ...</>;
+  if (taggedTopicsIsLoading) return <>Now loading TaggedTopics...</>;
+
+  if (!allTags || !members || !currentTagDependencies) return <>Now loading...</>;
 
   const numSolved = taggedTopics.solved?.topic_ids?.length ?? 0;
   const numUnsolved = taggedTopics.unsolved?.topic_ids?.length ?? 0;

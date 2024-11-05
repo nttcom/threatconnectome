@@ -15,15 +15,15 @@ import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import styles from "../cssModule/dialog.module.css";
-import { useDeletePTeamServiceMutation } from "../services/tcApi";
-import { getPTeam, invalidateServiceId, getPTeamTagsSummary } from "../slices/pteam";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useDeletePTeamServiceMutation, useGetPTeamQuery } from "../services/tcApi";
+import { invalidateServiceId, getPTeamTagsSummary } from "../slices/pteam";
 import { errorToString } from "../utils/func";
 
 export function PTeamServiceDelete() {
   const [checked, setChecked] = useState([]);
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const services = useSelector((state) => state.pteam.pteam.services);
 
   const { enqueueSnackbar } = useSnackbar();
   const [deletePTeamService] = useDeletePTeamServiceMutation();
@@ -33,6 +33,19 @@ export function PTeamServiceDelete() {
 
   const params = new URLSearchParams(location.search);
   const serviceId = params.get("serviceId");
+
+  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip });
+
+  if (skip) return <></>;
+  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading PTeam...</>;
+
+  const services = pteam.services;
 
   const handleToggle = (service) => () => {
     const currentIndex = checked.indexOf(service);
@@ -49,7 +62,6 @@ export function PTeamServiceDelete() {
 
   const handleDeleteService = async () => {
     function onSuccess(success, deletingServiceId) {
-      dispatch(getPTeam(pteamId)); // sync pteam.services
       dispatch(invalidateServiceId(deletingServiceId));
       dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
       enqueueSnackbar("Remove service succeeded", { variant: "success" });

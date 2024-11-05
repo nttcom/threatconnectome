@@ -18,7 +18,7 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 
 import { useUpdatePTeamServiceMutation } from "../services/tcApi";
-import { getPTeam, getPTeamServiceTagsSummary } from "../slices/pteam";
+import { getPTeamServiceTagsSummary } from "../slices/pteam";
 import {
   sortedSSVCPriorities,
   ssvcPriorityProps,
@@ -59,7 +59,6 @@ export function PTeamStatusSSVCCards(props) {
     await updatePTeamService({ pteamId, serviceId, data })
       .unwrap()
       .then(() => {
-        dispatch(getPTeam(pteamId));
         dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
         enqueueSnackbar("Update succeeded", { variant: "success" });
       })

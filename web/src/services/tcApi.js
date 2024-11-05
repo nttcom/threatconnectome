@@ -496,6 +496,7 @@ export const tcApi = createApi({
         ...(result?.ateams.reduce(
           (ret, ateam) => [
             ...ret,
+            { type: "ATeam", id: ateam.ateam_id },
             { type: "ATeamAccount", id: `${ateam.ateam_id}:${result?.user_id}` },
           ],
           [{ type: "ATeamAccount", id: "ALL" }],
@@ -503,6 +504,7 @@ export const tcApi = createApi({
         ...(result?.pteams.reduce(
           (ret, pteam) => [
             ...ret,
+            { type: "PTeam", id: pteam.pteam_id },
             { type: "PTeamAccount", id: `${pteam.pteam_id}:${result?.user_id}` },
           ],
           [{ type: "PTeamAccount", id: "ALL" }],

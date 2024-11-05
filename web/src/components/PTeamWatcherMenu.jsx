@@ -2,10 +2,8 @@ import { DoDisturbAlt as DoDisturbAltIcon, MoreVert as MoreVertIcon } from "@mui
 import { Button, Dialog, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 
 import { PTeamWatcherRemoveModal } from "../components/PTeamWatcherRemoveModal";
-import { getPTeam } from "../slices/pteam";
 
 export function PTeamWatcherMenu(props) {
   const { pteam, watcherAteamId, watcherAteamName, isAdmin } = props;
@@ -13,8 +11,6 @@ export function PTeamWatcherMenu(props) {
   const [openRemove, setOpenRemove] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-
-  const dispatch = useDispatch();
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -66,10 +62,7 @@ export function PTeamWatcherMenu(props) {
           watcherAteamName={watcherAteamName}
           pteamId={pteam.pteam_id}
           pteamName={pteam.pteam_name}
-          onClose={() => {
-            dispatch(getPTeam(pteam.pteam_id)); // update pteam.pteams
-            setOpenRemove(false);
-          }}
+          onClose={() => setOpenRemove(false)}
         />
       </Dialog>
     </>

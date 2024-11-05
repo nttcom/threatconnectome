@@ -11,11 +11,9 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React from "react";
-import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useRemoveWatcherATeamMutation } from "../services/tcApi";
-import { getPTeam } from "../slices/pteam";
 import { errorToString } from "../utils/func";
 
 export function PTeamWatcherRemoveModal(props) {
@@ -24,11 +22,8 @@ export function PTeamWatcherRemoveModal(props) {
   const { enqueueSnackbar } = useSnackbar();
   const [removeWatcherATeam] = useRemoveWatcherATeamMutation();
 
-  const dispatch = useDispatch();
-
   const handleRemove = async () => {
     function onSuccess(success) {
-      dispatch(getPTeam(pteamId));
       enqueueSnackbar(`Remove watcher ${watcherAteamName} succeeded`, {
         variant: "success",
       });
