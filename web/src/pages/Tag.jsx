@@ -10,14 +10,23 @@ import { TabPanel } from "../components/TabPanel";
 import { TagReferences } from "../components/TagReferences";
 import { UUIDTypography } from "../components/UUIDTypography";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetPTeamQuery, useGetPTeamServiceTaggedTopicIdsQuery } from "../services/tcApi";
+import {
+  useGetPTeamQuery,
+  useGetPTeamServiceTaggedTopicIdsQuery,
+  useGetTagsQuery,
+} from "../services/tcApi";
 import { getDependencies } from "../slices/pteam";
 import { a11yProps, errorToString } from "../utils/func.js";
 
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
 
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by App
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skipByAuth });
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
 
   const dispatch = useDispatch();
@@ -29,7 +38,6 @@ export function Tag() {
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
   const getPTeamReady = !skipByAuth && pteamId;
   const getTopicIdsReady = getPTeamReady && serviceId && tagId;
   const {
@@ -85,13 +93,15 @@ export function Tag() {
   ]);
 
   if (!getTopicIdsReady) return <></>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
   if (pteamIsLoading) return <>Now loading PTeam...</>;
   if (taggedTopicsError)
     return <>{`Cannot get TaggedTopics: ${errorToString(taggedTopicsError)}`}</>;
   if (taggedTopicsIsLoading) return <>Now loading TaggedTopics...</>;
 
-  if (!allTags || !currentTagDependencies) return <>Now loading...</>;
+  if (!currentTagDependencies) return <>Now loading...</>;
 
   const numSolved = taggedTopics.solved?.topic_ids?.length ?? 0;
   const numUnsolved = taggedTopics.unsolved?.topic_ids?.length ?? 0;

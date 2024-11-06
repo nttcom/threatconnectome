@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetPTeamTopicActionsQuery } from "../services/tcApi";
+import { useGetPTeamTopicActionsQuery, useGetTagsQuery } from "../services/tcApi";
 import { getDependencies, getTicketsRelatedToServiceTopicTag } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { dateTimeFormat, errorToString } from "../utils/func";
@@ -42,11 +42,15 @@ export function TopicCard(props) {
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
   const ticketsDict = useSelector((state) => state.pteam.tickets);
   const topics = useSelector((state) => state.topics.topics);
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
   const skipByAuth = useSkipUntilAuthTokenIsReady();
   const skipByPTeamId = pteamId === undefined;
   const skipByTopicId = topicId === undefined;
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skipByAuth });
   const {
     data: pteamTopicActionsData,
     error: pteamTopicActionsError,
@@ -97,7 +101,9 @@ export function TopicCard(props) {
   if (pteamTopicActionsError)
     return <>{`Cannot get topicActions: ${errorToString(pteamTopicActionsError)}`}</>;
   if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
-  if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets || !allTags) {
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
+  if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets) {
     return <>Now Loading...</>;
   }
 

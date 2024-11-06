@@ -1,11 +1,10 @@
 import { Box, List, ListItem, MenuItem, Pagination, Select, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import { PTeamStatusMenu } from "../components/PTeamStatusMenu";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetPTeamMembersQuery } from "../services/tcApi";
+import { useGetPTeamMembersQuery, useGetTagsQuery } from "../services/tcApi";
 import { sortedSSVCPriorities } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -18,9 +17,12 @@ export function PTeamTaggedTopics(props) {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
-
   const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip });
   const {
     data: members,
     error: membersError,
@@ -28,10 +30,12 @@ export function PTeamTaggedTopics(props) {
   } = useGetPTeamMembersQuery(pteamId, { skip });
 
   if (skip) return <></>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
   if (membersError) return <>{`Cannot get PTeamMembers: ${errorToString(membersError)}`}</>;
   if (membersIsLoading) return <>Now loading PTeamMembers...</>;
 
-  if (taggedTopics === undefined || !allTags) {
+  if (taggedTopics === undefined) {
     return <>Loading...</>;
   }
 

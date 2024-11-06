@@ -390,6 +390,24 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
+      invalidatesTags: (result, error, arg) => [{ type: "Tag", id: "ALL" }],
+    }),
+
+    /* tag */
+    getTags: builder.query({
+      query: () => ({
+        url: "tags",
+      }),
+      providesTags: (result, error) => [{ type: "Tag", id: "ALL" }],
+    }),
+
+    createTag: builder.mutation({
+      query: (data) => ({
+        url: "tags",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: (result, error, arg) => [{ type: "Tag", id: "ALL" }],
     }),
 
     /* Ticket Status */
@@ -531,15 +549,6 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [{ type: "Account", id: arg.userId }],
     }),
 
-    /* Tags */
-    createTag: builder.mutation({
-      query: (data) => ({
-        url: "/tags",
-        method: "POST",
-        body: data,
-      }),
-    }),
-
     /* External */
     checkMail: builder.mutation({
       query: (data) => ({
@@ -605,6 +614,7 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useCreateTopicMutation,
+  useGetTagsQuery,
   useCreateTagMutation,
   useCheckMailMutation,
   useCheckSlackMutation,

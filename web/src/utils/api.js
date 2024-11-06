@@ -61,9 +61,6 @@ export const searchTopics = async (params) => axios.get("topics/search", { param
 
 export const fetchFlashsense = async (topicId) => axios.get(`/topics/fetch_fs/${topicId}`);
 
-// tags
-export const getTags = async () => axios.get("/tags");
-
 // external
 export const checkSlack = async (data) => axios.post("/external/slack/check", data);
 

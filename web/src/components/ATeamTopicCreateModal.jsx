@@ -27,7 +27,8 @@ import uuid from "react-native-uuid";
 import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { useCreateTopicMutation } from "../services/tcApi";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useCreateTopicMutation, useGetTagsQuery } from "../services/tcApi";
 import { getATeamTopics } from "../slices/ateam";
 import { getTopic } from "../slices/topics";
 import { actionTypes } from "../utils/const";
@@ -60,11 +61,21 @@ export function ATeamTopicCreateModal(props) {
   const [editActionTarget] = useState({});
 
   const ateamId = useSelector((state) => state.ateam.ateamId); // dispatched by parent
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
+
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip });
 
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
   const [createTopic] = useCreateTopicMutation();
+
+  if (skip) return <></>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   const resetParams = () => {
     setActiveStep(0);
