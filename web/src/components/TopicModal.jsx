@@ -141,7 +141,7 @@ export function TopicModal(props) {
   if (allTagsIsLoading) return <>Now loading allTags...</>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (!pteamId || !allTags) return <></>;
+  if (!pteamId) return <></>;
 
   const operationError = (error) => {
     const resp = error.response ?? { status: "???", statusText: error.toString() };

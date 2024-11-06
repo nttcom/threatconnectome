@@ -103,7 +103,7 @@ export function TopicCard(props) {
   if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
   if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
   if (allTagsIsLoading) return <>Now loading allTags...</>;
-  if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets || !allTags) {
+  if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets) {
     return <>Now Loading...</>;
   }
 

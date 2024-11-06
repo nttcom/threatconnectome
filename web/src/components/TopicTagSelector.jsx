@@ -70,8 +70,6 @@ export function TopicTagSelector(props) {
       .catch((error) => onError(error));
   };
 
-  if (!allTags) return <></>;
-
   const createDisabled =
     !fixedTag(search) ||
     filteredTags.filter((tmp) => fixedTag(tmp.tag_name) === fixedTag(search)).length > 0;

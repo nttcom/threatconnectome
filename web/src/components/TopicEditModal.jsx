@@ -100,7 +100,6 @@ export function TopicEditModal(props) {
   if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   const createActionTagOptions = (tagIdList) => {
-    if (!allTags) return [];
     return allTags
       .filter((tag) => tagIdList.includes(tag.tag_id) || tagIdList.includes(tag.parent_id))
       .map((tag) => tag.tag_id);
@@ -259,8 +258,6 @@ export function TopicEditModal(props) {
       </>
     );
   }
-
-  if (!allTags) return <>Now loading...</>;
 
   return (
     <Dialog open={open === true} maxWidth="md" sx={{ maxHeight: "100vh" }}>
