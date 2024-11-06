@@ -6,7 +6,6 @@ import {
   getPTeamAuthInfo as apiGetPTeamAuthInfo,
   getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
   getPTeamTagsSummary as apiGetPTeamTagsSummary,
-  getTicketsRelatedToServiceTopicTag as apiGetTicketsRelatedToServiceTopicTag,
 } from "../utils/api";
 
 export const getPTeamAuthInfo = createAsyncThunk(
@@ -36,23 +35,6 @@ export const getDependencies = createAsyncThunk(
     })),
 );
 
-export const getTicketsRelatedToServiceTopicTag = createAsyncThunk(
-  "pteam/getTicketsRelatedToServiceTopicTag",
-  async (data) =>
-    await apiGetTicketsRelatedToServiceTopicTag(
-      data.pteamId,
-      data.serviceId,
-      data.topicId,
-      data.tagId,
-    ).then((response) => ({
-      pteamId: data.pteamId,
-      serviceId: data.serviceId,
-      topicId: data.topicId,
-      tagId: data.tagId,
-      data: response.data,
-    })),
-);
-
 export const getPTeamServiceTagsSummary = createAsyncThunk(
   "pteam/getPTeamServiceTagsSummary",
   async (data) =>
@@ -77,7 +59,6 @@ const _initialState = {
   authInfo: undefined,
   authorities: undefined,
   serviceDependencies: {}, // dict[serviceId: list[dependency]]
-  tickets: {}, // dict[serviceId: dict[tagId: dict[topicId: list[ticket]]]]
   serviceTagsSummaries: {},
   pteamTagsSummaries: {},
   serviceThumbnails: {}, // dict[serviceId: dataURL | noImageAvailableUrl(=NoThumbnail)]
@@ -135,19 +116,6 @@ const pteamSlice = createSlice({
         serviceDependencies: {
           ...state.serviceDependencies,
           [action.payload.serviceId]: action.payload.data,
-        },
-      }))
-      .addCase(getTicketsRelatedToServiceTopicTag.fulfilled, (state, action) => ({
-        ...state,
-        tickets: {
-          ...state.tickets,
-          [action.payload.serviceId]: {
-            ...state.tickets[action.payload.serviceId],
-            [action.payload.tagId]: {
-              ...state.tickets[action.payload.serviceId]?.[action.payload.tagId],
-              [action.payload.topicId]: action.payload.data,
-            },
-          },
         },
       }))
       .addCase(getPTeamServiceTagsSummary.fulfilled, (state, action) => ({
