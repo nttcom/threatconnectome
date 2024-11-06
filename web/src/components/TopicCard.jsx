@@ -95,13 +95,6 @@ export function TopicCard(props) {
     }
   }, [dispatch, topicId, topic]);
 
-  useEffect(() => {
-    if (!pteamId || !topicId) return;
-    if (pteamTopicActions === undefined) {
-      dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId }));
-    }
-  }, [dispatch, pteamId, topicId, pteamTopicActions]);
-
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
   if (skipByAuth || skipByPTeamId || skipByTopicId) return <></>;

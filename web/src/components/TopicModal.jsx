@@ -78,7 +78,6 @@ export function TopicModal(props) {
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const topics = useSelector((state) => state.topics.topics);
-  const skip = useSkipUntilAuthTokenIsReady();
   const {
     data: allTags,
     error: allTagsError,

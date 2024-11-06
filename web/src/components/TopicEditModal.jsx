@@ -30,7 +30,7 @@ import { blue, green, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";

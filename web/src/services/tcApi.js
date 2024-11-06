@@ -546,6 +546,7 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "Account", id: arg.userId }],
     }),
 
     /* External */
