@@ -4,7 +4,10 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
 import { PTeamStatusMenu } from "../components/PTeamStatusMenu";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetPTeamMembersQuery } from "../services/tcApi";
 import { sortedSSVCPriorities } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 import { TopicCard } from "./TopicCard";
@@ -16,6 +19,17 @@ export function PTeamTaggedTopics(props) {
   const [perPage, setPerPage] = useState(10);
 
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
+
+  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const {
+    data: members,
+    error: membersError,
+    isLoading: membersIsLoading,
+  } = useGetPTeamMembersQuery(pteamId, { skip });
+
+  if (skip) return <></>;
+  if (membersError) return <>{`Cannot get PTeamMembers: ${errorToString(membersError)}`}</>;
+  if (membersIsLoading) return <>Now loading PTeamMembers...</>;
 
   if (taggedTopics === undefined || !allTags) {
     return <>Loading...</>;
@@ -83,6 +97,7 @@ export function PTeamTaggedTopics(props) {
               currentTagId={tagId}
               service={service}
               references={references}
+              members={members}
             />
           </ListItem>
         ))}
