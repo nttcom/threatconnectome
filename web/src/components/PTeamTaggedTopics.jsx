@@ -36,7 +36,7 @@ export function PTeamTaggedTopics(props) {
   if (membersError) return <>{`Cannot get PTeamMembers: ${errorToString(membersError)}`}</>;
   if (membersIsLoading) return <>Now loading PTeamMembers...</>;
 
-  if (taggedTopics === undefined || !allTags) {
+  if (taggedTopics === undefined) {
     return <>Loading...</>;
   }
 

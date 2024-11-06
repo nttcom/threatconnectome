@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -9,7 +9,7 @@ import { AppBar } from "../components/AppBar";
 import { Drawer } from "../components/Drawer";
 import { Main } from "../components/Main";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetUserMeQuery, useTryLoginMutation, useGetTagsQuery } from "../services/tcApi";
+import { useGetUserMeQuery, useTryLoginMutation } from "../services/tcApi";
 import { setATeamId } from "../slices/ateam";
 import { setAuthToken } from "../slices/auth";
 import { setPTeamId } from "../slices/pteam";
@@ -24,20 +24,12 @@ export function App() {
   /* eslint-disable-next-line no-unused-vars */
   const [cookies, _setCookie, _removeCookie] = useCookies([authCookieName]);
 
-  const [loadTags, setLoadTags] = useState(false);
-
   const { enqueueSnackbar } = useSnackbar();
 
   const skip = useSkipUntilAuthTokenIsReady();
 
   const dispatch = useDispatch();
   const system = useSelector((state) => state.system);
-  const {
-    data: allTags,
-    error: allTagsError,
-    isLoading: allTagsIsLoading,
-  } = useGetTagsQuery(undefined, { skip });
-
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -121,24 +113,9 @@ export function App() {
     }
   }, [dispatch, enqueueSnackbar, navigate, location, userMe, userMeIsFetching, system.teamMode]);
 
-  useEffect(() => {
-    if (!loadTags && allTags === undefined && !skip) {
-      setLoadTags(true);
-    }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [skip]);
-
-  useEffect(() => {
-    if (!loadTags) return;
-    setLoadTags(false);
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [loadTags]);
-
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
-  if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   return (
     <>
