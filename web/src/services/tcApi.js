@@ -366,6 +366,25 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* PTeam Ticket Related To Service TopicTag */
+    getTicketsRelatedToServiceTopicTag: builder.query({
+      query: ({ pteamId, serviceId, topicId, tagId }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/topics/${topicId}/tags/${tagId}/tickets`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        ...(result
+          ? Object.values(result).reduce(
+              (ret, ticket) => [...ret, { type: "CurrentTicketStatus", id: ticket.ticket_id }],
+              [],
+            )
+          : []),
+        { type: "Ticket", id: "ALL" },
+        { type: "Threat", id: "ALL" },
+        { type: "Service", id: "ALL" },
+      ],
+    }),
+
     /* PTeam Watchers */
     removeWatcherATeam: builder.mutation({
       query: ({ pteamId, ateamId }) => ({
@@ -399,7 +418,10 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "CurrentTicketStatus", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "CurrentTicketStatus", id: "ALL" },
+        { type: "CurrentTicketStatus", id: arg.ticketId },
+      ],
     }),
 
     /* TopicAction */
@@ -597,6 +619,7 @@ export const {
   useDeletePTeamServiceMutation,
   useGetPTeamServiceTaggedTopicIdsQuery,
   useGetPTeamServiceThumbnailQuery,
+  useGetTicketsRelatedToServiceTopicTagQuery,
   useRemoveWatcherATeamMutation,
   useCreateTicketStatusMutation,
   useSearchTopicsQuery,
