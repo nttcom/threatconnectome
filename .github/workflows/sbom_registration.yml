@@ -41,6 +41,7 @@ jobs:
       - name: Upload trivy-ci-result.json as an artifact
         uses: actions/upload-artifact@v4
         with:
+          name: trivy-ci-result
           path: ./trivy-ci-result.json
       - name: Download trivy_tags.py
         run: wget https://storage.googleapis.com/metemcyber/trivy_tags.py
@@ -49,6 +50,7 @@ jobs:
       - name: Upload artifact_tags.jsonl as an artifact
         uses: actions/upload-artifact@v4
         with:
+          name: artifact_tags
           path: ./artifact_tags.jsonl
       - name: Get AuthToken from RefreshToken
         run: |
