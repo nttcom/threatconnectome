@@ -2,29 +2,10 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import {
   getDependencies as apiGetDependencies,
-  getPTeamAuth as apiGetPTeamAuth,
-  getPTeamAuthInfo as apiGetPTeamAuthInfo,
   getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
   getPTeamTagsSummary as apiGetPTeamTagsSummary,
   getTicketsRelatedToServiceTopicTag as apiGetTicketsRelatedToServiceTopicTag,
 } from "../utils/api";
-
-export const getPTeamAuthInfo = createAsyncThunk(
-  "pteams/getAuthInfo",
-  async () =>
-    await apiGetPTeamAuthInfo().then((response) => ({
-      data: response.data,
-    })),
-);
-
-export const getPTeamAuth = createAsyncThunk(
-  "pteam/getPTeamAuth",
-  async (pteamId) =>
-    await apiGetPTeamAuth(pteamId).then((response) => ({
-      data: response.data,
-      pteamId: pteamId,
-    })),
-);
 
 export const getDependencies = createAsyncThunk(
   "pteam/getDependencies",
@@ -74,8 +55,6 @@ export const getPTeamTagsSummary = createAsyncThunk(
 
 const _initialState = {
   pteamId: undefined,
-  authInfo: undefined,
-  authorities: undefined,
   serviceDependencies: {}, // dict[serviceId: list[dependency]]
   tickets: {}, // dict[serviceId: dict[tagId: dict[topicId: list[ticket]]]]
   serviceTagsSummaries: {},
@@ -122,14 +101,6 @@ const pteamSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getPTeamAuthInfo.fulfilled, (state, action) => ({
-        ...state,
-        authInfo: action.payload.data,
-      }))
-      .addCase(getPTeamAuth.fulfilled, (state, action) => ({
-        ...state,
-        authorities: action.payload.data,
-      }))
       .addCase(getDependencies.fulfilled, (state, action) => ({
         ...state,
         serviceDependencies: {

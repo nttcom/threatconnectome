@@ -237,7 +237,7 @@ PTeamAuthEditorMain.propTypes = {
 export function PTeamAuthEditor(props) {
   const { pteamId, userId, userEmail, onClose } = props;
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
   const {
     data: userMe,
     error: userMeError,
@@ -252,9 +252,9 @@ export function PTeamAuthEditor(props) {
     data: pteamAuth,
     error: pteamAuthError,
     isLoading: pteamAuthIsLoading,
-  } = useGetPTeamAuthQuery(pteamId, { skip: skip || !pteamId });
+  } = useGetPTeamAuthQuery(pteamId, { skip });
 
-  if (skip || !pteamId) return <></>;
+  if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (authInfoError) return <>{`Cannot get PTeam: ${errorToString(authInfoError)}`}</>;
