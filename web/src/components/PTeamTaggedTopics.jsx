@@ -4,8 +4,7 @@ import React, { useState } from "react";
 
 import { PTeamStatusMenu } from "../components/PTeamStatusMenu";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetPTeamMembersQuery } from "../services/tcApi";
-import { useGetTagsQuery } from "../services/tcApi";
+import { useGetPTeamMembersQuery, useGetTagsQuery } from "../services/tcApi";
 import { sortedSSVCPriorities } from "../utils/const";
 import { errorToString } from "../utils/func";
 
