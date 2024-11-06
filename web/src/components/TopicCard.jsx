@@ -32,14 +32,13 @@ import { TopicTicketAccordion } from "./TopicTicketAccordion";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function TopicCard(props) {
-  const { pteamId, topicId, currentTagId, service, references } = props;
+  const { pteamId, topicId, currentTagId, service, references, members } = props;
   const { tagId } = useParams();
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
 
-  const members = useSelector((state) => state.pteam.members); // dispatched by Tag.jsx
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
   const ticketsDict = useSelector((state) => state.pteam.tickets);
   const topics = useSelector((state) => state.topics.topics);
@@ -400,4 +399,5 @@ TopicCard.propTypes = {
   currentTagId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
+  members: PropTypes.object.isRequired,
 };

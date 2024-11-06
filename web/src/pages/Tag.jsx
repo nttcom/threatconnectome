@@ -11,14 +11,13 @@ import { TagReferences } from "../components/TagReferences";
 import { UUIDTypography } from "../components/UUIDTypography";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetPTeamQuery, useGetPTeamServiceTaggedTopicIdsQuery } from "../services/tcApi";
-import { getDependencies, getPTeamMembers } from "../slices/pteam";
+import { getDependencies } from "../slices/pteam";
 import { a11yProps, errorToString } from "../utils/func.js";
 
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
 
   const allTags = useSelector((state) => state.tags.allTags); // dispatched by App
-  const members = useSelector((state) => state.pteam.members);
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
 
   const dispatch = useDispatch();
@@ -85,14 +84,6 @@ export function Tag() {
     navigate,
   ]);
 
-  useEffect(() => {
-    if (skipByAuth) return;
-    if (!pteamId) return;
-    if (!members) {
-      dispatch(getPTeamMembers(pteamId));
-    }
-  }, [dispatch, skipByAuth, pteamId, members]);
-
   if (!getTopicIdsReady) return <></>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
   if (pteamIsLoading) return <>Now loading PTeam...</>;
@@ -100,7 +91,7 @@ export function Tag() {
     return <>{`Cannot get TaggedTopics: ${errorToString(taggedTopicsError)}`}</>;
   if (taggedTopicsIsLoading) return <>Now loading TaggedTopics...</>;
 
-  if (!allTags || !members || !currentTagDependencies) return <>Now loading...</>;
+  if (!allTags || !currentTagDependencies) return <>Now loading...</>;
 
   const numSolved = taggedTopics.solved?.topic_ids?.length ?? 0;
   const numUnsolved = taggedTopics.unsolved?.topic_ids?.length ?? 0;
