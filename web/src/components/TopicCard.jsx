@@ -23,7 +23,7 @@ import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useGetPTeamTopicActionsQuery,
   useGetTicketsRelatedToServiceTopicTagQuery,
-  useGetTagsQuery 
+  useGetTagsQuery,
 } from "../services/tcApi";
 import { getDependencies } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
