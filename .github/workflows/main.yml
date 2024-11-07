@@ -47,7 +47,7 @@ jobs:
     environment: test
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [20.x]
     outputs:
       python-key: ${{ steps.generate-python-key.outputs.key }}
     defaults:
