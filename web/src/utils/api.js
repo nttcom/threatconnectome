@@ -9,10 +9,6 @@ export const removeToken = () => {
 };
 
 // pteams
-export const getPTeamAuthInfo = async () => axios.get("/pteams/auth_info");
-
-export const getPTeamAuth = async (pteamId) => axios.get(`/pteams/${pteamId}/authority`);
-
 export const getPTeamServiceTagsSummary = async (pteamId, serviceId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/summary`);
 
@@ -57,9 +53,6 @@ export const updateTopic = async (topicId, data) => axios.put(`/topics/${topicId
 export const searchTopics = async (params) => axios.get("topics/search", { params: params ?? {} });
 
 export const fetchFlashsense = async (topicId) => axios.get(`/topics/fetch_fs/${topicId}`);
-
-// tags
-export const getTags = async () => axios.get("/tags");
 
 // external
 export const checkSlack = async (data) => axios.post("/external/slack/check", data);

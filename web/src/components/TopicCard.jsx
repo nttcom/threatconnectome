@@ -23,6 +23,7 @@ import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useGetPTeamTopicActionsQuery,
   useGetTicketsRelatedToServiceTopicTagQuery,
+  useGetTagsQuery 
 } from "../services/tcApi";
 import { getDependencies } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
@@ -44,7 +45,6 @@ export function TopicCard(props) {
 
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
   const topics = useSelector((state) => state.topics.topics);
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
   const serviceId = service?.service_id;
   const dependencies = serviceDependencies[serviceId];
@@ -55,6 +55,11 @@ export function TopicCard(props) {
   const skipByTopicId = topicId === undefined;
   const skipByServiceId = serviceId === undefined;
   const skipBytagId = tagId === undefined;
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skipByAuth });
   const {
     data: pteamTopicActionsData,
     error: pteamTopicActionsError,
@@ -98,7 +103,9 @@ export function TopicCard(props) {
   if (ticketsRelatedToServiceTopicTagError)
     return <>{`Cannot get tcikets: ${errorToString(ticketsRelatedToServiceTopicTagError)}`}</>;
   if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
-  if (!pteamId || !serviceId || !members || !topic || !tagId || !allTags) {
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
+  if (!pteamId || !serviceId || !members || !topic || !tagId) {
     return <>Now Loading...</>;
   }
 
