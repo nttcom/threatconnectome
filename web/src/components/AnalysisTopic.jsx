@@ -31,7 +31,6 @@ import { grey, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 import { AnalysisActionTypeIcon } from "../components/AnalysisActionTypeIcon";
 import { CommentDeleteModal } from "../components/CommentDeleteModal";
@@ -43,11 +42,11 @@ import { WarningTooltip } from "../components/WarningTooltip";
 import styles from "../cssModule/button.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
+  useGetTopicQuery,
   useCreateATeamTopicCommentMutation,
   useGetTopicActionsQuery,
   useUpdateATeamTopicCommentMutation,
 } from "../services/tcApi";
-import { getTopic } from "../slices/topics";
 import { getATeamTopicComments as apiGetATeamTopicComments } from "../utils/api";
 import { rootPrefix, threatImpactNames } from "../utils/const";
 import { a11yProps, dateTimeFormat, errorToString, tagsMatched } from "../utils/func.js";
@@ -67,10 +66,7 @@ export function AnalysisTopic(props) {
   const [createATeamTopicComment] = useCreateATeamTopicCommentMutation();
   const [updateATeamTopicComment] = useUpdateATeamTopicCommentMutation();
 
-  const topics = useSelector((state) => state.topics.topics);
-
   const { enqueueSnackbar } = useSnackbar();
-  const dispatch = useDispatch();
 
   const box_sx = { mt: 3 };
 
@@ -79,6 +75,13 @@ export function AnalysisTopic(props) {
   };
 
   const skip = useSkipUntilAuthTokenIsReady();
+
+  const {
+    data: topic,
+    error: topicError,
+    isLoading: topicIsLoading,
+  } = useGetTopicQuery(targetTopic.topic_id, { skip });
+
   const {
     data: topicActions,
     error: topicActionsError,
@@ -87,7 +90,6 @@ export function AnalysisTopic(props) {
 
   useEffect(() => {
     handleReloadComments(targetTopic.topic_id);
-    if (topics?.[targetTopic.topic_id] === undefined) dispatch(getTopic(targetTopic.topic_id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetTopic.topic_id]);
 
@@ -169,17 +171,18 @@ export function AnalysisTopic(props) {
     tmpParams.set("serviceId", serviceId);
     return `${rootPrefix}/tags/${tagId}?` + tmpParams.toString();
   };
-  const topicDetail = topics?.[targetTopic.topic_id];
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
   /* block rendering until data ready */
+  if (!ateam.ateam_id) return <Box sx={{ m: 2 }}>Loading...</Box>;
   if (skip) return <></>;
-  if (!ateam.ateam_id || !topicDetail) return <Box sx={{ m: 2 }}>Loading...</Box>;
+  if (topicError) return <>{`Cannot get Topic: ${errorToString(topicError)}`}</>;
+  if (topicIsLoading) return <>Now loading Topic...</>;
   if (topicActionsError)
     return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
   if (topicActionsIsLoading) return <>Now loading topicActions...</>;
 
-  const topicTagNames = topicDetail.tags.map((tag) => tag.tag_name);
+  const topicTagNames = topic.tags.map((tag) => tag.tag_name);
   const recommendedActions = topicActions.filter((action) => action.recommended);
   const otherActions = topicActions.filter((action) => !action.recommended);
 
@@ -201,11 +204,11 @@ export function AnalysisTopic(props) {
         <Box m={3}>
           <Box display="flex">
             <ThreatImpactChip
-              threatImpact={threatImpactNames[topicDetail.threat_impact]}
+              threatImpact={threatImpactNames[topic.threat_impact]}
               sx={{ marginRight: "10px" }}
             />
             <Typography variant="h6" fontWeight={900} mr={1}>
-              {topicDetail.title}
+              {topic.title}
             </Typography>
             <Box flexGrow={1} />
             <Box>
@@ -214,7 +217,7 @@ export function AnalysisTopic(props) {
               </IconButton>
             </Box>
           </Box>
-          <UUIDTypography sx={{ marginLeft: "95px" }}>{topicDetail.topic_id}</UUIDTypography>
+          <UUIDTypography sx={{ marginLeft: "95px" }}>{topic.topic_id}</UUIDTypography>
         </Box>
         <Box borderBottom={1} borderBottomColor="divider" mb={3} mr={1} ml={1}>
           <Tabs aria-label="tabs" onChange={handleChangeTab} value={tab}>
@@ -400,9 +403,9 @@ export function AnalysisTopic(props) {
                 <Typography mb={0.5} fontWeight={900}>
                   Tags
                 </Typography>
-                {topicDetail.tags.length > 0 ? (
+                {topic.tags.length > 0 ? (
                   <Box ml={1}>
-                    {topicDetail.tags.map((tag) => (
+                    {topic.tags.map((tag) => (
                       <Chip
                         key={tag.tag_id}
                         label={tag.tag_name}
@@ -424,9 +427,9 @@ export function AnalysisTopic(props) {
                   </Typography>
                 </Box>
                 <Box ml={1}>
-                  {topicDetail.misp_tags.length > 0 ? (
+                  {topic.misp_tags.length > 0 ? (
                     <>
-                      {topicDetail.misp_tags.map((mispTag) => (
+                      {topic.misp_tags.map((mispTag) => (
                         <Chip
                           key={mispTag.tag_id}
                           label={mispTag.tag_name}
@@ -445,7 +448,7 @@ export function AnalysisTopic(props) {
                   <Typography mr={0.5} mt={0.5} fontWeight={900}>
                     Details
                   </Typography>
-                  {topicDetail.abstract && (
+                  {topic.abstract && (
                     <IconButton onClick={handleDetailOpen} size="small">
                       {detailOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </IconButton>
@@ -453,11 +456,11 @@ export function AnalysisTopic(props) {
                 </Box>
                 <Collapse in={detailOpen}>
                   <Box ml={1}>
-                    <Typography variant="body">{topicDetail.abstract}</Typography>
+                    <Typography variant="body">{topic.abstract}</Typography>
                   </Box>
                 </Collapse>
                 <Box ml={1}>
-                  {!topicDetail.abstract && (
+                  {!topic.abstract && (
                     <Typography variant="body" sx={{ color: grey[500] }}>
                       No Data
                     </Typography>
@@ -642,7 +645,7 @@ export function AnalysisTopic(props) {
         <TopicEditModal
           open={topicModalOpen}
           onSetOpen={setTopicModalOpen}
-          currentTopic={topicDetail}
+          currentTopic={topic}
           currentActions={topicActions}
         />
       </Box>

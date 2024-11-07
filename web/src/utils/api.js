@@ -46,8 +46,6 @@ export const deleteATeamTopicComment = async (ateamId, topicId, commentId) =>
   axios.delete(`/ateams/${ateamId}/topiccomment/${topicId}/${commentId}`);
 
 // topics
-export const getTopic = async (topicId) => axios.get(`/topics/${topicId}`);
-
 export const updateTopic = async (topicId, data) => axios.put(`/topics/${topicId}`, data);
 
 export const searchTopics = async (params) => axios.get("topics/search", { params: params ?? {} });

@@ -492,6 +492,10 @@ export const tcApi = createApi({
     }),
 
     /* Topics */
+    getTopic: builder.query({
+      query: (topicId) => `/topics/${topicId}`,
+      providesTags: (result, error, topicId) => [{ type: "Topic", id: `${topicId}` }],
+    }),
     searchTopics: builder.query({
       query: (params) => ({
         url: "topics/search",
@@ -507,22 +511,26 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [{ type: "Threat", id: "ALL" }],
     }),
-
     updateTopic: builder.mutation({
       query: ({ topicId, data }) => ({
         url: `topics/${topicId}`,
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "Threat", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "Threat", id: "ALL" },
+        { type: "Topic", id: `${arg.topicId}` },
+      ],
     }),
-
     deleteTopic: builder.mutation({
       query: (topicId) => ({
         url: `topics/${topicId}`,
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "Threat", id: "ALL" }],
+      invalidatesTags: (result, error, topicId) => [
+        { type: "Threat", id: "ALL" },
+        { type: "Topic", id: `${topicId}` },
+      ],
     }),
 
     /* User */
@@ -599,6 +607,7 @@ export const {
   useGetATeamInvitedQuery,
   useGetATeamMembersQuery,
   useGetPTeamTopicActionsQuery,
+  useGetTopicQuery,
   useGetTopicActionsQuery,
   useDeleteATeamMemberMutation,
   useDeleteATeamTopicCommentMutation,

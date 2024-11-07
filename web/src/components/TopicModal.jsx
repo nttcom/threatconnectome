@@ -38,7 +38,6 @@ import {
   useGetTagsQuery,
 } from "../services/tcApi";
 import { getPTeamServiceTagsSummary, getPTeamTagsSummary } from "../slices/pteam";
-import { getTopic } from "../slices/topics";
 import { fetchFlashsense } from "../utils/api";
 import { actionTypes } from "../utils/const";
 import { validateNotEmpty, validateUUID, setEquals, errorToString } from "../utils/func";
@@ -52,15 +51,8 @@ import { TopicTagSelector } from "./TopicTagSelector";
 const steps = ["Import Flashsense", "Create topic"];
 
 export function TopicModal(props) {
-  const {
-    open,
-    onSetOpen,
-    presetTopicId,
-    presetTagId,
-    presetParentTagId,
-    presetActions,
-    serviceId,
-  } = props;
+  const { open, onSetOpen, presetTopic, presetTagId, presetParentTagId, presetActions, serviceId } =
+    props;
 
   const [errors, setErrors] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
@@ -77,14 +69,12 @@ export function TopicModal(props) {
   } = useGetUserMeQuery(undefined, { skip });
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const topics = useSelector((state) => state.topics.topics);
   const {
     data: allTags,
     error: allTagsError,
     isLoading: allTagsIsLoading,
   } = useGetTagsQuery(undefined, { skip });
 
-  const src = topics[presetTopicId];
   const [topicId, setTopicId] = useState("");
   const [title, setTitle] = useState("");
   const [abst, setAbst] = useState("");
@@ -106,26 +96,26 @@ export function TopicModal(props) {
 
   useEffect(() => {
     setErrors([]);
-    setActiveStep(presetTopicId ? 1 : 0);
-    setSkipped(presetTopicId ? new Set([0]) : new Set());
+    setActiveStep(presetTopic ? 1 : 0);
+    setSkipped(presetTopic ? new Set([0]) : new Set());
     setValidErrorMessage(null);
-    setTopicId(presetTopicId ?? "");
-    setTitle(src?.title ?? "");
-    setAbst(src?.abstract ?? "");
-    setThreatImpact(src?.threat_impact ?? 4);
+    setTopicId(presetTopic?.topic_id ?? "");
+    setTitle(presetTopic?.title ?? "");
+    setAbst(presetTopic?.abstract ?? "");
+    setThreatImpact(presetTopic?.threat_impact ?? 4);
     setTagIds(
-      src?.tags
-        ? src.tags.map((tag) => tag.tag_id)
+      presetTopic?.tags
+        ? presetTopic.tags.map((tag) => tag.tag_id)
         : presetParentTagId
           ? [presetParentTagId]
           : presetTagId
             ? [presetTagId]
             : [],
     );
-    setMispTags(src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",") ?? "");
+    setMispTags(presetTopic?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",") ?? "");
     setActionTagOptions([
       ...new Set([
-        ...(src?.tags?.map((tag) => tag.tag_id) ?? []),
+        ...(presetTopic?.tags?.map((tag) => tag.tag_id) ?? []),
         ...(presetParentTagId ? [presetParentTagId] : []),
         ...(presetTagId ? [presetTagId] : []),
       ]),
@@ -187,7 +177,6 @@ export function TopicModal(props) {
   const reloadTopicAfterAPI = async () => {
     // fix topic state
     await Promise.all([
-      dispatch(getTopic(topicId)),
       dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
       dispatch(getPTeamTagsSummary({ pteamId: pteamId })),
     ]);
@@ -236,10 +225,10 @@ export function TopicModal(props) {
     };
 
     function isRequireUpdateTopic() {
-      const presetMispTag = src?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",");
+      const presetMispTag = presetTopic?.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",");
 
-      const presetTag = src?.tags
-        ? src.tags.map((tag) => tag.tag_id)
+      const presetTag = presetTopic?.tags
+        ? presetTopic.tags.map((tag) => tag.tag_id)
         : presetParentTagId
           ? [presetParentTagId]
           : presetTagId
@@ -247,9 +236,9 @@ export function TopicModal(props) {
             : [];
 
       const presetData = {
-        title: src?.title ?? "",
-        abstract: src?.abstract ?? "",
-        threat_impact: src?.threat_impact ?? 4,
+        title: presetTopic.title ?? "",
+        abstract: presetTopic.abstract ?? "",
+        threat_impact: presetTopic.threat_impact ?? 4,
         tags: allTags.filter((tag) => presetTag.includes(tag.tag_id)).map((tag) => tag.tag_name),
         misp_tags:
           presetMispTag?.length > 0
@@ -258,7 +247,8 @@ export function TopicModal(props) {
       };
 
       return (
-        JSON.stringify(data) !== JSON.stringify(presetData) && src.created_by === userMe.user_id
+        JSON.stringify(data) !== JSON.stringify(presetData) &&
+        presetTopic.created_by === userMe.user_id
       );
     }
 
@@ -328,7 +318,7 @@ export function TopicModal(props) {
             ),
         );
       }
-      if (src.created_by !== userMe.user_id) {
+      if (presetTopic.created_by !== userMe.user_id) {
         enqueueSnackbar(
           "Only actions have been changed, not topics. You can't update topic, because you are not topic creator.",
           { variant: "warning" },
@@ -396,7 +386,7 @@ export function TopicModal(props) {
   const handleBackFlashsense = () => {
     setValidErrorMessage("");
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
-    const prevTopicId = presetTopicId ?? "";
+    const prevTopicId = presetTopic?.topic_id ?? "";
     if (skipped.has(0)) {
       setTopicId(prevTopicId);
     }
@@ -420,16 +410,16 @@ export function TopicModal(props) {
   const handleSkipFlashsense = () => {
     execSkip();
 
-    if (presetTopicId) {
+    if (presetTopic) {
       // Revert Topic ID to Preset
-      setTopicId(presetTopicId);
-    } else if (!presetTopicId) {
+      setTopicId(presetTopic.topic_id);
+    } else {
       setTopicId(uuid.v4());
     }
   };
 
   const handleClose = () => {
-    setActiveStep(presetTopicId ? 1 : 0);
+    setActiveStep(presetTopic ? 1 : 0);
     onSetOpen(false);
   };
 
@@ -506,7 +496,7 @@ export function TopicModal(props) {
         <DialogTitle>
           <Box alignItems="center" display="flex" flexDirection="row">
             <Typography flexGrow={1} className={dialogStyle.dialog_title}>
-              {presetTopicId ? "Edit Topic" : "Create Topic"}
+              {presetTopic ? "Edit Topic" : "Create Topic"}
             </Typography>
             <IconButton onClick={handleClose}>
               <CloseIcon />
@@ -717,14 +707,14 @@ export function TopicModal(props) {
               {activeStep === steps.length - 1 ? (
                 <Button
                   onClick={
-                    presetTopicId && topicId === presetTopicId
+                    presetTopic && topicId === presetTopic.topic_id
                       ? handleUpdateTopic
                       : handleCreateTopic
                   }
                   disabled={errors?.length > 0}
                   className={dialogStyle.submit_btn}
                 >
-                  {presetTopicId && topicId === presetTopicId ? "Update" : "Create"}
+                  {presetTopic && topicId === presetTopic.topic_id ? "Update" : "Create"}
                 </Button>
               ) : (
                 <Button
@@ -736,7 +726,7 @@ export function TopicModal(props) {
                 </Button>
               )}
             </Box>
-            {activeStep === 1 && presetTopicId && (
+            {activeStep === 1 && presetTopic && (
               <Box mb={1}>
                 <Divider sx={{ my: 5 }} />
                 <Typography sx={{ fontWeight: 900, color: "error.main" }} mb={1}>
@@ -747,7 +737,7 @@ export function TopicModal(props) {
                     Once you delete topic, there is no going back.
                   </Typography>
                   <TopicDeleteModal
-                    topicId={presetTopicId}
+                    topicId={presetTopic.topic_id}
                     onSetOpenTopicModal={onSetOpen}
                     onDelete={handleDeleteTopic}
                   />
@@ -778,7 +768,7 @@ export function TopicModal(props) {
 TopicModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onSetOpen: PropTypes.func.isRequired,
-  presetTopicId: PropTypes.string,
+  presetTopic: PropTypes.object,
   presetTagId: PropTypes.string,
   presetParentTagId: PropTypes.string,
   presetActions: PropTypes.arrayOf(
