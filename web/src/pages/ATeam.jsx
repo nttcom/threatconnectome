@@ -7,8 +7,12 @@ import { ATeamMember } from "../components/ATeamMember";
 import { ATeamWatching } from "../components/ATeamWatching";
 import { TabPanel } from "../components/TabPanel";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetATeamMembersQuery, useGetUserMeQuery } from "../services/tcApi";
-import { getATeam, getATeamAuth } from "../slices/ateam";
+import {
+  useGetATeamAuthQuery,
+  useGetATeamMembersQuery,
+  useGetUserMeQuery,
+} from "../services/tcApi";
+import { getATeam } from "../slices/ateam";
 import { noATeamMessage, experienceColors } from "../utils/const";
 import { a11yProps, errorToString } from "../utils/func.js";
 
@@ -18,47 +22,50 @@ export function ATeam() {
 
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const ateam = useSelector((state) => state.ateam.ateam);
-  const authorities = useSelector((state) => state.ateam.authorities);
 
   const dispatch = useDispatch();
 
   const filterModes = ["All", "ATeam"];
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
-  const skipByATeamId = ateamId === undefined;
+  const skip = useSkipUntilAuthTokenIsReady() || !ateamId;
   const {
     data: userMe,
     error: userMeError,
     isLoading: userMeIsLoading,
-  } = useGetUserMeQuery(undefined, { skip: skipByAuth });
+  } = useGetUserMeQuery(undefined, { skip });
+  const {
+    data: authorities,
+    error: authoritiesError,
+    isLoading: authoritiesIsLoading,
+  } = useGetATeamAuthQuery(ateamId, { skip });
   const {
     data: members,
     error: membersError,
     isLoading: membersIsLoading,
-  } = useGetATeamMembersQuery(ateamId, { skip: skipByAuth || skipByATeamId });
+  } = useGetATeamMembersQuery(ateamId, { skip });
 
   useEffect(() => {
     if (!ateamId) return;
     if (!ateam) dispatch(getATeam(ateamId));
-    if (!authorities) dispatch(getATeamAuth(ateamId));
-  }, [dispatch, ateamId, ateam, authorities]);
+  }, [dispatch, ateamId, ateam]);
 
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  if (skipByAuth || skipByATeamId) return <></>;
+  if (skip) return <></>;
+  if (!ateamId) return <>{noATeamMessage}</>;
+
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (authoritiesError) return <>{`Cannot get ATeamAuth: ${errorToString(authoritiesError)}`}</>;
+  if (authoritiesIsLoading) return <>Now loading ATeamAuth...</>;
   if (membersError) return <>{`Cannot get Members: ${errorToString(membersError)}`}</>;
   if (membersIsLoading) return <>Now loading Members...</>;
 
-  if (!ateamId) return <>{noATeamMessage}</>;
-  if (!ateam || !authorities) return <></>;
+  if (!ateam) return <></>;
 
-  const isAdmin = (
-    authorities?.find((x) => x.user_id === userMe.user_id)?.authorities ?? []
-  ).includes("admin");
+  const isAdmin = (authorities[userMe.user_id] ?? []).includes("admin");
 
   return (
     <>

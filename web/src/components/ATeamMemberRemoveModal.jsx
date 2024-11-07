@@ -11,11 +11,9 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React from "react";
-import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useDeleteATeamMemberMutation } from "../services/tcApi";
-import { getATeamAuth } from "../slices/ateam";
 import { errorToString } from "../utils/func";
 
 export function ATeamMemberRemoveModal(props) {
@@ -24,11 +22,8 @@ export function ATeamMemberRemoveModal(props) {
   const { enqueueSnackbar } = useSnackbar();
   const [deleteATeamMember] = useDeleteATeamMemberMutation();
 
-  const dispatch = useDispatch();
-
   const handleRemove = async () => {
     function onSuccess(success) {
-      dispatch(getATeamAuth(ateamId));
       enqueueSnackbar(`Remove ${userName} from ${ateamName} succeeded`, { variant: "success" });
       if (onClose) onClose();
     }

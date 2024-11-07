@@ -37,8 +37,8 @@ import { ATeamTopicMenu } from "../components/ATeamTopicMenu";
 import { AnalysisNoThreatsMsg } from "../components/AnalysisNoThreatsMsg";
 import { AnalysisTopic } from "../components/AnalysisTopic";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetUserMeQuery } from "../services/tcApi";
-import { getATeam, getATeamAuth } from "../slices/ateam";
+import { useGetATeamAuthQuery, useGetUserMeQuery } from "../services/tcApi";
+import { getATeam } from "../slices/ateam";
 import { getATeamTopics } from "../utils/api";
 import { difficulty, difficultyColors, noATeamMessage } from "../utils/const";
 import { calcTimestampDiff, errorToString, utcStringToLocalDate } from "../utils/func";
@@ -50,6 +50,8 @@ export function Analysis() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
 
+  const ateamId = params.get("ateamId");
+
   const skip = useSkipUntilAuthTokenIsReady();
 
   const {
@@ -57,9 +59,13 @@ export function Analysis() {
     error: userMeError,
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
+  const {
+    data: authorities,
+    error: authoritiesError,
+    isLoading: authoritiesIsLoading,
+  } = useGetATeamAuthQuery(ateamId, { skip });
 
   const ateam = useSelector((state) => state.ateam.ateam);
-  const authorities = useSelector((state) => state.ateam.authorities);
 
   const perPageItems = [10, 20, 50, 100];
   const sortKeyItems = [
@@ -91,8 +97,6 @@ export function Analysis() {
   const [pageInfo, setPageInfo] = useState();
   const [targetTopic, setTargetTopic] = useState();
   const [anchorEl, setAnchorEl] = useState();
-
-  const ateamId = params.get("ateamId");
 
   useEffect(() => {
     /* Note: state.ateam.* are re-initialized when ateamId is changed. */
@@ -131,17 +135,14 @@ export function Analysis() {
     if (!ateam) dispatch(getATeam(ateamId));
   }, [dispatch, ateam, skip, ateamId]);
 
-  useEffect(() => {
-    if (skip || !ateamId || !ateam) return;
-    if (!authorities) dispatch(getATeamAuth(ateamId));
-  }, [dispatch, ateamId, ateam, authorities, skip]);
-
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (authoritiesError) return <>{`Cannot get ATeamAuth: ${errorToString(authoritiesError)}`}</>;
+  if (authoritiesIsLoading) return <>Now loading ATeamAuth...</>;
 
   if (!ateamId) return <>{noATeamMessage}</>;
-  if (!ateam || !authorities || !pageInfo) return <>Now loading...</>;
+  if (!ateam || !pageInfo) return <>Now loading...</>;
 
   const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
 

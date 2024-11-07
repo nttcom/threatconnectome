@@ -20,10 +20,6 @@ export const getDependencies = async (pteamId, serviceId) =>
 // ateams
 export const getATeam = async (ateamId) => axios.get(`/ateams/${ateamId}`);
 
-export const getATeamAuthInfo = async () => axios.get("/ateams/auth_info");
-
-export const getATeamAuth = async (ateamId) => axios.get(`/ateams/${ateamId}/authority`);
-
 export const getATeamTopics = async (ateamId, params) =>
   axios.get(`/ateams/${ateamId}/topicstatus`, { params: params ?? {} });
 
