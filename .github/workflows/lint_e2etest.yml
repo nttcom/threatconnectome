@@ -16,12 +16,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-
 env:
   DEFAULT_PYTHON: "3.10"
   PYTHON_ROOT_DIRS: ./
   E2ETEST_DIRS: ./e2etests
-
 
 jobs:
   build:
@@ -31,10 +29,10 @@ jobs:
         working-directory: ${{ env.E2ETEST_DIRS }}
     steps:
       - name: Check out code from GitHub
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Python ${{ env.DEFAULT_PYTHON }}
         id: python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
       - name: Setup pipenv
@@ -52,5 +50,4 @@ jobs:
         run: |
           pipenv run black --check --diff ${{ env.PYTHON_ROOT_DIRS }}
           pipenv run ruff check ${{ env.PYTHON_ROOT_DIRS }}
-          pipenv run mypy ${{ env.PYTHON_ROOT_DIRS }} --show-error-codes --no-error-summary  
-    
+          pipenv run mypy ${{ env.PYTHON_ROOT_DIRS }} --show-error-codes --no-error-summary
