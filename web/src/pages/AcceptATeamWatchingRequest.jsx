@@ -5,15 +5,15 @@ import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useApplyATeamWatchingRequestMutation, useGetPTeamQuery } from "../services/tcApi";
-import { getATeamRequested } from "../utils/api";
+import {
+  useApplyATeamWatchingRequestMutation,
+  useGetATeamRequestedQuery,
+  useGetPTeamQuery,
+} from "../services/tcApi";
 import { commonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
 export function AcceptATeamWatchingRequest() {
-  const [detail, setDetail] = useState({});
-  const [errorMessage, setErrorMessage] = useState(null);
-
   const { enqueueSnackbar } = useSnackbar();
   const [applyATeamWatchingRequest] = useApplyATeamWatchingRequestMutation();
 
@@ -23,24 +23,22 @@ export function AcceptATeamWatchingRequest() {
   const tokenId = params.get("token");
   const pteamId = useSelector((state) => state.pteam.pteamId);
 
-  useEffect(() => {
-    getATeamRequested(tokenId)
-      .then((response) => setDetail(response.data))
-      .catch((error) => {
-        setErrorMessage(<Typography>This request is invalid or already expired.</Typography>);
-      });
-  }, [tokenId]);
-
-  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const skip = useSkipUntilAuthTokenIsReady();
   const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip });
-
+  } = useGetPTeamQuery(pteamId, { skip: skip || !pteamId });
+  const {
+    data: detail,
+    error: ateamRequestedError,
+    isLoading: ateamRequestedIsLoading,
+  } = useGetATeamRequestedQuery(tokenId, { skip: skip || !tokenId });
   if (skip) return <></>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
   if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (ateamRequestedError) return <>This request is invalid or already expired.</>;
+  if (ateamRequestedIsLoading) return <>Now loading ATeamRequested...</>;
 
   const handleAccept = async (event) => {
     event.preventDefault();
@@ -68,7 +66,7 @@ export function AcceptATeamWatchingRequest() {
       .catch((error) => onError(error));
   };
 
-  return detail.ateam_id ? (
+  return (
     <>
       <Typography variant="h6">
         Does your pteam ({pteam?.pteam_name}) accept the watching request from the ateam below?
@@ -84,7 +82,5 @@ export function AcceptATeamWatchingRequest() {
         </Button>
       </Box>
     </>
-  ) : (
-    <>{errorMessage}</>
   );
 }
