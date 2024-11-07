@@ -31,11 +31,16 @@ const noImageAvailableUrl = "images/no-image-available-720x480.png";
 function ServiceCard(props) {
   const { pteamId, service, onClickService } = props;
 
-  const { data: thumbnail } = useGetPTeamServiceThumbnailQuery({
+  const {
+    data: thumbnail,
+    isError: thumbnailIsError,
+    isLoading: thumbnailIsLoading,
+  } = useGetPTeamServiceThumbnailQuery({
     pteamId,
     serviceId: service.service_id,
   });
-  const image = thumbnail ?? noImageAvailableUrl;
+  const image =
+    thumbnailIsError || thumbnailIsLoading || !thumbnail ? noImageAvailableUrl : thumbnail;
 
   return (
     <Card
