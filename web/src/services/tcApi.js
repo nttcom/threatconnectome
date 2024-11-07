@@ -103,13 +103,25 @@ export const tcApi = createApi({
       ],
     }),
 
+    /* ATeam Auth Info */
+    getATeamAuthInfo: builder.query({
+      query: () => "ateams/auth_info",
+      /* No tags to provide */
+    }),
+
     /* ATeam Auth */
+    getATeamAuth: builder.query({
+      query: (ateamId) => `ateams/${ateamId}/authority`,
+      transformResponse: _responseListToDictConverter("user_id", "authorities"),
+      providesTags: (result, error, ateamId) => [{ type: "ATeamAuthority", id: ateamId }],
+    }),
     updateATeamAuth: builder.mutation({
       query: ({ ateamId, data }) => ({
         url: `ateams/${ateamId}/authority`,
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "ATeamAuthority", id: arg.ateamId }],
     }),
 
     /* ATeam Invitation */
@@ -604,6 +616,8 @@ export const {
   useCreateActionLogMutation,
   useCreateATeamMutation,
   useUpdateATeamMutation,
+  useGetATeamAuthInfoQuery,
+  useGetATeamAuthQuery,
   useUpdateATeamAuthMutation,
   useCreateATeamInvitationMutation,
   useApplyATeamInvitationMutation,
