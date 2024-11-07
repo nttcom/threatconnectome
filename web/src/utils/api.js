@@ -17,9 +17,6 @@ export const getPTeamTagsSummary = async (pteamId) => axios.get(`/pteams/${pteam
 export const getDependencies = async (pteamId, serviceId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/dependencies`);
 
-export const getServiceThumbnail = async (pteamId, serviceId) =>
-  axios.get(`/pteams/${pteamId}/services/${serviceId}/thumbnail`, { responseType: "blob" });
-
 // ateams
 export const getATeam = async (ateamId) => axios.get(`/ateams/${ateamId}`);
 
@@ -45,17 +42,9 @@ export const deleteATeamTopicComment = async (ateamId, topicId, commentId) =>
 // topics
 export const getTopic = async (topicId) => axios.get(`/topics/${topicId}`);
 
-export const updateTopic = async (topicId, data) => axios.put(`/topics/${topicId}`, data);
-
-export const searchTopics = async (params) => axios.get("topics/search", { params: params ?? {} });
-
 export const fetchFlashsense = async (topicId) => axios.get(`/topics/fetch_fs/${topicId}`);
 
 // external
-export const checkSlack = async (data) => axios.post("/external/slack/check", data);
-
-export const checkMail = async (data) => axios.post("/external/email/check", data);
-
 export const checkFs = async () => axios.post("/external/flashsense/check");
 
 export const getFsInfo = async () => axios.get("/external/flashsense/info");
