@@ -23,18 +23,18 @@ export function AcceptATeamWatchingRequest() {
   const tokenId = params.get("token");
   const pteamId = useSelector((state) => state.pteam.pteamId);
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
   const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip: skip || !pteamId });
+  } = useGetPTeamQuery(pteamId, { skipByAuth: skipByAuth || !pteamId });
   const {
     data: detail,
     error: ateamRequestedError,
     isLoading: ateamRequestedIsLoading,
-  } = useGetATeamRequestedQuery(tokenId, { skip: skip || !tokenId });
-  if (skip) return <></>;
+  } = useGetATeamRequestedQuery(tokenId, { skipByAuth: skipByAuth || !tokenId });
+  if (skipByAuth) return <></>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
   if (pteamIsLoading) return <>Now loading PTeam...</>;
   if (ateamRequestedError) return <>This request is invalid or already expired.</>;
