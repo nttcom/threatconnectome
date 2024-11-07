@@ -449,20 +449,32 @@ export const tcApi = createApi({
     }),
 
     /* Topic Comment */
+    getATeamTopicComment: builder.query({
+      query: ({ ateamId, topicId }) => `ateams/${ateamId}/topiccomment/${topicId}`,
+      providesTags: (result, error, arg) => [
+        { type: "ATeamTopicComment", id: `${arg.ateamId}:${arg.topicId}` },
+        { type: "ATeamTopicComment", id: `ALL:${arg.topicId}` },
+      ],
+    }),
     createATeamTopicComment: builder.mutation({
       query: ({ ateamId, topicId, data }) => ({
         url: `ateams/${ateamId}/topiccomment/${topicId}`,
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamTopicComment", id: `${arg.ateamId}:${arg.topicId}` },
+      ],
     }),
-
     updateATeamTopicComment: builder.mutation({
       query: ({ ateamId, topicId, commentId, data }) => ({
         url: `ateams/${ateamId}/topiccomment/${topicId}/${commentId}`,
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamTopicComment", id: `${arg.ateamId}:${arg.topicId}` },
+      ],
     }),
 
     deleteATeamTopicComment: builder.mutation({
@@ -470,6 +482,9 @@ export const tcApi = createApi({
         url: `ateams/${ateamId}/topiccomment/${topicId}/${commentId}`,
         method: "DELETE",
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamTopicComment", id: `${arg.ateamId}:${arg.topicId}` },
+      ],
     }),
 
     /* Topics */
@@ -488,7 +503,6 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [{ type: "Threat", id: "ALL" }],
     }),
-
     updateTopic: builder.mutation({
       query: ({ topicId, data }) => ({
         url: `topics/${topicId}`,
@@ -497,13 +511,15 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [{ type: "Threat", id: "ALL" }],
     }),
-
     deleteTopic: builder.mutation({
       query: (topicId) => ({
         url: `topics/${topicId}`,
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "Threat", id: "ALL" }],
+      invalidatesTags: (result, error, topicId) => [
+        { type: "ATeamTopicComment", id: `ALL:${topicId}` },
+        { type: "Threat", id: "ALL" },
+      ],
     }),
 
     /* User */
@@ -582,14 +598,15 @@ export const {
   useGetPTeamTopicActionsQuery,
   useGetTopicActionsQuery,
   useDeleteATeamMemberMutation,
-  useDeleteATeamTopicCommentMutation,
+  useGetATeamTopicCommentQuery,
   useCreateATeamTopicCommentMutation,
+  useUpdateATeamTopicCommentMutation,
+  useDeleteATeamTopicCommentMutation,
   useCreateATeamWatchingRequestMutation,
   useApplyATeamWatchingRequestMutation,
   useRemoveWatchingPTeamMutation,
   useGetPTeamQuery,
   useCreatePTeamMutation,
-  useUpdateATeamTopicCommentMutation,
   useUpdatePTeamMutation,
   useUpdatePTeamAuthMutation,
   useUpdateTopicMutation,

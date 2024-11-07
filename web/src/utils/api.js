@@ -36,18 +36,6 @@ export const getATeamRequested = async (tokenId) =>
 export const getATeamTopics = async (ateamId, params) =>
   axios.get(`/ateams/${ateamId}/topicstatus`, { params: params ?? {} });
 
-export const getATeamTopicComments = async (ateamId, topicId) =>
-  axios.get(`/ateams/${ateamId}/topiccomment/${topicId}`);
-
-export const createATeamTopicComment = async (ateamId, topicId, data) =>
-  axios.post(`/ateams/${ateamId}/topiccomment/${topicId}`, data);
-
-export const updateATeamTopicComment = async (ateamId, topicId, commentId, data) =>
-  axios.put(`/ateams/${ateamId}/topiccomment/${topicId}/${commentId}`, data);
-
-export const deleteATeamTopicComment = async (ateamId, topicId, commentId) =>
-  axios.delete(`/ateams/${ateamId}/topiccomment/${topicId}/${commentId}`);
-
 // topics
 export const getTopic = async (topicId) => axios.get(`/topics/${topicId}`);
 
