@@ -98,7 +98,7 @@ export function TopicCard(props) {
   if (ticketsRelatedToServiceTopicTagError)
     return <>{`Cannot get tcikets: ${errorToString(ticketsRelatedToServiceTopicTagError)}`}</>;
   if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
-  if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets || !allTags) {
+  if (!pteamId || !serviceId || !members || !topic || !tagId || !allTags) {
     return <>Now Loading...</>;
   }
 
