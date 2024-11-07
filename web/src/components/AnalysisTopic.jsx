@@ -298,91 +298,90 @@ export function AnalysisTopic(props) {
                 <>{`Cannot get ATeamTopicComment: ${errorToString(commentsError)}`}</>
               )}
               {commentsIsLoading && <>Now loading ATeamTopicComments...</>}
-              {comments &&
-                comments.map((comment, index) => (
-                  <Box key={comment.comment_id} mb={2} sx={{ width: 1 }}>
-                    <Box display="flex" alignItems="center" mb={1}>
-                      <Typography variant="subtitle2" fontWeight="900" mr={2}>
-                        {comment.email}
+              {(comments ?? []).map((comment, index) => (
+                <Box key={comment.comment_id} mb={2} sx={{ width: 1 }}>
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <Typography variant="subtitle2" fontWeight="900" mr={2}>
+                      {comment.email}
+                    </Typography>
+                    <Typography variant="subtitle2">
+                      {dateTimeFormat(comment.created_at)}
+                    </Typography>
+                    {comment.updated_at && (
+                      <Typography variant="subtitle2" sx={{ ml: 1 }}>
+                        {`(updated at ${dateTimeFormat(comment.updated_at)})`}
                       </Typography>
-                      <Typography variant="subtitle2">
-                        {dateTimeFormat(comment.created_at)}
+                    )}
+                  </Box>
+                  <Box mb={1} sx={{ backgroundColor: grey[100], padding: "10px" }}>
+                    {editable === index ? (
+                      <TextField
+                        id="outlined-multiline-static"
+                        multiline
+                        fullWidth
+                        rows={3}
+                        defaultValue={comment.comment}
+                        onChange={(event) => setEditComment(event.target.value)}
+                        sx={{ backgroundColor: "white" }}
+                      />
+                    ) : (
+                      <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                        {comment.comment}
                       </Typography>
-                      {comment.updated_at && (
-                        <Typography variant="subtitle2" sx={{ ml: 1 }}>
-                          {`(updated at ${dateTimeFormat(comment.updated_at)})`}
-                        </Typography>
-                      )}
-                    </Box>
-                    <Box mb={1} sx={{ backgroundColor: grey[100], padding: "10px" }}>
-                      {editable === index ? (
-                        <TextField
-                          id="outlined-multiline-static"
-                          multiline
-                          fullWidth
-                          rows={3}
-                          defaultValue={comment.comment}
-                          onChange={(event) => setEditComment(event.target.value)}
-                          sx={{ backgroundColor: "white" }}
-                        />
-                      ) : (
-                        <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                          {comment.comment}
-                        </Typography>
-                      )}
-                      <Box>
-                        {(isAdmin || comment.user_id === user.user_id) && (
-                          <Box mt={2}>
-                            {editable === index ? (
-                              <Box display="flex" justifyContent="flex-end">
-                                <Button
-                                  sx={{
-                                    textTransform: "none",
-                                    marginRight: 1,
-                                  }}
-                                  onClick={() => setEditable(null)}
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  variant="outlined"
-                                  color="success"
-                                  onClick={() => handleUpdateComment(comment.comment_id)}
-                                  sx={{
-                                    textTransform: "none",
-                                  }}
-                                >
-                                  Edit
-                                </Button>
-                              </Box>
-                            ) : (
-                              <Box display="flex" justifyContent="flex-end">
-                                {comment.user_id === user.user_id && (
-                                  <IconButton
-                                    aria-label="delete"
-                                    size="small"
-                                    onClick={() => {
-                                      setEditable(index);
-                                    }}
-                                  >
-                                    <EditIcon fontSize="inherit" />
-                                  </IconButton>
-                                )}
+                    )}
+                    <Box>
+                      {(isAdmin || comment.user_id === user.user_id) && (
+                        <Box mt={2}>
+                          {editable === index ? (
+                            <Box display="flex" justifyContent="flex-end">
+                              <Button
+                                sx={{
+                                  textTransform: "none",
+                                  marginRight: 1,
+                                }}
+                                onClick={() => setEditable(null)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                color="success"
+                                onClick={() => handleUpdateComment(comment.comment_id)}
+                                sx={{
+                                  textTransform: "none",
+                                }}
+                              >
+                                Edit
+                              </Button>
+                            </Box>
+                          ) : (
+                            <Box display="flex" justifyContent="flex-end">
+                              {comment.user_id === user.user_id && (
                                 <IconButton
                                   aria-label="delete"
                                   size="small"
-                                  onClick={() => setDeleteComment(comment)}
+                                  onClick={() => {
+                                    setEditable(index);
+                                  }}
                                 >
-                                  <DeleteIcon fontSize="inherit" />
+                                  <EditIcon fontSize="inherit" />
                                 </IconButton>
-                              </Box>
-                            )}
-                          </Box>
-                        )}
-                      </Box>
+                              )}
+                              <IconButton
+                                aria-label="delete"
+                                size="small"
+                                onClick={() => setDeleteComment(comment)}
+                              >
+                                <DeleteIcon fontSize="inherit" />
+                              </IconButton>
+                            </Box>
+                          )}
+                        </Box>
+                      )}
                     </Box>
                   </Box>
-                ))}
+                </Box>
+              ))}
             </Box>
           </Box>
         </TabPanel>
