@@ -20,8 +20,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetPTeamTopicActionsQuery, useGetTagsQuery } from "../services/tcApi";
-import { getDependencies, getTicketsRelatedToServiceTopicTag } from "../slices/pteam";
+import {
+  useGetPTeamTopicActionsQuery,
+  useGetTicketsRelatedToServiceTopicTagQuery,
+  useGetTagsQuery,
+} from "../services/tcApi";
+import { getDependencies } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { dateTimeFormat, errorToString } from "../utils/func";
 import { parseVulnerableVersions, versionMatch } from "../utils/versions";
@@ -40,12 +44,17 @@ export function TopicCard(props) {
   const [actionFilter, setActionFilter] = useState(true);
 
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
-  const ticketsDict = useSelector((state) => state.pteam.tickets);
   const topics = useSelector((state) => state.topics.topics);
+
+  const serviceId = service?.service_id;
+  const dependencies = serviceDependencies[serviceId];
+  const topic = topics[topicId];
 
   const skipByAuth = useSkipUntilAuthTokenIsReady();
   const skipByPTeamId = pteamId === undefined;
   const skipByTopicId = topicId === undefined;
+  const skipByServiceId = serviceId === undefined;
+  const skipBytagId = tagId === undefined;
   const {
     data: allTags,
     error: allTagsError,
@@ -60,26 +69,16 @@ export function TopicCard(props) {
     { skip: skipByAuth || skipByPTeamId || skipByTopicId },
   );
 
-  const serviceId = service?.service_id;
-  const dependencies = serviceDependencies[serviceId];
-  const topic = topics[topicId];
-  const tickets = ticketsDict[serviceId]?.[tagId]?.[topicId];
+  const {
+    data: tickets,
+    error: ticketsRelatedToServiceTopicTagError,
+    isLoading: ticketsRelatedToServiceTopicTagIsLoading,
+  } = useGetTicketsRelatedToServiceTopicTagQuery(
+    { pteamId, serviceId, topicId, tagId },
+    { skip: skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId },
+  );
 
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (!pteamId || !serviceId || !topicId || !tagId) return;
-    if (tickets === undefined) {
-      dispatch(
-        getTicketsRelatedToServiceTopicTag({
-          pteamId: pteamId,
-          serviceId: serviceId,
-          topicId: topicId,
-          tagId: tagId,
-        }),
-      );
-    }
-  }, [dispatch, pteamId, serviceId, topicId, tagId, tickets]);
 
   useEffect(() => {
     if (!pteamId || !serviceId) return;
@@ -97,13 +96,16 @@ export function TopicCard(props) {
 
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
-  if (skipByAuth || skipByPTeamId || skipByTopicId) return <></>;
+  if (skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId) return <></>;
   if (pteamTopicActionsError)
     return <>{`Cannot get topicActions: ${errorToString(pteamTopicActionsError)}`}</>;
   if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
+  if (ticketsRelatedToServiceTopicTagError)
+    return <>{`Cannot get tcikets: ${errorToString(ticketsRelatedToServiceTopicTagError)}`}</>;
+  if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
   if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
   if (allTagsIsLoading) return <>Now loading allTags...</>;
-  if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets) {
+  if (!pteamId || !serviceId || !members || !topic || !tagId) {
     return <>Now Loading...</>;
   }
 

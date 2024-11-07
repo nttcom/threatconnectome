@@ -9,9 +9,6 @@ export const removeToken = () => {
 };
 
 // pteams
-export const getTicketsRelatedToServiceTopicTag = async (pteamId, serviceId, topicId, tagId) =>
-  axios.get(`/pteams/${pteamId}/services/${serviceId}/topics/${topicId}/tags/${tagId}/tickets`);
-
 export const getPTeamServiceTagsSummary = async (pteamId, serviceId) =>
   axios.get(`/pteams/${pteamId}/services/${serviceId}/tags/summary`);
 
