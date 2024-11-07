@@ -184,6 +184,7 @@ export const tcApi = createApi({
         method: "POST",
         body: date,
       }),
+      invalidateTags: (result, error, arg) => [{ type: "ATeamWatchingRequest", id: "ALL" }],
     }),
     applyATeamWatchingRequest: builder.mutation({
       query: (data) => ({
@@ -191,7 +192,17 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "ATeamPTeam", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamPTeam", id: "ALL" },
+        { type: "ATeamWatchingRequest", id: "ALL" },
+      ],
+    }),
+    getATeamRequested: builder.query({
+      query: (tokenId) => ({
+        url: `ateams/watching_request/${tokenId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, tokenId) => [{ type: "AteamWatchingRequest", id: "ALL" }],
     }),
     removeWatchingPTeam: builder.mutation({
       query: ({ ateamId, pteamId }) => ({
@@ -598,6 +609,7 @@ export const {
   useApplyATeamInvitationMutation,
   useGetATeamInvitedQuery,
   useGetATeamMembersQuery,
+  useGetATeamRequestedQuery,
   useGetPTeamTopicActionsQuery,
   useGetTopicActionsQuery,
   useDeleteATeamMemberMutation,

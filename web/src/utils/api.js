@@ -27,9 +27,6 @@ export const getATeamAuthInfo = async () => axios.get("/ateams/auth_info");
 
 export const getATeamAuth = async (ateamId) => axios.get(`/ateams/${ateamId}/authority`);
 
-export const getATeamRequested = async (tokenId) =>
-  axios.get(`/ateams/watching_request/${tokenId}`);
-
 export const getATeamTopics = async (ateamId, params) =>
   axios.get(`/ateams/${ateamId}/topicstatus`, { params: params ?? {} });
 
