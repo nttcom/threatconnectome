@@ -374,10 +374,7 @@ export const tcApi = createApi({
       }),
       providesTags: (result, error, arg) => [
         ...(result
-          ? Object.values(result).reduce(
-              (ret, ticket) => [...ret, { type: "CurrentTicketStatus", id: ticket.ticket_id }],
-              [],
-            )
+          ? result.map((ticket) => ({ type: "CurrentTicketStatus", id: ticket.ticket_id }))
           : []),
         { type: "Ticket", id: "ALL" },
         { type: "Threat", id: "ALL" },
