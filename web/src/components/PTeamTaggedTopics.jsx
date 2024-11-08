@@ -84,11 +84,7 @@ export function PTeamTaggedTopics(props) {
           />
         ))}
         <Box flexGrow={1} />
-        <PTeamStatusMenu
-          presetTagId={presetTagId}
-          presetParentTagId={presetParentTagId}
-          serviceId={service.service_id}
-        />
+        <PTeamStatusMenu presetTagId={presetTagId} presetParentTagId={presetParentTagId} />
       </Box>
       {paginationRow}
       <List sx={{ p: 0 }}>

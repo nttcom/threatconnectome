@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import {
   getDependencies as apiGetDependencies,
-  getPTeamServiceTagsSummary as apiGetPTeamServiceTagsSummary,
   getPTeamTagsSummary as apiGetPTeamTagsSummary,
 } from "../utils/api";
 
@@ -13,16 +12,6 @@ export const getDependencies = createAsyncThunk(
       pteamId: data.pteamId,
       serviceId: data.serviceId,
       data: response.data,
-    })),
-);
-
-export const getPTeamServiceTagsSummary = createAsyncThunk(
-  "pteam/getPTeamServiceTagsSummary",
-  async (data) =>
-    await apiGetPTeamServiceTagsSummary(data.pteamId, data.serviceId).then((response) => ({
-      data: response.data,
-      pteamId: data.pteamId,
-      serviceId: data.serviceId,
     })),
 );
 
@@ -38,7 +27,6 @@ export const getPTeamTagsSummary = createAsyncThunk(
 const _initialState = {
   pteamId: undefined,
   serviceDependencies: {}, // dict[serviceId: list[dependency]]
-  serviceTagsSummaries: {},
   pteamTagsSummaries: {},
   serviceThumbnails: {}, // dict[serviceId: dataURL | noImageAvailableUrl(=NoThumbnail)]
 };
@@ -61,8 +49,6 @@ const pteamSlice = createSlice({
       ...state,
       /* Note: state.pteam.services should be fixed by dispatch(getPTeam(pteamId)) */
       serviceDependencies: { ...state.serviceDependencies, [action.payload]: undefined },
-      serviceTagsSummaries: { ...state.serviceTagsSummaries, [action.payload]: undefined },
-      tickets: { ...state.tickets, [action.payload]: undefined },
       serviceThumbnails: { ...state.serviceThumbnails, [action.payload]: undefined },
     }),
     storeServiceThumbnail: (state, action) => ({
@@ -86,13 +72,6 @@ const pteamSlice = createSlice({
         ...state,
         serviceDependencies: {
           ...state.serviceDependencies,
-          [action.payload.serviceId]: action.payload.data,
-        },
-      }))
-      .addCase(getPTeamServiceTagsSummary.fulfilled, (state, action) => ({
-        ...state,
-        serviceTagsSummaries: {
-          ...state.serviceTagsSummaries,
           [action.payload.serviceId]: action.payload.data,
         },
       }))
