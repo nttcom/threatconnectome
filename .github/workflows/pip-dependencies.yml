@@ -30,10 +30,10 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Check out code from GitHub
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Python ${{ env.DEFAULT_PYTHON }}
         id: python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
       - name: Setup pipenv
@@ -44,6 +44,7 @@ jobs:
         run: |
           pipenv lock --dev
       - name: Upload Pipfile.lock as an artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: Pipfile.lock
           path: ${{ env.API_DIRS }}/Pipfile.lock

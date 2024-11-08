@@ -15,12 +15,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-
 env:
   DEFAULT_PYTHON: "3.10"
   PYTHON_ROOT_DIRS: ./
   SCRIPTS_DIRS: ./scripts
-
 
 jobs:
   build:
@@ -28,12 +26,12 @@ jobs:
     defaults:
       run:
         working-directory: ${{ env.SCRIPTS_DIRS }}
-    steps: 
+    steps:
       - name: Check out code from GitHub
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Python ${{ env.DEFAULT_PYTHON }}
         id: python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
       - name: Setup pipenv
@@ -55,7 +53,6 @@ jobs:
       - name: Run Trivy vulnerability scanner in fs mode
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
+          scan-type: "fs"
           scan-ref: ${{ env.SCRIPTS_DIRS }}
           trivy-config: trivy.yaml
-    
