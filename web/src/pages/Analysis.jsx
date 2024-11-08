@@ -162,9 +162,7 @@ export function Analysis() {
     navigate(location.pathname + "?" + params.toString());
   };
 
-  const isAdmin = (
-    authorities.find((x) => x.user_id === userMe.user_id)?.authorities ?? []
-  ).includes("admin");
+  const isAdmin = (authorities[userMe.user_id] ?? []).includes("admin");
   const pageMax = Math.ceil(pageInfo.num_topics / perPage);
   if (page > pageMax && pageMax > 0) setPage(pageMax);
 
