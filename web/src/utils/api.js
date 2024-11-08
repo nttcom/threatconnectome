@@ -24,8 +24,6 @@ export const getATeamTopics = async (ateamId, params) =>
   axios.get(`/ateams/${ateamId}/topicstatus`, { params: params ?? {} });
 
 // topics
-export const getTopic = async (topicId) => axios.get(`/topics/${topicId}`);
-
 export const fetchFlashsense = async (topicId) => axios.get(`/topics/fetch_fs/${topicId}`);
 
 // external

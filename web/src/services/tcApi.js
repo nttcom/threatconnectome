@@ -528,6 +528,10 @@ export const tcApi = createApi({
     }),
 
     /* Topics */
+    getTopic: builder.query({
+      query: (topicId) => `/topics/${topicId}`,
+      providesTags: (result, error, topicId) => [{ type: "Topic", id: `${topicId}` }],
+    }),
     searchTopics: builder.query({
       query: (params) => ({
         url: "topics/search",
@@ -549,7 +553,10 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "Threat", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "Threat", id: "ALL" },
+        { type: "Topic", id: `${arg.topicId}` },
+      ],
     }),
     deleteTopic: builder.mutation({
       query: (topicId) => ({
@@ -559,6 +566,7 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, topicId) => [
         { type: "ATeamTopicComment", id: `ALL:${topicId}` },
         { type: "Threat", id: "ALL" },
+        { type: "Topic", id: `${topicId}` },
       ],
     }),
 
@@ -639,6 +647,7 @@ export const {
   useGetATeamMembersQuery,
   useGetATeamRequestedQuery,
   useGetPTeamTopicActionsQuery,
+  useGetTopicQuery,
   useGetTopicActionsQuery,
   useDeleteATeamMemberMutation,
   useGetATeamTopicCommentQuery,

@@ -30,7 +30,6 @@ import { blue, green, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
@@ -43,7 +42,6 @@ import {
   useUpdateTopicMutation,
   useGetTagsQuery,
 } from "../services/tcApi";
-import { getTopic } from "../slices/topics";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -78,7 +76,6 @@ export function TopicEditModal(props) {
   const [createAction] = useCreateActionMutation();
   const [updateAction] = useUpdateActionMutation();
   const [deleteAction] = useDeleteActionMutation();
-  const dispatch = useDispatch();
 
   const {
     data: userMe,
@@ -144,12 +141,7 @@ export function TopicEditModal(props) {
           enqueueSnackbar("Updating topic.", { variant: "info" });
           await updateTopic({ topicId, data: topicData })
             .unwrap()
-            .then(async (response) => {
-              await Promise.all([
-                enqueueSnackbar("Updating topic succeeded", { variant: "success" }),
-                dispatch(getTopic(topicId)),
-              ]);
-            });
+            .then(() => enqueueSnackbar("Updating topic succeeded", { variant: "success" }));
         } else {
           enqueueSnackbar("Skip updating topic params (Not a topic creator)", {
             variant: "warning",

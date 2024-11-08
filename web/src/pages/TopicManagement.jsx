@@ -26,8 +26,7 @@ import {
 import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { useLocation } from "react-router-dom";
 
@@ -35,47 +34,48 @@ import { FormattedDateTimeWithTooltip } from "../components/FormattedDateTimeWit
 import { TopicSearchModal } from "../components/TopicSearchModal";
 import styles from "../cssModule/button.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetTopicActionsQuery, useSearchTopicsQuery } from "../services/tcApi";
-import { getTopic } from "../slices/topics";
+import { useGetTopicActionsQuery, useGetTopicQuery, useSearchTopicsQuery } from "../services/tcApi";
 import { difficulty, difficultyColors } from "../utils/const";
 import { errorToString } from "../utils/func";
+
+function getDisplayMessage(topicError, topicIsLoading, topicActionsError, topicActionsIsLoading) {
+  if (topicActionsError) return `Cannot get topicActions: ${errorToString(topicActionsError)}`;
+  if (topicActionsIsLoading) return "Now loading topicActions...";
+  if (topicError) return `Cannot get Topic: ${errorToString(topicError)}`;
+  if (topicIsLoading) return "Now loading Topic...";
+  return "";
+}
 
 function TopicManagementTableRow(props) {
   const { topicId } = props;
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const topics = useSelector((state) => state.topics.topics);
   const params = new URLSearchParams(location.search);
 
-  useEffect(() => {
-    if (topics?.[topicId] === undefined) dispatch(getTopic(topicId));
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, []);
-
   const skip = useSkipUntilAuthTokenIsReady();
+
+  const {
+    data: topic,
+    error: topicError,
+    isLoading: topicIsLoading,
+  } = useGetTopicQuery(topicId, { skip });
+
   const {
     data: topicActions,
     error: topicActionsError,
     isLoading: topicActionsIsLoading,
   } = useGetTopicActionsQuery(topicId, { skip });
 
-  if (skip) return <></>;
-  if (topicActionsError)
-    return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
-  if (topicActionsIsLoading) return <>Now loading topicActions...</>;
-
-  const topic = topics?.[topicId];
-
-  if (!topic) {
+  if (skip || topicError || topicIsLoading || topicActionsError || topicActionsIsLoading)
     return (
       <TableRow>
-        <TableCell>Loading...</TableCell>
+        <TableCell>
+          {getDisplayMessage(topicError, topicIsLoading, topicActionsError, topicActionsIsLoading)}
+        </TableCell>
       </TableRow>
     );
-  }
 
   return (
     <TableRow
