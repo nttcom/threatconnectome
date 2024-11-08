@@ -107,8 +107,6 @@ export function Tag() {
     return <>{`Cannot get TaggedTopics: ${errorToString(taggedTopicsError)}`}</>;
   if (taggedTopicsIsLoading) return <>Now loading TaggedTopics...</>;
 
-  if (!currentTagDependencies) return <>Now loading...</>;
-
   const numSolved = taggedTopics.solved?.topic_ids?.length ?? 0;
   const numUnsolved = taggedTopics.unsolved?.topic_ids?.length ?? 0;
 
