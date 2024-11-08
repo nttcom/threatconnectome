@@ -11,11 +11,9 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React from "react";
-import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useDeletePTeamMemberMutation } from "../services/tcApi";
-import { getPTeamAuth, getPTeamMembers } from "../slices/pteam";
 import { errorToString } from "../utils/func";
 
 export function PTeamMemberRemoveModal(props) {
@@ -25,12 +23,8 @@ export function PTeamMemberRemoveModal(props) {
 
   const [deletePTeamMember] = useDeletePTeamMemberMutation();
 
-  const dispatch = useDispatch();
-
   const handleRemove = async () => {
     function onSuccess(success) {
-      dispatch(getPTeamAuth(pteamId));
-      dispatch(getPTeamMembers(pteamId));
       enqueueSnackbar(`Remove ${userName} from ${pteamName} succeeded`, { variant: "success" });
       if (onClose) onClose();
     }

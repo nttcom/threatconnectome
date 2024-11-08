@@ -19,13 +19,15 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
-  getDependencies,
-  getPTeamTopicActions,
-  getTicketsRelatedToServiceTopicTag,
-} from "../slices/pteam";
+  useGetPTeamTopicActionsQuery,
+  useGetTicketsRelatedToServiceTopicTagQuery,
+  useGetTagsQuery,
+} from "../services/tcApi";
+import { getDependencies } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
-import { dateTimeFormat } from "../utils/func";
+import { dateTimeFormat, errorToString } from "../utils/func";
 import { parseVulnerableVersions, versionMatch } from "../utils/versions";
 
 import { ActionItem } from "./ActionItem";
@@ -34,41 +36,49 @@ import { TopicTicketAccordion } from "./TopicTicketAccordion";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function TopicCard(props) {
-  const { pteamId, topicId, currentTagId, service, references } = props;
+  const { pteamId, topicId, currentTagId, service, references, members } = props;
   const { tagId } = useParams();
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
 
-  const members = useSelector((state) => state.pteam.members); // dispatched by Tag.jsx
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
-  const ticketsDict = useSelector((state) => state.pteam.tickets);
-  const pteamTopicActionsDict = useSelector((state) => state.pteam.topicActions);
   const topics = useSelector((state) => state.topics.topics);
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
 
   const serviceId = service?.service_id;
   const dependencies = serviceDependencies[serviceId];
   const topic = topics[topicId];
-  const tickets = ticketsDict[serviceId]?.[tagId]?.[topicId];
-  const pteamTopicActions = pteamTopicActionsDict[topicId];
+
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const skipByPTeamId = pteamId === undefined;
+  const skipByTopicId = topicId === undefined;
+  const skipByServiceId = serviceId === undefined;
+  const skipBytagId = tagId === undefined;
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skipByAuth });
+  const {
+    data: pteamTopicActionsData,
+    error: pteamTopicActionsError,
+    isLoading: pteamTopicActionsIsLoading,
+  } = useGetPTeamTopicActionsQuery(
+    { topicId, pteamId },
+    { skip: skipByAuth || skipByPTeamId || skipByTopicId },
+  );
+
+  const {
+    data: tickets,
+    error: ticketsRelatedToServiceTopicTagError,
+    isLoading: ticketsRelatedToServiceTopicTagIsLoading,
+  } = useGetTicketsRelatedToServiceTopicTagQuery(
+    { pteamId, serviceId, topicId, tagId },
+    { skip: skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId },
+  );
 
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (!pteamId || !serviceId || !topicId || !tagId) return;
-    if (tickets === undefined) {
-      dispatch(
-        getTicketsRelatedToServiceTopicTag({
-          pteamId: pteamId,
-          serviceId: serviceId,
-          topicId: topicId,
-          tagId: tagId,
-        }),
-      );
-    }
-  }, [dispatch, pteamId, serviceId, topicId, tagId, tickets]);
 
   useEffect(() => {
     if (!pteamId || !serviceId) return;
@@ -84,18 +94,22 @@ export function TopicCard(props) {
     }
   }, [dispatch, topicId, topic]);
 
-  useEffect(() => {
-    if (!pteamId || !topicId) return;
-    if (pteamTopicActions === undefined) {
-      dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId }));
-    }
-  }, [dispatch, pteamId, topicId, pteamTopicActions]);
-
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
-  if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets || !allTags) {
+  if (skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId) return <></>;
+  if (pteamTopicActionsError)
+    return <>{`Cannot get topicActions: ${errorToString(pteamTopicActionsError)}`}</>;
+  if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
+  if (ticketsRelatedToServiceTopicTagError)
+    return <>{`Cannot get tcikets: ${errorToString(ticketsRelatedToServiceTopicTagError)}`}</>;
+  if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
+  if (!pteamId || !serviceId || !members || !topic || !tagId) {
     return <>Now Loading...</>;
   }
+
+  const pteamTopicActions = pteamTopicActionsData.actions;
 
   const isSolved = !tickets.find(
     (ticket) => ticket.current_ticket_status?.topic_status !== "completed",
@@ -393,4 +407,5 @@ TopicCard.propTypes = {
   currentTagId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
+  members: PropTypes.object.isRequired,
 };

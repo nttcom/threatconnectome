@@ -18,12 +18,11 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { FixedSizeList } from "react-window";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-import { useCreateTagMutation } from "../services/tcApi";
-import { getTags } from "../slices/tags";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useCreateTagMutation, useGetTagsQuery } from "../services/tcApi";
 import { commonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -36,11 +35,14 @@ export function TopicTagSelector(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const dispatch = useDispatch();
-
   const [createTag] = useCreateTagMutation();
 
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip });
 
   const fixedTag = (orig) => orig.trim().toLowerCase(); // normalize to compare
 
@@ -50,9 +52,12 @@ export function TopicTagSelector(props) {
     }
   }, [allTags, search]);
 
+  if (skip) return <></>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
+
   const handleCreateTag = async () => {
     function onSuccess(success) {
-      dispatch(getTags());
       enqueueSnackbar("Create tag succeeded", { variant: "success" });
       setSearch("");
     }
@@ -64,8 +69,6 @@ export function TopicTagSelector(props) {
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
   };
-
-  if (!allTags) return <></>;
 
   const createDisabled =
     !fixedTag(search) ||

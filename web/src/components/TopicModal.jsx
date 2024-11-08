@@ -35,13 +35,9 @@ import {
   useGetUserMeQuery,
   useUpdateActionMutation,
   useDeleteActionMutation,
+  useGetTagsQuery,
 } from "../services/tcApi";
-import {
-  getPTeamTopicActions,
-  getPTeamServiceTaggedTopicIds,
-  getPTeamServiceTagsSummary,
-  getPTeamTagsSummary,
-} from "../slices/pteam";
+import { getPTeamServiceTagsSummary, getPTeamTagsSummary } from "../slices/pteam";
 import { getTopic } from "../slices/topics";
 import { fetchFlashsense } from "../utils/api";
 import { actionTypes } from "../utils/const";
@@ -82,7 +78,11 @@ export function TopicModal(props) {
 
   const pteamId = useSelector((state) => state.pteam.pteamId);
   const topics = useSelector((state) => state.topics.topics);
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip });
 
   const src = topics[presetTopicId];
   const [topicId, setTopicId] = useState("");
@@ -137,9 +137,11 @@ export function TopicModal(props) {
   }, [open]);
 
   if (skip) return <></>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (!pteamId || !allTags) return <></>;
+  if (!pteamId) return <></>;
 
   const operationError = (error) => {
     const resp = error.response ?? { status: "???", statusText: error.toString() };
@@ -186,22 +188,9 @@ export function TopicModal(props) {
     // fix topic state
     await Promise.all([
       dispatch(getTopic(topicId)),
-      dispatch(getPTeamTopicActions({ pteamId: pteamId, topicId: topicId })),
       dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
       dispatch(getPTeamTagsSummary({ pteamId: pteamId })),
     ]);
-    // update only if needed
-    if (pteamId && presetTagId) {
-      await Promise.all([
-        dispatch(
-          getPTeamServiceTaggedTopicIds({
-            pteamId: pteamId,
-            serviceId: serviceId,
-            tagId: presetTagId,
-          }),
-        ),
-      ]);
-    }
   };
 
   const handleCreateTopic = async () => {
@@ -305,7 +294,7 @@ export function TopicModal(props) {
         };
         if (action.action_id === null) {
           promiseArray.push(
-            createAction({ actionRequest })
+            createAction(actionRequest)
               .unwrap()
               .catch((error) => {
                 enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
@@ -445,15 +434,6 @@ export function TopicModal(props) {
   };
 
   const handleDeleteTopic = () => {
-    if (presetTagId) {
-      dispatch(
-        getPTeamServiceTaggedTopicIds({
-          pteamId: pteamId,
-          serviceId: serviceId,
-          tagId: presetTagId,
-        }),
-      );
-    }
     dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
     dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
   };

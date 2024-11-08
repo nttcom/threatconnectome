@@ -26,12 +26,7 @@ import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useCreateTicketStatusMutation } from "../services/tcApi";
-import {
-  getPTeamServiceTaggedTopicIds,
-  getPTeamServiceTagsSummary,
-  getPTeamTagsSummary,
-  getTicketsRelatedToServiceTopicTag,
-} from "../slices/pteam";
+import { getPTeamServiceTagsSummary, getPTeamTagsSummary } from "../slices/pteam";
 import { topicStatusProps } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -68,23 +63,8 @@ export function TopicStatusSelector(props) {
   ];
 
   const dispatchRelatedSlices = () => {
-    dispatch(
-      getTicketsRelatedToServiceTopicTag({
-        pteamId: pteamId,
-        serviceId: serviceId,
-        topicId: topicId,
-        tagId: tagId,
-      }),
-    );
     dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
     dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
-    dispatch(
-      getPTeamServiceTaggedTopicIds({
-        pteamId: pteamId,
-        serviceId: serviceId,
-        tagId: tagId,
-      }),
-    );
   };
 
   const modifyTicketStatus = async (selectedStatus) => {

@@ -1,30 +1,45 @@
 import { Box, List, ListItem, MenuItem, Pagination, Select, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import { PTeamStatusMenu } from "../components/PTeamStatusMenu";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useGetPTeamMembersQuery, useGetTagsQuery } from "../services/tcApi";
 import { sortedSSVCPriorities } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 import { TopicCard } from "./TopicCard";
 
 export function PTeamTaggedTopics(props) {
-  const { pteamId, tagId, service, isSolved, references } = props;
+  const { pteamId, tagId, service, references, taggedTopics } = props;
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
-  const taggedTopics = useSelector((state) => state.pteam.taggedTopics); // dispatched by parent
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by parent
+  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip });
+  const {
+    data: members,
+    error: membersError,
+    isLoading: membersIsLoading,
+  } = useGetPTeamMembersQuery(pteamId, { skip });
 
-  const targets = taggedTopics?.[service?.service_id]?.[tagId]?.[isSolved ? "solved" : "unsolved"];
+  if (skip) return <></>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
+  if (membersError) return <>{`Cannot get PTeamMembers: ${errorToString(membersError)}`}</>;
+  if (membersIsLoading) return <>Now loading PTeamMembers...</>;
 
-  if (targets === undefined || !allTags) {
+  if (taggedTopics === undefined) {
     return <>Loading...</>;
   }
 
-  const targetTopicIds = targets.topic_ids.slice(perPage * (page - 1), perPage * page);
+  const targetTopicIds = taggedTopics.topic_ids.slice(perPage * (page - 1), perPage * page);
   const presetTagId = tagId;
   const presetParentTagId = allTags.find((tag) => tag.tag_id === tagId)?.parent_id;
 
@@ -33,7 +48,7 @@ export function PTeamTaggedTopics(props) {
       <Pagination
         shape="rounded"
         page={page}
-        count={Math.ceil(targets.topic_ids.length / perPage)}
+        count={Math.ceil(taggedTopics.topic_ids.length / perPage)}
         onChange={(event, value) => setPage(value)}
       />
       <Select
@@ -64,7 +79,7 @@ export function PTeamTaggedTopics(props) {
           <SSVCPriorityCountChip
             key={ssvcPriority}
             ssvcPriority={ssvcPriority}
-            count={targets.ssvc_priority_count[ssvcPriority]}
+            count={taggedTopics.ssvc_priority_count[ssvcPriority]}
             outerSx={{ mr: "10px" }}
           />
         ))}
@@ -86,6 +101,7 @@ export function PTeamTaggedTopics(props) {
               currentTagId={tagId}
               service={service}
               references={references}
+              members={members}
             />
           </ListItem>
         ))}
@@ -98,6 +114,6 @@ PTeamTaggedTopics.propTypes = {
   pteamId: PropTypes.string.isRequired,
   tagId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
-  isSolved: PropTypes.bool.isRequired,
   references: PropTypes.array.isRequired,
+  taggedTopics: PropTypes.object.isRequired,
 };

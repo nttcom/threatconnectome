@@ -30,7 +30,7 @@ import { blue, green, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
@@ -41,8 +41,9 @@ import {
   useGetUserMeQuery,
   useUpdateActionMutation,
   useUpdateTopicMutation,
+  useGetTagsQuery,
 } from "../services/tcApi";
-import { getActions, getTopic } from "../slices/topics";
+import { getTopic } from "../slices/topics";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
 import { ActionTypeIcon } from "./ActionTypeIcon";
@@ -66,7 +67,12 @@ export function TopicEditModal(props) {
   const [updating, setUpdating] = useState(false);
   const [updateTopic] = useUpdateTopicMutation();
 
-  const allTags = useSelector((state) => state.tags.allTags);
+  const skip = useSkipUntilAuthTokenIsReady();
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip });
 
   const { enqueueSnackbar } = useSnackbar();
   const [createAction] = useCreateActionMutation();
@@ -74,7 +80,6 @@ export function TopicEditModal(props) {
   const [deleteAction] = useDeleteActionMutation();
   const dispatch = useDispatch();
 
-  const skip = useSkipUntilAuthTokenIsReady();
   const {
     data: userMe,
     error: userMeError,
@@ -91,9 +96,10 @@ export function TopicEditModal(props) {
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   const createActionTagOptions = (tagIdList) => {
-    if (!allTags) return [];
     return allTags
       .filter((tag) => tagIdList.includes(tag.tag_id) || tagIdList.includes(tag.parent_id))
       .map((tag) => tag.tag_id);
@@ -186,9 +192,6 @@ export function TopicEditModal(props) {
         }
         enqueueSnackbar("Remofing actions succeeded", { variant: "success" });
       }
-      if (newActions.length + updatedActions.length + removedActionIds.length > 0) {
-        await dispatch(getActions(currentTopic.topic_id));
-      }
       setTopicId(""); // mark reset at next open, only if succeeded
     } catch (error) {
       enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
@@ -255,8 +258,6 @@ export function TopicEditModal(props) {
       </>
     );
   }
-
-  if (!allTags) return <>Now loading...</>;
 
   return (
     <Dialog open={open === true} maxWidth="md" sx={{ maxHeight: "100vh" }}>

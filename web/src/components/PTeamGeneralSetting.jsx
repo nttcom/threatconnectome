@@ -4,10 +4,8 @@ import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 import { useUpdatePTeamMutation } from "../services/tcApi";
-import { getPTeam } from "../slices/pteam";
 import { checkFs as postCheckFs, getFsInfo } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
@@ -15,22 +13,17 @@ import { errorToString } from "../utils/func";
 import { CheckButton } from "./CheckButton";
 
 export function PTeamGeneralSetting(props) {
-  const { show } = props;
-  const [pteamName, setPTeamName] = useState("");
-  const [contactInfo, setContactInfo] = useState("");
-  const [slackUrl, setSlackUrl] = useState("");
+  const { show, pteam } = props;
+
+  const [pteamName, setPTeamName] = useState(pteam.pteam_name);
+  const [contactInfo, setContactInfo] = useState(pteam.contact_info);
   const [flashsenseUrl, setFlashsenseUrl] = useState("");
   const [checkFlashsense, setCheckFlashsense] = useState(false);
-  const [flashsenseMessage, setFlashsenseMessage] = useState();
+  const [flashsenseMessage, setFlashsenseMessage] = useState("");
 
   const [updatePTeam] = useUpdatePTeamMutation();
 
   const { enqueueSnackbar } = useSnackbar();
-
-  const pteamId = useSelector((state) => state.pteam.pteamId);
-  const pteam = useSelector((state) => state.pteam.pteam);
-
-  const dispatch = useDispatch();
 
   useEffect(() => {
     async function fetchFsInfo() {
@@ -38,20 +31,16 @@ export function PTeamGeneralSetting(props) {
       setFlashsenseUrl(fsInfo.api_url);
     }
 
-    if (!pteam) dispatch(getPTeam(pteamId));
     fetchFsInfo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (pteam) {
-      setPTeamName(pteam.pteam_name);
-      setContactInfo(pteam.contact_info);
-      setSlackUrl(pteam.alert_slack.webhook_url);
+    if (show) {
+      setCheckFlashsense(false);
+      setFlashsenseMessage();
     }
-    setCheckFlashsense(false);
-    setFlashsenseMessage();
-  }, [show, pteam]);
+  }, [show]);
 
   const operationError = (error) =>
     enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
@@ -78,12 +67,10 @@ export function PTeamGeneralSetting(props) {
     const data = {
       pteam_name: pteamName,
       contact_info: contactInfo,
-      alert_slack: { enable: true, webhook_url: slackUrl }, //todo change enable status
     };
-    await updatePTeam({ pteamId, data })
+    await updatePTeam({ pteamId: pteam.pteam_id, data })
       .unwrap()
       .then(() => {
-        dispatch(getPTeam(pteamId));
         enqueueSnackbar("update pteam info succeeded", { variant: "success" });
       })
       .catch((error) => operationError(error));
@@ -153,4 +140,5 @@ export function PTeamGeneralSetting(props) {
 }
 PTeamGeneralSetting.propTypes = {
   show: PropTypes.bool.isRequired,
+  pteam: PropTypes.object.isRequired,
 };

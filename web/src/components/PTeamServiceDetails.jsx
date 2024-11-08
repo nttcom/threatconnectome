@@ -68,12 +68,17 @@ ServiceIDCopyButton.propTypes = {
 export function PTeamServiceDetails(props) {
   const { pteamId, service, expandService, onSwitchExpandService, highestSsvcPriority } = props;
 
-  const { data: thumbnail } = useGetPTeamServiceThumbnailQuery({
+  const {
+    data: thumbnail,
+    isError: thumbnailIsError,
+    isLoading: thumbnailIsLoading,
+  } = useGetPTeamServiceThumbnailQuery({
     pteamId,
     serviceId: service.service_id,
   });
 
-  const image = thumbnail ?? noImageAvailableUrl;
+  const image =
+    thumbnailIsError || thumbnailIsLoading || !thumbnail ? noImageAvailableUrl : thumbnail;
   const serviceName = service.service_name;
   const description = service.description;
   const keywords = service.keywords;

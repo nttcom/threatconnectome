@@ -1,42 +1,44 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React from "react";
+import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useApplyATeamWatchingRequestMutation } from "../services/tcApi";
-import { getPTeam } from "../slices/pteam";
-import { getATeamRequested } from "../utils/api";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import {
+  useApplyATeamWatchingRequestMutation,
+  useGetATeamRequestedQuery,
+  useGetPTeamQuery,
+} from "../services/tcApi";
 import { commonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
 export function AcceptATeamWatchingRequest() {
-  const [detail, setDetail] = useState({});
-  const [errorMessage, setErrorMessage] = useState(null);
-
   const { enqueueSnackbar } = useSnackbar();
   const [applyATeamWatchingRequest] = useApplyATeamWatchingRequestMutation();
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
   const pteamId = useSelector((state) => state.pteam.pteamId);
-  const pteam = useSelector((state) => state.pteam.pteam);
 
-  useEffect(() => {
-    getATeamRequested(tokenId)
-      .then((response) => setDetail(response.data))
-      .catch((error) => {
-        setErrorMessage(<Typography>This request is invalid or already expired.</Typography>);
-      });
-  }, [tokenId]);
-
-  useEffect(() => {
-    if (!pteamId) return;
-    if (!pteam) dispatch(getPTeam(pteamId));
-  }, [dispatch, pteamId, pteam]);
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skipByAuth: skipByAuth || !pteamId });
+  const {
+    data: detail,
+    error: ateamRequestedError,
+    isLoading: ateamRequestedIsLoading,
+  } = useGetATeamRequestedQuery(tokenId, { skipByAuth: skipByAuth || !tokenId });
+  if (skipByAuth) return <></>;
+  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (ateamRequestedError) return <>This request is invalid or already expired.</>;
+  if (ateamRequestedIsLoading) return <>Now loading ATeamRequested...</>;
 
   const handleAccept = async (event) => {
     event.preventDefault();
@@ -45,7 +47,6 @@ export function AcceptATeamWatchingRequest() {
         `Now pteam '${pteam?.pteam_name}' is watched by ateam '${detail.ateam_name}'`,
         { variant: "info" },
       );
-      dispatch(getPTeam(pteamId));
       params.delete("token");
       params.set("pteamId", pteamId);
       navigate("/pteam?" + params.toString());
@@ -65,7 +66,7 @@ export function AcceptATeamWatchingRequest() {
       .catch((error) => onError(error));
   };
 
-  return detail.ateam_id ? (
+  return (
     <>
       <Typography variant="h6">
         Does your pteam ({pteam?.pteam_name}) accept the watching request from the ateam below?
@@ -81,7 +82,5 @@ export function AcceptATeamWatchingRequest() {
         </Button>
       </Box>
     </>
-  ) : (
-    <>{errorMessage}</>
   );
 }

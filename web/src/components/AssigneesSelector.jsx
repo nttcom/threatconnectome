@@ -2,10 +2,8 @@ import { Checkbox, ListItemText, MenuItem, Input, Select, FormControl } from "@m
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 
 import { useCreateTicketStatusMutation } from "../services/tcApi";
-import { getTicketsRelatedToServiceTopicTag } from "../slices/pteam";
 import { errorToString, setEquals } from "../utils/func";
 
 export function AssigneesSelector(props) {
@@ -16,8 +14,6 @@ export function AssigneesSelector(props) {
       .filter((member) => currentAssigneeIds.includes(member.user_id))
       .map((member) => member.email),
   );
-
-  const dispatch = useDispatch();
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -32,14 +28,6 @@ export function AssigneesSelector(props) {
     await createTicketStatus({ pteamId, serviceId, ticketId, data: { assignees: newAssigneeIds } })
       .unwrap()
       .then(() => {
-        dispatch(
-          getTicketsRelatedToServiceTopicTag({
-            pteamId: pteamId,
-            serviceId: serviceId,
-            topicId: topicId,
-            tagId: tagId,
-          }),
-        );
         enqueueSnackbar("Change assignees succeeded", { variant: "success" });
       })
       .catch((error) =>

@@ -11,23 +11,23 @@ import { TagReferences } from "../components/TagReferences";
 import { UUIDTypography } from "../components/UUIDTypography";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
-  getDependencies,
-  getPTeam,
-  getPTeamMembers,
-  getPTeamServiceTaggedTopicIds,
-} from "../slices/pteam";
-import { a11yProps } from "../utils/func.js";
+  useGetPTeamQuery,
+  useGetPTeamServiceTaggedTopicIdsQuery,
+  useGetTagsQuery,
+} from "../services/tcApi";
+import { getDependencies } from "../slices/pteam";
+import { a11yProps, errorToString } from "../utils/func.js";
 
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
 
-  const skip = useSkipUntilAuthTokenIsReady();
-
-  const allTags = useSelector((state) => state.tags.allTags); // dispatched by App
-  const pteam = useSelector((state) => state.pteam.pteam);
-  const members = useSelector((state) => state.pteam.members);
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skipByAuth });
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
-  const taggedTopicsDict = useSelector((state) => state.pteam.taggedTopics);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -38,17 +38,27 @@ export function Tag() {
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
+  const getPTeamReady = !skipByAuth && pteamId;
+  const getTopicIdsReady = getPTeamReady && serviceId && tagId;
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip: !getPTeamReady });
+  const {
+    data: taggedTopics,
+    error: taggedTopicsError,
+    isLoading: taggedTopicsIsLoading,
+  } = useGetPTeamServiceTaggedTopicIdsQuery(
+    { pteamId, serviceId, tagId },
+    { skip: !getTopicIdsReady },
+  );
+
   const dependencies = serviceDependencies[serviceId];
   const currentTagDependencies = dependencies?.filter((dependency) => dependency.tag_id === tagId);
-  const taggedTopics = taggedTopicsDict?.[serviceId]?.[tagId];
 
   useEffect(() => {
-    if (skip) return; // wait login completed
-    if (!pteamId) return; // wait fixed by App
-    if (!pteam) {
-      dispatch(getPTeam(pteamId));
-      return;
-    }
+    if (!pteam) return; // wait getQuery
     if (!serviceId || !pteam.services.find((service) => service.service_id === serviceId)) {
       const msg = `${serviceId ? "Invalid" : "Missing"} serviceId`;
       enqueueSnackbar(msg, { variant: "error" });
@@ -69,16 +79,7 @@ export function Tag() {
       navigate("/?" + params.toString()); // force jump to Status page
       return;
     }
-    // all params are valid.
-
-    if (taggedTopics === undefined) {
-      dispatch(
-        getPTeamServiceTaggedTopicIds({ pteamId: pteamId, serviceId: serviceId, tagId: tagId }),
-      );
-      return;
-    }
   }, [
-    skip,
     pteam,
     dependencies,
     currentTagDependencies,
@@ -91,17 +92,16 @@ export function Tag() {
     navigate,
   ]);
 
-  useEffect(() => {
-    if (skip) return;
-    if (!pteamId) return;
-    if (!members) {
-      dispatch(getPTeamMembers(pteamId));
-    }
-  }, [dispatch, skip, pteamId, members]);
+  if (!getTopicIdsReady) return <></>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
+  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (taggedTopicsError)
+    return <>{`Cannot get TaggedTopics: ${errorToString(taggedTopicsError)}`}</>;
+  if (taggedTopicsIsLoading) return <>Now loading TaggedTopics...</>;
 
-  if (skip || !allTags || !pteam || !members || !currentTagDependencies || !taggedTopics) {
-    return <>Now loading...</>;
-  }
+  if (!currentTagDependencies) return <>Now loading...</>;
 
   const numSolved = taggedTopics.solved?.topic_ids?.length ?? 0;
   const numUnsolved = taggedTopics.unsolved?.topic_ids?.length ?? 0;
@@ -113,6 +113,9 @@ export function Tag() {
     version: dependency.version,
     service: serviceDict.service_name,
   }));
+
+  const taggedTopicsUnsolved = taggedTopics?.["unsolved"];
+  const taggedTopicsSolved = taggedTopics?.["solved"];
 
   const handleTabChange = (event, value) => setTabValue(value);
 
@@ -157,8 +160,8 @@ export function Tag() {
             pteamId={pteamId}
             tagId={tagId}
             service={serviceDict}
-            isSolved={false}
             references={references}
+            taggedTopics={taggedTopicsUnsolved}
           />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
@@ -166,8 +169,8 @@ export function Tag() {
             pteamId={pteamId}
             tagId={tagId}
             service={serviceDict}
-            isSolved={true}
             references={references}
+            taggedTopics={taggedTopicsSolved}
           />
         </TabPanel>
       </Box>
