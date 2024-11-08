@@ -101,11 +101,7 @@ const pteamSlice = createSlice({
 
 const { actions, reducer } = pteamSlice;
 
-export const {
-  clearPTeam,
-  invalidateServiceId,
-  storeServiceThumbnail,
-  storeServiceThumbnailDict,
-} = actions;
+export const { clearPTeam, invalidateServiceId, storeServiceThumbnail, storeServiceThumbnailDict } =
+  actions;
 
 export default reducer;
