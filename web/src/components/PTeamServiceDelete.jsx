@@ -10,8 +10,9 @@ import {
   ListItemText,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
+import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import styles from "../cssModule/dialog.module.css";
@@ -20,10 +21,9 @@ import { useDeletePTeamServiceMutation, useGetPTeamQuery } from "../services/tcA
 import { invalidateServiceId, getPTeamTagsSummary } from "../slices/pteam";
 import { errorToString } from "../utils/func";
 
-export function PTeamServiceDelete() {
+export function PTeamServiceDelete(props) {
+  const { pteamId } = props;
   const [checked, setChecked] = useState([]);
-
-  const pteamId = useSelector((state) => state.pteam.pteamId);
 
   const { enqueueSnackbar } = useSnackbar();
   const [deletePTeamService] = useDeletePTeamServiceMutation();
@@ -124,3 +124,6 @@ export function PTeamServiceDelete() {
     </Box>
   );
 }
+PTeamServiceDelete.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+};

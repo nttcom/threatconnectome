@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -12,7 +12,6 @@ import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetUserMeQuery, useTryLoginMutation } from "../services/tcApi";
 import { setATeamId } from "../slices/ateam";
 import { setAuthToken } from "../slices/auth";
-import { setPTeamId } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
 import { setToken } from "../utils/api";
 import { mainMaxWidth } from "../utils/const";
@@ -32,6 +31,7 @@ export function App() {
   const system = useSelector((state) => state.system);
   const location = useLocation();
   const navigate = useNavigate();
+  const [pteamId, setPteamId] = useState(undefined);
 
   const {
     data: userMe,
@@ -92,7 +92,7 @@ export function App() {
       /\/tags\//.test(location.pathname)
     ) {
       if (!userMe.pteams.length > 0) {
-        dispatch(setPTeamId(undefined));
+        setPteamId(undefined);
         return;
       }
       const pteamIdx = params.get("pteamId") || userMe.pteams[0].pteam_id;
@@ -109,7 +109,7 @@ export function App() {
         navigate(location.pathname + "?" + params.toString());
         return;
       }
-      dispatch(setPTeamId(pteamIdx));
+      setPteamId(pteamIdx);
     }
   }, [dispatch, enqueueSnackbar, navigate, location, userMe, userMeIsFetching, system.teamMode]);
 
@@ -120,7 +120,7 @@ export function App() {
   return (
     <>
       <Box flexGrow={1}>
-        <AppBar />
+        <AppBar pteamId={pteamId} />
       </Box>
       <Drawer />
       <Main open={system.drawerOpen}>

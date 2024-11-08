@@ -24,7 +24,7 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import uuid from "react-native-uuid";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
@@ -51,8 +51,16 @@ import { TopicTagSelector } from "./TopicTagSelector";
 const steps = ["Import Flashsense", "Create topic"];
 
 export function TopicModal(props) {
-  const { open, onSetOpen, presetTopic, presetTagId, presetParentTagId, presetActions, serviceId } =
-    props;
+  const {
+    open,
+    onSetOpen,
+    presetTopic,
+    presetTagId,
+    presetParentTagId,
+    presetActions,
+    pteamId,
+    serviceId,
+  } = props;
 
   const [errors, setErrors] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
@@ -68,7 +76,6 @@ export function TopicModal(props) {
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
 
-  const pteamId = useSelector((state) => state.pteam.pteamId);
   const {
     data: allTags,
     error: allTagsError,
@@ -783,5 +790,6 @@ TopicModal.propTypes = {
       }),
     }),
   ),
+  pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
 };

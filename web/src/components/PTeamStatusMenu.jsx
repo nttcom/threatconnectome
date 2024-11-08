@@ -9,7 +9,7 @@ import { MdOutlineTopic } from "react-icons/md";
 import { TopicModal } from "../components/TopicModal";
 
 export function PTeamStatusMenu(props) {
-  const { presetTagId, presetParentTagId, serviceId } = props;
+  const { presetTagId, presetParentTagId, pteamId, serviceId } = props;
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -71,6 +71,7 @@ export function PTeamStatusMenu(props) {
         onSetOpen={setModalOpen}
         presetTagId={presetTagId}
         presetParentTagId={presetParentTagId}
+        pteamId={pteamId}
         serviceId={serviceId}
       />
     </>
@@ -80,5 +81,6 @@ export function PTeamStatusMenu(props) {
 PTeamStatusMenu.propTypes = {
   presetTagId: PropTypes.string,
   presetParentTagId: PropTypes.string,
+  pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string,
 };

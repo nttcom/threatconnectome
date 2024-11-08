@@ -87,6 +87,7 @@ export function PTeamTaggedTopics(props) {
         <PTeamStatusMenu
           presetTagId={presetTagId}
           presetParentTagId={presetParentTagId}
+          pteamId={pteamId}
           serviceId={service.service_id}
         />
       </Box>

@@ -1,6 +1,6 @@
 import { Avatar, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/material";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useLocation } from "react-router";
 
 import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamMember } from "../components/PTeamMember";
@@ -20,7 +20,9 @@ export function PTeam() {
   const [filterMode, setFilterMode] = useState("PTeam");
   const [tabValue, setTabValue] = useState(0);
 
-  const pteamId = useSelector((state) => state.pteam.pteamId); // TODO: RTKQ or QueryParam?
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const pteamId = params.get("pteamId");
 
   const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
   const {
@@ -66,7 +68,7 @@ export function PTeam() {
   return (
     <>
       <Box alignItems="center" display="flex" flexDirection="row" flexGrow={1} mb={1}>
-        <PTeamLabel />
+        <PTeamLabel pteamId={pteamId} />
         <Box alignItems="flex-end" display="flex" flexDirection="column">
           <TextField
             label="Filter"
