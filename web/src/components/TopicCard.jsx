@@ -56,8 +56,6 @@ export function TopicCard(props) {
   const skipByServiceId = serviceId === undefined;
   const skipBytagId = tagId === undefined;
   const getDependenciesReady = !skipByAuth && pteamId && serviceId;
-  const ticketsDict = useSelector((state) => state.pteam.tickets);
-  const topics = useSelector((state) => state.topics.topics);
 
   const {
     data: serviceDependencies,
@@ -86,8 +84,6 @@ export function TopicCard(props) {
     { pteamId, serviceId, topicId, tagId },
     { skip: skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId },
   );
-
-  const dispatch = useDispatch();
 
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
