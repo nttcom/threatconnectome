@@ -6,15 +6,13 @@ import {
 } from "@mui/icons-material";
 import { Badge, Box, Button, Card, Chip, MenuItem, Tooltip, Typography } from "@mui/material";
 import { amber, green, grey, orange, red, yellow } from "@mui/material/colors";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../components/ActionTypeIcon";
 import { TopicSSVCCards } from "../components/TopicSSVCCards";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetTopicActionsQuery } from "../services/tcApi";
-import { getTopic } from "../slices/topics";
+import { useGetTopicActionsQuery, useGetTopicQuery } from "../services/tcApi";
 import { threatImpactNames, threatImpactProps } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -59,18 +57,11 @@ export function TopicDetail() {
 
   const skip = useSkipUntilAuthTokenIsReady();
 
-  const topics = useSelector((state) => state.topics.topics);
-
-  const dispatch = useDispatch();
-
-  const topic = topicId && topics ? topics[topicId] : undefined;
-
-  useEffect(() => {
-    if (skip) return; // wait for login completed
-    if (!topicId) return; // will never happen
-    if (topic) return; // nothing to do any more
-    dispatch(getTopic(topicId));
-  }, [skip, topicId, topic, dispatch]);
+  const {
+    data: topic,
+    error: topicError,
+    isLoading: topicIsLoading,
+  } = useGetTopicQuery(topicId, { skip });
 
   const {
     data: topicActions,
@@ -79,7 +70,8 @@ export function TopicDetail() {
   } = useGetTopicActionsQuery(topicId, { skip });
 
   if (skip) return <></>;
-  if (!topic) return <>Now loading...</>;
+  if (topicError) return <>{`Cannot get Topic: ${errorToString(topicError)}`}</>;
+  if (topicIsLoading) return <>Now loading Topic...</>;
   if (topicActionsError)
     return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
   if (topicActionsIsLoading) return <>Now loading topicActions...</>;

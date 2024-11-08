@@ -28,7 +28,6 @@ import { useCreateUserMutation, useTryLoginMutation } from "../services/tcApi";
 import { clearATeam } from "../slices/ateam";
 import { clearAuth } from "../slices/auth";
 import { clearPTeam } from "../slices/pteam";
-import { clearTopics } from "../slices/topics";
 import { removeToken, setToken } from "../utils/api";
 import { samlProvider } from "../utils/firebase";
 
@@ -57,7 +56,6 @@ export function Login() {
     dispatch(clearAuth());
     dispatch(clearPTeam());
     dispatch(clearATeam());
-    dispatch(clearTopics());
     removeCookie(authCookieName, cookiesOptions);
     removeToken();
     setMessage(location.state?.message);

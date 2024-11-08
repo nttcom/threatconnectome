@@ -20,9 +20,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetPTeamTopicActionsQuery, useGetTagsQuery } from "../services/tcApi";
-import { getDependencies, getTicketsRelatedToServiceTopicTag } from "../slices/pteam";
-import { getTopic } from "../slices/topics";
+import {
+  useGetPTeamTopicActionsQuery,
+  useGetTicketsRelatedToServiceTopicTagQuery,
+  useGetTagsQuery,
+  useGetTopicQuery,
+} from "../services/tcApi";
+import { getDependencies } from "../slices/pteam";
 import { dateTimeFormat, errorToString } from "../utils/func";
 import { parseVulnerableVersions, versionMatch } from "../utils/versions";
 
@@ -40,12 +44,22 @@ export function TopicCard(props) {
   const [actionFilter, setActionFilter] = useState(true);
 
   const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
-  const ticketsDict = useSelector((state) => state.pteam.tickets);
-  const topics = useSelector((state) => state.topics.topics);
+
+  const serviceId = service?.service_id;
+  const dependencies = serviceDependencies[serviceId];
 
   const skipByAuth = useSkipUntilAuthTokenIsReady();
+
+  const {
+    data: topic,
+    error: topicError,
+    isLoading: topicIsLoading,
+  } = useGetTopicQuery(topicId, { skipByAuth });
+
   const skipByPTeamId = pteamId === undefined;
   const skipByTopicId = topicId === undefined;
+  const skipByServiceId = serviceId === undefined;
+  const skipBytagId = tagId === undefined;
   const {
     data: allTags,
     error: allTagsError,
@@ -60,26 +74,16 @@ export function TopicCard(props) {
     { skip: skipByAuth || skipByPTeamId || skipByTopicId },
   );
 
-  const serviceId = service?.service_id;
-  const dependencies = serviceDependencies[serviceId];
-  const topic = topics[topicId];
-  const tickets = ticketsDict[serviceId]?.[tagId]?.[topicId];
+  const {
+    data: tickets,
+    error: ticketsRelatedToServiceTopicTagError,
+    isLoading: ticketsRelatedToServiceTopicTagIsLoading,
+  } = useGetTicketsRelatedToServiceTopicTagQuery(
+    { pteamId, serviceId, topicId, tagId },
+    { skip: skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId },
+  );
 
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (!pteamId || !serviceId || !topicId || !tagId) return;
-    if (tickets === undefined) {
-      dispatch(
-        getTicketsRelatedToServiceTopicTag({
-          pteamId: pteamId,
-          serviceId: serviceId,
-          topicId: topicId,
-          tagId: tagId,
-        }),
-      );
-    }
-  }, [dispatch, pteamId, serviceId, topicId, tagId, tickets]);
 
   useEffect(() => {
     if (!pteamId || !serviceId) return;
@@ -88,22 +92,20 @@ export function TopicCard(props) {
     }
   }, [dispatch, pteamId, serviceId, dependencies]);
 
-  useEffect(() => {
-    if (!topicId) return;
-    if (topic === undefined) {
-      dispatch(getTopic(topicId));
-    }
-  }, [dispatch, topicId, topic]);
-
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
-  if (skipByAuth || skipByPTeamId || skipByTopicId) return <></>;
+  if (skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId) return <></>;
   if (pteamTopicActionsError)
     return <>{`Cannot get topicActions: ${errorToString(pteamTopicActionsError)}`}</>;
   if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
+  if (ticketsRelatedToServiceTopicTagError)
+    return <>{`Cannot get tcikets: ${errorToString(ticketsRelatedToServiceTopicTagError)}`}</>;
+  if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
+  if (topicError) return <>{`Cannot get Topic: ${errorToString(topicError)}`}</>;
+  if (topicIsLoading) return <>Now loading Topic...</>;
   if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
   if (allTagsIsLoading) return <>Now loading allTags...</>;
-  if (!pteamId || !serviceId || !members || !topic || !tagId || !tickets) {
+  if (!pteamId || !serviceId || !members || !tagId) {
     return <>Now Loading...</>;
   }
 
@@ -156,13 +158,13 @@ export function TopicCard(props) {
         <Box display="flex" flexDirection="row" alignItems="flex-start" m={2} mb={1}>
           <Box display="flex" flexDirection="column" mr={1}>
             <Typography variant="h5" fontWeight={900}>
-              {topic?.title}
+              {topic.title}
             </Typography>
-            <UUIDTypography>{topic?.topic_id}</UUIDTypography>
+            <UUIDTypography>{topic.topic_id}</UUIDTypography>
             <Box alignItems="center" display="flex" flexDirection="row" sx={{ color: grey[600] }}>
               <UpdateIcon fontSize="small" />
               <Typography ml={0.5} variant="caption">
-                {dateTimeFormat(topic?.updated_at)}
+                {dateTimeFormat(topic.updated_at)}
               </Typography>
             </Box>
           </Box>
@@ -175,7 +177,7 @@ export function TopicCard(props) {
         <TopicModal
           open={topicModalOpen}
           onSetOpen={setTopicModalOpen}
-          presetTopicId={topicId}
+          presetTopic={topic}
           presetTagId={currentTagId}
           presetParentTagId={currentTagDict.parent_id}
           presetActions={pteamTopicActions}

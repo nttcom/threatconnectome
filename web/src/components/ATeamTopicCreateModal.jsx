@@ -30,7 +30,6 @@ import dialogStyle from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useCreateTopicMutation, useGetTagsQuery } from "../services/tcApi";
 import { getATeamTopics } from "../slices/ateam";
-import { getTopic } from "../slices/topics";
 import { actionTypes } from "../utils/const";
 import {
   errorToString,
@@ -133,7 +132,6 @@ export function ATeamTopicCreateModal(props) {
         // fix topic state
         await Promise.all([
           enqueueSnackbar("Create topic succeeded", { variant: "success" }),
-          dispatch(getTopic(topicId)),
           dispatch(getATeamTopics(ateamId)),
         ]);
       })

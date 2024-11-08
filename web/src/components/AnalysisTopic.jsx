@@ -31,7 +31,6 @@ import { grey, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 import { AnalysisActionTypeIcon } from "../components/AnalysisActionTypeIcon";
 import { CommentDeleteModal } from "../components/CommentDeleteModal";
@@ -43,12 +42,12 @@ import { WarningTooltip } from "../components/WarningTooltip";
 import styles from "../cssModule/button.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
+  useGetTopicQuery,
   useCreateATeamTopicCommentMutation,
+  useGetATeamTopicCommentQuery,
   useGetTopicActionsQuery,
   useUpdateATeamTopicCommentMutation,
 } from "../services/tcApi";
-import { getTopic } from "../slices/topics";
-import { getATeamTopicComments as apiGetATeamTopicComments } from "../utils/api";
 import { rootPrefix, threatImpactNames } from "../utils/const";
 import { a11yProps, dateTimeFormat, errorToString, tagsMatched } from "../utils/func.js";
 
@@ -58,7 +57,6 @@ export function AnalysisTopic(props) {
   const [newComment, setNewComment] = useState("");
   const [deleteComment, setDeleteComment] = useState(null);
   const [editComment, setEditComment] = useState("");
-  const [comments, setComments] = useState([]);
   const [tab, setTab] = useState(0);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [listHeight, setListHeight] = useState(0);
@@ -67,10 +65,7 @@ export function AnalysisTopic(props) {
   const [createATeamTopicComment] = useCreateATeamTopicCommentMutation();
   const [updateATeamTopicComment] = useUpdateATeamTopicCommentMutation();
 
-  const topics = useSelector((state) => state.topics.topics);
-
   const { enqueueSnackbar } = useSnackbar();
-  const dispatch = useDispatch();
 
   const box_sx = { mt: 3 };
 
@@ -79,17 +74,26 @@ export function AnalysisTopic(props) {
   };
 
   const skip = useSkipUntilAuthTokenIsReady();
+
+  const {
+    data: topic,
+    error: topicError,
+    isLoading: topicIsLoading,
+  } = useGetTopicQuery(targetTopic.topic_id, { skip });
+
   const {
     data: topicActions,
     error: topicActionsError,
     isLoading: topicActionsIsLoading,
   } = useGetTopicActionsQuery(targetTopic.topic_id, { skip });
-
-  useEffect(() => {
-    handleReloadComments(targetTopic.topic_id);
-    if (topics?.[targetTopic.topic_id] === undefined) dispatch(getTopic(targetTopic.topic_id));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetTopic.topic_id]);
+  const {
+    data: comments,
+    error: commentsError,
+    isLoading: commentsIsLoading,
+  } = useGetATeamTopicCommentQuery(
+    { ateamId: ateam.ateam_id, topicId: targetTopic.topic_id },
+    { skip },
+  );
 
   useEffect(() => {
     const topicListElem = document.getElementById("topicListElem");
@@ -98,20 +102,7 @@ export function AnalysisTopic(props) {
     }
   }, []);
 
-  const operationError = (error) =>
-    enqueueSnackbar(
-      "Operation failed: " +
-        `${error.response.status} ${error.response.statusText} ${error.response.data?.detail}`,
-      { variant: "error" },
-    );
-
   const handleChangeTab = (_, newTab) => setTab(newTab);
-
-  const handleReloadComments = async (topicId) => {
-    await apiGetATeamTopicComments(ateam.ateam_id, topicId)
-      .then((response) => setComments(response.data))
-      .catch((error) => operationError(error));
-  };
 
   const handleCreateComment = async () => {
     if (newComment.trim().length === 0) {
@@ -126,10 +117,7 @@ export function AnalysisTopic(props) {
       },
     })
       .unwrap()
-      .then(() => {
-        handleReloadComments(targetTopic.topic_id);
-        setNewComment("");
-      })
+      .then(() => setNewComment(""))
       .catch((error) =>
         enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
           variant: "error",
@@ -152,7 +140,6 @@ export function AnalysisTopic(props) {
     })
       .unwrap()
       .then(() => {
-        handleReloadComments(targetTopic.topic_id);
         setEditComment("");
         setEditable(false);
       })
@@ -169,17 +156,20 @@ export function AnalysisTopic(props) {
     tmpParams.set("serviceId", serviceId);
     return `${rootPrefix}/tags/${tagId}?` + tmpParams.toString();
   };
-  const topicDetail = topics?.[targetTopic.topic_id];
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
   /* block rendering until data ready */
-  if (skip) return <></>;
-  if (!ateam.ateam_id || !topicDetail) return <Box sx={{ m: 2 }}>Loading...</Box>;
+  if (skip) return <Box sx={{ m: 2 }}></Box>;
+  if (topicError)
+    return <Box sx={{ m: 2 }}>{`Cannot get Topic: ${errorToString(topicError)}`}</Box>;
+  if (topicIsLoading) return <Box sx={{ m: 2 }}>Now loading Topic...</Box>;
   if (topicActionsError)
-    return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
-  if (topicActionsIsLoading) return <>Now loading topicActions...</>;
+    return (
+      <Box sx={{ m: 2 }}>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</Box>
+    );
+  if (topicActionsIsLoading) return <Box sx={{ m: 2 }}>Now loading topicActions...</Box>;
 
-  const topicTagNames = topicDetail.tags.map((tag) => tag.tag_name);
+  const topicTagNames = topic.tags.map((tag) => tag.tag_name);
   const recommendedActions = topicActions.filter((action) => action.recommended);
   const otherActions = topicActions.filter((action) => !action.recommended);
 
@@ -201,11 +191,11 @@ export function AnalysisTopic(props) {
         <Box m={3}>
           <Box display="flex">
             <ThreatImpactChip
-              threatImpact={threatImpactNames[topicDetail.threat_impact]}
+              threatImpact={threatImpactNames[topic.threat_impact]}
               sx={{ marginRight: "10px" }}
             />
             <Typography variant="h6" fontWeight={900} mr={1}>
-              {topicDetail.title}
+              {topic.title}
             </Typography>
             <Box flexGrow={1} />
             <Box>
@@ -214,7 +204,7 @@ export function AnalysisTopic(props) {
               </IconButton>
             </Box>
           </Box>
-          <UUIDTypography sx={{ marginLeft: "95px" }}>{topicDetail.topic_id}</UUIDTypography>
+          <UUIDTypography sx={{ marginLeft: "95px" }}>{topic.topic_id}</UUIDTypography>
         </Box>
         <Box borderBottom={1} borderBottomColor="divider" mb={3} mr={1} ml={1}>
           <Tabs aria-label="tabs" onChange={handleChangeTab} value={tab}>
@@ -305,8 +295,12 @@ export function AnalysisTopic(props) {
               >
                 Comment
               </Button>
-              {comments.map((comment, index) => (
-                <Box key={index} mb={2} sx={{ width: 1 }}>
+              {commentsError && (
+                <>{`Cannot get ATeamTopicComment: ${errorToString(commentsError)}`}</>
+              )}
+              {commentsIsLoading && <>Now loading ATeamTopicComments...</>}
+              {(comments ?? []).map((comment, index) => (
+                <Box key={comment.comment_id} mb={2} sx={{ width: 1 }}>
                   <Box display="flex" alignItems="center" mb={1}>
                     <Typography variant="subtitle2" fontWeight="900" mr={2}>
                       {comment.email}
@@ -400,9 +394,9 @@ export function AnalysisTopic(props) {
                 <Typography mb={0.5} fontWeight={900}>
                   Tags
                 </Typography>
-                {topicDetail.tags.length > 0 ? (
+                {topic.tags.length > 0 ? (
                   <Box ml={1}>
-                    {topicDetail.tags.map((tag) => (
+                    {topic.tags.map((tag) => (
                       <Chip
                         key={tag.tag_id}
                         label={tag.tag_name}
@@ -424,9 +418,9 @@ export function AnalysisTopic(props) {
                   </Typography>
                 </Box>
                 <Box ml={1}>
-                  {topicDetail.misp_tags.length > 0 ? (
+                  {topic.misp_tags.length > 0 ? (
                     <>
-                      {topicDetail.misp_tags.map((mispTag) => (
+                      {topic.misp_tags.map((mispTag) => (
                         <Chip
                           key={mispTag.tag_id}
                           label={mispTag.tag_name}
@@ -445,7 +439,7 @@ export function AnalysisTopic(props) {
                   <Typography mr={0.5} mt={0.5} fontWeight={900}>
                     Details
                   </Typography>
-                  {topicDetail.abstract && (
+                  {topic.abstract && (
                     <IconButton onClick={handleDetailOpen} size="small">
                       {detailOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </IconButton>
@@ -453,11 +447,11 @@ export function AnalysisTopic(props) {
                 </Box>
                 <Collapse in={detailOpen}>
                   <Box ml={1}>
-                    <Typography variant="body">{topicDetail.abstract}</Typography>
+                    <Typography variant="body">{topic.abstract}</Typography>
                   </Box>
                 </Collapse>
                 <Box ml={1}>
-                  {!topicDetail.abstract && (
+                  {!topic.abstract && (
                     <Typography variant="body" sx={{ color: grey[500] }}>
                       No Data
                     </Typography>
@@ -642,17 +636,11 @@ export function AnalysisTopic(props) {
         <TopicEditModal
           open={topicModalOpen}
           onSetOpen={setTopicModalOpen}
-          currentTopic={topicDetail}
+          currentTopic={topic}
           currentActions={topicActions}
         />
       </Box>
-      <CommentDeleteModal
-        comment={deleteComment}
-        onClose={() => {
-          setDeleteComment(null);
-          handleReloadComments(targetTopic.topic_id);
-        }}
-      />
+      <CommentDeleteModal comment={deleteComment} onClose={() => setDeleteComment(null)} />
     </>
   );
 }

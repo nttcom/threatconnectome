@@ -1,33 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import {
-  getATeam as apiGetATeam,
-  getATeamAuth as apiGetATeamAuth,
-  getATeamAuthInfo as apiGetATeamAuthInfo,
-  getATeamTopics as apiGetATeamTopics,
-} from "../utils/api";
+import { getATeam as apiGetATeam, getATeamTopics as apiGetATeamTopics } from "../utils/api";
 
 export const getATeam = createAsyncThunk(
   "ateam/getATeam",
   async (ateamId) =>
     await apiGetATeam(ateamId).then((response) => ({
-      data: response.data,
-      ateamId: ateamId,
-    })),
-);
-
-export const getATeamAuthInfo = createAsyncThunk(
-  "ateams/getAuthInfo",
-  async () =>
-    await apiGetATeamAuthInfo().then((response) => ({
-      data: response.data,
-    })),
-);
-
-export const getATeamAuth = createAsyncThunk(
-  "ateam/getATeamAuth",
-  async (ateamId) =>
-    await apiGetATeamAuth(ateamId).then((response) => ({
       data: response.data,
       ateamId: ateamId,
     })),
@@ -45,8 +23,6 @@ export const getATeamTopics = createAsyncThunk(
 const _initialState = {
   ateamId: undefined,
   ateam: undefined,
-  authInfo: undefined,
-  authorities: undefined,
   ateamTopics: undefined,
 };
 
@@ -70,14 +46,6 @@ const ateamSlice = createSlice({
       .addCase(getATeam.fulfilled, (state, action) => ({
         ...state,
         ateam: action.payload.data,
-      }))
-      .addCase(getATeamAuthInfo.fulfilled, (state, action) => ({
-        ...state,
-        authInfo: action.payload.data,
-      }))
-      .addCase(getATeamAuth.fulfilled, (state, action) => ({
-        ...state,
-        authorities: action.payload.data,
       }))
       .addCase(getATeamTopics.fulfilled, (state, action) => ({
         ...state,
