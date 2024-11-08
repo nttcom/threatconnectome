@@ -15,10 +15,8 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 
 import { useUpdatePTeamServiceMutation } from "../services/tcApi";
-import { getPTeamServiceTagsSummary } from "../slices/pteam";
 import {
   sortedSSVCPriorities,
   ssvcPriorityProps,
@@ -48,7 +46,6 @@ export function PTeamStatusSSVCCards(props) {
 
   const [updatePTeamService] = useUpdatePTeamServiceMutation();
   const { enqueueSnackbar } = useSnackbar();
-  const dispatch = useDispatch();
 
   const handleUpdatePTeamService = async (card) => {
     const data =
@@ -59,7 +56,6 @@ export function PTeamStatusSSVCCards(props) {
     await updatePTeamService({ pteamId, serviceId, data })
       .unwrap()
       .then(() => {
-        dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
         enqueueSnackbar("Update succeeded", { variant: "success" });
       })
       .catch((error) => {

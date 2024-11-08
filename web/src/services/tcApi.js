@@ -366,6 +366,20 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
 
+    /* PTeam Service Tags Summary */
+    getPTeamServiceTagsSummary: builder.query({
+      query: ({ pteamId, serviceId }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/tags/summary`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        { type: "Ticket", id: "ALL" },
+        { type: "Threat", id: "ALL" },
+        { type: "CurrentTicketStatus", id: "ALL" },
+        { type: "Service", id: "ALL" },
+      ],
+    }),
+
     /* PTeam Service Tagged TopicId */
     getPTeamServiceTaggedTopicIds: builder.query({
       query: ({ pteamId, serviceId, tagId }) => ({
@@ -673,6 +687,7 @@ export const {
   useUploadSBOMFileMutation,
   useUpdatePTeamServiceMutation,
   useDeletePTeamServiceMutation,
+  useGetPTeamServiceTagsSummaryQuery,
   useGetPTeamServiceTaggedTopicIdsQuery,
   useGetPTeamServiceThumbnailQuery,
   useGetTicketsRelatedToServiceTopicTagQuery,
