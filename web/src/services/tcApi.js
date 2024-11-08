@@ -45,7 +45,7 @@ export const tcApi = createApi({
     /* Actions */
     createAction: builder.mutation({
       query: (data) => ({
-        url: "/actions",
+        url: "actions",
         method: "POST",
         body: data,
       }),
@@ -56,7 +56,7 @@ export const tcApi = createApi({
     }),
     updateAction: builder.mutation({
       query: ({ actionId, data }) => ({
-        url: `/actions/${actionId}`,
+        url: `actions/${actionId}`,
         method: "PUT",
         body: data,
       }),
@@ -64,7 +64,7 @@ export const tcApi = createApi({
     }),
     deleteAction: builder.mutation({
       query: (actionId) => ({
-        url: `/actions/${actionId}`,
+        url: `actions/${actionId}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, arg) => [
@@ -85,7 +85,7 @@ export const tcApi = createApi({
     /* ATeam */
     createATeam: builder.mutation({
       query: (data) => ({
-        url: "/ateams",
+        url: "ateams",
         method: "POST",
         body: data,
       }),
@@ -93,7 +93,7 @@ export const tcApi = createApi({
     }),
     updateATeam: builder.mutation({
       query: ({ ateamId, data }) => ({
-        url: `/ateams/${ateamId}`,
+        url: `ateams/${ateamId}`,
         method: "PUT",
         body: data,
       }),
@@ -176,7 +176,6 @@ export const tcApi = createApi({
       ],
       transformResponse: _responseListToDictConverter("user_id"),
     }),
-
     deleteATeamMember: builder.mutation({
       query: ({ ateamId, userId }) => ({
         url: `ateams/${ateamId}/members/${userId}`,
@@ -192,7 +191,7 @@ export const tcApi = createApi({
     /* ATeam Watching Request */
     createATeamWatchingRequest: builder.mutation({
       query: ({ ateamId, date }) => ({
-        url: `/ateams/${ateamId}/watching_request`,
+        url: `ateams/${ateamId}/watching_request`,
         method: "POST",
         body: date,
       }),
@@ -200,7 +199,7 @@ export const tcApi = createApi({
     }),
     applyATeamWatchingRequest: builder.mutation({
       query: (data) => ({
-        url: "/ateams/apply_watching_request",
+        url: "ateams/apply_watching_request",
         method: "POST",
         body: data,
       }),
@@ -218,7 +217,7 @@ export const tcApi = createApi({
     }),
     removeWatchingPTeam: builder.mutation({
       query: ({ ateamId, pteamId }) => ({
-        url: `/ateams/${ateamId}/watching_pteams/${pteamId}`,
+        url: `ateams/${ateamId}/watching_pteams/${pteamId}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, arg) => [
@@ -247,7 +246,7 @@ export const tcApi = createApi({
     }),
     createPTeam: builder.mutation({
       query: (data) => ({
-        url: "/pteams",
+        url: "pteams",
         method: "POST",
         body: data,
       }),
@@ -255,7 +254,7 @@ export const tcApi = createApi({
     }),
     updatePTeam: builder.mutation({
       query: ({ pteamId, data }) => ({
-        url: `/pteams/${pteamId}`,
+        url: `pteams/${pteamId}`,
         method: "PUT",
         body: data,
       }),
@@ -360,7 +359,7 @@ export const tcApi = createApi({
     }),
     deletePTeamService: builder.mutation({
       query: ({ pteamId, serviceName }) => ({
-        url: `/pteams/${pteamId}/tags`,
+        url: `pteams/${pteamId}/tags`,
         params: { service: serviceName },
         method: "DELETE",
       }),
@@ -408,7 +407,7 @@ export const tcApi = createApi({
     /* PTeam Watchers */
     removeWatcherATeam: builder.mutation({
       query: ({ pteamId, ateamId }) => ({
-        url: `/pteams/${pteamId}/watchers/${ateamId}`,
+        url: `pteams/${pteamId}/watchers/${ateamId}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, arg) => [
@@ -518,7 +517,6 @@ export const tcApi = createApi({
         { type: "ATeamTopicComment", id: `${arg.ateamId}:${arg.topicId}` },
       ],
     }),
-
     deleteATeamTopicComment: builder.mutation({
       query: ({ ateamId, topicId, commentId }) => ({
         url: `ateams/${ateamId}/topiccomment/${topicId}/${commentId}`,
@@ -539,7 +537,7 @@ export const tcApi = createApi({
     }),
     createTopic: builder.mutation({
       query: ({ topicId, data }) => ({
-        url: `/topics/${topicId}`,
+        url: `topics/${topicId}`,
         method: "POST",
         body: data,
       }),
@@ -593,14 +591,14 @@ export const tcApi = createApi({
     }),
     createUser: builder.mutation({
       query: (data) => ({
-        url: "/users",
+        url: "users",
         method: "POST",
         body: data,
       }),
     }),
     updateUser: builder.mutation({
       query: ({ userId, data }) => ({
-        url: `/users/${userId}`,
+        url: `users/${userId}`,
         method: "PUT",
         body: data,
       }),
