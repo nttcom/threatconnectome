@@ -159,13 +159,15 @@ export function AnalysisTopic(props) {
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
   /* block rendering until data ready */
-  if (!ateam.ateam_id) return <Box sx={{ m: 2 }}>Loading...</Box>;
-  if (skip) return <></>;
-  if (topicError) return <>{`Cannot get Topic: ${errorToString(topicError)}`}</>;
-  if (topicIsLoading) return <>Now loading Topic...</>;
+  if (skip) return <Box sx={{ m: 2 }}></Box>;
+  if (topicError)
+    return <Box sx={{ m: 2 }}>{`Cannot get Topic: ${errorToString(topicError)}`}</Box>;
+  if (topicIsLoading) return <Box sx={{ m: 2 }}>Now loading Topic...</Box>;
   if (topicActionsError)
-    return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
-  if (topicActionsIsLoading) return <>Now loading topicActions...</>;
+    return (
+      <Box sx={{ m: 2 }}>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</Box>
+    );
+  if (topicActionsIsLoading) return <Box sx={{ m: 2 }}>Now loading topicActions...</Box>;
 
   const topicTagNames = topic.tags.map((tag) => tag.tag_name);
   const recommendedActions = topicActions.filter((action) => action.recommended);
