@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
@@ -25,8 +25,8 @@ import {
   useGetTicketsRelatedToServiceTopicTagQuery,
   useGetTagsQuery,
   useGetTopicQuery,
+  useGetDependenciesQuery,
 } from "../services/tcApi";
-import { getDependencies } from "../slices/pteam";
 import { dateTimeFormat, errorToString } from "../utils/func";
 import { parseVulnerableVersions, versionMatch } from "../utils/versions";
 
@@ -38,16 +38,11 @@ import { UUIDTypography } from "./UUIDTypography";
 export function TopicCard(props) {
   const { pteamId, topicId, currentTagId, service, references, members } = props;
   const { tagId } = useParams();
+  const serviceId = service?.service_id;
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
-
-  const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
-
-  const serviceId = service?.service_id;
-  const dependencies = serviceDependencies[serviceId];
-
   const skipByAuth = useSkipUntilAuthTokenIsReady();
 
   const {
@@ -60,6 +55,15 @@ export function TopicCard(props) {
   const skipByTopicId = topicId === undefined;
   const skipByServiceId = serviceId === undefined;
   const skipBytagId = tagId === undefined;
+  const getDependenciesReady = !skipByAuth && pteamId && serviceId;
+  const ticketsDict = useSelector((state) => state.pteam.tickets);
+  const topics = useSelector((state) => state.topics.topics);
+
+  const {
+    data: serviceDependencies,
+    error: serviceDependenciesError,
+    isLoading: serviceDependenciesIsLoading,
+  } = useGetDependenciesQuery({ pteamId, serviceId }, { skip: !getDependenciesReady });
   const {
     data: allTags,
     error: allTagsError,
@@ -85,13 +89,6 @@ export function TopicCard(props) {
 
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (!pteamId || !serviceId) return;
-    if (dependencies === undefined) {
-      dispatch(getDependencies({ pteamId: pteamId, serviceId: serviceId }));
-    }
-  }, [dispatch, pteamId, serviceId, dependencies]);
-
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
   if (skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId) return <></>;
@@ -105,6 +102,9 @@ export function TopicCard(props) {
   if (topicIsLoading) return <>Now loading Topic...</>;
   if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
   if (allTagsIsLoading) return <>Now loading allTags...</>;
+  if (serviceDependenciesError)
+    return <>{`Cannot get serviceDependencies: ${errorToString(serviceDependenciesError)}`}</>;
+  if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
   if (!pteamId || !serviceId || !members || !tagId) {
     return <>Now Loading...</>;
   }
@@ -383,7 +383,7 @@ export function TopicCard(props) {
             <TopicTicketAccordion
               key={ticket.ticket_id}
               pteamId={pteamId}
-              dependency={dependencies.find(
+              dependency={serviceDependencies.find(
                 (dependency) => dependency.dependency_id === ticket.threat.dependency_id,
               )}
               topicId={topicId}

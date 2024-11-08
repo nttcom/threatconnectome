@@ -225,6 +225,15 @@ export const tcApi = createApi({
       ],
     }),
 
+    /* Dependencies */
+    getDependencies: builder.query({
+      query: ({ pteamId, serviceId }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/dependencies`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
+    }),
+
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
@@ -671,6 +680,7 @@ export const {
   useCreateATeamWatchingRequestMutation,
   useApplyATeamWatchingRequestMutation,
   useRemoveWatchingPTeamMutation,
+  useGetDependenciesQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
