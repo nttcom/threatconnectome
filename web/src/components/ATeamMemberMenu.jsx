@@ -24,7 +24,6 @@ export function ATeamMemberMenu(props) {
 
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const ateam = useSelector((state) => state.ateam.ateam);
-  const authorities = useSelector((state) => state.ateam.authorities);
 
   const skip = useSkipUntilAuthTokenIsReady();
   const {
@@ -46,7 +45,7 @@ export function ATeamMemberMenu(props) {
 
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (!ateamId || !ateam || !authorities) return <></>;
+  if (!ateamId || !ateam) return <></>;
 
   return (
     <>
@@ -82,6 +81,7 @@ export function ATeamMemberMenu(props) {
       <Dialog open={openAuth} onClose={() => setOpenAuth(false)}>
         <DialogContent>
           <ATeamAuthEditor
+            ateamId={ateamId}
             userId={userId}
             userEmail={userEmail}
             onClose={() => setOpenAuth(false)}

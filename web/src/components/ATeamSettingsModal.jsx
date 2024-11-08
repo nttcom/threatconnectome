@@ -21,7 +21,7 @@ import { ATeamGeneralSetting } from "./ATeamGeneralSetting";
 import { ATeamNotificationSetting } from "./ATeamNotificationSetting";
 
 export function ATeamSettingsModal(props) {
-  const { onSetShow, show, defaultTabIndex } = props;
+  const { ateamId, onSetShow, show, defaultTabIndex } = props;
   const [tab, setTab] = useState(defaultTabIndex ?? 0);
 
   const handleClose = () => onSetShow(false);
@@ -55,13 +55,14 @@ export function ATeamSettingsModal(props) {
           <ATeamNotificationSetting show={show} />
         </TabPanel>
         <TabPanel index={2} value={tab}>
-          <ATeamAuthEditor />
+          <ATeamAuthEditor ateamId={ateamId} />
         </TabPanel>
       </DialogContent>
     </Dialog>
   );
 }
 ATeamSettingsModal.propTypes = {
+  ateamId: PropTypes.string.isRequired,
   onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
   defaultTabIndex: PropTypes.number,

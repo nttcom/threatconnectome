@@ -44,10 +44,10 @@ import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useGetTopicQuery,
   useCreateATeamTopicCommentMutation,
+  useGetATeamTopicCommentQuery,
   useGetTopicActionsQuery,
   useUpdateATeamTopicCommentMutation,
 } from "../services/tcApi";
-import { getATeamTopicComments as apiGetATeamTopicComments } from "../utils/api";
 import { rootPrefix, threatImpactNames } from "../utils/const";
 import { a11yProps, dateTimeFormat, errorToString, tagsMatched } from "../utils/func.js";
 
@@ -57,7 +57,6 @@ export function AnalysisTopic(props) {
   const [newComment, setNewComment] = useState("");
   const [deleteComment, setDeleteComment] = useState(null);
   const [editComment, setEditComment] = useState("");
-  const [comments, setComments] = useState([]);
   const [tab, setTab] = useState(0);
   const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [listHeight, setListHeight] = useState(0);
@@ -87,11 +86,14 @@ export function AnalysisTopic(props) {
     error: topicActionsError,
     isLoading: topicActionsIsLoading,
   } = useGetTopicActionsQuery(targetTopic.topic_id, { skip });
-
-  useEffect(() => {
-    handleReloadComments(targetTopic.topic_id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetTopic.topic_id]);
+  const {
+    data: comments,
+    error: commentsError,
+    isLoading: commentsIsLoading,
+  } = useGetATeamTopicCommentQuery(
+    { ateamId: ateam.ateam_id, topicId: targetTopic.topic_id },
+    { skip },
+  );
 
   useEffect(() => {
     const topicListElem = document.getElementById("topicListElem");
@@ -100,20 +102,7 @@ export function AnalysisTopic(props) {
     }
   }, []);
 
-  const operationError = (error) =>
-    enqueueSnackbar(
-      "Operation failed: " +
-        `${error.response.status} ${error.response.statusText} ${error.response.data?.detail}`,
-      { variant: "error" },
-    );
-
   const handleChangeTab = (_, newTab) => setTab(newTab);
-
-  const handleReloadComments = async (topicId) => {
-    await apiGetATeamTopicComments(ateam.ateam_id, topicId)
-      .then((response) => setComments(response.data))
-      .catch((error) => operationError(error));
-  };
 
   const handleCreateComment = async () => {
     if (newComment.trim().length === 0) {
@@ -128,10 +117,7 @@ export function AnalysisTopic(props) {
       },
     })
       .unwrap()
-      .then(() => {
-        handleReloadComments(targetTopic.topic_id);
-        setNewComment("");
-      })
+      .then(() => setNewComment(""))
       .catch((error) =>
         enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
           variant: "error",
@@ -154,7 +140,6 @@ export function AnalysisTopic(props) {
     })
       .unwrap()
       .then(() => {
-        handleReloadComments(targetTopic.topic_id);
         setEditComment("");
         setEditable(false);
       })
@@ -308,8 +293,12 @@ export function AnalysisTopic(props) {
               >
                 Comment
               </Button>
-              {comments.map((comment, index) => (
-                <Box key={index} mb={2} sx={{ width: 1 }}>
+              {commentsError && (
+                <>{`Cannot get ATeamTopicComment: ${errorToString(commentsError)}`}</>
+              )}
+              {commentsIsLoading && <>Now loading ATeamTopicComments...</>}
+              {(comments ?? []).map((comment, index) => (
+                <Box key={comment.comment_id} mb={2} sx={{ width: 1 }}>
                   <Box display="flex" alignItems="center" mb={1}>
                     <Typography variant="subtitle2" fontWeight="900" mr={2}>
                       {comment.email}
@@ -649,13 +638,7 @@ export function AnalysisTopic(props) {
           currentActions={topicActions}
         />
       </Box>
-      <CommentDeleteModal
-        comment={deleteComment}
-        onClose={() => {
-          setDeleteComment(null);
-          handleReloadComments(targetTopic.topic_id);
-        }}
-      />
+      <CommentDeleteModal comment={deleteComment} onClose={() => setDeleteComment(null)} />
     </>
   );
 }

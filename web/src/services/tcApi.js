@@ -103,13 +103,25 @@ export const tcApi = createApi({
       ],
     }),
 
+    /* ATeam Auth Info */
+    getATeamAuthInfo: builder.query({
+      query: () => "ateams/auth_info",
+      /* No tags to provide */
+    }),
+
     /* ATeam Auth */
+    getATeamAuth: builder.query({
+      query: (ateamId) => `ateams/${ateamId}/authority`,
+      transformResponse: _responseListToDictConverter("user_id", "authorities"),
+      providesTags: (result, error, ateamId) => [{ type: "ATeamAuthority", id: ateamId }],
+    }),
     updateATeamAuth: builder.mutation({
       query: ({ ateamId, data }) => ({
         url: `ateams/${ateamId}/authority`,
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: "ATeamAuthority", id: arg.ateamId }],
     }),
 
     /* ATeam Invitation */
@@ -184,6 +196,7 @@ export const tcApi = createApi({
         method: "POST",
         body: date,
       }),
+      invalidateTags: (result, error, arg) => [{ type: "ATeamWatchingRequest", id: "ALL" }],
     }),
     applyATeamWatchingRequest: builder.mutation({
       query: (data) => ({
@@ -191,7 +204,17 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "ATeamPTeam", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamPTeam", id: "ALL" },
+        { type: "ATeamWatchingRequest", id: "ALL" },
+      ],
+    }),
+    getATeamRequested: builder.query({
+      query: (tokenId) => ({
+        url: `ateams/watching_request/${tokenId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, tokenId) => [{ type: "AteamWatchingRequest", id: "ALL" }],
     }),
     removeWatchingPTeam: builder.mutation({
       query: ({ ateamId, pteamId }) => ({
@@ -468,20 +491,32 @@ export const tcApi = createApi({
     }),
 
     /* Topic Comment */
+    getATeamTopicComment: builder.query({
+      query: ({ ateamId, topicId }) => `ateams/${ateamId}/topiccomment/${topicId}`,
+      providesTags: (result, error, arg) => [
+        { type: "ATeamTopicComment", id: `${arg.ateamId}:${arg.topicId}` },
+        { type: "ATeamTopicComment", id: `ALL:${arg.topicId}` },
+      ],
+    }),
     createATeamTopicComment: builder.mutation({
       query: ({ ateamId, topicId, data }) => ({
         url: `ateams/${ateamId}/topiccomment/${topicId}`,
         method: "POST",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamTopicComment", id: `${arg.ateamId}:${arg.topicId}` },
+      ],
     }),
-
     updateATeamTopicComment: builder.mutation({
       query: ({ ateamId, topicId, commentId, data }) => ({
         url: `ateams/${ateamId}/topiccomment/${topicId}/${commentId}`,
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamTopicComment", id: `${arg.ateamId}:${arg.topicId}` },
+      ],
     }),
 
     deleteATeamTopicComment: builder.mutation({
@@ -489,6 +524,9 @@ export const tcApi = createApi({
         url: `ateams/${ateamId}/topiccomment/${topicId}/${commentId}`,
         method: "DELETE",
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "ATeamTopicComment", id: `${arg.ateamId}:${arg.topicId}` },
+      ],
     }),
 
     /* Topics */
@@ -528,6 +566,7 @@ export const tcApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: (result, error, topicId) => [
+        { type: "ATeamTopicComment", id: `ALL:${topicId}` },
         { type: "Threat", id: "ALL" },
         { type: "Topic", id: `${topicId}` },
       ],
@@ -601,23 +640,27 @@ export const {
   useCreateActionLogMutation,
   useCreateATeamMutation,
   useUpdateATeamMutation,
+  useGetATeamAuthInfoQuery,
+  useGetATeamAuthQuery,
   useUpdateATeamAuthMutation,
   useCreateATeamInvitationMutation,
   useApplyATeamInvitationMutation,
   useGetATeamInvitedQuery,
   useGetATeamMembersQuery,
+  useGetATeamRequestedQuery,
   useGetPTeamTopicActionsQuery,
   useGetTopicQuery,
   useGetTopicActionsQuery,
   useDeleteATeamMemberMutation,
-  useDeleteATeamTopicCommentMutation,
+  useGetATeamTopicCommentQuery,
   useCreateATeamTopicCommentMutation,
+  useUpdateATeamTopicCommentMutation,
+  useDeleteATeamTopicCommentMutation,
   useCreateATeamWatchingRequestMutation,
   useApplyATeamWatchingRequestMutation,
   useRemoveWatchingPTeamMutation,
   useGetPTeamQuery,
   useCreatePTeamMutation,
-  useUpdateATeamTopicCommentMutation,
   useUpdatePTeamMutation,
   useUpdatePTeamAuthMutation,
   useUpdateTopicMutation,
