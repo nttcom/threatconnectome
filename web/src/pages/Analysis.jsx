@@ -37,9 +37,8 @@ import { ATeamTopicMenu } from "../components/ATeamTopicMenu";
 import { AnalysisNoThreatsMsg } from "../components/AnalysisNoThreatsMsg";
 import { AnalysisTopic } from "../components/AnalysisTopic";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetATeamAuthQuery, useGetUserMeQuery } from "../services/tcApi";
+import { useGetATeamAuthQuery, useGetUserMeQuery, tcApi } from "../services/tcApi";
 import { getATeam } from "../slices/ateam";
-import { getATeamTopics } from "../utils/api";
 import { difficulty, difficultyColors, noATeamMessage } from "../utils/const";
 import { calcTimestampDiff, errorToString, utcStringToLocalDate } from "../utils/func";
 
@@ -108,9 +107,9 @@ export function Analysis() {
         sort_key: sortKey,
         search: actualSearch,
       };
-      await getATeamTopics(ateamId, queryParams)
-        .then((response) => {
-          const data = response.data;
+      await dispatch(tcApi.endpoints.getATeamTopics.initiate({ ateamId, queryParams }))
+        .unwrap()
+        .then((data) => {
           setPageInfo(data);
           setTargetTopic(data.topic_statuses?.length > 0 ? data.topic_statuses[0] : null);
         })
@@ -128,7 +127,7 @@ export function Analysis() {
      */
 
     fetchPageInfo();
-  }, [skip, ateamId, ateam, page, perPage, sortKey, actualSearch, enqueueSnackbar]);
+  }, [dispatch, skip, ateamId, ateam, page, perPage, sortKey, actualSearch, enqueueSnackbar]);
 
   useEffect(() => {
     if (skip || !ateamId) return;

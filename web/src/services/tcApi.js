@@ -188,6 +188,14 @@ export const tcApi = createApi({
       ],
     }),
 
+    /* ATeam Topics */
+    getATeamTopics: builder.query({
+      query: ({ ateamId, params }) => ({
+        url: `/ateams/${ateamId}/topicstatus`,
+        params: params ?? {},
+      }),
+    }),
+
     /* ATeam Watching Request */
     createATeamWatchingRequest: builder.mutation({
       query: ({ ateamId, date }) => ({
@@ -659,6 +667,7 @@ export const {
   useApplyATeamInvitationMutation,
   useGetATeamInvitedQuery,
   useGetATeamMembersQuery,
+  useGetATeamTopicsQuery,
   useGetATeamRequestedQuery,
   useGetPTeamTopicActionsQuery,
   useGetTopicQuery,
