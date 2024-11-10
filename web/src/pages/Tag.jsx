@@ -74,7 +74,7 @@ export function Tag() {
       return;
     }
 
-    if (!tagId || (!currentTagDependencies?.length > 0 && !serviceDependenciesIsLoading)) {
+    if (!tagId || (currentTagDependencies.length == 0 && !serviceDependenciesIsLoading)) {
       const msg = `${tagId ? "Invalid" : "Missing"} tagId`;
       enqueueSnackbar(msg, { variant: "error" });
       const params = new URLSearchParams();
