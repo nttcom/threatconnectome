@@ -88,7 +88,6 @@ export function PTeamTaggedTopics(props) {
           presetTagId={presetTagId}
           presetParentTagId={presetParentTagId}
           pteamId={pteamId}
-          serviceId={service.service_id}
         />
       </Box>
       {paginationRow}

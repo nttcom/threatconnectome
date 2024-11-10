@@ -37,7 +37,7 @@ import {
   useDeleteActionMutation,
   useGetTagsQuery,
 } from "../services/tcApi";
-import { getPTeamServiceTagsSummary, getPTeamTagsSummary } from "../slices/pteam";
+import { getPTeamTagsSummary } from "../slices/pteam";
 import { fetchFlashsense } from "../utils/api";
 import { actionTypes } from "../utils/const";
 import { validateNotEmpty, validateUUID, setEquals, errorToString } from "../utils/func";
@@ -51,16 +51,8 @@ import { TopicTagSelector } from "./TopicTagSelector";
 const steps = ["Import Flashsense", "Create topic"];
 
 export function TopicModal(props) {
-  const {
-    open,
-    onSetOpen,
-    presetTopic,
-    presetTagId,
-    presetParentTagId,
-    presetActions,
-    pteamId,
-    serviceId,
-  } = props;
+  const { open, onSetOpen, presetTopic, presetTagId, presetParentTagId, presetActions, pteamId } =
+    props;
 
   const [errors, setErrors] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
@@ -183,10 +175,7 @@ export function TopicModal(props) {
 
   const reloadTopicAfterAPI = async () => {
     // fix topic state
-    await Promise.all([
-      dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId })),
-      dispatch(getPTeamTagsSummary({ pteamId: pteamId })),
-    ]);
+    await Promise.all([dispatch(getPTeamTagsSummary({ pteamId: pteamId }))]);
   };
 
   const handleCreateTopic = async () => {
@@ -431,7 +420,6 @@ export function TopicModal(props) {
   };
 
   const handleDeleteTopic = () => {
-    dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
     dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
   };
 
@@ -791,5 +779,4 @@ TopicModal.propTypes = {
     }),
   ),
   pteamId: PropTypes.string.isRequired,
-  serviceId: PropTypes.string.isRequired,
 };

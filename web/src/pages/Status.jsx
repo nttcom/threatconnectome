@@ -39,8 +39,8 @@ import { PTeamServicesListModal } from "../components/PTeamServicesListModal";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetPTeamQuery } from "../services/tcApi";
-import { getPTeamServiceTagsSummary, getPTeamTagsSummary } from "../slices/pteam";
+import { useGetPTeamQuery, useGetPTeamServiceTagsSummaryQuery } from "../services/tcApi";
+import { getPTeamTagsSummary } from "../slices/pteam";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -122,10 +122,8 @@ export function Status() {
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
-  const serviceTagsSummaries = useSelector((state) => state.pteam.serviceTagsSummaries);
   const pteamTagsSummaries = useSelector((state) => state.pteam.pteamTagsSummaries);
 
-  const serviceTagsSummary = serviceTagsSummaries[serviceId];
   const pteamTagsSummary = pteamTagsSummaries[pteamId];
 
   const [expandService, setExpandService] = useState(false);
@@ -142,22 +140,26 @@ export function Status() {
     serviceIds: [],
   });
 
-  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+
   const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip });
+  } = useGetPTeamQuery(pteamId, { skip: skipByAuth || !pteamId });
+
+  const {
+    currentData: serviceTagsSummary,
+    error: serviceTagsSummaryError,
+    isFetching: serviceTagsSummaryIsFetching,
+  } = useGetPTeamServiceTagsSummaryQuery(
+    { pteamId, serviceId },
+    { skip: skipByAuth || !pteamId || !serviceId },
+  );
 
   useEffect(() => {
     if (!pteamId) return; // wait fixed by App
     if (!pteam) return; // wait getQuery
-
-    if (isActiveAllServicesMode) {
-      if (pteamTagsSummary) return;
-    } else {
-      if (serviceTagsSummary) return; // Ready!
-    }
 
     if (!serviceId) {
       if (pteam.services.length === 0) return; // nothing to do any more.
@@ -176,16 +178,20 @@ export function Status() {
 
     if (isActiveAllServicesMode) {
       dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
-    } else {
-      dispatch(getPTeamServiceTagsSummary({ pteamId: pteamId, serviceId: serviceId }));
     }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
 
-  if (skip) return <></>;
+  if (skipByAuth || !pteamId) return <></>;
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
   if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (serviceTagsSummaryError)
+    return <>{`Cannot get serviceTagsSummary: ${errorToString(serviceTagsSummaryError)}`}</>;
+  if (serviceId || pteam.services.length > 0) {
+    if (!serviceTagsSummary || serviceTagsSummaryIsFetching)
+      return <>Now loading serviceTagsSummary...</>;
+  }
 
   const service =
     isActiveAllServicesMode || !serviceId

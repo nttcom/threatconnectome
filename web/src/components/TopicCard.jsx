@@ -182,7 +182,6 @@ export function TopicCard(props) {
           presetParentTagId={currentTagDict.parent_id}
           presetActions={pteamTopicActions}
           pteamId={pteamId}
-          serviceId={serviceId}
         />
       </Box>
       <Divider />
