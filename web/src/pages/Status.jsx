@@ -27,7 +27,6 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import { Android12Switch } from "../components/Android12Switch";
@@ -39,8 +38,11 @@ import { PTeamServicesListModal } from "../components/PTeamServicesListModal";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetPTeamQuery, useGetPTeamServiceTagsSummaryQuery } from "../services/tcApi";
-import { getPTeamTagsSummary } from "../slices/pteam";
+import {
+  useGetPTeamQuery,
+  useGetPTeamTagsSummaryQuery,
+  useGetPTeamServiceTagsSummaryQuery,
+} from "../services/tcApi";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -114,17 +116,12 @@ CustomTabPanel.propTypes = {
 export function Status() {
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const params = new URLSearchParams(location.search);
   const searchWord = params.get("word")?.trim().toLowerCase() ?? "";
 
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
-
-  const pteamTagsSummaries = useSelector((state) => state.pteam.pteamTagsSummaries);
-
-  const pteamTagsSummary = pteamTagsSummaries[pteamId];
 
   const [expandService, setExpandService] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -157,6 +154,12 @@ export function Status() {
     { skip: skipByAuth || !pteamId || !serviceId },
   );
 
+  const {
+    currentData: pteamTagsSummary,
+    error: pteamTagsSummaryError,
+    isFetching: pteamTagsSummaryIsFetching,
+  } = useGetPTeamTagsSummaryQuery(pteamId, { skip: skipByAuth || !pteamId });
+
   useEffect(() => {
     if (!pteamId) return; // wait fixed by App
     if (!pteam) return; // wait getQuery
@@ -176,9 +179,6 @@ export function Status() {
       return;
     }
 
-    if (isActiveAllServicesMode) {
-      dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
-    }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
 
@@ -192,6 +192,10 @@ export function Status() {
     if (!serviceTagsSummary || serviceTagsSummaryIsFetching)
       return <>Now loading serviceTagsSummary...</>;
   }
+  if (pteamTagsSummaryError)
+    return <>{`Cannot get serviceTagsSummary: ${errorToString(serviceTagsSummaryError)}`}</>;
+  if (isActiveAllServicesMode && (!pteamTagsSummary || pteamTagsSummaryIsFetching))
+    return <>Now loading pteamTagsSummary...</>;
 
   const service =
     isActiveAllServicesMode || !serviceId
