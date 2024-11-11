@@ -29,7 +29,7 @@ export function ATeamMember(props) {
     <>
       <Box sx={{ width: "100%" }}>
         <Box display="flex" justifyContent="flex-end" mb={2}>
-          {ateamId && <ATeamInviteModal text="Add member" />}
+          {ateamId && <ATeamInviteModal ateamId={ateamId} text="Add member" />}
         </Box>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="memberTable">
@@ -76,6 +76,7 @@ export function ATeamMember(props) {
                       </TableCell>
                       <TableCell align="right">
                         <ATeamMemberMenu
+                          ateamId={ateamId}
                           userId={member.user_id}
                           userEmail={member.email}
                           isAdmin={isAdmin}

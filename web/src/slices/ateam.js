@@ -33,13 +33,6 @@ const ateamSlice = createSlice({
     clearATeam: (state, action) => ({
       ..._initialState,
     }),
-    setATeamId: (state, action) => ({
-      /*
-       * CAUTION: ateam slice is initialized on changing ateamId.
-       */
-      ...(action.payload && state.ateamId === action.payload ? state : _initialState),
-      ateamId: action.payload,
-    }),
   },
   extraReducers: (builder) => {
     builder
@@ -56,6 +49,6 @@ const ateamSlice = createSlice({
 
 const { actions, reducer } = ateamSlice;
 
-export const { clearATeam, setATeamId } = actions;
+export const { clearATeam } = actions;
 
 export default reducer;

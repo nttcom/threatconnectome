@@ -27,13 +27,12 @@ function textTrim(selector) {
 }
 
 export function TeamSelector(props) {
-  const { pteamId } = props;
+  const { ateamId, pteamId } = props;
 
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const teamMode = useSelector((state) => state.system.teamMode);
-  const ateamId = useSelector((state) => state.ateam.ateamId);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -191,5 +190,6 @@ export function TeamSelector(props) {
   );
 }
 TeamSelector.propTypes = {
-  pteamId: PropTypes.string.isRequired,
+  ateamId: PropTypes.string,
+  pteamId: PropTypes.string,
 };

@@ -74,7 +74,7 @@ export function ATeamWatching(props) {
     <>
       <Box sx={{ width: "100%" }}>
         <Box display="flex" justifyContent="flex-end" mb={2}>
-          <ATeamRequestModal text="New Watching Request" />
+          <ATeamRequestModal ateamId={ateam.ateam_id} text="New Watching Request" />
         </Box>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="monitorTable">

@@ -35,7 +35,7 @@ const StyledAppBar = styled(MuiAppBar, {
 }));
 
 export function AppBar(props) {
-  const { pteamId } = props;
+  const { ateamId, pteamId } = props;
 
   const dispatch = useDispatch();
   const system = useSelector((state) => state.system);
@@ -68,7 +68,7 @@ export function AppBar(props) {
           </IconButton>
           <Divider orientation="vertical" flexItem sx={{ mr: 2 }} />
           <Box flexGrow={1} />
-          <TeamSelector pteamId={pteamId} />
+          <TeamSelector ateamId={ateamId} pteamId={pteamId} />
           <Button color="inherit" onClick={handleLogout}>
             Logout
           </Button>
@@ -79,5 +79,6 @@ export function AppBar(props) {
   );
 }
 AppBar.propTypes = {
-  pteamId: PropTypes.string.isRequired,
+  ateamId: PropTypes.string,
+  pteamId: PropTypes.string,
 };
