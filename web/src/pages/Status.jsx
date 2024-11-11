@@ -40,7 +40,7 @@ import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetPTeamQuery, useGetPTeamServiceTagsSummaryQuery } from "../services/tcApi";
-import { getPTeamTagsSummary, setPTeamId } from "../slices/pteam";
+import { getPTeamTagsSummary } from "../slices/pteam";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -160,11 +160,6 @@ export function Status() {
   useEffect(() => {
     if (!pteamId) return; // wait fixed by App
     if (!pteam) return; // wait getQuery
-    if (pteam && pteam.pteam_id !== pteamId) {
-      // for the case pteam switched. -- looks redundant but necessary, uhmm...
-      dispatch(setPTeamId(pteamId));
-      return;
-    }
 
     if (!serviceId) {
       if (pteam.services.length === 0) return; // nothing to do any more.
@@ -210,7 +205,7 @@ export function Status() {
       return (
         <>
           <Box display="flex" flexDirection="row">
-            <PTeamLabel defaultTabIndex={0} />
+            <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
             <Box flexGrow={1} />
           </Box>
           <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
@@ -420,11 +415,11 @@ export function Status() {
   return (
     <>
       <Box display="flex" flexDirection="row">
-        <PTeamLabel defaultTabIndex={0} />
+        <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
         <Box flexGrow={1} />
       </Box>
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-        <DeleteServiceIcon />
+        <DeleteServiceIcon pteamId={pteamId} />
         <FormControlLabel
           control={
             <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />

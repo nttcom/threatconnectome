@@ -8,13 +8,16 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 
 import { PTeamServiceDelete } from "./PTeamServiceDelete";
 
-export function DeleteServiceIcon() {
+export function DeleteServiceIcon(props) {
+  const { pteamId } = props;
+
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleModalClose = () => {
@@ -46,9 +49,12 @@ export function DeleteServiceIcon() {
           </Box>
         </DialogTitle>
         <DialogContent>
-          <PTeamServiceDelete />
+          <PTeamServiceDelete pteamId={pteamId} />
         </DialogContent>
       </Dialog>
     </>
   );
 }
+DeleteServiceIcon.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+};

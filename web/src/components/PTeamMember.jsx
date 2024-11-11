@@ -29,7 +29,7 @@ export function PTeamMember(props) {
     <>
       <Box sx={{ width: "100%" }}>
         <Box display="flex" justifyContent="flex-end" mb={2}>
-          {pteamId && <PTeamInviteModal text="Add member" />}
+          {pteamId && <PTeamInviteModal pteamId={pteamId} text="Add member" />}
         </Box>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="memberTable">
@@ -76,6 +76,7 @@ export function PTeamMember(props) {
                       </TableCell>
                       <TableCell align="right">
                         <PTeamMemberMenu
+                          pteamId={pteamId}
                           userId={member.user_id}
                           userEmail={member.email}
                           isAdmin={isAdmin}

@@ -38,13 +38,6 @@ const pteamSlice = createSlice({
     clearPTeam: (state, action) => ({
       ..._initialState,
     }),
-    setPTeamId: (state, action) => ({
-      /*
-       * CAUTION: pteam slice is initialized on changing pteamId.
-       */
-      ...(action.payload && state.pteamId === action.payload ? state : _initialState),
-      pteamId: action.payload,
-    }),
     invalidateServiceId: (state, action) => ({
       ...state,
       /* Note: state.pteam.services should be fixed by dispatch(getPTeam(pteamId)) */
@@ -87,12 +80,7 @@ const pteamSlice = createSlice({
 
 const { actions, reducer } = pteamSlice;
 
-export const {
-  clearPTeam,
-  setPTeamId,
-  invalidateServiceId,
-  storeServiceThumbnail,
-  storeServiceThumbnailDict,
-} = actions;
+export const { clearPTeam, invalidateServiceId, storeServiceThumbnail, storeServiceThumbnailDict } =
+  actions;
 
 export default reducer;
