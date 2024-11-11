@@ -129,73 +129,73 @@ export function SSVCPriority() {
                               <Typography variant="caption" noWrap>
                                 Service: service_name
                               </Typography>
-                              {item.title === "Immediate" &&
-                                (isDone ? (
-                                  <>
-                                    <br />
-                                    <Typography variant="caption" noWrap>
-                                      Status: scheduled
-                                    </Typography>
-                                    <br />
-                                    <Typography variant="caption" noWrap>
-                                      Assignees: test@example.com
-                                    </Typography>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Button
-                                      variant="contained"
-                                      size="small"
-                                      startIcon={<SearchIcon />}
-                                      sx={{ my: 1 }}
-                                      color={remainingTimeColor}
-                                    >
-                                      Investigate
-                                    </Button>
-                                    <Box sx={{ position: "relative", height: 120 }}>
-                                      <CircularProgress
-                                        size="120px"
-                                        variant="determinate"
-                                        value={100}
-                                        sx={{ color: "#e6e6e6", position: "absolute" }}
-                                      />
-                                      <Box sx={{ position: "absolute" }}>
-                                        <Box sx={{ position: "relative", display: "inline-flex" }}>
-                                          <CircularProgress
-                                            size="120px"
-                                            variant="determinate"
-                                            value={remainingTime}
-                                            color={remainingTimeColor}
-                                          />
-                                          <Box
-                                            sx={{
-                                              top: 0,
-                                              left: 0,
-                                              bottom: 0,
-                                              right: 0,
-                                              position: "absolute",
-                                              display: "flex",
-                                              alignItems: "center",
-                                              justifyContent: "center",
-                                            }}
-                                          >
-                                            <Typography
-                                              variant="caption"
-                                              component="div"
-                                              color="text.secondary"
-                                              sx={{ fontSize: 30, fontWeight: "bold" }}
-                                            >
-                                              10:00
-                                            </Typography>
-                                          </Box>
-                                        </Box>
-                                      </Box>
-                                    </Box>
-                                  </>
-                                ))}
+                              {item.title === "Immediate" && isDone && (
+                                <>
+                                  <br />
+                                  <Typography variant="caption" noWrap>
+                                    Status: scheduled
+                                  </Typography>
+                                  <br />
+                                  <Typography variant="caption" noWrap>
+                                    Assignees: test@example.com
+                                  </Typography>
+                                </>
+                              )}
                             </>
                           }
                         />
+                        {item.title === "Immediate" && !isDone && (
+                          <>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              startIcon={<SearchIcon />}
+                              sx={{ mb: 1 }}
+                              color={remainingTimeColor}
+                            >
+                              Investigate
+                            </Button>
+                            <Box sx={{ position: "relative", height: 120 }}>
+                              <CircularProgress
+                                size="120px"
+                                variant="determinate"
+                                value={100}
+                                sx={{ color: "#e6e6e6", position: "absolute" }}
+                              />
+                              <Box sx={{ position: "absolute" }}>
+                                <Box sx={{ position: "relative", display: "inline-flex" }}>
+                                  <CircularProgress
+                                    size="120px"
+                                    variant="determinate"
+                                    value={remainingTime}
+                                    color={remainingTimeColor}
+                                  />
+                                  <Box
+                                    sx={{
+                                      top: 0,
+                                      left: 0,
+                                      bottom: 0,
+                                      right: 0,
+                                      position: "absolute",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    }}
+                                  >
+                                    <Typography
+                                      variant="caption"
+                                      component="div"
+                                      color="text.secondary"
+                                      sx={{ fontSize: 30, fontWeight: "bold" }}
+                                    >
+                                      10:00
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </Box>
+                            </Box>
+                          </>
+                        )}
                       </ListItem>
                       <Divider />
                     </React.Fragment>
