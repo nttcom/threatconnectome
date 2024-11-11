@@ -1,19 +1,7 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-
-import { getPTeamTagsSummary as apiGetPTeamTagsSummary } from "../utils/api";
-
-export const getPTeamTagsSummary = createAsyncThunk(
-  "pteam/getPTeamTagsSummary",
-  async (data) =>
-    await apiGetPTeamTagsSummary(data.pteamId).then((response) => ({
-      data: response.data,
-      pteamId: data.pteamId,
-    })),
-);
+import { createSlice } from "@reduxjs/toolkit";
 
 const _initialState = {
   pteamId: undefined,
-  pteamTagsSummaries: {},
   serviceThumbnails: {}, // dict[serviceId: dataURL | noImageAvailableUrl(=NoThumbnail)]
 };
 
@@ -43,15 +31,6 @@ const pteamSlice = createSlice({
         ...action.payload,
       },
     }),
-  },
-  extraReducers: (builder) => {
-    builder.addCase(getPTeamTagsSummary.fulfilled, (state, action) => ({
-      ...state,
-      pteamTagsSummaries: {
-        ...state.pteamTagsSummaries,
-        [action.payload.pteamId]: action.payload.data,
-      },
-    }));
   },
 });
 

@@ -426,6 +426,20 @@ export const tcApi = createApi({
       }),
     }),
 
+    /* PTeam Tags Summary */
+    getPTeamTagsSummary: builder.query({
+      query: (pteamId) => ({
+        url: `pteams/${pteamId}/tags/summary`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        { type: "Ticket", id: "ALL" },
+        { type: "Threat", id: "ALL" },
+        { type: "CurrentTicketStatus", id: "ALL" },
+        { type: "Service", id: "ALL" },
+      ],
+    }),
+
     /* PTeam Ticket Related To Service TopicTag */
     getTicketsRelatedToServiceTopicTag: builder.query({
       query: ({ pteamId, serviceId, topicId, tagId }) => ({
@@ -719,6 +733,7 @@ export const {
   useGetPTeamServiceTagsSummaryQuery,
   useGetPTeamServiceTaggedTopicIdsQuery,
   useGetPTeamServiceThumbnailQuery,
+  useGetPTeamTagsSummaryQuery,
   useGetTicketsRelatedToServiceTopicTagQuery,
   useRemoveWatcherATeamMutation,
   useCreateTicketStatusMutation,
