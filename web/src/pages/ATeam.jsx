@@ -48,7 +48,7 @@ export function ATeam() {
 
   useEffect(() => {
     if (!ateamId) return;
-  }, [ateamId, ateam]);
+  }, [ateamId]);
 
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);

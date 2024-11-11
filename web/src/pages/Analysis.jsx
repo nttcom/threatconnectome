@@ -132,7 +132,7 @@ export function Analysis() {
 
   useEffect(() => {
     if (skip || !ateamId) return;
-  }, [ateam, skip, ateamId]);
+  }, [skip, ateamId]);
 
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
