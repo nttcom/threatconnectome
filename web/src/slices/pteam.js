@@ -1,19 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import {
-  getDependencies as apiGetDependencies,
-  getPTeamTagsSummary as apiGetPTeamTagsSummary,
-} from "../utils/api";
-
-export const getDependencies = createAsyncThunk(
-  "pteam/getDependencies",
-  async (data) =>
-    await apiGetDependencies(data.pteamId, data.serviceId).then((response) => ({
-      pteamId: data.pteamId,
-      serviceId: data.serviceId,
-      data: response.data,
-    })),
-);
+import { getPTeamTagsSummary as apiGetPTeamTagsSummary } from "../utils/api";
 
 export const getPTeamTagsSummary = createAsyncThunk(
   "pteam/getPTeamTagsSummary",
@@ -26,7 +13,6 @@ export const getPTeamTagsSummary = createAsyncThunk(
 
 const _initialState = {
   pteamId: undefined,
-  serviceDependencies: {}, // dict[serviceId: list[dependency]]
   pteamTagsSummaries: {},
   serviceThumbnails: {}, // dict[serviceId: dataURL | noImageAvailableUrl(=NoThumbnail)]
 };
@@ -41,7 +27,6 @@ const pteamSlice = createSlice({
     invalidateServiceId: (state, action) => ({
       ...state,
       /* Note: state.pteam.services should be fixed by dispatch(getPTeam(pteamId)) */
-      serviceDependencies: { ...state.serviceDependencies, [action.payload]: undefined },
       serviceThumbnails: { ...state.serviceThumbnails, [action.payload]: undefined },
     }),
     storeServiceThumbnail: (state, action) => ({
@@ -60,21 +45,13 @@ const pteamSlice = createSlice({
     }),
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(getDependencies.fulfilled, (state, action) => ({
-        ...state,
-        serviceDependencies: {
-          ...state.serviceDependencies,
-          [action.payload.serviceId]: action.payload.data,
-        },
-      }))
-      .addCase(getPTeamTagsSummary.fulfilled, (state, action) => ({
-        ...state,
-        pteamTagsSummaries: {
-          ...state.pteamTagsSummaries,
-          [action.payload.pteamId]: action.payload.data,
-        },
-      }));
+    builder.addCase(getPTeamTagsSummary.fulfilled, (state, action) => ({
+      ...state,
+      pteamTagsSummaries: {
+        ...state.pteamTagsSummaries,
+        [action.payload.pteamId]: action.payload.data,
+      },
+    }));
   },
 });
 

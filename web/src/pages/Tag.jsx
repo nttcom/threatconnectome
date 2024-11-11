@@ -2,7 +2,7 @@ import { Box, Divider, Tab, Tabs, Typography, Chip } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import { PTeamTaggedTopics } from "../components/PTeamTaggedTopics";
@@ -14,8 +14,8 @@ import {
   useGetPTeamQuery,
   useGetPTeamServiceTaggedTopicIdsQuery,
   useGetTagsQuery,
+  useGetDependenciesQuery,
 } from "../services/tcApi";
-import { getDependencies } from "../slices/pteam";
 import { a11yProps, errorToString } from "../utils/func.js";
 
 export function Tag() {
@@ -27,7 +27,6 @@ export function Tag() {
     error: allTagsError,
     isLoading: allTagsIsLoading,
   } = useGetTagsQuery(undefined, { skipByAuth });
-  const serviceDependencies = useSelector((state) => state.pteam.serviceDependencies);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -37,9 +36,15 @@ export function Tag() {
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
-
+  const getDependenciesReady = !skipByAuth && pteamId && serviceId;
   const getPTeamReady = !skipByAuth && pteamId;
   const getTopicIdsReady = getPTeamReady && serviceId && tagId;
+
+  const {
+    data: serviceDependencies,
+    error: serviceDependenciesError,
+    isLoading: serviceDependenciesIsLoading,
+  } = useGetDependenciesQuery({ pteamId, serviceId }, { skip: !getDependenciesReady });
   const {
     data: pteam,
     error: pteamError,
@@ -54,8 +59,9 @@ export function Tag() {
     { skip: !getTopicIdsReady },
   );
 
-  const dependencies = serviceDependencies[serviceId];
-  const currentTagDependencies = dependencies?.filter((dependency) => dependency.tag_id === tagId);
+  const currentTagDependencies = (serviceDependencies ?? []).filter(
+    (dependency) => dependency.tag_id === tagId,
+  );
 
   useEffect(() => {
     if (!pteam) return; // wait getQuery
@@ -67,11 +73,8 @@ export function Tag() {
       navigate("/?" + params.toString()); // force jump to Status page
       return;
     }
-    if (dependencies === undefined) {
-      dispatch(getDependencies({ pteamId: pteamId, serviceId: serviceId }));
-      return;
-    }
-    if (!tagId || !currentTagDependencies?.length > 0) {
+
+    if (!tagId || (currentTagDependencies.length === 0 && !serviceDependenciesIsLoading)) {
       const msg = `${tagId ? "Invalid" : "Missing"} tagId`;
       enqueueSnackbar(msg, { variant: "error" });
       const params = new URLSearchParams();
@@ -81,12 +84,12 @@ export function Tag() {
     }
   }, [
     pteam,
-    dependencies,
     currentTagDependencies,
     taggedTopics,
     pteamId,
     serviceId,
     tagId,
+    serviceDependenciesIsLoading,
     dispatch,
     enqueueSnackbar,
     navigate,
@@ -97,11 +100,12 @@ export function Tag() {
   if (allTagsIsLoading) return <>Now loading allTags...</>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
   if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (serviceDependenciesError)
+    return <>{`Cannot get serviceDependencies: ${errorToString(serviceDependenciesError)}`}</>;
+  if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
   if (taggedTopicsError)
     return <>{`Cannot get TaggedTopics: ${errorToString(taggedTopicsError)}`}</>;
   if (taggedTopicsIsLoading) return <>Now loading TaggedTopics...</>;
-
-  if (!currentTagDependencies) return <>Now loading...</>;
 
   const numSolved = taggedTopics.solved?.topic_ids?.length ?? 0;
   const numUnsolved = taggedTopics.unsolved?.topic_ids?.length ?? 0;
