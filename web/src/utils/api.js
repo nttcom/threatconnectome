@@ -11,9 +11,6 @@ export const removeToken = () => {
 // pteams
 export const getPTeamTagsSummary = async (pteamId) => axios.get(`/pteams/${pteamId}/tags/summary`);
 
-// ateams
-export const getATeam = async (ateamId) => axios.get(`/ateams/${ateamId}`);
-
 export const getATeamTopics = async (ateamId, params) =>
   axios.get(`/ateams/${ateamId}/topicstatus`, { params: params ?? {} });
 

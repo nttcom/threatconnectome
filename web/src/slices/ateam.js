@@ -1,15 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-import { getATeam as apiGetATeam, getATeamTopics as apiGetATeamTopics } from "../utils/api";
-
-export const getATeam = createAsyncThunk(
-  "ateam/getATeam",
-  async (ateamId) =>
-    await apiGetATeam(ateamId).then((response) => ({
-      data: response.data,
-      ateamId: ateamId,
-    })),
-);
+import { getATeamTopics as apiGetATeamTopics } from "../utils/api";
 
 export const getATeamTopics = createAsyncThunk(
   "ateam/getATeamTopics",
@@ -42,15 +33,10 @@ const ateamSlice = createSlice({
     }),
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(getATeam.fulfilled, (state, action) => ({
-        ...state,
-        ateam: action.payload.data,
-      }))
-      .addCase(getATeamTopics.fulfilled, (state, action) => ({
-        ...state,
-        ateamTopics: action.payload.data,
-      }));
+    builder.addCase(getATeamTopics.fulfilled, (state, action) => ({
+      ...state,
+      ateamTopics: action.payload.data,
+    }));
   },
 });
 

@@ -19,14 +19,15 @@ import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useCheckMailMutation,
   useCheckSlackMutation,
+  useGetATeamQuery,
   useUpdateATeamMutation,
 } from "../services/tcApi";
-import { getATeam } from "../slices/ateam";
 import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -51,9 +52,13 @@ export function ATeamNotificationSetting(props) {
   const [updateATeam] = useUpdateATeamMutation();
 
   const ateamId = useSelector((state) => state.ateam.ateamId);
-  const ateam = useSelector((state) => state.ateam.ateam);
+  const skip = useSkipUntilAuthTokenIsReady();
 
-  const dispatch = useDispatch();
+  const {
+    data: ateam,
+    error: ateamError,
+    isLoading: ateamIsLoading,
+  } = useGetATeamQuery(ateamId, { skip });
 
   useEffect(() => {
     if (ateam) {
@@ -66,6 +71,10 @@ export function ATeamNotificationSetting(props) {
     setCheckSlack(false);
     setSlackMessage();
   }, [show, ateam]);
+
+  if (skip) return <></>;
+  if (ateamError) return <>{`Cannot get Ateam: ${errorToString(ateamError)}`}</>;
+  if (ateamIsLoading) return <>Now loading Ateam...</>;
 
   const connectSuccessMessage = () => {
     return (
@@ -93,7 +102,6 @@ export function ATeamNotificationSetting(props) {
     await updateATeam({ ateamId: ateamId, data: ateamInfo })
       .unwrap()
       .then(() => {
-        dispatch(getATeam(ateamId));
         enqueueSnackbar("update ateam info succeeded", { variant: "success" });
       })
       .catch((error) =>
