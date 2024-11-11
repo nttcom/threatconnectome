@@ -1,13 +1,16 @@
+import SearchIcon from "@mui/icons-material/Search";
 import SortIcon from "@mui/icons-material/Sort";
 import {
   Box,
+  Button,
   Card,
   CardHeader,
+  CircularProgress,
   Divider,
   Grid,
   IconButton,
   List,
-  ListItemButton,
+  ListItem,
   ListItemText,
   Typography,
 } from "@mui/material";
@@ -28,6 +31,10 @@ export function SSVCPriority() {
   const ateam = useSelector((state) => state.ateam.ateam);
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const dispatch = useDispatch();
+  const isDone = false;
+  const remainingTime = 70;
+  const remainingTimeColor =
+    remainingTime === 0 ? "error" : remainingTime < 20 ? "warning" : "primary";
 
   useEffect(() => {
     if (!ateam) dispatch(getATeam(ateamId));
@@ -93,45 +100,105 @@ export function SSVCPriority() {
                 >
                   {[...Array(20)].map((_, i) => (
                     <React.Fragment key={i}>
-                      <ListItemButton
+                      <ListItem
                         sx={{
-                          height: 152,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-start",
                         }}
                       >
                         <ListItemText
                           primary={
-                            <Typography
-                              variant="subtitle2"
-                              sx={{
-                                fontWeight: "bold",
-                                display: "-webkit-box",
-                                "-webkit-box-orient": "vertical",
-                                "-webkit-line-clamp": "2",
-                                overflow: "hidden",
-                                maxHeight: 44,
-                              }}
-                            >
-                              sqlparse: parsing heavily nested list leads to denial of service
-                            </Typography>
-                          }
-                          secondary={
                             <>
-                              <Typography component="div" variant="caption" noWrap>
-                                Team: team_name
-                              </Typography>
-                              <Typography component="div" variant="caption" noWrap>
-                                Status: Alerted
-                              </Typography>
-                              <Typography component="div" variant="caption" noWrap>
-                                Service: service_name
-                              </Typography>
-                              <Typography component="div" variant="caption" noWrap>
-                                Assignees: test@example.com
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  fontWeight: "bold",
+                                  overflow: "hidden",
+                                  maxHeight: 44,
+                                }}
+                              >
+                                CVE-XXXX-XXXXX
                               </Typography>
                             </>
                           }
+                          secondary={
+                            <>
+                              <Typography variant="caption" noWrap>
+                                Team: team_name
+                              </Typography>
+                              <br />
+                              <Typography variant="caption" noWrap>
+                                Service: service_name
+                              </Typography>
+                              {item.title === "Immediate" &&
+                                (isDone ? (
+                                  <>
+                                    <br />
+                                    <Typography variant="caption" noWrap>
+                                      Status: scheduled
+                                    </Typography>
+                                    <br />
+                                    <Typography variant="caption" noWrap>
+                                      Assignees: test@example.com
+                                    </Typography>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      variant="contained"
+                                      size="small"
+                                      startIcon={<SearchIcon />}
+                                      sx={{ my: 1 }}
+                                      color={remainingTimeColor}
+                                    >
+                                      Investigate
+                                    </Button>
+                                    <Box sx={{ position: "relative", height: 120 }}>
+                                      <CircularProgress
+                                        size="120px"
+                                        variant="determinate"
+                                        value={100}
+                                        sx={{ color: "#e6e6e6", position: "absolute" }}
+                                      />
+                                      <Box sx={{ position: "absolute" }}>
+                                        <Box sx={{ position: "relative", display: "inline-flex" }}>
+                                          <CircularProgress
+                                            size="120px"
+                                            variant="determinate"
+                                            value={remainingTime}
+                                            color={remainingTimeColor}
+                                          />
+                                          <Box
+                                            sx={{
+                                              top: 0,
+                                              left: 0,
+                                              bottom: 0,
+                                              right: 0,
+                                              position: "absolute",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              justifyContent: "center",
+                                            }}
+                                          >
+                                            <Typography
+                                              variant="caption"
+                                              component="div"
+                                              color="text.secondary"
+                                              sx={{ fontSize: 30, fontWeight: "bold" }}
+                                            >
+                                              10:00
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      </Box>
+                                    </Box>
+                                  </>
+                                ))}
+                            </>
+                          }
                         />
-                      </ListItemButton>
+                      </ListItem>
                       <Divider />
                     </React.Fragment>
                   ))}
