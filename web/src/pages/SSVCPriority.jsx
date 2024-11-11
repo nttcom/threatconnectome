@@ -109,18 +109,16 @@ export function SSVCPriority() {
                       >
                         <ListItemText
                           primary={
-                            <>
-                              <Typography
-                                variant="subtitle2"
-                                sx={{
-                                  fontWeight: "bold",
-                                  overflow: "hidden",
-                                  maxHeight: 44,
-                                }}
-                              >
-                                CVE-XXXX-XXXXX
-                              </Typography>
-                            </>
+                            <Typography
+                              variant="subtitle2"
+                              sx={{
+                                fontWeight: "bold",
+                                overflow: "hidden",
+                                maxHeight: 44,
+                              }}
+                            >
+                              CVE-XXXX-XXXXX
+                            </Typography>
                           }
                           secondary={
                             <>
