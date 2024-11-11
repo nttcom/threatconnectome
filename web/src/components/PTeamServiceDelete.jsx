@@ -18,7 +18,7 @@ import { useLocation, useNavigate } from "react-router";
 import styles from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useDeletePTeamServiceMutation, useGetPTeamQuery } from "../services/tcApi";
-import { invalidateServiceId, getPTeamTagsSummary } from "../slices/pteam";
+import { invalidateServiceId } from "../slices/pteam";
 import { errorToString } from "../utils/func";
 
 export function PTeamServiceDelete(props) {
@@ -63,7 +63,6 @@ export function PTeamServiceDelete(props) {
   const handleDeleteService = async () => {
     function onSuccess(success, deletingServiceId) {
       dispatch(invalidateServiceId(deletingServiceId));
-      dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
       enqueueSnackbar("Remove service succeeded", { variant: "success" });
     }
     function onError(error) {
