@@ -123,9 +123,8 @@ export function ATeamTopicCreateModal(props) {
     };
     await createTopic({ topicId, data })
       .unwrap()
-      .then(async (response) => {
-        // fix topic state
-        await Promise.all([enqueueSnackbar("Create topic succeeded", { variant: "success" })]);
+      .then(() => {
+        enqueueSnackbar("Create topic succeeded", { variant: "success" });
       })
       .catch((error) =>
         enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {

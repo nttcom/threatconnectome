@@ -27,7 +27,6 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { format } from "date-fns";
-import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
@@ -37,13 +36,12 @@ import { ATeamTopicMenu } from "../components/ATeamTopicMenu";
 import { AnalysisNoThreatsMsg } from "../components/AnalysisNoThreatsMsg";
 import { AnalysisTopic } from "../components/AnalysisTopic";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetATeamAuthQuery, useGetUserMeQuery, tcApi } from "../services/tcApi";
+import { useGetATeamAuthQuery, useGetUserMeQuery, useGetATeamTopicsQuery } from "../services/tcApi";
 import { getATeam } from "../slices/ateam";
 import { difficulty, difficultyColors, noATeamMessage } from "../utils/const";
 import { calcTimestampDiff, errorToString, utcStringToLocalDate } from "../utils/func";
 
 export function Analysis() {
-  const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -96,55 +94,45 @@ export function Analysis() {
   const [pageInfo, setPageInfo] = useState();
   const [targetTopic, setTargetTopic] = useState();
   const [anchorEl, setAnchorEl] = useState();
+  const queryParams = {
+    offset: perPage * (page - 1),
+    limit: perPage,
+    sort_key: sortKey,
+    search: actualSearch,
+  };
+
+  const getATeamTopicsReady = !skip && ateamId && ateam;
+
+  const {
+    data: ateamTopics,
+    error: ateamTopicsError,
+    isLoading: ateamTopicsIsLoading,
+  } = useGetATeamTopicsQuery(
+    { ateamId, queryParams },
+    { skip: !getATeamTopicsReady, refetchOnMountOrArgChange: true },
+  );
 
   useEffect(() => {
-    /* Note: state.ateam.* are re-initialized when ateamId is changed. */
-    if (skip || !ateamId || !ateam) return;
-    async function fetchPageInfo() {
-      const queryParams = {
-        offset: perPage * (page - 1),
-        limit: perPage,
-        sort_key: sortKey,
-        search: actualSearch,
-      };
-      await dispatch(tcApi.endpoints.getATeamTopics.initiate({ ateamId, queryParams }))
-        .unwrap()
-        .then((data) => {
-          setPageInfo(data);
-          setTargetTopic(data.topic_statuses?.length > 0 ? data.topic_statuses[0] : null);
-        })
-        .catch((error) => {
-          setPageInfo(undefined);
-          enqueueSnackbar(`Getting topics failed: ${errorToString(error)}`, {
-            variant: "error",
-          });
-        });
-    }
-
-    /* Note:
-     *   Calling setPage() or other setXXX is enough to re-call fetchPageInfo(), but
-     *   it does not update actual query params. call navigate() to fix query params.
-     */
-
-    fetchPageInfo();
-  }, [dispatch, skip, ateamId, ateam, page, perPage, sortKey, actualSearch, enqueueSnackbar]);
+    setPageInfo(ateamTopics);
+    setTargetTopic(ateamTopics?.topic_statuses.length > 0 ? ateamTopics.topic_statuses[0] : null);
+  }, [ateamTopics, setPageInfo, setTargetTopic]);
 
   useEffect(() => {
     if (skip || !ateamId) return;
     if (!ateam) dispatch(getATeam(ateamId));
   }, [dispatch, ateam, skip, ateamId]);
 
-  if (skip) return <></>;
+  if (!ateamId) return <>{noATeamMessage}</>;
+  if (!ateam) return <>Now loading...</>;
+  if (skip || !getATeamTopicsReady) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (authoritiesError) return <>{`Cannot get ATeamAuth: ${errorToString(authoritiesError)}`}</>;
   if (authoritiesIsLoading) return <>Now loading ATeamAuth...</>;
-
-  if (!ateamId) return <>{noATeamMessage}</>;
-  if (!ateam || !pageInfo) return <>Now loading...</>;
+  if (ateamTopicsError) return <>{`Cannot get AteamTopics: ${errorToString(ateamTopicsError)}`}</>;
+  if (ateamTopicsIsLoading || !pageInfo) return <>Now loading AteamTopics...</>;
 
   const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
-
   const handleMenuClose = () => setAnchorEl(null);
 
   const changeSortKey = (sortTarget) => {
