@@ -31,8 +31,8 @@ export function SSVCPriority() {
   const ateam = useSelector((state) => state.ateam.ateam);
   const ateamId = useSelector((state) => state.ateam.ateamId);
   const dispatch = useDispatch();
-  const isDone = false;
-  const remainingTime = 70;
+  const isDone = true;
+  const remainingTime = 0;
   const remainingTimeColor =
     remainingTime === 0 ? "error" : remainingTime < 20 ? "warning" : "primary";
 
@@ -138,6 +138,10 @@ export function SSVCPriority() {
                                   <br />
                                   <Typography variant="caption" noWrap>
                                     Assignees: test@example.com
+                                  </Typography>
+                                  <br />
+                                  <Typography variant="overline" noWrap>
+                                    This ticket is verified.
                                   </Typography>
                                 </>
                               )}
