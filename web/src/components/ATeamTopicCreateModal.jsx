@@ -24,7 +24,7 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import uuid from "react-native-uuid";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
@@ -46,7 +46,7 @@ import { TopicTagSelector } from "./TopicTagSelector";
 const steps = ["Threat, Vulnerability, and Risk", "Dissemination", "Response planning"];
 
 export function ATeamTopicCreateModal(props) {
-  const { open, onSetOpen } = props;
+  const { ateamId, open, onSetOpen } = props;
 
   const [activeStep, setActiveStep] = useState(0);
   const [topicId, setTopicId] = useState(uuid.v4());
@@ -58,8 +58,6 @@ export function ATeamTopicCreateModal(props) {
   const [actionTagOptions, setActionTagOptions] = useState([]);
   const [editActionOpen, setEditActionOpen] = useState(false);
   const [editActionTarget] = useState({});
-
-  const ateamId = useSelector((state) => state.ateam.ateamId); // dispatched by parent
 
   const skip = useSkipUntilAuthTokenIsReady();
   const {
@@ -421,6 +419,7 @@ export function ATeamTopicCreateModal(props) {
 }
 
 ATeamTopicCreateModal.propTypes = {
+  ateamId: PropTypes.string.isRequired,
   open: PropTypes.bool.isRequired,
   onSetOpen: PropTypes.func.isRequired,
 };

@@ -10,7 +10,6 @@ import { Drawer } from "../components/Drawer";
 import { Main } from "../components/Main";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetUserMeQuery, useTryLoginMutation } from "../services/tcApi";
-import { setATeamId } from "../slices/ateam";
 import { setAuthToken } from "../slices/auth";
 import { setTeamMode } from "../slices/system";
 import { setToken } from "../utils/api";
@@ -31,6 +30,7 @@ export function App() {
   const system = useSelector((state) => state.system);
   const location = useLocation();
   const navigate = useNavigate();
+  const [ateamId, setATeamId] = useState(undefined);
   const [pteamId, setPteamId] = useState(undefined);
 
   const {
@@ -69,7 +69,7 @@ export function App() {
     if (["/analysis", "/ateam"].includes(location.pathname)) {
       dispatch(setTeamMode("ateam"));
       if (!userMe.ateams.length > 0) {
-        dispatch(setATeamId(undefined));
+        setATeamId(undefined);
         return;
       }
       const ateamIdx = params.get("ateamId") || userMe.ateams[0].ateam_id;
@@ -86,7 +86,7 @@ export function App() {
         navigate(location.pathname + "?" + params.toString());
         return;
       }
-      dispatch(setATeamId(params.get("ateamId")));
+      setATeamId(params.get("ateamId"));
     } else if (
       ["/", "/pteam", "/pteam/watching_request"].includes(location.pathname) ||
       /\/tags\//.test(location.pathname)
@@ -120,7 +120,7 @@ export function App() {
   return (
     <>
       <Box flexGrow={1}>
-        <AppBar pteamId={pteamId} />
+        <AppBar ateamId={ateamId} pteamId={pteamId} />
       </Box>
       <Drawer />
       <Main open={system.drawerOpen}>

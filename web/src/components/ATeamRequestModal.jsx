@@ -19,7 +19,6 @@ import { addHours, isBefore } from "date-fns";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import styles from "../cssModule/button.module.css";
 import dialogStyle from "../cssModule/dialog.module.css";
@@ -27,9 +26,7 @@ import { useCreateATeamWatchingRequestMutation } from "../services/tcApi";
 import { errorToString } from "../utils/func";
 
 export function ATeamRequestModal(props) {
-  const { text } = props;
-
-  const ateamId = useSelector((state) => state.ateam.ateamId);
+  const { ateamId, text } = props;
 
   const [open, setOpen] = useState(false);
   const [maxUses, setMaxUses] = useState(0);
@@ -161,5 +158,6 @@ export function ATeamRequestModal(props) {
 }
 
 ATeamRequestModal.propTypes = {
+  ateamId: PropTypes.string.isRequired,
   text: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
 };
