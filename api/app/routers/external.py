@@ -1,12 +1,8 @@
-import os
-
-import requests
 from email_validator import validate_email
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
-from fastapi.security import HTTPAuthorizationCredentials
 
-from app.auth import get_current_user, token_scheme
+from app.auth import get_current_user
 from app.constants import SYSTEM_EMAIL
 from app.models import Account
 from app.notification.sendgrid import (
@@ -19,7 +15,7 @@ from app.notification.slack import (
     send_slack,
     validate_slack_webhook_url,
 )
-from app.schemas import EmailCheckRequest, FsServerInfo, SlackCheckRequest
+from app.schemas import EmailCheckRequest, SlackCheckRequest
 
 router = APIRouter(prefix="/external", tags=["external"])
 
@@ -81,44 +77,3 @@ def check_email(data: EmailCheckRequest, current_user: Account = Depends(get_cur
         )
 
     return Response(status_code=status.HTTP_200_OK, content="OK")
-
-
-@router.post("/flashsense/check")
-def check_fs(
-    token: HTTPAuthorizationCredentials = Depends(token_scheme),
-    current_user: Account = Depends(get_current_user),
-):
-    """
-    Check connection with Flashsense server.
-    User must have valid flashsense account.
-    """
-    fs_api = os.environ["FLASHSENSE_API_URL"]
-    headers = {
-        "accept": "application/json",
-        "Authorization": f"Bearer {token.credentials}",
-    }
-    try:
-        response = requests.get(f"{fs_api}/users", headers=headers, timeout=30)
-    except requests.exceptions.Timeout as flashsense_timeout:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Could not connect to flashsense",
-        ) from flashsense_timeout
-
-    if response.status_code == 401:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Your account is not valid in flashsense",
-        )
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Something went wrong")
-
-    return Response(status_code=status.HTTP_200_OK)
-
-
-@router.get("/flashsense/info", response_model=FsServerInfo)
-def get_fs_info(current_user: Account = Depends(get_current_user)):
-    """
-    Get flashsense server info.
-    """
-    return FsServerInfo(api_url=os.environ["FLASHSENSE_API_URL"])

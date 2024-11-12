@@ -2,7 +2,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.schemas import FsServerInfo
 from app.tests.medium.constants import USER1
 from app.tests.medium.utils import create_user, headers
 
@@ -38,16 +37,3 @@ def test_check_slack__with_invalid_url():
     assert response.reason_phrase == "Bad Request"
     data = response.json()
     assert data["detail"] == "Invalid slack webhook url"
-
-
-@pytest.mark.skip(reason="TODO: should be tested with flashsense server")  # TODO
-def test_check_fs():
-    pass
-
-
-def test_get_fs_info():
-    create_user(USER1)
-    response = client.get("/external/flashsense/info", headers=headers(USER1))
-    assert response.status_code == 200
-    fs_server_info = FsServerInfo(**response.json())
-    assert isinstance(fs_server_info.api_url, str)
