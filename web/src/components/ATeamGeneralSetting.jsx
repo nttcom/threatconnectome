@@ -26,6 +26,8 @@ export function ATeamGeneralSetting(props) {
   const { enqueueSnackbar } = useSnackbar();
   const [updateATeam] = useUpdateATeamMutation();
 
+  const skip = useSkipUntilAuthTokenIsReady();
+
   const {
     data: ateam,
     error: ateamError,
