@@ -194,7 +194,6 @@ export const tcApi = createApi({
         url: `/ateams/${ateamId}/topicstatus`,
         params: params ?? {},
       }),
-      keepUnusedDataFor: 0,
     }),
 
     /* ATeam Watching Request */
