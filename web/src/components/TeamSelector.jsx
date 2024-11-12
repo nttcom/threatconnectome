@@ -9,7 +9,6 @@ import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetUserMeQuery } from "../services/tcApi";
 import { clearATeam } from "../slices/ateam";
-import { clearPTeam } from "../slices/pteam";
 import { setTeamMode } from "../slices/system";
 import { teamColor } from "../utils/const";
 import { errorToString } from "../utils/func";
@@ -105,7 +104,6 @@ export function TeamSelector(props) {
       navigate(location.pathname + "?" + newParams.toString());
     } else {
       dispatch(setTeamMode("ateam"));
-      dispatch(clearPTeam());
       navigate("/analysis?" + newParams.toString());
     }
   };
