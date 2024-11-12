@@ -158,7 +158,7 @@ export function Analysis() {
       <>
         <ATeamLabel ateam={ateam} />
         <>No watching teams.</>
-        <ATeamTopicMenu ateamId={ateamId} />
+        <ATeamTopicMenu />
       </>
     );
   }
@@ -166,7 +166,7 @@ export function Analysis() {
     return (
       <>
         <ATeamLabel ateam={ateam} />
-        <ATeamTopicMenu ateamId={ateamId} />
+        <ATeamTopicMenu />
         <AnalysisNoThreatsMsg ateam={ateam} />
       </>
     );
@@ -208,7 +208,7 @@ export function Analysis() {
           ))}
         </Select>
         <Box flexGrow={1} />
-        <ATeamTopicMenu ateamId={ateamId} />
+        <ATeamTopicMenu />
       </Box>
       <Box
         display="flex"
