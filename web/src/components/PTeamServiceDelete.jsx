@@ -12,7 +12,6 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import styles from "../cssModule/dialog.module.css";
@@ -26,7 +25,6 @@ export function PTeamServiceDelete(props) {
 
   const { enqueueSnackbar } = useSnackbar();
   const [deletePTeamService] = useDeletePTeamServiceMutation();
-  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
