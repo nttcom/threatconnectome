@@ -22,11 +22,9 @@ import { isBefore } from "date-fns";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useRef, useState } from "react";
-import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useCreateTicketStatusMutation } from "../services/tcApi";
-import { getPTeamTagsSummary } from "../slices/pteam";
 import { topicStatusProps } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -45,8 +43,6 @@ export function TopicStatusSelector(props) {
 
   const [createTicketStatus] = useCreateTicketStatusMutation();
 
-  const dispatch = useDispatch();
-
   const dateFormat = "yyyy/MM/dd HH:mm";
   const selectableItems = [
     {
@@ -62,10 +58,6 @@ export function TopicStatusSelector(props) {
     },
   ];
 
-  const dispatchRelatedSlices = () => {
-    dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
-  };
-
   const modifyTicketStatus = async (selectedStatus) => {
     let requestParams = { topic_status: selectedStatus };
     if (selectedStatus === "scheduled") {
@@ -77,7 +69,6 @@ export function TopicStatusSelector(props) {
     await createTicketStatus({ pteamId, serviceId, ticketId, data: requestParams })
       .unwrap()
       .then(() => {
-        dispatchRelatedSlices();
         enqueueSnackbar("Change ticket status succeeded", { variant: "success" });
       })
       .catch((error) =>
@@ -105,8 +96,6 @@ export function TopicStatusSelector(props) {
     modifyTicketStatus("scheduled");
   };
 
-  const handleReportSucceeded = () => dispatchRelatedSlices();
-
   const handleClose = (event) => {
     if (anchorRef.current?.contains(event.target)) return;
     setOpen(false);
@@ -128,7 +117,6 @@ export function TopicStatusSelector(props) {
         topicId={topicId}
         tagId={tagId}
         topicActions={topicActions}
-        onSucceeded={handleReportSucceeded}
         onSetShow={setActionModalOpen}
         show={actionModalOpen}
       />

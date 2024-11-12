@@ -27,7 +27,6 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import { Android12Switch } from "../components/Android12Switch";
@@ -39,8 +38,11 @@ import { PTeamServicesListModal } from "../components/PTeamServicesListModal";
 import { PTeamStatusCard } from "../components/PTeamStatusCard";
 import { SBOMDropArea } from "../components/SBOMDropArea";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetPTeamQuery, useGetPTeamServiceTagsSummaryQuery } from "../services/tcApi";
-import { getPTeamTagsSummary, setPTeamId } from "../slices/pteam";
+import {
+  useGetPTeamQuery,
+  useGetPTeamTagsSummaryQuery,
+  useGetPTeamServiceTagsSummaryQuery,
+} from "../services/tcApi";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -114,17 +116,12 @@ CustomTabPanel.propTypes = {
 export function Status() {
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const params = new URLSearchParams(location.search);
   const searchWord = params.get("word")?.trim().toLowerCase() ?? "";
 
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
-
-  const pteamTagsSummaries = useSelector((state) => state.pteam.pteamTagsSummaries);
-
-  const pteamTagsSummary = pteamTagsSummaries[pteamId];
 
   const [expandService, setExpandService] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -157,14 +154,15 @@ export function Status() {
     { skip: skipByAuth || !pteamId || !serviceId },
   );
 
+  const {
+    currentData: pteamTagsSummary,
+    error: pteamTagsSummaryError,
+    isFetching: pteamTagsSummaryIsFetching,
+  } = useGetPTeamTagsSummaryQuery(pteamId, { skip: skipByAuth || !pteamId });
+
   useEffect(() => {
     if (!pteamId) return; // wait fixed by App
     if (!pteam) return; // wait getQuery
-    if (pteam && pteam.pteam_id !== pteamId) {
-      // for the case pteam switched. -- looks redundant but necessary, uhmm...
-      dispatch(setPTeamId(pteamId));
-      return;
-    }
 
     if (!serviceId) {
       if (pteam.services.length === 0) return; // nothing to do any more.
@@ -181,9 +179,6 @@ export function Status() {
       return;
     }
 
-    if (isActiveAllServicesMode) {
-      dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
-    }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
 
@@ -197,6 +192,10 @@ export function Status() {
     if (!serviceTagsSummary || serviceTagsSummaryIsFetching)
       return <>Now loading serviceTagsSummary...</>;
   }
+  if (pteamTagsSummaryError)
+    return <>{`Cannot get pteamTagsSummary: ${errorToString(pteamTagsSummaryError)}`}</>;
+  if (isActiveAllServicesMode && (!pteamTagsSummary || pteamTagsSummaryIsFetching))
+    return <>Now loading pteamTagsSummary...</>;
 
   const service =
     isActiveAllServicesMode || !serviceId
@@ -210,7 +209,7 @@ export function Status() {
       return (
         <>
           <Box display="flex" flexDirection="row">
-            <PTeamLabel defaultTabIndex={0} />
+            <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
             <Box flexGrow={1} />
           </Box>
           <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
@@ -420,11 +419,11 @@ export function Status() {
   return (
     <>
       <Box display="flex" flexDirection="row">
-        <PTeamLabel defaultTabIndex={0} />
+        <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
         <Box flexGrow={1} />
       </Box>
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-        <DeleteServiceIcon />
+        <DeleteServiceIcon pteamId={pteamId} />
         <FormControlLabel
           control={
             <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />

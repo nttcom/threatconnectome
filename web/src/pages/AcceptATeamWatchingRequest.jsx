@@ -1,7 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import React from "react";
-import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
@@ -21,7 +20,7 @@ export function AcceptATeamWatchingRequest() {
 
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
-  const pteamId = useSelector((state) => state.pteam.pteamId);
+  const pteamId = params.get("pteamId");
 
   const skipByAuth = useSkipUntilAuthTokenIsReady();
   const {

@@ -10,20 +10,20 @@ import {
   ListItemText,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
+import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import styles from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useDeletePTeamServiceMutation, useGetPTeamQuery } from "../services/tcApi";
-import { invalidateServiceId, getPTeamTagsSummary } from "../slices/pteam";
+import { invalidateServiceId } from "../slices/pteam";
 import { errorToString } from "../utils/func";
 
-export function PTeamServiceDelete() {
+export function PTeamServiceDelete(props) {
+  const { pteamId } = props;
   const [checked, setChecked] = useState([]);
-
-  const pteamId = useSelector((state) => state.pteam.pteamId);
 
   const { enqueueSnackbar } = useSnackbar();
   const [deletePTeamService] = useDeletePTeamServiceMutation();
@@ -63,7 +63,6 @@ export function PTeamServiceDelete() {
   const handleDeleteService = async () => {
     function onSuccess(success, deletingServiceId) {
       dispatch(invalidateServiceId(deletingServiceId));
-      dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
       enqueueSnackbar("Remove service succeeded", { variant: "success" });
     }
     function onError(error) {
@@ -124,3 +123,6 @@ export function PTeamServiceDelete() {
     </Box>
   );
 }
+PTeamServiceDelete.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+};

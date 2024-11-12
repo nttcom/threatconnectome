@@ -234,6 +234,15 @@ export const tcApi = createApi({
       ],
     }),
 
+    /* Dependencies */
+    getDependencies: builder.query({
+      query: ({ pteamId, serviceId }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/dependencies`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
+    }),
+
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
@@ -409,6 +418,20 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/services/${serviceId}/thumbnail`,
         responseHandler: async (response) => await blobToDataURL(await response.blob()),
       }),
+    }),
+
+    /* PTeam Tags Summary */
+    getPTeamTagsSummary: builder.query({
+      query: (pteamId) => ({
+        url: `pteams/${pteamId}/tags/summary`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        { type: "Ticket", id: "ALL" },
+        { type: "Threat", id: "ALL" },
+        { type: "CurrentTicketStatus", id: "ALL" },
+        { type: "Service", id: "ALL" },
+      ],
     }),
 
     /* PTeam Ticket Related To Service TopicTag */
@@ -681,6 +704,7 @@ export const {
   useCreateATeamWatchingRequestMutation,
   useApplyATeamWatchingRequestMutation,
   useRemoveWatchingPTeamMutation,
+  useGetDependenciesQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
@@ -700,6 +724,7 @@ export const {
   useGetPTeamServiceTagsSummaryQuery,
   useGetPTeamServiceTaggedTopicIdsQuery,
   useGetPTeamServiceThumbnailQuery,
+  useGetPTeamTagsSummaryQuery,
   useGetTicketsRelatedToServiceTopicTagQuery,
   useRemoveWatcherATeamMutation,
   useCreateTicketStatusMutation,

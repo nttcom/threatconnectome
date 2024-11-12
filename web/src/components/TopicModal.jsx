@@ -24,7 +24,6 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import uuid from "react-native-uuid";
-import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
@@ -37,7 +36,6 @@ import {
   useDeleteActionMutation,
   useGetTagsQuery,
 } from "../services/tcApi";
-import { getPTeamTagsSummary } from "../slices/pteam";
 import { fetchFlashsense } from "../utils/api";
 import { actionTypes } from "../utils/const";
 import { validateNotEmpty, validateUUID, setEquals, errorToString } from "../utils/func";
@@ -51,7 +49,8 @@ import { TopicTagSelector } from "./TopicTagSelector";
 const steps = ["Import Flashsense", "Create topic"];
 
 export function TopicModal(props) {
-  const { open, onSetOpen, presetTopic, presetTagId, presetParentTagId, presetActions } = props;
+  const { open, onSetOpen, presetTopic, presetTagId, presetParentTagId, presetActions, pteamId } =
+    props;
 
   const [errors, setErrors] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
@@ -67,7 +66,6 @@ export function TopicModal(props) {
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
 
-  const pteamId = useSelector((state) => state.pteam.pteamId);
   const {
     data: allTags,
     error: allTagsError,
@@ -90,8 +88,6 @@ export function TopicModal(props) {
   const [deleteAction] = useDeleteActionMutation();
   const [createTopic] = useCreateTopicMutation();
   const [updateTopic] = useUpdateTopicMutation();
-
-  const dispatch = useDispatch();
 
   useEffect(() => {
     setErrors([]);
@@ -173,11 +169,6 @@ export function TopicModal(props) {
     return true;
   };
 
-  const reloadTopicAfterAPI = async () => {
-    // fix topic state
-    await Promise.all([dispatch(getPTeamTagsSummary({ pteamId: pteamId }))]);
-  };
-
   const handleCreateTopic = async () => {
     if (!validateActionTags()) return;
     const data = {
@@ -197,7 +188,6 @@ export function TopicModal(props) {
       .unwrap()
       .then(async () => {
         enqueueSnackbar("Create topic succeeded", { variant: "success" });
-        reloadTopicAfterAPI();
         onSetOpen(false);
       })
       .catch((error) =>
@@ -340,7 +330,6 @@ export function TopicModal(props) {
       await updateActionPromise();
     }
 
-    reloadTopicAfterAPI();
     enqueueSnackbar("Update topic succeeded", { variant: "success" });
     onSetOpen(false);
   };
@@ -417,10 +406,6 @@ export function TopicModal(props) {
   const handleClose = () => {
     setActiveStep(presetTopic ? 1 : 0);
     onSetOpen(false);
-  };
-
-  const handleDeleteTopic = () => {
-    dispatch(getPTeamTagsSummary({ pteamId: pteamId }));
   };
 
   function ActionGeneratorModal() {
@@ -734,7 +719,6 @@ export function TopicModal(props) {
                   <TopicDeleteModal
                     topicId={presetTopic.topic_id}
                     onSetOpenTopicModal={onSetOpen}
-                    onDelete={handleDeleteTopic}
                   />
                 </Box>
               </Box>
@@ -778,4 +762,5 @@ TopicModal.propTypes = {
       }),
     }),
   ),
+  pteamId: PropTypes.string.isRequired,
 };

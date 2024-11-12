@@ -19,7 +19,6 @@ import { addHours, isBefore } from "date-fns";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import styles from "../cssModule/button.module.css";
 import dialogStyle from "../cssModule/dialog.module.css";
@@ -29,9 +28,7 @@ import { errorToString } from "../utils/func";
 import { CopiedIcon } from "./CopiedIcon";
 
 export function PTeamInviteModal(props) {
-  const { text } = props;
-
-  const pteamId = useSelector((state) => state.pteam.pteamId);
+  const { pteamId, text } = props;
 
   const [open, setOpen] = useState(false);
   const [maxUses, setMaxUses] = useState(0);
@@ -158,5 +155,6 @@ export function PTeamInviteModal(props) {
 }
 
 PTeamInviteModal.propTypes = {
+  pteamId: PropTypes.string.isRequired,
   text: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
 };

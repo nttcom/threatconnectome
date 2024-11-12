@@ -1,33 +1,7 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-
-import {
-  getDependencies as apiGetDependencies,
-  getPTeamTagsSummary as apiGetPTeamTagsSummary,
-} from "../utils/api";
-
-export const getDependencies = createAsyncThunk(
-  "pteam/getDependencies",
-  async (data) =>
-    await apiGetDependencies(data.pteamId, data.serviceId).then((response) => ({
-      pteamId: data.pteamId,
-      serviceId: data.serviceId,
-      data: response.data,
-    })),
-);
-
-export const getPTeamTagsSummary = createAsyncThunk(
-  "pteam/getPTeamTagsSummary",
-  async (data) =>
-    await apiGetPTeamTagsSummary(data.pteamId).then((response) => ({
-      data: response.data,
-      pteamId: data.pteamId,
-    })),
-);
+import { createSlice } from "@reduxjs/toolkit";
 
 const _initialState = {
   pteamId: undefined,
-  serviceDependencies: {}, // dict[serviceId: list[dependency]]
-  pteamTagsSummaries: {},
   serviceThumbnails: {}, // dict[serviceId: dataURL | noImageAvailableUrl(=NoThumbnail)]
 };
 
@@ -38,17 +12,9 @@ const pteamSlice = createSlice({
     clearPTeam: (state, action) => ({
       ..._initialState,
     }),
-    setPTeamId: (state, action) => ({
-      /*
-       * CAUTION: pteam slice is initialized on changing pteamId.
-       */
-      ...(action.payload && state.pteamId === action.payload ? state : _initialState),
-      pteamId: action.payload,
-    }),
     invalidateServiceId: (state, action) => ({
       ...state,
       /* Note: state.pteam.services should be fixed by dispatch(getPTeam(pteamId)) */
-      serviceDependencies: { ...state.serviceDependencies, [action.payload]: undefined },
       serviceThumbnails: { ...state.serviceThumbnails, [action.payload]: undefined },
     }),
     storeServiceThumbnail: (state, action) => ({
@@ -66,33 +32,11 @@ const pteamSlice = createSlice({
       },
     }),
   },
-  extraReducers: (builder) => {
-    builder
-      .addCase(getDependencies.fulfilled, (state, action) => ({
-        ...state,
-        serviceDependencies: {
-          ...state.serviceDependencies,
-          [action.payload.serviceId]: action.payload.data,
-        },
-      }))
-      .addCase(getPTeamTagsSummary.fulfilled, (state, action) => ({
-        ...state,
-        pteamTagsSummaries: {
-          ...state.pteamTagsSummaries,
-          [action.payload.pteamId]: action.payload.data,
-        },
-      }));
-  },
 });
 
 const { actions, reducer } = pteamSlice;
 
-export const {
-  clearPTeam,
-  setPTeamId,
-  invalidateServiceId,
-  storeServiceThumbnail,
-  storeServiceThumbnailDict,
-} = actions;
+export const { clearPTeam, invalidateServiceId, storeServiceThumbnail, storeServiceThumbnailDict } =
+  actions;
 
 export default reducer;

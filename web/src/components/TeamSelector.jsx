@@ -1,6 +1,7 @@
 import { Add as AddIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from "@mui/icons-material";
 import { Box, Button, Divider, ListSubheader, Menu, MenuItem } from "@mui/material";
 import { grey } from "@mui/material/colors";
+import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
@@ -25,13 +26,13 @@ function textTrim(selector) {
   return selector;
 }
 
-export function TeamSelector() {
+export function TeamSelector(props) {
+  const { ateamId, pteamId } = props;
+
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const teamMode = useSelector((state) => state.system.teamMode);
-  const pteamId = useSelector((state) => state.pteam.pteamId);
-  const ateamId = useSelector((state) => state.ateam.ateamId);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -188,3 +189,7 @@ export function TeamSelector() {
     </>
   );
 }
+TeamSelector.propTypes = {
+  ateamId: PropTypes.string,
+  pteamId: PropTypes.string,
+};

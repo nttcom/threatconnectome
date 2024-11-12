@@ -30,17 +30,7 @@ import { RecommendedStar } from "./RecommendedStar";
 import { UUIDTypography } from "./UUIDTypography";
 
 export function ReportCompletedActions(props) {
-  const {
-    pteamId,
-    serviceId,
-    ticketId,
-    topicId,
-    tagId,
-    topicActions,
-    onSucceeded,
-    onSetShow,
-    show,
-  } = props;
+  const { pteamId, serviceId, ticketId, topicId, tagId, topicActions, onSetShow, show } = props;
 
   const [note, setNote] = useState("");
   const [selectedAction, setSelectedAction] = useState([]);
@@ -97,7 +87,6 @@ export function ReportCompletedActions(props) {
       )
       .then((data) => {
         handleClose();
-        onSucceeded();
         setNote("");
         enqueueSnackbar("Set ticketstatus 'completed' succeeded", { variant: "success" });
       })
@@ -270,7 +259,6 @@ ReportCompletedActions.propTypes = {
   topicId: PropTypes.string.isRequired,
   tagId: PropTypes.string.isRequired,
   topicActions: PropTypes.array.isRequired,
-  onSucceeded: PropTypes.func.isRequired,
   onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
 };

@@ -6,7 +6,6 @@ import {
 import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import { PTeamAuthEditor } from "../components/PTeamAuthEditor";
 import { PTeamMemberRemoveModal } from "../components/PTeamMemberRemoveModal";
@@ -15,14 +14,12 @@ import { useGetPTeamQuery, useGetUserMeQuery } from "../services/tcApi";
 import { errorToString } from "../utils/func";
 
 export function PTeamMemberMenu(props) {
-  const { userId, userEmail, isAdmin } = props;
+  const { pteamId, userId, userEmail, isAdmin } = props;
 
   const [openAuth, setOpenAuth] = useState(false);
   const [openRemove, setOpenRemove] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-
-  const pteamId = useSelector((state) => state.pteam.pteamId);
 
   const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
   const {
@@ -108,6 +105,7 @@ export function PTeamMemberMenu(props) {
 }
 
 PTeamMemberMenu.propTypes = {
+  pteamId: PropTypes.string.isRequired,
   userId: PropTypes.string.isRequired,
   userEmail: PropTypes.string.isRequired,
   isAdmin: PropTypes.bool.isRequired,

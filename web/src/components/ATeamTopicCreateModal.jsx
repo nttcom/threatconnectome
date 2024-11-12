@@ -44,7 +44,7 @@ import { TopicTagSelector } from "./TopicTagSelector";
 const steps = ["Threat, Vulnerability, and Risk", "Dissemination", "Response planning"];
 
 export function ATeamTopicCreateModal(props) {
-  const { open, onSetOpen } = props;
+  const { ateamId, open, onSetOpen } = props;
 
   const [activeStep, setActiveStep] = useState(0);
   const [topicId, setTopicId] = useState(uuid.v4());
@@ -412,6 +412,7 @@ export function ATeamTopicCreateModal(props) {
 }
 
 ATeamTopicCreateModal.propTypes = {
+  ateamId: PropTypes.string.isRequired,
   open: PropTypes.bool.isRequired,
   onSetOpen: PropTypes.func.isRequired,
 };
