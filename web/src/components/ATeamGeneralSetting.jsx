@@ -15,7 +15,7 @@ import { errorToString } from "../utils/func";
 import { CheckButton } from "./CheckButton";
 
 export function ATeamGeneralSetting(props) {
-  const { show } = props;
+  const { ateamId, show } = props;
   const [ateamName, setATeamName] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [slackUrl, setSlackUrl] = useState("");
@@ -25,9 +25,6 @@ export function ATeamGeneralSetting(props) {
 
   const { enqueueSnackbar } = useSnackbar();
   const [updateATeam] = useUpdateATeamMutation();
-
-  const ateamId = useSelector((state) => state.ateam.ateamId);
-  const skip = useSkipUntilAuthTokenIsReady();
 
   const {
     data: ateam,
@@ -155,5 +152,6 @@ export function ATeamGeneralSetting(props) {
   );
 }
 ATeamGeneralSetting.propTypes = {
+  ateamId: PropTypes.string.isRequired,
   show: PropTypes.bool.isRequired,
 };

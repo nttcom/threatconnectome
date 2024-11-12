@@ -1,11 +1,13 @@
 import { Button, Box } from "@mui/material";
+import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import styles from "../cssModule/button.module.css";
 
 import { ATeamTopicCreateModal } from "./ATeamTopicCreateModal";
 
-export function ATeamTopicMenu() {
+export function ATeamTopicMenu(props) {
+  const { ateamId } = props;
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
@@ -20,8 +22,11 @@ export function ATeamTopicMenu() {
         >
           New Topic
         </Button>
-        <ATeamTopicCreateModal open={modalOpen} onSetOpen={setModalOpen} />
+        <ATeamTopicCreateModal ateamId={ateamId} open={modalOpen} onSetOpen={setModalOpen} />
       </Box>
     </>
   );
 }
+ATeamTopicMenu.propTypes = {
+  ateamId: PropTypes.string.isRequired,
+};

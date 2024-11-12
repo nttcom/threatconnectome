@@ -1,6 +1,7 @@
 import { Avatar, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router";
 
 import { ATeamLabel } from "../components/ATeamLabel";
 import { ATeamMember } from "../components/ATeamMember";
@@ -20,7 +21,11 @@ export function ATeam() {
   const [filterMode, setFilterMode] = useState("ATeam");
   const [tabValue, setTabValue] = useState(0);
 
-  const ateamId = useSelector((state) => state.ateam.ateamId);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const ateamId = params.get("ateamId");
+
+  const dispatch = useDispatch();
 
   const filterModes = ["All", "ATeam"];
 

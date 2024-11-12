@@ -15,14 +15,12 @@ import { useGetUserMeQuery, useGetATeamQuery } from "../services/tcApi";
 import { errorToString } from "../utils/func";
 
 export function ATeamMemberMenu(props) {
-  const { userId, userEmail, isAdmin } = props;
+  const { ateamId, userId, userEmail, isAdmin } = props;
 
   const [openAuth, setOpenAuth] = useState(false);
   const [openRemove, setOpenRemove] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-
-  const ateamId = useSelector((state) => state.ateam.ateamId);
 
   const skip = useSkipUntilAuthTokenIsReady();
   const {
@@ -109,6 +107,7 @@ export function ATeamMemberMenu(props) {
 }
 
 ATeamMemberMenu.propTypes = {
+  ateamId: PropTypes.string.isRequired,
   userId: PropTypes.string.isRequired,
   userEmail: PropTypes.string.isRequired,
   isAdmin: PropTypes.bool.isRequired,

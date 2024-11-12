@@ -34,7 +34,7 @@ import { errorToString } from "../utils/func";
 import { CheckButton } from "./CheckButton";
 
 export function ATeamNotificationSetting(props) {
-  const { show } = props;
+  const { ateamId, show } = props;
   const [edittingSlackUrl, setEdittingSlackUrl] = useState(false);
   const [slackUrl, setSlackUrl] = useState("");
   const [slackEnable, setSlackEnable] = useState(false);
@@ -51,7 +51,6 @@ export function ATeamNotificationSetting(props) {
   const [postCheckSlack] = useCheckSlackMutation();
   const [updateATeam] = useUpdateATeamMutation();
 
-  const ateamId = useSelector((state) => state.ateam.ateamId);
   const skip = useSkipUntilAuthTokenIsReady();
 
   const {
@@ -274,5 +273,6 @@ export function ATeamNotificationSetting(props) {
   );
 }
 ATeamNotificationSetting.propTypes = {
+  ateamId: PropTypes.string,
   show: PropTypes.bool.isRequired,
 };
