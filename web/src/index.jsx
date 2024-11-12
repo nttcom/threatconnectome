@@ -17,6 +17,7 @@ import {
   ATeam,
   Login,
   ResetPassword,
+  SSVCPriority,
   Status,
   Tag,
   TopicDetail,
@@ -63,6 +64,9 @@ root.render(
                     <Route path=":tagId" element={<Tag />} />
                   </Route>
                   <Route path="*" element={<Navigate to="/" />} />
+                  <Route path="SSVCPriority">
+                    <Route index element={<SSVCPriority />} />
+                  </Route>
                   <Route path="analysis">
                     <Route index element={<Analysis />} />
                   </Route>

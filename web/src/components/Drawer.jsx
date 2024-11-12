@@ -5,6 +5,7 @@ import {
   Home as HomeIcon,
   Topic as TopicIcon,
 } from "@mui/icons-material";
+import StarIcon from "@mui/icons-material/Star";
 import {
   Drawer as MuiDrawer,
   List,
@@ -111,6 +112,15 @@ export function Drawer() {
         )}
         {system.teamMode === "ateam" && (
           <>
+            <StyledListItemButton
+              onClick={() => navigate("/SSVCPriority")}
+              selected={location.pathname === "/SSVCPriority"}
+            >
+              <StyledListItemIcon>
+                <StarIcon />
+              </StyledListItemIcon>
+              <ListItemText>SSVC Priority</ListItemText>
+            </StyledListItemButton>
             <StyledListItemButton
               onClick={() => navigate("/analysis?" + queryParams)}
               selected={location.pathname === "/analysis"}
