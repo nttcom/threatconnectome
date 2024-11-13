@@ -96,12 +96,16 @@ export const tcApi = createApi({
         url: `/ateams/${ateamId}`,
         method: "GET",
       }),
-      providesTags: (result, error, arg) => [
-        { type: "Pteam", id: arg.pteamId },
-        { type: "AteamPteam", id: "ALL" },
-        { type: "AteamPteam", id: `${arg.ateamId}:${arg.pteamId}` },
-        { type: "Ateam", id: arg.ateamId },
-        { type: "AteamPteam", id: `${arg.ateamId}:${arg.pteamId}` },
+      providesTags: (result, error, ateamId) => [
+        ...(result?.pteams.reduce(
+          (ret, pteam) => [
+            ...ret,
+            { type: "PTeam", id: pteam.pteam_id },
+            { type: "ATeamPTeam", id: `${ateamId}:${pteam.pteam_id}` },
+          ],
+          [{ type: "ATeamPTeam", id: "ALL" }],
+        ) ?? []),
+        { type: "ATeam", id: ateamId },
         { type: "Service", id: "ALL" },
       ],
     }),

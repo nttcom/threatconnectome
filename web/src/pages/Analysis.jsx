@@ -130,10 +130,6 @@ export function Analysis() {
     fetchPageInfo();
   }, [skip, ateamId, ateam, page, perPage, sortKey, actualSearch, enqueueSnackbar]);
 
-  useEffect(() => {
-    if (skip || !ateamId) return;
-  }, [skip, ateamId]);
-
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;

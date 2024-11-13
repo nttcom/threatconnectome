@@ -51,10 +51,6 @@ export function ATeam() {
     isLoading: membersIsLoading,
   } = useGetATeamMembersQuery(ateamId, { skip });
 
-  useEffect(() => {
-    if (!ateamId) return;
-  }, [ateamId]);
-
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);
   };

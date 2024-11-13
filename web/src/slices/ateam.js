@@ -13,7 +13,6 @@ export const getATeamTopics = createAsyncThunk(
 
 const _initialState = {
   ateamId: undefined,
-  ateam: undefined,
   ateamTopics: undefined,
 };
 

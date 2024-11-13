@@ -40,7 +40,7 @@ export function ATeamGeneralSetting(props) {
       setFlashsenseUrl(fsInfo.api_url);
     }
 
-    if (!ateam) fetchFsInfo();
+    fetchFsInfo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
