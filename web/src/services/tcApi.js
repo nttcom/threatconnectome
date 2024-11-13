@@ -91,6 +91,24 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [{ type: "ATeamAccount", id: "ALL" }],
     }),
+    getATeam: builder.query({
+      query: (ateamId) => ({
+        url: `/ateams/${ateamId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, ateamId) => [
+        ...(result?.pteams.reduce(
+          (ret, pteam) => [
+            ...ret,
+            { type: "PTeam", id: pteam.pteam_id },
+            { type: "ATeamPTeam", id: `${ateamId}:${pteam.pteam_id}` },
+          ],
+          [{ type: "ATeamPTeam", id: "ALL" }],
+        ) ?? []),
+        { type: "ATeam", id: ateamId },
+        { type: "Service", id: "ALL" },
+      ],
+    }),
     updateATeam: builder.mutation({
       query: ({ ateamId, data }) => ({
         url: `ateams/${ateamId}`,
@@ -186,6 +204,14 @@ export const tcApi = createApi({
         { type: "ATeamAccount", id: "ALL" },
         { type: "ATeamAuthority", id: arg.ateamId },
       ],
+    }),
+
+    /* ATeam Topics */
+    getATeamTopics: builder.query({
+      query: ({ ateamId, params }) => ({
+        url: `/ateams/${ateamId}/topicstatus`,
+        params: params ?? {},
+      }),
     }),
 
     /* ATeam Watching Request */
@@ -363,6 +389,7 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [
         { type: "Service", id: arg.serviceId },
+        { type: "Service", id: "ALL" },
         { type: "Ticket", id: "ALL" },
       ],
     }),
@@ -449,7 +476,10 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
-      invalidatesTags: (result, error, arg) => [{ type: "Tag", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "Tag", id: "ALL" },
+        { type: "Service", id: "ALL" },
+      ],
     }),
 
     /* Tag */
@@ -674,6 +704,7 @@ export const {
   useDeleteActionMutation,
   useCreateActionLogMutation,
   useCreateATeamMutation,
+  useGetATeamQuery,
   useUpdateATeamMutation,
   useGetATeamAuthInfoQuery,
   useGetATeamAuthQuery,
@@ -683,6 +714,7 @@ export const {
   useApplyATeamInvitationMutation,
   useGetATeamMembersQuery,
   useDeleteATeamMemberMutation,
+  useGetATeamTopicsQuery,
   useCreateATeamWatchingRequestMutation,
   useApplyATeamWatchingRequestMutation,
   useGetATeamRequestedQuery,

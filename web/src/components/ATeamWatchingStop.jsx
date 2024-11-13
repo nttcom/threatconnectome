@@ -11,11 +11,9 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React from "react";
-import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useRemoveWatchingPTeamMutation } from "../services/tcApi";
-import { getATeam } from "../slices/ateam";
 import { errorToString } from "../utils/func";
 
 export function ATeamWatchingStop(props) {
@@ -24,11 +22,8 @@ export function ATeamWatchingStop(props) {
   const { enqueueSnackbar } = useSnackbar();
   const [removeWatchingPTeam] = useRemoveWatchingPTeamMutation();
 
-  const dispatch = useDispatch();
-
   const handleRemove = async () => {
     function onSuccess(success) {
-      dispatch(getATeam(ateamId));
       enqueueSnackbar(`Stop watching ${watchingPteamName} succeeded`, {
         variant: "success",
       });

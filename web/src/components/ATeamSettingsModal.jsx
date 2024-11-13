@@ -49,10 +49,10 @@ export function ATeamSettingsModal(props) {
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
-          <ATeamGeneralSetting show={show} />
+          <ATeamGeneralSetting ateamId={ateamId} show={show} />
         </TabPanel>
         <TabPanel index={1} value={tab}>
-          <ATeamNotificationSetting show={show} />
+          <ATeamNotificationSetting ateamId={ateamId} show={show} />
         </TabPanel>
         <TabPanel index={2} value={tab}>
           <ATeamAuthEditor ateamId={ateamId} />

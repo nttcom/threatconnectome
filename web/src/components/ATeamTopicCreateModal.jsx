@@ -24,12 +24,10 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import uuid from "react-native-uuid";
-import { useDispatch, useSelector } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useCreateTopicMutation, useGetTagsQuery } from "../services/tcApi";
-import { getATeamTopics } from "../slices/ateam";
 import { actionTypes } from "../utils/const";
 import {
   errorToString,
@@ -59,8 +57,6 @@ export function ATeamTopicCreateModal(props) {
   const [editActionOpen, setEditActionOpen] = useState(false);
   const [editActionTarget] = useState({});
 
-  const ateamId = useSelector((state) => state.ateam.ateamId); // dispatched by parent
-
   const skip = useSkipUntilAuthTokenIsReady();
   const {
     data: allTags,
@@ -69,7 +65,6 @@ export function ATeamTopicCreateModal(props) {
   } = useGetTagsQuery(undefined, { skip });
 
   const { enqueueSnackbar } = useSnackbar();
-  const dispatch = useDispatch();
   const [createTopic] = useCreateTopicMutation();
 
   if (skip) return <></>;
@@ -128,12 +123,8 @@ export function ATeamTopicCreateModal(props) {
     };
     await createTopic({ topicId, data })
       .unwrap()
-      .then(async (response) => {
-        // fix topic state
-        await Promise.all([
-          enqueueSnackbar("Create topic succeeded", { variant: "success" }),
-          dispatch(getATeamTopics(ateamId)),
-        ]);
+      .then(() => {
+        enqueueSnackbar("Create topic succeeded", { variant: "success" });
       })
       .catch((error) =>
         enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {

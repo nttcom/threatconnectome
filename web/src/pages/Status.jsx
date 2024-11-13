@@ -193,7 +193,7 @@ export function Status() {
       return <>Now loading serviceTagsSummary...</>;
   }
   if (pteamTagsSummaryError)
-    return <>{`Cannot get serviceTagsSummary: ${errorToString(serviceTagsSummaryError)}`}</>;
+    return <>{`Cannot get pteamTagsSummary: ${errorToString(pteamTagsSummaryError)}`}</>;
   if (isActiveAllServicesMode && (!pteamTagsSummary || pteamTagsSummaryIsFetching))
     return <>Now loading pteamTagsSummary...</>;
 

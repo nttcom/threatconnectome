@@ -1,6 +1,6 @@
 import { Avatar, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useLocation } from "react-router";
 
 import { ATeamLabel } from "../components/ATeamLabel";
 import { ATeamMember } from "../components/ATeamMember";
@@ -8,11 +8,11 @@ import { ATeamWatching } from "../components/ATeamWatching";
 import { TabPanel } from "../components/TabPanel";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
+  useGetATeamQuery,
   useGetATeamAuthQuery,
   useGetATeamMembersQuery,
   useGetUserMeQuery,
 } from "../services/tcApi";
-import { getATeam } from "../slices/ateam";
 import { noATeamMessage, experienceColors } from "../utils/const";
 import { a11yProps, errorToString } from "../utils/func.js";
 
@@ -20,10 +20,9 @@ export function ATeam() {
   const [filterMode, setFilterMode] = useState("ATeam");
   const [tabValue, setTabValue] = useState(0);
 
-  const ateamId = useSelector((state) => state.ateam.ateamId);
-  const ateam = useSelector((state) => state.ateam.ateam);
-
-  const dispatch = useDispatch();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const ateamId = params.get("ateamId");
 
   const filterModes = ["All", "ATeam"];
 
@@ -33,6 +32,11 @@ export function ATeam() {
     error: userMeError,
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
+  const {
+    data: ateam,
+    error: ateamError,
+    isLoading: ateamIsLoading,
+  } = useGetATeamQuery(ateamId, { skip });
   const {
     data: authorities,
     error: authoritiesError,
@@ -44,11 +48,6 @@ export function ATeam() {
     isLoading: membersIsLoading,
   } = useGetATeamMembersQuery(ateamId, { skip });
 
-  useEffect(() => {
-    if (!ateamId) return;
-    if (!ateam) dispatch(getATeam(ateamId));
-  }, [dispatch, ateamId, ateam]);
-
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);
   };
@@ -58,6 +57,8 @@ export function ATeam() {
 
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (ateamError) return <>{`Cannot get Ateam: ${errorToString(ateamError)}`}</>;
+  if (ateamIsLoading) return <>Now loading Ateam...</>;
   if (authoritiesError) return <>{`Cannot get ATeamAuth: ${errorToString(authoritiesError)}`}</>;
   if (authoritiesIsLoading) return <>Now loading ATeamAuth...</>;
   if (membersError) return <>{`Cannot get Members: ${errorToString(membersError)}`}</>;

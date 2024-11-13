@@ -6,24 +6,20 @@ import {
 import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import { ATeamAuthEditor } from "../components/ATeamAuthEditor";
 import { ATeamMemberRemoveModal } from "../components/ATeamMemberRemoveModal";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetUserMeQuery } from "../services/tcApi";
+import { useGetUserMeQuery, useGetATeamQuery } from "../services/tcApi";
 import { errorToString } from "../utils/func";
 
 export function ATeamMemberMenu(props) {
-  const { userId, userEmail, isAdmin } = props;
+  const { ateamId, userId, userEmail, isAdmin } = props;
 
   const [openAuth, setOpenAuth] = useState(false);
   const [openRemove, setOpenRemove] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-
-  const ateamId = useSelector((state) => state.ateam.ateamId);
-  const ateam = useSelector((state) => state.ateam.ateam);
 
   const skip = useSkipUntilAuthTokenIsReady();
   const {
@@ -31,6 +27,11 @@ export function ATeamMemberMenu(props) {
     error: userMeError,
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
+  const {
+    data: ateam,
+    error: ateamError,
+    isLoading: ateamIsLoading,
+  } = useGetATeamQuery(ateamId, { skip });
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -43,8 +44,11 @@ export function ATeamMemberMenu(props) {
     setOpenRemove(true);
   };
 
+  if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (ateamError) return <>{`Cannot get Ateam: ${errorToString(ateamError)}`}</>;
+  if (ateamIsLoading) return <>Now loading Ateam...</>;
   if (!ateamId || !ateam) return <></>;
 
   return (
@@ -102,6 +106,7 @@ export function ATeamMemberMenu(props) {
 }
 
 ATeamMemberMenu.propTypes = {
+  ateamId: PropTypes.string.isRequired,
   userId: PropTypes.string.isRequired,
   userEmail: PropTypes.string.isRequired,
   isAdmin: PropTypes.bool.isRequired,
