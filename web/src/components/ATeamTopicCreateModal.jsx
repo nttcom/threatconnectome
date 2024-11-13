@@ -24,12 +24,10 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import uuid from "react-native-uuid";
-import { useDispatch } from "react-redux";
 
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useCreateTopicMutation, useGetTagsQuery } from "../services/tcApi";
-import { getATeamTopics } from "../slices/ateam";
 import { actionTypes } from "../utils/const";
 import {
   errorToString,
@@ -46,7 +44,7 @@ import { TopicTagSelector } from "./TopicTagSelector";
 const steps = ["Threat, Vulnerability, and Risk", "Dissemination", "Response planning"];
 
 export function ATeamTopicCreateModal(props) {
-  const { ateamId, open, onSetOpen } = props;
+  const { open, onSetOpen } = props;
 
   const [activeStep, setActiveStep] = useState(0);
   const [topicId, setTopicId] = useState(uuid.v4());
@@ -67,7 +65,6 @@ export function ATeamTopicCreateModal(props) {
   } = useGetTagsQuery(undefined, { skip });
 
   const { enqueueSnackbar } = useSnackbar();
-  const dispatch = useDispatch();
   const [createTopic] = useCreateTopicMutation();
 
   if (skip) return <></>;
@@ -126,12 +123,8 @@ export function ATeamTopicCreateModal(props) {
     };
     await createTopic({ topicId, data })
       .unwrap()
-      .then(async (response) => {
-        // fix topic state
-        await Promise.all([
-          enqueueSnackbar("Create topic succeeded", { variant: "success" }),
-          dispatch(getATeamTopics(ateamId)),
-        ]);
+      .then(() => {
+        enqueueSnackbar("Create topic succeeded", { variant: "success" });
       })
       .catch((error) =>
         enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
@@ -419,7 +412,6 @@ export function ATeamTopicCreateModal(props) {
 }
 
 ATeamTopicCreateModal.propTypes = {
-  ateamId: PropTypes.string.isRequired,
   open: PropTypes.bool.isRequired,
   onSetOpen: PropTypes.func.isRequired,
 };
