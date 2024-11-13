@@ -110,6 +110,14 @@ export function App() {
         return;
       }
       setPteamId(pteamIdx);
+    } else if (["/topics", "/account"].includes(location.pathname)) {
+      if (params.get("ateamId")) {
+        dispatch(setTeamMode("ateam"));
+        setATeamId(params.get("ateamId"));
+      } else if (params.get("pteamId")) {
+        dispatch(setTeamMode("pteam"));
+        setPteamId(params.get("pteamId"));
+      }
     }
   }, [dispatch, enqueueSnackbar, navigate, location, userMe, userMeIsFetching, system.teamMode]);
 
