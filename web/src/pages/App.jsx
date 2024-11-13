@@ -12,7 +12,6 @@ import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetUserMeQuery, useTryLoginMutation } from "../services/tcApi";
 import { setAuthToken } from "../slices/auth";
 import { setTeamMode } from "../slices/system";
-import { setToken } from "../utils/api";
 import { mainMaxWidth } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -48,7 +47,6 @@ export function App() {
         const accessToken = cookies[authCookieName];
         if (!accessToken) throw new Error("Missing cookie");
         dispatch(setAuthToken(accessToken));
-        setToken(accessToken);
         await tryLogin().unwrap(); // throw error if accessToken is expired
       } catch (error) {
         navigate("/login", {
