@@ -74,7 +74,7 @@ export function TeamSelector(props) {
     setCurrentTeamName(userMe.pteams?.find((x) => x.pteam_id === teamId)?.pteam_name);
 
     if (teamMode === "pteam") {
-      if (tagId) {
+      if (tagId || location.pathname === "/ateam/join") {
         const newParams = new URLSearchParams();
         newParams.set("pteamId", teamId);
         navigate("/?" + newParams);
