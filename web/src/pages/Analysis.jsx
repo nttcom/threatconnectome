@@ -99,7 +99,6 @@ export function Analysis() {
   const [anchorEl, setAnchorEl] = useState();
 
   useEffect(() => {
-    /* Note: state.ateam.* are re-initialized when ateamId is changed. */
     if (skip || !ateamId || !ateam) return;
     async function fetchPageInfo() {
       const queryParams = {
