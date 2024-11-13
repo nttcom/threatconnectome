@@ -1,19 +1,7 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-
-import { getATeam as apiGetATeam } from "../utils/api";
-
-export const getATeam = createAsyncThunk(
-  "ateam/getATeam",
-  async (ateamId) =>
-    await apiGetATeam(ateamId).then((response) => ({
-      data: response.data,
-      ateamId: ateamId,
-    })),
-);
+import { createSlice } from "@reduxjs/toolkit";
 
 const _initialState = {
   ateamId: undefined,
-  ateam: undefined,
 };
 
 const ateamSlice = createSlice({
@@ -23,12 +11,6 @@ const ateamSlice = createSlice({
     clearATeam: (state, action) => ({
       ..._initialState,
     }),
-  },
-  extraReducers: (builder) => {
-    builder.addCase(getATeam.fulfilled, (state, action) => ({
-      ...state,
-      ateam: action.payload.data,
-    }));
   },
 });
 

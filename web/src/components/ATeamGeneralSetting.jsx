@@ -4,10 +4,9 @@ import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
-import { useUpdateATeamMutation } from "../services/tcApi";
-import { getATeam } from "../slices/ateam";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useUpdateATeamMutation, useGetATeamQuery } from "../services/tcApi";
 import { checkFs as postCheckFs, getFsInfo } from "../utils/api";
 import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
@@ -26,9 +25,13 @@ export function ATeamGeneralSetting(props) {
   const { enqueueSnackbar } = useSnackbar();
   const [updateATeam] = useUpdateATeamMutation();
 
-  const ateam = useSelector((state) => state.ateam.ateam);
+  const skip = useSkipUntilAuthTokenIsReady();
 
-  const dispatch = useDispatch();
+  const {
+    data: ateam,
+    error: ateamError,
+    isLoading: ateamIsLoading,
+  } = useGetATeamQuery(ateamId, { skip });
 
   useEffect(() => {
     async function fetchFsInfo() {
@@ -36,7 +39,6 @@ export function ATeamGeneralSetting(props) {
       setFlashsenseUrl(fsInfo.api_url);
     }
 
-    if (!ateam) dispatch(getATeam(ateamId));
     fetchFsInfo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -50,6 +52,10 @@ export function ATeamGeneralSetting(props) {
     setCheckFlashsense(false);
     setFlashsenseMessage();
   }, [show, ateam]);
+
+  if (skip) return <></>;
+  if (ateamError) return <>{`Cannot get Ateam: ${errorToString(ateamError)}`}</>;
+  if (ateamIsLoading) return <>Now loading Ateam...</>;
 
   const connectSuccessMessage = () => {
     return (
@@ -78,7 +84,6 @@ export function ATeamGeneralSetting(props) {
     await updateATeam({ ateamId: ateamId, data: ateamInfo })
       .unwrap()
       .then(() => {
-        dispatch(getATeam(ateamId));
         enqueueSnackbar("update ateam info succeeded", { variant: "success" });
       })
       .catch((error) =>

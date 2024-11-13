@@ -91,6 +91,24 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [{ type: "ATeamAccount", id: "ALL" }],
     }),
+    getATeam: builder.query({
+      query: (ateamId) => ({
+        url: `/ateams/${ateamId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, ateamId) => [
+        ...(result?.pteams.reduce(
+          (ret, pteam) => [
+            ...ret,
+            { type: "PTeam", id: pteam.pteam_id },
+            { type: "ATeamPTeam", id: `${ateamId}:${pteam.pteam_id}` },
+          ],
+          [{ type: "ATeamPTeam", id: "ALL" }],
+        ) ?? []),
+        { type: "ATeam", id: ateamId },
+        { type: "Service", id: "ALL" },
+      ],
+    }),
     updateATeam: builder.mutation({
       query: ({ ateamId, data }) => ({
         url: `ateams/${ateamId}`,
@@ -371,6 +389,7 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [
         { type: "Service", id: arg.serviceId },
+        { type: "Service", id: "ALL" },
         { type: "Ticket", id: "ALL" },
       ],
     }),
@@ -473,7 +492,10 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
-      invalidatesTags: (result, error, arg) => [{ type: "Tag", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "Tag", id: "ALL" },
+        { type: "Service", id: "ALL" },
+      ],
     }),
 
     /* tag */
@@ -688,6 +710,7 @@ export const {
   useUpdateATeamAuthMutation,
   useCreateATeamInvitationMutation,
   useApplyATeamInvitationMutation,
+  useGetATeamQuery,
   useGetATeamInvitedQuery,
   useGetATeamMembersQuery,
   useGetATeamTopicsQuery,
