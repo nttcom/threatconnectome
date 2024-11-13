@@ -2,10 +2,9 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
-import { useUpdateATeamMutation } from "../services/tcApi";
-import { getATeam } from "../slices/ateam";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useUpdateATeamMutation, useGetATeamQuery } from "../services/tcApi";
 import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -18,14 +17,13 @@ export function ATeamGeneralSetting(props) {
   const { enqueueSnackbar } = useSnackbar();
   const [updateATeam] = useUpdateATeamMutation();
 
-  const ateam = useSelector((state) => state.ateam.ateam);
+  const skip = useSkipUntilAuthTokenIsReady();
 
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (!ateam) dispatch(getATeam(ateamId));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const {
+    data: ateam,
+    error: ateamError,
+    isLoading: ateamIsLoading,
+  } = useGetATeamQuery(ateamId, { skip });
 
   useEffect(() => {
     if (ateam) {
@@ -34,6 +32,10 @@ export function ATeamGeneralSetting(props) {
       setSlackUrl(ateam.alert_slack.webhook_url);
     }
   }, [show, ateam]);
+
+  if (skip) return <></>;
+  if (ateamError) return <>{`Cannot get Ateam: ${errorToString(ateamError)}`}</>;
+  if (ateamIsLoading) return <>Now loading Ateam...</>;
 
   const handleUpdateATeam = async () => {
     const ateamInfo = {
@@ -44,7 +46,6 @@ export function ATeamGeneralSetting(props) {
     await updateATeam({ ateamId: ateamId, data: ateamInfo })
       .unwrap()
       .then(() => {
-        dispatch(getATeam(ateamId));
         enqueueSnackbar("update ateam info succeeded", { variant: "success" });
       })
       .catch((error) =>

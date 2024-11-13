@@ -7,9 +7,3 @@ export const setToken = (token) =>
 export const removeToken = () => {
   delete axios.defaults.headers.common["Authorization"];
 };
-
-// ateams
-export const getATeam = async (ateamId) => axios.get(`/ateams/${ateamId}`);
-
-export const getATeamTopics = async (ateamId, params) =>
-  axios.get(`/ateams/${ateamId}/topicstatus`, { params: params ?? {} });

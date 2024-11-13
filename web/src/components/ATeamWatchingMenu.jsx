@@ -2,10 +2,8 @@ import { DoDisturbAlt as DoDisturbAltIcon, MoreVert as MoreVertIcon } from "@mui
 import { Button, Dialog, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 
 import { ATeamWatchingStop } from "../components/ATeamWatchingStop";
-import { getATeam } from "../slices/ateam";
 
 export function ATeamWatchingMenu(props) {
   const { ateam, watchingPteamId, watchingPteamName, isAdmin } = props;
@@ -13,8 +11,6 @@ export function ATeamWatchingMenu(props) {
   const [openRemove, setOpenRemove] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-
-  const dispatch = useDispatch();
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -67,7 +63,6 @@ export function ATeamWatchingMenu(props) {
           ateamId={ateam.ateam_id}
           ateamName={ateam.ateam_name}
           onClose={() => {
-            dispatch(getATeam(ateam.ateam_id)); // update ateam.pteams
             setOpenRemove(false);
           }}
         />

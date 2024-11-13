@@ -27,9 +27,7 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { format } from "date-fns";
-import { useSnackbar } from "notistack";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import { ATeamLabel } from "../components/ATeamLabel";
@@ -37,15 +35,16 @@ import { ATeamTopicMenu } from "../components/ATeamTopicMenu";
 import { AnalysisNoThreatsMsg } from "../components/AnalysisNoThreatsMsg";
 import { AnalysisTopic } from "../components/AnalysisTopic";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetATeamAuthQuery, useGetUserMeQuery } from "../services/tcApi";
-import { getATeam } from "../slices/ateam";
-import { getATeamTopics } from "../utils/api";
+import {
+  useGetATeamQuery,
+  useGetATeamAuthQuery,
+  useGetATeamTopicsQuery,
+  useGetUserMeQuery,
+} from "../services/tcApi";
 import { difficulty, difficultyColors, noATeamMessage } from "../utils/const";
 import { calcTimestampDiff, errorToString, utcStringToLocalDate } from "../utils/func";
 
 export function Analysis() {
-  const { enqueueSnackbar } = useSnackbar();
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -60,12 +59,15 @@ export function Analysis() {
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
   const {
+    data: ateam,
+    error: ateamError,
+    isLoading: ateamIsLoading,
+  } = useGetATeamQuery(ateamId, { skip });
+  const {
     data: authorities,
     error: authoritiesError,
     isLoading: authoritiesIsLoading,
   } = useGetATeamAuthQuery(ateamId, { skip });
-
-  const ateam = useSelector((state) => state.ateam.ateam);
 
   const perPageItems = [10, 20, 50, 100];
   const sortKeyItems = [
@@ -97,55 +99,42 @@ export function Analysis() {
   const [pageInfo, setPageInfo] = useState();
   const [targetTopic, setTargetTopic] = useState();
   const [anchorEl, setAnchorEl] = useState();
+  const queryParams = {
+    offset: perPage * (page - 1),
+    limit: perPage,
+    sort_key: sortKey,
+    search: actualSearch,
+  };
+
+  const getATeamTopicsReady = !skip && ateamId && ateam;
+
+  const {
+    data: ateamTopics,
+    error: ateamTopicsError,
+    isLoading: ateamTopicsIsLoading,
+  } = useGetATeamTopicsQuery(
+    { ateamId, queryParams },
+    { skip: !getATeamTopicsReady, refetchOnMountOrArgChange: true },
+  );
 
   useEffect(() => {
-    /* Note: state.ateam.* are re-initialized when ateamId is changed. */
-    if (skip || !ateamId || !ateam) return;
-    async function fetchPageInfo() {
-      const queryParams = {
-        offset: perPage * (page - 1),
-        limit: perPage,
-        sort_key: sortKey,
-        search: actualSearch,
-      };
-      await getATeamTopics(ateamId, queryParams)
-        .then((response) => {
-          const data = response.data;
-          setPageInfo(data);
-          setTargetTopic(data.topic_statuses?.length > 0 ? data.topic_statuses[0] : null);
-        })
-        .catch((error) => {
-          setPageInfo(undefined);
-          enqueueSnackbar(`Getting topics failed: ${errorToString(error)}`, {
-            variant: "error",
-          });
-        });
-    }
-
-    /* Note:
-     *   Calling setPage() or other setXXX is enough to re-call fetchPageInfo(), but
-     *   it does not update actual query params. call navigate() to fix query params.
-     */
-
-    fetchPageInfo();
-  }, [skip, ateamId, ateam, page, perPage, sortKey, actualSearch, enqueueSnackbar]);
-
-  useEffect(() => {
-    if (skip || !ateamId) return;
-    if (!ateam) dispatch(getATeam(ateamId));
-  }, [dispatch, ateam, skip, ateamId]);
-
-  if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
-  if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (authoritiesError) return <>{`Cannot get ATeamAuth: ${errorToString(authoritiesError)}`}</>;
-  if (authoritiesIsLoading) return <>Now loading ATeamAuth...</>;
+    setPageInfo(ateamTopics);
+    setTargetTopic(ateamTopics?.topic_statuses.length > 0 ? ateamTopics.topic_statuses[0] : null);
+  }, [ateamTopics, setPageInfo, setTargetTopic]);
 
   if (!ateamId) return <>{noATeamMessage}</>;
-  if (!ateam || !pageInfo) return <>Now loading...</>;
+  if (!ateam) return <>Now loading...</>;
+  if (skip || !getATeamTopicsReady) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (ateamError) return <>{`Cannot get Ateam: ${errorToString(ateamError)}`}</>;
+  if (ateamIsLoading) return <>Now loading Ateam...</>;
+  if (authoritiesError) return <>{`Cannot get ATeamAuth: ${errorToString(authoritiesError)}`}</>;
+  if (authoritiesIsLoading) return <>Now loading ATeamAuth...</>;
+  if (ateamTopicsError) return <>{`Cannot get AteamTopics: ${errorToString(ateamTopicsError)}`}</>;
+  if (ateamTopicsIsLoading || !pageInfo) return <>Now loading AteamTopics...</>;
 
   const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
-
   const handleMenuClose = () => setAnchorEl(null);
 
   const changeSortKey = (sortTarget) => {
@@ -171,7 +160,7 @@ export function Analysis() {
       <>
         <ATeamLabel ateam={ateam} />
         <>No watching teams.</>
-        <ATeamTopicMenu ateamId={ateamId} />
+        <ATeamTopicMenu />
       </>
     );
   }
@@ -179,7 +168,7 @@ export function Analysis() {
     return (
       <>
         <ATeamLabel ateam={ateam} />
-        <ATeamTopicMenu ateamId={ateamId} />
+        <ATeamTopicMenu />
         <AnalysisNoThreatsMsg ateam={ateam} />
       </>
     );
@@ -221,7 +210,7 @@ export function Analysis() {
           ))}
         </Select>
         <Box flexGrow={1} />
-        <ATeamTopicMenu ateamId={ateamId} />
+        <ATeamTopicMenu />
       </Box>
       <Box
         display="flex"
