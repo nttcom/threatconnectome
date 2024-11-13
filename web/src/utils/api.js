@@ -8,9 +8,6 @@ export const removeToken = () => {
   delete axios.defaults.headers.common["Authorization"];
 };
 
-export const getATeamTopics = async (ateamId, params) =>
-  axios.get(`/ateams/${ateamId}/topicstatus`, { params: params ?? {} });
-
 // topics
 export const fetchFlashsense = async (topicId) => axios.get(`/topics/fetch_fs/${topicId}`);
 
