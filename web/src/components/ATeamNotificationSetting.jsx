@@ -19,7 +19,6 @@ import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {

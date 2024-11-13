@@ -1,6 +1,5 @@
 import { Avatar, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
 import { useLocation } from "react-router";
 
 import { ATeamLabel } from "../components/ATeamLabel";
@@ -24,8 +23,6 @@ export function ATeam() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const ateamId = params.get("ateamId");
-
-  const dispatch = useDispatch();
 
   const filterModes = ["All", "ATeam"];
 

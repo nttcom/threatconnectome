@@ -6,7 +6,6 @@ import {
 import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import { ATeamAuthEditor } from "../components/ATeamAuthEditor";
 import { ATeamMemberRemoveModal } from "../components/ATeamMemberRemoveModal";
