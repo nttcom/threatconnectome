@@ -21,7 +21,7 @@ import { useParams } from "react-router-dom";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useGetPTeamTopicActionsQuery,
-  useGetTicketsRelatedToServiceTopicTagQuery,
+  useGetTicketsQuery,
   useGetTagsQuery,
   useGetTopicQuery,
   useGetDependenciesQuery,
@@ -79,7 +79,7 @@ export function TopicCard(props) {
     data: tickets,
     error: ticketsRelatedToServiceTopicTagError,
     isLoading: ticketsRelatedToServiceTopicTagIsLoading,
-  } = useGetTicketsRelatedToServiceTopicTagQuery(
+  } = useGetTicketsQuery(
     { pteamId, serviceId, topicId, tagId },
     { skip: skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId },
   );
