@@ -1,13 +1,5 @@
 import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  getIdToken,
-  onAuthStateChanged,
-  connectAuthEmulator,
-  SAMLAuthProvider,
-} from "firebase/auth";
-
-import { setToken } from "./api";
+import { getAuth, connectAuthEmulator, SAMLAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -35,8 +27,3 @@ export const samlProvider = setSamlProvider(process.env.REACT_APP_FIREBASE_AUTH_
 if (process.env.REACT_APP_FIREBASE_AUTH_EMULATOR_URL) {
   connectAuthEmulator(auth, process.env.REACT_APP_FIREBASE_AUTH_EMULATOR_URL);
 }
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
-  setToken(await getIdToken(user, true));
-});

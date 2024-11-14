@@ -26,7 +26,6 @@ import {
 } from "../services/firebaseApi";
 import { useCreateUserMutation, useTryLoginMutation } from "../services/tcApi";
 import { clearAuth } from "../slices/auth";
-import { removeToken, setToken } from "../utils/api";
 import { samlProvider } from "../utils/firebase";
 
 export const authCookieName = "Authorization";
@@ -53,7 +52,6 @@ export function Login() {
   useEffect(() => {
     dispatch(clearAuth());
     removeCookie(authCookieName, cookiesOptions);
-    removeToken();
     setMessage(location.state?.message);
   }, [dispatch, location, removeCookie]);
 
@@ -86,7 +84,6 @@ export function Login() {
 
   const navigateInternalPage = async (userCredential) => {
     const accessToken = userCredential.user.accessToken;
-    setToken(accessToken);
     setCookie(authCookieName, accessToken, cookiesOptions);
     try {
       await tryLogin().unwrap();
