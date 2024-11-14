@@ -1,45 +1,29 @@
-import { ErrorOutline as ErrorOutlineIcon, TaskAlt as TaskAltIcon } from "@mui/icons-material";
 import { Box, Button, TextField, Typography } from "@mui/material";
-import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
-import { useUpdateATeamMutation } from "../services/tcApi";
-import { getATeam } from "../slices/ateam";
-import { checkFs as postCheckFs, getFsInfo } from "../utils/api";
+import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useUpdateATeamMutation, useGetATeamQuery } from "../services/tcApi";
 import { modalCommonButtonStyle } from "../utils/const";
 import { errorToString } from "../utils/func";
-
-import { CheckButton } from "./CheckButton";
 
 export function ATeamGeneralSetting(props) {
   const { ateamId, show } = props;
   const [ateamName, setATeamName] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [slackUrl, setSlackUrl] = useState("");
-  const [flashsenseUrl, setFlashsenseUrl] = useState("");
-  const [checkFlashsense, setCheckFlashsense] = useState(false);
-  const [flashsenseMessage, setFlashsenseMessage] = useState();
 
   const { enqueueSnackbar } = useSnackbar();
   const [updateATeam] = useUpdateATeamMutation();
 
-  const ateam = useSelector((state) => state.ateam.ateam);
+  const skip = useSkipUntilAuthTokenIsReady();
 
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    async function fetchFsInfo() {
-      const fsInfo = await getFsInfo().then((response) => response.data);
-      setFlashsenseUrl(fsInfo.api_url);
-    }
-
-    if (!ateam) dispatch(getATeam(ateamId));
-    fetchFsInfo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const {
+    data: ateam,
+    error: ateamError,
+    isLoading: ateamIsLoading,
+  } = useGetATeamQuery(ateamId, { skip });
 
   useEffect(() => {
     if (ateam) {
@@ -47,27 +31,11 @@ export function ATeamGeneralSetting(props) {
       setContactInfo(ateam.contact_info);
       setSlackUrl(ateam.alert_slack.webhook_url);
     }
-    setCheckFlashsense(false);
-    setFlashsenseMessage();
   }, [show, ateam]);
 
-  const connectSuccessMessage = () => {
-    return (
-      <Box display="flex" sx={{ color: "success.main" }}>
-        <TaskAltIcon />
-        <Typography>Connection successful </Typography>
-      </Box>
-    );
-  };
-
-  const connectFailMessage = (error) => {
-    return (
-      <Box display="flex" sx={{ color: "error.main" }}>
-        <ErrorOutlineIcon />
-        <Typography>Connection failed. Reason: {error.response?.data.detail} </Typography>
-      </Box>
-    );
-  };
+  if (skip) return <></>;
+  if (ateamError) return <>{`Cannot get Ateam: ${errorToString(ateamError)}`}</>;
+  if (ateamIsLoading) return <>Now loading Ateam...</>;
 
   const handleUpdateATeam = async () => {
     const ateamInfo = {
@@ -78,26 +46,11 @@ export function ATeamGeneralSetting(props) {
     await updateATeam({ ateamId: ateamId, data: ateamInfo })
       .unwrap()
       .then(() => {
-        dispatch(getATeam(ateamId));
         enqueueSnackbar("update ateam info succeeded", { variant: "success" });
       })
       .catch((error) =>
         enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
       );
-  };
-
-  const handleCheckFlashsense = async () => {
-    setCheckFlashsense(true);
-    setFlashsenseMessage();
-    await postCheckFs()
-      .then(() => {
-        setCheckFlashsense(false);
-        setFlashsenseMessage(connectSuccessMessage);
-      })
-      .catch((error) => {
-        setCheckFlashsense(false);
-        setFlashsenseMessage(connectFailMessage(error));
-      });
   };
 
   return (
@@ -126,18 +79,6 @@ export function ATeamGeneralSetting(props) {
           sx={{ marginRight: "10px", minWidth: "800px" }}
         />
       </Box>
-      <Box>
-        <Typography sx={{ fontWeight: 900 }} mb={1}>
-          Connected Flashsense server
-        </Typography>
-        <Box display="flex" alignItems="center">
-          <Typography sx={{ color: grey[700], minWidth: "720px" }} mr={1} mb={1}>
-            {flashsenseUrl}
-          </Typography>
-          <CheckButton onHandleClick={handleCheckFlashsense} isLoading={checkFlashsense} />
-        </Box>
-      </Box>
-      <Box mb={4}>{flashsenseMessage}</Box>
       <Box display="flex" mt={2}>
         <Box flexGrow={1} />
         <Button onClick={() => handleUpdateATeam()} sx={{ ...modalCommonButtonStyle, ml: 1 }}>

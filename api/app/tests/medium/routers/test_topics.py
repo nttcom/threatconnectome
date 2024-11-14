@@ -921,11 +921,6 @@ class TestTopicContentFingerprint:
     # TODO: add the cases other attributes updated
 
 
-@pytest.mark.skip(reason="TODO: should be tested with flashsense")  # TODO
-def test_fetch_data_from_flashsense():
-    pass
-
-
 class TestSearchTopics:
     class Common_:
         @pytest.fixture(scope="function", autouse=True)

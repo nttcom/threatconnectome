@@ -1,16 +1,13 @@
-import os
 from datetime import datetime
 from typing import Sequence
 from uuid import UUID
 
-import requests
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
-from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
-from app.auth import get_current_user, token_scheme
+from app.auth import get_current_user
 from app.business.misp_tag_business import get_or_create_misp_tag
 from app.business.tag_business import check_topic_action_tags_integrity
 from app.business.ticket_business import ticket_meets_condition_to_create_alert
@@ -188,43 +185,6 @@ def search_topics(
         pteam_id=pteam_id,
         ateam_id=ateam_id,
     )
-
-
-@router.get("/fetch_fs/{topic_id}", response_model=schemas.FsTopicSummary)
-def fetch_data_from_flashsense(
-    topic_id: UUID,
-    token: HTTPAuthorizationCredentials = Depends(token_scheme),
-    current_user: models.Account = Depends(get_current_user),
-):
-    """
-    Fetch a specified topic data from flashsense.
-    """
-    fs_api = os.environ["FLASHSENSE_API_URL"]
-    headers = {
-        "accept": "application/json",
-        "Authorization": f"Bearer {token.credentials}",
-    }
-    try:
-        response = requests.get(f"{fs_api}/topics/{topic_id}", headers=headers, timeout=30)
-    except requests.exceptions.Timeout as flashsense_timeout:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Could not connect to flashsense",
-        ) from flashsense_timeout
-
-    if response.status_code == 404:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic id")
-    fs_topic = response.json()
-
-    try:
-        response = requests.get(
-            f"{fs_api}/messages/{fs_topic['abstract']}", headers=headers, timeout=30
-        )
-        fs_abstract = response.json().get("text", "") if response.status_code == 200 else ""
-    except requests.exceptions.Timeout:
-        fs_abstract = ""
-
-    return schemas.FsTopicSummary(abstract=fs_abstract, actions=fs_topic["actions"])
 
 
 @router.get("/{topic_id}", response_model=schemas.TopicResponse)

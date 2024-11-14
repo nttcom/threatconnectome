@@ -25,9 +25,7 @@ import {
   useSignInWithSamlPopupMutation,
 } from "../services/firebaseApi";
 import { useCreateUserMutation, useTryLoginMutation } from "../services/tcApi";
-import { clearATeam } from "../slices/ateam";
 import { clearAuth } from "../slices/auth";
-import { clearPTeam } from "../slices/pteam";
 import { samlProvider } from "../utils/firebase";
 
 export const authCookieName = "Authorization";
@@ -53,8 +51,6 @@ export function Login() {
 
   useEffect(() => {
     dispatch(clearAuth());
-    dispatch(clearPTeam());
-    dispatch(clearATeam());
     removeCookie(authCookieName, cookiesOptions);
     setMessage(location.state?.message);
   }, [dispatch, location, removeCookie]);
