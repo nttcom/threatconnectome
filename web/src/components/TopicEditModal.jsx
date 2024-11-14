@@ -101,7 +101,7 @@ export function TopicEditModal(props) {
       .map((tag) => tag.tag_id);
   };
 
-  const resetParams = async () => {
+  const resetParams = () => {
     // reset with currentTopic
     setTab(0);
     setTopicId(currentTopic.topic_id);
@@ -118,7 +118,10 @@ export function TopicEditModal(props) {
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
 
-  const handleClose = () => onSetOpen(false);
+  const handleClose = () => {
+    resetParams();
+    onSetOpen(false);
+  };
 
   const handleUpdate = async () => {
     setUpdating(true);
