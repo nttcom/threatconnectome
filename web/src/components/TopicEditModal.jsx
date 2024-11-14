@@ -1,5 +1,4 @@
 import {
-  AddBox as AddBoxIcon,
   Close as CloseIcon,
   Delete as DeleteIcon,
   SentimentSatisfiedAlt as SentimentSatisfiedAltIcon,
@@ -26,7 +25,7 @@ import {
   ToggleButton,
   Stack,
 } from "@mui/material";
-import { blue, green, red } from "@mui/material/colors";
+import { green, red } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
@@ -45,9 +44,9 @@ import {
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
 import { ActionTypeIcon } from "./ActionTypeIcon";
-import { AnalysisActionGenerator } from "./AnalysisActionGenerator";
+import { AnalysisActionGeneratorModal } from "./AnalysisActionGeneratorModal";
 import { ThreatImpactChip } from "./ThreatImpactChip";
-import { TopicTagSelector } from "./TopicTagSelector";
+import { TopicTagSelectorModal } from "./TopicTagSelectorModal";
 
 export function TopicEditModal(props) {
   const { open, onSetOpen, currentTopic, currentActions } = props;
@@ -205,52 +204,6 @@ export function TopicEditModal(props) {
       !setEquals(new Set(tagIds), new Set(currentTopic.tags.map((tag) => tag.tag_id))) ||
       JSON.stringify(actions) !== JSON.stringify(currentActions));
 
-  function TopicTagSelectorModal() {
-    const [tagOpen, setTagOpen] = useState(false);
-    return (
-      <>
-        <IconButton onClick={() => setTagOpen(true)} sx={{ color: blue[700] }}>
-          <AddBoxIcon />
-        </IconButton>
-        <Dialog open={tagOpen} onClose={() => setTagOpen(false)}>
-          <DialogContent>
-            <TopicTagSelector
-              currentSelectedIds={tagIds}
-              onCancel={() => setTagOpen(false)}
-              onApply={(newTagIds) => {
-                setTagIds(newTagIds);
-                setActionTagOptions(createActionTagOptions(newTagIds));
-                setTagOpen(false);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </>
-    );
-  }
-
-  function AnalysisActionGeneratorModal() {
-    const [generatorOpen, setGeneratorOpen] = useState(false);
-    return (
-      <>
-        <IconButton onClick={() => setGeneratorOpen(true)} sx={{ color: blue[700] }}>
-          <AddBoxIcon />
-        </IconButton>
-        <Dialog open={generatorOpen} onClose={() => setGeneratorOpen(false)}>
-          <AnalysisActionGenerator
-            text="Add action"
-            tagIds={actionTagOptions}
-            onGenerate={(ret) => {
-              setActions([...actions, ret]);
-              setGeneratorOpen(false);
-            }}
-            onCancel={() => setGeneratorOpen(false)}
-          />
-        </Dialog>
-      </>
-    );
-  }
-
   return (
     <Dialog open={open === true} maxWidth="md" sx={{ maxHeight: "100vh" }}>
       <DialogTitle>
@@ -335,7 +288,12 @@ export function TopicEditModal(props) {
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   Artifact Tag
                 </Typography>
-                <TopicTagSelectorModal />
+                <TopicTagSelectorModal
+                  tagIds={tagIds}
+                  setTagIds={setTagIds}
+                  setActionTagOptions={setActionTagOptions}
+                  createActionTagOptions={createActionTagOptions}
+                />
               </Box>
               <List sx={{ ml: 1 }}>
                 {allTags
@@ -388,7 +346,11 @@ export function TopicEditModal(props) {
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 Action
               </Typography>
-              <AnalysisActionGeneratorModal />
+              <AnalysisActionGeneratorModal
+                actionTagOptions={actionTagOptions}
+                actions={actions}
+                setActions={setActions}
+              />
             </Box>
             <List sx={{ ml: 1 }}>
               {actions.map((action) => (

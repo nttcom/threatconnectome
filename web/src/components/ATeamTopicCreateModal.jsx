@@ -1,5 +1,4 @@
 import {
-  AddBox as AddBoxIcon,
   Close as CloseIcon,
   SentimentSatisfiedAlt as SentimentSatisfiedAltIcon,
   SentimentVeryDissatisfied as SentimentVeryDissatisfiedIcon,
@@ -19,7 +18,7 @@ import {
   Typography,
   List,
 } from "@mui/material";
-import { blue, red, green } from "@mui/material/colors";
+import { red, green } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
@@ -37,9 +36,10 @@ import {
 } from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
+import { ActionGeneratorModal } from "./ActionGeneratorModal";
 import { ActionItem } from "./ActionItem";
 import { ThreatImpactChip } from "./ThreatImpactChip";
-import { TopicTagSelector } from "./TopicTagSelector";
+import { TopicTagSelectorModal } from "./TopicTagSelectorModal";
 
 const steps = ["Threat, Vulnerability, and Risk", "Dissemination", "Response planning"];
 
@@ -146,54 +146,6 @@ export function ATeamTopicCreateModal(props) {
     onSetOpen(false);
   };
 
-  function ActionGeneratorModal() {
-    const [generatorOpen, setGeneratorOpen] = useState(false);
-    return (
-      <>
-        <IconButton onClick={() => setGeneratorOpen(true)} sx={{ color: blue[700] }}>
-          <AddBoxIcon />
-        </IconButton>
-        <Dialog open={generatorOpen} onClose={() => setGeneratorOpen(false)}>
-          <DialogContent>
-            <ActionGenerator
-              text="Add action"
-              tagIds={actionTagOptions}
-              onGenerate={(ret) => {
-                setActions([...actions, ret]);
-                setGeneratorOpen(false);
-              }}
-              onCancel={() => setGeneratorOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      </>
-    );
-  }
-
-  function TopicTagSelectorModal() {
-    const [tagOpen, setTagOpen] = useState(false);
-    return (
-      <>
-        <IconButton onClick={() => setTagOpen(true)} sx={{ color: blue[700] }}>
-          <AddBoxIcon />
-        </IconButton>
-        <Dialog open={tagOpen} onClose={() => setTagOpen(false)}>
-          <DialogContent>
-            <TopicTagSelector
-              currentSelectedIds={tagIds}
-              onCancel={() => setTagOpen(false)}
-              onApply={(ary) => {
-                setTagIds(ary);
-                setActionTagOptions(createActionTagOptions(ary));
-                setTagOpen(false);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </>
-    );
-  }
-
   return (
     <>
       <Dialog
@@ -298,7 +250,12 @@ export function ATeamTopicCreateModal(props) {
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     Artifact Tag
                   </Typography>
-                  <TopicTagSelectorModal />
+                  <TopicTagSelectorModal
+                    tagIds={tagIds}
+                    setTagIds={setTagIds}
+                    setActionTagOptions={setActionTagOptions}
+                    createActionTagOptions={createActionTagOptions}
+                  />
                 </Box>
                 <TextField
                   size="small"
@@ -324,7 +281,11 @@ export function ATeamTopicCreateModal(props) {
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     Action
                   </Typography>
-                  <ActionGeneratorModal />
+                  <ActionGeneratorModal
+                    actionTagOptions={actionTagOptions}
+                    actions={actions}
+                    setActions={setActions}
+                  />
                 </Box>
                 <List
                   sx={{

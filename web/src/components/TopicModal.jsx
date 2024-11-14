@@ -1,8 +1,4 @@
-import {
-  AddBox as AddBoxIcon,
-  Close as CloseIcon,
-  ContentPaste as ContentPasteIcon,
-} from "@mui/icons-material";
+import { Close as CloseIcon, ContentPaste as ContentPasteIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -16,7 +12,7 @@ import {
   Typography,
   List,
 } from "@mui/material";
-import { blue, grey } from "@mui/material/colors";
+import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
@@ -37,10 +33,11 @@ import { actionTypes } from "../utils/const";
 import { validateNotEmpty, setEquals, errorToString } from "../utils/func";
 
 import { ActionGenerator } from "./ActionGenerator";
+import { ActionGeneratorModal } from "./ActionGeneratorModal";
 import { ActionItem } from "./ActionItem";
 import { ThreatImpactChip } from "./ThreatImpactChip";
 import { TopicDeleteModal } from "./TopicDeleteModal";
-import { TopicTagSelector } from "./TopicTagSelector";
+import { TopicTagSelectorModal } from "./TopicTagSelectorModal";
 
 export function TopicModal(props) {
   const { open, onSetOpen, presetTopic, presetTagId, presetParentTagId, presetActions, pteamId } =
@@ -318,54 +315,6 @@ export function TopicModal(props) {
     onSetOpen(false);
   };
 
-  function ActionGeneratorModal() {
-    const [generatorOpen, setGeneratorOpen] = useState(false);
-    return (
-      <>
-        <IconButton onClick={() => setGeneratorOpen(true)} sx={{ color: blue[700] }}>
-          <AddBoxIcon />
-        </IconButton>
-        <Dialog open={generatorOpen} onClose={() => setGeneratorOpen(false)}>
-          <DialogContent>
-            <ActionGenerator
-              text="Add action"
-              tagIds={actionTagOptions}
-              onGenerate={(ret) => {
-                setActions([...actions, ret]);
-                setGeneratorOpen(false);
-              }}
-              onCancel={() => setGeneratorOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      </>
-    );
-  }
-
-  function TopicTagSelectorModal(props) {
-    const [tagOpen, setTagOpen] = useState(false);
-    return (
-      <>
-        <IconButton onClick={() => setTagOpen(true)} sx={{ color: blue[700] }}>
-          <AddBoxIcon />
-        </IconButton>
-        <Dialog open={tagOpen} onClose={() => setTagOpen(false)}>
-          <DialogContent>
-            <TopicTagSelector
-              currentSelectedIds={tagIds}
-              onCancel={() => setTagOpen(false)}
-              onApply={(ary) => {
-                setTagIds(ary);
-                setActionTagOptions(createActionTagOptions(ary));
-                setTagOpen(false);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </>
-    );
-  }
-
   const updateErrors = (key, value, validator) => {
     if (validator(value)) setErrors(errors.filter((error) => error !== key));
     else if (errors.indexOf(key) < 0) setErrors([...errors, key]);
@@ -458,7 +407,11 @@ export function TopicModal(props) {
               <Box mb={1}>
                 <Box display="flex" flexDirection="row" alignItems="center" mb={1}>
                   <Typography sx={{ fontWeight: 900 }}>Actions</Typography>
-                  <ActionGeneratorModal />
+                  <ActionGeneratorModal
+                    actionTagOptions={actionTagOptions}
+                    actions={actions}
+                    setActions={setActions}
+                  />
                 </Box>
                 {actions?.length > 0 || (
                   <Box
@@ -510,7 +463,12 @@ export function TopicModal(props) {
                 <Box mb={1}>
                   <Box display="flex" flexDirection="row" alignItems="center">
                     <Typography sx={{ fontWeight: 900 }}>Artifact Tags</Typography>
-                    <TopicTagSelectorModal />
+                    <TopicTagSelectorModal
+                      tagIds={tagIds}
+                      setTagIds={setTagIds}
+                      setActionTagOptions={setActionTagOptions}
+                      createActionTagOptions={createActionTagOptions}
+                    />
                   </Box>
                   <TextField
                     size="small"
