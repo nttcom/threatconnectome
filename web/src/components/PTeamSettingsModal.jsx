@@ -64,7 +64,7 @@ export function PTeamSettingsModal(props) {
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
-          <PTeamGeneralSetting show={show} pteam={pteam} />
+          <PTeamGeneralSetting pteam={pteam} />
         </TabPanel>
         <TabPanel index={1} value={tab}>
           <PTeamNotificationSetting pteam={pteam} />
