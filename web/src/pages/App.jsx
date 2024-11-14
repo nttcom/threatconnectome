@@ -110,7 +110,7 @@ export function App() {
         return;
       }
       setPteamId(pteamIdx);
-    } else if (["/topics", "/account"].includes(location.pathname)) {
+    } else if (location.pathname.includes("/topics") || location.pathname === "/account") {
       if (params.get("ateamId")) {
         dispatch(setTeamMode("ateam"));
         setATeamId(params.get("ateamId"));
