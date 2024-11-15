@@ -52,8 +52,8 @@ export function ATeam() {
     setTabValue(newValue);
   };
 
-  if (skip) return <></>;
   if (!ateamId) return <>{noATeamMessage}</>;
+  if (skip) return <></>;
 
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;

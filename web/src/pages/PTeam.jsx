@@ -46,8 +46,8 @@ export function PTeam() {
     isLoading: membersIsLoading,
   } = useGetPTeamMembersQuery(pteamId, { skip });
 
-  if (skip) return <></>;
   if (!pteamId) return <>{noPTeamMessage}</>;
+  if (skip) return <></>;
 
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
