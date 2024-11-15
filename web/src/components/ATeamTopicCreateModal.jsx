@@ -268,11 +268,6 @@ export function ATeamTopicCreateModal(props) {
                   sx={{ width: "100%" }}
                   inputProps={{ readOnly: true }}
                 />
-                <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    The PTeam that the topic reaches
-                  </Typography>
-                </Box>
               </Box>
             )}
             {activeStep === 2 && (
