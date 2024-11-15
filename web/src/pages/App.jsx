@@ -68,6 +68,9 @@ export function App() {
       dispatch(setTeamMode("ateam"));
       if (!userMe.ateams.length > 0) {
         setATeamId(undefined);
+        if (params.get("ateamId")) {
+          navigate(location.pathname);
+        }
         return;
       }
       const ateamIdx = params.get("ateamId") || userMe.ateams[0].ateam_id;
@@ -91,6 +94,9 @@ export function App() {
     ) {
       if (!userMe.pteams.length > 0) {
         setPteamId(undefined);
+        if (params.get("pteamId")) {
+          navigate(location.pathname);
+        }
         return;
       }
       const pteamIdx = params.get("pteamId") || userMe.pteams[0].pteam_id;
