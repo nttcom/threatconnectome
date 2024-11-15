@@ -1,7 +1,6 @@
 import { Menu as MenuIcon } from "@mui/icons-material";
 import { AppBar as MuiAppBar, Box, Button, Divider, IconButton, Toolbar } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import PropTypes from "prop-types";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -34,9 +33,7 @@ const StyledAppBar = styled(MuiAppBar, {
   borderBottom: "1px solid #E0E0E0",
 }));
 
-export function AppBar(props) {
-  const { ateamId, pteamId } = props;
-
+export function AppBar() {
   const dispatch = useDispatch();
   const system = useSelector((state) => state.system);
 
@@ -68,7 +65,7 @@ export function AppBar(props) {
           </IconButton>
           <Divider orientation="vertical" flexItem sx={{ mr: 2 }} />
           <Box flexGrow={1} />
-          <TeamSelector ateamId={ateamId} pteamId={pteamId} />
+          <TeamSelector />
           <Button color="inherit" onClick={handleLogout}>
             Logout
           </Button>
@@ -78,7 +75,3 @@ export function AppBar(props) {
     </>
   );
 }
-AppBar.propTypes = {
-  ateamId: PropTypes.string,
-  pteamId: PropTypes.string,
-};
