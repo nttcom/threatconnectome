@@ -336,11 +336,6 @@ export function TopicEditModal(props) {
                   ))}
               </List>
             </Box>
-            <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                The PTeam that the topic reaches
-              </Typography>
-            </Box>
           </Box>
         </TabPanel>
         <TabPanel index={2} value={tab}>
