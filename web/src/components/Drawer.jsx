@@ -18,6 +18,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { LocationReader } from "../utils/LocationReader";
 import { drawerWidth, teamColor } from "../utils/const";
 
 const DrawerHeader = styled("div")(({ theme }) => ({
@@ -30,6 +31,7 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 
 export function Drawer() {
   const location = useLocation();
+  const locationReader = new LocationReader(location);
   const navigate = useNavigate();
 
   const system = useSelector((state) => state.system);
@@ -40,12 +42,12 @@ export function Drawer() {
 
   const StyledListItemButton = styled(ListItemButton)({
     "&:hover": {
-      backgroundColor: teamColor[system.teamMode].hoverColor,
+      backgroundColor: teamColor[locationReader.getTeamMode()].hoverColor,
     },
     "&.Mui-selected": {
-      backgroundColor: teamColor[system.teamMode].hoverColor,
+      backgroundColor: teamColor[locationReader.getTeamMode()].hoverColor,
       "&:hover": {
-        backgroundColor: teamColor[system.teamMode].hoverColor,
+        backgroundColor: teamColor[locationReader.getTeamMode()].hoverColor,
       },
     },
   });
@@ -53,9 +55,9 @@ export function Drawer() {
   const queryParams = new URLSearchParams(location.search).toString();
 
   const handleNavigateTop = () => {
-    if (system.teamMode === "pteam") {
+    if (locationReader.isPTeamMode()) {
       navigate("/?" + queryParams);
-    } else if (system.teamMode === "ateam") {
+    } else if (locationReader.isATeamMode()) {
       navigate("/analysis?" + queryParams);
     }
   };
@@ -76,7 +78,7 @@ export function Drawer() {
       }}
       PaperProps={{
         sx: {
-          backgroundColor: teamColor[system.teamMode].mainColor,
+          backgroundColor: teamColor[locationReader.getTeamMode()].mainColor,
           color: "white",
         },
       }}
@@ -87,11 +89,11 @@ export function Drawer() {
         </Typography>
       </DrawerHeader>
       <List>
-        {system.teamMode === "pteam" && (
+        {locationReader.isPTeamMode() && (
           <>
             <StyledListItemButton
               onClick={() => navigate("/?" + queryParams)}
-              selected={location.pathname === "/"}
+              selected={locationReader.isStatusPage()}
             >
               <StyledListItemIcon>
                 <HomeIcon />
@@ -100,7 +102,7 @@ export function Drawer() {
             </StyledListItemButton>
             <StyledListItemButton
               onClick={() => navigate("/pteam?" + queryParams)}
-              selected={location.pathname === "/pteam"}
+              selected={locationReader.isPTeamPage()}
             >
               <StyledListItemIcon>
                 <GroupsIcon />
@@ -109,11 +111,11 @@ export function Drawer() {
             </StyledListItemButton>
           </>
         )}
-        {system.teamMode === "ateam" && (
+        {locationReader.isATeamMode() && (
           <>
             <StyledListItemButton
               onClick={() => navigate("/analysis?" + queryParams)}
-              selected={location.pathname === "/analysis"}
+              selected={locationReader.isAnalysisPage()}
             >
               <StyledListItemIcon>
                 <AssessmentIcon />
@@ -122,7 +124,7 @@ export function Drawer() {
             </StyledListItemButton>
             <StyledListItemButton
               onClick={() => navigate("/ateam?" + queryParams)}
-              selected={location.pathname === "/ateam"}
+              selected={locationReader.isATeamPage()}
             >
               <StyledListItemIcon>
                 <GroupsIcon />
@@ -134,7 +136,7 @@ export function Drawer() {
         {/* Topics */}
         <StyledListItemButton
           onClick={() => navigate("/topics?" + queryParams)}
-          selected={location.pathname === "/topics"}
+          selected={locationReader.isTopicsPage()}
         >
           <StyledListItemIcon>
             <TopicIcon />
@@ -144,7 +146,7 @@ export function Drawer() {
         {/* Account */}
         <StyledListItemButton
           onClick={() => navigate("/account?" + queryParams)}
-          selected={location.pathname === "/account"}
+          selected={locationReader.isAccountPage()}
         >
           <StyledListItemIcon>
             <AccountCircleIcon />
