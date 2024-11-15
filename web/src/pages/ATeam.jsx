@@ -64,8 +64,6 @@ export function ATeam() {
   if (membersError) return <>{`Cannot get Members: ${errorToString(membersError)}`}</>;
   if (membersIsLoading) return <>Now loading Members...</>;
 
-  if (!ateam) return <></>;
-
   const isAdmin = (authorities[userMe.user_id] ?? []).includes("admin");
 
   return (
