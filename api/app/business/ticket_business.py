@@ -12,7 +12,7 @@ def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
     if ticket.ssvc_deployer_priority is None:
         return False
 
-    if ticket.current_ticket_status.topic_status == models.TopicStatusType.completed:
+    if ticket.ticket_status.topic_status == models.TopicStatusType.completed:
         return False
 
     pteam = ticket.threat.dependency.service.pteam
@@ -34,15 +34,18 @@ def create_ticket_internal(
     )
     persistence.create_ticket(db, ticket)
 
-    # create CurrentTicketStatus without TicketStatus
-    current_status = models.CurrentTicketStatus(
-        ticket_id=ticket.ticket_id,
+    ticket_status = models.TicketStatus(
         status_id=None,
+        ticket_id=ticket.ticket_id,
+        user_id=None,
         topic_status=models.TopicStatusType.alerted,
-        threat_impact=threat.topic.threat_impact,
-        updated_at=threat.topic.updated_at,
+        note=None,
+        logging_ids=[],
+        assignees=[],
+        scheduled_at=None,
+        created_at=now,
     )
-    persistence.create_current_ticket_status(db, current_status)
+    persistence.create_ticket_status(db, ticket_status)
 
     # send alert if needed
     if ticket_meets_condition_to_create_alert(ticket):

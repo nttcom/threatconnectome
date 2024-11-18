@@ -62,7 +62,7 @@ def get_ateam_topic_statuses(
 ):
     sort_rules = sortkey2orderby[sort_key] + [
         models.Topic.topic_id,  # service by topic
-        nullsfirst(models.CurrentTicketStatus.topic_status),  # worst state on array[0]
+        nullsfirst(models.TicketStatus.topic_status),  # worst state on array[0]
         models.TicketStatus.scheduled_at.desc(),  # latest on array[0] if worst is scheduled
         models.PTeam.pteam_name,
         models.Tag.tag_name,
@@ -100,13 +100,12 @@ def get_ateam_topic_statuses(
         .join(models.Topic, and_(*join_topic_rules))
         .join(models.Ticket)
         .join(
-            models.CurrentTicketStatus,
+            models.TicketStatus,
             and_(
-                models.CurrentTicketStatus.ticket_id == models.Ticket.ticket_id,
-                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                models.TicketStatus.topic_status != models.TopicStatusType.completed,
             ),
         )
-        .outerjoin(models.TicketStatus)
         .order_by(*sort_rules)
     )
 
@@ -180,39 +179,6 @@ def check_tag_is_related_to_topic(db: Session, tag: models.Tag, topic: models.To
         .first()
     )
     return row is not None and row.TopicTag is not None
-
-
-def ticket_status_to_response(
-    db: Session,
-    status: models.TicketStatus,
-) -> schemas.TopicStatusResponse:
-    threat = status.ticket.threat
-    dependency = threat.dependency
-    service = dependency.service
-    actionlogs = db.scalars(
-        select(models.ActionLog)
-        .where(
-            and_(
-                func.array_position(status.logging_ids, models.ActionLog.logging_id).is_not(None),
-                models.ActionLog.service_id == service.service_id,
-            )
-        )
-        .order_by(models.ActionLog.executed_at.desc())
-    ).all()
-    return schemas.TopicStatusResponse(
-        status_id=UUID(status.status_id),
-        topic_id=UUID(threat.topic.topic_id),
-        pteam_id=UUID(service.pteam.pteam_id),
-        service_id=UUID(service.service_id),
-        tag_id=UUID(dependency.tag.tag_id),
-        user_id=UUID(status.user_id),
-        topic_status=status.topic_status,
-        created_at=status.created_at,
-        assignees=list(map(UUID, status.assignees)),
-        note=status.note,
-        scheduled_at=status.scheduled_at,
-        action_logs=[schemas.ActionLogResponse(**log.__dict__) for log in actionlogs],
-    )
 
 
 def search_topics_internal(
@@ -511,10 +477,10 @@ def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[
         )
         .join(models.Ticket)
         .join(
-            models.CurrentTicketStatus,
+            models.TicketStatus,
             and_(
-                models.CurrentTicketStatus.ticket_id == models.Ticket.ticket_id,
-                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                models.TicketStatus.topic_status != models.TopicStatusType.completed,
             ),
         )
         .join(models.Topic)
@@ -555,8 +521,8 @@ def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[
     count_status_stmt = (
         select(
             models.Tag.tag_id,
-            models.CurrentTicketStatus.topic_status,
-            func.count(models.CurrentTicketStatus.topic_status).label("num_status"),
+            models.TicketStatus.topic_status,
+            func.count(models.TicketStatus.topic_status).label("num_status"),
         )
         .join(
             models.Dependency,
@@ -567,8 +533,8 @@ def get_tags_summary_by_service_id(db: Session, service_id: UUID | str) -> list[
         )
         .join(models.Threat)
         .join(models.Ticket)
-        .join(models.CurrentTicketStatus)
-        .group_by(models.Tag.tag_id, models.CurrentTicketStatus.topic_status)
+        .join(models.TicketStatus)
+        .group_by(models.Tag.tag_id, models.TicketStatus.topic_status)
     )
 
     status_count_dict = {
@@ -602,10 +568,10 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
         )
         .join(models.Ticket)
         .join(
-            models.CurrentTicketStatus,
+            models.TicketStatus,
             and_(
-                models.CurrentTicketStatus.ticket_id == models.Ticket.ticket_id,
-                models.CurrentTicketStatus.topic_status != models.TopicStatusType.completed,
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                models.TicketStatus.topic_status != models.TopicStatusType.completed,
             ),
         )
         .join(models.Topic)
@@ -652,8 +618,8 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
     count_status_stmt = (
         select(
             models.Tag.tag_id,
-            models.CurrentTicketStatus.topic_status,
-            func.count(models.CurrentTicketStatus.topic_status).label("num_status"),
+            models.TicketStatus.topic_status,
+            func.count(models.TicketStatus.topic_status).label("num_status"),
         )
         .join(models.Dependency)
         .join(
@@ -665,8 +631,8 @@ def get_tags_summary_by_pteam_id(db: Session, pteam_id: UUID | str) -> list[dict
         )
         .join(models.Threat)
         .join(models.Ticket)
-        .join(models.CurrentTicketStatus)
-        .group_by(models.Tag.tag_id, models.CurrentTicketStatus.topic_status)
+        .join(models.TicketStatus)
+        .group_by(models.Tag.tag_id, models.TicketStatus.topic_status)
     )
 
     status_count_dict = {
@@ -703,9 +669,9 @@ def get_sorted_tickets_related_to_service_and_topic_and_tag(
     select_stmt = (
         select(models.Ticket)
         .options(
-            joinedload(models.Ticket.current_ticket_status, innerjoin=True)
-            .joinedload(models.CurrentTicketStatus.ticket_status, innerjoin=False)
-            .joinedload(models.TicketStatus.action_logs, innerjoin=False),
+            joinedload(models.Ticket.ticket_status, innerjoin=True).joinedload(
+                models.TicketStatus.action_logs, innerjoin=False
+            ),
             joinedload(models.Ticket.threat, innerjoin=True),
         )
         .join(
