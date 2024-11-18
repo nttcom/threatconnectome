@@ -481,10 +481,7 @@ class Ticket(Base):
 
     threat = relationship("Threat", back_populates="ticket")
     alerts = relationship("Alert", back_populates="ticket")
-    ticket_statuses = relationship("TicketStatus", back_populates="ticket", cascade="all, delete")
-    current_ticket_status: Mapped["CurrentTicketStatus"] = relationship(
-        "CurrentTicketStatus", uselist=False, back_populates="ticket", cascade="all, delete"
-    )
+    ticket_status = relationship("TicketStatus", uselist=False, cascade="all, delete-orphan")
 
 
 class TicketStatus(Base):
@@ -502,7 +499,7 @@ class TicketStatus(Base):
     ticket_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True
     )
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
+    user_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("account.user_id"), index=True)
     topic_status: Mapped[TopicStatusType]
     note: Mapped[str | None]
     logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
@@ -510,36 +507,12 @@ class TicketStatus(Base):
     scheduled_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
 
-    ticket = relationship("Ticket", back_populates="ticket_statuses")
     action_logs = relationship(
         "ActionLog",
         primaryjoin="TicketStatus.logging_ids.any(foreign(ActionLog.logging_id))",
         collection_class=set,
         viewonly=True,
     )
-
-
-class CurrentTicketStatus(Base):
-    __tablename__ = "currentticketstatus"
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.current_status_id:
-            self.current_status_id = str(uuid.uuid4())
-
-    current_status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    ticket_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True, unique=True
-    )
-    status_id: Mapped[StrUUID | None] = mapped_column(
-        ForeignKey("ticketstatus.status_id"), index=True
-    )
-    topic_status: Mapped[TopicStatusType | None]
-    threat_impact: Mapped[int | None]
-    updated_at: Mapped[datetime | None]
-
-    ticket = relationship("Ticket", back_populates="current_ticket_status")
-    ticket_status = relationship("TicketStatus")
 
 
 class Alert(Base):

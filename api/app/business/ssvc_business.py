@@ -38,7 +38,6 @@ def get_topic_ids_summary_by_service_id_and_tag_id(
             ssvc_priority = (
                 threat.ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
             )
-            _curent_ticket = threat.ticket.current_ticket_status
             if (tmp_topic_ids_dict := topic_ids_dict.get(threat.topic_id)) is None:
                 tmp_topic_ids_dict = {
                     "topic_id": threat.topic_id,
@@ -59,7 +58,7 @@ def get_topic_ids_summary_by_service_id_and_tag_id(
                     },
                 }
                 topic_ids_dict[threat.topic_id] = tmp_topic_ids_dict
-            if _curent_ticket.topic_status == _completed:
+            if threat.ticket.ticket_status.topic_status == _completed:
                 tmp_topic_ids_dict["solved_ssvc_priority_count"][ssvc_priority.value] += 1
             else:
                 tmp_topic_ids_dict["unsolved_ssvc_priority_count"][ssvc_priority.value] += 1

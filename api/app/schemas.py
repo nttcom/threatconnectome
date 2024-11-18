@@ -438,29 +438,6 @@ class ActionLogRequest(ORMModel):
     executed_at: datetime | None = None
 
 
-class TopicStatusRequest(ORMModel):
-    topic_status: TopicStatusType
-    logging_ids: list[UUID] = []
-    assignees: list[UUID] = []
-    note: str | None = None
-    scheduled_at: datetime | None = None
-
-
-class TopicStatusResponse(ORMModel):
-    status_id: UUID | None = None  # None is the case no status is set yet
-    topic_id: UUID
-    pteam_id: UUID
-    service_id: UUID
-    tag_id: UUID
-    user_id: UUID | None = None
-    topic_status: TopicStatusType | None = None
-    created_at: datetime | None = None
-    assignees: list[UUID] = []
-    note: str | None = None
-    scheduled_at: datetime | None = None
-    action_logs: list[ActionLogResponse] = []
-
-
 class ThreatResponse(ORMModel):
     threat_id: UUID
     dependency_id: UUID
@@ -476,11 +453,11 @@ class TicketStatusRequest(ORMModel):
 
 
 class TicketStatusResponse(ORMModel):
-    status_id: UUID | None = None  # None is the case no status is set yet
+    status_id: UUID
     ticket_id: UUID
-    topic_status: TopicStatusType = TopicStatusType.alerted
-    user_id: UUID | None = None
-    created_at: datetime | None = None
+    topic_status: TopicStatusType
+    user_id: UUID | None  # None: auto created when ticket is created
+    created_at: datetime
     assignees: list[UUID] = []
     note: str | None = None
     scheduled_at: datetime | None = None

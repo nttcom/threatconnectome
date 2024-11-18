@@ -428,17 +428,6 @@ def create_ticket_status(
     db.flush()
 
 
-### CurrentTicketStatus
-
-
-def create_current_ticket_status(
-    db: Session,
-    status: models.CurrentTicketStatus,
-) -> None:
-    db.add(status)
-    db.flush()
-
-
 ### Service
 
 

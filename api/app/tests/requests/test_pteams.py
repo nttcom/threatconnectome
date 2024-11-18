@@ -3049,19 +3049,23 @@ class TestTicketStatus:
             response = client.get(url, headers=_headers)
             assert response.status_code == 200
 
+            now = datetime.now()
             data = response.json()
             expected_status = {
-                "status_id": None,
+                "status_id": data["status_id"],  # do not check
                 "ticket_id": str(self.ticket_id1),
                 "topic_status": models.TopicStatusType.alerted.value,
                 "user_id": None,
-                "created_at": None,
+                "created_at": data["created_at"],  # check later
                 "assignees": [],
                 "note": None,
                 "scheduled_at": None,
                 "action_logs": [],
             }
             assert data == expected_status
+
+            created_at = datetime.fromisoformat(data["created_at"])
+            assert now - timedelta(seconds=10) < created_at < now
 
         def test_returns_current_status_if_status_created(self, actionable_topic1):
             status_request = {
@@ -3549,6 +3553,7 @@ class TestGetTickets:
         db_dependency1 = testdb.scalars(select(models.Dependency)).one()
         db_threat1 = testdb.scalars(select(models.Threat)).one()
         db_ticket1 = testdb.scalars(select(models.Ticket)).one()
+        db_status1 = testdb.scalars(select(models.TicketStatus)).one()
         expected_ticket_response1 = {
             "ticket_id": str(db_ticket1.ticket_id),
             "threat_id": str(db_threat1.threat_id),
@@ -3564,11 +3569,11 @@ class TestGetTickets:
                 "dependency_id": str(db_dependency1.dependency_id),
             },
             "current_ticket_status": {
-                "status_id": None,
+                "status_id": db_status1.status_id,  # do not check
                 "ticket_id": str(db_ticket1.ticket_id),
                 "topic_status": models.TopicStatusType.alerted.value,
                 "user_id": None,
-                "created_at": None,
+                "created_at": datetime.isoformat(db_status1.created_at),  # check later
                 "assignees": [],
                 "note": None,
                 "scheduled_at": None,
@@ -3589,10 +3594,13 @@ class TestGetTickets:
         response = client.get(url, headers=_headers)
         assert response.status_code == 200
 
+        now = datetime.now()
         data = response.json()
         assert len(data) == 1
         ticket1 = data[0]
         assert ticket1 == expected_ticket_response1
+        status1_created_at = datetime.fromisoformat(ticket1["current_ticket_status"]["created_at"])
+        assert now - timedelta(seconds=10) < status1_created_at < now
 
     def test_returns_ticket_with_current_status_if_status_created(self, testdb, actionable_topic1):
         db_dependency1 = testdb.scalars(select(models.Dependency)).one()
