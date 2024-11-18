@@ -158,7 +158,9 @@ export function Status() {
     currentData: pteamTagsSummary,
     error: pteamTagsSummaryError,
     isFetching: pteamTagsSummaryIsFetching,
-  } = useGetPTeamTagsSummaryQuery(pteamId, { skip: skipByAuth || !pteamId });
+  } = useGetPTeamTagsSummaryQuery(pteamId, {
+    skip: skipByAuth || !pteamId || !isActiveAllServicesMode,
+  });
 
   useEffect(() => {
     if (!pteamId) return; // wait fixed by App
