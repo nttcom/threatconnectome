@@ -322,11 +322,6 @@ export function AnalysisActionGenerator(props) {
           {"Select artifact tags to which this action should be applied."}
         </Typography>
         {tagsEditor}
-        <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            PTeams which this action reaches
-          </Typography>
-        </Box>
       </DialogContent>
       <DialogActions className={dialogStyle.action_area}>
         <Box display="flex" flexDirection="row" sx={{ mt: 1 }}>

@@ -182,8 +182,8 @@ export function Status() {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
 
-  if (skipByAuth || !pteamId) return <></>;
   if (!pteamId) return <>{noPTeamMessage}</>;
+  if (skipByAuth || !pteamId) return <></>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
   if (pteamIsLoading) return <>Now loading PTeam...</>;
   if (serviceTagsSummaryError)

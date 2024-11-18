@@ -1,14 +1,12 @@
 import { Add as AddIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from "@mui/icons-material";
 import { Box, Button, Divider, ListSubheader, Menu, MenuItem } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetUserMeQuery } from "../services/tcApi";
-import { setTeamMode } from "../slices/system";
+import { LocationReader } from "../utils/LocationReader";
 import { teamColor } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -24,13 +22,9 @@ function textTrim(selector) {
   return selector;
 }
 
-export function TeamSelector(props) {
-  const { ateamId, pteamId } = props;
-
-  const dispatch = useDispatch();
+export function TeamSelector() {
   const location = useLocation();
   const navigate = useNavigate();
-  const teamMode = useSelector((state) => state.system.teamMode);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -40,7 +34,7 @@ export function TeamSelector(props) {
   const [currentTeamName, setCurrentTeamName] = useState(null);
   const [openPTeamCreationModal, setOpenPTeamCreationModal] = useState(false);
   const [openATeamCreationModal, setOpenATeamCreationModal] = useState(false);
-  const { tagId } = useParams();
+  const locationReader = useMemo(() => new LocationReader(location), [location]);
 
   const skip = useSkipUntilAuthTokenIsReady();
   const {
@@ -51,17 +45,16 @@ export function TeamSelector(props) {
 
   useEffect(() => {
     if (!userMe) return;
-    switch (teamMode) {
-      case "pteam":
-        setCurrentTeamName(userMe.pteams?.find((x) => x.pteam_id === pteamId)?.pteam_name);
-        break;
-      case "ateam":
-        setCurrentTeamName(userMe.ateams?.find((x) => x.ateam_id === ateamId)?.ateam_name);
-        break;
-      default:
-        break;
+    if (locationReader.isPTeamMode()) {
+      setCurrentTeamName(
+        userMe.pteams?.find((x) => x.pteam_id === locationReader.getPTeamId())?.pteam_name,
+      );
+    } else {
+      setCurrentTeamName(
+        userMe.ateams?.find((x) => x.ateam_id === locationReader.getATeamId())?.ateam_name,
+      );
     }
-  }, [teamMode, userMe, pteamId, ateamId]);
+  }, [userMe, locationReader]);
 
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
@@ -71,21 +64,19 @@ export function TeamSelector(props) {
     handleClose();
     setCurrentTeamName(userMe.pteams?.find((x) => x.pteam_id === teamId)?.pteam_name);
 
-    if (teamMode === "pteam") {
-      if (tagId || location.pathname === "/ateam/join") {
+    if (locationReader.isPTeamMode()) {
+      if (locationReader.isTagPage() || locationReader.isPTeamInvitationPage()) {
         const newParams = new URLSearchParams();
         newParams.set("pteamId", teamId);
         navigate("/?" + newParams);
       } else {
-        const newParams =
-          location.pathname === "/pteam/watching_request"
-            ? new URLSearchParams(location.search) // keep request token
-            : new URLSearchParams(); // clear params
+        const newParams = locationReader.isWatchingRequestPage()
+          ? new URLSearchParams(location.search) // keep request token
+          : new URLSearchParams(); // clear params
         newParams.set("pteamId", teamId);
         navigate(location.pathname + "?" + newParams.toString());
       }
     } else {
-      dispatch(setTeamMode("pteam"));
       const newParams = new URLSearchParams();
       newParams.set("pteamId", teamId);
       navigate("/?" + newParams.toString());
@@ -97,10 +88,9 @@ export function TeamSelector(props) {
     setCurrentTeamName(userMe.ateams?.find((x) => x.ateam_id === teamId)?.ateam_name);
     const newParams = new URLSearchParams();
     newParams.set("ateamId", teamId);
-    if (teamMode === "ateam") {
+    if (locationReader.isATeamMode()) {
       navigate(location.pathname + "?" + newParams.toString());
     } else {
-      dispatch(setTeamMode("ateam"));
       navigate("/analysis?" + newParams.toString());
     }
   };
@@ -117,7 +107,7 @@ export function TeamSelector(props) {
           variant="outlined"
           sx={{
             textTransform: "none",
-            color: teamColor[teamMode].hoverColor,
+            color: teamColor[locationReader.getTeamMode()].hoverColor,
             border: `1.5px solid ${grey[300]}`,
             "&:hover": {
               bgcolor: grey[100],
@@ -185,7 +175,3 @@ export function TeamSelector(props) {
     </>
   );
 }
-TeamSelector.propTypes = {
-  ateamId: PropTypes.string,
-  pteamId: PropTypes.string,
-};

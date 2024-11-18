@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ import { Main } from "../components/Main";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetUserMeQuery, useTryLoginMutation } from "../services/tcApi";
 import { setAuthToken } from "../slices/auth";
-import { setTeamMode } from "../slices/system";
+import { LocationReader } from "../utils/LocationReader";
 import { mainMaxWidth } from "../utils/const";
 import { errorToString } from "../utils/func";
 
@@ -29,8 +29,6 @@ export function App() {
   const system = useSelector((state) => state.system);
   const location = useLocation();
   const navigate = useNavigate();
-  const [ateamId, setATeamId] = useState(undefined);
-  const [pteamId, setPteamId] = useState(undefined);
 
   const {
     data: userMe,
@@ -64,8 +62,8 @@ export function App() {
   useEffect(() => {
     if (!userMe || userMeIsFetching) return;
     const params = new URLSearchParams(location.search);
-    if (["/analysis", "/ateam"].includes(location.pathname)) {
-      dispatch(setTeamMode("ateam"));
+    const locationReader = new LocationReader(location);
+    if (locationReader.isAnalysisPage() || locationReader.isATeamPage()) {
       if (!userMe.ateams.length > 0) {
         setATeamId(undefined);
         if (params.get("ateamId")) {
@@ -87,10 +85,11 @@ export function App() {
         navigate(location.pathname + "?" + params.toString());
         return;
       }
-      setATeamId(params.get("ateamId"));
     } else if (
-      ["/", "/pteam", "/pteam/watching_request"].includes(location.pathname) ||
-      /\/tags\//.test(location.pathname)
+      locationReader.isStatusPage() ||
+      locationReader.isTagPage() ||
+      locationReader.isPTeamPage() ||
+      locationReader.isWatchingRequestPage()
     ) {
       if (!userMe.pteams.length > 0) {
         setPteamId(undefined);
@@ -113,17 +112,8 @@ export function App() {
         navigate(location.pathname + "?" + params.toString());
         return;
       }
-      setPteamId(pteamIdx);
-    } else if (location.pathname.includes("/topics") || location.pathname === "/account") {
-      if (params.get("ateamId")) {
-        dispatch(setTeamMode("ateam"));
-        setATeamId(params.get("ateamId"));
-      } else if (params.get("pteamId")) {
-        dispatch(setTeamMode("pteam"));
-        setPteamId(params.get("pteamId"));
-      }
     }
-  }, [dispatch, enqueueSnackbar, navigate, location, userMe, userMeIsFetching, system.teamMode]);
+  }, [dispatch, enqueueSnackbar, navigate, location, userMe, userMeIsFetching]);
 
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
@@ -132,7 +122,7 @@ export function App() {
   return (
     <>
       <Box flexGrow={1}>
-        <AppBar ateamId={ateamId} pteamId={pteamId} />
+        <AppBar />
       </Box>
       <Drawer />
       <Main open={system.drawerOpen}>
