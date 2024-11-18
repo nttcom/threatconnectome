@@ -151,7 +151,7 @@ export function Status() {
     isFetching: serviceTagsSummaryIsFetching,
   } = useGetPTeamServiceTagsSummaryQuery(
     { pteamId, serviceId },
-    { skip: skipByAuth || !pteamId || !serviceId },
+    { skip: skipByAuth || !pteamId || !serviceId || isActiveAllServicesMode },
   );
 
   const {
@@ -188,16 +188,24 @@ export function Status() {
   if (skipByAuth || !pteamId) return <></>;
   if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
   if (pteamIsLoading) return <>Now loading PTeam...</>;
-  if (serviceTagsSummaryError)
-    return <>{`Cannot get serviceTagsSummary: ${errorToString(serviceTagsSummaryError)}`}</>;
-  if (serviceId || pteam.services.length > 0) {
-    if (!serviceTagsSummary || serviceTagsSummaryIsFetching)
+
+  if (isActiveAllServicesMode) {
+    if (pteamTagsSummaryError)
+      return <>{`Cannot get pteamTagsSummary: ${errorToString(pteamTagsSummaryError)}`}</>;
+
+    if (!pteamTagsSummary || pteamTagsSummaryIsFetching)
+      return <>Now loading pteamTagsSummary...</>;
+  } else {
+    if (serviceTagsSummaryError)
+      return <>{`Cannot get serviceTagsSummary: ${errorToString(serviceTagsSummaryError)}`}</>;
+
+    if (
+      (serviceId || pteam.services.length > 0) &&
+      (!serviceTagsSummary || serviceTagsSummaryIsFetching)
+    ) {
       return <>Now loading serviceTagsSummary...</>;
+    }
   }
-  if (pteamTagsSummaryError)
-    return <>{`Cannot get pteamTagsSummary: ${errorToString(pteamTagsSummaryError)}`}</>;
-  if (isActiveAllServicesMode && (!pteamTagsSummary || pteamTagsSummaryIsFetching))
-    return <>Now loading pteamTagsSummary...</>;
 
   const service =
     isActiveAllServicesMode || !serviceId
