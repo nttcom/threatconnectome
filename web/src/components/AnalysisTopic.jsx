@@ -36,7 +36,7 @@ import { AnalysisActionTypeIcon } from "../components/AnalysisActionTypeIcon";
 import { CommentDeleteModal } from "../components/CommentDeleteModal";
 import { TabPanel } from "../components/TabPanel";
 import { ThreatImpactChip } from "../components/ThreatImpactChip";
-import { TopicEditModal } from "../components/TopicEditModal";
+import { TopicEditModalParent } from "../components/TopicEditModalParent";
 import { UUIDTypography } from "../components/UUIDTypography";
 import { WarningTooltip } from "../components/WarningTooltip";
 import styles from "../cssModule/button.module.css";
@@ -633,7 +633,7 @@ export function AnalysisTopic(props) {
             </Box>
           </Box>
         </TabPanel>
-        <TopicEditModal
+        <TopicEditModalParent
           open={topicModalOpen}
           onSetOpen={setTopicModalOpen}
           currentTopic={topic}

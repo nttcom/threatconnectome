@@ -39,7 +39,6 @@ import {
   useGetUserMeQuery,
   useUpdateActionMutation,
   useUpdateTopicMutation,
-  useGetTagsQuery,
 } from "../services/tcApi";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
@@ -48,8 +47,8 @@ import { AnalysisActionGeneratorModal } from "./AnalysisActionGeneratorModal";
 import { ThreatImpactChip } from "./ThreatImpactChip";
 import { TopicTagSelectorModal } from "./TopicTagSelectorModal";
 
-export function TopicEditModal(props) {
-  const { open, onSetOpen, currentTopic, currentActions } = props;
+export function TopicEditModalChild(props) {
+  const { open, onSetOpen, currentTopic, currentActions, allTags } = props;
 
   const [topicId, setTopicId] = useState("");
   const [title, setTitle] = useState("");
@@ -65,11 +64,6 @@ export function TopicEditModal(props) {
   const [updateTopic] = useUpdateTopicMutation();
 
   const skip = useSkipUntilAuthTokenIsReady();
-  const {
-    data: allTags,
-    error: allTagsError,
-    isLoading: allTagsIsLoading,
-  } = useGetTagsQuery(undefined, { skip });
 
   const { enqueueSnackbar } = useSnackbar();
   const [createAction] = useCreateActionMutation();
@@ -81,19 +75,6 @@ export function TopicEditModal(props) {
     error: userMeError,
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
-
-  useEffect(() => {
-    if (!open) return;
-    if (topicId === currentTopic.topic_id) return;
-    resetParams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
-  if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
-  if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   const createActionTagOptions = (tagIdList) => {
     return allTags
@@ -115,6 +96,17 @@ export function TopicEditModal(props) {
     setAutomatable(currentTopic.automatable);
     setExploitation(currentTopic.exploitation);
   };
+
+  useEffect(() => {
+    if (!open) return;
+    if (topicId === currentTopic.topic_id) return;
+    resetParams();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  if (skip) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const handleChangeTab = (_, newTab) => setTab(newTab);
 
@@ -450,9 +442,10 @@ export function TopicEditModal(props) {
   );
 }
 
-TopicEditModal.propTypes = {
+TopicEditModalChild.propTypes = {
   open: PropTypes.bool.isRequired,
   onSetOpen: PropTypes.func.isRequired,
   currentTopic: PropTypes.object.isRequired,
   currentActions: PropTypes.array.isRequired,
+  allTags: PropTypes.array.isRequired,
 };
