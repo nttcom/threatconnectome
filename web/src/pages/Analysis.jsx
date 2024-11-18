@@ -113,7 +113,7 @@ export function Analysis() {
     error: ateamTopicsError,
     isLoading: ateamTopicsIsLoading,
   } = useGetATeamTopicsQuery(
-    { ateamId, queryParams },
+    { ateamId, params: queryParams },
     { skip: !getATeamTopicsReady, refetchOnMountOrArgChange: true },
   );
 
