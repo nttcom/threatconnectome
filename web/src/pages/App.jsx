@@ -65,7 +65,6 @@ export function App() {
     const locationReader = new LocationReader(location);
     if (locationReader.isAnalysisPage() || locationReader.isATeamPage()) {
       if (!userMe.ateams.length > 0) {
-        setATeamId(undefined);
         if (params.get("ateamId")) {
           navigate(location.pathname);
         }
@@ -92,7 +91,6 @@ export function App() {
       locationReader.isWatchingRequestPage()
     ) {
       if (!userMe.pteams.length > 0) {
-        setPteamId(undefined);
         if (params.get("pteamId")) {
           navigate(location.pathname);
         }
