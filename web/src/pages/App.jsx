@@ -65,6 +65,9 @@ export function App() {
     const locationReader = new LocationReader(location);
     if (locationReader.isAnalysisPage() || locationReader.isATeamPage()) {
       if (!userMe.ateams.length > 0) {
+        if (params.get("ateamId")) {
+          navigate(location.pathname);
+        }
         return;
       }
       const ateamIdx = params.get("ateamId") || userMe.ateams[0].ateam_id;
@@ -88,6 +91,9 @@ export function App() {
       locationReader.isWatchingRequestPage()
     ) {
       if (!userMe.pteams.length > 0) {
+        if (params.get("pteamId")) {
+          navigate(location.pathname);
+        }
         return;
       }
       const pteamIdx = params.get("pteamId") || userMe.pteams[0].pteam_id;
