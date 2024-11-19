@@ -264,19 +264,17 @@ def test_update_ateam_auth(testdb):
 
     # without header
     with pytest.raises(HTTPError, match=r"401: Unauthorized"):
-        assert_200(client.post(f"/ateams/{ateam1.ateam_id}/authority", json=request))
+        assert_200(client.put(f"/ateams/{ateam1.ateam_id}/authority", json=request))
 
     # without admin
     with pytest.raises(HTTPError, match=r"403: Forbidden: You do not have authority"):
         assert_200(
-            client.post(
-                f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER2), json=request
-            )
+            client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER2), json=request)
         )
 
     # by master
     data = assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
     )
     assert len(data) == len(request)
     assert data[0]["user_id"] == str(user2.user_id)
@@ -300,7 +298,7 @@ def test_update_ateam_auth(testdb):
         }
     ]
     data = assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER2), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER2), json=request)
     )
     assert len(data) == len(request)
     assert data[0]["user_id"] == str(user2.user_id)
@@ -324,9 +322,7 @@ def test_update_ateam_auth(testdb):
     ]
     with pytest.raises(HTTPError, match=r"400: Bad Request: Not an ateam member"):
         assert_200(
-            client.post(
-                f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request
-            )
+            client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
         )
 
 
@@ -372,7 +368,7 @@ def test_update_ateam_auth__pseudo_uuid(testdb):
         {"user_id": str(NOT_MEMBER_UUID), "authorities": request_auth},
     ]
     data = assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
     )
     assert len(data) == 2
     assert {x["user_id"] for x in data} == set(map(str, {MEMBER_UUID, NOT_MEMBER_UUID}))
@@ -402,18 +398,14 @@ def test_update_ateam_auth__pseudo_uuid(testdb):
     ]
     with pytest.raises(HTTPError, match=r"400: Bad Request: Cannot give ADMIN to pseudo account"):
         assert_200(
-            client.post(
-                f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request
-            )
+            client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
         )
     request = [
         {"user_id": str(NOT_MEMBER_UUID), "authorities": [models.ATeamAuthEnum.ADMIN]},
     ]
     with pytest.raises(HTTPError, match=r"400: Bad Request: Cannot give ADMIN to pseudo account"):
         assert_200(
-            client.post(
-                f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request
-            )
+            client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
         )
 
     # system account
@@ -422,9 +414,7 @@ def test_update_ateam_auth__pseudo_uuid(testdb):
     ]
     with pytest.raises(HTTPError, match=r"400: Bad Request: Invalid user id"):
         assert_200(
-            client.post(
-                f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request
-            )
+            client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
         )
 
 
@@ -438,9 +428,7 @@ def test_update_ateam_auth__remove_admin__last():
     ]
     with pytest.raises(HTTPError, match=r"400: Bad Request: Removing last ADMIN is not allowed"):
         assert_200(
-            client.post(
-                f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request
-            )
+            client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
         )
 
 
@@ -457,7 +445,7 @@ def test_update_ateam_auth__remove_admin__not_last():
     ]
     # removing (no more last) admin
     assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
     )
     # removing last admin
     request = [
@@ -465,9 +453,7 @@ def test_update_ateam_auth__remove_admin__not_last():
     ]
     with pytest.raises(HTTPError, match=r"400: Bad Request: Removing last ADMIN is not allowed"):
         assert_200(
-            client.post(
-                f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER2), json=request
-            )
+            client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER2), json=request)
         )
 
 
@@ -484,7 +470,7 @@ def test_update_ateam_auth__remove_admin__swap():
     ]
     #  removing (no more last) admin
     assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
     )
 
     # swap admin
@@ -493,7 +479,7 @@ def test_update_ateam_auth__remove_admin__swap():
         {"user_id": str(user2.user_id), "authorities": []},
     ]
     assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER2), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER2), json=request)
     )
 
     # comeback admin
@@ -501,7 +487,7 @@ def test_update_ateam_auth__remove_admin__swap():
         {"user_id": str(user2.user_id), "authorities": [models.ATeamAuthEnum.ADMIN]},
     ]
     assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
     )
 
     # remove all admin at once
@@ -511,9 +497,7 @@ def test_update_ateam_auth__remove_admin__swap():
     ]
     with pytest.raises(HTTPError, match=r"400: Bad Request: Removing last ADMIN is not allowed"):
         assert_200(
-            client.post(
-                f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request
-            )
+            client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
         )
 
 
@@ -537,7 +521,7 @@ def test_ateam_auth_effects__individual():
         {"user_id": str(user2.user_id), "authorities": [models.ATeamAuthEnum.INVITE]},
     ]
     assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
     )
 
     # try again
@@ -560,7 +544,7 @@ def test_ateam_auth_effects__pseudo_member():
         {"user_id": str(MEMBER_UUID), "authorities": [models.ATeamAuthEnum.INVITE]},
     ]
     assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
     )
 
     # try again
@@ -583,7 +567,7 @@ def test_ateam_auth_effects__pseudo_not_member():
         {"user_id": str(NOT_MEMBER_UUID), "authorities": [models.ATeamAuthEnum.INVITE]},
     ]
     assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
     )
 
     # try again
@@ -641,7 +625,7 @@ def test_create_invitation__without_authority():
         {"user_id": str(user2.user_id), "authorities": [models.ATeamAuthEnum.INVITE]},
     ]
     assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
     )
     invitation = invite_to_ateam(USER2, ateam1.ateam_id)
     assert invitation.invitation_id != UUID(int=0)
@@ -658,7 +642,7 @@ def test_create_invitation__without_authority():
         },
     ]
     assert_200(
-        client.post(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
+        client.put(f"/ateams/{ateam1.ateam_id}/authority", headers=headers(USER1), json=request)
     )
     invitation = invite_to_ateam(USER2, ateam1.ateam_id, authes=[models.ATeamAuthEnum.INVITE])
     assert invitation.invitation_id != UUID(int=0)

@@ -542,7 +542,7 @@ def test_update_pteam_auth(testdb):
             "authorities": request_auth,
         }
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 200
@@ -582,7 +582,7 @@ def test_update_pteam_auth__without_auth(testdb):
             "authorities": None,
         }
     ]
-    response = client.post(f"/pteams/{pteam1.pteam_id}/authority", json=request)  # no headers
+    response = client.put(f"/pteams/{pteam1.pteam_id}/authority", json=request)  # no headers
     assert response.status_code == 401
     assert response.reason_phrase == "Unauthorized"
 
@@ -604,7 +604,7 @@ def test_update_pteam_auth__without_authority():
             "authorities": request_auth,
         }
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 200
@@ -621,7 +621,7 @@ def test_update_pteam_auth__without_authority():
             "authorities": request_auth,
         }
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 403
@@ -670,7 +670,7 @@ def test_update_pteam_auth__pseudo_uuid(testdb):
         {"user_id": str(MEMBER_UUID), "authorities": member_auth},
         {"user_id": str(NOT_MEMBER_UUID), "authorities": not_member_auth},
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 200
@@ -725,7 +725,7 @@ def test_update_pteam_auth__not_member(testdb):
             "authorities": request_auth,
         }
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 400
@@ -777,7 +777,7 @@ def test_update_pteam_auth__pseudo(testdb):
         {"user_id": str(MEMBER_UUID), "authorities": member_auth},
         {"user_id": str(NOT_MEMBER_UUID), "authorities": not_member_auth},
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 200
@@ -809,7 +809,7 @@ def test_update_pteam_auth__pseudo_admin():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
 
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority",
         headers=headers(USER1),
         json=[{"user_id": str(MEMBER_UUID), "authorities": ["admin"]}],
@@ -817,7 +817,7 @@ def test_update_pteam_auth__pseudo_admin():
     assert response.status_code == 400
     assert response.reason_phrase == "Bad Request"
 
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority",
         headers=headers(USER1),
         json=[{"user_id": str(NOT_MEMBER_UUID), "authorities": ["admin"]}],
@@ -834,7 +834,7 @@ def test_update_pteam_auth__remove_admin__last():
     request = [
         {"user_id": str(user1.user_id), "authorities": []},
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 400
@@ -854,7 +854,7 @@ def test_update_pteam_auth__remove_admin__another():
     request = [
         {"user_id": str(user1.user_id), "authorities": []},
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 200
@@ -866,7 +866,7 @@ def test_update_pteam_auth__remove_admin__another():
     request = [
         {"user_id": str(user1.user_id), "authorities": ["admin"]},
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER2), json=request
     )
     assert response.status_code == 200
@@ -876,7 +876,7 @@ def test_update_pteam_auth__remove_admin__another():
         {"user_id": str(user1.user_id), "authorities": []},
         {"user_id": str(user2.user_id), "authorities": []},
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 400
@@ -895,7 +895,7 @@ def test_update_pteam_auth__swap_admin():
         {"user_id": str(user1.user_id), "authorities": []},  # retire ADMIN
         {"user_id": str(user2.user_id), "authorities": ["admin"]},  # be ADMIN
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 200
@@ -924,7 +924,7 @@ def test_get_pteam_auth():
         {"user_id": str(MEMBER_UUID), "authorities": member_auth},
         {"user_id": str(NOT_MEMBER_UUID), "authorities": not_member_auth},
     ]
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
     )
     assert response.status_code == 200
@@ -985,7 +985,7 @@ def test_pteam_auth_effects__indivudual():
         invite_to_pteam(USER2, pteam1.pteam_id)
 
     # give INVITE
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority",
         headers=headers(USER1),
         json=[{"user_id": str(user2.user_id), "authorities": ["invite"]}],
@@ -1008,7 +1008,7 @@ def test_pteam_auth_effects__pseudo_member():
         invite_to_pteam(USER2, pteam1.pteam_id)
 
     # give INVITE to MEMBER
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority",
         headers=headers(USER1),
         json=[{"user_id": str(MEMBER_UUID), "authorities": ["invite"]}],
@@ -1031,7 +1031,7 @@ def test_pteam_auth_effects__pseudo_not_member():
         invite_to_pteam(USER2, pteam1.pteam_id)
 
     # give INVITE to NOT_MEMBER. it is also applied to members.
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority",
         headers=headers(USER1),
         json=[{"user_id": str(NOT_MEMBER_UUID), "authorities": ["invite"]}],
@@ -1085,7 +1085,7 @@ def test_create_invitation__without_authorities():
     assert response.reason_phrase == "Forbidden"
 
     # give INVITE
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority",
         headers=headers(USER1),
         json=[{"user_id": str(user2.user_id), "authorities": ["invite"]}],
@@ -1118,7 +1118,7 @@ def test_create_invitation__without_authorities():
     assert response.reason_phrase == "Bad Request"
 
     # give INVITE & ADMIN
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority",
         headers=headers(USER1),
         json=[{"user_id": str(user2.user_id), "authorities": ["invite", "admin"]}],
@@ -1301,7 +1301,7 @@ def test_delete_invitation__by_another():
     assert response.status_code == 403
 
     # delete by pteam member with INVITE
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority",
         headers=headers(USER1),
         json=[{"user_id": str(user3.user_id), "authorities": ["invite"]}],
@@ -1567,7 +1567,7 @@ def test_delete_member__not_last_admin():
     accept_pteam_invitation(USER2, invitation.invitation_id)
 
     # make the other member ADMIN
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam1.pteam_id}/authority",
         headers=headers(USER1),
         json=[{"user_id": str(user2.user_id), "authorities": ["admin"]}],
