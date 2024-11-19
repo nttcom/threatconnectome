@@ -61,6 +61,7 @@ export function TopicEditModal(props) {
   const [tagIds, setTagIds] = useState([]);
   const [tab, setTab] = useState(0);
   const [updating, setUpdating] = useState(false);
+  const [mispTags, setMispTags] = useState("");
   const [updateTopic] = useUpdateTopicMutation();
 
   const skip = useSkipUntilAuthTokenIsReady();
@@ -95,6 +96,7 @@ export function TopicEditModal(props) {
     setActions(currentActions);
     setAutomatable(currentTopic.automatable);
     setExploitation(currentTopic.exploitation);
+    setMispTags(currentTopic.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",") ?? "");
   };
 
   useEffect(() => {
@@ -126,6 +128,7 @@ export function TopicEditModal(props) {
         tags: setEquals(new Set(tagIds), new Set(currentTopic.tags.map((tag) => tag.tag_id)))
           ? null
           : allTags.filter((tag) => tagIds.includes(tag.tag_id)).map((tag) => tag.tag_name),
+        misp_tags: mispTags?.length > 0 ? mispTags.split(",").map((mispTag) => mispTag.trim()) : [],
         automatable: automatable === currentTopic.automatable ? null : automatable,
         exploitation: exploitation === currentTopic.exploitation ? null : exploitation,
       };
@@ -218,6 +221,7 @@ export function TopicEditModal(props) {
             <Tab label="Dissemination" {...a11yProps(1)} />
             <Tab label="Response planning" {...a11yProps(2)} />
             <Tab label="SSVC" {...a11yProps(3)} />
+            <Tab label="MISP" {...a11yProps(3)} />
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
@@ -274,6 +278,7 @@ export function TopicEditModal(props) {
                 <SentimentSatisfiedAltIcon sx={{ color: green[600], mt: 9, ml: 1 }} />
               )}
             </Box>
+            <Divider />
           </Box>
         </TabPanel>
         <TabPanel index={1} value={tab}>
@@ -424,6 +429,23 @@ export function TopicEditModal(props) {
               </ToggleButtonGroup>
             </Box>
           </Stack>
+        </TabPanel>
+        <TabPanel index={4} value={tab}>
+          <Box>
+            <Box display="flex" flexDirection="row" alignItems="center" mt={2}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                Misp Tags (CSV Format)
+              </Typography>
+            </Box>
+            <TextField
+              placeholder="CVE-2024-xxxx, tlp:clear, ..."
+              size="small"
+              variant="outlined"
+              value={mispTags}
+              onChange={(event) => setMispTags(event.target.value)}
+              sx={{ width: "99%" }}
+            />
+          </Box>
         </TabPanel>
       </DialogContent>
       <DialogActions className={dialogStyle.action_area}>

@@ -568,12 +568,7 @@ def get_ticket_status(
     if ticket.threat.dependency.service_id != str(service_id):
         raise NO_SUCH_TICKET
 
-    fixed_status = (
-        {**ticket.current_ticket_status.ticket_status.__dict__}
-        if ticket.current_ticket_status and ticket.current_ticket_status.ticket_status
-        else {"ticket_id": ticket_id}  # all params except ticket_id are default
-    )
-    return fixed_status
+    return ticket.ticket_status
 
 
 @router.post(
@@ -619,10 +614,10 @@ def set_ticket_status(
 
     if data.topic_status == models.TopicStatusType.scheduled or (
         data.topic_status is None
-        and ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled
+        and ticket.ticket_status.topic_status == models.TopicStatusType.scheduled
     ):
         if data.scheduled_at is None:
-            if ticket.current_ticket_status.topic_status != models.TopicStatusType.scheduled:
+            if ticket.ticket_status.topic_status != models.TopicStatusType.scheduled:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="If status is scheduled, specify schduled_at",
@@ -640,7 +635,7 @@ def set_ticket_status(
                 )
     else:
         if data.scheduled_at is None:
-            if ticket.current_ticket_status.topic_status == models.TopicStatusType.scheduled:
+            if ticket.ticket_status.topic_status == models.TopicStatusType.scheduled:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=(
@@ -678,61 +673,34 @@ def set_ticket_status(
                 detail="Not a pteam member",
             )
 
-    current_ticket_status = ticket.current_ticket_status
-    if current_ticket_status.topic_status == models.TopicStatusType.alerted:
+    if ticket.ticket_status.topic_status == models.TopicStatusType.alerted:
         # this is the first update
         if data.topic_status is None:
             data.topic_status = models.TopicStatusType.acknowledged
-    if (
-        # there is no ticket_status in initial state
-        ticket.current_ticket_status.ticket_status is None
-        or ticket.current_ticket_status.ticket_status.assignees == []
-    ) and data.assignees is None:
+    if ticket.ticket_status.assignees == [] and data.assignees is None:
         data.assignees = [UUID(current_user.user_id)]
 
-    # create base status inheriting current status
-    if _current := current_ticket_status.ticket_status:
-        new_status = models.TicketStatus(
-            ticket_id=str(ticket_id),
-            user_id=current_user.user_id,
-            topic_status=_current.topic_status,
-            note=_current.note,
-            logging_ids=_current.logging_ids,
-            assignees=_current.assignees,
-            scheduled_at=_current.scheduled_at,
-            created_at=datetime.now(),
-        )
-    else:
-        new_status = models.TicketStatus(
-            ticket_id=str(ticket_id),
-            topic_status=models.TopicStatusType.acknowledged,
-            user_id=current_user.user_id,
-        )
-    # overwrite only if required
+    # update only if required
     if data.assignees is not None:
-        new_status.assignees = list(map(str, data.assignees))
+        ticket.ticket_status.assignees = list(map(str, data.assignees))
     if data.topic_status is not None:
-        new_status.topic_status = data.topic_status
+        ticket.ticket_status.topic_status = data.topic_status
     if data.logging_ids is not None:
-        new_status.logging_ids = list(map(str, data.logging_ids))
+        ticket.ticket_status.logging_ids = list(map(str, data.logging_ids))
     if data.note is not None:
-        new_status.note = data.note
+        ticket.ticket_status.note = data.note
     if data.scheduled_at is not None:
         if data_scheduled_at > now and data.topic_status == models.TopicStatusType.scheduled:
-            new_status.scheduled_at = data.scheduled_at
+            ticket.ticket_status.scheduled_at = data.scheduled_at
         elif data.scheduled_at == datetime.fromtimestamp(0):
-            new_status.scheduled_at = None
+            ticket.ticket_status.scheduled_at = None
 
-    persistence.create_ticket_status(db, new_status)
-    ret_status = {**new_status.__dict__}
-
-    # update current_status
-    current_ticket_status.status_id = new_status.status_id
-    current_ticket_status.topic_status = new_status.topic_status
+    # set last updated by
+    ticket.ticket_status.user_id = current_user.user_id
 
     db.commit()
 
-    return ret_status
+    return ticket.ticket_status
 
 
 @router.get(
@@ -771,11 +739,7 @@ def get_tickets_with_status_by_service_id_and_topic_id(
         {
             **ticket.__dict__,
             "threat": ticket.threat.__dict__,
-            "current_ticket_status": (
-                {**ticket.current_ticket_status.ticket_status.__dict__}
-                if ticket.current_ticket_status and ticket.current_ticket_status.ticket_status
-                else {"ticket_id": ticket.ticket_id}
-            ),
+            "current_ticket_status": ticket.ticket_status.__dict__,
         }
         for ticket in tickets
     ]
