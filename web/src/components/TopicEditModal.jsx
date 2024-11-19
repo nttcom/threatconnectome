@@ -47,7 +47,7 @@ import { AnalysisActionGeneratorModal } from "./AnalysisActionGeneratorModal";
 import { ThreatImpactChip } from "./ThreatImpactChip";
 import { TopicTagSelectorModal } from "./TopicTagSelectorModal";
 
-export function TopicEditModalChild(props) {
+export function TopicEditModal(props) {
   const { open, onSetOpen, currentTopic, currentActions, allTags } = props;
 
   const [topicId, setTopicId] = useState("");
@@ -442,7 +442,7 @@ export function TopicEditModalChild(props) {
   );
 }
 
-TopicEditModalChild.propTypes = {
+TopicEditModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onSetOpen: PropTypes.func.isRequired,
   currentTopic: PropTypes.object.isRequired,
