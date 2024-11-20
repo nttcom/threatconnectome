@@ -84,8 +84,7 @@ export function ATeamTopicCreateModal(props) {
   const validateTopicParams = () => validateUUID(topicId) && validateNotEmpty(title);
 
   const createActionTagOptions = (tagIdList) => {
-    // TODO
-    return [];
+    return [...new Set([...tagIdList])];
   };
 
   const validateActionTags = () => {
