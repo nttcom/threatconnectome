@@ -470,7 +470,7 @@ class TicketResponse(ORMModel):
     created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     threat: ThreatResponse
-    current_ticket_status: TicketStatusResponse
+    ticket_status: TicketStatusResponse
 
 
 class PTeamTaggedTopics(ORMModel):

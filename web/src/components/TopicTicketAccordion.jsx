@@ -47,7 +47,7 @@ export function TopicTicketAccordion(props) {
   const serviceId = dependency.service_id;
   const tagId = dependency.tag_id;
   const target = dependency.target;
-  const ticketStatus = ticket.current_ticket_status;
+  const ticketStatus = ticket.ticket_status;
   const ssvcPriority = ticket.ssvc_deployer_priority || "defer";
 
   const StyledTooltip = styled(({ className, ...props }) => (

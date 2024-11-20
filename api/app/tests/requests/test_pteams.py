@@ -2111,7 +2111,7 @@ def test_upload_pteam_tags_file_with_unexist_tagnames():
 
 
 def test_service_tagged_ticket_ids_with_wrong_pteam_id(testdb):
-    # create current_ticket_status table
+    # create ticket_status table
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
 
     json_data = {
@@ -2139,7 +2139,7 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_id(testdb):
 
 
 def test_service_tagged_ticket_ids_with_wrong_pteam_member(testdb):
-    # create current_ticket_status table
+    # create ticket_status table
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
 
     json_data = {
@@ -2167,7 +2167,7 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_member(testdb):
 
 
 def test_service_tagged_ticket_ids_with_wrong_service_id(testdb):
-    # create current_ticket_status table
+    # create ticket_status table
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
 
     json_data = {
@@ -2195,7 +2195,7 @@ def test_service_tagged_ticket_ids_with_wrong_service_id(testdb):
 
 
 def test_service_tagged_ticket_ids_with_service_not_in_pteam(testdb):
-    # create current_ticket_status table
+    # create ticket_status table
     ticket_response1 = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
     ticket_response2 = ticket_utils.create_ticket(testdb, USER2, PTEAM2, TOPIC2)
 
@@ -2223,7 +2223,7 @@ def test_service_tagged_ticket_ids_with_service_not_in_pteam(testdb):
 
 
 def test_service_tagged_tikcet_ids_with_wrong_tag_id(testdb):
-    # create current_ticket_status table
+    # create ticket_status table
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
 
     json_data = {
@@ -2251,7 +2251,7 @@ def test_service_tagged_tikcet_ids_with_wrong_tag_id(testdb):
 
 
 def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
-    # create current_ticket_status table
+    # create ticket_status table
     ticket_response1 = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
 
     json_data = {
@@ -3568,7 +3568,7 @@ class TestGetTickets:
                 "topic_id": str(self.topic1.topic_id),
                 "dependency_id": str(db_dependency1.dependency_id),
             },
-            "current_ticket_status": {
+            "ticket_status": {
                 "status_id": db_status1.status_id,  # do not check
                 "ticket_id": str(db_ticket1.ticket_id),
                 "topic_status": models.TopicStatusType.alerted.value,
@@ -3599,7 +3599,7 @@ class TestGetTickets:
         assert len(data) == 1
         ticket1 = data[0]
         assert ticket1 == expected_ticket_response1
-        status1_created_at = datetime.fromisoformat(ticket1["current_ticket_status"]["created_at"])
+        status1_created_at = datetime.fromisoformat(ticket1["ticket_status"]["created_at"])
         assert now - timedelta(seconds=10) < status1_created_at < now
 
     def test_returns_ticket_with_current_status_if_status_created(self, testdb, actionable_topic1):
@@ -3631,7 +3631,7 @@ class TestGetTickets:
                 "topic_id": str(self.topic1.topic_id),
                 "dependency_id": str(db_dependency1.dependency_id),
             },
-            "current_ticket_status": {
+            "ticket_status": {
                 "status_id": str(db_ticket_status1.status_id),
                 "ticket_id": str(db_ticket1.ticket_id),
                 "user_id": str(self.user1.user_id),
@@ -4171,7 +4171,7 @@ class TestUpdatePTeamService:
             assert response.status_code == 200
             send_alert_to_pteam.assert_not_called()
 
-        def test_not_alert_with_current_ticket_status_is_completed(self, mocker):
+        def test_not_alert_with_ticket_status_is_completed(self, mocker):
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
