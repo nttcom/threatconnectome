@@ -106,9 +106,7 @@ export function TopicCard(props) {
 
   const pteamTopicActions = pteamTopicActionsData.actions;
 
-  const isSolved = !tickets.find(
-    (ticket) => ticket.ticket_status?.topic_status !== "completed",
-  );
+  const isSolved = !tickets.find((ticket) => ticket.ticket_status?.topic_status !== "completed");
   const currentTagDict = allTags.find((tag) => tag.tag_id === tagId);
 
   const takenActionLogs = isSolved // FIXME: WORKAROUND, just list taken actions of each tickets
