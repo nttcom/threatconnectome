@@ -571,7 +571,7 @@ def get_ticket_status(
     return ticket.ticket_status
 
 
-@router.post(
+@router.put(
     "/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
     response_model=schemas.TicketStatusResponse,
 )

@@ -519,7 +519,7 @@ export const tcApi = createApi({
     createTicketStatus: builder.mutation({
       query: ({ pteamId, serviceId, ticketId, data }) => ({
         url: `pteams/${pteamId}/services/${serviceId}/ticketstatus/${ticketId}`,
-        method: "POST",
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: (result, error, arg) => [

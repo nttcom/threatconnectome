@@ -3021,7 +3021,7 @@ class TestTicketStatus:
                 "Content-Type": "application/json",
                 "accept": "application/json",
             }
-            return client.post(url, headers=_headers, json=request).json()
+            return client.put(url, headers=_headers, json=request).json()
 
         def _get_ticket_status(self, pteam_id: str, service_id: str, ticket_id: str) -> dict:
             url = f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}"
@@ -3121,7 +3121,7 @@ class TestTicketStatus:
                 "Content-Type": "application/json",
                 "accept": "application/json",
             }
-            response = client.post(url, headers=_headers, json=status_request)
+            response = client.put(url, headers=_headers, json=status_request)
             return response
 
         def test_set_requested_status(self, actionable_topic1):
@@ -3141,7 +3141,7 @@ class TestTicketStatus:
                 "Content-Type": "application/json",
                 "accept": "application/json",
             }
-            response = client.post(url, headers=_headers, json=status_request)
+            response = client.put(url, headers=_headers, json=status_request)
             assert response.status_code == 200
 
             data = response.json()
@@ -3447,7 +3447,7 @@ class TestTicketStatus:
                 "Content-Type": "application/json",
                 "accept": "application/json",
             }
-            response = client.post(url, headers=_headers, json=status_request)
+            response = client.put(url, headers=_headers, json=status_request)
             if response.status_code != 200:
                 raise HTTPError(response)
 
@@ -3530,7 +3530,7 @@ class TestGetTickets:
             "Content-Type": "application/json",
             "accept": "application/json",
         }
-        return client.post(url, headers=_headers, json=request).json()
+        return client.put(url, headers=_headers, json=request).json()
 
     def test_returns_empty_if_no_tickets(self, not_actionable_topic1):
         url = (
@@ -4187,7 +4187,7 @@ class TestUpdatePTeamService:
             assert response_ticket.status_code == 200
             data = response_ticket.json()
             request_ticket_status = {"topic_status": models.TopicStatusType.completed.value}
-            response_ticket_status = client.post(
+            response_ticket_status = client.put(
                 f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}/ticketstatus/{data[0]['ticket_id']}",
                 headers=_headers,
                 json=request_ticket_status,
