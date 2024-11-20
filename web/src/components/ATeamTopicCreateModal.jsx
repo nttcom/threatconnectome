@@ -62,7 +62,7 @@ export function ATeamTopicCreateModal(props) {
     data: allTags,
     error: allTagsError,
     isLoading: allTagsIsLoading,
-  } = useGetTagsQuery(undefined, { skip });
+  } = useGetTagsQuery(undefined, { skip: skip || !open });
 
   const { enqueueSnackbar } = useSnackbar();
   const [createTopic] = useCreateTopicMutation();

@@ -39,7 +39,6 @@ import {
   useGetUserMeQuery,
   useUpdateActionMutation,
   useUpdateTopicMutation,
-  useGetTagsQuery,
 } from "../services/tcApi";
 import { a11yProps, errorToString, setEquals, validateNotEmpty } from "../utils/func";
 
@@ -49,7 +48,7 @@ import { ThreatImpactChip } from "./ThreatImpactChip";
 import { TopicTagSelectorModal } from "./TopicTagSelectorModal";
 
 export function TopicEditModal(props) {
-  const { open, onSetOpen, currentTopic, currentActions } = props;
+  const { open, onSetOpen, currentTopic, currentActions, allTags } = props;
 
   const [topicId, setTopicId] = useState("");
   const [title, setTitle] = useState("");
@@ -66,11 +65,6 @@ export function TopicEditModal(props) {
   const [updateTopic] = useUpdateTopicMutation();
 
   const skip = useSkipUntilAuthTokenIsReady();
-  const {
-    data: allTags,
-    error: allTagsError,
-    isLoading: allTagsIsLoading,
-  } = useGetTagsQuery(undefined, { skip });
 
   const { enqueueSnackbar } = useSnackbar();
   const [createAction] = useCreateActionMutation();
@@ -82,19 +76,6 @@ export function TopicEditModal(props) {
     error: userMeError,
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
-
-  useEffect(() => {
-    if (!open) return;
-    if (topicId === currentTopic.topic_id) return;
-    resetParams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
-  if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
-  if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   const createActionTagOptions = (tagIdList) => {
     return allTags
@@ -117,6 +98,18 @@ export function TopicEditModal(props) {
     setExploitation(currentTopic.exploitation);
     setMispTags(currentTopic.misp_tags?.map((misp_tag) => misp_tag.tag_name).join(",") ?? "");
   };
+
+  useEffect(() => {
+    if (!open) return;
+    if (topicId === currentTopic.topic_id) return;
+    resetParams();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  if (skip) return <></>;
+  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+
   const handleChangeTab = (_, newTab) => setTab(newTab);
 
   const handleClose = () => {
@@ -476,4 +469,5 @@ TopicEditModal.propTypes = {
   onSetOpen: PropTypes.func.isRequired,
   currentTopic: PropTypes.object.isRequired,
   currentActions: PropTypes.array.isRequired,
+  allTags: PropTypes.array.isRequired,
 };

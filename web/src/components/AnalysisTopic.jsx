@@ -47,6 +47,7 @@ import {
   useGetATeamTopicCommentQuery,
   useGetTopicActionsQuery,
   useUpdateATeamTopicCommentMutation,
+  useGetTagsQuery,
 } from "../services/tcApi";
 import { rootPrefix, threatImpactNames } from "../utils/const";
 import { a11yProps, dateTimeFormat, errorToString, tagsMatched } from "../utils/func.js";
@@ -94,6 +95,11 @@ export function AnalysisTopic(props) {
     { ateamId: ateam.ateam_id, topicId: targetTopic.topic_id },
     { skip },
   );
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skip: skip || !topicModalOpen });
 
   useEffect(() => {
     const topicListElem = document.getElementById("topicListElem");
@@ -168,6 +174,8 @@ export function AnalysisTopic(props) {
       <Box sx={{ m: 2 }}>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</Box>
     );
   if (topicActionsIsLoading) return <Box sx={{ m: 2 }}>Now loading topicActions...</Box>;
+  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   const topicTagNames = topic.tags.map((tag) => tag.tag_name);
   const recommendedActions = topicActions.filter((action) => action.recommended);
@@ -633,12 +641,15 @@ export function AnalysisTopic(props) {
             </Box>
           </Box>
         </TabPanel>
-        <TopicEditModal
-          open={topicModalOpen}
-          onSetOpen={setTopicModalOpen}
-          currentTopic={topic}
-          currentActions={topicActions}
-        />
+        {allTags && (
+          <TopicEditModal
+            open={topicModalOpen}
+            onSetOpen={setTopicModalOpen}
+            currentTopic={topic}
+            currentActions={topicActions}
+            allTags={allTags}
+          />
+        )}
       </Box>
       <CommentDeleteModal comment={deleteComment} onClose={() => setDeleteComment(null)} />
     </>
