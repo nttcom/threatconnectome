@@ -1,5 +1,6 @@
 import { Delete as DeleteIcon, Close as CloseIcon } from "@mui/icons-material";
 import {
+  Button,
   Box,
   Dialog,
   DialogTitle,
@@ -8,22 +9,45 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
+import { grey, red } from "@mui/material/colors";
+import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import dialogStyle from "../cssModule/dialog.module.css";
-
-import { TopicDeleteModal } from "./TopicDeleteModal";
+import { useDeleteTopicMutation } from "../services/tcApi";
+import { commonButtonStyle } from "../utils/const";
+import { errorToString } from "../utils/func";
 
 export function DeleteTopicIcon(props) {
-  const { topicId } = props;
+  const { topicId, onDelete } = props;
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteTopic] = useDeleteTopicMutation();
+
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleModalClose = () => {
     setModalOpen(false);
   };
+
+  function handleDelete() {
+    deleteTopic(topicId)
+      .unwrap()
+      .then(async () => {
+        await Promise.all([
+          onDelete && onDelete(),
+          enqueueSnackbar("delete topic succeeded", { variant: "success" }),
+        ]);
+      })
+      .catch(
+        (error) =>
+          enqueueSnackbar(`Operation failed: ${errorToString(error)}`, {
+            variant: "error",
+          }),
+        setModalOpen(false),
+      );
+  }
 
   return (
     <>
@@ -83,7 +107,19 @@ export function DeleteTopicIcon(props) {
               Once you delete a topic, there is no going back. Please to certain.
             </Typography>
             <DialogContent sx={{ marginLeft: 10 }}>
-              <TopicDeleteModal topicId={topicId} onSetOpenTopicModal={setModalOpen} />
+              <Button
+                onClick={handleDelete}
+                sx={{
+                  ...commonButtonStyle,
+                  bgcolor: red[700],
+                  "&:hover": {
+                    bgcolor: red[900],
+                  },
+                  mr: 1,
+                }}
+              >
+                Delete Topic
+              </Button>
             </DialogContent>
           </Box>
         </DialogTitle>
@@ -93,4 +129,5 @@ export function DeleteTopicIcon(props) {
 }
 DeleteTopicIcon.propTypes = {
   topicId: PropTypes.string.isRequired,
+  onDelete: PropTypes.func,
 };
