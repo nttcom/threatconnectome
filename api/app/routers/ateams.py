@@ -254,7 +254,7 @@ def update_ateam(
     return ret
 
 
-@router.post("/{ateam_id}/authority", response_model=list[schemas.ATeamAuthResponse])
+@router.put("/{ateam_id}/authority", response_model=list[schemas.ATeamAuthResponse])
 def update_ateam_auth(
     ateam_id: UUID,
     requests: list[schemas.ATeamAuthRequest],

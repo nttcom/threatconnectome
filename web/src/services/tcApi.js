@@ -136,7 +136,7 @@ export const tcApi = createApi({
     updateATeamAuth: builder.mutation({
       query: ({ ateamId, data }) => ({
         url: `ateams/${ateamId}/authority`,
-        method: "POST",
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: (result, error, arg) => [{ type: "ATeamAuthority", id: arg.ateamId }],
@@ -314,7 +314,7 @@ export const tcApi = createApi({
     updatePTeamAuth: builder.mutation({
       query: ({ pteamId, data }) => ({
         url: `pteams/${pteamId}/authority`,
-        method: "POST",
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: (result, error, arg) => [{ type: "PTeamAuthority", id: arg.pteamId }],

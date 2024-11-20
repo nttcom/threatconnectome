@@ -825,7 +825,7 @@ def create_pteam(
     return pteam
 
 
-@router.post("/{pteam_id}/authority", response_model=list[schemas.PTeamAuthResponse])
+@router.put("/{pteam_id}/authority", response_model=list[schemas.PTeamAuthResponse])
 def update_pteam_auth(
     pteam_id: UUID,
     requests: list[schemas.PTeamAuthRequest],
