@@ -517,9 +517,7 @@ export const tcApi = createApi({
         method: "GET",
       }),
       providesTags: (result, error, arg) => [
-        ...(result
-          ? result.map((ticket) => ({ type: "TicketStatus", id: ticket.ticket_id }))
-          : []),
+        ...(result ? result.map((ticket) => ({ type: "TicketStatus", id: ticket.ticket_id })) : []),
         { type: "Ticket", id: "ALL" },
         { type: "Threat", id: "ALL" },
         { type: "Service", id: "ALL" },
