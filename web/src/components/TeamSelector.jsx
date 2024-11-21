@@ -1,5 +1,5 @@
 import { Add as AddIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from "@mui/icons-material";
-import { Box, Button, Divider, ListSubheader, Menu, MenuItem } from "@mui/material";
+import { Box, Button, ListSubheader, Menu, MenuItem } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -118,7 +118,6 @@ export function TeamSelector() {
             <AddIcon fontSize="small" />
             Create PTeam
           </MenuItem>
-          <Divider />
         </Menu>
         <PTeamCreateModal
           open={openPTeamCreationModal}
