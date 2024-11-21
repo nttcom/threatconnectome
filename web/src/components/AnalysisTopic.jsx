@@ -34,6 +34,7 @@ import React, { useEffect, useState } from "react";
 
 import { AnalysisActionTypeIcon } from "../components/AnalysisActionTypeIcon";
 import { CommentDeleteModal } from "../components/CommentDeleteModal";
+import { DeleteTopicIcon } from "../components/DeleteTopicIcon";
 import { TabPanel } from "../components/TabPanel";
 import { ThreatImpactChip } from "../components/ThreatImpactChip";
 import { TopicEditModal } from "../components/TopicEditModal";
@@ -210,6 +211,7 @@ export function AnalysisTopic(props) {
               <IconButton onClick={() => setTopicModalOpen(true)}>
                 <EditIcon />
               </IconButton>
+              <DeleteTopicIcon topicId={topic.topic_id} />
             </Box>
           </Box>
           <UUIDTypography sx={{ marginLeft: "95px" }}>{topic.topic_id}</UUIDTypography>

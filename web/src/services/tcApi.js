@@ -212,6 +212,15 @@ export const tcApi = createApi({
         url: `/ateams/${ateamId}/topicstatus`,
         params: params ?? {},
       }),
+      providesTags: (result, error, arg) => [
+        { type: "ATeamPTeam", id: `${arg.ateamId}:ALL` },
+        { type: "ATeamPTeam", id: "ALL" },
+        { type: "PTeam", id: "ALL" },
+        { type: "Service", id: "ALL" },
+        { type: "Threat", id: "ALL" },
+        { type: "Ticket", id: "ALL" },
+        { type: "TicketStatus", id: "ALL" },
+      ],
     }),
 
     /* ATeam Watching Request */
@@ -248,6 +257,7 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [
         { type: "ATeamPTeam", id: `${arg.ateamId}:${arg.pteamId}` },
+        { type: "ATeamPTeam", id: `${arg.ateamId}:ALL` },
       ],
     }),
 
@@ -460,6 +470,7 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [
         { type: "ATeamPTeam", id: `${arg.ateamId}:${arg.pteamId}` },
+        { type: "ATeamPTeam", id: `${arg.ateamId}:ALL` },
       ],
     }),
 
