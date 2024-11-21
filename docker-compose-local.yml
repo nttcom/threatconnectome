@@ -31,7 +31,7 @@ services:
     restart: always
     volumes:
       - ./api/app:/app:ro
-      - ./api/app/alembic:/app/alembic:rw  # for 'alembic revision --autogenerate'
+      - ./api/app/alembic:/app/alembic:rw # for 'alembic revision --autogenerate'
       - ./key:/key:ro
   db:
     image: postgres:14
@@ -71,11 +71,9 @@ services:
       - ./traefik:/etc/traefik
       - /var/run/docker.sock:/var/run/docker.sock
   web:
-    image: nginx:stable
-    command:
-      - /usr/sbin/nginx
-      - -g
-      - daemon off;
+    build:
+      context: ./web
+      dockerfile: ../web.dockerfile
     labels:
       - traefik.http.routers.web.entrypoints=http
       - traefik.http.routers.web.priority=1
@@ -83,7 +81,6 @@ services:
     restart: always
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./web/build:/usr/share/nginx/html
   firebase:
     build: ./firebase
     ports:
