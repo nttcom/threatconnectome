@@ -210,7 +210,6 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [
         { type: "Service", id: arg.serviceId },
-        { type: "Service", id: "ALL" },
         { type: "Ticket", id: "ALL" },
       ],
     }),
@@ -286,10 +285,7 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
-      invalidatesTags: (result, error, arg) => [
-        { type: "Tag", id: "ALL" },
-        { type: "Service", id: "ALL" },
-      ],
+      invalidatesTags: (result, error, arg) => [{ type: "Tag", id: "ALL" }],
     }),
 
     /* Tag */
