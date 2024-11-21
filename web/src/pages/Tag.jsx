@@ -1,9 +1,7 @@
 import { Box, Divider, Tab, Tabs, Typography, Chip } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import { useSnackbar } from "notistack";
-import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams, useLocation } from "react-router-dom";
 
 import { PTeamTaggedTopics } from "../components/PTeamTaggedTopics";
 import { TabPanel } from "../components/TabPanel";
@@ -27,10 +25,6 @@ export function Tag() {
     error: allTagsError,
     isLoading: allTagsIsLoading,
   } = useGetTagsQuery(undefined, { skipByAuth });
-
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
 
   const { tagId } = useParams();
   const params = new URLSearchParams(useLocation().search);
@@ -62,38 +56,6 @@ export function Tag() {
   const currentTagDependencies = (serviceDependencies ?? []).filter(
     (dependency) => dependency.tag_id === tagId,
   );
-
-  useEffect(() => {
-    if (!pteam) return; // wait getQuery
-    if (!serviceId || !pteam.services.find((service) => service.service_id === serviceId)) {
-      const msg = `${serviceId ? "Invalid" : "Missing"} serviceId`;
-      enqueueSnackbar(msg, { variant: "error" });
-      const params = new URLSearchParams();
-      params.set("pteamId", pteamId);
-      navigate("/?" + params.toString()); // force jump to Status page
-      return;
-    }
-
-    if (!tagId || (currentTagDependencies.length === 0 && !serviceDependenciesIsLoading)) {
-      const msg = `${tagId ? "Invalid" : "Missing"} tagId`;
-      enqueueSnackbar(msg, { variant: "error" });
-      const params = new URLSearchParams();
-      params.set("pteamId", pteamId);
-      navigate("/?" + params.toString()); // force jump to Status page
-      return;
-    }
-  }, [
-    pteam,
-    currentTagDependencies,
-    taggedTopics,
-    pteamId,
-    serviceId,
-    tagId,
-    serviceDependenciesIsLoading,
-    dispatch,
-    enqueueSnackbar,
-    navigate,
-  ]);
 
   if (!getTopicIdsReady) return <></>;
   if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;

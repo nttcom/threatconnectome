@@ -174,11 +174,6 @@ export function Status() {
       newParams.set("serviceId", pteam.services[0].service_id);
       navigate(location.pathname + "?" + newParams.toString());
       return;
-    } else if (!pteam.services.find((service) => service.service_id === serviceId)) {
-      const newParams = new URLSearchParams();
-      newParams.set("pteamId", pteamId);
-      navigate("/?" + newParams.toString());
-      return;
     }
 
     /* eslint-disable-next-line react-hooks/exhaustive-deps */

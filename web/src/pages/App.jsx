@@ -97,14 +97,6 @@ export function App() {
         return;
       }
       const pteamIdx = params.get("pteamId") || userMe.pteams[0].pteam_id;
-      if (!userMe.pteams.find((pteam) => pteam.pteam_id === pteamIdx)) {
-        enqueueSnackbar(`Wrong pteamId. Force switching to '${userMe.pteams[0].pteam_name}'.`, {
-          variant: "error",
-        });
-        params.set("pteamId", userMe.pteams[0].pteam_id);
-        navigate(location.pathname + "?" + params.toString());
-        return;
-      }
       if (params.get("pteamId") !== pteamIdx) {
         params.set("pteamId", pteamIdx);
         navigate(location.pathname + "?" + params.toString());
