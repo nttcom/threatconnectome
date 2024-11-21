@@ -63,32 +63,10 @@ export function App() {
     if (!userMe || userMeIsFetching) return;
     const params = new URLSearchParams(location.search);
     const locationReader = new LocationReader(location);
-    if (locationReader.isAnalysisPage() || locationReader.isATeamPage()) {
-      if (!userMe.ateams.length > 0) {
-        if (params.get("ateamId")) {
-          navigate(location.pathname);
-        }
-        return;
-      }
-      const ateamIdx = params.get("ateamId") || userMe.ateams[0].ateam_id;
-      if (!userMe.ateams.find((ateam) => ateam.ateam_id === ateamIdx)) {
-        enqueueSnackbar(`Wrong ateamId. Force switching to '${userMe.ateams[0].ateam_name}'.`, {
-          variant: "error",
-        });
-        params.set("ateamId", userMe.ateams[0].ateam_id);
-        navigate(location.pathname + "?" + params.toString());
-        return;
-      }
-      if (params.get("ateamId") !== ateamIdx) {
-        params.set("ateamId", ateamIdx);
-        navigate(location.pathname + "?" + params.toString());
-        return;
-      }
-    } else if (
+    if (
       locationReader.isStatusPage() ||
       locationReader.isTagPage() ||
-      locationReader.isPTeamPage() ||
-      locationReader.isWatchingRequestPage()
+      locationReader.isPTeamPage()
     ) {
       if (!userMe.pteams.length > 0) {
         if (params.get("pteamId")) {

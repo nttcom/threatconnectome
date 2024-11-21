@@ -5,7 +5,6 @@ import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
 import WarningIcon from "@mui/icons-material/Warning";
 import {
   amber,
-  blue,
   blueGrey,
   brown,
   green,
@@ -353,15 +352,10 @@ export const sxModal = {
 };
 
 export const noPTeamMessage = "You do not belong to any pteam. Please create a pteam.";
-export const noATeamMessage = "You do not belong to any ateam. Please create an ateam.";
 
 export const teamColor = {
   pteam: {
     mainColor: brown[900],
     hoverColor: brown[700],
-  },
-  ateam: {
-    mainColor: blue[900],
-    hoverColor: blue[700],
   },
 };

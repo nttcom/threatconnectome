@@ -4,12 +4,10 @@ import { useLocation } from "react-router";
 
 import { PTeamLabel } from "../components/PTeamLabel";
 import { PTeamMember } from "../components/PTeamMember";
-import { PTeamWatcher } from "../components/PTeamWatcher";
 import { TabPanel } from "../components/TabPanel";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import {
   useGetPTeamAuthQuery,
-  useGetPTeamQuery,
   useGetPTeamMembersQuery,
   useGetUserMeQuery,
 } from "../services/tcApi";
@@ -36,11 +34,6 @@ export function PTeam() {
     isLoading: authoritiesIsLoading,
   } = useGetPTeamAuthQuery(pteamId, { skip });
   const {
-    data: pteam,
-    error: pteamError,
-    isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip });
-  const {
     data: members,
     error: membersError,
     isLoading: membersIsLoading,
@@ -53,8 +46,6 @@ export function PTeam() {
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   if (authoritiesError) return <>{`Cannot get Authorities: ${errorToString(authoritiesError)}`}</>;
   if (authoritiesIsLoading) return <>Now loading Authorities...</>;
-  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
-  if (pteamIsLoading) return <>Now loading PTeam...</>;
   if (membersError) return <>{`Cannot get PTeam: ${errorToString(membersError)}`}</>;
   if (membersIsLoading) return <>Now loading Members...</>;
 
@@ -115,7 +106,6 @@ export function PTeam() {
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs value={tabValue} onChange={tabHandleChange} aria-label="pteam tabs">
             <Tab label="Members" {...a11yProps(0)} />
-            <Tab label="Watchers" {...a11yProps(1)} />
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>
@@ -125,9 +115,6 @@ export function PTeam() {
             authorities={authorities}
             isAdmin={isAdmin}
           />
-        </TabPanel>
-        <TabPanel value={tabValue} index={1}>
-          <PTeamWatcher pteam={pteam} isAdmin={isAdmin} />
         </TabPanel>
       </Box>
     </>

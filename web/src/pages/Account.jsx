@@ -124,23 +124,6 @@ export function Account() {
             )}
           </Box>
         </Box>
-        <Box alignItems="center" display="flex" flexDirection="row" my={1}>
-          <Box display="flex" flexDirection="row" width="30%">
-            <Typography>ATeam:</Typography>
-          </Box>
-          <Box display="flex" flexDirection="column" width="70%">
-            {userMe.ateams?.length >= 1 ? (
-              userMe.ateams.map((ateam, index) => (
-                <Box alignItems="baseline" display="flex" flexDirection="row" key={index}>
-                  <Typography mr={1}>{ateam.ateam_name}</Typography>
-                  <UUIDTypography>{ateam.ateam_id}</UUIDTypography>
-                </Box>
-              ))
-            ) : (
-              <Typography>-</Typography>
-            )}
-          </Box>
-        </Box>
         <Box alignItems="center" display="flex" flexDirection="row" mt={1}>
           <Box display="flex" flexDirection="row" width="30%">
             <Tooltip
