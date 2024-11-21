@@ -411,7 +411,7 @@ export const tcApi = createApi({
       providesTags: (result, error, arg) => [
         { type: "Ticket", id: "ALL" },
         { type: "Threat", id: "ALL" },
-        { type: "CurrentTicketStatus", id: "ALL" },
+        { type: "TicketStatus", id: "ALL" },
         { type: "Service", id: "ALL" },
       ],
     }),
@@ -425,7 +425,7 @@ export const tcApi = createApi({
       providesTags: (result, error, arg) => [
         { type: "Ticket", id: "ALL" },
         { type: "Threat", id: "ALL" },
-        { type: "CurrentTicketStatus", id: "ALL" },
+        { type: "TicketStatus", id: "ALL" },
         { type: "Service", id: "ALL" },
       ],
     }),
@@ -447,7 +447,7 @@ export const tcApi = createApi({
       providesTags: (result, error, arg) => [
         { type: "Ticket", id: "ALL" },
         { type: "Threat", id: "ALL" },
-        { type: "CurrentTicketStatus", id: "ALL" },
+        { type: "TicketStatus", id: "ALL" },
         { type: "Service", id: "ALL" },
       ],
     }),
@@ -506,9 +506,7 @@ export const tcApi = createApi({
         method: "GET",
       }),
       providesTags: (result, error, arg) => [
-        ...(result
-          ? result.map((ticket) => ({ type: "CurrentTicketStatus", id: ticket.ticket_id }))
-          : []),
+        ...(result ? result.map((ticket) => ({ type: "TicketStatus", id: ticket.ticket_id })) : []),
         { type: "Ticket", id: "ALL" },
         { type: "Threat", id: "ALL" },
         { type: "Service", id: "ALL" },
@@ -519,12 +517,12 @@ export const tcApi = createApi({
     createTicketStatus: builder.mutation({
       query: ({ pteamId, serviceId, ticketId, data }) => ({
         url: `pteams/${pteamId}/services/${serviceId}/ticketstatus/${ticketId}`,
-        method: "POST",
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: (result, error, arg) => [
-        { type: "CurrentTicketStatus", id: "ALL" },
-        { type: "CurrentTicketStatus", id: arg.ticketId },
+        { type: "TicketStatus", id: "ALL" },
+        { type: "TicketStatus", id: arg.ticketId },
       ],
     }),
 

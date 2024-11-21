@@ -156,7 +156,7 @@ def test_it_should_return_ssvc_priority_count_num_based_on_tickte_status(
             "note": "",
             "scheduled_at": str(datetime.fromtimestamp(0)),
         }
-        client.post(
+        client.put(
             post_topicstatus_url,
             headers=headers(user),
             json=status_request,

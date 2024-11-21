@@ -571,7 +571,7 @@ def get_ticket_status(
     return ticket.ticket_status
 
 
-@router.post(
+@router.put(
     "/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
     response_model=schemas.TicketStatusResponse,
 )
@@ -739,7 +739,7 @@ def get_tickets_with_status_by_service_id_and_topic_id(
         {
             **ticket.__dict__,
             "threat": ticket.threat.__dict__,
-            "current_ticket_status": ticket.ticket_status.__dict__,
+            "ticket_status": ticket.ticket_status.__dict__,
         }
         for ticket in tickets
     ]

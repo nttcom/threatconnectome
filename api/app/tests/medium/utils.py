@@ -402,7 +402,7 @@ def get_tickets_related_to_topic_tag(
 def set_ticket_status(
     user: dict, pteam_id: UUID | str, service_id: UUID | str, ticket_id: UUID | str, json: dict
 ) -> dict:
-    response = client.post(
+    response = client.put(
         f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
         headers=headers(user),
         json=json,
