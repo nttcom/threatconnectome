@@ -219,7 +219,7 @@ export const tcApi = createApi({
         { type: "Service", id: "ALL" },
         { type: "Threat", id: "ALL" },
         { type: "Ticket", id: "ALL" },
-        { type: "CurrentTicketStatus", id: "ALL" },
+        { type: "TicketStatus", id: "ALL" },
       ],
     }),
 
