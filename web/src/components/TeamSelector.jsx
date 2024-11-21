@@ -57,18 +57,9 @@ export function TeamSelector() {
   const switchToPTeam = (teamId) => {
     handleClose();
     setCurrentTeamName(userMe.pteams?.find((x) => x.pteam_id === teamId)?.pteam_name);
-
-    if (locationReader.isPTeamMode()) {
-      if (locationReader.isTagPage() || locationReader.isPTeamInvitationPage()) {
-        const newParams = new URLSearchParams();
-        newParams.set("pteamId", teamId);
-        navigate("/?" + newParams);
-      }
-    } else {
-      const newParams = new URLSearchParams();
-      newParams.set("pteamId", teamId);
-      navigate("/?" + newParams.toString());
-    }
+    const newParams = new URLSearchParams();
+    newParams.set("pteamId", teamId);
+    navigate("/?" + newParams.toString());
   };
 
   return (
