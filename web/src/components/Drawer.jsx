@@ -1,6 +1,5 @@
 import {
   AccountCircle as AccountCircleIcon,
-  Assessment as AssessmentIcon,
   Groups as GroupsIcon,
   Home as HomeIcon,
   Topic as TopicIcon,
@@ -57,8 +56,6 @@ export function Drawer() {
   const handleNavigateTop = () => {
     if (locationReader.isPTeamMode()) {
       navigate("/?" + queryParams);
-    } else if (locationReader.isATeamMode()) {
-      navigate("/analysis?" + queryParams);
     }
   };
 
@@ -108,28 +105,6 @@ export function Drawer() {
                 <GroupsIcon />
               </StyledListItemIcon>
               <ListItemText>PTeam</ListItemText>
-            </StyledListItemButton>
-          </>
-        )}
-        {locationReader.isATeamMode() && (
-          <>
-            <StyledListItemButton
-              onClick={() => navigate("/analysis?" + queryParams)}
-              selected={locationReader.isAnalysisPage()}
-            >
-              <StyledListItemIcon>
-                <AssessmentIcon />
-              </StyledListItemIcon>
-              <ListItemText>Analysis</ListItemText>
-            </StyledListItemButton>
-            <StyledListItemButton
-              onClick={() => navigate("/ateam?" + queryParams)}
-              selected={locationReader.isATeamPage()}
-            >
-              <StyledListItemIcon>
-                <GroupsIcon />
-              </StyledListItemIcon>
-              <ListItemText>ATeam</ListItemText>
             </StyledListItemButton>
           </>
         )}

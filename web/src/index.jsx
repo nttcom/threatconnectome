@@ -8,13 +8,9 @@ import { Provider } from "react-redux";
 import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 
 import {
-  AcceptATeamInvitation,
-  AcceptATeamWatchingRequest,
   AcceptPTeamInvitation,
   Account,
-  Analysis,
   App,
-  ATeam,
   Login,
   ResetPassword,
   Status,
@@ -52,20 +48,12 @@ root.render(
                   <Route path="pteam">
                     <Route index element={<PTeam />} />
                     <Route path="join" element={<AcceptPTeamInvitation />} />
-                    <Route path="watching_request" element={<AcceptATeamWatchingRequest />} />
-                  </Route>
-                  <Route path="ateam">
-                    <Route index element={<ATeam />} />
-                    <Route path="join" element={<AcceptATeamInvitation />} />
                   </Route>
                   <Route path="tags">
                     <Route index element={<Navigate to="/" />} />
                     <Route path=":tagId" element={<Tag />} />
                   </Route>
                   <Route path="*" element={<Navigate to="/" />} />
-                  <Route path="analysis">
-                    <Route index element={<Analysis />} />
-                  </Route>
                   <Route path="topics">
                     <Route index element={<TopicManagement />} />
                     <Route path=":topicId" element={<TopicDetail />} />

@@ -1,5 +1,5 @@
 import { Add as AddIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from "@mui/icons-material";
-import { Box, Button, Divider, ListSubheader, Menu, MenuItem } from "@mui/material";
+import { Box, Button, ListSubheader, Menu, MenuItem } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -10,7 +10,6 @@ import { LocationReader } from "../utils/LocationReader";
 import { teamColor } from "../utils/const";
 import { errorToString } from "../utils/func";
 
-import { ATeamCreateModal } from "./ATeamCreateModal";
 import { PTeamCreateModal } from "./PTeamCreateModal";
 
 function textTrim(selector) {
@@ -33,7 +32,6 @@ export function TeamSelector() {
 
   const [currentTeamName, setCurrentTeamName] = useState(null);
   const [openPTeamCreationModal, setOpenPTeamCreationModal] = useState(false);
-  const [openATeamCreationModal, setOpenATeamCreationModal] = useState(false);
   const locationReader = useMemo(() => new LocationReader(location), [location]);
 
   const skip = useSkipUntilAuthTokenIsReady();
@@ -49,10 +47,6 @@ export function TeamSelector() {
       setCurrentTeamName(
         userMe.pteams?.find((x) => x.pteam_id === locationReader.getPTeamId())?.pteam_name,
       );
-    } else {
-      setCurrentTeamName(
-        userMe.ateams?.find((x) => x.ateam_id === locationReader.getATeamId())?.ateam_name,
-      );
     }
   }, [userMe, locationReader]);
 
@@ -63,36 +57,9 @@ export function TeamSelector() {
   const switchToPTeam = (teamId) => {
     handleClose();
     setCurrentTeamName(userMe.pteams?.find((x) => x.pteam_id === teamId)?.pteam_name);
-
-    if (locationReader.isPTeamMode()) {
-      if (locationReader.isTagPage() || locationReader.isPTeamInvitationPage()) {
-        const newParams = new URLSearchParams();
-        newParams.set("pteamId", teamId);
-        navigate("/?" + newParams);
-      } else {
-        const newParams = locationReader.isWatchingRequestPage()
-          ? new URLSearchParams(location.search) // keep request token
-          : new URLSearchParams(); // clear params
-        newParams.set("pteamId", teamId);
-        navigate(location.pathname + "?" + newParams.toString());
-      }
-    } else {
-      const newParams = new URLSearchParams();
-      newParams.set("pteamId", teamId);
-      navigate("/?" + newParams.toString());
-    }
-  };
-
-  const switchToATeam = (teamId) => {
-    handleClose();
-    setCurrentTeamName(userMe.ateams?.find((x) => x.ateam_id === teamId)?.ateam_name);
     const newParams = new URLSearchParams();
-    newParams.set("ateamId", teamId);
-    if (locationReader.isATeamMode()) {
-      navigate(location.pathname + "?" + newParams.toString());
-    } else {
-      navigate("/analysis?" + newParams.toString());
-    }
+    newParams.set("pteamId", teamId);
+    navigate("/?" + newParams.toString());
   };
 
   return (
@@ -142,33 +109,10 @@ export function TeamSelector() {
             <AddIcon fontSize="small" />
             Create PTeam
           </MenuItem>
-          <Divider />
-          <ListSubheader sx={{ color: teamColor.ateam.hoverColor }}>Analysis Team</ListSubheader>
-          {userMe?.ateams &&
-            [...userMe.ateams]
-              .sort((a, b) => a.ateam_name.localeCompare(b.ateam_name)) // alphabetically
-              .map((ateam) => (
-                <MenuItem
-                  key={ateam.ateam_id}
-                  value={ateam.ateam_name}
-                  onClick={() => switchToATeam(ateam.ateam_id)}
-                >
-                  {textTrim(ateam.ateam_name)}
-                </MenuItem>
-              ))}
-          <MenuItem onClick={() => setOpenATeamCreationModal(true)}>
-            <AddIcon fontSize="small" />
-            Create ATeam
-          </MenuItem>
         </Menu>
         <PTeamCreateModal
           open={openPTeamCreationModal}
           onSetOpen={setOpenPTeamCreationModal}
-          onCloseTeamSelector={handleClose}
-        />
-        <ATeamCreateModal
-          open={openATeamCreationModal}
-          onOpen={setOpenATeamCreationModal}
           onCloseTeamSelector={handleClose}
         />
       </Box>

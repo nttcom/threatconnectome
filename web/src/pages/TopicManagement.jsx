@@ -126,7 +126,6 @@ export function TopicManagement() {
 
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
   const [checkedPteam, setCheckedPteam] = useState(true);
-  const [checkedAteam, setCheckedAteam] = useState(false);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
@@ -135,14 +134,12 @@ export function TopicManagement() {
 
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
-  const ateamId = params.get("ateamId");
 
   const searchParams = {
     offset: perPage * (page - 1),
     limit: perPage,
     sort_key: "updated_at_desc",
     pteam_id: checkedPteam === true && pteamId ? pteamId : null,
-    ateam_id: checkedAteam === true && ateamId ? ateamId : null,
     ...searchConditions,
   };
   const {
@@ -183,8 +180,6 @@ export function TopicManagement() {
   const handleChangeSwitch = () => {
     if (pteamId) {
       setCheckedPteam(!checkedPteam);
-    } else if (ateamId) {
-      setCheckedAteam(!checkedAteam);
     }
   };
 
@@ -253,16 +248,10 @@ export function TopicManagement() {
   return (
     <>
       <Box display="flex" mt={2}>
-        {pteamId ? (
+        {pteamId && (
           <FormControlLabel
             sx={{ ml: -1 }}
             control={<Android12Switch checked={checkedPteam} onChange={handleChangeSwitch} />}
-            label="Related topics"
-          />
-        ) : (
-          <FormControlLabel
-            sx={{ ml: -1 }}
-            control={<Android12Switch checked={checkedAteam} onChange={handleChangeSwitch} />}
             label="Related topics"
           />
         )}
