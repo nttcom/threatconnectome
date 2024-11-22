@@ -142,6 +142,7 @@ export function Status() {
   const {
     data: pteam,
     error: pteamError,
+    isFetching: pteamIsFetching,
     isLoading: pteamIsLoading,
   } = useGetPTeamQuery(pteamId, { skip: skipByAuth || !pteamId });
 
@@ -164,7 +165,7 @@ export function Status() {
 
   useEffect(() => {
     if (!pteamId) return; // wait fixed by App
-    if (!pteam) return; // wait getQuery
+    if (pteamIsFetching || !pteam) return; // wait getQuery
 
     if (!serviceId) {
       if (pteam.services.length === 0) return; // nothing to do any more.
