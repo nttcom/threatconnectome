@@ -67,14 +67,6 @@ PTEAM3 = {
     "pteam_name": "pteam charlie",
     "contact_info": "charlie@ml.com",
 }
-ATEAM1 = {
-    "ateam_name": "ateam a-one",
-    "contact_info": "a-one@ml.com",
-}
-ATEAM2 = {
-    "ateam_name": "ateam a-two",
-    "contact_info": "",
-}
 TOPIC1 = {
     "topic_id": uuid4(),
     "title": "topic one",
