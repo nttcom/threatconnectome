@@ -35,13 +35,13 @@ def upgrade() -> None:
     op.drop_index('ix_ateamtopiccomment_topic_id', table_name='ateamtopiccomment')
     op.drop_index('ix_ateamtopiccomment_user_id', table_name='ateamtopiccomment')
     op.drop_table('ateamtopiccomment')
-    op.drop_table('ateam')
     op.drop_index('ix_ateamaccount_ateam_id', table_name='ateamaccount')
     op.drop_index('ix_ateamaccount_user_id', table_name='ateamaccount')
     op.drop_table('ateamaccount')
     op.drop_index('ix_ateaminvitation_ateam_id', table_name='ateaminvitation')
     op.drop_index('ix_ateaminvitation_user_id', table_name='ateaminvitation')
     op.drop_table('ateaminvitation')
+    op.drop_table('ateam')
     # ### end Alembic commands ###
 
 
