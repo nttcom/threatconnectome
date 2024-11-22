@@ -4,7 +4,6 @@ import argparse
 import json
 import os
 import sys
-from datetime import datetime
 from functools import partial
 from pathlib import Path
 from time import sleep
