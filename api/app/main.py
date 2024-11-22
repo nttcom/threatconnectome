@@ -8,7 +8,6 @@ from app.auth import get_firebase_credentials, setup_firebase_auth
 from app.routers import (
     actionlogs,
     actions,
-    ateams,
     auth,
     external,
     misptags,
@@ -45,7 +44,6 @@ def create_app():
     app.include_router(auth.router)  # place auth on the top for comfortable docs
     app.include_router(actionlogs.router)
     app.include_router(actions.router)
-    app.include_router(ateams.router)
     app.include_router(external.router)
     app.include_router(misptags.router)
     app.include_router(pteams.router)

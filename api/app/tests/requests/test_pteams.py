@@ -24,7 +24,6 @@ from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     ACTION1,
     ACTION2,
-    ATEAM1,
     PTEAM1,
     PTEAM2,
     SAMPLE_SLACK_WEBHOOK_URL,
@@ -39,18 +38,15 @@ from app.tests.medium.constants import (
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     accept_pteam_invitation,
-    accept_watching_request,
     assert_200,
     assert_204,
     calc_file_sha256,
     compare_references,
     compare_tags,
-    create_ateam,
     create_pteam,
     create_tag,
     create_topic,
     create_user,
-    create_watching_request,
     file_upload_headers,
     get_pteam_services,
     get_pteam_tags,
@@ -2300,81 +2296,6 @@ def test_remove_pteamtags_by_service():
             params={"service": service1},
         )
     )
-
-
-def test_get_watchers():
-    create_user(USER1)
-    create_user(USER2)
-    create_user(USER3)
-    ateam1 = create_ateam(USER1, ATEAM1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    data = assert_200(client.get(f"/pteams/{pteam1.pteam_id}/watchers", headers=headers(USER1)))
-    assert len(data) == 0
-
-    watching_request1 = create_watching_request(USER1, ateam1.ateam_id)
-    accept_watching_request(USER1, watching_request1.request_id, pteam1.pteam_id)
-
-    data = assert_200(client.get(f"/pteams/{pteam1.pteam_id}/watchers", headers=headers(USER1)))
-    assert len(data) == 1
-    assert data[0]["ateam_id"] == str(ateam1.ateam_id)
-
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    # get by member
-    data = assert_200(client.get(f"/pteams/{pteam1.pteam_id}/watchers", headers=headers(USER2)))
-    assert len(data) == 1
-    assert data[0]["ateam_id"] == str(ateam1.ateam_id)
-
-    # get by not member
-    with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
-        assert_200(client.get(f"/pteams/{pteam1.pteam_id}/watchers", headers=headers(USER3)))
-
-
-def test_remove_watcher():
-    create_user(USER1)
-    create_user(USER2)
-    create_user(USER3)
-    ateam1 = create_ateam(USER1, ATEAM1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    watching_request = create_watching_request(USER1, ateam1.ateam_id)
-    accept_watching_request(USER1, watching_request.request_id, pteam1.pteam_id)
-
-    data = assert_200(client.get(f"/pteams/{pteam1.pteam_id}/watchers", headers=headers(USER1)))
-    assert len(data) == 1
-
-    # delete by not member
-    with pytest.raises(HTTPError, match=r"403: Forbidden: You do not have authority"):
-        assert_200(
-            client.delete(
-                f"/pteams/{pteam1.pteam_id}/watchers/{ateam1.ateam_id}", headers=headers(USER3)
-            )
-        )
-
-    # delete by not ADMIN
-    with pytest.raises(HTTPError, match=r"403: Forbidden: You do not have authority"):
-        assert_200(
-            client.delete(
-                f"/pteams/{pteam1.pteam_id}/watchers/{ateam1.ateam_id}", headers=headers(USER2)
-            )
-        )
-
-    # delete by ADMIN
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/watchers/{ateam1.ateam_id}", headers=headers(USER1)
-    )
-    assert response.status_code == 204
-    data = assert_200(client.get(f"/pteams/{pteam1.pteam_id}/watchers", headers=headers(USER1)))
-    assert len(data) == 0
-    data = assert_200(
-        client.get(f"/ateams/{ateam1.ateam_id}/watching_pteams", headers=headers(USER1))
-    )
-    assert len(data) == 0
 
 
 def test_upload_pteam_sbom_file_with_syft():

@@ -74,16 +74,6 @@ PTEAM3 = {
     "contact_info": "charlie@ml.com",
     "alert_slack": {"enable": True, "webhook_url": ""},
 }
-ATEAM1 = {
-    "ateam_name": "ateam a-one",
-    "contact_info": "a-one@ml.com",
-    "alert_mail": {"enable": False, "address": "a-one@ml.com"},  # disable SendGrid if not needed
-}
-ATEAM2 = {
-    "ateam_name": "ateam a-two",
-    "contact_info": "",
-    "alert_mail": {"enable": False, "address": "a-two@ml.com"},  # disable SendGrid if not needed
-}
 TOPIC1 = {
     "topic_id": uuid4(),
     "title": "topic one",

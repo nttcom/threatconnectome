@@ -44,7 +44,6 @@ NOT_HAVE_AUTH = HTTPException(
     status_code=status.HTTP_403_FORBIDDEN,
     detail="You do not have authority",
 )
-NO_SUCH_ATEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ateam")
 NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
 NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
 NO_SUCH_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
@@ -862,7 +861,7 @@ def update_pteam_auth(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid user id",
                 )
-            if not check_pteam_membership(pteam, user, ignore_ateam=True):
+            if not check_pteam_membership(pteam, user):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Not a pteam member",
@@ -1374,43 +1373,3 @@ def delete_invitation(
     db.commit()  # commit not only deleted but also expired
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)  # avoid Content-Length Header
-
-
-@router.get("/{pteam_id}/watchers", response_model=list[schemas.ATeamEntry])
-def get_pteam_watchers(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get watching pteams of the ateam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    return pteam.ateams
-
-
-@router.delete("/{pteam_id}/watchers/{ateam_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_watcher_ateam(
-    pteam_id: UUID,
-    ateam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Remove ateam from watchers list.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
-        raise NOT_HAVE_AUTH
-    if not (ateam := persistence.get_ateam_by_id(db, ateam_id)):
-        raise NO_SUCH_ATEAM
-    if ateam in pteam.ateams:  # ignore removing not-watcher
-        pteam.ateams.remove(ateam)
-        db.commit()
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
