@@ -120,62 +120,6 @@ class PTeamAuthIntFlag(enum.IntFlag):
         return result
 
 
-class ATeamAuthEnum(str, enum.Enum):
-    ADMIN = "admin"
-    INVITE = "invite"
-
-    @classmethod
-    def info(cls) -> dict[str, dict[str, int | str]]:
-        return {
-            "admin": {
-                "int": 0,
-                "name": "Administrator",
-                "desc": "To administrate the ateam.",
-            },
-            "invite": {
-                "int": 1,
-                "name": "Inviter",
-                "desc": "To create invitation to the ateam.",
-            },
-        }
-
-    def to_int(self) -> int:
-        return cast(int, ATeamAuthEnum.info()[self.value]["int"])
-
-
-class ATeamAuthIntFlag(enum.IntFlag):
-    """
-    Integer which can be combined using the bitwise operators. (INTERNAL USE ONLY!)
-
-    See ATeamAuthEnum.info() for details.
-    """
-
-    ADMIN = 1 << ATeamAuthEnum.ADMIN.to_int()
-    INVITE = 1 << ATeamAuthEnum.INVITE.to_int()
-
-    # authority sets for members
-    ATEAM_MEMBER = 0
-    ATEAM_LEADER = ATEAM_MEMBER | INVITE
-    ATEAM_MASTER = 0x0FFFFFFF
-
-    # template authority set for non-members
-    FREE_TEMPLATE = 0
-
-    @classmethod
-    def from_enums(cls, datas: list[ATeamAuthEnum]):
-        result = 0
-        for data in datas:
-            result |= 1 << data.to_int()
-        return ATeamAuthIntFlag(result)
-
-    def to_enums(self) -> list[ATeamAuthEnum]:
-        result = []
-        for data in list(ATeamAuthEnum):
-            if self & 1 << data.to_int():
-                result.append(data)
-        return result
-
-
 class TopicStatusType(str, enum.Enum):
     alerted = "alerted"
     acknowledged = "acknowledged"
@@ -277,26 +221,6 @@ class PTeamAccount(Base):
     user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
 
 
-class ATeamAccount(Base):
-    __tablename__ = "ateamaccount"
-
-    ateam_id = mapped_column(
-        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
-
-
-class ATeamPTeam(Base):
-    __tablename__ = "ateampteam"
-
-    ateam_id = mapped_column(
-        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    pteam_id = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-
-
 class TopicTag(Base):
     __tablename__ = "topictag"
 
@@ -337,10 +261,7 @@ class Account(Base):
     years: Mapped[int | None]
 
     pteams = relationship("PTeam", secondary=PTeamAccount.__tablename__, back_populates="members")
-    ateams = relationship("ATeam", secondary=ATeamAccount.__tablename__, back_populates="members")
     pteam_invitations = relationship("PTeamInvitation", back_populates="inviter")
-    ateam_invitations = relationship("ATeamInvitation", back_populates="inviter")
-    ateam_requests = relationship("ATeamWatchingRequest", back_populates="requester")
     action_logs = relationship("ActionLog", back_populates="executed_by")
 
 
@@ -574,35 +495,11 @@ class PTeam(Base):
     )
     members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
     invitations = relationship("PTeamInvitation", back_populates="pteam")
-    ateams = relationship("ATeam", secondary=ATeamPTeam.__tablename__, back_populates="pteams")
     alert_slack: Mapped["PTeamSlack"] = relationship(
         back_populates="pteam", cascade="all, delete-orphan"
     )
     alert_mail: Mapped["PTeamMail"] = relationship(
         back_populates="pteam", cascade="all, delete-orphan"
-    )
-
-
-class ATeam(Base):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self.ateam_id:
-            self.ateam_id = str(uuid.uuid4())
-
-    __tablename__ = "ateam"
-
-    ateam_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    ateam_name: Mapped[Str255]
-    contact_info: Mapped[Str255]
-    members = relationship("Account", secondary=ATeamAccount.__tablename__, back_populates="ateams")
-    invitations = relationship("ATeamInvitation", back_populates="ateam")
-    pteams = relationship("PTeam", secondary=ATeamPTeam.__tablename__, back_populates="ateams")
-    watching_requests = relationship("ATeamWatchingRequest", back_populates="ateam")
-    alert_slack: Mapped["ATeamSlack"] = relationship(
-        back_populates="ateam", cascade="all, delete-orphan"
-    )
-    alert_mail: Mapped["ATeamMail"] = relationship(
-        back_populates="ateam", cascade="all, delete-orphan"
     )
 
 
@@ -619,19 +516,6 @@ class PTeamAuthority(Base):
     authority: Mapped[int]  # PTeamAuthIntFlag as an integer
 
 
-# TODO: This info should be stored in ATeamAccount table to cascade delete
-class ATeamAuthority(Base):
-    __tablename__ = "ateamauthority"
-
-    ateam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    user_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("account.user_id"), primary_key=True, index=True
-    )
-    authority: Mapped[int]  # ATeamAuthIntFlag as an integer
-
-
 class PTeamMail(Base):
     __tablename__ = "pteammail"
 
@@ -644,18 +528,6 @@ class PTeamMail(Base):
     pteam: Mapped[PTeam] = relationship(back_populates="alert_mail")
 
 
-class ATeamMail(Base):
-    __tablename__ = "ateammail"
-
-    ateam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    enable: Mapped[bool]
-    address: Mapped[Str255]
-
-    ateam: Mapped[ATeam] = relationship(back_populates="alert_mail")
-
-
 class PTeamSlack(Base):
     __tablename__ = "pteamslack"
 
@@ -666,18 +538,6 @@ class PTeamSlack(Base):
     webhook_url: Mapped[Str255]
 
     pteam: Mapped[PTeam] = relationship(back_populates="alert_slack")
-
-
-class ATeamSlack(Base):
-    __tablename__ = "ateamslack"
-
-    ateam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    enable: Mapped[bool] = mapped_column(default=True)
-    webhook_url: Mapped[Str255]
-
-    ateam: Mapped[ATeam] = relationship(back_populates="alert_slack")
 
 
 class Tag(Base):
@@ -829,67 +689,3 @@ class PTeamInvitation(Base):
 
     pteam = relationship("PTeam", back_populates="invitations")
     inviter = relationship("Account", back_populates="pteam_invitations")
-
-
-class ATeamInvitation(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.invitation_id:
-            self.invitation_id = str(uuid.uuid4())
-
-    __tablename__ = "ateaminvitation"
-
-    invitation_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    ateam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), index=True
-    )
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    expiration: Mapped[datetime]
-    limit_count: Mapped[int | None]  # None for unlimited
-    used_count: Mapped[int] = mapped_column(server_default="0")
-    authority: Mapped[int]  # ATeamAuthIntFlag
-
-    ateam = relationship("ATeam", back_populates="invitations")
-    inviter = relationship("Account", back_populates="ateam_invitations")
-
-
-class ATeamWatchingRequest(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.request_id:
-            self.request_id = str(uuid.uuid4())
-
-    __tablename__ = "ateamwatchingrequest"
-
-    request_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    ateam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), index=True
-    )
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    expiration: Mapped[datetime]
-    limit_count: Mapped[int | None]  # None for unlimited
-    used_count: Mapped[int] = mapped_column(server_default="0")
-
-    ateam = relationship("ATeam", back_populates="watching_requests")
-    requester = relationship("Account", back_populates="ateam_requests")
-
-
-class ATeamTopicComment(Base):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self.comment_id:
-            self.comment_id = str(uuid.uuid4())
-
-    __tablename__ = "ateamtopiccomment"
-
-    comment_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    topic_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"), index=True
-    )
-    ateam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("ateam.ateam_id", ondelete="CASCADE"), index=True
-    )
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
-    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-    updated_at: Mapped[datetime | None]
-    comment: Mapped[str]

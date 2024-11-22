@@ -7,7 +7,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.constants import DEFAULT_ALERT_SSVC_PRIORITY
 from app.models import (
     ActionType,
-    ATeamAuthEnum,
     AutomatableEnum,
     ExploitationEnum,
     MissionImpactEnum,
@@ -61,12 +60,6 @@ class PTeamEntry(ORMModel):
     contact_info: str
 
 
-class ATeamEntry(ORMModel):
-    ateam_id: UUID
-    ateam_name: str
-    contact_info: str
-
-
 class UserResponse(ORMModel):
     user_id: UUID
     uid: str
@@ -74,7 +67,6 @@ class UserResponse(ORMModel):
     disabled: bool
     years: int
     pteams: list[PTeamEntry]
-    ateams: list[ATeamEntry]
 
 
 class UserCreateRequest(ORMModel):
@@ -249,7 +241,6 @@ class PTeamInfo(PTeamEntry):
     alert_slack: Slack
     alert_ssvc_priority: SSVCDeployerPriorityEnum
     services: list[PTeamServiceResponse]
-    ateams: list[ATeamEntry]
     alert_mail: Mail
 
 
@@ -317,99 +308,8 @@ class PTeamInviterResponse(ORMModel):
     user_id: UUID
 
 
-class ATeamInfo(ATeamEntry):
-    alert_slack: Slack
-    alert_mail: Mail
-    pteams: list[PTeamInfo]
-
-
-class ApplyInvitationRequest(ORMModel):  # common use of PTeam and ATeam
+class ApplyInvitationRequest(ORMModel):
     invitation_id: UUID
-
-
-class ATeamCreateRequest(ORMModel):
-    ateam_name: str
-    contact_info: str = ""
-    alert_slack: Slack | None = None
-    alert_mail: Mail | None = None
-
-
-class ATeamUpdateRequest(ORMModel):
-    ateam_name: str | None = None
-    contact_info: str | None = None
-    alert_slack: Slack | None = None
-    alert_mail: Mail | None = None
-
-
-class ATeamAuthInfo(ORMModel):
-    class ATeamAuthEntry(ORMModel):
-        enum: str
-        name: str
-        desc: str
-
-    class PseudoUUID(ORMModel):
-        name: str
-        uuid: UUID
-
-    authorities: list[ATeamAuthEntry]
-    pseudo_uuids: list[PseudoUUID]
-
-
-class ATeamAuthRequest(ORMModel):
-    user_id: UUID
-    authorities: list[ATeamAuthEnum]
-
-
-class ATeamAuthResponse(ORMModel):
-    user_id: UUID
-    authorities: list[ATeamAuthEnum]
-
-
-class ATeamInvitationRequest(ORMModel):
-    expiration: datetime
-    limit_count: int | None = None  # None for unlimited
-    authorities: list[ATeamAuthEnum] | None = None  # require ADMIN for not-None
-
-
-class ATeamInvitationResponse(ORMModel):
-    invitation_id: UUID
-    ateam_id: UUID
-    expiration: datetime
-    limit_count: int | None = None
-    used_count: int
-    authorities: list[ATeamAuthEnum]
-
-
-class ATeamInviterResponse(ORMModel):
-    ateam_id: UUID
-    ateam_name: str
-    email: str
-    user_id: UUID
-
-
-class ATeamWatchingRequestRequest(ORMModel):
-    expiration: datetime
-    limit_count: int | None = None  # None for unlimited
-
-
-class ATeamWatchingRequestResponse(ORMModel):
-    request_id: UUID
-    ateam_id: UUID
-    expiration: datetime
-    limit_count: int | None = None
-    used_count: int
-
-
-class ATeamRequesterResponse(ORMModel):
-    ateam_id: UUID
-    ateam_name: str
-    email: str
-    user_id: UUID
-
-
-class ApplyWatchingRequestRequest(ORMModel):
-    request_id: UUID
-    pteam_id: UUID
 
 
 class ActionLogResponse(ORMModel):
@@ -548,39 +448,6 @@ class PTeamTopicStatus(ORMModel):
     pteam_id: UUID
     pteam_name: str
     service_statuses: list[ServiceTopicStatus]
-
-
-class ATeamTopicStatus(ORMModel):
-    topic_id: UUID
-    title: str
-    threat_impact: int
-    updated_at: datetime
-    num_pteams: int
-    pteam_statuses: list[PTeamTopicStatus]
-
-
-class ATeamTopicStatusResponse(ORMModel):
-    num_topics: int
-    offset: int | None = None
-    limit: int | None = None
-    search: str | None = None
-    sort_key: str
-    topic_statuses: list[ATeamTopicStatus]
-
-
-class ATeamTopicCommentRequest(ORMModel):
-    comment: str
-
-
-class ATeamTopicCommentResponse(ORMModel):
-    comment_id: UUID
-    topic_id: UUID
-    ateam_id: UUID
-    user_id: UUID
-    created_at: datetime
-    updated_at: datetime | None = None
-    comment: str
-    email: str
 
 
 class ServiceTaggedTopics(ORMModel):

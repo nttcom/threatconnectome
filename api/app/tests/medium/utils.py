@@ -19,14 +19,6 @@ from app.tests.medium.routers.test_auth import get_access_token_headers, get_fil
 client = TestClient(app)
 
 
-def to_datetime(datetime_value: datetime | str | None) -> datetime | None:
-    if datetime_value is None:
-        return None
-    if isinstance(datetime_value, datetime):
-        return datetime_value
-    return datetime.fromisoformat(datetime_value)
-
-
 def assert_200(response) -> dict:
     if response.status_code != 200:
         raise HTTPError(response)
@@ -152,77 +144,6 @@ def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceRe
 def get_service_by_service_name(user: dict, pteam_id: UUID | str, service_name: str):
     data = assert_200(client.get(f"/pteams/{pteam_id}", headers=headers(user)))
     return next(filter(lambda x: x["service_name"] == service_name, data["services"]), None)
-
-
-def create_ateam(user: dict, ateam: dict) -> schemas.ATeamInfo:
-    request = {**ateam}
-
-    response = client.post("/ateams", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.ATeamInfo(**response.json())
-
-
-def invite_to_ateam(
-    user: dict,
-    ateam_id: UUID | str,
-    authes: list[models.ATeamAuthEnum] | None = None,
-) -> schemas.ATeamInvitationResponse:
-    request = {
-        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
-        "limit_count": 1,
-        "authorities": authes,
-    }
-
-    response = client.post(f"/ateams/{ateam_id}/invitation", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.ATeamInvitationResponse(**response.json())
-
-
-def create_watching_request(
-    user: dict,
-    ateam_id: UUID | str,
-) -> schemas.ATeamWatchingRequestResponse:
-    request = {
-        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
-        "limit_count": 1,
-    }
-
-    response = client.post(
-        f"/ateams/{ateam_id}/watching_request", headers=headers(user), json=request
-    )
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.ATeamWatchingRequestResponse(**response.json())
-
-
-def accept_watching_request(user: dict, request_id: UUID, pteam_id: UUID) -> schemas.PTeamInfo:
-    request = {
-        "request_id": str(request_id),
-        "pteam_id": str(pteam_id),
-    }
-
-    response = client.post("/ateams/apply_watching_request", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.PTeamInfo(**response.json())
-
-
-def accept_ateam_invitation(user: dict, invitation_id: UUID) -> schemas.ATeamInfo:
-    request = {
-        "invitation_id": str(invitation_id),
-    }
-
-    response = client.post("/ateams/apply_invitation", headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.ATeamInfo(**response.json())
 
 
 def create_tag(user: dict, tag_name: str) -> schemas.TagResponse:

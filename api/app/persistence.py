@@ -105,116 +105,6 @@ def get_topic_logs_by_user_id(
     ).all()
 
 
-### ATeam
-
-
-def get_ateam_by_id(db: Session, ateam_id: UUID | str) -> models.ATeam | None:
-    return db.scalars(
-        select(models.ATeam).where(models.ATeam.ateam_id == str(ateam_id))
-    ).one_or_none()
-
-
-def get_all_ateams(db: Session) -> Sequence[models.ATeam]:
-    return db.scalars(select(models.ATeam)).all()
-
-
-def create_ateam(db: Session, ateam: models.ATeam) -> None:
-    db.add(ateam)
-    db.flush()
-
-
-def get_ateam_invitation_by_id(
-    db: Session,
-    invitation_id: UUID | str,
-) -> models.ATeamInvitation | None:
-    return db.scalars(
-        select(models.ATeamInvitation).where(
-            models.ATeamInvitation.invitation_id == str(invitation_id)
-        )
-    ).one_or_none()
-
-
-def create_ateam_invitation(db: Session, invitation: models.ATeamInvitation) -> None:
-    db.add(invitation)
-    db.flush()
-
-
-def delete_ateam_invitation(db: Session, invitation: models.ATeamInvitation) -> None:
-    db.delete(invitation)
-    db.flush()
-
-
-def get_ateam_watching_request_by_id(
-    db: Session,
-    request_id: UUID | str,
-) -> models.ATeamWatchingRequest | None:
-    return db.scalars(
-        select(models.ATeamWatchingRequest).where(
-            models.ATeamWatchingRequest.request_id == str(request_id)
-        )
-    ).one_or_none()
-
-
-def create_ateam_watching_request(db: Session, request: models.ATeamWatchingRequest) -> None:
-    db.add(request)
-    db.flush()
-
-
-def delete_ateam_watching_request(db: Session, request: models.ATeamWatchingRequest) -> None:
-    db.delete(request)
-    db.flush()
-
-
-### ATeamAuthority
-
-
-def get_ateam_authority(
-    db: Session,
-    ateam_id: UUID | str,
-    user_id: UUID | str,
-) -> models.ATeamAuthority | None:
-    return db.scalars(
-        select(models.ATeamAuthority).where(
-            models.ATeamAuthority.ateam_id == str(ateam_id),
-            models.ATeamAuthority.user_id == str(user_id),
-        )
-    ).one_or_none()
-
-
-def get_ateam_all_authorities(db: Session, ateam_id: UUID | str) -> Sequence[models.ATeamAuthority]:
-    return db.scalars(
-        select(models.ATeamAuthority).where(models.ATeamAuthority.ateam_id == str(ateam_id))
-    ).all()
-
-
-def create_ateam_authority(db: Session, auth: models.ATeamAuthority) -> None:
-    db.add(auth)
-    db.flush()
-
-
-### ATeamTopicComment
-
-
-def create_ateam_topic_comment(db: Session, comment: models.ATeamTopicComment) -> None:
-    db.add(comment)
-    db.flush()
-
-
-def delete_ateam_topic_comment(db: Session, comment: models.ATeamTopicComment) -> None:
-    db.delete(comment)
-    db.flush()
-
-
-def get_ateam_topic_comment_by_id(
-    db: Session, comment_id: UUID | str
-) -> models.ATeamTopicComment | None:
-    return db.scalars(
-        select(models.ATeamTopicComment).where(
-            models.ATeamTopicComment.comment_id == str(comment_id)
-        )
-    ).one_or_none()
-
-
 ### PTeam
 
 
@@ -454,17 +344,6 @@ def get_dependency_from_service_id_and_tag_id(
 ### Alert
 
 
-def get_alert_by_id(db: Session, alert_id: UUID | str) -> models.Alert | None:
-    return db.scalars(
-        select(models.Alert).where(models.Alert.alert_id == str(alert_id))
-    ).one_or_none()
-
-
 def create_alert(db: Session, alert: models.Alert) -> None:
     db.add(alert)
-    db.flush()
-
-
-def delete_alert(db: Session, alert: models.Alert) -> None:
-    db.delete(alert)
     db.flush()

@@ -3,13 +3,11 @@ from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import (
-    Row,
     Subquery,
     and_,
     delete,
     false,
     func,
-    nullsfirst,
     or_,
     select,
     true,
@@ -41,7 +39,6 @@ sortkey2orderby: dict[schemas.TopicSortKey, list] = {
 def workaround_delete_team_authes_by_user_id(db: Session, user_id: UUID | str) -> None:
     # this is workaround until models fixed with delete on cascade
     db.execute(delete(models.PTeamAuthority).where(models.PTeamAuthority.user_id == str(user_id)))
-    db.execute(delete(models.ATeamAuthority).where(models.ATeamAuthority.user_id == str(user_id)))
     db.flush()
 
 
@@ -49,108 +46,6 @@ def workaround_delete_pteam_authority(db: Session, auth: models.PTeamAuthority) 
     # this is workaround until models fixed with delete on cascade
     db.delete(auth)
     db.flush()
-
-
-def workaround_delete_ateam_authority(db: Session, auth: models.ATeamAuthority) -> None:
-    # this is workaround until models fixed with delete on cascade
-    db.delete(auth)
-    db.flush()
-
-
-def get_ateam_topic_statuses(
-    db: Session, ateam_id: UUID | str, sort_key: schemas.TopicSortKey, search: str | None
-):
-    sort_rules = sortkey2orderby[sort_key] + [
-        models.Topic.topic_id,  # service by topic
-        nullsfirst(models.TicketStatus.topic_status),  # worst state on array[0]
-        models.TicketStatus.scheduled_at.desc(),  # latest on array[0] if worst is scheduled
-        models.PTeam.pteam_name,
-        models.Tag.tag_name,
-    ]
-
-    join_topic_rules = [models.Topic.topic_id == models.Threat.topic_id]
-    if search:
-        join_topic_rules.append(models.Topic.title.icontains(search, autoescape=True))
-
-    select_stmt = (
-        select(
-            models.ATeamPTeam.ateam_id,
-            models.PTeam.pteam_id,
-            models.PTeam.pteam_name,
-            models.Service.service_id,
-            models.Service.service_name,
-            models.Tag,
-            models.Topic.topic_id,
-            models.Topic.title,
-            models.Topic.updated_at,
-            models.Topic.threat_impact,
-            models.TicketStatus,
-        )
-        .join(
-            models.PTeam,
-            and_(
-                models.ATeamPTeam.ateam_id == str(ateam_id),
-                models.ATeamPTeam.pteam_id == models.PTeam.pteam_id,
-            ),
-        )
-        .join(models.Service)
-        .join(models.Dependency)
-        .join(models.Tag)
-        .join(models.Threat)
-        .join(models.Topic, and_(*join_topic_rules))
-        .join(models.Ticket)
-        .join(
-            models.TicketStatus,
-            and_(
-                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
-                models.TicketStatus.topic_status != models.TopicStatusType.completed,
-            ),
-        )
-        .order_by(*sort_rules)
-    )
-
-    return db.execute(select_stmt).all()
-
-
-def get_ateam_topic_comments(
-    db: Session, ateam_id: UUID | str, topic_id: UUID | str
-) -> list[Row[tuple[str, str, str, str, datetime, datetime | None, str, str | None]]]:
-    return (
-        db.query(
-            models.ATeamTopicComment.comment_id,
-            models.ATeamTopicComment.topic_id,
-            models.ATeamTopicComment.ateam_id,
-            models.ATeamTopicComment.user_id,
-            models.ATeamTopicComment.created_at,
-            models.ATeamTopicComment.updated_at,
-            models.ATeamTopicComment.comment,
-            models.Account.email,
-        )
-        .join(
-            models.Account,
-            models.Account.user_id == models.ATeamTopicComment.user_id,
-        )
-        .filter(
-            models.ATeamTopicComment.ateam_id == str(ateam_id),
-            models.ATeamTopicComment.topic_id == str(topic_id),
-        )
-        .order_by(
-            models.ATeamTopicComment.created_at.desc(),
-        )
-        .all()
-    )
-
-
-def missing_ateam_admin(db: Session, ateam: models.ATeam) -> bool:
-    return (
-        db.execute(
-            select(models.ATeamAuthority).where(
-                models.ATeamAuthority.ateam_id == ateam.ateam_id,
-                models.ATeamAuthority.authority.op("&")(models.ATeamAuthIntFlag.ADMIN) != 0,
-            )
-        ).first()
-        is None
-    )
 
 
 def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
@@ -163,22 +58,6 @@ def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
         ).first()
         is None
     )
-
-
-def check_tag_is_related_to_topic(db: Session, tag: models.Tag, topic: models.Topic) -> bool:
-    row = (
-        db.query(models.Tag, models.TopicTag)
-        .filter(models.Tag.tag_id == tag.tag_id)
-        .outerjoin(
-            models.TopicTag,
-            and_(
-                models.TopicTag.topic_id == topic.topic_id,
-                models.TopicTag.tag_id.in_([models.Tag.tag_id, models.Tag.parent_id]),
-            ),
-        )
-        .first()
-    )
-    return row is not None and row.TopicTag is not None
 
 
 def search_topics_internal(
@@ -198,7 +77,6 @@ def search_topics_internal(
     updated_after: datetime | None = None,
     updated_before: datetime | None = None,
     pteam_id: UUID | None = None,
-    ateam_id: UUID | None = None,
 ) -> dict:
     # search conditions
     search_by_threat_impacts_stmt = (
@@ -330,20 +208,6 @@ def search_topics_internal(
             )
             .subquery()
         )
-    elif ateam_id:
-        subq_team_affected_tag = (
-            select(models.Tag)
-            .join(models.Dependency)
-            .join(models.Service)
-            .join(
-                models.ATeamPTeam,
-                and_(
-                    models.Service.pteam_id == models.ATeamPTeam.pteam_id,
-                    models.ATeamPTeam.ateam_id == str(ateam_id),
-                ),
-            )
-            .subquery()
-        )
 
     # join tables only if required
     select_topics_stmt = select(models.Topic)
@@ -430,37 +294,6 @@ def expire_pteam_invitations(db: Session) -> None:
                 and_(
                     models.PTeamInvitation.limit_count.is_not(None),
                     models.PTeamInvitation.limit_count <= models.PTeamInvitation.used_count,
-                ),
-            ),
-        )
-    )
-    db.flush()
-
-
-def expire_ateam_invitations(db: Session) -> None:
-    db.execute(
-        delete(models.ATeamInvitation).where(
-            or_(
-                models.ATeamInvitation.expiration < datetime.now(),
-                and_(
-                    models.ATeamInvitation.limit_count.is_not(None),
-                    models.ATeamInvitation.limit_count <= models.ATeamInvitation.used_count,
-                ),
-            ),
-        )
-    )
-    db.flush()
-
-
-def expire_ateam_watching_requests(db: Session) -> None:
-    db.execute(
-        delete(models.ATeamWatchingRequest).where(
-            or_(
-                models.ATeamWatchingRequest.expiration < datetime.now(),
-                and_(
-                    models.ATeamWatchingRequest.limit_count.is_not(None),
-                    models.ATeamWatchingRequest.limit_count
-                    <= models.ATeamWatchingRequest.used_count,
                 ),
             ),
         )
