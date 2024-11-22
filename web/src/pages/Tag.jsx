@@ -14,6 +14,7 @@ import {
   useGetTagsQuery,
   useGetDependenciesQuery,
 } from "../services/tcApi";
+import { noPTeamMessage } from "../utils/const";
 import { a11yProps, errorToString } from "../utils/func.js";
 
 export function Tag() {
@@ -57,6 +58,7 @@ export function Tag() {
     (dependency) => dependency.tag_id === tagId,
   );
 
+  if (!pteamId) return <>{noPTeamMessage}</>;
   if (!getTopicIdsReady) return <></>;
   if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
   if (allTagsIsLoading) return <>Now loading allTags...</>;
