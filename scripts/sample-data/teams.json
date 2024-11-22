@@ -2,7 +2,4 @@
     "pteams": [
         {"pteam_name": "webapp-developers"}
     ],
-    "ateams": [
-        {"ateam_name": "webapp-psirt"}
-    ]
 }

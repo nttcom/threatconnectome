@@ -138,35 +138,6 @@ class ThreatconnectomeClient:
         response = self.retry_call(requests.post, api_endpoint, json=dict)
         return response.json()
 
-    def create_ateam(self, dict: dict) -> dict:
-        api_endpoint = f"{self.api_url}/ateams"
-        print(f"Post {api_endpoint}")
-        response = self.retry_call(requests.post, api_endpoint, json=dict)
-        return response.json()
-
-    def create_watching_request(
-        self,
-        ateam_id: UUID | str,
-    ) -> dict:
-        api_endpoint = f"{self.api_url}/ateams/{ateam_id}/watching_request"
-        request = {
-            "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
-            "limit_count": 5,
-        }
-        print(f"Post {api_endpoint}")
-        response = self.retry_call(requests.post, api_endpoint, json=request)
-        return response.json()
-
-    def accept_watching_request(self, request_id: UUID | str, pteam_id: UUID | str) -> dict:
-        api_endpoint = f"{self.api_url}/ateams/apply_watching_request"
-        print(f"Post {api_endpoint}")
-        request = {
-            "request_id": str(request_id),
-            "pteam_id": str(pteam_id),
-        }
-        response = self.retry_call(requests.post, api_endpoint, json=request)
-        return response.json()
-
     def upload_tags_file(self, pteam_id: UUID | str, file, service: str):
         api_endpoint = f"{self.api_url}/pteams/{pteam_id}/upload_tags_file"
         print(f"Post {api_endpoint}")
@@ -270,9 +241,6 @@ def main() -> None:
             teams_data = json.load(f)
 
         pteam1 = tc_client.create_pteam(teams_data["pteams"][0])
-        ateam1 = tc_client.create_ateam(teams_data["ateams"][0])
-        watching_req1 = tc_client.create_watching_request(ateam1["ateam_id"])
-        tc_client.accept_watching_request(watching_req1["request_id"], pteam1["pteam_id"])
 
         print("# register pteamtags")
         with open(sampledata_dir / "tags-backend.jsonl", "rb") as f:
