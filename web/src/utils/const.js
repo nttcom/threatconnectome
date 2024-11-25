@@ -353,9 +353,7 @@ export const sxModal = {
 
 export const noPTeamMessage = "You do not belong to any pteam. Please create a pteam.";
 
-export const teamColor = {
-  pteam: {
-    mainColor: brown[900],
-    hoverColor: brown[700],
-  },
+export const drawerParams = {
+  mainColor: brown[900],
+  hoverColor: brown[700],
 };

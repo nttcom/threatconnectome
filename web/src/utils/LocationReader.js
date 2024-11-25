@@ -27,22 +27,6 @@ export class LocationReader {
     return this.location.pathname === "/account";
   }
 
-  getTeamMode() {
-    if (this.isStatusPage() || this.isTagPage() || this.isPTeamPage()) {
-      return "pteam";
-    } else if (this.isTopicsPage() || this.isAccountPage()) {
-      const params = new URLSearchParams(this.location.search);
-      if (params.get("pteamId")) {
-        return "pteam";
-      }
-    }
-    return "pteam";
-  }
-
-  isPTeamMode() {
-    return this.getTeamMode() === "pteam";
-  }
-
   getPTeamId() {
     const params = new URLSearchParams(this.location.search);
     return params.get("pteamId");
