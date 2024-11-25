@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetUserMeQuery } from "../services/tcApi";
 import { LocationReader } from "../utils/LocationReader";
-import { teamColor } from "../utils/const";
+import { drawerParams } from "../utils/const";
 import { errorToString } from "../utils/func";
 
 import { PTeamCreateModal } from "./PTeamCreateModal";
@@ -43,11 +43,9 @@ export function TeamSelector() {
 
   useEffect(() => {
     if (!userMe) return;
-    if (locationReader.isPTeamMode()) {
-      setCurrentTeamName(
-        userMe.pteams?.find((x) => x.pteam_id === locationReader.getPTeamId())?.pteam_name,
-      );
-    }
+    setCurrentTeamName(
+      userMe.pteams?.find((x) => x.pteam_id === locationReader.getPTeamId())?.pteam_name,
+    );
   }, [userMe, locationReader]);
 
   if (skip) return <></>;
@@ -74,7 +72,7 @@ export function TeamSelector() {
           variant="outlined"
           sx={{
             textTransform: "none",
-            color: teamColor[locationReader.getTeamMode()].hoverColor,
+            color: drawerParams.hoverColor,
             border: `1.5px solid ${grey[300]}`,
             "&:hover": {
               bgcolor: grey[100],
@@ -92,7 +90,7 @@ export function TeamSelector() {
           open={open}
           onClose={handleClose}
         >
-          <ListSubheader sx={{ color: teamColor.pteam.hoverColor }}>Product Team</ListSubheader>
+          <ListSubheader sx={{ color: drawerParams.hoverColor }}>Product Team</ListSubheader>
           {userMe?.pteams &&
             [...userMe.pteams]
               .sort((a, b) => a.pteam_name.localeCompare(b.pteam_name)) // alphabetically

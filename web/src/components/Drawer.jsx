@@ -18,7 +18,7 @@ import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { LocationReader } from "../utils/LocationReader";
-import { drawerWidth, teamColor } from "../utils/const";
+import { drawerWidth, drawerParams } from "../utils/const";
 
 const DrawerHeader = styled("div")(({ theme }) => ({
   alignItems: "center",
@@ -41,12 +41,12 @@ export function Drawer() {
 
   const StyledListItemButton = styled(ListItemButton)({
     "&:hover": {
-      backgroundColor: teamColor[locationReader.getTeamMode()].hoverColor,
+      backgroundColor: drawerParams.hoverColor,
     },
     "&.Mui-selected": {
-      backgroundColor: teamColor[locationReader.getTeamMode()].hoverColor,
+      backgroundColor: drawerParams.hoverColor,
       "&:hover": {
-        backgroundColor: teamColor[locationReader.getTeamMode()].hoverColor,
+        backgroundColor: drawerParams.hoverColor,
       },
     },
   });
@@ -54,9 +54,7 @@ export function Drawer() {
   const queryParams = new URLSearchParams(location.search).toString();
 
   const handleNavigateTop = () => {
-    if (locationReader.isPTeamMode()) {
-      navigate("/?" + queryParams);
-    }
+    navigate("/?" + queryParams);
   };
 
   const drawerTitle = "Threatconnectome";
@@ -75,7 +73,7 @@ export function Drawer() {
       }}
       PaperProps={{
         sx: {
-          backgroundColor: teamColor[locationReader.getTeamMode()].mainColor,
+          backgroundColor: drawerParams.mainColor,
           color: "white",
         },
       }}
@@ -86,28 +84,26 @@ export function Drawer() {
         </Typography>
       </DrawerHeader>
       <List>
-        {locationReader.isPTeamMode() && (
-          <>
-            <StyledListItemButton
-              onClick={() => navigate("/?" + queryParams)}
-              selected={locationReader.isStatusPage()}
-            >
-              <StyledListItemIcon>
-                <HomeIcon />
-              </StyledListItemIcon>
-              <ListItemText>Status</ListItemText>
-            </StyledListItemButton>
-            <StyledListItemButton
-              onClick={() => navigate("/pteam?" + queryParams)}
-              selected={locationReader.isPTeamPage()}
-            >
-              <StyledListItemIcon>
-                <GroupsIcon />
-              </StyledListItemIcon>
-              <ListItemText>PTeam</ListItemText>
-            </StyledListItemButton>
-          </>
-        )}
+        <>
+          <StyledListItemButton
+            onClick={() => navigate("/?" + queryParams)}
+            selected={locationReader.isStatusPage()}
+          >
+            <StyledListItemIcon>
+              <HomeIcon />
+            </StyledListItemIcon>
+            <ListItemText>Status</ListItemText>
+          </StyledListItemButton>
+          <StyledListItemButton
+            onClick={() => navigate("/pteam?" + queryParams)}
+            selected={locationReader.isPTeamPage()}
+          >
+            <StyledListItemIcon>
+              <GroupsIcon />
+            </StyledListItemIcon>
+            <ListItemText>PTeam</ListItemText>
+          </StyledListItemButton>
+        </>
         {/* Topics */}
         <StyledListItemButton
           onClick={() => navigate("/topics?" + queryParams)}
