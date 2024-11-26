@@ -49,11 +49,6 @@ class Slack(ORMModel):
     webhook_url: str
 
 
-class User(ORMModel):
-    user_id: UUID
-    email: str
-
-
 class PTeamEntry(ORMModel):
     pteam_id: UUID
     pteam_name: str
@@ -91,10 +86,6 @@ class ActionResponse(ORMModel):
 
 class TagRequest(ORMModel):
     tag_name: str
-
-
-class ExtTagRequest(TagRequest):
-    references: list[dict] | None = []
 
 
 class TagResponse(ORMModel):
@@ -373,26 +364,6 @@ class TicketResponse(ORMModel):
     ticket_status: TicketStatusResponse
 
 
-class PTeamTaggedTopics(ORMModel):
-    pteam_id: UUID
-    tag_id: UUID
-    threat_impact_count: dict[str, int]
-    topic_ids: list[UUID]
-
-
-class FsAction(ORMModel):
-    action_id: UUID
-    topic_id: UUID
-    action_type: ActionType
-    action: str
-    recommended: bool
-
-
-class FsTopicSummary(ORMModel):
-    abstract: str
-    actions: list[FsAction]
-
-
 class PTeamTagSummary(ORMModel):
     tag_id: UUID
     tag_name: str
@@ -429,25 +400,6 @@ class SlackCheckRequest(ORMModel):
 
 class EmailCheckRequest(ORMModel):
     email: str
-
-
-class FsServerInfo(ORMModel):
-    api_url: str
-
-
-class ServiceTopicStatus(ORMModel):
-    service_id: UUID
-    service_name: str
-    tag: TagResponse
-    topic_status: TopicStatusType
-    assignees: list[UUID] = []
-    scheduled_at: datetime | None = None
-
-
-class PTeamTopicStatus(ORMModel):
-    pteam_id: UUID
-    pteam_name: str
-    service_statuses: list[ServiceTopicStatus]
 
 
 class ServiceTaggedTopics(ORMModel):
