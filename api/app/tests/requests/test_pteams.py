@@ -1944,26 +1944,6 @@ def test_upload_pteam_tags_file__complex():
             return False
         return all(_compare_ext_tags(_tags1[_idx], _tags2[_idx]) for _idx in range(len(_tags1)))
 
-    def _compare_tag_summaries(_tag1: dict, _tag2: dict) -> bool:
-        if not isinstance(_tag1, dict) or not isinstance(_tag2, dict):
-            return False
-        _keys = {"threat_impact", "updated_at", "status_count"}
-        if any(_tag1.get(_key) != _tag2.get(_key) for _key in _keys):
-            return False
-        return _compare_ext_tags(_tag1, _tag2)
-
-    def _compare_summaries(_sum1: dict, _sum2: dict) -> bool:
-        if not isinstance(_sum1, dict) or not isinstance(_sum2, dict):
-            return False
-        if _sum1.get("threat_impact_count") != _sum2.get("threat_impact_count"):
-            return False
-        if len(_sum1["tags"]) != len(_sum2["tags"]):
-            return False
-        return all(
-            _compare_tag_summaries(_sum1["tags"][_idx], _sum2["tags"][_idx])
-            for _idx in range(len(_sum1["tags"]))
-        )
-
     # add a:a:a as service-a
     lines = [
         {
@@ -2943,16 +2923,6 @@ class TestTicketStatus:
                 "accept": "application/json",
             }
             return client.put(url, headers=_headers, json=request).json()
-
-        def _get_ticket_status(self, pteam_id: str, service_id: str, ticket_id: str) -> dict:
-            url = f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}"
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-            return client.get(url, headers=_headers).json()
 
     class TestGet(Common):
 

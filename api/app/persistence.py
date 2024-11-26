@@ -48,11 +48,6 @@ def get_actions_by_topic_id(db: Session, topic_id: UUID | str) -> Sequence[model
     ).all()
 
 
-def create_action(db: Session, action: models.TopicAction) -> None:
-    db.add(action)
-    db.flush()
-
-
 def delete_action(db: Session, action: models.TopicAction) -> None:
     db.delete(action)
     db.flush()

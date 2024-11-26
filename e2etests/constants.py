@@ -38,18 +38,6 @@ REF3 = [
     }
 ]
 
-EXT_TAG1 = {
-    "tag_name": TAG1,
-    "references": REF1,
-}
-EXT_TAG2 = {
-    "tag_name": TAG2,
-    "references": REF2,
-}
-EXT_TAG3 = {
-    "tag_name": TAG3,
-    "references": REF3,
-}
 MISPTAG1 = "tlp:amber"
 MISPTAG2 = "tlp:clear"
 PTEAM1 = {
@@ -62,10 +50,6 @@ PTEAM2 = {
     "pteam_name": "pteam bravo",
     "contact_info": "bravo@ml.com",
     "alert_ssvc_priority": "out_of_cycle",
-}
-PTEAM3 = {
-    "pteam_name": "pteam charlie",
-    "contact_info": "charlie@ml.com",
 }
 TOPIC1 = {
     "topic_id": uuid4(),
@@ -124,18 +108,6 @@ ACTION2 = {
 ACTION3 = {
     "action": "action three",
     "action_type": "rejection",
-    "recommended": False,
-    "ext": {},
-}
-ELIMINATED_ACTION = {
-    "action": "eliminated action",
-    "action_type": "elimination",
-    "recommended": False,
-    "ext": {},
-}
-MITIGATED_ACTION = {
-    "action": "mitigated action",
-    "action_type": "mitigation",
     "recommended": False,
     "ext": {},
 }
