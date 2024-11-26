@@ -11,9 +11,7 @@ from app import models
 WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
 WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
 # CAUTION: do *NOT* urljoin subpath which starts with "/"
-STATUS_URL = urljoin(WEBUI_URL, "")
 TAG_URL = urljoin(WEBUI_URL, "tags/")
-ANALYSIS_URL = urljoin(WEBUI_URL, "analysis/")
 SSVC_PRIORITY_LABEL = {
     models.SSVCDeployerPriorityEnum.IMMEDIATE: ":red_circle: Immediate",
     models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: ":large_orange_circle: Out-of-cycle",

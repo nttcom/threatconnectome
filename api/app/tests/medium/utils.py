@@ -236,19 +236,6 @@ def search_topics(
     return schemas.SearchTopicsResponse(**data)
 
 
-def create_action(
-    user: dict,
-    action: dict,
-    topic_id: str | UUID,
-    ext: dict | None = None,
-) -> schemas.ActionResponse:
-    request: dict = {**action, "topic_id": str(topic_id)}
-    if ext is not None:
-        request.update({"ext": ext})
-    data = assert_200(client.post("/actions", headers=headers(user), json=request))
-    return schemas.ActionResponse(**data)
-
-
 def create_actionlog(
     user: dict,
     action_id: UUID | str,

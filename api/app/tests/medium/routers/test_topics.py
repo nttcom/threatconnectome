@@ -812,10 +812,6 @@ class TestTopicContentFingerprint:
         create_tag(USER1, TAG2)
         create_tag(USER1, TAG3)
 
-    def _get_topic(self, topic_id: UUID) -> schemas.TopicResponse:
-        data = assert_200(client.get(f"/topics/{topic_id}", headers=headers(USER1)))
-        return schemas.TopicResponse(**data)
-
     def _update_topic(self, topic_id: UUID, request: dict) -> schemas.TopicResponse:
         data = assert_200(client.put(f"/topics/{topic_id}", headers=headers(USER1), json=request))
         return schemas.TopicResponse(**data)
