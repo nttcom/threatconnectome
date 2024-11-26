@@ -413,7 +413,7 @@ export function TopicModal(props) {
                     setActions={setActions}
                   />
                 </Box>
-                {actions?.length > 0 || (
+                {actions?.length > 0 ? null : (
                   <Box
                     display="flex"
                     flexDirection="row"
