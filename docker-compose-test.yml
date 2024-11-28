@@ -29,6 +29,7 @@ services:
       - test-network
     volumes:
       - ./api/app:/app:ro
+      - ./api/app/alembic:/app/alembic:rw  # for 'alembic revision --autogenerate'
       - ./key:/key:ro
   testdb:
     image: postgres:14
