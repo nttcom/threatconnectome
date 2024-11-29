@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from app import models, persistence, schemas
+from app import command, models, schemas
 from app.constants import DEFAULT_ALERT_SSVC_PRIORITY, SYSTEM_EMAIL
 from app.main import app
 from app.notification.alert import create_mail_alert_for_new_topic
@@ -86,7 +86,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(testdb, 
     # topic1: parent_tag1
     send_email = mocker.patch("app.notification.alert.send_email")  # reset
     topic1 = create_topic(USER1, _gen_topic_params([parent_tag1]))
-    threats1 = persistence.search_threats(testdb, None, topic1.topic_id)
+    threats1 = command.search_threats(testdb, None, None, topic1.topic_id)
     ssvc_priority1 = ssvc_calculator.calculate_ssvc_priority_by_threat(threats1[0])
     assert ssvc_priority1
     exp_to_email = pteam0.alert_mail.address
@@ -116,7 +116,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(testdb, 
     assert_200(client.put(f"/pteams/{pteam0.pteam_id}", headers=headers(USER1), json=request))
     send_email = mocker.patch("app.notification.alert.send_email")  # reset
     topic3 = create_topic(USER1, _gen_topic_params([parent_tag1]))
-    threats2 = persistence.search_threats(testdb, None, topic3.topic_id)
+    threats2 = command.search_threats(testdb, None, None, topic3.topic_id)
     ssvc_priority2 = ssvc_calculator.calculate_ssvc_priority_by_threat(threats2[0])
     assert ssvc_priority2
     exp_to_email = pteam0.alert_mail.address

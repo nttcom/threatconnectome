@@ -60,6 +60,29 @@ def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
     )
 
 
+def search_threats(
+    db: Session,
+    service_id: UUID | str | None,
+    dependency_id: UUID | str | None,
+    topic_id: UUID | str | None,
+) -> Sequence[models.Threat]:
+    select_stmt = select(models.Threat)
+    if service_id:
+        select_stmt = select_stmt.join(
+            models.Dependency,
+            and_(
+                models.Dependency.dependency_id == models.Threat.dependency_id,
+                models.Dependency.service_id == str(service_id),
+            ),
+        )
+    if dependency_id:
+        select_stmt = select_stmt.where(models.Threat.dependency_id == str(dependency_id))
+    if topic_id:
+        select_stmt = select_stmt.where(models.Threat.topic_id == str(topic_id))
+
+    return db.scalars(select_stmt).all()
+
+
 def search_topics_internal(
     db: Session,
     offset: int = 0,

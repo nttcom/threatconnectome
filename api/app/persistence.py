@@ -269,20 +269,6 @@ def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None
     ).one_or_none()
 
 
-def search_threats(
-    db: Session,
-    dependency_id: UUID | str | None,
-    topic_id: UUID | str | None,
-) -> Sequence[models.Threat]:
-    select_stmt = select(models.Threat)
-    if dependency_id:
-        select_stmt = select_stmt.where(models.Threat.dependency_id == str(dependency_id))
-    if topic_id:
-        select_stmt = select_stmt.where(models.Threat.topic_id == str(topic_id))
-
-    return db.scalars(select_stmt).all()
-
-
 ### Ticket
 
 
