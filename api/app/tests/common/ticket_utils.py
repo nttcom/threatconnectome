@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, persistence
+from app import command, models, persistence
 from app.main import app
 from app.tests.medium.utils import (
     create_pteam,
@@ -57,8 +57,8 @@ def create_ticket(testdb: Session, user: dict, pteam: dict, topic: dict):
     )
 
     if dependency:
-        threats = persistence.search_threats(
-            testdb, str(dependency.dependency_id), str(responsed_topic.topic_id)
+        threats = command.search_threats(
+            testdb, None, str(dependency.dependency_id), str(responsed_topic.topic_id)
         )
 
         assert threats

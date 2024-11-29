@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import insert, select
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import command, models, persistence, schemas
 from app.main import app
 from app.tests.common import threat_utils
 from app.tests.medium.constants import (
@@ -176,16 +176,19 @@ def test_get_all_threats(testdb: Session):
 
 
 @pytest.mark.parametrize(
-    "exist_dependency_id, exist_topic_id, expected_len",
+    "exist_service_id, exist_dependency_id, exist_topic_id, expected_len",
     [
-        (False, False, 2),
-        (True, False, 1),
-        (False, True, 1),
-        (True, True, 1),
+        (False, False, False, 2),
+        (False, True, False, 1),
+        (False, False, True, 1),
+        (False, True, True, 1),
+        (True, False, False, 1),
+        (True, True, True, 1),
     ],
 )
 def test_get_all_threats_with_param(
     testdb: Session,
+    exist_service_id: bool,
     exist_dependency_id: bool,
     exist_topic_id: bool,
     expected_len: int,
@@ -276,6 +279,8 @@ def test_get_all_threats_with_param(
     testdb.commit()
 
     params = {}
+    if exist_service_id:
+        params["service_id"] = service1_id
     if exist_dependency_id:
         params["dependency_id"] = str(threat1.dependency_id)
     if exist_topic_id:
@@ -348,8 +353,8 @@ def test_create_threat(testdb: Session):
     )
 
     if dependency:
-        threats = persistence.search_threats(
-            testdb, str(dependency.dependency_id), str(responsed_topic.topic_id)
+        threats = command.search_threats(
+            testdb, None, str(dependency.dependency_id), str(responsed_topic.topic_id)
         )
 
         assert threats

@@ -369,7 +369,7 @@ def update_topic(
     ):
 
         threats: list[models.Threat] = []
-        threats.extend(persistence.search_threats(db, None, topic.topic_id))
+        threats.extend(command.search_threats(db, None, None, topic.topic_id))
 
         now = datetime.now()
         for threat in threats:
