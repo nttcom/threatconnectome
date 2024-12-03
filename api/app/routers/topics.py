@@ -366,7 +366,7 @@ def update_topic(
     if data.automatable is not None:
         previous_automatable = topic.automatable
         topic.automatable = data.automatable
-    if data.cvss_v3_score is not None:
+    if new_cvss_v3_score is not None:
         topic.cvss_v3_score = new_cvss_v3_score
 
     topic.content_fingerprint = calculate_topic_content_fingerprint(
