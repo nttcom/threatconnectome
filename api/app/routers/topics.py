@@ -258,7 +258,7 @@ def create_topic(
         )
 
     cvss_v3_score = -1.0 if data.cvss_v3_score is None else data.cvss_v3_score
-    if cvss_v3_score > 10.0 or cvss_v3_score < -1.0:
+    if cvss_v3_score > 10.0 or cvss_v3_score < -1.0 or (0 < cvss_v3_score and cvss_v3_score < -1.0):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="cvss_v3_score is out of range",
@@ -342,12 +342,16 @@ def update_topic(
         new_tags = list(tags_dict.values())
     tags_updated = new_tags is not None and set(new_tags) != set(topic.tags)
 
-    new_cvss_v3_score = None if data.cvss_v3_score is None else data.cvss_v3_score
-    if new_cvss_v3_score is not None and (new_cvss_v3_score > 10.0 or new_cvss_v3_score < -1.0):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="cvss_v3_score is out of range",
-        )
+    if data.cvss_v3_score is not None:
+        if (
+            data.cvss_v3_score > 10.0
+            or data.cvss_v3_score < -1.0
+            or (0 < data.cvss_v3_score and data.cvss_v3_score < -1.0)
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="cvss_v3_score is out of range",
+            )
 
     # Update topic attributes
     if new_tags is not None:
@@ -366,8 +370,8 @@ def update_topic(
     if data.automatable is not None:
         previous_automatable = topic.automatable
         topic.automatable = data.automatable
-    if new_cvss_v3_score is not None:
-        topic.cvss_v3_score = new_cvss_v3_score
+    if data.cvss_v3_score is not None:
+        topic.cvss_v3_score = data.cvss_v3_score
 
     topic.content_fingerprint = calculate_topic_content_fingerprint(
         topic.title, topic.abstract, topic.threat_impact, [tag.tag_name for tag in topic.tags]
