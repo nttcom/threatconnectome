@@ -265,8 +265,8 @@ def update_pteam_service(
         service.service_mission_impact = data.service_mission_impact
         need_fix_tickets = True
 
-    if data.safety_impact not in {None, service.safety_impact}:
-        service.safety_impact = data.safety_impact
+    if data.service_safety_impact not in {None, service.service_safety_impact}:
+        service.service_safety_impact = data.service_safety_impact
         need_fix_tickets = True
 
     db.flush()

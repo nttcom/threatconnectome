@@ -314,8 +314,8 @@ class Service(Base):
             self.system_exposure = SystemExposureEnum.OPEN
         if not self.service_mission_impact:
             self.service_mission_impact = MissionImpactEnum.MISSION_FAILURE
-        if not self.safety_impact:
-            self.safety_impact = SafetyImpactEnum.NEGLIGIBLE
+        if not self.service_safety_impact:
+            self.service_safety_impact = SafetyImpactEnum.NEGLIGIBLE
 
     service_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     pteam_id: Mapped[StrUUID] = mapped_column(
@@ -328,7 +328,7 @@ class Service(Base):
     service_mission_impact: Mapped[MissionImpactEnum] = mapped_column(
         server_default=MissionImpactEnum.MISSION_FAILURE
     )
-    safety_impact: Mapped[SafetyImpactEnum] = mapped_column(
+    service_safety_impact: Mapped[SafetyImpactEnum] = mapped_column(
         server_default=SafetyImpactEnum.NEGLIGIBLE
     )
     sbom_uploaded_at: Mapped[datetime | None]
@@ -368,8 +368,13 @@ class Threat(Base):
         super().__init__(*args, **kwargs)
         if not self.threat_id:
             self.threat_id = str(uuid.uuid4())
+        if not self.threat_safety_impact:
+            self.threat_safety_impact = SafetyImpactEnum.NEGLIGIBLE
 
     threat_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    threat_safety_impact: Mapped[SafetyImpactEnum] = mapped_column(
+        server_default=SafetyImpactEnum.NEGLIGIBLE
+    )
     dependency_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
     )

@@ -56,6 +56,7 @@ def test_get_threat(threat1: schemas.ThreatResponse, threat2: schemas.ThreatResp
     assert data["threat_id"] == str(threat1.threat_id)
     assert data["dependency_id"] == str(threat1.dependency_id)
     assert data["topic_id"] == str(threat1.topic_id)
+    assert data["threat_safety_impact"] == str(threat1.threat_safety_impact.value)
 
 
 def test_get_threat_no_data():
@@ -163,6 +164,9 @@ def test_get_all_threats(testdb: Session):
     assert (data[0]["topic_id"] == str(threat1.topic_id)) or (
         data[0]["topic_id"] == str(threat2.topic_id)
     )
+    assert (data[0]["threat_safety_impact"] == str(threat1.threat_safety_impact.value)) or (
+        data[0]["threat_safety_impact"] == str(threat2.threat_safety_impact.value)
+    )
 
     assert (data[1]["threat_id"] == str(threat1.threat_id)) or (
         data[1]["threat_id"] == str(threat2.threat_id)
@@ -172,6 +176,9 @@ def test_get_all_threats(testdb: Session):
     )
     assert (data[1]["topic_id"] == str(threat1.topic_id)) or (
         data[1]["topic_id"] == str(threat2.topic_id)
+    )
+    assert (data[1]["threat_safety_impact"] == str(threat1.threat_safety_impact.value)) or (
+        data[1]["threat_safety_impact"] == str(threat2.threat_safety_impact.value)
     )
 
 

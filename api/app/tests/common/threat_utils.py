@@ -101,6 +101,7 @@ def create_threat(
                 threat_id=UUID(threat.threat_id),
                 dependency_id=UUID(threat.dependency_id),
                 topic_id=UUID(threat.topic_id),
+                threat_safety_impact=models.SafetyImpactEnum(threat.threat_safety_impact),
             )
 
     return response_threat
