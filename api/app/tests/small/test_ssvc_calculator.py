@@ -692,3 +692,97 @@ def test_calculate_ssvc_priority(
         exploitation, system_exposure, automatable, human_impact
     )
     assert ssvc_priority == expected_ssvc_priority
+
+
+@pytest.mark.parametrize(
+    "safety_impact1, safety_impact2, expected_safety_impact",
+    [
+        (
+            models.SafetyImpactEnum.NEGLIGIBLE,
+            models.SafetyImpactEnum.NEGLIGIBLE,
+            models.SafetyImpactEnum.NEGLIGIBLE,
+        ),
+        (
+            models.SafetyImpactEnum.MARGINAL,
+            models.SafetyImpactEnum.NEGLIGIBLE,
+            models.SafetyImpactEnum.MARGINAL,
+        ),
+        (
+            models.SafetyImpactEnum.CRITICAL,
+            models.SafetyImpactEnum.NEGLIGIBLE,
+            models.SafetyImpactEnum.CRITICAL,
+        ),
+        (
+            models.SafetyImpactEnum.CATASTROPHIC,
+            models.SafetyImpactEnum.NEGLIGIBLE,
+            models.SafetyImpactEnum.CATASTROPHIC,
+        ),
+        (
+            models.SafetyImpactEnum.NEGLIGIBLE,
+            models.SafetyImpactEnum.MARGINAL,
+            models.SafetyImpactEnum.MARGINAL,
+        ),
+        (
+            models.SafetyImpactEnum.MARGINAL,
+            models.SafetyImpactEnum.MARGINAL,
+            models.SafetyImpactEnum.MARGINAL,
+        ),
+        (
+            models.SafetyImpactEnum.CRITICAL,
+            models.SafetyImpactEnum.MARGINAL,
+            models.SafetyImpactEnum.CRITICAL,
+        ),
+        (
+            models.SafetyImpactEnum.CATASTROPHIC,
+            models.SafetyImpactEnum.MARGINAL,
+            models.SafetyImpactEnum.CATASTROPHIC,
+        ),
+        (
+            models.SafetyImpactEnum.NEGLIGIBLE,
+            models.SafetyImpactEnum.CRITICAL,
+            models.SafetyImpactEnum.CRITICAL,
+        ),
+        (
+            models.SafetyImpactEnum.MARGINAL,
+            models.SafetyImpactEnum.CRITICAL,
+            models.SafetyImpactEnum.CRITICAL,
+        ),
+        (
+            models.SafetyImpactEnum.CRITICAL,
+            models.SafetyImpactEnum.CRITICAL,
+            models.SafetyImpactEnum.CRITICAL,
+        ),
+        (
+            models.SafetyImpactEnum.CATASTROPHIC,
+            models.SafetyImpactEnum.CRITICAL,
+            models.SafetyImpactEnum.CATASTROPHIC,
+        ),
+        (
+            models.SafetyImpactEnum.NEGLIGIBLE,
+            models.SafetyImpactEnum.CATASTROPHIC,
+            models.SafetyImpactEnum.CATASTROPHIC,
+        ),
+        (
+            models.SafetyImpactEnum.MARGINAL,
+            models.SafetyImpactEnum.CATASTROPHIC,
+            models.SafetyImpactEnum.CATASTROPHIC,
+        ),
+        (
+            models.SafetyImpactEnum.CRITICAL,
+            models.SafetyImpactEnum.CATASTROPHIC,
+            models.SafetyImpactEnum.CATASTROPHIC,
+        ),
+        (
+            models.SafetyImpactEnum.CATASTROPHIC,
+            models.SafetyImpactEnum.CATASTROPHIC,
+            models.SafetyImpactEnum.CATASTROPHIC,
+        ),
+    ],
+)
+def test_select_max_safety_impact(
+    safety_impact1: models.SafetyImpactEnum,
+    safety_impact2: models.SafetyImpactEnum,
+    expected_safety_impact: models.SafetyImpactEnum,
+):
+    safety_impact = ssvc_calculator._select_max_safety_impact(safety_impact1, safety_impact2)
+    assert safety_impact == expected_safety_impact
