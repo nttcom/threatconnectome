@@ -336,6 +336,10 @@ class ThreatResponse(ORMModel):
     threat_safety_impact: SafetyImpactEnum
 
 
+class ThreatUpdateRequest(ORMModel):
+    threat_safety_impact: SafetyImpactEnum
+
+
 class TicketStatusRequest(ORMModel):
     topic_status: TopicStatusType | None = None
     logging_ids: list[UUID] | None = None

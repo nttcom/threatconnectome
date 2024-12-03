@@ -369,3 +369,85 @@ def test_create_threat(testdb: Session):
         for threat in threats:
             assert dependency.dependency_id == threat.dependency_id
             assert str(responsed_topic.topic_id) == threat.topic_id
+
+
+@pytest.mark.parametrize(
+    "threat_safety_impact",
+    [
+        (models.SafetyImpactEnum.NEGLIGIBLE),
+        (models.SafetyImpactEnum.MARGINAL),
+        (models.SafetyImpactEnum.CRITICAL),
+        (models.SafetyImpactEnum.CATASTROPHIC),
+    ],
+)
+def test_update_threat_safety_impact(
+    testdb: Session, threat_safety_impact: models.SafetyImpactEnum
+):
+    # create pteam
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+
+    # create topic
+    tag1 = create_tag(USER1, TAG1)
+
+    action1 = {
+        **ACTION1,
+        "ext": {
+            "tags": [tag1.parent_name],
+            "vulnerable_versions": {
+                tag1.parent_name: ["<0.30"],
+            },
+        },
+    }
+
+    topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.parent_name]}, actions=[action1])
+    # create service
+    service1_name = "service_x"
+    service1_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Service).values(
+            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=service1_name
+        )
+    )
+
+    # create dependency
+    dependency1_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Dependency).values(
+            dependency_id=dependency1_id,
+            service_id=service1_id,
+            tag_id=str(tag1.tag_id),
+            version="1.0",
+            target="Pipfile.lock",
+        )
+    )
+
+    # create threat
+    threat1 = models.Threat(
+        dependency_id=str(dependency1_id),
+        topic_id=str(topic1.topic_id),
+    )
+
+    persistence.create_threat(testdb, threat1)
+    testdb.commit()
+
+    request = schemas.ThreatUpdateRequest(threat_safety_impact=threat_safety_impact).model_dump()
+    response = assert_200(
+        client.put(
+            "/threats/" + str(threat1.threat_id) + "/threat_safety_impact/",
+            headers=header_threat,
+            json=request,
+        )
+    )
+    assert response
+    assert response["threat_id"] == str(threat1.threat_id)
+    assert response["dependency_id"] == str(threat1.dependency_id)
+    assert response["topic_id"] == str(threat1.topic_id)
+    assert response["threat_safety_impact"] == str(threat_safety_impact.value)
+
+    db_data = persistence.get_threat_by_id(testdb, threat1.threat_id)
+    assert db_data
+    assert str(db_data.threat_id) == str(threat1.threat_id)
+    assert str(db_data.dependency_id) == str(threat1.dependency_id)
+    assert str(db_data.topic_id) == str(threat1.topic_id)
+    assert str(db_data.threat_safety_impact.value) == str(threat_safety_impact.value)
