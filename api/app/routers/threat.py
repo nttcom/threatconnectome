@@ -54,7 +54,6 @@ def update_threat_safety_impact(
 
     if not (threat := persistence.get_threat_by_id(db, threat_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
-    print("test")
 
     threat.threat_safety_impact = requests.threat_safety_impact
     persistence.update_threat(db, threat)
