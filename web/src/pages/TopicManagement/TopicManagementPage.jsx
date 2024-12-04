@@ -30,8 +30,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { useLocation } from "react-router-dom";
 
-import { FormattedDateTimeWithTooltip } from "../../components/FormattedDateTimeWithTooltip";
-import { TopicSearchModal } from "../../components/TopicSearchModal";
 import styles from "../../cssModule/button.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
@@ -41,6 +39,9 @@ import {
 } from "../../services/tcApi";
 import { difficulty, difficultyColors } from "../../utils/const";
 import { errorToString } from "../../utils/func";
+
+import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
+import { TopicSearchModal } from "./TopicSearchModal";
 
 function getDisplayMessage(topicError, topicIsLoading, topicActionsError, topicActionsIsLoading) {
   if (topicActionsError) return `Cannot get topicActions: ${errorToString(topicActionsError)}`;

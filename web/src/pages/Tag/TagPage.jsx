@@ -3,9 +3,7 @@ import { grey } from "@mui/material/colors";
 import React, { useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 
-import { PTeamTaggedTopics } from "../../components/PTeamTaggedTopics";
 import { TabPanel } from "../../components/TabPanel";
-import { TagReferences } from "../../components/TagReferences";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
@@ -16,6 +14,9 @@ import {
 } from "../../services/tcApi";
 import { noPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func.js";
+
+import { PTeamTaggedTopics } from "./PTeamTaggedTopics.jsx";
+import { TagReferences } from "./TagReferences.jsx";
 
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);

@@ -30,13 +30,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
 import { Android12Switch } from "../../components/Android12Switch";
-import { DeleteServiceIcon } from "../../components/DeleteServiceIcon";
 import { PTeamLabel } from "../../components/PTeamLabel";
-import { PTeamServiceDetails } from "../../components/PTeamServiceDetails";
-import { PTeamServiceTabs } from "../../components/PTeamServiceTabs";
-import { PTeamServicesListModal } from "../../components/PTeamServicesListModal";
-import { PTeamStatusCard } from "../../components/PTeamStatusCard";
-import { SBOMDropArea } from "../../components/SBOMDropArea";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
@@ -45,6 +39,13 @@ import {
 } from "../../services/tcApi";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
+
+import { DeleteServiceIcon } from "./DeleteServiceIcon";
+import { PTeamServiceDetails } from "./PTeamServiceDetails";
+import { PTeamServiceTabs } from "./PTeamServiceTabs";
+import { PTeamServicesListModal } from "./PTeamServicesListModal";
+import { PTeamStatusCard } from "./PTeamStatusCard";
+import { SBOMDropArea } from "./SBOMDropArea";
 
 const ssvcPriorityCountMax = 99999;
 

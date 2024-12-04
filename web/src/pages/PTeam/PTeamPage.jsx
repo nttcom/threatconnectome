@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useLocation } from "react-router";
 
 import { PTeamLabel } from "../../components/PTeamLabel";
-import { PTeamMember } from "../../components/PTeamMember";
 import { TabPanel } from "../../components/TabPanel";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
@@ -13,6 +12,8 @@ import {
 } from "../../services/tcApi";
 import { experienceColors, noPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func.js";
+
+import { PTeamMember } from "./PTeamMember.jsx";
 
 export function PTeam() {
   const [filterMode, setFilterMode] = useState("PTeam");

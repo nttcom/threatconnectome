@@ -5,9 +5,6 @@ import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
-import { AppBar } from "../../components/AppBar";
-import { Drawer } from "../../components/Drawer";
-import { Main } from "../../components/Main";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery, useTryLoginMutation } from "../../services/tcApi";
 import { setAuthToken } from "../../slices/auth";
@@ -15,6 +12,10 @@ import { LocationReader } from "../../utils/LocationReader";
 import { mainMaxWidth } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 import { authCookieName } from "../Login/LoginPage";
+
+import { AppBar } from "./AppBar";
+import { Drawer } from "./Drawer";
+import { Main } from "./Main";
 
 export function App() {
   /* eslint-disable-next-line no-unused-vars */
