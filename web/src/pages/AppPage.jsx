@@ -15,7 +15,7 @@ import { LocationReader } from "../utils/LocationReader";
 import { mainMaxWidth } from "../utils/const";
 import { errorToString } from "../utils/func";
 
-import { authCookieName } from "./Login";
+import { authCookieName } from "./LoginPage";
 
 export function App() {
   /* eslint-disable-next-line no-unused-vars */

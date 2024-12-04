@@ -1,13 +1,13 @@
-import { AcceptPTeamInvitation } from "./AcceptPTeamInvitation";
-import { Account } from "./Account";
-import { App } from "./App";
-import { Login } from "./Login";
-import { PTeam } from "./PTeam";
-import { ResetPassword } from "./ResetPassword";
-import { Status } from "./Status";
-import { Tag } from "./Tag";
-import { TopicDetail } from "./TopicDetail";
-import { TopicManagement } from "./TopicManagement";
+import { AcceptPTeamInvitation } from "./AcceptPTeamInvitationPage";
+import { Account } from "./AccountPage";
+import { App } from "./AppPage";
+import { Login } from "./LoginPage";
+import { PTeam } from "./PTeamPage";
+import { ResetPassword } from "./ResetPasswordPage";
+import { Status } from "./StatusPage";
+import { Tag } from "./TagPage";
+import { TopicDetail } from "./TopicDetailPage";
+import { TopicManagement } from "./TopicManagementPage";
 
 export {
   AcceptPTeamInvitation,
