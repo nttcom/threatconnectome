@@ -368,13 +368,9 @@ class Threat(Base):
         super().__init__(*args, **kwargs)
         if not self.threat_id:
             self.threat_id = str(uuid.uuid4())
-        if not self.threat_safety_impact:
-            self.threat_safety_impact = SafetyImpactEnum.NEGLIGIBLE
 
     threat_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    threat_safety_impact: Mapped[SafetyImpactEnum] = mapped_column(
-        server_default=SafetyImpactEnum.NEGLIGIBLE
-    )
+    threat_safety_impact: Mapped[SafetyImpactEnum] = mapped_column(nullable=True)
     dependency_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
     )

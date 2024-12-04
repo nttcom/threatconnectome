@@ -42,7 +42,7 @@ def get_threat(
     return threat
 
 
-@router.put("/{threat_id}/threat_safety_impact/", response_model=schemas.ThreatResponse)
+@router.put("/{threat_id}", response_model=schemas.ThreatResponse)
 def update_threat_safety_impact(
     threat_id: UUID,
     requests: schemas.ThreatUpdateRequest,
@@ -56,7 +56,6 @@ def update_threat_safety_impact(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
 
     threat.threat_safety_impact = requests.threat_safety_impact
-    persistence.update_threat(db, threat)
 
     db.commit()
     return threat

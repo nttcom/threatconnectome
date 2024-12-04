@@ -3535,7 +3535,11 @@ class TestGetTickets:
                 "threat_id": str(db_threat1.threat_id),
                 "topic_id": str(self.topic1.topic_id),
                 "dependency_id": str(db_dependency1.dependency_id),
-                "threat_safety_impact": str(db_threat1.threat_safety_impact.value),
+                "threat_safety_impact": (
+                    str(db_threat1.threat_safety_impact.value)
+                    if db_threat1.threat_safety_impact
+                    else db_threat1.threat_safety_impact
+                ),
             },
             "ticket_status": {
                 "status_id": db_status1.status_id,  # do not check
@@ -3599,7 +3603,11 @@ class TestGetTickets:
                 "threat_id": str(db_threat1.threat_id),
                 "topic_id": str(self.topic1.topic_id),
                 "dependency_id": str(db_dependency1.dependency_id),
-                "threat_safety_impact": str(db_threat1.threat_safety_impact.value),
+                "threat_safety_impact": (
+                    str(db_threat1.threat_safety_impact.value)
+                    if db_threat1.threat_safety_impact
+                    else db_threat1.threat_safety_impact
+                ),
             },
             "ticket_status": {
                 "status_id": str(db_ticket_status1.status_id),

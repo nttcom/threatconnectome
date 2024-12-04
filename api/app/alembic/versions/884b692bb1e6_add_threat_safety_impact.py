@@ -32,8 +32,7 @@ def upgrade() -> None:
         sa.Column(
             "threat_safety_impact",
             type_=sa.Enum(name="safetyimpactenum"),
-            server_default="NEGLIGIBLE",
-            nullable=False,
+            nullable=True,
         ),
     )
 

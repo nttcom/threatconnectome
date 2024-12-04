@@ -382,7 +382,7 @@ export function TopicCard(props) {
               )}
               topicId={topicId}
               ticket={ticket}
-              serviceSafetyImpact={service.safety_impact}
+              serviceSafetyImpact={service.service_safety_impact}
               members={members}
               defaultExpanded={index === 0}
               topicActions={topicActions}

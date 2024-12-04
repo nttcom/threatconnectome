@@ -263,16 +263,6 @@ def delete_threat(db: Session, threat: models.Threat) -> None:
     db.flush()
 
 
-def update_threat(db: Session, threat: models.Threat) -> None:
-    existing_threat = db.query(models.Threat).filter_by(threat_id=threat.threat_id).first()
-    for key, value in vars(threat).items():
-        if value is None:
-            continue
-        else:
-            setattr(existing_threat, key, value)
-    db.flush()
-
-
 def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None:
     return db.scalars(
         select(models.Threat).where(models.Threat.threat_id == str(threat_id))

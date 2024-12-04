@@ -333,11 +333,11 @@ class ThreatResponse(ORMModel):
     threat_id: UUID
     dependency_id: UUID
     topic_id: UUID
-    threat_safety_impact: SafetyImpactEnum
+    threat_safety_impact: SafetyImpactEnum | None = None
 
 
 class ThreatUpdateRequest(ORMModel):
-    threat_safety_impact: SafetyImpactEnum
+    threat_safety_impact: SafetyImpactEnum | None = None
 
 
 class TicketStatusRequest(ORMModel):
