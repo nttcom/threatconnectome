@@ -18,8 +18,6 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { ActionItem } from "./ActionItem";
-import { TopicModal } from "./TopicModal";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
@@ -32,6 +30,8 @@ import {
 import { dateTimeFormat, errorToString } from "../../utils/func";
 import { parseVulnerableVersions, versionMatch } from "../../utils/versions";
 
+import { ActionItem } from "./ActionItem";
+import { TopicModal } from "./TopicModal";
 import { TopicTicketAccordion } from "./TopicTicketAccordion";
 
 export function TopicCard(props) {
