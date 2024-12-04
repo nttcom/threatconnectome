@@ -370,7 +370,7 @@ class Threat(Base):
             self.threat_id = str(uuid.uuid4())
 
     threat_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    threat_safety_impact: Mapped[SafetyImpactEnum] = mapped_column(nullable=True)
+    threat_safety_impact: Mapped[SafetyImpactEnum | None] = mapped_column(nullable=True)
     dependency_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
     )

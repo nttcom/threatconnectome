@@ -455,15 +455,24 @@ def test_update_threat_safety_impact(
             json=request,
         )
     )
+
     assert response
     assert response["threat_id"] == str(threat1.threat_id)
     assert response["dependency_id"] == str(threat1.dependency_id)
     assert response["topic_id"] == str(threat1.topic_id)
-    assert response["threat_safety_impact"] == str(threat_safety_impact.value)
+    threat_safety_impact_value = (
+        str(threat_safety_impact.value) if threat_safety_impact else threat_safety_impact
+    )
+    assert response["threat_safety_impact"] == threat_safety_impact_value
 
     db_data = persistence.get_threat_by_id(testdb, threat1.threat_id)
     assert db_data
     assert str(db_data.threat_id) == str(threat1.threat_id)
     assert str(db_data.dependency_id) == str(threat1.dependency_id)
     assert str(db_data.topic_id) == str(threat1.topic_id)
-    assert str(db_data.threat_safety_impact.value) == str(threat_safety_impact.value)
+    db_data_threat_safety_impact_value = (
+        str(db_data.threat_safety_impact.value)
+        if db_data.threat_safety_impact
+        else db_data.threat_safety_impact
+    )
+    assert db_data_threat_safety_impact_value == threat_safety_impact_value
