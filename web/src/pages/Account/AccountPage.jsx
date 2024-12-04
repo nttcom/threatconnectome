@@ -13,10 +13,10 @@ import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import React, { useState } from "react";
 
-import { UUIDTypography } from "../components/UUIDTypography";
-import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetUserMeQuery, useUpdateUserMutation } from "../services/tcApi";
-import { errorToString } from "../utils/func";
+import { UUIDTypography } from "../../components/UUIDTypography";
+import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useGetUserMeQuery, useUpdateUserMutation } from "../../services/tcApi";
+import { errorToString } from "../../utils/func";
 
 export function Account() {
   const [editInfo, setEditInfo] = useState({

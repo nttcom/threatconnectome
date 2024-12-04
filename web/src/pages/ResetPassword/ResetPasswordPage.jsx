@@ -12,7 +12,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { auth } from "../utils/firebase";
+import { auth } from "../../utils/firebase";
 
 export function ResetPassword() {
   const [disabled, setDisabled] = useState(false);

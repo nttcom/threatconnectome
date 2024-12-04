@@ -3,10 +3,10 @@ import { useSnackbar } from "notistack";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useApplyPTeamInvitationMutation, useGetPTeamInvitationQuery } from "../services/tcApi";
-import { commonButtonStyle } from "../utils/const";
-import { errorToString } from "../utils/func";
+import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useApplyPTeamInvitationMutation, useGetPTeamInvitationQuery } from "../../services/tcApi";
+import { commonButtonStyle } from "../../utils/const";
+import { errorToString } from "../../utils/func";
 
 export function AcceptPTeamInvitation() {
   const { enqueueSnackbar } = useSnackbar();

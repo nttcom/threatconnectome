@@ -9,12 +9,12 @@ import { amber, green, grey, orange, red, yellow } from "@mui/material/colors";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { ActionTypeIcon } from "../components/ActionTypeIcon";
-import { TopicSSVCCards } from "../components/TopicSSVCCards";
-import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useGetTopicActionsQuery, useGetTopicQuery } from "../services/tcApi";
-import { threatImpactNames, threatImpactProps } from "../utils/const";
-import { errorToString } from "../utils/func";
+import { ActionTypeIcon } from "../../components/ActionTypeIcon";
+import { TopicSSVCCards } from "../../components/TopicSSVCCards";
+import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
+import { threatImpactNames, threatImpactProps } from "../../utils/const";
+import { errorToString } from "../../utils/func";
 
 const threatImpactColor = {
   immediate: {

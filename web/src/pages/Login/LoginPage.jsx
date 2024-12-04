@@ -23,10 +23,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   useSignInWithEmailAndPasswordMutation,
   useSignInWithSamlPopupMutation,
-} from "../services/firebaseApi";
-import { useCreateUserMutation, useTryLoginMutation } from "../services/tcApi";
-import { clearAuth } from "../slices/auth";
-import { samlProvider } from "../utils/firebase";
+} from "../../services/firebaseApi";
+import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
+import { clearAuth } from "../../slices/auth";
+import { samlProvider } from "../../utils/firebase";
 
 export const authCookieName = "Authorization";
 export const cookiesOptions = { path: process.env.PUBLIC_URL || "/" };

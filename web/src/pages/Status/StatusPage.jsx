@@ -29,22 +29,22 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import { Android12Switch } from "../components/Android12Switch";
-import { DeleteServiceIcon } from "../components/DeleteServiceIcon";
-import { PTeamLabel } from "../components/PTeamLabel";
-import { PTeamServiceDetails } from "../components/PTeamServiceDetails";
-import { PTeamServiceTabs } from "../components/PTeamServiceTabs";
-import { PTeamServicesListModal } from "../components/PTeamServicesListModal";
-import { PTeamStatusCard } from "../components/PTeamStatusCard";
-import { SBOMDropArea } from "../components/SBOMDropArea";
-import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { Android12Switch } from "../../components/Android12Switch";
+import { DeleteServiceIcon } from "../../components/DeleteServiceIcon";
+import { PTeamLabel } from "../../components/PTeamLabel";
+import { PTeamServiceDetails } from "../../components/PTeamServiceDetails";
+import { PTeamServiceTabs } from "../../components/PTeamServiceTabs";
+import { PTeamServicesListModal } from "../../components/PTeamServicesListModal";
+import { PTeamStatusCard } from "../../components/PTeamStatusCard";
+import { SBOMDropArea } from "../../components/SBOMDropArea";
+import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
   useGetPTeamTagsSummaryQuery,
   useGetPTeamServiceTagsSummaryQuery,
-} from "../services/tcApi";
-import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
-import { errorToString } from "../utils/func";
+} from "../../services/tcApi";
+import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/const";
+import { errorToString } from "../../utils/func";
 
 const ssvcPriorityCountMax = 99999;
 

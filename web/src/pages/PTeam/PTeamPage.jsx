@@ -2,17 +2,17 @@ import { Avatar, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/mater
 import React, { useState } from "react";
 import { useLocation } from "react-router";
 
-import { PTeamLabel } from "../components/PTeamLabel";
-import { PTeamMember } from "../components/PTeamMember";
-import { TabPanel } from "../components/TabPanel";
-import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { PTeamLabel } from "../../components/PTeamLabel";
+import { PTeamMember } from "../../components/PTeamMember";
+import { TabPanel } from "../../components/TabPanel";
+import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
   useGetPTeamAuthQuery,
   useGetPTeamMembersQuery,
   useGetUserMeQuery,
-} from "../services/tcApi";
-import { experienceColors, noPTeamMessage } from "../utils/const";
-import { a11yProps, errorToString } from "../utils/func.js";
+} from "../../services/tcApi";
+import { experienceColors, noPTeamMessage } from "../../utils/const";
+import { a11yProps, errorToString } from "../../utils/func.js";
 
 export function PTeam() {
   const [filterMode, setFilterMode] = useState("PTeam");
