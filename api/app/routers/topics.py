@@ -208,7 +208,7 @@ def create_topic(
     - `tags` : Optional. The default is an empty list.
     - `misp_tags` : Optional. The default is an empty list.
     - `actions` : Optional. The default is an empty list.
-    - `cvss_v3_score` : Ranges from 0.0 to 10.0. -1.0 indicates not set.
+    - `cvss_v3_score` : Ranges from 0.0 to 10.0.
     """
     # TODO: It may be unnecessary to check
     if topic_id == UUID(int=0):
@@ -257,12 +257,12 @@ def create_topic(
             detail="TopicId in actions mismatch",
         )
 
-    cvss_v3_score = -1.0 if data.cvss_v3_score is None else data.cvss_v3_score
-    if cvss_v3_score > 10.0 or cvss_v3_score < -1.0 or (0 < cvss_v3_score and cvss_v3_score < -1.0):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="cvss_v3_score is out of range",
-        )
+    if data.cvss_v3_score is not None:
+        if data.cvss_v3_score > 10.0 or data.cvss_v3_score < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="cvss_v3_score is out of range",
+            )
 
     fixed_title = data.title.strip()
     fixed_abstract = data.abstract.strip()
@@ -277,7 +277,7 @@ def create_topic(
         created_by=current_user.user_id,
         created_at=now,
         updated_at=now,
-        cvss_v3_score=cvss_v3_score,
+        cvss_v3_score=data.cvss_v3_score,
         content_fingerprint=calculate_topic_content_fingerprint(
             fixed_title, fixed_abstract, data.threat_impact, data.tags
         ),
@@ -342,12 +342,9 @@ def update_topic(
         new_tags = list(tags_dict.values())
     tags_updated = new_tags is not None and set(new_tags) != set(topic.tags)
 
-    if data.cvss_v3_score is not None:
-        if (
-            data.cvss_v3_score > 10.0
-            or data.cvss_v3_score < -1.0
-            or (0 < data.cvss_v3_score and data.cvss_v3_score < -1.0)
-        ):
+    update_data = data.model_dump(exclude_unset=True)
+    if "cvss_v3_score" in update_data.keys() and data.cvss_v3_score is not None:
+        if data.cvss_v3_score > 10.0 or data.cvss_v3_score < 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="cvss_v3_score is out of range",
@@ -370,7 +367,7 @@ def update_topic(
     if data.automatable is not None:
         previous_automatable = topic.automatable
         topic.automatable = data.automatable
-    if data.cvss_v3_score is not None:
+    if "cvss_v3_score" in update_data.keys():
         topic.cvss_v3_score = data.cvss_v3_score
 
     topic.content_fingerprint = calculate_topic_content_fingerprint(

@@ -585,7 +585,7 @@ class Topic(Base):
     content_fingerprint: Mapped[str]
     exploitation: Mapped[ExploitationEnum] = mapped_column(server_default=ExploitationEnum.NONE)
     automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.NO)
-    cvss_v3_score: Mapped[float] = mapped_column(server_default="-1.0")
+    cvss_v3_score: Mapped[float | None] = mapped_column(server_default=None, nullable=True)
 
     actions = relationship("TopicAction", back_populates="topic", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary=TopicTag.__tablename__, order_by="Tag.tag_name")

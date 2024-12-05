@@ -227,7 +227,7 @@ def test_it_should_return_minus_one_when_cvss_v3_score_is_None():
     del request["topic_id"]
 
     response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
-    assert response.json()["cvss_v3_score"] == -1.0
+    assert response.json()["cvss_v3_score"] == None
 
 
 def test_get_topic():
