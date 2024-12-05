@@ -217,7 +217,7 @@ def test_it_should_return_400_when_cvss_v3_score_is_out_of_range():
     assert response.json()["detail"] == "cvss_v3_score is out of range"
 
 
-def test_it_should_return_minus_one_when_cvss_v3_score_is_None():
+def test_it_should_return_None_when_cvss_v3_score_is_None_in_request():
     create_user(USER1)
     create_tag(USER1, TAG1)
     _topic = TOPIC1.copy()
