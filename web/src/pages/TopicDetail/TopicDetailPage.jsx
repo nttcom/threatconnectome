@@ -4,7 +4,17 @@ import {
   Recommend as RecommendIcon,
   Warning as WarningIcon,
 } from "@mui/icons-material";
-import { Badge, Box, Button, Card, Chip, MenuItem, Tooltip, Typography } from "@mui/material";
+import {
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Card,
+  Chip,
+  MenuItem,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { amber, green, grey, orange, red, yellow } from "@mui/material/colors";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
@@ -12,7 +22,6 @@ import { useParams } from "react-router-dom";
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
-import { threatImpactNames, threatImpactProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
 import { TopicSSVCCards } from "./TopicSSVCCards";
@@ -77,29 +86,41 @@ export function TopicDetail() {
     return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
   if (topicActionsIsLoading) return <>Now loading topicActions...</>;
 
-  const threatImpactName = threatImpactNames[topic.threat_impact];
-  const baseStyle = threatImpactProps[threatImpactName].style;
+  const CVSSScore = 10.0;
+  let CVSSBgcolor;
+  let threatCardBgcolor;
+  if (CVSSScore === "N/A" || CVSSScore === 0.0) {
+    CVSSBgcolor = grey[600];
+    threatCardBgcolor = grey[100];
+  } else if (CVSSScore < 6.9) {
+    CVSSBgcolor = amber[600];
+    threatCardBgcolor = amber[100];
+  } else if (CVSSScore < 8.9) {
+    CVSSBgcolor = orange[600];
+    threatCardBgcolor = orange[100];
+  } else {
+    CVSSBgcolor = red[600];
+    threatCardBgcolor = red[100];
+  }
 
   return (
     <>
       <Box>
-        <Card
-          variant="outlined"
-          sx={{ margin: 1, backgroundColor: threatImpactColor[threatImpactName].bgcolor }}
-        >
+        <Card variant="outlined" sx={{ margin: 1, backgroundColor: threatCardBgcolor }}>
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
-              <Chip
-                label={threatImpactProps[threatImpactName].chipLabel}
-                variant="filled"
+              <Avatar
                 sx={{
                   mr: 3,
                   height: 60,
+                  width: 60,
                   fontWeight: "bold",
-                  backgroundColor: baseStyle.bgcolor,
-                  color: "white",
+                  backgroundColor: CVSSBgcolor,
                 }}
-              />
+                variant="rounded"
+              >
+                {CVSSScore.toFixed(1)}
+              </Avatar>
               <Typography variant="h5">{topic.title}</Typography>
             </Box>
             <Box sx={{ mt: 2, ml: 1 }}>
