@@ -631,6 +631,22 @@ def set_ticket_status(
 
     update_data = data.model_dump(exclude_unset=True)
 
+    if "topic_status" in update_data.keys() and data.topic_status is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for topic_status",
+        )
+    if "logging_ids" in update_data.keys() and data.logging_ids is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for logging_ids",
+        )
+    if "assignees" in update_data.keys() and data.assignees is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for assignees",
+        )
+
     if data.topic_status == models.TopicStatusType.alerted:
         # user cannot set alerted
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
@@ -701,7 +717,7 @@ def set_ticket_status(
             )
 
     # update only if required
-    if "assignees" in update_data.keys():
+    if "assignees" in update_data.keys() and data.assignees is not None:
         ticket.ticket_status.assignees = list(map(str, data.assignees))
     elif ticket.ticket_status.assignees == []:
         ticket.ticket_status.assignees = [UUID(current_user.user_id)]
@@ -710,7 +726,7 @@ def set_ticket_status(
     elif ticket.ticket_status.topic_status == models.TopicStatusType.alerted:
         # this is the first update
         ticket.ticket_status.topic_status = models.TopicStatusType.acknowledged
-    if "logging_ids" in update_data.keys():
+    if "logging_ids" in update_data.keys() and data.logging_ids is not None:
         ticket.ticket_status.logging_ids = list(map(str, data.logging_ids))
     if "note" in update_data.keys():
         ticket.ticket_status.note = data.note

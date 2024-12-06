@@ -3128,6 +3128,35 @@ class TestTicketStatus:
             assert data == expected_status
 
         @pytest.mark.parametrize(
+            "field_name, expected_response_detail",
+            [
+                ("topic_status", "Cannot specify None for topic_status"),
+                ("logging_ids", "Cannot specify None for logging_ids"),
+                ("assignees", "Cannot specify None for assignees"),
+            ],
+        )
+        def test_it_should_return_400_when_required_fields_is_None(
+            self,
+            actionable_topic1,
+            field_name,
+            expected_response_detail,
+        ):
+            status_request = {field_name: None}
+            url = (
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
+                f"/ticketstatus/{self.ticket_id1}"
+            )
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            response = client.put(url, headers=_headers, json=status_request)
+            assert response.status_code == 400
+            assert response.json()["detail"] == expected_response_detail
+
+        @pytest.mark.parametrize(
             "topic_status, scheduled_at, expected_response_detail",
             [
                 (models.TopicStatusType.alerted.value, None, "Wrong topic status"),
@@ -3349,7 +3378,8 @@ class TestTicketStatus:
             assert current_response.json()["detail"] == expected_response_detail
 
         @pytest.mark.parametrize(
-            "current_topic_status, need_scheduled_at, current_scheduled_at, expected_response_status_code",
+            "current_topic_status, need_scheduled_at, "
+            + "current_scheduled_at, expected_response_status_code",
             [
                 (
                     None,
@@ -3408,7 +3438,7 @@ class TestTicketStatus:
                 _scheduled_at = previous_scheduled_at
             assert set_response["scheduled_at"] == _scheduled_at
 
-        def test_it_should_set_requester_if_assignee_is_not_specify_and_saved_assignee_is_current_user(
+        def test_it_should_set_requester_if_assignee_is_not_specify_and_saved_current_user(
             self, actionable_topic1
         ):
             status_request = {
