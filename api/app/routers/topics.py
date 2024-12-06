@@ -39,7 +39,7 @@ def get_topics(
         data = {
             "title": topic.title,
             "abstract": topic.abstract,
-            "threat_impact": topic.threat_impact,
+            "cvss_v3_score": topic.cvss_v3_score,
             "tag_names": sorted({tag.tag_name for tag in topic.tags}),
         }
         return hashlib.md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
@@ -264,13 +264,6 @@ def create_topic(
                 detail="cvss_v3_score is out of range",
             )
 
-    if data.cvss_v3_score is not None:
-        if data.cvss_v3_score > 10.0 or data.cvss_v3_score < 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="cvss_v3_score is out of range",
-            )
-
     # create topic core
     now = datetime.now()
     topic = models.Topic(
@@ -331,8 +324,6 @@ def update_topic(
             detail="you are not topic creator",
         )
 
-    new_title = None if data.title is None else data.title
-    new_abstract = None if data.abstract is None else data.abstract
     new_tags: list[models.Tag | None] | None = None
     if data.tags is not None:
         tags_dict = {
@@ -359,10 +350,10 @@ def update_topic(
         topic.tags = new_tags
     if data.misp_tags is not None:
         topic.misp_tags = [get_or_create_misp_tag(db, tag) for tag in data.misp_tags]
-    if new_title is not None:
-        topic.title = new_title
-    if new_abstract is not None:
-        topic.abstract = new_abstract
+    if data.title is not None:
+        topic.title = data.title
+    if data.abstract is not None:
+        topic.abstract = data.abstract
     if data.threat_impact is not None:
         topic.threat_impact = data.threat_impact
     if data.exploitation is not None:
