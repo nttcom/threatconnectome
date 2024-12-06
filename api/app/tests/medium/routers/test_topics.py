@@ -894,20 +894,20 @@ class TestTopicContentFingerprint:
         content_fingerprint1b = topic1b.content_fingerprint
         assert content_fingerprint1b == content_fingerprint1
 
-    def test_updated_on_threat_impact_changed(self):
+    def test_updated_on_cvss_v3_score_changed(self):
         topic1 = create_topic(USER1, TOPIC1)
         content_fingerprint1 = topic1.content_fingerprint
         assert len(content_fingerprint1) > 0
 
-        # update threat_impact
-        new_threat_impact = (topic1.threat_impact + 1) % 4 + 1
-        topic1a = self._update_topic(topic1.topic_id, {"threat_impact": new_threat_impact})
+        # update cvss_v3_score
+        new_cvss_v3_score = 9.0
+        topic1a = self._update_topic(topic1.topic_id, {"cvss_v3_score": new_cvss_v3_score})
         content_fingerprint1a = topic1a.content_fingerprint
         assert len(content_fingerprint1a) > 0
         assert content_fingerprint1a != content_fingerprint1
 
-        # revert threat_impact update
-        topic1b = self._update_topic(topic1.topic_id, {"threat_impact": TOPIC1["threat_impact"]})
+        # revert cvss_v3_score update
+        topic1b = self._update_topic(topic1.topic_id, {"cvss_v3_score": TOPIC1["cvss_v3_score"]})
         content_fingerprint1b = topic1b.content_fingerprint
         assert content_fingerprint1b == content_fingerprint1
 
