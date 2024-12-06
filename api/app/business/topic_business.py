@@ -21,13 +21,13 @@ def get_sorted_topics(topics: Sequence[models.Topic]) -> Sequence[models.Topic]:
 def calculate_topic_content_fingerprint(
     title: str,
     abstract: str,
-    threat_impact: int,
+    cvss_v3_score: float | None,
     tag_names: Sequence[str],
 ) -> str:
     data = {
         "title": title,
         "abstract": abstract,
-        "threat_impact": threat_impact,
+        "cvss_v3_score": cvss_v3_score,
         "tag_names": sorted(set(tag_names)),
     }
     return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
