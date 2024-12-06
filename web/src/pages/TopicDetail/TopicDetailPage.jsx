@@ -26,24 +26,6 @@ import { errorToString } from "../../utils/func";
 
 import { TopicSSVCCards } from "./TopicSSVCCards";
 
-const threatImpactColor = {
-  immediate: {
-    bgcolor: red[100],
-  },
-  offcycle: {
-    bgcolor: orange[100],
-  },
-  acceptable: {
-    bgcolor: amber[100],
-  },
-  none: {
-    bgcolor: grey[100],
-  },
-  safe: {
-    bgcolor: green[100],
-  },
-};
-
 const artifactTagChip = (chipNumber) => {
   const artifactTagMax = 99;
   return chipNumber <= artifactTagMax ? chipNumber : `${artifactTagMax}+`;
