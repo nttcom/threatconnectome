@@ -320,7 +320,7 @@ export const tcApi = createApi({
     }),
 
     /* Ticket Status */
-    createTicketStatus: builder.mutation({
+    updateTicketStatus: builder.mutation({
       query: ({ pteamId, serviceId, ticketId, data }) => ({
         url: `pteams/${pteamId}/services/${serviceId}/ticketstatus/${ticketId}`,
         method: "PUT",
@@ -483,7 +483,7 @@ export const {
   useGetTagsQuery,
   useCreateTagMutation,
   useGetTicketsQuery,
-  useCreateTicketStatusMutation,
+  useUpdateTicketStatusMutation,
   useGetTopicQuery,
   useSearchTopicsQuery,
   useCreateTopicMutation,

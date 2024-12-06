@@ -21,7 +21,7 @@ import dialogStyle from "../../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
   useCreateActionLogMutation,
-  useCreateTicketStatusMutation,
+  useUpdateTicketStatusMutation,
   useGetUserMeQuery,
 } from "../../services/tcApi";
 import { errorToString } from "../../utils/func";
@@ -46,7 +46,7 @@ export function ReportCompletedActions(props) {
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
   const [createActionLog] = useCreateActionLogMutation();
-  const [createTicketStatus] = useCreateTicketStatusMutation();
+  const [updateTicketStatus] = useUpdateTicketStatusMutation();
 
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
@@ -73,7 +73,7 @@ export function ReportCompletedActions(props) {
     )
       .then(
         async (actionLogs) =>
-          await createTicketStatus({
+          await updateTicketStatus({
             pteamId,
             serviceId,
             ticketId,
@@ -81,7 +81,7 @@ export function ReportCompletedActions(props) {
               topic_status: "completed",
               logging_ids: actionLogs.map((log) => log.logging_id),
               note: note.trim() || null,
-              scheduled_at: "1970-01-01T00:00:00", // clear scheduled date
+              scheduled_at: null, // clear scheduled date
             },
           }).unwrap(),
       )
