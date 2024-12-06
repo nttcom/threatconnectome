@@ -208,6 +208,7 @@ def create_topic(
     - `tags` : Optional. The default is an empty list.
     - `misp_tags` : Optional. The default is an empty list.
     - `actions` : Optional. The default is an empty list.
+    - `cvss_v3_score` : Ranges from 0.0 to 10.0.
     """
     # TODO: It may be unnecessary to check
     if topic_id == UUID(int=0):
@@ -256,6 +257,13 @@ def create_topic(
             detail="TopicId in actions mismatch",
         )
 
+    if data.cvss_v3_score is not None:
+        if data.cvss_v3_score > 10.0 or data.cvss_v3_score < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="cvss_v3_score is out of range",
+            )
+
     fixed_title = data.title.strip()
     fixed_abstract = data.abstract.strip()
 
@@ -269,6 +277,7 @@ def create_topic(
         created_by=current_user.user_id,
         created_at=now,
         updated_at=now,
+        cvss_v3_score=data.cvss_v3_score,
         content_fingerprint=calculate_topic_content_fingerprint(
             fixed_title, fixed_abstract, data.threat_impact, data.tags
         ),
@@ -333,6 +342,14 @@ def update_topic(
         new_tags = list(tags_dict.values())
     tags_updated = new_tags is not None and set(new_tags) != set(topic.tags)
 
+    update_data = data.model_dump(exclude_unset=True)
+    if "cvss_v3_score" in update_data.keys() and data.cvss_v3_score is not None:
+        if data.cvss_v3_score > 10.0 or data.cvss_v3_score < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="cvss_v3_score is out of range",
+            )
+
     # Update topic attributes
     if new_tags is not None:
         topic.tags = new_tags
@@ -350,6 +367,8 @@ def update_topic(
     if data.automatable is not None:
         previous_automatable = topic.automatable
         topic.automatable = data.automatable
+    if "cvss_v3_score" in update_data.keys():
+        topic.cvss_v3_score = data.cvss_v3_score
 
     topic.content_fingerprint = calculate_topic_content_fingerprint(
         topic.title, topic.abstract, topic.threat_impact, [tag.tag_name for tag in topic.tags]
