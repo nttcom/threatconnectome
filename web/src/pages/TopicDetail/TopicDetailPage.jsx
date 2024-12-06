@@ -68,7 +68,7 @@ export function TopicDetail() {
     return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
   if (topicActionsIsLoading) return <>Now loading topicActions...</>;
 
-  const CVSSScore = 10.0;
+  const CVSSScore = "N/A";
   let CVSSBgcolor;
   let threatCardBgcolor;
   if (CVSSScore === "N/A" || CVSSScore === 0.0) {
@@ -101,7 +101,7 @@ export function TopicDetail() {
                 }}
                 variant="rounded"
               >
-                {CVSSScore.toFixed(1)}
+                {CVSSScore === "N/A" ? CVSSScore : CVSSScore.toFixed(1)}
               </Avatar>
               <Typography variant="h5">{topic.title}</Typography>
             </Box>
