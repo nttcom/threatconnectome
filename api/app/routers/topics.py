@@ -37,8 +37,8 @@ def get_topics(
     content_fingerprint is calculated as below:
 
         data = {
-            "title": topic.title.strip(),
-            "abstract": topic.abstract.strip(),
+            "title": topic.title,
+            "abstract": topic.abstract,
             "threat_impact": topic.threat_impact,
             "tag_names": sorted({tag.tag_name for tag in topic.tags}),
         }
@@ -264,22 +264,26 @@ def create_topic(
                 detail="cvss_v3_score is out of range",
             )
 
-    fixed_title = data.title.strip()
-    fixed_abstract = data.abstract.strip()
+    if data.cvss_v3_score is not None:
+        if data.cvss_v3_score > 10.0 or data.cvss_v3_score < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="cvss_v3_score is out of range",
+            )
 
     # create topic core
     now = datetime.now()
     topic = models.Topic(
         topic_id=str(topic_id),
-        title=fixed_title,
-        abstract=fixed_abstract,
+        title=data.title,
+        abstract=data.abstract,
         threat_impact=data.threat_impact,
         created_by=current_user.user_id,
         created_at=now,
         updated_at=now,
         cvss_v3_score=data.cvss_v3_score,
         content_fingerprint=calculate_topic_content_fingerprint(
-            fixed_title, fixed_abstract, data.threat_impact, data.tags
+            data.title, data.abstract, data.cvss_v3_score, data.tags
         ),
         exploitation=data.exploitation,
         automatable=data.automatable,
@@ -327,8 +331,8 @@ def update_topic(
             detail="you are not topic creator",
         )
 
-    new_title = None if data.title is None else data.title.strip()
-    new_abstract = None if data.abstract is None else data.abstract.strip()
+    new_title = None if data.title is None else data.title
+    new_abstract = None if data.abstract is None else data.abstract
     new_tags: list[models.Tag | None] | None = None
     if data.tags is not None:
         tags_dict = {
@@ -371,7 +375,7 @@ def update_topic(
         topic.cvss_v3_score = data.cvss_v3_score
 
     topic.content_fingerprint = calculate_topic_content_fingerprint(
-        topic.title, topic.abstract, topic.threat_impact, [tag.tag_name for tag in topic.tags]
+        topic.title, topic.abstract, topic.cvss_v3_score, [tag.tag_name for tag in topic.tags]
     )
 
     topic.updated_at = datetime.now()
