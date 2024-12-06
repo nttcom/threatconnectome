@@ -156,6 +156,7 @@ class Topic(TopicEntry):
     created_at: datetime
     exploitation: ExploitationEnum | None
     automatable: AutomatableEnum | None
+    cvss_v3_score: float | None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -212,6 +213,7 @@ class TopicCreateRequest(ORMModel):
     actions: list[ActionCreateRequest] = []
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
+    cvss_v3_score: float | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -224,6 +226,7 @@ class TopicUpdateRequest(ORMModel):
     misp_tags: list[str] | None = None
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
+    cvss_v3_score: float | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 

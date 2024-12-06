@@ -433,9 +433,9 @@ def calculate_topic_content_fingerprint(topic: dict) -> str:
         else topic["tags"]
     )
     data = {
-        "title": topic["title"].strip(),
-        "abstract": topic["abstract"].strip(),
-        "threat_impact": topic["threat_impact"],
+        "title": topic["title"],
+        "abstract": topic["abstract"],
+        "cvss_v3_score": topic["cvss_v3_score"],
         "tag_names": sorted(set(tag_names)),
     }
     return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
@@ -534,10 +534,21 @@ def main() -> None:
                 else:
                     abstract = "There is no description."
                 severity = vuln_details["Severity"]
+
+                if (
+                    "CVSS" in vuln_details
+                    and "nvd" in vuln_details["CVSS"]
+                    and "V3Score" in vuln_details["CVSS"]["nvd"]
+                ):
+                    cvss_v3_score = float(vuln_details["CVSS"]["nvd"]["V3Score"])
+                else:
+                    cvss_v3_score = None
+
             else:
                 title = vuln_id
                 abstract = "This Vuln is not yet published."
                 severity = "UNKNOWN"
+                cvss_v3_score = None
             if vuln_content["tags"]:
                 tags = list(vuln_content["tags"])
             misp_tags = [vuln_id]
@@ -565,6 +576,7 @@ def main() -> None:
                 "tags": tags,
                 "misp_tags": misp_tags,
                 "actions": actions,
+                "cvss_v3_score": cvss_v3_score,
             }
 
     tc_client = ThreatconnectomeClient(

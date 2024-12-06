@@ -75,6 +75,7 @@ def test_create_topic():
     assert ACTION2["action"] in [a.action for a in topic1.actions]
     assert topic1.exploitation == TOPIC1["exploitation"]
     assert topic1.automatable == TOPIC1["automatable"]
+    assert topic1.cvss_v3_score == TOPIC1["cvss_v3_score"]
 
 
 def test_create_topic__with_new_tags():
@@ -202,6 +203,33 @@ def test_create_too_long_action():
         create_topic(USER1, TOPIC1, actions=[_action])
 
 
+def test_it_should_return_400_when_cvss_v3_score_is_out_of_range():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    _topic["cvss_v3_score"] = 10.1
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.status_code == 400
+    assert response.json()["detail"] == "cvss_v3_score is out of range"
+
+
+def test_it_should_return_None_when_cvss_v3_score_is_None_in_request():
+    create_user(USER1)
+    create_tag(USER1, TAG1)
+    _topic = TOPIC1.copy()
+    _topic["cvss_v3_score"] = None
+
+    request = {**_topic}
+    del request["topic_id"]
+
+    response = client.post(f'/topics/{_topic["topic_id"]}', headers=headers(USER1), json=request)
+    assert response.json()["cvss_v3_score"] is None
+
+
 def test_get_topic():
     user1 = create_user(USER1)
     create_pteam(USER1, PTEAM1)
@@ -225,6 +253,7 @@ def test_get_topic():
     assert TOPIC1["misp_tags"][0] in [m.tag_name for m in responsed_topic.misp_tags]
     assert responsed_topic.exploitation == TOPIC1["exploitation"]
     assert responsed_topic.automatable == TOPIC1["automatable"]
+    assert responsed_topic.cvss_v3_score == TOPIC1["cvss_v3_score"]
     # actions are removed from TopicResponse.
     # use 'GET /topics/{tid}/actions/pteam/{pid}' to get actions.
 
@@ -267,6 +296,7 @@ def test_update_topic():
         "misp_tags": ["tlp:white"],
         "exploitation": "public_poc",
         "automatable": "no",
+        "cvss_v3_score": 5.5,
     }
     response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
 
@@ -288,6 +318,8 @@ def test_update_topic():
     assert responsed_topic.exploitation != TOPIC1["exploitation"]
     assert responsed_topic.automatable == request["automatable"]
     assert responsed_topic.automatable != TOPIC1["automatable"]
+    assert responsed_topic.cvss_v3_score == request["cvss_v3_score"]
+    assert responsed_topic.cvss_v3_score != TOPIC1["cvss_v3_score"]
 
 
 def test_update_topic__with_new_tags():
@@ -377,6 +409,7 @@ class TestUpdateTopic:
                 ],
                 "exploitation": "active",
                 "automatable": "yes",
+                "cvss_v3_score": 2.0,
             }
 
         self.user1 = create_user(USER1)
@@ -495,6 +528,19 @@ class TestUpdateTopic:
         # alert once
         send_alert_to_pteam_in_common.assert_called_once()
         send_alert_to_pteam_in_topics.assert_not_called()
+
+    def test_it_should_return_400_when_cvss_v3_score_is_out_of_range(self, mocker):
+        request = {
+            "cvss_v3_score": 10.1,
+        }
+        response = client.put(
+            f"/topics/{self.topic.topic_id}",
+            headers=headers(USER1),
+            json=request,
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "cvss_v3_score is out of range"
 
 
 def test_delete_topic(testdb: Session):
@@ -848,20 +894,20 @@ class TestTopicContentFingerprint:
         content_fingerprint1b = topic1b.content_fingerprint
         assert content_fingerprint1b == content_fingerprint1
 
-    def test_updated_on_threat_impact_changed(self):
+    def test_updated_on_cvss_v3_score_changed(self):
         topic1 = create_topic(USER1, TOPIC1)
         content_fingerprint1 = topic1.content_fingerprint
         assert len(content_fingerprint1) > 0
 
-        # update threat_impact
-        new_threat_impact = (topic1.threat_impact + 1) % 4 + 1
-        topic1a = self._update_topic(topic1.topic_id, {"threat_impact": new_threat_impact})
+        # update cvss_v3_score
+        new_cvss_v3_score = 9.0
+        topic1a = self._update_topic(topic1.topic_id, {"cvss_v3_score": new_cvss_v3_score})
         content_fingerprint1a = topic1a.content_fingerprint
         assert len(content_fingerprint1a) > 0
         assert content_fingerprint1a != content_fingerprint1
 
-        # revert threat_impact update
-        topic1b = self._update_topic(topic1.topic_id, {"threat_impact": TOPIC1["threat_impact"]})
+        # revert cvss_v3_score update
+        topic1b = self._update_topic(topic1.topic_id, {"cvss_v3_score": TOPIC1["cvss_v3_score"]})
         content_fingerprint1b = topic1b.content_fingerprint
         assert content_fingerprint1b == content_fingerprint1
 
