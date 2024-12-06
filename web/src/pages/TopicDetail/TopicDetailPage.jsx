@@ -74,10 +74,10 @@ export function TopicDetail() {
   if (CVSSScore === "N/A" || CVSSScore === 0.0) {
     CVSSBgcolor = grey[600];
     threatCardBgcolor = grey[100];
-  } else if (CVSSScore < 6.9) {
+  } else if (CVSSScore < 7.0) {
     CVSSBgcolor = amber[600];
     threatCardBgcolor = amber[100];
-  } else if (CVSSScore < 8.9) {
+  } else if (CVSSScore < 9.0) {
     CVSSBgcolor = orange[600];
     threatCardBgcolor = orange[100];
   } else {
