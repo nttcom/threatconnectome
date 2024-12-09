@@ -72,6 +72,17 @@ def update_user(
             detail="Information can only be updated by user himself",
         )
 
+    update_data = data.model_dump(exclude_unset=True)
+    if "disabled" in update_data.keys() and data.disabled is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for disabled",
+        )
+    if "years" in update_data.keys() and data.years is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for years",
+        )
     if data.disabled is not None:
         user.disabled = data.disabled
     if data.years is not None:
