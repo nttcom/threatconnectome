@@ -391,9 +391,6 @@ def test_get_pteam_services_register_multiple_services():
             {
                 "keywords": ["test_keywords"],
                 "description": "test_description",
-                "system_exposure": None,
-                "service_mission_impact": None,
-                "safety_impact": None,
             },
             {
                 "keywords": ["test_keywords"],
@@ -3816,8 +3813,8 @@ class TestUpdatePTeamService:
                 json=request,
             )
 
-            assert response.status_code == 400
-            assert response.json()["detail"] == "Cannot specify None for keywords"
+            assert response.status_code == 200
+            assert response.json()["keywords"] == []
 
     class TestDescription(Common):
 
