@@ -1264,6 +1264,34 @@ def update_pteam(
         raise NO_SUCH_PTEAM
     if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
         raise NOT_HAVE_AUTH
+
+    update_data = data.model_dump(exclude_unset=True)
+    if "pteam_name" in update_data.keys() and data.pteam_name is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for pteam_name",
+        )
+    if "contact_info" in update_data.keys() and data.contact_info is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for contact_info",
+        )
+    if "alert_slack" in update_data.keys() and data.alert_slack is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for alert_slack",
+        )
+    if "alert_ssvc_priority" in update_data.keys() and data.alert_ssvc_priority is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for alert_ssvc_priority",
+        )
+    if "alert_mail" in update_data.keys() and data.alert_mail is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for alert_mail",
+        )
+
     if data.alert_slack and data.alert_slack.webhook_url:
         validate_slack_webhook_url(data.alert_slack.webhook_url)
         pteam.alert_slack = models.PTeamSlack(

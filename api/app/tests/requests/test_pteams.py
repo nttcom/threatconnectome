@@ -291,14 +291,34 @@ def test_update_pteam_empty_data():
         "alert_slack": {"enable": False, "webhook_url": ""},
     }
 
-    request = schemas.PTeamUpdateRequest(**{**empty_data}).model_dump()
-    response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request)
+    response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=empty_data)
     assert response.status_code == 200
     data = response.json()
     assert data["pteam_name"] == ""
     assert data["contact_info"] == ""
     assert data["alert_slack"]["webhook_url"] == ""
     assert data["alert_ssvc_priority"] == PTEAM1["alert_ssvc_priority"]
+
+
+@pytest.mark.parametrize(
+    "field_name, expected_response_detail",
+    [
+        ("pteam_name", "Cannot specify None for pteam_name"),
+        ("contact_info", "Cannot specify None for contact_info"),
+        ("alert_slack", "Cannot specify None for alert_slack"),
+        ("alert_ssvc_priority", "Cannot specify None for alert_ssvc_priority"),
+        ("alert_mail", "Cannot specify None for alert_mail"),
+    ],
+)
+def test_update_pteam_should_return_400_when_required_fields_is_None(
+    field_name, expected_response_detail
+):
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    request = {field_name: None}
+    response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request)
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected_response_detail
 
 
 def test_get_pteam_services_register_multiple_services():
