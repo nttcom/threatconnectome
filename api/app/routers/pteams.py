@@ -234,8 +234,32 @@ def update_pteam_service(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    if data.description is not None:
-        if description := data.description.strip():
+    update_data = data.model_dump(exclude_unset=True)
+    if "keywords" in update_data.keys() and data.keywords is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for keywords",
+        )
+    if "system_exposure" in update_data.keys() and data.system_exposure is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for system_exposure",
+        )
+    if "service_mission_impact" in update_data.keys() and data.service_mission_impact is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for service_mission_impact",
+        )
+    if "safety_impact" in update_data.keys() and data.safety_impact is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for safety_impact",
+        )
+
+    if "description" in update_data.keys():
+        if data.description is None:
+            service.description = None
+        elif description := data.description.strip():
             if (
                 count_full_width_and_half_width_characters(description)
                 > max_description_length_in_half
