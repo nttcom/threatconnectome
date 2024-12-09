@@ -50,14 +50,14 @@ def threat2(testdb: Session) -> schemas.ThreatResponse:
     return threat_utils.create_threat(testdb, USER2, PTEAM2, TOPIC2, None)
 
 
-def test_get_threat(threat1: schemas.ThreatResponse, threat2: schemas.ThreatResponse):
+def test_get_threat(threat1: schemas.ThreatResponse):
 
     data = assert_200(client.get("/threats/" + str(threat1.threat_id), headers=header_threat))
     assert data["threat_id"] == str(threat1.threat_id)
     assert data["dependency_id"] == str(threat1.dependency_id)
     assert data["topic_id"] == str(threat1.topic_id)
     if threat1.threat_safety_impact:
-        assert data["threat_safety_impact"] == str(threat1.threat_safety_impact.value)
+        assert data["threat_safety_impact"] == threat1.threat_safety_impact.value
     else:
         assert data["threat_safety_impact"] == threat1.threat_safety_impact
 
@@ -146,9 +146,17 @@ def test_get_all_threats(testdb: Session):
         topic_id=str(topic1.topic_id),
     )
 
+    threat1_safety_impact = (
+        threat1.threat_safety_impact.value if threat1.threat_safety_impact is not None else None
+    )
+
     threat2 = models.Threat(
         dependency_id=str(dependency2_id),
         topic_id=str(topic2.topic_id),
+    )
+
+    threat2_safety_impact = (
+        threat2.threat_safety_impact.value if threat2.threat_safety_impact is not None else None
     )
 
     persistence.create_threat(testdb, threat1)
@@ -158,44 +166,18 @@ def test_get_all_threats(testdb: Session):
     data = assert_200(client.get("/threats", headers=header_threat))
     assert len(data) == 2
 
-    assert (data[0]["threat_id"] == str(threat1.threat_id)) or (
-        data[0]["threat_id"] == str(threat2.threat_id)
-    )
-    assert (data[0]["dependency_id"] == str(threat1.dependency_id)) or (
-        data[0]["dependency_id"] == str(threat2.dependency_id)
-    )
-    assert (data[0]["topic_id"] == str(threat1.topic_id)) or (
-        data[0]["topic_id"] == str(threat2.topic_id)
-    )
+    # responseデータの中から、threat1に対応するものを取得
+    response_threat1 = next(filter(lambda x: x["threat_id"] == str(threat1.threat_id), data), None)
+    assert response_threat1
+    assert response_threat1["dependency_id"] == str(threat1.dependency_id)
+    assert response_threat1["topic_id"] == str(threat1.topic_id)
+    assert response_threat1["threat_safety_impact"] == threat1_safety_impact
 
-    threat1_safety_impact = (
-        str(threat1.threat_safety_impact.value)
-        if threat1.threat_safety_impact
-        else threat1.threat_safety_impact
-    )
-
-    threat2_safety_impact = (
-        str(threat2.threat_safety_impact.value)
-        if threat2.threat_safety_impact
-        else threat2.threat_safety_impact
-    )
-
-    assert (data[0]["threat_safety_impact"] == threat1_safety_impact) or (
-        data[0]["threat_safety_impact"] == threat2_safety_impact
-    )
-
-    assert (data[1]["threat_id"] == str(threat1.threat_id)) or (
-        data[1]["threat_id"] == str(threat2.threat_id)
-    )
-    assert (data[1]["dependency_id"] == str(threat1.dependency_id)) or (
-        data[1]["dependency_id"] == str(threat2.dependency_id)
-    )
-    assert (data[1]["topic_id"] == str(threat1.topic_id)) or (
-        data[1]["topic_id"] == str(threat2.topic_id)
-    )
-    assert (data[1]["threat_safety_impact"] == threat1_safety_impact) or (
-        data[1]["threat_safety_impact"] == threat2.threat_safety_impact
-    )
+    response_threat2 = next(filter(lambda x: x["threat_id"] == str(threat2.threat_id), data), None)
+    assert response_threat2
+    assert response_threat2["dependency_id"] == str(threat2.dependency_id)
+    assert response_threat2["topic_id"] == str(threat2.topic_id)
+    assert response_threat2["threat_safety_impact"] == threat2_safety_impact
 
 
 @pytest.mark.parametrize(
@@ -461,7 +443,7 @@ def test_update_threat_safety_impact(
     assert response["dependency_id"] == str(threat1.dependency_id)
     assert response["topic_id"] == str(threat1.topic_id)
     threat_safety_impact_value = (
-        str(threat_safety_impact.value) if threat_safety_impact else threat_safety_impact
+        threat_safety_impact.value if threat_safety_impact is not None else None
     )
     assert response["threat_safety_impact"] == threat_safety_impact_value
 
@@ -471,8 +453,6 @@ def test_update_threat_safety_impact(
     assert str(db_data.dependency_id) == str(threat1.dependency_id)
     assert str(db_data.topic_id) == str(threat1.topic_id)
     db_data_threat_safety_impact_value = (
-        str(db_data.threat_safety_impact.value)
-        if db_data.threat_safety_impact
-        else db_data.threat_safety_impact
+        db_data.threat_safety_impact.value if db_data.threat_safety_impact is not None else None
     )
     assert db_data_threat_safety_impact_value == threat_safety_impact_value
