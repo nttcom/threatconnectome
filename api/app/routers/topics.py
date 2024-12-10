@@ -37,9 +37,9 @@ def get_topics(
     content_fingerprint is calculated as below:
 
         data = {
-            "title": topic.title.strip(),
-            "abstract": topic.abstract.strip(),
-            "threat_impact": topic.threat_impact,
+            "title": topic.title,
+            "abstract": topic.abstract,
+            "cvss_v3_score": topic.cvss_v3_score,
             "tag_names": sorted({tag.tag_name for tag in topic.tags}),
         }
         return hashlib.md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
@@ -208,6 +208,7 @@ def create_topic(
     - `tags` : Optional. The default is an empty list.
     - `misp_tags` : Optional. The default is an empty list.
     - `actions` : Optional. The default is an empty list.
+    - `cvss_v3_score` : Ranges from 0.0 to 10.0.
     """
     # TODO: It may be unnecessary to check
     if topic_id == UUID(int=0):
@@ -256,21 +257,26 @@ def create_topic(
             detail="TopicId in actions mismatch",
         )
 
-    fixed_title = data.title.strip()
-    fixed_abstract = data.abstract.strip()
+    if data.cvss_v3_score is not None:
+        if data.cvss_v3_score > 10.0 or data.cvss_v3_score < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="cvss_v3_score is out of range",
+            )
 
     # create topic core
     now = datetime.now()
     topic = models.Topic(
         topic_id=str(topic_id),
-        title=fixed_title,
-        abstract=fixed_abstract,
+        title=data.title,
+        abstract=data.abstract,
         threat_impact=data.threat_impact,
         created_by=current_user.user_id,
         created_at=now,
         updated_at=now,
+        cvss_v3_score=data.cvss_v3_score,
         content_fingerprint=calculate_topic_content_fingerprint(
-            fixed_title, fixed_abstract, data.threat_impact, data.tags
+            data.title, data.abstract, data.cvss_v3_score, data.tags
         ),
         exploitation=data.exploitation,
         automatable=data.automatable,
@@ -318,8 +324,6 @@ def update_topic(
             detail="you are not topic creator",
         )
 
-    new_title = None if data.title is None else data.title.strip()
-    new_abstract = None if data.abstract is None else data.abstract.strip()
     new_tags: list[models.Tag | None] | None = None
     if data.tags is not None:
         tags_dict = {
@@ -333,15 +337,23 @@ def update_topic(
         new_tags = list(tags_dict.values())
     tags_updated = new_tags is not None and set(new_tags) != set(topic.tags)
 
+    update_data = data.model_dump(exclude_unset=True)
+    if "cvss_v3_score" in update_data.keys() and data.cvss_v3_score is not None:
+        if data.cvss_v3_score > 10.0 or data.cvss_v3_score < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="cvss_v3_score is out of range",
+            )
+
     # Update topic attributes
     if new_tags is not None:
         topic.tags = new_tags
     if data.misp_tags is not None:
         topic.misp_tags = [get_or_create_misp_tag(db, tag) for tag in data.misp_tags]
-    if new_title is not None:
-        topic.title = new_title
-    if new_abstract is not None:
-        topic.abstract = new_abstract
+    if data.title is not None:
+        topic.title = data.title
+    if data.abstract is not None:
+        topic.abstract = data.abstract
     if data.threat_impact is not None:
         topic.threat_impact = data.threat_impact
     if data.exploitation is not None:
@@ -350,9 +362,11 @@ def update_topic(
     if data.automatable is not None:
         previous_automatable = topic.automatable
         topic.automatable = data.automatable
+    if "cvss_v3_score" in update_data.keys():
+        topic.cvss_v3_score = data.cvss_v3_score
 
     topic.content_fingerprint = calculate_topic_content_fingerprint(
-        topic.title, topic.abstract, topic.threat_impact, [tag.tag_name for tag in topic.tags]
+        topic.title, topic.abstract, topic.cvss_v3_score, [tag.tag_name for tag in topic.tags]
     )
 
     topic.updated_at = datetime.now()

@@ -612,9 +612,7 @@ def set_ticket_status(
 ):
     """
     Set status of the ticket.
-    Current status should be inherited if requested value is None.
-
-    To clear scheduled_at give datetime.fromtimestamp(0) to scheduled_at.
+    Current value should be inherited if not specified.
 
     scheduled_at is necessary to make topic_status "scheduled".
     """
@@ -631,6 +629,24 @@ def set_ticket_status(
     if ticket.threat.dependency.service_id != str(service_id):
         raise NO_SUCH_TICKET
 
+    update_data = data.model_dump(exclude_unset=True)
+
+    if "topic_status" in update_data.keys() and data.topic_status is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for topic_status",
+        )
+    if "logging_ids" in update_data.keys() and data.logging_ids is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for logging_ids",
+        )
+    if "assignees" in update_data.keys() and data.assignees is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for assignees",
+        )
+
     if data.topic_status == models.TopicStatusType.alerted:
         # user cannot set alerted
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
@@ -640,17 +656,17 @@ def set_ticket_status(
         data_scheduled_at = data.scheduled_at.replace(tzinfo=None)
 
     if data.topic_status == models.TopicStatusType.scheduled or (
-        data.topic_status is None
+        "topic_status" not in update_data.keys()
         and ticket.ticket_status.topic_status == models.TopicStatusType.scheduled
     ):
-        if data.scheduled_at is None:
+        if "scheduled_at" not in update_data.keys():
             if ticket.ticket_status.topic_status != models.TopicStatusType.scheduled:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="If status is scheduled, specify schduled_at",
                 )
         else:
-            if data.scheduled_at == datetime.fromtimestamp(0):
+            if data.scheduled_at is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="If status is scheduled, unable to reset schduled_at",
@@ -661,7 +677,7 @@ def set_ticket_status(
                     detail="If status is scheduled, schduled_at must be a future time",
                 )
     else:
-        if data.scheduled_at is None:
+        if "scheduled_at" not in update_data.keys():
             if ticket.ticket_status.topic_status == models.TopicStatusType.scheduled:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -671,7 +687,7 @@ def set_ticket_status(
                     ),
                 )
         else:
-            if data.scheduled_at != datetime.fromtimestamp(0) and data.scheduled_at:
+            if data.scheduled_at is not None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="If status is not scheduled, do not specify schduled_at",
@@ -700,27 +716,28 @@ def set_ticket_status(
                 detail="Not a pteam member",
             )
 
-    if ticket.ticket_status.topic_status == models.TopicStatusType.alerted:
-        # this is the first update
-        if data.topic_status is None:
-            data.topic_status = models.TopicStatusType.acknowledged
-    if ticket.ticket_status.assignees == [] and data.assignees is None:
-        data.assignees = [UUID(current_user.user_id)]
-
     # update only if required
-    if data.assignees is not None:
+    if "assignees" in update_data.keys() and data.assignees is not None:
         ticket.ticket_status.assignees = list(map(str, data.assignees))
-    if data.topic_status is not None:
+    elif ticket.ticket_status.assignees == []:
+        ticket.ticket_status.assignees = [UUID(current_user.user_id)]
+    if "topic_status" in update_data.keys():
         ticket.ticket_status.topic_status = data.topic_status
-    if data.logging_ids is not None:
+    elif ticket.ticket_status.topic_status == models.TopicStatusType.alerted:
+        # this is the first update
+        ticket.ticket_status.topic_status = models.TopicStatusType.acknowledged
+    if "logging_ids" in update_data.keys() and data.logging_ids is not None:
         ticket.ticket_status.logging_ids = list(map(str, data.logging_ids))
-    if data.note is not None:
+    if "note" in update_data.keys():
         ticket.ticket_status.note = data.note
-    if data.scheduled_at is not None:
-        if data_scheduled_at > now and data.topic_status == models.TopicStatusType.scheduled:
-            ticket.ticket_status.scheduled_at = data.scheduled_at
-        elif data.scheduled_at == datetime.fromtimestamp(0):
+    if "scheduled_at" in update_data.keys():
+        if data.scheduled_at is None:
             ticket.ticket_status.scheduled_at = None
+        elif (
+            data_scheduled_at > now
+            and ticket.ticket_status.topic_status == models.TopicStatusType.scheduled
+        ):
+            ticket.ticket_status.scheduled_at = data.scheduled_at
 
     # set last updated by
     ticket.ticket_status.user_id = current_user.user_id

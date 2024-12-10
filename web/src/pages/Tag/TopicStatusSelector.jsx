@@ -24,7 +24,7 @@ import PropTypes from "prop-types";
 import React, { useRef, useState } from "react";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
-import { useCreateTicketStatusMutation } from "../../services/tcApi";
+import { useUpdateTicketStatusMutation } from "../../services/tcApi";
 import { topicStatusProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
@@ -41,7 +41,7 @@ export function TopicStatusSelector(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const [createTicketStatus] = useCreateTicketStatusMutation();
+  const [updateTicketStatus] = useUpdateTicketStatusMutation();
 
   const dateFormat = "yyyy/MM/dd HH:mm";
   const selectableItems = [
@@ -64,9 +64,9 @@ export function TopicStatusSelector(props) {
       if (!schedule) return;
       requestParams["scheduled_at"] = schedule.toISOString();
     } else if (selectedStatus === "acknowledged") {
-      requestParams["scheduled_at"] = "1970-01-01T00:00:00";
+      requestParams["scheduled_at"] = null;
     }
-    await createTicketStatus({ pteamId, serviceId, ticketId, data: requestParams })
+    await updateTicketStatus({ pteamId, serviceId, ticketId, data: requestParams })
       .unwrap()
       .then(() => {
         enqueueSnackbar("Change ticket status succeeded", { variant: "success" });

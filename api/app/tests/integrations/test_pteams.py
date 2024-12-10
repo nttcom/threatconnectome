@@ -154,7 +154,7 @@ def test_it_should_return_ssvc_priority_count_num_based_on_tickte_status(
             "topic_status": topic_status,
             "assignees": [],
             "note": "",
-            "scheduled_at": str(datetime.fromtimestamp(0)),
+            "scheduled_at": None,
         }
         client.put(
             post_topicstatus_url,

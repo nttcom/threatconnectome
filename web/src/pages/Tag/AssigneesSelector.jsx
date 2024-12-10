@@ -3,7 +3,7 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { useCreateTicketStatusMutation } from "../../services/tcApi";
+import { useUpdateTicketStatusMutation } from "../../services/tcApi";
 import { errorToString, setEquals } from "../../utils/func";
 
 export function AssigneesSelector(props) {
@@ -17,7 +17,7 @@ export function AssigneesSelector(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const [createTicketStatus] = useCreateTicketStatusMutation();
+  const [updateTicketStatus] = useUpdateTicketStatusMutation();
 
   const handleApply = async () => {
     const newAssigneeIds = Object.values(members)
@@ -25,7 +25,7 @@ export function AssigneesSelector(props) {
       .map((member) => member.user_id);
     if (setEquals(new Set(newAssigneeIds), new Set(currentAssigneeIds))) return; // not modified
 
-    await createTicketStatus({ pteamId, serviceId, ticketId, data: { assignees: newAssigneeIds } })
+    await updateTicketStatus({ pteamId, serviceId, ticketId, data: { assignees: newAssigneeIds } })
       .unwrap()
       .then(() => {
         enqueueSnackbar("Change assignees succeeded", { variant: "success" });
