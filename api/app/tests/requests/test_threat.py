@@ -23,7 +23,6 @@ from app.tests.medium.constants import (
 )
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
-    assert_200,
     create_pteam,
     create_tag,
     create_topic,
@@ -52,7 +51,11 @@ def threat2(testdb: Session) -> schemas.ThreatResponse:
 
 def test_get_threat(threat1: schemas.ThreatResponse):
 
-    data = assert_200(client.get("/threats/" + str(threat1.threat_id), headers=header_threat))
+    response = client.get("/threats/" + str(threat1.threat_id), headers=header_threat)
+    if response.status_code != 200:
+        raise HTTPError(response)
+    data = response.json()
+
     assert data["threat_id"] == str(threat1.threat_id)
     assert data["dependency_id"] == str(threat1.dependency_id)
     assert data["topic_id"] == str(threat1.topic_id)
@@ -64,9 +67,11 @@ def test_get_threat(threat1: schemas.ThreatResponse):
 
 def test_get_threat_no_data():
     with pytest.raises(HTTPError, match=r"404: Not Found: No such threat"):
-        assert_200(
-            client.get("/threats/3fa85f64-5717-4562-b3fc-2c963f66afa6", headers=header_threat)
+        response = client.get(
+            "/threats/3fa85f64-5717-4562-b3fc-2c963f66afa6", headers=header_threat
         )
+        if response.status_code != 200:
+            raise HTTPError(response)
 
 
 def test_get_all_threats(testdb: Session):
@@ -163,7 +168,10 @@ def test_get_all_threats(testdb: Session):
     persistence.create_threat(testdb, threat2)
     testdb.commit()
 
-    data = assert_200(client.get("/threats", headers=header_threat))
+    response = client.get("/threats", headers=header_threat)
+    if response.status_code != 200:
+        raise HTTPError(response)
+    data = response.json()
     assert len(data) == 2
 
     # responseデータの中から、threat1に対応するものを取得
@@ -430,22 +438,22 @@ def test_update_threat_safety_impact(
     testdb.commit()
 
     request = schemas.ThreatUpdateRequest(threat_safety_impact=threat_safety_impact).model_dump()
-    response = assert_200(
-        client.put(
-            "/threats/" + str(threat1.threat_id),
-            headers=header_threat,
-            json=request,
-        )
+    response = client.put(
+        "/threats/" + str(threat1.threat_id),
+        headers=header_threat,
+        json=request,
     )
+    if response.status_code != 200:
+        raise HTTPError(response)
+    data = response.json()
 
-    assert response
-    assert response["threat_id"] == str(threat1.threat_id)
-    assert response["dependency_id"] == str(threat1.dependency_id)
-    assert response["topic_id"] == str(threat1.topic_id)
+    assert data["threat_id"] == str(threat1.threat_id)
+    assert data["dependency_id"] == str(threat1.dependency_id)
+    assert data["topic_id"] == str(threat1.topic_id)
     threat_safety_impact_value = (
         threat_safety_impact.value if threat_safety_impact is not None else None
     )
-    assert response["threat_safety_impact"] == threat_safety_impact_value
+    assert data["threat_safety_impact"] == threat_safety_impact_value
 
     db_data = persistence.get_threat_by_id(testdb, threat1.threat_id)
     assert db_data
