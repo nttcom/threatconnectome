@@ -40,6 +40,18 @@ header_threat = {
 }
 
 
+def _get_access_token(user: dict) -> str:
+    body = {
+        "username": user["email"],
+        "password": user["pass"],
+    }
+    response = client.post("/auth/token", data=body)
+    if response.status_code != 200:
+        raise HTTPError(response)
+    data = response.json()
+    return data["access_token"]
+
+
 @pytest.fixture(scope="function")
 def threat1(testdb: Session) -> schemas.ThreatResponse:
     return threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, None)
@@ -51,18 +63,39 @@ def threat2(testdb: Session) -> schemas.ThreatResponse:
 
 
 def test_get_threat(threat1: schemas.ThreatResponse, threat2: schemas.ThreatResponse):
+    user1_access_token = _get_access_token(USER1)
+    _headers = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
 
-    data = assert_200(client.get("/threats/" + str(threat1.threat_id), headers=header_threat))
+    data = assert_200(client.get("/threats/" + str(threat1.threat_id), headers=_headers))
     assert data["threat_id"] == str(threat1.threat_id)
     assert data["dependency_id"] == str(threat1.dependency_id)
     assert data["topic_id"] == str(threat1.topic_id)
 
 
-def test_get_threat_no_data():
+def test_get_threat_no_data(threat1: schemas.ThreatResponse):
+    user1_access_token = _get_access_token(USER1)
+    _headers = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
     with pytest.raises(HTTPError, match=r"404: Not Found: No such threat"):
-        assert_200(
-            client.get("/threats/3fa85f64-5717-4562-b3fc-2c963f66afa6", headers=header_threat)
-        )
+        assert_200(client.get("/threats/3fa85f64-5717-4562-b3fc-2c963f66afa6", headers=_headers))
+
+
+def test_get_threat_invalid_user(threat1: schemas.ThreatResponse, threat2: schemas.ThreatResponse):
+    user2_access_token = _get_access_token(USER2)
+    _headers = {
+        "Authorization": f"Bearer {user2_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
+        assert_200(client.get("/threats/" + str(threat1.threat_id), headers=_headers))
 
 
 def test_get_all_threats(testdb: Session):

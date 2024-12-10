@@ -3,8 +3,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app import command, persistence, schemas
+from app import command, models, persistence, schemas
+from app.auth import get_current_user
 from app.database import get_db
+from app.routers.validators.account_validator import check_pteam_membership
 
 router = APIRouter(prefix="/threats", tags=["threats"])
 
@@ -31,6 +33,7 @@ def get_threats(
 @router.get("/{threat_id}", response_model=schemas.ThreatResponse)
 def get_threat(
     threat_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -39,4 +42,9 @@ def get_threat(
     if not (threat := persistence.get_threat_by_id(db, threat_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
 
-    return threat
+    pteam = threat.dependency.service.pteam
+
+    if check_pteam_membership(pteam, current_user):
+        return threat
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
