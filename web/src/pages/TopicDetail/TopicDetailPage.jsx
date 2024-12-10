@@ -68,7 +68,8 @@ export function TopicDetail() {
     return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
   if (topicActionsIsLoading) return <>Now loading topicActions...</>;
 
-  const CVSSScore = "N/A";
+  const CVSSScore =
+    topic.cvss_v3_score === undefined || topic.cvss_v3_score === null ? "N/A" : topic.cvss_v3_score;
   let CVSSBgcolor;
   let threatCardBgcolor;
   if (CVSSScore === "N/A" || CVSSScore === 0.0) {
