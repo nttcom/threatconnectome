@@ -221,7 +221,6 @@ def test_get_all_threats_no_threat_user(testdb: Session):
     pteam1 = create_pteam(USER1, PTEAM1)
 
     create_user(USER2)
-    pteam2 = create_pteam(USER2, PTEAM2)
 
     # create topic
     tag1 = create_tag(USER1, TAG1)
