@@ -3888,13 +3888,12 @@ class TestUpdatePTeamService:
         @pytest.mark.parametrize(
             "system_exposure, expected",
             [
-                ("not_specify", models.SystemExposureEnum.OPEN),
                 ("open", models.SystemExposureEnum.OPEN),
                 ("controlled", models.SystemExposureEnum.CONTROLLED),
                 ("small", models.SystemExposureEnum.SMALL),
             ],
         )
-        def test_it_should_return_200_when_system_exposure_is_SystemExposureEnum_or_not_specify(
+        def test_it_should_return_200_when_system_exposure_is_SystemExposureEnum(
             self, system_exposure, expected
         ):
             user1_access_token = self._get_access_token(USER1)
@@ -3904,11 +3903,7 @@ class TestUpdatePTeamService:
                 "accept": "application/json",
             }
 
-            request = (
-                {"description": "system_exposure not specify"}
-                if system_exposure == "not_specify"
-                else {"system_exposure": system_exposure}
-            )
+            request = {"system_exposure": system_exposure}
 
             response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
@@ -3918,6 +3913,24 @@ class TestUpdatePTeamService:
 
             assert response.status_code == 200
             assert response.json()["system_exposure"] == expected
+
+        def test_it_should_return_200_when_system_exposure_is_not_specify(self):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"description": "system_exposure not specify"}
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 200
+            assert response.json()["system_exposure"] == models.SystemExposureEnum.OPEN
 
         error_msg_system_exposure = "Input should be 'open', 'controlled' or 'small'"
 
@@ -3970,14 +3983,13 @@ class TestUpdatePTeamService:
         @pytest.mark.parametrize(
             "service_mission_impact, expected",
             [
-                ("not_specify", models.MissionImpactEnum.MISSION_FAILURE),
                 ("mission_failure", models.MissionImpactEnum.MISSION_FAILURE),
                 ("mef_failure", models.MissionImpactEnum.MEF_FAILURE),
                 ("mef_support_crippled", models.MissionImpactEnum.MEF_SUPPORT_CRIPPLED),
                 ("degraded", models.MissionImpactEnum.DEGRADED),
             ],
         )
-        def test_it_should_return_200_when_mission_impact_is_MissionImpactEnum_or_not_specify(
+        def test_it_should_return_200_when_mission_impact_is_MissionImpactEnum(
             self, service_mission_impact, expected
         ):
             user1_access_token = self._get_access_token(USER1)
@@ -3987,11 +3999,7 @@ class TestUpdatePTeamService:
                 "accept": "application/json",
             }
 
-            request = (
-                {"description": "service_mission_impact not specify"}
-                if service_mission_impact == "not_specify"
-                else {"service_mission_impact": service_mission_impact}
-            )
+            request = {"service_mission_impact": service_mission_impact}
             response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
                 headers=_headers,
@@ -4000,6 +4008,26 @@ class TestUpdatePTeamService:
 
             assert response.status_code == 200
             assert response.json()["service_mission_impact"] == expected
+
+        def test_it_should_return_200_when_mission_impact_is_not_specify(self):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            request = {"description": "service_mission_impact not specify"}
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+            assert response.status_code == 200
+            assert (
+                response.json()["service_mission_impact"]
+                == models.MissionImpactEnum.MISSION_FAILURE
+            )
 
         error_msg_service_mission_impact = (
             "Input should be 'mission_failure', 'mef_failure', 'mef_support_crippled' or 'degraded'"
@@ -4060,14 +4088,13 @@ class TestUpdatePTeamService:
         @pytest.mark.parametrize(
             "safety_impact, expected",
             [
-                ("not_specify", models.SafetyImpactEnum.NEGLIGIBLE),
                 ("catastrophic", models.SafetyImpactEnum.CATASTROPHIC),
                 ("critical", models.SafetyImpactEnum.CRITICAL),
                 ("marginal", models.SafetyImpactEnum.MARGINAL),
                 ("negligible", models.SafetyImpactEnum.NEGLIGIBLE),
             ],
         )
-        def test_it_should_return_200_when_safety_impact_is_SafetyImpactEnum_or_not_specify(
+        def test_it_should_return_200_when_safety_impact_is_SafetyImpactEnum(
             self, safety_impact, expected
         ):
             user1_access_token = self._get_access_token(USER1)
@@ -4077,11 +4104,7 @@ class TestUpdatePTeamService:
                 "accept": "application/json",
             }
 
-            request = (
-                {"description": "safety_impact not specify"}
-                if safety_impact == "not_specify"
-                else {"safety_impact": safety_impact}
-            )
+            request = {"safety_impact": safety_impact}
 
             response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
@@ -4091,6 +4114,22 @@ class TestUpdatePTeamService:
 
             assert response.status_code == 200
             assert response.json()["safety_impact"] == expected
+
+        def test_it_should_return_200_when_safety_impact_is_not_specify(self):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            request = {"description": "safety_impact not specify"}
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+            assert response.status_code == 200
+            assert response.json()["safety_impact"] == models.SafetyImpactEnum.NEGLIGIBLE
 
         def test_it_should_return_400_when_safety_impact_is_None(self):
             user1_access_token = self._get_access_token(USER1)
