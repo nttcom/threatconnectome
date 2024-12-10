@@ -113,7 +113,7 @@ class ThreatconnectomeClient:
         try:
             response = self._retry_call(requests.get, f"{self.api_url}/threats", params=params)
         except APIError as error:
-            sys.exit("Is the service_id correct?\n" + str(error))
+            sys.exit("There is no threat tied to service_id\n" + str(error))
 
         return response.json()
 
