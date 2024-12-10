@@ -357,14 +357,14 @@ def test_get_pteam_services_register_multiple_services():
                 "description": "test_description",
                 "system_exposure": models.SystemExposureEnum.SMALL.value,
                 "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
-                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+                "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
             },
             {
                 "keywords": ["test_keywords"],
                 "description": "test_description",
                 "system_exposure": models.SystemExposureEnum.SMALL.value,
                 "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
-                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+                "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
             },
         ),
         (
@@ -373,14 +373,14 @@ def test_get_pteam_services_register_multiple_services():
                 "description": "test_description",
                 "system_exposure": None,
                 "service_mission_impact": None,
-                "safety_impact": None,
+                "service_safety_impact": None,
             },
             {
                 "keywords": ["test_keywords"],
                 "description": "test_description",
                 "system_exposure": models.SystemExposureEnum.OPEN.value,
                 "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
-                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+                "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
             },
         ),
     ],
@@ -415,7 +415,7 @@ def test_get_pteam_services_verify_if_all_responses_are_filled(service_request, 
     assert data[0]["keywords"] == expected["keywords"]
     assert data[0]["system_exposure"] == expected["system_exposure"]
     assert data[0]["service_mission_impact"] == expected["service_mission_impact"]
-    assert data[0]["safety_impact"] == expected["safety_impact"]
+    assert data[0]["service_safety_impact"] == expected["service_safety_impact"]
 
 
 def test_get_pteam_tags():
@@ -3575,6 +3575,11 @@ class TestGetTickets:
                 "threat_id": str(db_threat1.threat_id),
                 "topic_id": str(self.topic1.topic_id),
                 "dependency_id": str(db_dependency1.dependency_id),
+                "threat_safety_impact": (
+                    str(db_threat1.threat_safety_impact.value)
+                    if db_threat1.threat_safety_impact
+                    else db_threat1.threat_safety_impact
+                ),
             },
             "ticket_status": {
                 "status_id": db_status1.status_id,  # do not check
@@ -3638,6 +3643,11 @@ class TestGetTickets:
                 "threat_id": str(db_threat1.threat_id),
                 "topic_id": str(self.topic1.topic_id),
                 "dependency_id": str(db_dependency1.dependency_id),
+                "threat_safety_impact": (
+                    str(db_threat1.threat_safety_impact.value)
+                    if db_threat1.threat_safety_impact
+                    else db_threat1.threat_safety_impact
+                ),
             },
             "ticket_status": {
                 "status_id": str(db_ticket_status1.status_id),
@@ -3996,7 +4006,7 @@ class TestUpdatePTeamService:
                 "accept": "application/json",
             }
 
-            request = {"safety_impact": safety_impact}
+            request = {"service_safety_impact": safety_impact}
 
             response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
@@ -4005,7 +4015,7 @@ class TestUpdatePTeamService:
             )
 
             assert response.status_code == 200
-            assert response.json()["safety_impact"] == expected
+            assert response.json()["service_safety_impact"] == expected
 
         error_msg_safety_impact = (
             "Input should be 'catastrophic', 'critical', 'marginal' or 'negligible'"
@@ -4028,7 +4038,7 @@ class TestUpdatePTeamService:
                 "accept": "application/json",
             }
 
-            request = {"safety_impact": safety_impact}
+            request = {"service_safety_impact": safety_impact}
 
             response = client.put(
                 f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
@@ -4122,7 +4132,7 @@ class TestUpdatePTeamService:
             request = {
                 "system_exposure": models.SystemExposureEnum.SMALL.value,
                 "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
-                "safety_impact": models.SafetyImpactEnum.CRITICAL.value,
+                "service_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
             }
 
             send_alert_to_pteam = mocker.patch("app.business.ticket_business.send_alert_to_pteam")
@@ -4167,7 +4177,7 @@ class TestUpdatePTeamService:
             request = {
                 "system_exposure": models.SystemExposureEnum.OPEN.value,
                 "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
-                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
+                "service_safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
             }
 
             send_alert_to_pteam = mocker.patch("app.business.ticket_business.send_alert_to_pteam")

@@ -107,7 +107,7 @@ class PTeamServiceResponse(ORMModel):
     keywords: list[str]
     system_exposure: SystemExposureEnum
     service_mission_impact: MissionImpactEnum
-    safety_impact: SafetyImpactEnum
+    service_safety_impact: SafetyImpactEnum
 
 
 class PTeamServiceUpdateRequest(ORMModel):
@@ -115,7 +115,7 @@ class PTeamServiceUpdateRequest(ORMModel):
     keywords: list[str] | None = None
     system_exposure: SystemExposureEnum | None = None
     service_mission_impact: MissionImpactEnum | None = None
-    safety_impact: SafetyImpactEnum | None = None
+    service_safety_impact: SafetyImpactEnum | None = None
 
 
 class PTeamServiceUpdateResponse(ORMModel):
@@ -123,7 +123,7 @@ class PTeamServiceUpdateResponse(ORMModel):
     keywords: list[str]
     system_exposure: SystemExposureEnum | None
     service_mission_impact: MissionImpactEnum | None
-    safety_impact: SafetyImpactEnum | None
+    service_safety_impact: SafetyImpactEnum | None
 
 
 class MispTagRequest(ORMModel):
@@ -336,6 +336,11 @@ class ThreatResponse(ORMModel):
     threat_id: UUID
     dependency_id: UUID
     topic_id: UUID
+    threat_safety_impact: SafetyImpactEnum | None = None
+
+
+class ThreatUpdateRequest(ORMModel):
+    threat_safety_impact: SafetyImpactEnum | None = None
 
 
 class TicketStatusRequest(ORMModel):
