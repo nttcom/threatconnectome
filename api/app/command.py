@@ -65,15 +65,33 @@ def search_threats(
     service_id: UUID | str | None,
     dependency_id: UUID | str | None,
     topic_id: UUID | str | None,
+    current_user: models.Account | None = None,
 ) -> Sequence[models.Threat]:
     select_stmt = select(models.Threat)
+
+    select_stmt = select_stmt.join(
+        models.Dependency, models.Dependency.dependency_id == models.Threat.dependency_id
+    )
+    select_stmt = select_stmt.join(
+        models.Service, models.Service.service_id == models.Dependency.service_id
+    )
+    select_stmt = select_stmt.join(models.PTeam, models.PTeam.pteam_id == models.Service.pteam_id)
+    select_stmt = select_stmt.join(
+        models.PTeamAccount, models.PTeamAccount.pteam_id == models.PTeam.pteam_id
+    )
+    select_stmt = select_stmt.join(
+        models.Account, models.Account.user_id == models.PTeamAccount.user_id
+    )
+
+    if current_user:
+        select_stmt = select_stmt.where(models.Account.user_id == current_user.user_id)
+
     if service_id:
-        select_stmt = select_stmt.join(
-            models.Dependency,
+        select_stmt = select_stmt.where(
             and_(
                 models.Dependency.dependency_id == models.Threat.dependency_id,
                 models.Dependency.service_id == str(service_id),
-            ),
+            )
         )
     if dependency_id:
         select_stmt = select_stmt.where(models.Threat.dependency_id == str(dependency_id))

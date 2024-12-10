@@ -184,7 +184,14 @@ def test_get_all_threats(testdb: Session):
     persistence.create_threat(testdb, threat2)
     testdb.commit()
 
-    data = assert_200(client.get("/threats", headers=header_threat))
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+
+    data = assert_200(client.get("/threats", headers=_headers_user1))
     assert len(data) == 2
 
     assert (data[0]["threat_id"] == str(threat1.threat_id)) or (
@@ -206,6 +213,106 @@ def test_get_all_threats(testdb: Session):
     assert (data[1]["topic_id"] == str(threat1.topic_id)) or (
         data[1]["topic_id"] == str(threat2.topic_id)
     )
+
+
+def test_get_all_threats_no_threat_user(testdb: Session):
+    # create pteam
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+
+    create_user(USER2)
+    pteam2 = create_pteam(USER2, PTEAM2)
+
+    # create topic
+    tag1 = create_tag(USER1, TAG1)
+    tag2 = create_tag(USER1, TAG2)
+
+    action1 = {
+        **ACTION1,
+        "ext": {
+            "tags": [tag1.parent_name],
+            "vulnerable_versions": {
+                tag1.parent_name: ["<0.30"],
+            },
+        },
+    }
+    action2 = {
+        **ACTION1,
+        "ext": {
+            "tags": [tag2.parent_name],
+            "vulnerable_versions": {
+                tag1.parent_name: ["<0.30"],
+            },
+        },
+    }
+
+    topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.parent_name]}, actions=[action1])
+    topic2 = create_topic(USER1, {**TOPIC2, "tags": [tag2.parent_name]}, actions=[action2])
+
+    # create service
+    service1_name = "service_x"
+    service1_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Service).values(
+            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=service1_name
+        )
+    )
+
+    service2_name = "service_y"
+    service2_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Service).values(
+            service_id=service2_id, pteam_id=pteam1.pteam_id, service_name=service2_name
+        )
+    )
+
+    # create dependency
+    dependency1_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Dependency).values(
+            dependency_id=dependency1_id,
+            service_id=service1_id,
+            tag_id=str(tag1.tag_id),
+            version="1.0",
+            target="Pipfile.lock",
+        )
+    )
+
+    dependency2_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Dependency).values(
+            dependency_id=dependency2_id,
+            service_id=service2_id,
+            tag_id=str(tag2.tag_id),
+            version="1.0",
+            target="Pipfile.lock",
+        )
+    )
+
+    # create threat
+    threat1 = models.Threat(
+        dependency_id=str(dependency1_id),
+        topic_id=str(topic1.topic_id),
+    )
+
+    threat2 = models.Threat(
+        dependency_id=str(dependency2_id),
+        topic_id=str(topic2.topic_id),
+    )
+
+    persistence.create_threat(testdb, threat1)
+    persistence.create_threat(testdb, threat2)
+    testdb.commit()
+
+    user2_access_token = _get_access_token(USER2)
+    _headers_user2 = {
+        "Authorization": f"Bearer {user2_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+
+    with pytest.raises(HTTPError, match=r"404: Not Found: No such threat"):
+        assert_200(client.get("/threats", headers=_headers_user2))
 
 
 @pytest.mark.parametrize(
@@ -319,7 +426,14 @@ def test_get_all_threats_with_param(
     if exist_topic_id:
         params["topic_id"] = str(threat1.topic_id)
 
-    response = client.get("/threats", headers=header_threat, params=params)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+
+    response = client.get("/threats", headers=_headers_user1, params=params)
     if response.status_code != 200:
         raise HTTPError(response)
     data = response.json()

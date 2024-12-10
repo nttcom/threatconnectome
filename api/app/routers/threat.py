@@ -16,6 +16,7 @@ def get_threats(
     service_id: UUID | None = Query(None),
     dependency_id: UUID | None = Query(None),
     topic_id: UUID | None = Query(None),
+    current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -26,7 +27,12 @@ def get_threats(
     - **dependency_id** (Optional) filter by specified service_id. Default is None.
     - **topic_id** (Optional) filter by specified topic_id. Default is None.
     """
-    threats = command.search_threats(db, service_id, dependency_id, topic_id)
+
+    if not (
+        threats := command.search_threats(db, service_id, dependency_id, topic_id, current_user)
+    ):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
+
     return threats
 
 
