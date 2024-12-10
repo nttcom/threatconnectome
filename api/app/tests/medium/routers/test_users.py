@@ -80,3 +80,20 @@ def test_update_user_by_another_user():
     assert response.status_code == 403
     data = response.json()
     assert data["detail"] == "Information can only be updated by user himself"
+
+
+@pytest.mark.parametrize(
+    "field_name, expected_response_detail",
+    [
+        ("disabled", "Cannot specify None for disabled"),
+        ("years", "Cannot specify None for years"),
+    ],
+)
+def test_update_user_should_return_400_when_required_fields_is_None(
+    field_name, expected_response_detail
+):
+    user1 = create_user(USER1)
+    request = {field_name: None}
+    response = client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request)
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected_response_detail

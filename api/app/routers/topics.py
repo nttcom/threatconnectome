@@ -338,6 +338,41 @@ def update_topic(
     tags_updated = new_tags is not None and set(new_tags) != set(topic.tags)
 
     update_data = data.model_dump(exclude_unset=True)
+    if "title" in update_data.keys() and data.title is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for title",
+        )
+    if "abstract" in update_data.keys() and data.abstract is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for abstract",
+        )
+    if "threat_impact" in update_data.keys() and data.threat_impact is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for threat_impact",
+        )
+    if "tags" in update_data.keys() and data.tags is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for tags",
+        )
+    if "misp_tags" in update_data.keys() and data.misp_tags is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for misp_tags",
+        )
+    if "exploitation" in update_data.keys() and data.exploitation is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for exploitation",
+        )
+    if "automatable" in update_data.keys() and data.automatable is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for automatable",
+        )
     if "cvss_v3_score" in update_data.keys() and data.cvss_v3_score is not None:
         if data.cvss_v3_score > 10.0 or data.cvss_v3_score < 0:
             raise HTTPException(

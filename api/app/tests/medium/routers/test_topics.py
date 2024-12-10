@@ -529,7 +529,7 @@ class TestUpdateTopic:
         send_alert_to_pteam_in_common.assert_called_once()
         send_alert_to_pteam_in_topics.assert_not_called()
 
-    def test_it_should_return_400_when_cvss_v3_score_is_out_of_range(self, mocker):
+    def test_it_should_return_400_when_cvss_v3_score_is_out_of_range(self):
         request = {
             "cvss_v3_score": 10.1,
         }
@@ -541,6 +541,30 @@ class TestUpdateTopic:
 
         assert response.status_code == 400
         assert response.json()["detail"] == "cvss_v3_score is out of range"
+
+    @pytest.mark.parametrize(
+        "field_name, expected_response_detail",
+        [
+            ("title", "Cannot specify None for title"),
+            ("abstract", "Cannot specify None for abstract"),
+            ("threat_impact", "Cannot specify None for threat_impact"),
+            ("tags", "Cannot specify None for tags"),
+            ("misp_tags", "Cannot specify None for misp_tags"),
+            ("exploitation", "Cannot specify None for exploitation"),
+            ("automatable", "Cannot specify None for automatable"),
+        ],
+    )
+    def test_it_should_return_400_when_required_fields_is_None(
+        self, field_name, expected_response_detail
+    ):
+        request = {field_name: None}
+        response = client.put(
+            f"/topics/{self.topic.topic_id}",
+            headers=headers(USER1),
+            json=request,
+        )
+        assert response.status_code == 400
+        assert response.json()["detail"] == expected_response_detail
 
 
 def test_delete_topic(testdb: Session):
