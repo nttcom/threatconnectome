@@ -103,18 +103,28 @@ class ThreatconnectomeClient:
             sleep(3)
 
     def get_pteam(self, pteam_id) -> dict:
-        response = self._retry_call(requests.get, f"{self.api_url}/pteams/{pteam_id}")
+        try:
+            response = self._retry_call(requests.get, f"{self.api_url}/pteams/{pteam_id}")
+        except APIError as error:
+            sys.exit("Is the pteam_id correct?\n" + str(error))
         return response.json()
 
     def get_threats(self, params) -> list:
-        response = self._retry_call(requests.get, f"{self.api_url}/threats", params=params)
+        try:
+            response = self._retry_call(requests.get, f"{self.api_url}/threats", params=params)
+        except APIError as error:
+            sys.exit("Is the service_id correct?\n" + str(error))
+
         return response.json()
 
     def get_dependency(self, pteam_id, service_id, dependency_id):
-        response = self._retry_call(
-            requests.get,
-            f"{self.api_url}/pteams/{pteam_id}/services/{service_id}/dependencies/{dependency_id}",
-        )
+        try:
+            response = self._retry_call(
+                requests.get,
+                f"{self.api_url}/pteams/{pteam_id}/services/{service_id}/dependencies/{dependency_id}",
+            )
+        except APIError as error:
+            sys.exit("Are pteam_id and service_id correct\n" + str(error))
         return response.json()
 
     def get_tag(self, tag_id):
@@ -127,17 +137,21 @@ class ThreatconnectomeClient:
 
 
 def get_pteam_and_service_data(
-    tc_client: ThreatconnectomeClient, pteam_id: str, service_id: str, output_data: dict
-):
+    tc_client: ThreatconnectomeClient, pteam_id: str, service_id: str
+) -> dict:
+    pteam_and_service_data: dict = {}
     pteam = tc_client.get_pteam(pteam_id)
-    output_data.update(pteam_id=pteam["pteam_id"], pteam_name=pteam["pteam_name"])
+    pteam_and_service_data.update(pteam_id=pteam["pteam_id"], pteam_name=pteam["pteam_name"])
     for service in pteam["services"]:
         if service_id == service["service_id"]:
-            output_data.update(
+            pteam_and_service_data.update(
                 service_id=service["service_id"],
                 service_name=service["service_name"],
                 service_description=service["description"],
             )
+            break
+
+    return pteam_and_service_data
 
 
 def get_threats_data(tc_client: ThreatconnectomeClient, service_id: str) -> list:
@@ -146,21 +160,30 @@ def get_threats_data(tc_client: ThreatconnectomeClient, service_id: str) -> list
     return threats
 
 
-def get_tags_data(tc_client: ThreatconnectomeClient, pteam_id: str, service_id: str, threats: list):
+def add_tag_data_to_threat(
+    tc_client: ThreatconnectomeClient, pteam_id: str, service_id: str, threats: list
+) -> list:
+    threats_with_tags_data: list = []
     for threat in threats:
         dependency = tc_client.get_dependency(pteam_id, service_id, threat["dependency_id"])
         tag = tc_client.get_tag(dependency["tag_id"])
-        threat.update(
-            tag_id=dependency["tag_id"], tag_version=dependency["version"], tag_name=tag["tag_name"]
-        )
-        del threat["dependency_id"]
+        threat_with_tag_data = {
+            "threat_id": threat["threat_id"],
+            "topic_id": threat["topic_id"],
+            "tag_id": dependency["tag_id"],
+            "tag_version": dependency["version"],
+            "tag_name": tag["tag_name"],
+        }
+        threats_with_tags_data.append(threat_with_tag_data)
+
+    return threats_with_tags_data
 
 
-def get_misp_tag(tc_client: ThreatconnectomeClient, threats: list):
+def add_cve_data_to_threat(tc_client: ThreatconnectomeClient, threats: list) -> list:
     """
     Remove threat that did not have cve_id in missp_tag.
     """
-    _threats: list = []
+    threat_with_tag_and_cve_data: list = []
     for threat in threats:
         topic = tc_client.get_topic(threat["topic_id"])
         cve_id: list = []
@@ -172,12 +195,12 @@ def get_misp_tag(tc_client: ThreatconnectomeClient, threats: list):
             continue
         else:
             threat.update(cve_id=cve_id)
-            _threats.append(threat)
+            threat_with_tag_and_cve_data.append(threat)
 
-    return _threats
+    return threat_with_tag_and_cve_data
 
 
-def output_json_file(threats: dict, pteam_id: str, service_id: str):
+def output_json_file(threats: dict, service_id: str):
     filename = "collect_threats_data" + service_id + ".json"
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(threats, f, ensure_ascii=False, indent=2)
@@ -216,14 +239,17 @@ def main() -> None:
         read_timeout=60.0,
     )
 
-    output_data: dict = {}
-
-    get_pteam_and_service_data(tc_client, args.pteam_id, args.service_id, output_data)
+    pteam_and_service_data = get_pteam_and_service_data(tc_client, args.pteam_id, args.service_id)
     threats = get_threats_data(tc_client, args.service_id)
-    get_tags_data(tc_client, args.pteam_id, args.service_id, threats)
-    _threats = get_misp_tag(tc_client, threats)
-    output_data.update(threats=_threats)
-    output_json_file(output_data, args.pteam_id, args.service_id)
+    threats_with_tags_data = add_tag_data_to_threat(
+        tc_client, args.pteam_id, args.service_id, threats
+    )
+    threat_with_tag_and_cve_data = add_cve_data_to_threat(tc_client, threats_with_tags_data)
+
+    output_data: dict = {}
+    output_data = pteam_and_service_data
+    output_data.update(threats=threat_with_tag_and_cve_data)
+    output_json_file(output_data, args.service_id)
 
 
 if __name__ == "__main__":
