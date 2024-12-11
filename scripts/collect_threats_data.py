@@ -201,7 +201,7 @@ def add_cve_data_to_threat(tc_client: ThreatconnectomeClient, threats: list) -> 
 
 
 def output_json_file(threats: dict, service_id: str):
-    filename = "collect_threats_data" + service_id + ".json"
+    filename = "collect_threats_data_" + service_id + ".json"
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(threats, f, ensure_ascii=False, indent=2)
 
