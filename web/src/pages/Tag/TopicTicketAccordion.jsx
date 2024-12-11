@@ -20,17 +20,37 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
+import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useGetThreatQuery } from "../../services/tcApi";
 import {
   safetyImpactDescription,
   safetyImpactProps,
   sortedSafetyImpacts,
   systemAccount,
 } from "../../utils/const";
-import { dateTimeFormat } from "../../utils/func";
+import { dateTimeFormat, errorToString } from "../../utils/func";
 
 import { AssigneesSelector } from "./AssigneesSelector";
 import { TopicStatusSelector } from "./TopicStatusSelector";
 import { WarningTooltip } from "./WarningTooltip";
+
+function ErrorAccordion(message, defaultExpanded) {
+  return (
+    <Accordion
+      disableGutters
+      defaultExpanded={defaultExpanded}
+      sx={{
+        borderTop: 1,
+        borderBottom: 1,
+        borderColor: "divider",
+        "&:not(:last-child)": { borderBottom: 0 },
+        "&::before": { display: "none" },
+      }}
+    >
+      <AccordionSummary sx={{ backgroundColor: grey[50] }}>{message}</AccordionSummary>
+    </Accordion>
+  );
+}
 
 export function TopicTicketAccordion(props) {
   const {
@@ -50,6 +70,18 @@ export function TopicTicketAccordion(props) {
   const ticketStatus = ticket.ticket_status;
   const ssvcPriority = ticket.ssvc_deployer_priority || "defer";
 
+  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const {
+    data: threat,
+    error: threatError,
+    isLoading: threatIsLoading,
+  } = useGetThreatQuery(ticket.threat_id, { skipByAuth });
+
+  if (skipByAuth) return <></>;
+  if (threatIsLoading) return ErrorAccordion("Now loading Threat...", defaultExpanded);
+  if (threatError)
+    return ErrorAccordion(`Cannot get Threat: ${errorToString(threatError)}`, defaultExpanded);
+
   const StyledTooltip = styled(({ className, ...props }) => (
     <Tooltip {...props} classes={{ popper: className }} />
   ))(() => ({
@@ -66,7 +98,10 @@ export function TopicTicketAccordion(props) {
     },
   }));
 
-  const serviceSafetyImpactDisplayName = safetyImpactProps[serviceSafetyImpact].displayName;
+  const safetyImpact = threat.threat_safety_impact
+    ? threat.threat_safety_impact
+    : serviceSafetyImpact;
+  const safetyImpactDisplayName = safetyImpactProps[safetyImpact].displayName;
 
   return (
     <Accordion
@@ -110,7 +145,7 @@ export function TopicTicketAccordion(props) {
                       color="primary"
                       size="small"
                       orientation="vertical"
-                      value={serviceSafetyImpactDisplayName}
+                      value={safetyImpactDisplayName}
                     >
                       {sortedSafetyImpacts.map((safetyImpact) => {
                         const displayName = safetyImpactProps[safetyImpact].displayName;
@@ -129,7 +164,7 @@ export function TopicTicketAccordion(props) {
             </StyledTooltip>
           </Grid>
           <Grid item xs={7}>
-            <Chip label={serviceSafetyImpactDisplayName} />
+            <Chip label={safetyImpactDisplayName} />
           </Grid>
         </Grid>
         <Grid container sx={{ alignItems: "center", pb: 2 }}>
