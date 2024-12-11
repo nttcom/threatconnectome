@@ -27,13 +27,6 @@ def get_threats(
     - **dependency_id** (Optional) filter by specified service_id. Default is None.
     - **topic_id** (Optional) filter by specified topic_id. Default is None.
     """
-
-    """
-    if not (
-        threats := command.search_threats(db, service_id, dependency_id, topic_id, current_user)
-    ):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
-    """
     threats = command.search_threats(db, service_id, dependency_id, topic_id, current_user)
 
     return threats
@@ -76,8 +69,12 @@ def update_threat_safety_impact(
     pteam = threat.dependency.service.pteam
 
     if check_pteam_membership(pteam, current_user):
-        threat.threat_safety_impact = requests.threat_safety_impact
-        db.commit()
+        update_data = requests.model_dump(exclude_unset=True)
+        if "threat_safety_impact" in update_data.keys():
+            threat.threat_safety_impact = requests.threat_safety_impact
+            db.commit()
+
         return threat
+
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")

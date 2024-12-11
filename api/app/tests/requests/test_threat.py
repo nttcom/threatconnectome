@@ -540,56 +540,8 @@ def test_create_threat(testdb: Session):
     ],
 )
 def test_update_threat_safety_impact(
-    testdb: Session, threat_safety_impact: models.SafetyImpactEnum
+    threat1: schemas.ThreatResponse, testdb: Session, threat_safety_impact: models.SafetyImpactEnum
 ):
-    # create pteam
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    # create topic
-    tag1 = create_tag(USER1, TAG1)
-
-    action1 = {
-        **ACTION1,
-        "ext": {
-            "tags": [tag1.parent_name],
-            "vulnerable_versions": {
-                tag1.parent_name: ["<0.30"],
-            },
-        },
-    }
-
-    topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.parent_name]}, actions=[action1])
-    # create service
-    service1_name = "service_x"
-    service1_id = str(uuid.uuid4())
-    testdb.execute(
-        insert(models.Service).values(
-            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=service1_name
-        )
-    )
-
-    # create dependency
-    dependency1_id = str(uuid.uuid4())
-    testdb.execute(
-        insert(models.Dependency).values(
-            dependency_id=dependency1_id,
-            service_id=service1_id,
-            tag_id=str(tag1.tag_id),
-            version="1.0",
-            target="Pipfile.lock",
-        )
-    )
-
-    # create threat
-    threat1 = models.Threat(
-        dependency_id=str(dependency1_id),
-        topic_id=str(topic1.topic_id),
-    )
-
-    persistence.create_threat(testdb, threat1)
-    testdb.commit()
-
     request = schemas.ThreatUpdateRequest(threat_safety_impact=threat_safety_impact).model_dump()
     user1_access_token = _get_access_token(USER1)
     _headers_user1 = {
@@ -625,6 +577,47 @@ def test_update_threat_safety_impact(
     assert db_data_threat_safety_impact_value == threat_safety_impact_value
 
 
+def test_update_threat_should_set_None_when_threat_safety_impact_is_None(
+    threat1: schemas.ThreatResponse,
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    advance_request = {"threat_safety_impact": models.SafetyImpactEnum.CRITICAL.value}
+    response = client.put(update_url, headers=_headers_user1, json=advance_request)
+
+    none_request = {"threat_safety_impact": None}
+    response = client.put(update_url, headers=_headers_user1, json=none_request)
+
+    assert response.status_code == 200
+    assert response.json()["threat_safety_impact"] is None
+
+
+def test_update_threat_should_not_set_when_threat_safety_impact_is_not_specifye(
+    threat1: schemas.ThreatResponse,
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+
+    advance_request = {"threat_safety_impact": models.SafetyImpactEnum.CRITICAL.value}
+    response = client.put(update_url, headers=_headers_user1, json=advance_request)
+
+    empty_request: dict = {}
+    response = client.put(update_url, headers=_headers_user1, json=empty_request)
+
+    assert response.status_code == 200
+    assert response.json()["threat_safety_impact"] == models.SafetyImpactEnum.CRITICAL.value
+
+
 @pytest.mark.parametrize(
     "threat_safety_impact",
     [
@@ -635,56 +628,10 @@ def test_update_threat_safety_impact(
     ],
 )
 def test_update_threat_safety_impact_invalid_user(
-    testdb: Session, threat_safety_impact: models.SafetyImpactEnum
+    threat1: schemas.ThreatResponse, testdb: Session, threat_safety_impact: models.SafetyImpactEnum
 ):
-    # create pteam
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
+
     create_user(USER2)
-
-    # create topic
-    tag1 = create_tag(USER1, TAG1)
-
-    action1 = {
-        **ACTION1,
-        "ext": {
-            "tags": [tag1.parent_name],
-            "vulnerable_versions": {
-                tag1.parent_name: ["<0.30"],
-            },
-        },
-    }
-
-    topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.parent_name]}, actions=[action1])
-    # create service
-    service1_name = "service_x"
-    service1_id = str(uuid.uuid4())
-    testdb.execute(
-        insert(models.Service).values(
-            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=service1_name
-        )
-    )
-
-    # create dependency
-    dependency1_id = str(uuid.uuid4())
-    testdb.execute(
-        insert(models.Dependency).values(
-            dependency_id=dependency1_id,
-            service_id=service1_id,
-            tag_id=str(tag1.tag_id),
-            version="1.0",
-            target="Pipfile.lock",
-        )
-    )
-
-    # create threat
-    threat1 = models.Threat(
-        dependency_id=str(dependency1_id),
-        topic_id=str(topic1.topic_id),
-    )
-
-    persistence.create_threat(testdb, threat1)
-    testdb.commit()
 
     request = schemas.ThreatUpdateRequest(threat_safety_impact=threat_safety_impact).model_dump()
     user2_access_token = _get_access_token(USER2)
