@@ -250,10 +250,10 @@ def update_pteam_service(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot specify None for service_mission_impact",
         )
-    if "safety_impact" in update_data.keys() and data.safety_impact is None:
+    if "service_safety_impact" in update_data.keys() and data.service_safety_impact is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot specify None for safety_impact",
+            detail="Cannot specify None for service_safety_impact",
         )
 
     if "description" in update_data.keys():

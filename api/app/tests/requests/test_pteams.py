@@ -4156,7 +4156,7 @@ class TestUpdatePTeamService:
             )
 
             assert response.status_code == 400
-            assert response.json()["detail"] == "Cannot specify None for safety_impact"
+            assert response.json()["detail"] == "Cannot specify None for service_safety_impact"
 
         error_msg_safety_impact = (
             "Input should be 'catastrophic', 'critical', 'marginal' or 'negligible'"
@@ -4357,7 +4357,7 @@ class TestUpdatePTeamService:
             request = {
                 "system_exposure": models.SystemExposureEnum.OPEN.value,
                 "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
-                "safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
+                "service_safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
             }
             send_alert_to_pteam = mocker.patch("app.business.ticket_business.send_alert_to_pteam")
             response = client.put(
@@ -4382,7 +4382,7 @@ class TestUpdatePTeamService:
             request = {
                 "system_exposure": models.SystemExposureEnum.SMALL.value,
                 "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
-                "safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+                "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
             }
 
             send_alert_to_pteam = mocker.patch("app.business.ticket_business.send_alert_to_pteam")
