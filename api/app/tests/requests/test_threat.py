@@ -539,7 +539,7 @@ def test_create_threat(testdb: Session):
         (models.SafetyImpactEnum.CATASTROPHIC),
     ],
 )
-def test_update_threat_safety_impact(
+def test_update_threat(
     threat1: schemas.ThreatResponse, testdb: Session, threat_safety_impact: models.SafetyImpactEnum
 ):
     request = schemas.ThreatUpdateRequest(threat_safety_impact=threat_safety_impact).model_dump()
@@ -627,7 +627,7 @@ def test_update_threat_should_not_set_when_threat_safety_impact_is_not_specifye(
         (models.SafetyImpactEnum.CATASTROPHIC),
     ],
 )
-def test_update_threat_safety_impact_invalid_user(
+def test_update_threat_invalid_user(
     threat1: schemas.ThreatResponse, testdb: Session, threat_safety_impact: models.SafetyImpactEnum
 ):
 
