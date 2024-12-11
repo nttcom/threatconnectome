@@ -326,109 +326,12 @@ def test_get_all_threats_no_threat_user(testdb: Session):
         "accept": "application/json",
     }
 
-    with pytest.raises(HTTPError, match=r"404: Not Found: No such threat"):
-        asssrt_200(client.get("/threats", headers=_headers_user2))
+    response = client.get("/threats", headers=_headers_user2)
+    if response.status_code != 200:
+        raise HTTPError(response)
 
-
-def test_get_all_threats_no_threat_user(testdb: Session):
-    # create pteam
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    create_user(USER2)
-
-    # create topic
-    tag1 = create_tag(USER1, TAG1)
-    tag2 = create_tag(USER1, TAG2)
-
-    action1 = {
-        **ACTION1,
-        "ext": {
-            "tags": [tag1.parent_name],
-            "vulnerable_versions": {
-                tag1.parent_name: ["<0.30"],
-            },
-        },
-    }
-    action2 = {
-        **ACTION1,
-        "ext": {
-            "tags": [tag2.parent_name],
-            "vulnerable_versions": {
-                tag1.parent_name: ["<0.30"],
-            },
-        },
-    }
-
-    topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.parent_name]}, actions=[action1])
-    topic2 = create_topic(USER1, {**TOPIC2, "tags": [tag2.parent_name]}, actions=[action2])
-
-    # create service
-    service1_name = "service_x"
-    service1_id = str(uuid.uuid4())
-    testdb.execute(
-        insert(models.Service).values(
-            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=service1_name
-        )
-    )
-
-    service2_name = "service_y"
-    service2_id = str(uuid.uuid4())
-    testdb.execute(
-        insert(models.Service).values(
-            service_id=service2_id, pteam_id=pteam1.pteam_id, service_name=service2_name
-        )
-    )
-
-    # create dependency
-    dependency1_id = str(uuid.uuid4())
-    testdb.execute(
-        insert(models.Dependency).values(
-            dependency_id=dependency1_id,
-            service_id=service1_id,
-            tag_id=str(tag1.tag_id),
-            version="1.0",
-            target="Pipfile.lock",
-        )
-    )
-
-    dependency2_id = str(uuid.uuid4())
-    testdb.execute(
-        insert(models.Dependency).values(
-            dependency_id=dependency2_id,
-            service_id=service2_id,
-            tag_id=str(tag2.tag_id),
-            version="1.0",
-            target="Pipfile.lock",
-        )
-    )
-
-    # create threat
-    threat1 = models.Threat(
-        dependency_id=str(dependency1_id),
-        topic_id=str(topic1.topic_id),
-    )
-
-    threat2 = models.Threat(
-        dependency_id=str(dependency2_id),
-        topic_id=str(topic2.topic_id),
-    )
-
-    persistence.create_threat(testdb, threat1)
-    persistence.create_threat(testdb, threat2)
-    testdb.commit()
-
-    user2_access_token = _get_access_token(USER2)
-    _headers_user2 = {
-        "Authorization": f"Bearer {user2_access_token}",
-        "Content-Type": "application/json",
-        "accept": "application/json",
-    }
-
-    with pytest.raises(HTTPError, match=r"404: Not Found: No such threat"):
-        response = client.get("/threats", headers=_headers_user2)
-        if response.status_code != 200:
-            raise HTTPError(response)
+    data = response.json()
+    assert len(data) == 0
 
 
 @pytest.mark.parametrize(

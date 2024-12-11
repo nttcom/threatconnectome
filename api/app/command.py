@@ -69,30 +69,19 @@ def search_threats(
 ) -> Sequence[models.Threat]:
     select_stmt = select(models.Threat)
 
-    select_stmt = select_stmt.join(
-        models.Dependency, models.Dependency.dependency_id == models.Threat.dependency_id
-    )
-    select_stmt = select_stmt.join(
-        models.Service, models.Service.service_id == models.Dependency.service_id
-    )
-    select_stmt = select_stmt.join(models.PTeam, models.PTeam.pteam_id == models.Service.pteam_id)
-    select_stmt = select_stmt.join(
-        models.PTeamAccount, models.PTeamAccount.pteam_id == models.PTeam.pteam_id
-    )
-    select_stmt = select_stmt.join(
-        models.Account, models.Account.user_id == models.PTeamAccount.user_id
+    select_stmt = (
+        select_stmt.join(models.Dependency)
+        .join(models.Service)
+        .join(models.PTeam)
+        .join(models.PTeamAccount)
+        .join(models.Account)
     )
 
     if current_user:
         select_stmt = select_stmt.where(models.Account.user_id == current_user.user_id)
 
     if service_id:
-        select_stmt = select_stmt.where(
-            and_(
-                models.Dependency.dependency_id == models.Threat.dependency_id,
-                models.Dependency.service_id == str(service_id),
-            )
-        )
+        select_stmt = select_stmt.where(models.Dependency.service_id == str(service_id))
     if dependency_id:
         select_stmt = select_stmt.where(models.Threat.dependency_id == str(dependency_id))
     if topic_id:

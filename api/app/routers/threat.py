@@ -28,10 +28,13 @@ def get_threats(
     - **topic_id** (Optional) filter by specified topic_id. Default is None.
     """
 
+    """
     if not (
         threats := command.search_threats(db, service_id, dependency_id, topic_id, current_user)
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
+    """
+    threats = command.search_threats(db, service_id, dependency_id, topic_id, current_user)
 
     return threats
 
