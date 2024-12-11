@@ -90,7 +90,11 @@ def calculate_ssvc_priority_by_threat(
     mission_impact = mission_impact = (
         threat.dependency.dependency_mission_impact or service.service_mission_impact
     )
-    safety_impact = service.safety_impact
+    safety_impact = (
+        threat.threat_safety_impact
+        if threat.threat_safety_impact
+        else service.service_safety_impact
+    )
     human_impact = _calculate_human_impact(safety_impact, mission_impact)
     return _calculate_ssvc_priority(exploitation, system_exposure, automatable, human_impact)
 
