@@ -54,3 +54,22 @@ def get_threat(
         return threat
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
+
+
+@router.put("/{threat_id}", response_model=schemas.ThreatResponse)
+def update_threat_safety_impact(
+    threat_id: UUID,
+    requests: schemas.ThreatUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Update threat_safety_impact.
+    """
+
+    if not (threat := persistence.get_threat_by_id(db, threat_id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
+
+    threat.threat_safety_impact = requests.threat_safety_impact
+
+    db.commit()
+    return threat

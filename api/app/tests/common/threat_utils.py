@@ -95,12 +95,16 @@ def create_threat(
         )
 
         assert threats
-
         for threat in threats:
             response_threat = schemas.ThreatResponse(
                 threat_id=UUID(threat.threat_id),
                 dependency_id=UUID(threat.dependency_id),
                 topic_id=UUID(threat.topic_id),
+                threat_safety_impact=(
+                    models.SafetyImpactEnum(threat.threat_safety_impact)
+                    if threat.threat_safety_impact is not None
+                    else None
+                ),
             )
 
     return response_threat

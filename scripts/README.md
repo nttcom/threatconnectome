@@ -216,3 +216,14 @@ The available options are as follow:
 - -r / --replace_rules: Specify replacement rules. You can specify more than one.
 - -s / --skip_rules: Skip rules. Multiple skip rules can be specified.
 - -H / --hostname: Specify target hostname. If not specified, auto-detection will be attempted under specific conditions.
+
+# :bulb: Colletct threats data
+
+Run the following commands to colletct threats data
+
+```bash
+export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
+# For local development environment
+python3 collect_threats_data.py -p <pteam_id> -s <service_id> "http://localhost/api"
+
+```
