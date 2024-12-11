@@ -98,6 +98,27 @@ def update_action(
     """
     if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
+    update_data = data.model_dump(exclude_unset=True)
+    if "action" in update_data.keys() and data.action is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for action",
+        )
+    if "action_type" in update_data.keys() and data.action_type is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for action_type",
+        )
+    if "recommended" in update_data.keys() and data.recommended is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for recommended",
+        )
+    if "ext" in update_data.keys() and data.ext is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for ext",
+        )
     if data.ext:
         if not_exist_tags := {
             tag_name

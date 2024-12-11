@@ -464,3 +464,33 @@ def test_update_threat_safety_impact(
         db_data.threat_safety_impact.value if db_data.threat_safety_impact is not None else None
     )
     assert db_data_threat_safety_impact_value == threat_safety_impact_value
+
+
+def test_update_threat_should_set_None_when_threat_safety_impact_is_None(
+    threat1: schemas.ThreatResponse,
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+
+    advance_request = {"threat_safety_impact": models.SafetyImpactEnum.CRITICAL.value}
+    response = client.put(update_url, headers=header_threat, json=advance_request)
+
+    none_request = {"threat_safety_impact": None}
+    response = client.put(update_url, headers=header_threat, json=none_request)
+
+    assert response.status_code == 200
+    assert response.json()["threat_safety_impact"] is None
+
+
+def test_update_threat_should_not_set_when_threat_safety_impact_is_not_specifye(
+    threat1: schemas.ThreatResponse,
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+
+    advance_request = {"threat_safety_impact": models.SafetyImpactEnum.CRITICAL.value}
+    response = client.put(update_url, headers=header_threat, json=advance_request)
+
+    empty_request: dict = {}
+    response = client.put(update_url, headers=header_threat, json=empty_request)
+
+    assert response.status_code == 200
+    assert response.json()["threat_safety_impact"] == models.SafetyImpactEnum.CRITICAL.value

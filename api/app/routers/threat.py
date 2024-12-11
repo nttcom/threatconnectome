@@ -55,7 +55,9 @@ def update_threat_safety_impact(
     if not (threat := persistence.get_threat_by_id(db, threat_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
 
-    threat.threat_safety_impact = requests.threat_safety_impact
+    update_data = requests.model_dump(exclude_unset=True)
+    if "threat_safety_impact" in update_data.keys():
+        threat.threat_safety_impact = requests.threat_safety_impact
+        db.commit()
 
-    db.commit()
     return threat
