@@ -4158,39 +4158,6 @@ class TestUpdatePTeamService:
             assert response.status_code == 400
             assert response.json()["detail"] == "Cannot specify None for safety_impact"
 
-        def test_it_should_return_200_when_safety_impact_is_not_specify(self):
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-            request = {"description": "safety_impact not specify"}
-            response = client.put(
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
-                headers=_headers,
-                json=request,
-            )
-            assert response.status_code == 200
-            assert response.json()["service_safety_impact"] == models.SafetyImpactEnum.NEGLIGIBLE
-
-        def test_it_should_return_400_when_safety_impact_is_None(self):
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-            request = {"service_safety_impact": None}
-            response = client.put(
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
-                headers=_headers,
-                json=request,
-            )
-
-            assert response.status_code == 400
-            assert response.json()["detail"] == "Cannot specify None for safety_impact"
-
         error_msg_safety_impact = (
             "Input should be 'catastrophic', 'critical', 'marginal' or 'negligible'"
         )
