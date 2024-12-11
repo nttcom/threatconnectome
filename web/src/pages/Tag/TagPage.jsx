@@ -127,7 +127,6 @@ export function Tag() {
         <TabPanel value={tabValue} index={0}>
           <PTeamTaggedTopics
             pteamId={pteamId}
-            tagId={tagId}
             service={serviceDict}
             references={references}
             taggedTopics={taggedTopicsUnsolved}
@@ -136,7 +135,6 @@ export function Tag() {
         <TabPanel value={tabValue} index={1}>
           <PTeamTaggedTopics
             pteamId={pteamId}
-            tagId={tagId}
             service={serviceDict}
             references={references}
             taggedTopics={taggedTopicsSolved}
