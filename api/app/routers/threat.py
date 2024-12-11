@@ -63,6 +63,7 @@ def get_threat(
 def update_threat_safety_impact(
     threat_id: UUID,
     requests: schemas.ThreatUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -72,7 +73,11 @@ def update_threat_safety_impact(
     if not (threat := persistence.get_threat_by_id(db, threat_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
 
-    threat.threat_safety_impact = requests.threat_safety_impact
+    pteam = threat.dependency.service.pteam
 
-    db.commit()
-    return threat
+    if check_pteam_membership(pteam, current_user):
+        threat.threat_safety_impact = requests.threat_safety_impact
+        db.commit()
+        return threat
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
