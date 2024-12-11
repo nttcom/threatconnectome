@@ -39,8 +39,6 @@ export const actionTypeChipColors = {
 };
 export const actionTypes = Object.keys(actionTypeChipColors);
 
-export const difficulty = ["high", "middle", "low"];
-
 export const difficultyColors = {
   low: amber[500],
   middle: yellow[700],

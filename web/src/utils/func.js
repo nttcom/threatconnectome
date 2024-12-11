@@ -1,3 +1,4 @@
+import { amber, grey, orange, red } from "@mui/material/colors";
 import { addMinutes, format } from "date-fns";
 
 export const a11yProps = (index) => ({
@@ -118,4 +119,24 @@ export const compareSSVCPriority = (prio1, prio2) => {
   if (int1 === int2) return 0;
   else if (int1 < int2) return -1;
   else return 1;
+};
+
+export const cvssProps = (cvssScore) => {
+  let cvssBgcolor;
+  let threatCardBgcolor;
+  if (cvssScore === "N/A" || cvssScore === 0.0) {
+    cvssBgcolor = grey[600];
+    threatCardBgcolor = grey[100];
+  } else if (cvssScore < 7.0) {
+    cvssBgcolor = amber[600];
+    threatCardBgcolor = amber[100];
+  } else if (cvssScore < 9.0) {
+    cvssBgcolor = orange[600];
+    threatCardBgcolor = orange[100];
+  } else {
+    cvssBgcolor = red[600];
+    threatCardBgcolor = red[100];
+  }
+
+  return { cvssBgcolor, threatCardBgcolor };
 };
