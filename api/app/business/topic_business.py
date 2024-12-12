@@ -7,14 +7,15 @@ from app import models
 
 def get_sorted_topics(topics: Sequence[models.Topic]) -> Sequence[models.Topic]:
     """
-    Sort topics with standard sort rules -- (threat_impact ASC, updated_at DESC)
+    Sort topics with standard sort rules -- (cvss_v3_score DESC, updated_at DESC)
     """
     return sorted(
         topics,
         key=lambda topic: (
-            topic.threat_impact,
-            -(dt.timestamp() if (dt := topic.updated_at) else 0),
+            topic.cvss_v3_score if topic.cvss_v3_score is not None else -1,
+            dt.timestamp() if (dt := topic.updated_at) else 0,
         ),
+        reverse=True,
     )
 
 

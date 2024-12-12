@@ -51,7 +51,7 @@ def get_topics(
 def search_topics(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),  # 10 is default in web/src/pages/TopicManagement.jsx
-    sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.THREAT_IMPACT),
+    sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.CVSS_V3_SCORE_DESC),
     threat_impacts: list[int] | None = Query(None),
     topic_ids: list[str] | None = Query(None),
     title_words: list[str] | None = Query(None),

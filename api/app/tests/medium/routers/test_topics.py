@@ -263,11 +263,11 @@ def test_get_all_topics():
     create_user(USER2)
     create_pteam(USER1, PTEAM1)
 
-    topic1 = create_topic(USER1, {**TOPIC1, "threat_impact": 1}, actions=[ACTION1, ACTION2])
-    topic2 = create_topic(USER1, {**TOPIC2, "threat_impact": 2}, actions=[ACTION3])
-    topic3 = create_topic(USER1, {**TOPIC3, "threat_impact": 3})
-    topic4 = create_topic(USER1, {**TOPIC4, "threat_impact": 2})
-    topic5 = create_topic(USER2, {**TOPIC1, "threat_impact": 1, "topic_id": str(uuid4())})
+    topic1 = create_topic(USER1, {**TOPIC1, "cvss_v3_score": 10}, actions=[ACTION1, ACTION2])
+    topic2 = create_topic(USER1, {**TOPIC2, "cvss_v3_score": 2}, actions=[ACTION3])
+    topic3 = create_topic(USER1, {**TOPIC3, "cvss_v3_score": None})
+    topic4 = create_topic(USER1, {**TOPIC4, "cvss_v3_score": 2})
+    topic5 = create_topic(USER2, {**TOPIC1, "cvss_v3_score": 10, "topic_id": str(uuid4())})
 
     data = assert_200(client.get("/topics", headers=headers(USER1)))
     assert len(data) == 5
@@ -985,6 +985,7 @@ class TestSearchTopics:
                 "title": "",
                 "abstract": "",
                 "threat_impact": 1,
+                "cvss_v3_score": 10.0,
                 **params,
                 "exploitation": "active",
                 "automatable": "yes",
@@ -1464,16 +1465,16 @@ class TestSearchTopics:
     class TestSearchResultSlice(ExtCommonForResultSlice_):
         @pytest.fixture(scope="function", autouse=True)
         def setup_for_result_slice(self):
-            self.topic1 = self.create_minimal_topic(USER1, {"threat_impact": 1})
-            self.topic2 = self.create_minimal_topic(USER1, {"threat_impact": 2})
-            self.topic3 = self.create_minimal_topic(USER1, {"threat_impact": 3})
-            self.topic4 = self.create_minimal_topic(USER1, {"threat_impact": 4})
-            self.topic5 = self.create_minimal_topic(USER1, {"threat_impact": 1})
-            self.topic6 = self.create_minimal_topic(USER1, {"threat_impact": 2})
-            self.topic7 = self.create_minimal_topic(USER1, {"threat_impact": 3})
-            update_topic(USER1, self.topic5, {"threat_impact": 2})
-            update_topic(USER1, self.topic2, {"threat_impact": 1})
-            update_topic(USER1, self.topic6, {"threat_impact": 3})
+            self.topic1 = self.create_minimal_topic(USER1, {"cvss_v3_score": 10})
+            self.topic2 = self.create_minimal_topic(USER1, {"cvss_v3_score": 8})
+            self.topic3 = self.create_minimal_topic(USER1, {"cvss_v3_score": 3})
+            self.topic4 = self.create_minimal_topic(USER1, {"cvss_v3_score": None})
+            self.topic5 = self.create_minimal_topic(USER1, {"cvss_v3_score": 10})
+            self.topic6 = self.create_minimal_topic(USER1, {"cvss_v3_score": 8})
+            self.topic7 = self.create_minimal_topic(USER1, {"cvss_v3_score": 3})
+            update_topic(USER1, self.topic5, {"cvss_v3_score": 8})
+            update_topic(USER1, self.topic2, {"cvss_v3_score": 10})
+            update_topic(USER1, self.topic6, {"cvss_v3_score": 3})
             self.topics = {
                 1: self.topic1,
                 2: self.topic2,
@@ -1496,16 +1497,16 @@ class TestSearchTopics:
                 # sort_key
                 (
                     (None, None, None),  # check defaults
-                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "cvss_v3_score_desc"),
                 ),
                 ((None, None, "my_sort_key"), "422: Unprocessable Entity: "),
                 (
-                    (None, None, "threat_impact"),  # implicit 2nd key is updated_at_desc
-                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                    (None, None, "cvss_v3_score_desc"),  # implicit 2nd key is updated_at_desc
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "cvss_v3_score_desc"),
                 ),
                 (
-                    (None, None, "threat_impact_desc"),  # implicit 2nd key is updated_at_desc
-                    ([4, 6, 7, 3, 5, 2, 1], 7, 0, 10, "threat_impact_desc"),
+                    (None, None, "cvss_v3_score"),  # implicit 2nd key is updated_at_desc
+                    ([4, 6, 7, 3, 5, 2, 1], 7, 0, 10, "cvss_v3_score"),
                 ),
                 (
                     (None, None, "updated_at"),  # implicit 2nd key is threat_impact
@@ -1518,29 +1519,29 @@ class TestSearchTopics:
                 # offset
                 (
                     (0, None, None),
-                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "cvss_v3_score_desc"),
                 ),
                 (("xxx", None, None), "422: Unprocessable Entity: "),
                 ((-1, None, None), "422: Unprocessable Entity: "),  # offset should be >=0
                 (
                     (5, None, None),
-                    ([3, 4], 7, 5, 10, "threat_impact"),
+                    ([3, 4], 7, 5, 10, "cvss_v3_score_desc"),
                 ),
                 (
                     (10, None, None),
-                    ([], 7, 10, 10, "threat_impact"),
+                    ([], 7, 10, 10, "cvss_v3_score_desc"),
                 ),
                 # limit
                 (
                     (None, 10, None),
-                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "cvss_v3_score_desc"),
                 ),
                 ((None, "xxx", None), "422: Unprocessable Entity: "),
                 ((None, 0, None), "422: Unprocessable Entity: "),  # limit should be >= 1
                 ((None, 101, None), "422: Unprocessable Entity: "),  # limit should be <= 100
                 (
                     (None, 5, None),
-                    ([2, 1, 5, 6, 7], 7, 0, 5, "threat_impact"),
+                    ([2, 1, 5, 6, 7], 7, 0, 5, "cvss_v3_score_desc"),
                 ),
                 # complex
                 (
