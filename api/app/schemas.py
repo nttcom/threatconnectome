@@ -23,8 +23,8 @@ class ORMModel(BaseModel):
 
 
 class TopicSortKey(str, Enum):
-    THREAT_IMPACT = "threat_impact"
-    THREAT_IMPACT_DESC = "threat_impact_desc"
+    CVSS_V3_SCORE = "cvss_v3_score"
+    CVSS_V3_SCORE_DESC = "cvss_v3_score_desc"
     UPDATED_AT = "updated_at"
     UPDATED_AT_DESC = "updated_at_desc"
 
