@@ -1,0 +1,15 @@
+FROM postgres:14
+
+WORKDIR /
+
+ARG POSTGRES_USER
+ARG POSTGRES_PASSWORD
+
+USER ${POSTGRES_USER}
+
+COPY ./demo_data /
+
+RUN /usr/local/bin/docker-enforce-initdb.sh
+RUN pg_ctl start && pg_restore --clean --if-exists -d postgres /demo_data
+
+CMD ["postgres", "-c", "log_destination=stderr", "-c", "log_statement=all"]

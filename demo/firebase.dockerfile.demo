@@ -1,0 +1,17 @@
+FROM node:18-alpine
+
+WORKDIR /opt/workspace
+
+RUN apk update \
+    && apk --no-cache add curl \
+    && rm -rf /var/cache/apk/*
+# If you use Realtime Database, Cloud Firestore, or Cloud Storage emulator,
+# you will need to add `openjdk11-jre-headless`.
+
+RUN npm install -g firebase-tools@12.1.0
+
+COPY ./firebase-data ./data
+COPY ./firebase.json ./firebase.json
+COPY ./.firebaserc.for_demo ./.firebaserc
+
+CMD ["firebase", "emulators:start", "--import=./data", "--export-on-exit"]
