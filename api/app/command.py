@@ -65,7 +65,7 @@ def search_threats(
     service_id: UUID | str | None,
     dependency_id: UUID | str | None,
     topic_id: UUID | str | None,
-    current_user: models.Account | None = None,
+    user_id: UUID | str | None = None,
 ) -> Sequence[models.Threat]:
     select_stmt = select(models.Threat)
 
@@ -77,8 +77,8 @@ def search_threats(
         .join(models.Account)
     )
 
-    if current_user:
-        select_stmt = select_stmt.where(models.Account.user_id == current_user.user_id)
+    if user_id:
+        select_stmt = select_stmt.where(models.Account.user_id == str(user_id))
 
     if service_id:
         select_stmt = select_stmt.where(models.Dependency.service_id == str(service_id))

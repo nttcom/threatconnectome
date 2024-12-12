@@ -27,7 +27,7 @@ def get_threats(
     - **dependency_id** (Optional) filter by specified service_id. Default is None.
     - **topic_id** (Optional) filter by specified topic_id. Default is None.
     """
-    threats = command.search_threats(db, service_id, dependency_id, topic_id, current_user)
+    threats = command.search_threats(db, service_id, dependency_id, topic_id, current_user.user_id)
 
     return threats
 
