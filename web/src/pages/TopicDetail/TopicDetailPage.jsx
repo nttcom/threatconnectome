@@ -15,14 +15,15 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { amber, green, grey, orange, red, yellow } from "@mui/material/colors";
+import { green, grey, yellow } from "@mui/material/colors";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
-import { errorToString } from "../../utils/func";
+import { cvssProps } from "../../utils/const";
+import { errorToString, cvssSeverityRating } from "../../utils/func";
 
 import { TopicSSVCCards } from "./TopicSSVCCards";
 
@@ -68,28 +69,18 @@ export function TopicDetail() {
     return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
   if (topicActionsIsLoading) return <>Now loading topicActions...</>;
 
-  const CVSSScore =
+  const cvssScore =
     topic.cvss_v3_score === undefined || topic.cvss_v3_score === null ? "N/A" : topic.cvss_v3_score;
-  let CVSSBgcolor;
-  let threatCardBgcolor;
-  if (CVSSScore === "N/A" || CVSSScore === 0.0) {
-    CVSSBgcolor = grey[600];
-    threatCardBgcolor = grey[100];
-  } else if (CVSSScore < 7.0) {
-    CVSSBgcolor = amber[600];
-    threatCardBgcolor = amber[100];
-  } else if (CVSSScore < 9.0) {
-    CVSSBgcolor = orange[600];
-    threatCardBgcolor = orange[100];
-  } else {
-    CVSSBgcolor = red[600];
-    threatCardBgcolor = red[100];
-  }
+
+  const cvss = cvssSeverityRating(cvssScore);
 
   return (
     <>
       <Box>
-        <Card variant="outlined" sx={{ margin: 1, backgroundColor: threatCardBgcolor }}>
+        <Card
+          variant="outlined"
+          sx={{ margin: 1, backgroundColor: cvssProps[cvss].threatCardBgcolor }}
+        >
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
               <Avatar
@@ -98,11 +89,11 @@ export function TopicDetail() {
                   height: 60,
                   width: 60,
                   fontWeight: "bold",
-                  backgroundColor: CVSSBgcolor,
+                  backgroundColor: cvssProps[cvss].cvssBgcolor,
                 }}
                 variant="rounded"
               >
-                {CVSSScore === "N/A" ? CVSSScore : CVSSScore.toFixed(1)}
+                {cvssScore === "N/A" ? cvssScore : cvssScore.toFixed(1)}
               </Avatar>
               <Typography variant="h5">{topic.title}</Typography>
             </Box>

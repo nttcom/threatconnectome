@@ -37,8 +37,8 @@ import {
   useGetTopicQuery,
   useSearchTopicsQuery,
 } from "../../services/tcApi";
-import { difficulty, difficultyColors } from "../../utils/const";
-import { errorToString } from "../../utils/func";
+import { cvssProps } from "../../utils/const";
+import { errorToString, cvssSeverityRating } from "../../utils/func";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "./TopicSearchModal";
@@ -82,6 +82,11 @@ function TopicManagementTableRow(props) {
       </TableRow>
     );
 
+  const cvssScore =
+    topic.cvss_v3_score === undefined || topic.cvss_v3_score === null ? "N/A" : topic.cvss_v3_score;
+
+  const cvss = cvssSeverityRating(cvssScore);
+
   return (
     <TableRow
       key={topic.topic_id}
@@ -90,7 +95,7 @@ function TopicManagementTableRow(props) {
         cursor: "pointer",
         "&:last-child td, &:last-child th": { border: 0 },
         "&:hover": { bgcolor: grey[100] },
-        borderLeft: `solid 5px ${difficultyColors[difficulty[topic.threat_impact - 1]]}`,
+        borderLeft: `solid 5px ${cvssProps[cvss].cvssBgcolor}`,
       }}
       onClick={() => navigate(`/topics/${topic.topic_id}?${params.toString()}`)}
     >

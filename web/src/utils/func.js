@@ -119,3 +119,19 @@ export const compareSSVCPriority = (prio1, prio2) => {
   else if (int1 < int2) return -1;
   else return 1;
 };
+
+export const cvssSeverityRating = (cvssScore) => {
+  let rating;
+  if (0 < cvssScore && cvssScore < 4.0) {
+    rating = "Low";
+  } else if (4.0 <= cvssScore && cvssScore < 7.0) {
+    rating = "Medium";
+  } else if (7.0 <= cvssScore && cvssScore < 9.0) {
+    rating = "High";
+  } else if (9.0 <= cvssScore && cvssScore <= 10.0) {
+    rating = "Critical";
+  } else {
+    rating = "None";
+  }
+  return rating;
+};
