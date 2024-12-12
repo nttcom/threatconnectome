@@ -1,4 +1,4 @@
-import { Edit as EditIcon, Update as UpdateIcon } from "@mui/icons-material";
+import { Update as UpdateIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -8,7 +8,6 @@ import {
   Chip,
   Collapse,
   Divider,
-  IconButton,
   List,
   Switch,
   Typography,
@@ -31,16 +30,14 @@ import { dateTimeFormat, errorToString } from "../../utils/func";
 import { parseVulnerableVersions, versionMatch } from "../../utils/versions";
 
 import { ActionItem } from "./ActionItem";
-import { TopicModal } from "./TopicModal";
 import { TopicTicketAccordion } from "./TopicTicketAccordion";
 
 export function TopicCard(props) {
-  const { pteamId, topicId, currentTagId, service, references, members } = props;
+  const { pteamId, topicId, service, references, members } = props;
   const { tagId } = useParams();
   const serviceId = service?.service_id;
 
   const [detailOpen, setDetailOpen] = useState(false);
-  const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
   const skipByAuth = useSkipUntilAuthTokenIsReady();
 
@@ -162,20 +159,6 @@ export function TopicCard(props) {
             </Box>
           </Box>
         </Box>
-        <Box mt={3} mr={2} display="flex" flexDirection="row">
-          <IconButton onClick={() => setTopicModalOpen(true)}>
-            <EditIcon />
-          </IconButton>
-        </Box>
-        <TopicModal
-          open={topicModalOpen}
-          onSetOpen={setTopicModalOpen}
-          presetTopic={topic}
-          presetTagId={currentTagId}
-          presetParentTagId={currentTagDict.parent_id}
-          presetActions={pteamTopicActions}
-          pteamId={pteamId}
-        />
       </Box>
       <Divider />
       <Box display="flex" sx={{ height: "350px" }}>
@@ -397,7 +380,6 @@ export function TopicCard(props) {
 TopicCard.propTypes = {
   pteamId: PropTypes.string.isRequired,
   topicId: PropTypes.string.isRequired,
-  currentTagId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
   members: PropTypes.object.isRequired,
