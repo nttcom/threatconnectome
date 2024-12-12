@@ -22,7 +22,8 @@ import { useParams } from "react-router-dom";
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
-import { errorToString, cvssProps } from "../../utils/func";
+import { cvssProps } from "../../utils/const";
+import { errorToString, cvssSeverityRating } from "../../utils/func";
 
 import { TopicSSVCCards } from "./TopicSSVCCards";
 
@@ -71,12 +72,15 @@ export function TopicDetail() {
   const cvssScore =
     topic.cvss_v3_score === undefined || topic.cvss_v3_score === null ? "N/A" : topic.cvss_v3_score;
 
-  const cvss = cvssProps(cvssScore);
+  const cvss = cvssSeverityRating(cvssScore);
 
   return (
     <>
       <Box>
-        <Card variant="outlined" sx={{ margin: 1, backgroundColor: cvss.threatCardBgcolor }}>
+        <Card
+          variant="outlined"
+          sx={{ margin: 1, backgroundColor: cvssProps[cvss].threatCardBgcolor }}
+        >
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
               <Avatar
@@ -85,7 +89,7 @@ export function TopicDetail() {
                   height: 60,
                   width: 60,
                   fontWeight: "bold",
-                  backgroundColor: cvss.cvssBgcolor,
+                  backgroundColor: cvssProps[cvss].cvssBgcolor,
                 }}
                 variant="rounded"
               >

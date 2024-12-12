@@ -331,3 +331,26 @@ export const drawerParams = {
   mainColor: brown[900],
   hoverColor: brown[700],
 };
+
+export const cvssProps = {
+  None: {
+    cvssBgcolor: grey[600],
+    threatCardBgcolor: grey[100],
+  },
+  Low: {
+    cvssBgcolor: amber[600],
+    threatCardBgcolor: amber[100],
+  },
+  Medium: {
+    cvssBgcolor: amber[600],
+    threatCardBgcolor: amber[100],
+  },
+  High: {
+    cvssBgcolor: orange[600],
+    threatCardBgcolor: orange[100],
+  },
+  Critical: {
+    cvssBgcolor: red[600],
+    threatCardBgcolor: red[100],
+  },
+};

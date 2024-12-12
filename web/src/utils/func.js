@@ -1,4 +1,3 @@
-import { amber, grey, orange, red } from "@mui/material/colors";
 import { addMinutes, format } from "date-fns";
 
 export const a11yProps = (index) => ({
@@ -121,22 +120,18 @@ export const compareSSVCPriority = (prio1, prio2) => {
   else return 1;
 };
 
-export const cvssProps = (cvssScore) => {
-  let cvssBgcolor;
-  let threatCardBgcolor;
-  if (cvssScore === "N/A" || cvssScore === 0.0) {
-    cvssBgcolor = grey[600];
-    threatCardBgcolor = grey[100];
-  } else if (cvssScore < 7.0) {
-    cvssBgcolor = amber[600];
-    threatCardBgcolor = amber[100];
-  } else if (cvssScore < 9.0) {
-    cvssBgcolor = orange[600];
-    threatCardBgcolor = orange[100];
+export const cvssSeverityRating = (cvssScore) => {
+  let rating;
+  if (0 < cvssScore && cvssScore < 4.0) {
+    rating = "Low";
+  } else if (4.0 <= cvssScore && cvssScore < 7.0) {
+    rating = "Medium";
+  } else if (7.0 <= cvssScore && cvssScore < 9.0) {
+    rating = "High";
+  } else if (9.0 <= cvssScore && cvssScore <= 10.0) {
+    rating = "Critical";
   } else {
-    cvssBgcolor = red[600];
-    threatCardBgcolor = red[100];
+    rating = "None";
   }
-
-  return { cvssBgcolor, threatCardBgcolor };
+  return rating;
 };
