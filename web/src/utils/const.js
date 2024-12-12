@@ -39,30 +39,6 @@ export const actionTypeChipColors = {
 };
 export const actionTypes = Object.keys(actionTypeChipColors);
 
-export const difficultyColors = {
-  low: amber[500],
-  middle: yellow[700],
-  high: red[500],
-};
-
-export const avatarGroupStyle = {
-  alignItems: "center",
-  "& .MuiAvatarGroup-avatar": {
-    border: `2px solid ${grey[400]}`,
-    height: "33px",
-    width: "33px",
-    "&.low": {
-      border: `2px solid ${difficultyColors.low}`,
-    },
-    "&.middle": {
-      border: `2px solid ${difficultyColors.middle}`,
-    },
-    "&.high": {
-      border: `2px solid ${difficultyColors.high}`,
-    },
-  },
-};
-
 export const experienceColors = {
   0: green[500],
   2: yellow[500],
