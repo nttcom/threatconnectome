@@ -263,11 +263,11 @@ def test_get_all_topics():
     create_user(USER2)
     create_pteam(USER1, PTEAM1)
 
-    topic1 = create_topic(USER1, {**TOPIC1, "threat_impact": 1}, actions=[ACTION1, ACTION2])
-    topic2 = create_topic(USER1, {**TOPIC2, "threat_impact": 2}, actions=[ACTION3])
-    topic3 = create_topic(USER1, {**TOPIC3, "threat_impact": 3})
-    topic4 = create_topic(USER1, {**TOPIC4, "threat_impact": 2})
-    topic5 = create_topic(USER2, {**TOPIC1, "threat_impact": 1, "topic_id": str(uuid4())})
+    topic1 = create_topic(USER1, {**TOPIC1, "cvss_v3_score": 10}, actions=[ACTION1, ACTION2])
+    topic2 = create_topic(USER1, {**TOPIC2, "cvss_v3_score": 2}, actions=[ACTION3])
+    topic3 = create_topic(USER1, {**TOPIC3, "cvss_v3_score": None})
+    topic4 = create_topic(USER1, {**TOPIC4, "cvss_v3_score": 2})
+    topic5 = create_topic(USER2, {**TOPIC1, "cvss_v3_score": 10, "topic_id": str(uuid4())})
 
     data = assert_200(client.get("/topics", headers=headers(USER1)))
     assert len(data) == 5
