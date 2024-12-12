@@ -151,6 +151,9 @@ def get_pteam_and_service_data(
             )
             break
 
+    if "service_name" not in pteam_and_service_data:
+        sys.exit("ERROR: The pairing of pteam_id and service_id is incorrect")
+
     return pteam_and_service_data
 
 
