@@ -5,11 +5,9 @@ WORKDIR /
 ARG POSTGRES_USER
 ARG POSTGRES_PASSWORD
 
-USER ${POSTGRES_USER}
-
 COPY ./demo_data /
 
-RUN /usr/local/bin/docker-enforce-initdb.sh
-RUN pg_ctl start && pg_restore --clean --if-exists -d postgres /demo_data
+RUN mkdir -p /docker-entrypoint-initdb.d
+RUN echo "pg_restore --clean --if-exists -d postgres /demo_data" > /docker-entrypoint-initdb.d/10_restore_demo_data.sh
 
 CMD ["postgres", "-c", "log_destination=stderr", "-c", "log_statement=all"]
