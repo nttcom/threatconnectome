@@ -162,7 +162,7 @@ def get_threats_data(tc_client: ThreatconnectomeClient, service_id: str) -> list
     threats = tc_client.get_threats(params)
 
     if len(threats) == 0:
-        sys.exit("ERROR: The threats data associated with service_id is empty")
+        sys.exit("The threats data associated with service_id is empty")
 
     return threats
 
