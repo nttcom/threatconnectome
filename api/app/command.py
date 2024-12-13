@@ -95,7 +95,7 @@ def search_topics_internal(
     offset: int = 0,
     limit: int = 10,
     sort_key: schemas.TopicSortKey = schemas.TopicSortKey.CVSS_V3_SCORE_DESC,
-    threat_impacts: list[int] | None = None,
+    cvss_v3_scores: list[float] | None = None,
     title_words: list[str | None] | None = None,
     abstract_words: list[str | None] | None = None,
     tag_ids: list[str | None] | None = None,
@@ -109,10 +109,10 @@ def search_topics_internal(
     pteam_id: UUID | None = None,
 ) -> dict:
     # search conditions
-    search_by_threat_impacts_stmt = (
+    search_by_cvss_v3_scores_stmt = (
         true()
-        if threat_impacts is None  # do not filter by threat_impact
-        else models.Topic.threat_impact.in_(threat_impacts)
+        if cvss_v3_scores is None  # do not filter by cvss_v3_score
+        else models.Topic.cvss_v3_score.in_(cvss_v3_scores)
     )
     search_by_tag_ids_stmt = (
         true()
@@ -206,7 +206,7 @@ def search_topics_internal(
     )
 
     search_conditions = [
-        search_by_threat_impacts_stmt,
+        search_by_cvss_v3_scores_stmt,
         search_by_tag_ids_stmt,
         search_by_misp_tag_ids_stmt,
         search_by_topic_ids_stmt,

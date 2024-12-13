@@ -50,7 +50,6 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(testdb, 
             "topic_id": topic_id,
             "title": "test topic " + topic_id,
             "abstract": "test abstract " + topic_id,
-            "threat_impact": 1,
             "tags": [tag.tag_name for tag in tags],
             "misp_tags": [],
             "actions": [
