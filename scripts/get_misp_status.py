@@ -284,7 +284,6 @@ def main(args: argparse.Namespace) -> None:
         print(f"==[ {idx} ]==")
         print(f"Title: {topic['title']}")
         print(f"TopicID: {topic['topic_id']}")
-        print(f"ThreatImpact: {impact_labels.get(topic['threat_impact'])}")
         print("Artifact tags & statuses")
         str_statuses = []
         for status in statuses:
