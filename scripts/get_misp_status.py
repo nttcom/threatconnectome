@@ -275,12 +275,6 @@ def main(args: argparse.Namespace) -> None:
     print(f"Your PTeam has unsolved {len(unsolved_topic_statuses)} topics")
     for idx, [topic_id, statuses] in enumerate(unsolved_topic_statuses.items()):
         topic = pteam_watching_topics[topic_id]
-        impact_labels = {
-            1: "Immediate",
-            2: "Off-cycle",
-            3: "Acceptable",
-            4: "None",
-        }
         print(f"==[ {idx} ]==")
         print(f"Title: {topic['title']}")
         print(f"TopicID: {topic['topic_id']}")
