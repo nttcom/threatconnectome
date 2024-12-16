@@ -17,21 +17,21 @@ from sqlalchemy.orm import Session, joinedload
 from app import models, schemas
 
 sortkey2orderby: dict[schemas.TopicSortKey, list] = {
-    schemas.TopicSortKey.THREAT_IMPACT: [
-        models.Topic.threat_impact,
+    schemas.TopicSortKey.CVSS_V3_SCORE: [
+        models.Topic.cvss_v3_score.nulls_first(),
         models.Topic.updated_at.desc(),
     ],
-    schemas.TopicSortKey.THREAT_IMPACT_DESC: [
-        models.Topic.threat_impact.desc(),
+    schemas.TopicSortKey.CVSS_V3_SCORE_DESC: [
+        models.Topic.cvss_v3_score.desc().nullslast(),
         models.Topic.updated_at.desc(),
     ],
     schemas.TopicSortKey.UPDATED_AT: [
         models.Topic.updated_at,
-        models.Topic.threat_impact,
+        models.Topic.cvss_v3_score.desc().nullslast(),
     ],
     schemas.TopicSortKey.UPDATED_AT_DESC: [
         models.Topic.updated_at.desc(),
-        models.Topic.threat_impact,
+        models.Topic.cvss_v3_score.desc().nullslast(),
     ],
 }
 
@@ -94,8 +94,8 @@ def search_topics_internal(
     db: Session,
     offset: int = 0,
     limit: int = 10,
-    sort_key: schemas.TopicSortKey = schemas.TopicSortKey.THREAT_IMPACT,
-    threat_impacts: list[int] | None = None,
+    sort_key: schemas.TopicSortKey = schemas.TopicSortKey.CVSS_V3_SCORE_DESC,
+    cvss_v3_scores: list[float] | None = None,
     title_words: list[str | None] | None = None,
     abstract_words: list[str | None] | None = None,
     tag_ids: list[str | None] | None = None,
@@ -110,10 +110,10 @@ def search_topics_internal(
     cve_ids: list[str | None] | None = None,
 ) -> dict:
     # search conditions
-    search_by_threat_impacts_stmt = (
+    search_by_cvss_v3_scores_stmt = (
         true()
-        if threat_impacts is None  # do not filter by threat_impact
-        else models.Topic.threat_impact.in_(threat_impacts)
+        if cvss_v3_scores is None  # do not filter by cvss_v3_score
+        else models.Topic.cvss_v3_score.in_(cvss_v3_scores)
     )
     search_by_tag_ids_stmt = (
         true()
@@ -211,7 +211,7 @@ def search_topics_internal(
     )
 
     search_conditions = [
-        search_by_threat_impacts_stmt,
+        search_by_cvss_v3_scores_stmt,
         search_by_tag_ids_stmt,
         search_by_misp_tag_ids_stmt,
         search_by_topic_ids_stmt,

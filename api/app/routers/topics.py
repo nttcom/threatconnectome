@@ -51,8 +51,8 @@ def get_topics(
 def search_topics(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),  # 10 is default in web/src/pages/TopicManagement.jsx
-    sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.THREAT_IMPACT),
-    threat_impacts: list[int] | None = Query(None),
+    sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.CVSS_V3_SCORE_DESC),
+    cvss_v3_scores: list[float] | None = Query(None),
     topic_ids: list[str] | None = Query(None),
     title_words: list[str] | None = Query(None),
     abstract_words: list[str] | None = Query(None),
@@ -71,7 +71,7 @@ def search_topics(
     """
     Search topics by following parameters with sort and pagination.
 
-    - threat_impacts
+    - cvss_v3_scores
     - title_words
     - abstract_words
     - tag_names
@@ -151,13 +151,13 @@ def search_topics(
                 continue
             fixed_abstract_words.add(abstract_word)
 
-    fixed_threat_impacts: set[int] = set()
-    if threat_impacts is not None:
-        for threat_impact in threat_impacts:
+    fixed_cvss_v3_scores: set[float] = set()
+    if cvss_v3_scores is not None:
+        for cvss_v3_score in cvss_v3_scores:
             try:
-                int_val = int(threat_impact)
-                if int_val in {1, 2, 3, 4}:
-                    fixed_threat_impacts.add(int_val)
+                float_val = float(cvss_v3_score)
+                if float_val <= 10.0 and float_val >= 0:
+                    fixed_cvss_v3_scores.add(float_val)
             except ValueError:
                 pass
     fixed_cve_ids: set[str | None] = set()
@@ -170,7 +170,7 @@ def search_topics(
         offset=offset,
         limit=limit,
         sort_key=sort_key,
-        threat_impacts=None if threat_impacts is None else list(fixed_threat_impacts),
+        cvss_v3_scores=None if cvss_v3_scores is None else list(fixed_cvss_v3_scores),
         title_words=None if title_words is None else list(fixed_title_words),
         abstract_words=None if abstract_words is None else list(fixed_abstract_words),
         tag_ids=None if tag_names is None else list(fixed_tag_ids),
@@ -210,8 +210,6 @@ def create_topic(
 ):
     """
     Create a topic.
-    - `threat_impact` : The value is in 1, 2, 3, 4.
-      (immediate: 1, off-cycle: 2, acceptable: 3, none: 4)
     - `tags` : Optional. The default is an empty list.
     - `misp_tags` : Optional. The default is an empty list.
     - `actions` : Optional. The default is an empty list.
@@ -277,7 +275,6 @@ def create_topic(
         topic_id=str(topic_id),
         title=data.title,
         abstract=data.abstract,
-        threat_impact=data.threat_impact,
         cve_id=data.cve_id,
         created_by=current_user.user_id,
         created_at=now,
@@ -356,11 +353,6 @@ def update_topic(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot specify None for abstract",
         )
-    if "threat_impact" in update_data.keys() and data.threat_impact is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot specify None for threat_impact",
-        )
     if "tags" in update_data.keys() and data.tags is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -397,8 +389,6 @@ def update_topic(
         topic.title = data.title
     if data.abstract is not None:
         topic.abstract = data.abstract
-    if data.threat_impact is not None:
-        topic.threat_impact = data.threat_impact
     if data.cve_id is not None:
         topic.cve_id = data.cve_id
     if data.exploitation is not None:

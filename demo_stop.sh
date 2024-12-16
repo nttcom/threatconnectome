@@ -1,4 +1,4 @@
-#! /bin/bash -l
+#! /bin/sh
 
 docker_yml="docker-compose-demo.yml";
 

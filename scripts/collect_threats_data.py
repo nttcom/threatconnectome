@@ -151,12 +151,19 @@ def get_pteam_and_service_data(
             )
             break
 
+    if "service_name" not in pteam_and_service_data:
+        sys.exit("ERROR: The pairing of pteam_id and service_id is incorrect")
+
     return pteam_and_service_data
 
 
 def get_threats_data(tc_client: ThreatconnectomeClient, service_id: str) -> list:
     params = {"service_id": service_id}
     threats = tc_client.get_threats(params)
+
+    if len(threats) == 0:
+        sys.exit("The threats data associated with service_id is empty")
+
     return threats
 
 

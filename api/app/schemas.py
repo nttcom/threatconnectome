@@ -25,8 +25,8 @@ class ORMModel(BaseModel):
 
 
 class TopicSortKey(str, Enum):
-    THREAT_IMPACT = "threat_impact"
-    THREAT_IMPACT_DESC = "threat_impact_desc"
+    CVSS_V3_SCORE = "cvss_v3_score"
+    CVSS_V3_SCORE_DESC = "cvss_v3_score_desc"
     UPDATED_AT = "updated_at"
     UPDATED_AT_DESC = "updated_at_desc"
 
@@ -137,11 +137,6 @@ class MispTagResponse(ORMModel):
     tag_name: str
 
 
-def threat_impact_range(value):
-    assert value is None or 0 < value <= 4, "Specify a threat_impact between 1 and 4"
-    return value
-
-
 CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"
 
 
@@ -164,7 +159,6 @@ class Topic(TopicEntry):
     topic_id: UUID
     title: str
     abstract: str
-    threat_impact: int
     created_by: UUID
     created_at: datetime
     exploitation: ExploitationEnum | None
@@ -172,7 +166,6 @@ class Topic(TopicEntry):
     cvss_v3_score: float | None
     cve_id: str | None
 
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
@@ -222,7 +215,6 @@ class ActionUpdateRequest(ORMModel):
 class TopicCreateRequest(ORMModel):
     title: str
     abstract: str
-    threat_impact: int
     tags: list[str] = []
     misp_tags: list[str] = []
     actions: list[ActionCreateRequest] = []
@@ -231,14 +223,12 @@ class TopicCreateRequest(ORMModel):
     cvss_v3_score: float | None = None
     cve_id: str | None = None
 
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class TopicUpdateRequest(ORMModel):
     title: str | None = None
     abstract: str | None = None
-    threat_impact: int | None = None
     tags: list[str] | None = None
     misp_tags: list[str] | None = None
     exploitation: ExploitationEnum | None = None
@@ -246,7 +236,6 @@ class TopicUpdateRequest(ORMModel):
     cvss_v3_score: float | None = None
     cve_id: str | None = None
 
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
