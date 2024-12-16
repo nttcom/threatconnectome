@@ -533,7 +533,6 @@ def main() -> None:
                     abstract = "\n".join(vuln_details["References"])
                 else:
                     abstract = "There is no description."
-                severity = vuln_details["Severity"]
 
                 if (
                     "CVSS" in vuln_details
@@ -547,7 +546,6 @@ def main() -> None:
             else:
                 title = vuln_id
                 abstract = "This Vuln is not yet published."
-                severity = "UNKNOWN"
                 cvss_v3_score = None
             if vuln_content["tags"]:
                 tags = list(vuln_content["tags"])
@@ -568,11 +566,9 @@ def main() -> None:
                 for x in vuln_content["actions"].values()
             ]
 
-            convert_impact = {"CRITICAL": 1, "HIGH": 2, "MEDIUM": 3, "LOW": 3, "UNKNOWN": 4}
             topics[topic_id] = {
                 "title": title,
                 "abstract": abstract,
-                "threat_impact": convert_impact.get(severity, 4),
                 "tags": tags,
                 "misp_tags": misp_tags,
                 "actions": actions,

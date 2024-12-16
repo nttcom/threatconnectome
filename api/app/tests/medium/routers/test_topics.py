@@ -65,7 +65,6 @@ def test_create_topic():
     assert topic1.topic_id == TOPIC1["topic_id"]
     assert topic1.title == TOPIC1["title"]
     assert topic1.abstract == TOPIC1["abstract"]
-    assert topic1.threat_impact == TOPIC1["threat_impact"]
     assert topic1.created_by == user1.user_id
     assert isinstance(topic1.created_at, datetime)
     assert isinstance(topic1.updated_at, datetime)
@@ -156,14 +155,6 @@ def test_create_topic_and_action__with_new_tags():
         )
 
 
-def test_create_wrong_threat_level_topic():
-    create_user(USER1)
-    _topic = TOPIC1.copy()
-    _topic["threat_impact"] = -1
-    with pytest.raises(HTTPError, match="422: Unprocessable Entity"):
-        create_topic(USER1, _topic)
-
-
 def test_it_should_return_422_when_use_try_to_create_wrong_exploitation_topic():
     create_user(USER1)
     create_tag(USER1, TAG1)
@@ -245,7 +236,6 @@ def test_get_topic():
     assert responsed_topic.topic_id == TOPIC1["topic_id"]
     assert responsed_topic.title == TOPIC1["title"]
     assert responsed_topic.abstract == TOPIC1["abstract"]
-    assert responsed_topic.threat_impact == TOPIC1["threat_impact"]
     assert responsed_topic.created_by == user1.user_id
     assert responsed_topic.created_at == topic1.created_at
     assert responsed_topic.updated_at == topic1.updated_at
@@ -271,7 +261,7 @@ def test_get_all_topics():
 
     data = assert_200(client.get("/topics", headers=headers(USER1)))
     assert len(data) == 5
-    # sorted orders are [threat_impact, updated_at(desc)]
+    # sorted orders are [cvss_v3_score(desc), updated_at(desc)]
     assert data[0]["topic_id"] == str(topic5.topic_id)
     assert data[1]["topic_id"] == str(topic1.topic_id)
     assert data[2]["topic_id"] == str(topic4.topic_id)
@@ -291,7 +281,6 @@ def test_update_topic():
     request = {
         "title": "topic one dash",
         "abstract": "abstract one dash",
-        "threat_impact": 2,
         "tags": [tag1.tag_name],
         "misp_tags": ["tlp:white"],
         "exploitation": "public_poc",
@@ -306,8 +295,6 @@ def test_update_topic():
     assert responsed_topic.title != TOPIC1["title"]
     assert responsed_topic.abstract == request["abstract"]
     assert responsed_topic.abstract != TOPIC1["abstract"]
-    assert responsed_topic.threat_impact == request["threat_impact"]
-    assert responsed_topic.threat_impact != TOPIC1["threat_impact"]
     assert request["tags"][0] in [tag.tag_name for tag in responsed_topic.tags]
     assert TOPIC1["tags"][0] not in [tag.tag_name for tag in responsed_topic.tags]
     assert request["misp_tags"][0] in [misp_tag.tag_name for misp_tag in responsed_topic.misp_tags]
@@ -392,7 +379,6 @@ class TestUpdateTopic:
                 "topic_id": topic_id,
                 "title": "test topic " + topic_id,
                 "abstract": "test abstract " + topic_id,
-                "threat_impact": 1,
                 "tags": [tag.tag_name for tag in tags],
                 "misp_tags": [],
                 "actions": [
@@ -547,7 +533,6 @@ class TestUpdateTopic:
         [
             ("title", "Cannot specify None for title"),
             ("abstract", "Cannot specify None for abstract"),
-            ("threat_impact", "Cannot specify None for threat_impact"),
             ("tags", "Cannot specify None for tags"),
             ("misp_tags", "Cannot specify None for misp_tags"),
             ("exploitation", "Cannot specify None for exploitation"),
@@ -984,7 +969,6 @@ class TestSearchTopics:
                 "topic_id": uuid4(),
                 "title": "",
                 "abstract": "",
-                "threat_impact": 1,
                 "cvss_v3_score": 10.0,
                 **params,
                 "exploitation": "active",
@@ -1004,13 +988,13 @@ class TestSearchTopics:
             }
             return result
 
-    class TestSearchByThreatImpact(Common_):
+    class TestSearchByCvssV3Score(Common_):
         @pytest.fixture(scope="function", autouse=True)
-        def setup_for_threat_impact(self):
-            self.topic1 = self.create_minimal_topic(USER1, {"threat_impact": 1})
-            self.topic2 = self.create_minimal_topic(USER1, {"threat_impact": 2})
-            self.topic3 = self.create_minimal_topic(USER1, {"threat_impact": 3})
-            self.topic4 = self.create_minimal_topic(USER1, {"threat_impact": 4})
+        def setup_for_cvss_v3_score(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"cvss_v3_score": 10})
+            self.topic2 = self.create_minimal_topic(USER1, {"cvss_v3_score": 8})
+            self.topic3 = self.create_minimal_topic(USER1, {"cvss_v3_score": 3})
+            self.topic4 = self.create_minimal_topic(USER1, {"cvss_v3_score": None})
             self.topics = {
                 1: self.topic1,
                 2: self.topic2,
@@ -1022,20 +1006,19 @@ class TestSearchTopics:
             "search_words, expected",
             [
                 (None, {1, 2, 3, 4}),
-                ([0], set()),  # wrong params are just ignored
-                ([1], {1}),
-                ([2], {2}),
+                ([-0.1], set()),  # wrong params are just ignored
+                ([10], {1}),
+                ([8], {2}),
                 ([3], {3}),
-                ([4], {4}),
-                ([5], set()),  # wrong params are just ignored
+                ([10.1], set()),  # wrong params are just ignored
                 (["xxx"], "422: Unprocessable Entity:"),  # not integer
-                ([1, 2], {1, 2}),
+                ([10, 8], {1, 2}),
                 ([""], "422: Unprocessable Entity:"),  # reserved keyword does not make sense
-                ([1, 5], {1}),  # wrong params are just ignored
+                ([10, 5], {1}),  # wrong params are just ignored
             ],
         )
-        def test_search_by_threat_impact(self, search_words, expected):
-            search_params = {} if search_words is None else {"threat_impacts": search_words}
+        def test_search_by_cvss_v3_score(self, search_words, expected):
+            search_params = {} if search_words is None else {"cvss_v3_scores": search_words}
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
     class TestSearchByTitle(Common_):
@@ -1313,9 +1296,9 @@ class TestSearchTopics:
             self.timestamp0 = datetime.now()
             self.topic3 = self.create_minimal_topic(USER1, {})
             self.timestamp1 = datetime.now()
-            update_topic(USER1, self.topic2, {"threat_impact": 3})
+            update_topic(USER1, self.topic2, {"cvss_v3_score": 3})
             self.timestamp2 = datetime.now()
-            update_topic(USER1, self.topic1, {"threat_impact": 2})
+            update_topic(USER1, self.topic1, {"cvss_v3_score": 2})
             self.timestamp3 = datetime.now()
             self.topics = {
                 1: self.topic1,
@@ -1509,11 +1492,11 @@ class TestSearchTopics:
                     ([4, 6, 7, 3, 5, 2, 1], 7, 0, 10, "cvss_v3_score"),
                 ),
                 (
-                    (None, None, "updated_at"),  # implicit 2nd key is threat_impact
+                    (None, None, "updated_at"),  # implicit 2nd key is cvss_v3_score_desc
                     ([1, 3, 4, 7, 5, 2, 6], 7, 0, 10, "updated_at"),
                 ),
                 (
-                    (None, None, "updated_at_desc"),  # implicit 2nd key is threat_impact
+                    (None, None, "updated_at_desc"),  # implicit 2nd key is cvss_v3_score_desc
                     ([6, 2, 5, 7, 4, 3, 1], 7, 0, 10, "updated_at_desc"),
                 ),
                 # offset

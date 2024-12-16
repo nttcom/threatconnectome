@@ -8,14 +8,14 @@ def _sum_ssvc_priority_count(topic_ids: list[str], topic_ids_dict: dict, count_k
     out_of_cycle = models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE.value
     scheduled = models.SSVCDeployerPriorityEnum.SCHEDULED.value
     defer = models.SSVCDeployerPriorityEnum.DEFER.value
-    sum_threat_impact_count = {immediate: 0, out_of_cycle: 0, scheduled: 0, defer: 0}
+    sum_ssvc_priority_count = {immediate: 0, out_of_cycle: 0, scheduled: 0, defer: 0}
     for topic_id in topic_ids:
         current_count = topic_ids_dict[topic_id][count_key]
-        sum_threat_impact_count[immediate] += current_count[immediate]
-        sum_threat_impact_count[out_of_cycle] += current_count[out_of_cycle]
-        sum_threat_impact_count[scheduled] += current_count[scheduled]
-        sum_threat_impact_count[defer] += current_count[defer]
-    return sum_threat_impact_count
+        sum_ssvc_priority_count[immediate] += current_count[immediate]
+        sum_ssvc_priority_count[out_of_cycle] += current_count[out_of_cycle]
+        sum_ssvc_priority_count[scheduled] += current_count[scheduled]
+        sum_ssvc_priority_count[defer] += current_count[defer]
+    return sum_ssvc_priority_count
 
 
 def get_topic_ids_summary_by_service_id_and_tag_id(
@@ -64,7 +64,7 @@ def get_topic_ids_summary_by_service_id_and_tag_id(
                 tmp_topic_ids_dict["unsolved_ssvc_priority_count"][ssvc_priority.value] += 1
                 tmp_topic_ids_dict["is_solved"] = False
 
-    # Sort topic_id according to threat_impact and updated_at
+    # Sort topic_id according to highest_ssvc_priority and updated_at
     topic_ids_sorted = sorted(
         topic_ids_dict.values(),
         key=lambda x: (

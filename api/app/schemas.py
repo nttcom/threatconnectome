@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.constants import DEFAULT_ALERT_SSVC_PRIORITY
 from app.models import (
@@ -135,11 +135,6 @@ class MispTagResponse(ORMModel):
     tag_name: str
 
 
-def threat_impact_range(value):
-    assert value is None or 0 < value <= 4, "Specify a threat_impact between 1 and 4"
-    return value
-
-
 class TopicEntry(ORMModel):
     topic_id: UUID
     title: str
@@ -151,14 +146,11 @@ class Topic(TopicEntry):
     topic_id: UUID
     title: str
     abstract: str
-    threat_impact: int
     created_by: UUID
     created_at: datetime
     exploitation: ExploitationEnum | None
     automatable: AutomatableEnum | None
     cvss_v3_score: float | None
-
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
 
 class TopicResponse(Topic):
@@ -207,7 +199,6 @@ class ActionUpdateRequest(ORMModel):
 class TopicCreateRequest(ORMModel):
     title: str
     abstract: str
-    threat_impact: int
     tags: list[str] = []
     misp_tags: list[str] = []
     actions: list[ActionCreateRequest] = []
@@ -215,20 +206,15 @@ class TopicCreateRequest(ORMModel):
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
 
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
-
 
 class TopicUpdateRequest(ORMModel):
     title: str | None = None
     abstract: str | None = None
-    threat_impact: int | None = None
     tags: list[str] | None = None
     misp_tags: list[str] | None = None
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
-
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
 
 class PTeamInfo(PTeamEntry):
