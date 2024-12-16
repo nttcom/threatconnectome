@@ -1,0 +1,23 @@
+FROM python:3.10-slim
+
+ARG FIREBASE_CRED
+
+LABEL description="Metemcyber Threatconnectome Demo"
+LABEL version="0.1.0"
+
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential libpq-dev
+RUN groupadd -r tcuser && useradd --no-log-init -r -g tcuser tcuser
+
+COPY ./api/Pipfile.lock ./api/Pipfile /
+COPY ./api/app/ /app/
+COPY ./demo/print_fake_firebase_cred.sh /
+
+RUN mkdir -p $(dirname ${FIREBASE_CRED})
+RUN /print_fake_firebase_cred.sh > ${FIREBASE_CRED}
+
+RUN python -m pip install --upgrade pip
+RUN python -m pip install pipenv
+RUN python -m pipenv sync --system
+
+USER tcuser
+CMD ["sh", "-c", "(cd app && alembic upgrade head) && uvicorn app.main:app --host 0.0.0.0 --port 80 --root-path /api"]
