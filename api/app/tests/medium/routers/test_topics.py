@@ -66,6 +66,7 @@ def test_create_topic():
     assert topic1.title == TOPIC1["title"]
     assert topic1.abstract == TOPIC1["abstract"]
     assert topic1.threat_impact == TOPIC1["threat_impact"]
+    assert topic1.cve_id == TOPIC1["cve_id"]
     assert topic1.created_by == user1.user_id
     assert isinstance(topic1.created_at, datetime)
     assert isinstance(topic1.updated_at, datetime)
@@ -246,6 +247,7 @@ def test_get_topic():
     assert responsed_topic.title == TOPIC1["title"]
     assert responsed_topic.abstract == TOPIC1["abstract"]
     assert responsed_topic.threat_impact == TOPIC1["threat_impact"]
+    assert responsed_topic.cve_id == TOPIC1["cve_id"]
     assert responsed_topic.created_by == user1.user_id
     assert responsed_topic.created_at == topic1.created_at
     assert responsed_topic.updated_at == topic1.updated_at
@@ -297,6 +299,7 @@ def test_update_topic():
         "exploitation": "public_poc",
         "automatable": "no",
         "cvss_v3_score": 5.5,
+        "cve_id": "CVE-1111-1111",
     }
     response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
 
@@ -308,6 +311,8 @@ def test_update_topic():
     assert responsed_topic.abstract != TOPIC1["abstract"]
     assert responsed_topic.threat_impact == request["threat_impact"]
     assert responsed_topic.threat_impact != TOPIC1["threat_impact"]
+    assert responsed_topic.cve_id == request["cve_id"]
+    assert responsed_topic.cve_id != TOPIC1["cve_id"]
     assert request["tags"][0] in [tag.tag_name for tag in responsed_topic.tags]
     assert TOPIC1["tags"][0] not in [tag.tag_name for tag in responsed_topic.tags]
     assert request["misp_tags"][0] in [misp_tag.tag_name for misp_tag in responsed_topic.misp_tags]
@@ -1557,3 +1562,33 @@ class TestSearchTopics:
                 **({} if sort_key is None else {"sort_key": sort_key}),
             }
             self.try_search_topics(USER1, self.topics, fixed_search_params, expected)
+
+    class TestSearchByCveId(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_threat_impact(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"cve_id": "CVE-0000-0000"})
+            self.topic2 = self.create_minimal_topic(USER1, {"cve_id": "CVE-1111-1111"})
+            self.topic3 = self.create_minimal_topic(USER1, {"cve_id": "CVE-2222-2222"})
+            self.topic4 = self.create_minimal_topic(USER1, {"cve_id": "CVE-3333-3333"})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+                4: self.topic4,
+            }
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                (None, {1, 2, 3, 4}),
+                (["CVE-0000-0000"], {1}),
+                (["CVE-1111-1111"], {2}),
+                (["CVE-2222-2222"], {3}),
+                (["CVE-3333-3333"], {4}),
+                (["CVE-0000-0000", "CVE-2222-2222"], {1, 3}),
+                (["CVE-5555-5555"], set()),
+            ],
+        )
+        def test_search_by_cve_id(self, search_words, expected):
+            search_params = {} if search_words is None else {"cve_ids": search_words}
+            self.try_search_topics(USER1, self.topics, search_params, expected)

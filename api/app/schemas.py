@@ -157,6 +157,7 @@ class Topic(TopicEntry):
     exploitation: ExploitationEnum | None
     automatable: AutomatableEnum | None
     cvss_v3_score: float | None
+    cve_id: str | None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -214,6 +215,7 @@ class TopicCreateRequest(ORMModel):
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
+    cve_id: str | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 
@@ -227,6 +229,7 @@ class TopicUpdateRequest(ORMModel):
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
+    cve_id: str | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
 

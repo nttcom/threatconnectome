@@ -107,6 +107,7 @@ def search_topics_internal(
     updated_after: datetime | None = None,
     updated_before: datetime | None = None,
     pteam_id: UUID | None = None,
+    cve_ids: list[str | None] | None = None,
 ) -> dict:
     # search conditions
     search_by_threat_impacts_stmt = (
@@ -205,6 +206,10 @@ def search_topics_internal(
         else models.Topic.updated_at >= updated_after
     )
 
+    search_by_cve_ids_stmt = (
+        true() if cve_ids is None else models.Topic.cve_id.in_(cve_ids)  # do not filter by cve_id
+    )
+
     search_conditions = [
         search_by_threat_impacts_stmt,
         search_by_tag_ids_stmt,
@@ -217,6 +222,7 @@ def search_topics_internal(
         search_by_created_after_stmt,
         search_by_updated_before_stmt,
         search_by_updated_after_stmt,
+        search_by_cve_ids_stmt,
     ]
     filter_topics_stmt = and_(
         true(),

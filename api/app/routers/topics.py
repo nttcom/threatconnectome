@@ -64,6 +64,7 @@ def search_topics(
     updated_after: datetime | None = Query(None),
     updated_before: datetime | None = Query(None),
     pteam_id: UUID | None = Query(None),
+    cve_ids: str | list[str] | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -81,6 +82,7 @@ def search_topics(
     - updated_before
     - topic_ids
     - creator_ids
+    - cve_id
 
     Defaults are "" for strings, None for datetimes, both means skip filtering.
     Different parameters are AND conditions.
@@ -158,6 +160,10 @@ def search_topics(
                     fixed_threat_impacts.add(int_val)
             except ValueError:
                 pass
+    fixed_cve_ids: set[str | None] = set()
+    if cve_ids is not None:
+        for cve_id in cve_ids:
+            fixed_cve_ids.add(cve_id)
 
     return command.search_topics_internal(
         db,
@@ -176,6 +182,7 @@ def search_topics(
         updated_after=updated_after,
         updated_before=updated_before,
         pteam_id=pteam_id,
+        cve_ids=None if cve_ids is None else list(fixed_cve_ids),
     )
 
 
@@ -271,6 +278,7 @@ def create_topic(
         title=data.title,
         abstract=data.abstract,
         threat_impact=data.threat_impact,
+        cve_id=data.cve_id,
         created_by=current_user.user_id,
         created_at=now,
         updated_at=now,
@@ -391,6 +399,8 @@ def update_topic(
         topic.abstract = data.abstract
     if data.threat_impact is not None:
         topic.threat_impact = data.threat_impact
+    if data.cve_id is not None:
+        topic.cve_id = data.cve_id
     if data.exploitation is not None:
         previous_exploitation = topic.exploitation
         topic.exploitation = data.exploitation

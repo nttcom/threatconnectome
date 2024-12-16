@@ -68,6 +68,7 @@ TOPIC1 = {
     "exploitation": "active",
     "automatable": "yes",
     "cvss_v3_score": 2.0,
+    "cve_id": "CVE-0000-0001",
 }
 TOPIC2 = {
     "topic_id": uuid4(),

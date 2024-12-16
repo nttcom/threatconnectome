@@ -1854,6 +1854,7 @@ def test_get_pteam_topics():
     assert data[0]["title"] == TOPIC1["title"]
     assert data[0]["abstract"] == TOPIC1["abstract"]
     assert data[0]["threat_impact"] == TOPIC1["threat_impact"]
+    assert data[0]["cve_id"] == TOPIC1["cve_id"]
     assert data[0]["created_by"] == str(user1.user_id)
     data0_created_at = datetime.fromisoformat(data[0]["created_at"])
     assert data0_created_at > now
