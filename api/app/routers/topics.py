@@ -163,7 +163,7 @@ def search_topics(
     fixed_cve_ids: set[str | None] = set()
     if cve_ids is not None:
         for cve_id in cve_ids:
-            fixed_cve_ids.add(cve_id)
+            fixed_cve_ids.add(schemas.validate_cve_id(cve_id))
 
     return command.search_topics_internal(
         db,

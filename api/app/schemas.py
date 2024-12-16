@@ -1,7 +1,9 @@
+import re
 from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
+from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.constants import DEFAULT_ALERT_SSVC_PRIORITY
@@ -140,6 +142,17 @@ def threat_impact_range(value):
     return value
 
 
+CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"
+
+
+def validate_cve_id(value):
+    if value is None:
+        return value
+    if not re.match(CVE_PATTERN, value):
+        raise HTTPException(status_code=422, detail=f"Invalid CVE ID format: {value}")
+    return value
+
+
 class TopicEntry(ORMModel):
     topic_id: UUID
     title: str
@@ -160,6 +173,7 @@ class Topic(TopicEntry):
     cve_id: str | None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class TopicResponse(Topic):
@@ -218,6 +232,7 @@ class TopicCreateRequest(ORMModel):
     cve_id: str | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class TopicUpdateRequest(ORMModel):
@@ -232,6 +247,7 @@ class TopicUpdateRequest(ORMModel):
     cve_id: str | None = None
 
     _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class PTeamInfo(PTeamEntry):

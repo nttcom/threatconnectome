@@ -231,6 +231,21 @@ def test_it_should_return_None_when_cvss_v3_score_is_None_in_request():
     assert response.json()["cvss_v3_score"] is None
 
 
+def test_create_topic_invalid_cve_format():
+    create_user(USER1)
+    _topic = TOPIC1.copy()
+    _topic["cve_id"] = "XXXXXXX"
+    request = {**_topic}
+    del request["topic_id"]
+
+    with pytest.raises(HTTPError, match=r"422: Unprocessable Entity: "):
+        response = client.post(
+            f"/topics/{_topic['topic_id']}", headers=headers(USER1), json=request
+        )
+        if response.status_code != 200:
+            raise HTTPError(response)
+
+
 def test_get_topic():
     user1 = create_user(USER1)
     create_pteam(USER1, PTEAM1)
@@ -372,6 +387,33 @@ def test_update_topic_not_creater():
         assert_204(
             client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER2), json=request)
         )
+
+
+def test_update_topic__invalid_cve_format():
+    create_user(USER1)
+    create_pteam(USER1, PTEAM1)
+    tag1 = create_tag(USER1, "omega")
+    create_topic(
+        USER1,
+        TOPIC1,
+        actions=[ACTION1],
+    )
+    request = {
+        "title": "topic one dash",
+        "abstract": "abstract one dash",
+        "threat_impact": 2,
+        "tags": [tag1.tag_name],
+        "misp_tags": ["tlp:white"],
+        "exploitation": "public_poc",
+        "automatable": "no",
+        "cvss_v3_score": 5.5,
+        "cve_id": "XXXXXXXXX",  # invalid format
+    }
+
+    with pytest.raises(HTTPError, match=r"422: Unprocessable Entity: "):
+        response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
+        if response.status_code != 200:
+            raise HTTPError(response)
 
 
 class TestUpdateTopic:
@@ -1587,6 +1629,7 @@ class TestSearchTopics:
                 (["CVE-3333-3333"], {4}),
                 (["CVE-0000-0000", "CVE-2222-2222"], {1, 3}),
                 (["CVE-5555-5555"], set()),
+                (["xxxxxxxxxxxxx"], "422: Unprocessable Entity: "),
             ],
         )
         def test_search_by_cve_id(self, search_words, expected):
