@@ -9,7 +9,6 @@ import {
   DialogTitle,
   FormLabel,
   IconButton,
-  InputAdornment,
   Stack,
   TextField,
   ToggleButton,
