@@ -49,8 +49,11 @@ docker compose -f docker-compose-demo.yml up -d --build || exit 100;
 
 cat <<EOD | tr -d "\t"
 
-	launched Threatconnectome Demo.
-	access to http://localhost with Web browser.
+	Live demo of Threatconnectome launched.
 
-	see README.md for Demo environment (accounts and contents).
+	access here via your web browser:
+    http://localhost
+
+	see README for the demo accounts and contents:
+    https://github.com/nttcom/threatconnectome/tree/main?tab=readme-ov-file#eyes-live-demo
 EOD
