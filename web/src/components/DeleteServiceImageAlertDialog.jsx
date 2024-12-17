@@ -40,6 +40,6 @@ export function DeleteServiceImageAlertDialog(props) {
 }
 
 DeleteServiceImageAlertDialog.propTypes = {
-  isDeleteDialogOpen: PropTypes.any,
-  setIsDeleteDialogOpen: PropTypes.any,
+  isDeleteDialogOpen: PropTypes.bool,
+  setIsDeleteDialogOpen: PropTypes.func,
 };
