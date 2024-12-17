@@ -57,7 +57,7 @@ export function PTeamServiceDetailsSettings() {
                 size="small"
                 value={serviceName}
                 onChange={(e) => setServiceName(e.target.value)}
-                helperText={serviceName ? "" : "Service name is a required field."}
+                helperText={serviceName ? "" : "This field is required."}
                 error={!serviceName}
               />
             </Box>
