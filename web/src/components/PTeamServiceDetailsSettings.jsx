@@ -123,12 +123,7 @@ export function PTeamServiceDetailsSettings() {
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               <FormLabel>Default Safety Impact</FormLabel>
-              <ToggleButtonGroup
-                color="primary"
-                value={defaultSafetyImpactValue}
-                exclusive
-                aria-label="Platform"
-              >
+              <ToggleButtonGroup color="primary" value={defaultSafetyImpactValue} exclusive>
                 {safetyImpactList.map((value) => (
                   <ToggleButton
                     key={value}
