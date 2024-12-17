@@ -9,6 +9,7 @@ import {
   DialogTitle,
   FormLabel,
   IconButton,
+  InputAdornment,
   Stack,
   TextField,
   ToggleButton,
@@ -84,13 +85,19 @@ export function PTeamServiceDetailsSettings() {
                   ))}
                 </Stack>
                 {keywordAddingMode ? (
-                  <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+                  <Box sx={{ mt: 1 }}>
                     <TextField
                       variant="outlined"
                       size="small"
                       value={keywordText}
                       onChange={(e) => setKeywordText(e.target.value)}
                       sx={{ mr: 1 }}
+                      error={currentKeywordsList.includes(keywordText)}
+                      helperText={
+                        currentKeywordsList.includes(keywordText)
+                          ? "Same keyword already exists."
+                          : ""
+                      }
                     />
                     <Button
                       variant="contained"
@@ -99,7 +106,7 @@ export function PTeamServiceDetailsSettings() {
                         setCurrentKeywordsList([...currentKeywordsList, keywordText]);
                         setKeywordText("");
                       }}
-                      disabled={!keywordText}
+                      disabled={!keywordText || currentKeywordsList.includes(keywordText)}
                     >
                       Add
                     </Button>
