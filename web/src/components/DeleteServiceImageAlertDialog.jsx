@@ -16,17 +16,10 @@ export function DeleteServiceImageAlertDialog(props) {
 
   return (
     <>
-      <Dialog
-        open={isDeleteDialogOpen}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">Warning</DialogTitle>
+      <Dialog open={isDeleteDialogOpen} onClose={handleClose}>
+        <DialogTitle>Warning</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete the image?
-          </DialogContentText>
+          <DialogContentText>Are you sure you want to delete the image?</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
