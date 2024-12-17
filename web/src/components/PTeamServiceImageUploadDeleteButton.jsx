@@ -44,14 +44,7 @@ export function PTeamServiceImageUploadDeleteButton() {
           <ArrowDropDownIcon />
         </Button>
       </ButtonGroup>
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
-        }}
-      >
+      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         <MenuItem
           onClick={() => {
             handleClose();
