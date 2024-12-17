@@ -41,7 +41,6 @@ export function PTeamServiceDetailsSettings() {
     const filteredKeywordsList = keywordsListCopy.filter((keyword) => keyword !== item);
     setCurrentKeywordsList(filteredKeywordsList);
   };
-  const isDisabled = true;
   return (
     <>
       <IconButton onClick={handleClickOpen} sx={{ position: "absolute", right: 0, top: 0 }}>
@@ -154,12 +153,7 @@ export function PTeamServiceDetailsSettings() {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={handleClose}
-            variant="contained"
-            sx={{ borderRadius: 5, mr: 2, mb: 1 }}
-            disabled={isDisabled}
-          >
+          <Button onClick={handleClose} variant="contained" sx={{ borderRadius: 5, mr: 2, mb: 1 }}>
             Save
           </Button>
         </DialogActions>
