@@ -79,8 +79,8 @@ export function PTeamServiceDetailsSettings() {
               <FormLabel>Keywords</FormLabel>
               <Box>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-                  {currentKeywordsList.map((item) => (
-                    <Chip key={item} label={item} onDelete={() => handleDelete(item)} />
+                  {currentKeywordsList.map((keyword) => (
+                    <Chip key={keyword} label={keyword} onDelete={() => handleDelete(keyword)} />
                   ))}
                 </Stack>
                 {keywordAddingMode ? (
