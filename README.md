@@ -14,14 +14,14 @@ Threatconnectome supports vulnerability management in industries where products 
 
 Just clone this project and move to `threatconnectome`.
 
-```sh
+```bash
 git clone https://github.com/nttcom/threatconnectome
 cd threatconnectome
 ```
 
 :partying_face: Try it out!
 
-```sh
+```bash
 # Note: You need docker installed and running to be able to run this script.
 ./demo_start.sh
 ```
