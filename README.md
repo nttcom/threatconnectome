@@ -26,6 +26,12 @@ cd threatconnectome
 ./demo_start.sh
 ```
 
+> To stop a running service:
+> 
+> ```bash
+> ./demo_stop.sh
+> ```
+
 ## :eyes: Live demo
 
 :warning: Do not input personal information.
