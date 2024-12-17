@@ -3,7 +3,6 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.constants import DEFAULT_ALERT_SSVC_PRIORITY
@@ -144,7 +143,7 @@ def validate_cve_id(value):
     if value is None:
         return value
     if not re.match(CVE_PATTERN, value):
-        raise HTTPException(status_code=422, detail=f"Invalid CVE ID format: {value}")
+        raise ValueError(f"Invalid CVE ID format: {value}")
     return value
 
 

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Sequence
 from uuid import UUID
@@ -163,7 +164,13 @@ def search_topics(
     fixed_cve_ids: set[str | None] = set()
     if cve_ids is not None:
         for cve_id in cve_ids:
-            fixed_cve_ids.add(schemas.validate_cve_id(cve_id))
+            try:
+                if re.match(schemas.CVE_PATTERN, cve_id):
+                    fixed_cve_ids.add(cve_id)
+                else:
+                    raise ValueError(f"Invalid CVE ID format: {cve_id}")
+            except ValueError as e:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"{e}")
 
     return command.search_topics_internal(
         db,
