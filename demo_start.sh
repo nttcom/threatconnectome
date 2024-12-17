@@ -52,8 +52,8 @@ cat <<EOD | tr -d "\t"
 	Live demo of Threatconnectome launched.
 
 	access here via your web browser:
-    http://localhost
+	http://localhost
 
 	see README for the demo accounts and contents:
-    https://github.com/nttcom/threatconnectome/tree/main?tab=readme-ov-file#eyes-live-demo
+	https://github.com/nttcom/threatconnectome/tree/main?tab=readme-ov-file#eyes-live-demo
 EOD
