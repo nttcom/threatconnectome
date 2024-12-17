@@ -188,6 +188,28 @@ python3 trivydb2tc.py -d ~/.cache/trivy/db/trivy.db --force-update "http://local
 
 ```
 
+# :bulb: Topic Update from Vulnrichment
+
+Purpose: To update topics from Vulnrichment to regist exploitation and automatable in topic.
+
+## :triangular_flag_on_post: Usage
+
+Run the following commands to clone vulnrichment
+
+```bash
+git clone https://github.com/cisagov/vulnrichment
+
+```
+
+Run the following commands to update topics from vulnrichment:
+
+```bash
+export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
+# For local development environment
+python3 vulnrichment2tc.py -v vulnrichment
+
+```
+
 # :bulb: Read and parse CycloneDX v1.5 files
 
 Purpose: To parse CycloneDX v1.5 files (Trivy, Syft) and output JSON for Threatconnectome registration.
