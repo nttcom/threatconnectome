@@ -8,7 +8,7 @@ import MenuItem from "@mui/material/MenuItem";
 import { styled } from "@mui/material/styles";
 import React, { useState } from "react";
 
-import AlertDialog from "./AlertDialog";
+import { DeleteServiceImageAlertDialog } from "./DeleteServiceImageAlertDialog";
 
 export function PTeamServiceImageUploadDeleteButton() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -62,7 +62,7 @@ export function PTeamServiceImageUploadDeleteButton() {
           Delete image
         </MenuItem>
       </Menu>
-      <AlertDialog
+      <DeleteServiceImageAlertDialog
         isDeleteDialogOpen={isDeleteDialogOpen}
         setIsDeleteDialogOpen={setIsDeleteDialogOpen}
       />

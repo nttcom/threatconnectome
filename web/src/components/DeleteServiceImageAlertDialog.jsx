@@ -7,7 +7,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
 import React from "react";
 
-export default function AlertDialog(props) {
+export function DeleteServiceImageAlertDialog(props) {
   const { isDeleteDialogOpen, setIsDeleteDialogOpen } = props;
 
   const handleClose = () => {
@@ -15,7 +15,7 @@ export default function AlertDialog(props) {
   };
 
   return (
-    <React.Fragment>
+    <>
       <Dialog
         open={isDeleteDialogOpen}
         onClose={handleClose}
@@ -35,11 +35,11 @@ export default function AlertDialog(props) {
           </Button>
         </DialogActions>
       </Dialog>
-    </React.Fragment>
+    </>
   );
 }
 
-AlertDialog.propTypes = {
+DeleteServiceImageAlertDialog.propTypes = {
   isDeleteDialogOpen: PropTypes.any,
   setIsDeleteDialogOpen: PropTypes.any,
 };
