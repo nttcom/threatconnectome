@@ -10,7 +10,23 @@ Threatconnectome supports vulnerability management in industries where products 
 - PSIRT-friendly UI and Web API
 - SPDX 2.3 and CycloneDX 1.6 support
 
-## 👀 Live demo
+## :rocket: Quick Start
+
+Just clone this project and move to `threatconnectome`.
+
+```sh
+git clone https://github.com/nttcom/threatconnectome
+cd threatconnectome
+```
+
+:partying_face: Try it out!
+
+```sh
+# Note: You need docker installed and running to be able to run this script.
+./demo_start.sh
+```
+
+## :eyes: Live demo
 
 :warning: Do not input personal information.
 
