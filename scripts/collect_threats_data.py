@@ -148,6 +148,7 @@ def get_pteam_and_service_data(
                 service_id=service["service_id"],
                 service_name=service["service_name"],
                 service_description=service["description"],
+                service_safety_impact=service["service_safety_impact"],
             )
             break
 
@@ -176,6 +177,7 @@ def add_tag_data_to_threat(
         tag = tc_client.get_tag(dependency["tag_id"])
         threat_with_tag_data = {
             "threat_id": threat["threat_id"],
+            "threat_safety_impact": threat["threat_safety_impact"],
             "topic_id": threat["topic_id"],
             "tag_id": dependency["tag_id"],
             "tag_version": dependency["version"],
