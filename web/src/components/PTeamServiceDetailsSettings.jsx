@@ -47,7 +47,7 @@ export function PTeamServiceDetailsSettings() {
       <IconButton onClick={handleClickOpen} sx={{ position: "absolute", right: 0, top: 0 }}>
         <SettingsIcon />
       </IconButton>
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md" sx={{ maxHeight: "none" }}>
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
         <DialogTitle>Service settings</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2}>
