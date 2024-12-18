@@ -111,12 +111,12 @@ def search_topics_internal(
     cve_ids: list[str | None] | None = None,
 ) -> dict:
     # search conditions
-    search_by_min_cvss_v3_scores_stmt = (
+    search_by_min_cvss_v3_score_stmt = (
         true()
         if min_cvss_v3_score is None  # do not filter by min_cvss_v3_score
         else models.Topic.cvss_v3_score >= min_cvss_v3_score
     )
-    search_by_max_cvss_v3_scores_stmt = (
+    search_by_max_cvss_v3_score_stmt = (
         true()
         if max_cvss_v3_score is None  # do not filter by max_cvss_v3_score
         else models.Topic.cvss_v3_score <= max_cvss_v3_score
@@ -217,8 +217,8 @@ def search_topics_internal(
     )
 
     search_conditions = [
-        search_by_min_cvss_v3_scores_stmt,
-        search_by_max_cvss_v3_scores_stmt,
+        search_by_min_cvss_v3_score_stmt,
+        search_by_max_cvss_v3_score_stmt,
         search_by_tag_ids_stmt,
         search_by_misp_tag_ids_stmt,
         search_by_topic_ids_stmt,
