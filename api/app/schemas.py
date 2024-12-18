@@ -1,8 +1,9 @@
+import re
 from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.constants import DEFAULT_ALERT_SSVC_PRIORITY
 from app.models import (
@@ -135,6 +136,17 @@ class MispTagResponse(ORMModel):
     tag_name: str
 
 
+CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"
+
+
+def validate_cve_id(value):
+    if value is None:
+        return value
+    if not re.match(CVE_PATTERN, value):
+        raise ValueError(f"Invalid CVE ID format: {value}")
+    return value
+
+
 class TopicEntry(ORMModel):
     topic_id: UUID
     title: str
@@ -151,6 +163,9 @@ class Topic(TopicEntry):
     exploitation: ExploitationEnum | None
     automatable: AutomatableEnum | None
     cvss_v3_score: float | None
+    cve_id: str | None
+
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class TopicResponse(Topic):
@@ -205,6 +220,9 @@ class TopicCreateRequest(ORMModel):
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
+    cve_id: str | None = None
+
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class TopicUpdateRequest(ORMModel):
@@ -215,6 +233,9 @@ class TopicUpdateRequest(ORMModel):
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
+    cve_id: str | None = None
+
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class PTeamInfo(PTeamEntry):

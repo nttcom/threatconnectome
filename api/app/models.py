@@ -579,6 +579,7 @@ class Topic(Base):
     topic_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     title: Mapped[Str255]
     abstract: Mapped[str]
+    cve_id: Mapped[str | None] = mapped_column(nullable=True)
     created_by: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
