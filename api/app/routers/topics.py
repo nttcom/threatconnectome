@@ -53,7 +53,8 @@ def search_topics(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),  # 10 is default in web/src/pages/TopicManagement.jsx
     sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.CVSS_V3_SCORE_DESC),
-    cvss_v3_scores: list[float] | None = Query(None),
+    min_cvss_v3_score: float | None = Query(None),
+    max_cvss_v3_score: float | None = Query(None),
     topic_ids: list[str] | None = Query(None),
     title_words: list[str] | None = Query(None),
     abstract_words: list[str] | None = Query(None),
@@ -72,7 +73,8 @@ def search_topics(
     """
     Search topics by following parameters with sort and pagination.
 
-    - cvss_v3_scores
+    - min_cvss_v3_score
+    - max_cvss_v3_score
     - title_words
     - abstract_words
     - tag_names
@@ -152,15 +154,6 @@ def search_topics(
                 continue
             fixed_abstract_words.add(abstract_word)
 
-    fixed_cvss_v3_scores: set[float] = set()
-    if cvss_v3_scores is not None:
-        for cvss_v3_score in cvss_v3_scores:
-            try:
-                float_val = float(cvss_v3_score)
-                if float_val <= 10.0 and float_val >= 0:
-                    fixed_cvss_v3_scores.add(float_val)
-            except ValueError:
-                pass
     fixed_cve_ids: set[str | None] = set()
     if cve_ids is not None:
         for cve_id in cve_ids:
@@ -177,7 +170,8 @@ def search_topics(
         offset=offset,
         limit=limit,
         sort_key=sort_key,
-        cvss_v3_scores=None if cvss_v3_scores is None else list(fixed_cvss_v3_scores),
+        min_cvss_v3_score=min_cvss_v3_score,
+        max_cvss_v3_score=max_cvss_v3_score,
         title_words=None if title_words is None else list(fixed_title_words),
         abstract_words=None if abstract_words is None else list(fixed_abstract_words),
         tag_ids=None if tag_names is None else list(fixed_tag_ids),
