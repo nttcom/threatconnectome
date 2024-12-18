@@ -164,13 +164,13 @@ def search_topics(
     fixed_cve_ids: set[str | None] = set()
     if cve_ids is not None:
         for cve_id in cve_ids:
-            try:
-                if re.match(schemas.CVE_PATTERN, cve_id):
-                    fixed_cve_ids.add(cve_id)
-                else:
-                    raise ValueError(f"Invalid CVE ID format: {cve_id}")
-            except ValueError as e:
-                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"{e}")
+            if re.match(schemas.CVE_PATTERN, cve_id):
+                fixed_cve_ids.add(cve_id)
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=f"Invalid CVE ID format: {cve_id}",
+                )
 
     return command.search_topics_internal(
         db,
