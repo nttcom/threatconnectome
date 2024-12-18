@@ -1050,22 +1050,27 @@ class TestSearchTopics:
             }
 
         @pytest.mark.parametrize(
-            "search_words, expected",
+            "min_cvss_v3_score, max_cvss_v3_score, expected",
             [
-                (None, {1, 2, 3, 4}),
-                ([-0.1], set()),  # wrong params are just ignored
-                ([10], {1}),
-                ([8], {2}),
-                ([3], {3}),
-                ([10.1], set()),  # wrong params are just ignored
-                (["xxx"], "422: Unprocessable Entity:"),  # not integer
-                ([10, 8], {1, 2}),
-                ([""], "422: Unprocessable Entity:"),  # reserved keyword does not make sense
-                ([10, 5], {1}),  # wrong params are just ignored
+                (None, None, {1, 2, 3, 4}),
+                (0, 10, {1, 2, 3}),
+                (-1, 11, {1, 2, 3}),
+                (10, 0, set()),  # wrong params are just ignored
+                (10, None, {1}),
+                (None, 3, {3}),
+                (8, 8, {2}),
+                (8, 10, {1, 2}),
+                (["xxx"], None, "422: Unprocessable Entity:"),  # not float
+                (None, ["xxx"], "422: Unprocessable Entity:"),  # not float
+                ("", None, "422: Unprocessable Entity:"),  # reserved keyword does not make sense
             ],
         )
-        def test_search_by_cvss_v3_score(self, search_words, expected):
-            search_params = {} if search_words is None else {"cvss_v3_scores": search_words}
+        def test_search_by_cvss_v3_score(self, min_cvss_v3_score, max_cvss_v3_score, expected):
+            search_params = {}
+            if min_cvss_v3_score is not None:
+                search_params["min_cvss_v3_score"] = min_cvss_v3_score
+            if max_cvss_v3_score is not None:
+                search_params["max_cvss_v3_score"] = max_cvss_v3_score
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
     class TestSearchByTitle(Common_):
