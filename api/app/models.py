@@ -200,9 +200,6 @@ class Account(Base):
     disabled: Mapped[bool] = mapped_column(default=False)
     years: Mapped[int | None]
 
-    pteams = relationship(
-        "PTeam", secondary=PTeamAccountRole.__tablename__, back_populates="members"
-    )
     pteam_invitations = relationship("PTeamInvitation", back_populates="inviter")
     action_logs = relationship("ActionLog", back_populates="executed_by")
     pteam_roles = relationship(
@@ -439,9 +436,7 @@ class PTeam(Base):
         back_populates="pteam",
         cascade="all, delete-orphan",
     )
-    members = relationship(
-        "Account", secondary=PTeamAccountRole.__tablename__, back_populates="pteams"
-    )
+    members = relationship("Account", secondary=PTeamAccountRole.__tablename__)
     pteam_role = relationship(
         "PTeamAccountRole", back_populates="pteam", uselist=False, cascade="all, delete"
     )
