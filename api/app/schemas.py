@@ -11,7 +11,6 @@ from app.models import (
     AutomatableEnum,
     ExploitationEnum,
     MissionImpactEnum,
-    PTeamAuthEnum,
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
     SystemExposureEnum,
@@ -56,13 +55,18 @@ class PTeamEntry(ORMModel):
     contact_info: str
 
 
+class PTeamRole(ORMModel):
+    is_admin: bool
+    pteam: PTeamEntry
+
+
 class UserResponse(ORMModel):
     user_id: UUID
     uid: str
     email: str
     disabled: bool
     years: int
-    pteams: list[PTeamEntry]
+    pteam_roles: list[PTeamRole]
 
 
 class UserCreateRequest(ORMModel):
@@ -278,19 +282,18 @@ class PTeamAuthInfo(ORMModel):
 
 
 class PTeamAuthRequest(ORMModel):
-    user_id: UUID
-    authorities: list[PTeamAuthEnum]
+    is_admin: bool
 
 
 class PTeamAuthResponse(ORMModel):
+    pteam_id: UUID
     user_id: UUID
-    authorities: list[PTeamAuthEnum]
+    is_admin: bool
 
 
 class PTeamInvitationRequest(ORMModel):
     expiration: datetime
     limit_count: int | None = None
-    authorities: list[PTeamAuthEnum] | None = None  # require ADMIN for not-None
 
 
 class PTeamInvitationResponse(ORMModel):
@@ -299,7 +302,6 @@ class PTeamInvitationResponse(ORMModel):
     expiration: datetime
     limit_count: int | None = None  # None for unlimited
     used_count: int
-    authorities: list[PTeamAuthEnum]
 
 
 class PTeamInviterResponse(ORMModel):
