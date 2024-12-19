@@ -36,24 +36,12 @@ sortkey2orderby: dict[schemas.TopicSortKey, list] = {
 }
 
 
-def workaround_delete_team_authes_by_user_id(db: Session, user_id: UUID | str) -> None:
-    # this is workaround until models fixed with delete on cascade
-    db.execute(delete(models.PTeamAuthority).where(models.PTeamAuthority.user_id == str(user_id)))
-    db.flush()
-
-
-def workaround_delete_pteam_authority(db: Session, auth: models.PTeamAuthority) -> None:
-    # this is workaround until models fixed with delete on cascade
-    db.delete(auth)
-    db.flush()
-
-
 def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
     return (
         db.execute(
-            select(models.PTeamAuthority).where(
-                models.PTeamAuthority.pteam_id == pteam.pteam_id,
-                models.PTeamAuthority.authority.op("&")(models.PTeamAuthIntFlag.ADMIN) != 0,
+            select(models.PTeamAccountRole).where(
+                models.PTeamAccountRole.pteam_id == pteam.pteam_id,
+                models.PTeamAccountRole.is_admin.is_(True),
             )
         ).first()
         is None
@@ -73,7 +61,7 @@ def search_threats(
         select_stmt.join(models.Dependency)
         .join(models.Service)
         .join(models.PTeam)
-        .join(models.PTeamAccount)
+        .join(models.PTeamAccountRole)
         .join(models.Account)
     )
 

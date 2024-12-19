@@ -21,7 +21,6 @@ from app.business.tag_business import (
 )
 from app.business.ticket_business import fix_tickets_for_service
 from app.business.topic_business import get_sorted_topics
-from app.constants import MEMBER_UUID, NOT_MEMBER_UUID
 from app.database import get_db, open_db_session
 from app.detector.vulnerability_detector import fix_threats_for_dependency
 from app.notification.alert import notify_sbom_upload_ended
@@ -49,6 +48,9 @@ NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No 
 NO_SUCH_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
 NO_SUCH_SERVICE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
 NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
+NO_SUCH_PTEAM_AND_USER = HTTPException(
+    status_code=status.HTTP_404_NOT_FOUND, detail="No such pairing of pteam and user"
+)
 
 
 @router.get("", response_model=list[schemas.PTeamEntry])
@@ -59,25 +61,6 @@ def get_pteams(
     Get all pteams list.
     """
     return persistence.get_all_pteams(db)
-
-
-@router.get("/auth_info", response_model=schemas.PTeamAuthInfo)
-def get_auth_info(current_user: models.Account = Depends(get_current_user)):
-    """
-    Get pteam authority information.
-    """
-    return schemas.PTeamAuthInfo(
-        authorities=[
-            schemas.PTeamAuthInfo.PTeamAuthEntry(
-                enum=key, name=str(value["name"]), desc=str(value["desc"])
-            )
-            for key, value in models.PTeamAuthEnum.info().items()
-        ],
-        pseudo_uuids=[
-            schemas.PTeamAuthInfo.PseudoUUID(name="member", uuid=MEMBER_UUID),
-            schemas.PTeamAuthInfo.PseudoUUID(name="others", uuid=NOT_MEMBER_UUID),
-        ],
-    )
 
 
 @router.post("/apply_invitation", response_model=schemas.PTeamInfo)
@@ -100,15 +83,6 @@ def apply_invitation(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Already joined to the pteam"
         )
     invitation.pteam.members.append(current_user)
-
-    if invitation.authority:  # invitation with authority
-        # Note: non-members never have pteam auth
-        pteam_auth = models.PTeamAuthority(
-            pteam_id=invitation.pteam_id,
-            user_id=current_user.user_id,
-            authority=invitation.authority,
-        )
-        persistence.create_pteam_authority(db, pteam_auth)
 
     pteam = invitation.pteam  # keep for the case invitation is expired
     invitation.used_count += 1
@@ -164,7 +138,7 @@ def force_calculate_ssvc_priority(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
+    if not check_pteam_auth(db, pteam, current_user):
         raise NOT_HAVE_AUTH
     for service in pteam.services:
         fix_tickets_for_service(db, service)
@@ -865,131 +839,16 @@ def create_pteam(
     )
     persistence.create_pteam(db, pteam)
 
-    # join to the created pteam
-    pteam.members.append(current_user)
+    # join to the created pteam and set default authority
+    user_auth = models.PTeamAccountRole(
+        pteam_id=pteam.pteam_id, user_id=current_user.user_id, authority=True
+    )
 
-    # set default authority
-    user_auth = models.PTeamAuthority(
-        pteam_id=pteam.pteam_id,
-        user_id=current_user.user_id,
-        authority=models.PTeamAuthIntFlag.PTEAM_MASTER,
-    )
-    member_auth = models.PTeamAuthority(
-        pteam_id=pteam.pteam_id,
-        user_id=str(MEMBER_UUID),
-        authority=models.PTeamAuthIntFlag.PTEAM_MEMBER,
-    )
-    not_member_auth = models.PTeamAuthority(
-        pteam_id=pteam.pteam_id,
-        user_id=str(NOT_MEMBER_UUID),
-        authority=models.PTeamAuthIntFlag.FREE_TEMPLATE,
-    )
-    persistence.create_pteam_authority(db, user_auth)
-    persistence.create_pteam_authority(db, member_auth)
-    persistence.create_pteam_authority(db, not_member_auth)
+    persistence.create_pteam_account_role(db, user_auth)
 
     db.commit()
 
     return pteam
-
-
-@router.put("/{pteam_id}/authority", response_model=list[schemas.PTeamAuthResponse])
-def update_pteam_auth(
-    pteam_id: UUID,
-    requests: list[schemas.PTeamAuthRequest],
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Update pteam authority.
-
-    Pseudo UUIDs:
-      - 00000000-0000-0000-0000-0000cafe0001 : pteam member
-      - 00000000-0000-0000-0000-0000cafe0002 : not pteam member
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
-        raise NOT_HAVE_AUTH
-
-    str_ids = [str(request.user_id) for request in requests]
-    if len(set(str_ids)) != len(str_ids):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ambiguous request")
-
-    response = []
-    for request in requests:
-        if (user_id := str(request.user_id)) in list(map(str, [MEMBER_UUID, NOT_MEMBER_UUID])):
-            if "admin" in request.authorities:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Cannot give ADMIN to pseudo account",
-                )
-        else:
-            if not (user := persistence.get_account_by_id(db, user_id)):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid user id",
-                )
-            if not check_pteam_membership(pteam, user):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Not a pteam member",
-                )
-        if not (auth := persistence.get_pteam_authority(db, pteam_id, user_id)):
-            auth = models.PTeamAuthority(
-                pteam_id=str(pteam_id),
-                user_id=user_id,
-                authority=0,  # fix later
-            )
-            persistence.create_pteam_authority(db, auth)
-        auth.authority = models.PTeamAuthIntFlag.from_enums(request.authorities)
-
-    db.flush()
-    if command.missing_pteam_admin(db, pteam):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"
-        )
-
-    db.commit()
-
-    for request in requests:
-        auth = persistence.get_pteam_authority(db, pteam_id, request.user_id)
-        response.append(
-            {
-                "user_id": request.user_id,
-                "authorities": models.PTeamAuthIntFlag(auth.authority).to_enums() if auth else [],
-            }
-        )
-    return response
-
-
-@router.get("/{pteam_id}/authority", response_model=list[schemas.PTeamAuthResponse])
-def get_pteam_auth(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get pteam authority.
-
-    Pseudo UUIDs:
-      - 00000000-0000-0000-0000-0000cafe0001 : pteam member
-      - 00000000-0000-0000-0000-0000cafe0002 : not pteam member
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-
-    if current_user in pteam.members:  # member can get all authorities
-        authorities = persistence.get_pteam_all_authorities(db, pteam_id)
-    else:  # not member can get only for NOT_MEMBER_UUID
-        auth_for_not_member = persistence.get_pteam_authority(db, pteam_id, NOT_MEMBER_UUID)
-        authorities = [auth_for_not_member] if auth_for_not_member else []
-
-    response = []
-    for auth in authorities:
-        enums = models.PTeamAuthIntFlag(auth.authority).to_enums()
-        response.append({"user_id": auth.user_id, "authorities": enums})
-    return response
 
 
 def _check_file_extention(file: UploadFile, extention: str):
@@ -1262,7 +1121,7 @@ def update_pteam(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN):
+    if not check_pteam_auth(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
     update_data = data.model_dump(exclude_unset=True)
@@ -1336,6 +1195,36 @@ def get_pteam_members(
     return pteam.members
 
 
+@router.put("/{pteam_id}/members/{user_id}", response_model=schemas.PTeamAuthResponse)
+def update_pteam_member(
+    pteam_id: UUID,
+    user_id: UUID,
+    data: schemas.PTeamAuthRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_auth(db, pteam, current_user):
+        raise NOT_HAVE_AUTH
+
+    if user := persistence.get_pteam_account_role(db, pteam_id, user_id):
+        user.is_admin = data.is_admin
+    else:
+        raise NO_SUCH_PTEAM_AND_USER
+
+    db.flush()
+
+    if command.missing_pteam_admin(db, pteam):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"
+        )
+
+    db.commit()
+
+    return {"pteam_id": pteam_id, "user_id": user_id, "is_admin": user.is_admin}
+
+
 @router.delete("/{pteam_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_member(
     pteam_id: UUID,
@@ -1348,18 +1237,12 @@ def delete_member(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if current_user.user_id != str(user_id) and not check_pteam_auth(
-        db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN
-    ):
+    if current_user.user_id != str(user_id) and not check_pteam_auth(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
     target_users = [x for x in pteam.members if x.user_id == str(user_id)]
     if len(target_users) == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam member")
-
-    # remove all extra authorities  # FIXME: should be deleted on cascade
-    if auth := persistence.get_pteam_authority(db, pteam_id, user_id):
-        command.workaround_delete_pteam_authority(db, auth)
 
     # remove from members
     pteam.members.remove(target_users[0])
@@ -1386,16 +1269,9 @@ def create_invitation(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
+    if not check_pteam_auth(db, pteam, current_user):
         raise NOT_HAVE_AUTH
-    # only ADMIN can set authorities to the invitation
-    if request.authorities is not None and not check_pteam_auth(
-        db, pteam, current_user, models.PTeamAuthIntFlag.ADMIN
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="ADMIN required to set authorities"
-        )
-    intflag = models.PTeamAuthIntFlag.from_enums(request.authorities or [])
+
     if request.limit_count is not None and request.limit_count <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1404,18 +1280,15 @@ def create_invitation(
 
     command.expire_pteam_invitations(db)
 
-    del request.authorities
     invitation = models.PTeamInvitation(
         **request.model_dump(),
         pteam_id=str(pteam_id),
         user_id=current_user.user_id,
-        authority=intflag,
     )
     persistence.create_pteam_invitation(db, invitation)
 
     ret = {
         **invitation.__dict__,  # cannot get after db.commit() without refresh
-        "authorities": models.PTeamAuthIntFlag(invitation.authority).to_enums(),
     }
 
     db.commit()
@@ -1434,18 +1307,14 @@ def list_invitations(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
+    if not check_pteam_auth(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
     command.expire_pteam_invitations(db)
     # do not commit within GET method
 
     return [
-        {
-            **invitation.__dict__,
-            "authorities": models.PTeamAuthIntFlag(invitation.authority).to_enums(),
-        }
-        for invitation in persistence.get_pteam_invitations(db, pteam_id)
+        {**invitation.__dict__} for invitation in persistence.get_pteam_invitations(db, pteam_id)
     ]
 
 
@@ -1458,7 +1327,7 @@ def delete_invitation(
 ):
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user, models.PTeamAuthIntFlag.INVITE):
+    if not check_pteam_auth(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
     command.expire_pteam_invitations(db)
