@@ -388,7 +388,6 @@ def test_update_topic__invalid_cve_format():
     request = {
         "title": "topic one dash",
         "abstract": "abstract one dash",
-        "threat_impact": 2,
         "tags": [tag1.tag_name],
         "misp_tags": ["tlp:white"],
         "exploitation": "public_poc",
