@@ -1,7 +1,6 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import cast
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
@@ -53,71 +52,6 @@ class ActionType(str, enum.Enum):
     acceptance = "acceptance"
     detection = "detection"
     rejection = "rejection"
-
-
-class PTeamAuthEnum(str, enum.Enum):
-    ADMIN = "admin"
-    INVITE = "invite"
-    TOPIC_STATUS = "topic_status"
-
-    @classmethod
-    def info(cls) -> dict[str, dict[str, int | str]]:
-        return {
-            "admin": {
-                "int": 0,
-                "name": "Administrator",
-                "desc": "To administrate the pteam.",
-            },
-            # 1 is unused
-            "invite": {
-                "int": 2,
-                "name": "Inviter",
-                "desc": "To create invitation to the pteam.",
-            },
-            # 3 is unused
-            "topic_status": {
-                "int": 4,
-                "name": "Topic status operator",
-                "desc": "To operate pteam topic status.",
-            },
-        }
-
-    def to_int(self) -> int:
-        return cast(int, PTeamAuthEnum.info()[self.value]["int"])
-
-
-class PTeamAuthIntFlag(enum.IntFlag):
-    """
-    Integer which can be combined using the bitwise operators. (INTERNAL USE ONLY!)
-
-    See PTeamAuthEnum.info() for details.
-    """
-
-    ADMIN = 1 << PTeamAuthEnum.ADMIN.to_int()
-    INVITE = 1 << PTeamAuthEnum.INVITE.to_int()
-    TOPIC_STATUS = 1 << PTeamAuthEnum.TOPIC_STATUS.to_int()
-
-    # authority sets for members
-    PTEAM_MEMBER = TOPIC_STATUS
-    PTEAM_LEADER = PTEAM_MEMBER | INVITE
-    PTEAM_MASTER = 0x0FFFFFFF
-
-    # template authority set for non-members
-    FREE_TEMPLATE = 0
-
-    @classmethod
-    def from_enums(cls, datas: list[PTeamAuthEnum]):
-        result = 0
-        for data in datas:
-            result |= 1 << data.to_int()
-        return PTeamAuthIntFlag(result)
-
-    def to_enums(self) -> list[PTeamAuthEnum]:
-        result = []
-        for data in list(PTeamAuthEnum):
-            if self & 1 << data.to_int():
-                result.append(data)
-        return result
 
 
 class TopicStatusType(str, enum.Enum):
@@ -212,13 +146,19 @@ class Base(DeclarativeBase):
 # secondary tables #
 
 
-class PTeamAccount(Base):
-    __tablename__ = "pteamaccount"
+class PTeamAccountRole(Base):
+    __tablename__ = "pteamaccountrole"
 
     pteam_id = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
     )
     user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
+    is_admin: Mapped[bool] = mapped_column(default=False)
+
+    pteam = relationship("PTeam", back_populates="pteam_role", uselist=False, cascade="all, delete")
+    account = relationship(
+        "Account", back_populates="pteam_roles", uselist=False, cascade="all, delete"
+    )
 
 
 class TopicTag(Base):
@@ -260,9 +200,11 @@ class Account(Base):
     disabled: Mapped[bool] = mapped_column(default=False)
     years: Mapped[int | None]
 
-    pteams = relationship("PTeam", secondary=PTeamAccount.__tablename__, back_populates="members")
     pteam_invitations = relationship("PTeamInvitation", back_populates="inviter")
     action_logs = relationship("ActionLog", back_populates="executed_by")
+    pteam_roles = relationship(
+        "PTeamAccountRole", back_populates="account", cascade="all, delete-orphan"
+    )
 
 
 class Dependency(Base):
@@ -494,7 +436,10 @@ class PTeam(Base):
         back_populates="pteam",
         cascade="all, delete-orphan",
     )
-    members = relationship("Account", secondary=PTeamAccount.__tablename__, back_populates="pteams")
+    members = relationship("Account", secondary=PTeamAccountRole.__tablename__)
+    pteam_role = relationship(
+        "PTeamAccountRole", back_populates="pteam", uselist=False, cascade="all, delete"
+    )
     invitations = relationship("PTeamInvitation", back_populates="pteam")
     alert_slack: Mapped["PTeamSlack"] = relationship(
         back_populates="pteam", cascade="all, delete-orphan"
@@ -502,19 +447,6 @@ class PTeam(Base):
     alert_mail: Mapped["PTeamMail"] = relationship(
         back_populates="pteam", cascade="all, delete-orphan"
     )
-
-
-# TODO: This info should be stored in PTeamAccount table to cascade delete
-class PTeamAuthority(Base):
-    __tablename__ = "pteamauthority"
-
-    pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    user_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("account.user_id"), primary_key=True, index=True
-    )
-    authority: Mapped[int]  # PTeamAuthIntFlag as an integer
 
 
 class PTeamMail(Base):
@@ -687,7 +619,6 @@ class PTeamInvitation(Base):
     expiration: Mapped[datetime]
     limit_count: Mapped[int | None]  # None for unlimited
     used_count: Mapped[int] = mapped_column(server_default="0")
-    authority: Mapped[int]  # PTeamAuthIntFlag
 
     pteam = relationship("PTeam", back_populates="invitations")
     inviter = relationship("Account", back_populates="pteam_invitations")
