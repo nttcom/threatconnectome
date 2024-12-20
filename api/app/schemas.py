@@ -281,11 +281,11 @@ class PTeamAuthInfo(ORMModel):
     pseudo_uuids: list[PseudoUUID]
 
 
-class PTeamAuthRequest(ORMModel):
+class PTeamMemberRequest(ORMModel):
     is_admin: bool
 
 
-class PTeamAuthResponse(ORMModel):
+class PTeamMemberResponse(ORMModel):
     pteam_id: UUID
     user_id: UUID
     is_admin: bool

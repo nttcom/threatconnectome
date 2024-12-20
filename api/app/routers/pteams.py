@@ -26,7 +26,7 @@ from app.detector.vulnerability_detector import fix_threats_for_dependency
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
 from app.routers.validators.account_validator import (
-    check_pteam_auth,
+    check_pteam_admin_authority,
     check_pteam_membership,
 )
 from app.sbom.sbom_analyzer import sbom_json_to_artifact_json_lines
@@ -48,9 +48,6 @@ NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No 
 NO_SUCH_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
 NO_SUCH_SERVICE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
 NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
-NO_SUCH_PTEAM_AND_USER = HTTPException(
-    status_code=status.HTTP_404_NOT_FOUND, detail="No such pairing of pteam and user"
-)
 
 
 @router.get("", response_model=list[schemas.PTeamEntry])
@@ -138,7 +135,7 @@ def force_calculate_ssvc_priority(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user):
+    if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
     for service in pteam.services:
         fix_tickets_for_service(db, service)
@@ -841,7 +838,7 @@ def create_pteam(
 
     # join to the created pteam and set default authority
     user_auth = models.PTeamAccountRole(
-        pteam_id=pteam.pteam_id, user_id=current_user.user_id, authority=True
+        pteam_id=pteam.pteam_id, user_id=current_user.user_id, is_admin=True
     )
 
     persistence.create_pteam_account_role(db, user_auth)
@@ -1121,7 +1118,7 @@ def update_pteam(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user):
+    if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
     update_data = data.model_dump(exclude_unset=True)
@@ -1195,27 +1192,27 @@ def get_pteam_members(
     return pteam.members
 
 
-@router.put("/{pteam_id}/members/{user_id}", response_model=schemas.PTeamAuthResponse)
+@router.put("/{pteam_id}/members/{user_id}", response_model=schemas.PTeamMemberResponse)
 def update_pteam_member(
     pteam_id: UUID,
     user_id: UUID,
-    data: schemas.PTeamAuthRequest,
+    data: schemas.PTeamMemberRequest,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user):
+    if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
     if user := persistence.get_pteam_account_role(db, pteam_id, user_id):
         user.is_admin = data.is_admin
     else:
-        raise NO_SUCH_PTEAM_AND_USER
+        raise NOT_A_PTEAM_MEMBER
 
     db.flush()
 
-    if command.missing_pteam_admin(db, pteam):
+    if data.is_admin is False and command.missing_pteam_admin(db, pteam):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"
         )
@@ -1237,7 +1234,9 @@ def delete_member(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if current_user.user_id != str(user_id) and not check_pteam_auth(db, pteam, current_user):
+    if current_user.user_id != str(user_id) and not check_pteam_admin_authority(
+        db, pteam, current_user
+    ):
         raise NOT_HAVE_AUTH
 
     target_users = [x for x in pteam.members if x.user_id == str(user_id)]
@@ -1269,7 +1268,7 @@ def create_invitation(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user):
+    if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
     if request.limit_count is not None and request.limit_count <= 0:
@@ -1307,7 +1306,7 @@ def list_invitations(
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user):
+    if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
     command.expire_pteam_invitations(db)
@@ -1327,7 +1326,7 @@ def delete_invitation(
 ):
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not check_pteam_auth(db, pteam, current_user):
+    if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
     command.expire_pteam_invitations(db)

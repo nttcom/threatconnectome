@@ -11,7 +11,7 @@ def check_pteam_membership(pteam: models.PTeam | None, user: models.Account | No
     return False
 
 
-def check_pteam_auth(
+def check_pteam_admin_authority(
     db: Session,
     pteam: models.PTeam,
     user: models.Account,
