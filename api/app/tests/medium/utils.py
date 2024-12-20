@@ -78,12 +78,10 @@ def create_pteam(user: dict, pteam: dict) -> schemas.PTeamInfo:
 def invite_to_pteam(
     user: dict,
     pteam_id: UUID | str,
-    auth: list[models.PTeamAuthEnum] | None = None,
 ) -> schemas.PTeamInvitationResponse:
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
         "limit_count": 1,
-        "authorities": auth,
     }
 
     response = client.post(f"/pteams/{pteam_id}/invitation", headers=headers(user), json=request)

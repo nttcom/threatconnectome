@@ -14,8 +14,6 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.constants import (
     DEFAULT_ALERT_SSVC_PRIORITY,
-    MEMBER_UUID,
-    NOT_MEMBER_UUID,
     ZERO_FILLED_UUID,
 )
 from app.main import app
@@ -180,7 +178,9 @@ def test_create_pteam():
     response = client.get("/users/me", headers=headers(USER1))
     assert response.status_code == 200
     user_me = response.json()
-    assert {UUID(pteam["pteam_id"]) for pteam in user_me["pteams"]} == {pteam1.pteam_id}
+    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in user_me["pteam_roles"]} == {
+        pteam1.pteam_id
+    }
 
     pteam2 = create_pteam(USER1, PTEAM2)
     assert pteam2.pteam_name == PTEAM2["pteam_name"]
@@ -192,7 +192,7 @@ def test_create_pteam():
     response = client.get("/users/me", headers=headers(USER1))
     assert response.status_code == 200
     user_me = response.json()
-    assert {UUID(pteam["pteam_id"]) for pteam in user_me["pteams"]} == {
+    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in user_me["pteam_roles"]} == {
         pteam1.pteam_id,
         pteam2.pteam_id,
     }
@@ -239,26 +239,6 @@ def test_update_pteam():
     response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request)
     assert response.status_code == 200
     data = response.json()
-    assert data["pteam_name"] == PTEAM2["pteam_name"]
-    assert data["contact_info"] == PTEAM2["contact_info"]
-    assert data["alert_slack"]["enable"] == PTEAM2["alert_slack"]["enable"]
-    assert data["alert_slack"]["webhook_url"] == PTEAM2["alert_slack"]["webhook_url"]
-    assert data["alert_ssvc_priority"] == PTEAM2["alert_ssvc_priority"]
-    assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
-    assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
-
-
-def test_update_pteam__by_admin():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, ["admin"])
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    request = schemas.PTeamUpdateRequest(**PTEAM2).model_dump()
-    data = assert_200(
-        client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2), json=request)
-    )
     assert data["pteam_name"] == PTEAM2["pteam_name"]
     assert data["contact_info"] == PTEAM2["contact_info"]
     assert data["alert_slack"]["enable"] == PTEAM2["alert_slack"]["enable"]
@@ -495,576 +475,13 @@ def test_get_pteam_tags__by_not_member():
     assert response.reason_phrase == "Forbidden"
 
 
-def test_update_pteam_auth(testdb):
-    # access to testdb directly to check auth modified by side effects.
-
-    user1 = create_user(USER1)
-    user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    # initial values
-    row_user1 = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(user1.user_id),
-        )
-        .one()
-    )
-    assert row_user1.authority == models.PTeamAuthIntFlag.PTEAM_MASTER  # pteam master
-    row_member = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(MEMBER_UUID),
-        )
-        .one_or_none()
-    )
-    if row_member:
-        assert row_member.authority == models.PTeamAuthIntFlag.PTEAM_MEMBER  # pteam member
-    row_not_member = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(NOT_MEMBER_UUID),
-        )
-        .one_or_none()
-    )
-    if row_not_member:
-        assert row_not_member.authority == models.PTeamAuthIntFlag.FREE_TEMPLATE  # not member
-
-    # on invitation
-    request_auth = list(map(models.PTeamAuthEnum, ["topic_status", "invite"]))
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, request_auth)  # invite with auth
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-    row_user2 = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(user2.user_id),
-        )
-        .one()
-    )
-    assert row_user2.authority == models.PTeamAuthIntFlag.from_enums(request_auth)
-
-    # update auth
-    request_auth = list(map(models.PTeamAuthEnum, ["invite", "admin"]))
-    request = [
-        {
-            "user_id": str(user2.user_id),
-            "authorities": request_auth,
-        }
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == len(request)
-    assert data[0]["user_id"] == str(user2.user_id)
-    assert set(data[0]["authorities"]) == set(request_auth)
-    row_user2 = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(user2.user_id),
-        )
-        .one()
-    )
-    assert row_user2.authority == models.PTeamAuthIntFlag.from_enums(request_auth)
-
-
-def test_update_pteam_auth__without_auth(testdb):
-    user1 = create_user(USER1)
-    user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    row_user1 = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(user1.user_id),
-        )
-        .one()
-    )
-    assert row_user1.authority & models.PTeamAuthIntFlag.ADMIN
-
-    request = [
-        {
-            "user_id": str(user2.user_id),
-            "authorities": None,
-        }
-    ]
-    response = client.put(f"/pteams/{pteam1.pteam_id}/authority", json=request)  # no headers
-    assert response.status_code == 401
-    assert response.reason_phrase == "Unauthorized"
-
-
-def test_update_pteam_auth__without_authority():
-    user1 = create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    # invite another as ADMIN (removing last ADMIN is not allowed)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, ["admin"])
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    # remove ADMIN from user1
-    request_auth = list(map(models.PTeamAuthEnum, ["invite"]))
-    request = [
-        {
-            "user_id": str(user1.user_id),
-            "authorities": request_auth,
-        }
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == len(request)
-    assert data[0]["user_id"] == str(user1.user_id)
-    assert set(data[0]["authorities"]) == set(request_auth)
-
-    # update without authority
-    request_auth = list(map(models.PTeamAuthEnum, ["admin"]))
-    request = [
-        {
-            "user_id": str(user1.user_id),
-            "authorities": request_auth,
-        }
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
-
-
-def test_update_pteam_auth__pseudo_uuid(testdb):
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    # initial values
-    row_user1 = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(user1.user_id),
-        )
-        .one()
-    )
-    assert row_user1.authority == models.PTeamAuthIntFlag.PTEAM_MASTER  # pteam master
-    row_member = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(MEMBER_UUID),
-        )
-        .one_or_none()
-    )
-    if row_member:
-        assert row_member.authority == models.PTeamAuthIntFlag.PTEAM_MEMBER  # pteam member
-    row_not_member = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(NOT_MEMBER_UUID),
-        )
-        .one_or_none()
-    )
-    if row_not_member:
-        assert row_not_member.authority == models.PTeamAuthIntFlag.FREE_TEMPLATE  # not member
-
-    # update MEMBER & NOT_MEMBER
-    member_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
-    not_member_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
-    request = [
-        {"user_id": str(MEMBER_UUID), "authorities": member_auth},
-        {"user_id": str(NOT_MEMBER_UUID), "authorities": not_member_auth},
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 2
-    resp_map = {x["user_id"]: x for x in response.json()}
-    resp_member = resp_map[str(MEMBER_UUID)]
-    assert set(resp_member["authorities"]) == set(member_auth)
-    resp_not_member = resp_map[str(NOT_MEMBER_UUID)]
-    assert set(resp_not_member["authorities"]) == set(not_member_auth)
-    row_member = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(MEMBER_UUID),
-        )
-        .one()
-    )
-    assert row_member.authority == models.PTeamAuthIntFlag.from_enums(member_auth)
-    row_not_member = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(NOT_MEMBER_UUID),
-        )
-        .one()
-    )
-    assert row_not_member.authority == models.PTeamAuthIntFlag.from_enums(not_member_auth)
-
-
-def test_update_pteam_auth__not_member(testdb):
-    create_user(USER1)
-    user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    # before joining
-    row_user2 = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(user2.user_id),
-        )
-        .one_or_none()
-    )
-    assert row_user2 is None
-
-    # give auth to not member
-    request_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
-    request = [
-        {
-            "user_id": str(user2.user_id),
-            "authorities": request_auth,
-        }
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 400
-    assert response.reason_phrase == "Bad Request"
-
-    # invite to pteam
-    request_auth2 = list(map(models.PTeamAuthEnum, ["topic_status", "invite"]))
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, request_auth2)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-    row_user2 = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(user2.user_id),
-        )
-        .one()
-    )
-    assert row_user2.authority == models.PTeamAuthIntFlag.from_enums(request_auth2)
-
-
-def test_update_pteam_auth__pseudo(testdb):
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    row_member = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(MEMBER_UUID),
-        )
-        .one_or_none()
-    )
-    if row_member:
-        assert row_member.authority == models.PTeamAuthIntFlag.PTEAM_MEMBER
-    row_not_member = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(NOT_MEMBER_UUID),
-        )
-        .one_or_none()
-    )
-    if row_not_member:
-        assert row_not_member.authority == models.PTeamAuthIntFlag.FREE_TEMPLATE
-
-    member_auth = list(map(models.PTeamAuthEnum, ["invite", "topic_status"]))
-    not_member_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
-    request = [
-        {"user_id": str(MEMBER_UUID), "authorities": member_auth},
-        {"user_id": str(NOT_MEMBER_UUID), "authorities": not_member_auth},
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 200
-    auth_map = {x["user_id"]: x["authorities"] for x in response.json()}
-    assert set(auth_map[str(MEMBER_UUID)]) == set(member_auth)
-    assert set(auth_map[str(NOT_MEMBER_UUID)]) == set(not_member_auth)
-
-    row_member = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(MEMBER_UUID),
-        )
-        .one_or_none()
-    )
-    assert row_member.authority == models.PTeamAuthIntFlag.from_enums(member_auth)
-    row_not_member = (
-        testdb.query(models.PTeamAuthority)
-        .filter(
-            models.PTeamAuthority.pteam_id == str(pteam1.pteam_id),
-            models.PTeamAuthority.user_id == str(NOT_MEMBER_UUID),
-        )
-        .one_or_none()
-    )
-    assert row_not_member.authority == models.PTeamAuthIntFlag.from_enums(not_member_auth)
-
-
-def test_update_pteam_auth__pseudo_admin():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority",
-        headers=headers(USER1),
-        json=[{"user_id": str(MEMBER_UUID), "authorities": ["admin"]}],
-    )
-    assert response.status_code == 400
-    assert response.reason_phrase == "Bad Request"
-
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority",
-        headers=headers(USER1),
-        json=[{"user_id": str(NOT_MEMBER_UUID), "authorities": ["admin"]}],
-    )
-    assert response.status_code == 400
-    assert response.reason_phrase == "Bad Request"
-
-
-def test_update_pteam_auth__remove_admin__last():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    # remove last admin
-    request = [
-        {"user_id": str(user1.user_id), "authorities": []},
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 400
-    assert response.reason_phrase == "Bad Request"
-    assert response.json()["detail"] == "Removing last ADMIN is not allowed"
-
-
-def test_update_pteam_auth__remove_admin__another():
-    user1 = create_user(USER1)
-    user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    # invite another admin
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, ["admin"])
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    # try removing (no more last) admin
-    request = [
-        {"user_id": str(user1.user_id), "authorities": []},
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 1
-    assert data[0]["authorities"] == []
-
-    # come back admin
-    request = [
-        {"user_id": str(user1.user_id), "authorities": ["admin"]},
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER2), json=request
-    )
-    assert response.status_code == 200
-
-    # remove all admins
-    request = [
-        {"user_id": str(user1.user_id), "authorities": []},
-        {"user_id": str(user2.user_id), "authorities": []},
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 400
-    assert response.reason_phrase == "Bad Request"
-    assert response.json()["detail"] == "Removing last ADMIN is not allowed"
-
-
-def test_update_pteam_auth__swap_admin():
-    user1 = create_user(USER1)
-    user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    request = [
-        {"user_id": str(user1.user_id), "authorities": []},  # retire ADMIN
-        {"user_id": str(user2.user_id), "authorities": ["admin"]},  # be ADMIN
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == len(request)
-    auth_map = {x["user_id"]: x for x in data}
-    old_admin = auth_map.get(str(user1.user_id))
-    assert old_admin["authorities"] == []
-    new_admin = auth_map.get(str(user2.user_id))
-    assert new_admin["authorities"] == ["admin"]
-
-
-def test_get_pteam_auth():
-    user1 = create_user(USER1)  # master
-    user2 = create_user(USER2)  # member
-    create_user(USER3)  # not member
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invite_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, invite_auth)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    # set pteam auth
-    member_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
-    not_member_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
-    request = [
-        {"user_id": str(MEMBER_UUID), "authorities": member_auth},
-        {"user_id": str(NOT_MEMBER_UUID), "authorities": not_member_auth},
-    ]
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1), json=request
-    )
-    assert response.status_code == 200
-
-    # get by master -> all member's auth & members auth
-    response = client.get(f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1))
-    assert response.status_code == 200
-    auth_map = {x["user_id"]: x["authorities"] for x in response.json()}
-    assert set(auth_map.keys()) == set(
-        map(str, [user1.user_id, user2.user_id, MEMBER_UUID, NOT_MEMBER_UUID])
-    )
-    assert set(auth_map[str(user1.user_id)]) == set(
-        models.PTeamAuthIntFlag(models.PTeamAuthIntFlag.PTEAM_MASTER).to_enums()
-    )
-    assert set(auth_map.get(str(user2.user_id))) == set(invite_auth)
-    assert set(auth_map.get(str(MEMBER_UUID))) == set(member_auth)
-    assert set(auth_map.get(str(NOT_MEMBER_UUID))) == set(not_member_auth)
-
-    # get by member -> all member's auth & members auth
-    response = client.get(f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER2))
-    assert response.status_code == 200
-    auth_map = {x["user_id"]: x["authorities"] for x in response.json()}
-    assert set(auth_map.keys()) == set(
-        map(str, [user1.user_id, user2.user_id, MEMBER_UUID, NOT_MEMBER_UUID])
-    )
-    assert set(auth_map[str(user1.user_id)]) == set(
-        models.PTeamAuthIntFlag(models.PTeamAuthIntFlag.PTEAM_MASTER).to_enums()
-    )
-    assert set(auth_map.get(str(user2.user_id))) == set(invite_auth)
-    assert set(auth_map.get(str(MEMBER_UUID))) == set(member_auth)
-    assert set(auth_map.get(str(NOT_MEMBER_UUID))) == set(not_member_auth)
-
-    # get by not member -> not-member auth only
-    response = client.get(f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER3))
-    assert response.status_code == 200
-    auth_map = {x["user_id"]: x["authorities"] for x in response.json()}
-    assert set(auth_map.keys()) == set(map(str, [NOT_MEMBER_UUID]))
-    assert set(auth_map.get(str(NOT_MEMBER_UUID))) == set(not_member_auth)
-
-
-def test_get_pteam_auth__without_auth():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/authority")  # no headers
-    assert response.status_code == 401
-    assert response.reason_phrase == "Unauthorized"
-
-
-def test_pteam_auth_effects__indivudual():
-    create_user(USER1)
-    user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)  # no INVITE
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    with pytest.raises(HTTPError, match="403: Forbidden"):
-        invite_to_pteam(USER2, pteam1.pteam_id)
-
-    # give INVITE
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority",
-        headers=headers(USER1),
-        json=[{"user_id": str(user2.user_id), "authorities": ["invite"]}],
-    )
-    assert response.status_code == 200
-
-    # try again
-    invitation = invite_to_pteam(USER2, pteam1.pteam_id)
-    assert invitation.invitation_id != ZERO_FILLED_UUID
-
-
-def test_pteam_auth_effects__pseudo_member():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)  # no INVITE
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    with pytest.raises(HTTPError, match="403: Forbidden"):
-        invite_to_pteam(USER2, pteam1.pteam_id)
-
-    # give INVITE to MEMBER
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority",
-        headers=headers(USER1),
-        json=[{"user_id": str(MEMBER_UUID), "authorities": ["invite"]}],
-    )
-    assert response.status_code == 200
-
-    # try again
-    invitation = invite_to_pteam(USER2, pteam1.pteam_id)
-    assert invitation.invitation_id != ZERO_FILLED_UUID
-
-
-def test_pteam_auth_effects__pseudo_not_member():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)  # no INVITE
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    with pytest.raises(HTTPError, match="403: Forbidden"):
-        invite_to_pteam(USER2, pteam1.pteam_id)
-
-    # give INVITE to NOT_MEMBER. it is also applied to members.
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority",
-        headers=headers(USER1),
-        json=[{"user_id": str(NOT_MEMBER_UUID), "authorities": ["invite"]}],
-    )
-    assert response.status_code == 200
-
-    # try again
-    invitation = invite_to_pteam(USER2, pteam1.pteam_id)
-    assert invitation.invitation_id != ZERO_FILLED_UUID
-
-
 def test_create_invitation():
     create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)  # master have INVITE & ADMIN
+    pteam1 = create_pteam(USER1, PTEAM1)  # master have ADMIN
 
-    request_auth = list(map(models.PTeamAuthEnum, ["invite"]))
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
         "limit_count": 1,
-        "authorities": request_auth,
     }
     response = client.post(
         f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER1), json=request
@@ -1075,21 +492,19 @@ def test_create_invitation():
         request["expiration"]
     )
     assert data["limit_count"] == request["limit_count"]
-    assert set(data["authorities"]) == set(request["authorities"])
 
 
 def test_create_invitation__without_authorities():
     create_user(USER1)
     user2 = create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, ["topic_status"])  # no INVITE
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)  # no admin
     accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    # try without INVITE
+    # try without admin
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
         "limit_count": 1,
-        "authorities": None,  # no authorities
     }
     response = client.post(
         f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER2), json=request
@@ -1097,15 +512,15 @@ def test_create_invitation__without_authorities():
     assert response.status_code == 403
     assert response.reason_phrase == "Forbidden"
 
-    # give INVITE
+    # give admin
     response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority",
+        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
         headers=headers(USER1),
-        json=[{"user_id": str(user2.user_id), "authorities": ["invite"]}],
+        json={"is_admin": True},
     )
     assert response.status_code == 200
 
-    # try again with INVITE
+    # try again with admin
     response = client.post(
         f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER2), json=request
     )
@@ -1115,40 +530,6 @@ def test_create_invitation__without_authorities():
         request["expiration"]
     )
     assert data["limit_count"] == request["limit_count"]
-    assert data["authorities"] == []
-
-    # try giving authorities only with INVITE (no ADMIN)
-    request_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
-    request = {
-        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
-        "limit_count": 1,
-        "authorities": request_auth,
-    }
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER2), json=request
-    )
-    assert response.status_code == 400
-    assert response.reason_phrase == "Bad Request"
-
-    # give INVITE & ADMIN
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority",
-        headers=headers(USER1),
-        json=[{"user_id": str(user2.user_id), "authorities": ["invite", "admin"]}],
-    )
-    assert response.status_code == 200
-
-    # try again with INVITE & ADMIN
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER2), json=request
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert datetime.fromisoformat(data["expiration"]) == datetime.fromisoformat(
-        request["expiration"]
-    )
-    assert data["limit_count"] == request["limit_count"]
-    assert set(data["authorities"]) == set(request["authorities"])
 
 
 def test_create_invitation__by_not_member():
@@ -1158,11 +539,9 @@ def test_create_invitation__by_not_member():
     create_pteam(USER2, PTEAM2)
 
     # user2 is ADMIN of another pteam.
-    request_auth = list(map(models.PTeamAuthEnum, ["invite"]))
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
         "limit_count": 1,
-        "authorities": request_auth,
     }
     response = client.post(
         f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER2), json=request
@@ -1176,11 +555,9 @@ def test_create_invitation__wrong_params():
     pteam1 = create_pteam(USER1, PTEAM1)
 
     # wrong limit
-    request_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
     request = {
         "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
         "limit_count": 0,  # out of limit
-        "authorities": request_auth,
     }
     response = client.post(
         f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER1), json=request
@@ -1189,11 +566,9 @@ def test_create_invitation__wrong_params():
     assert response.reason_phrase == "Bad Request"
 
     # past date
-    request_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
     request = {
         "expiration": str(datetime(2000, 1, 1, 0, 0, 0, 0)),  # past date
         "limit_count": 1,
-        "authorities": request_auth,
     }
     response = client.post(
         f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER1), json=request
@@ -1219,16 +594,20 @@ def test_invited_pteam():
 def test_list_invitations():
     create_user(USER1)  # master, have INVITE & ADMIN
     create_user(USER2)  # member, not have INVITE
-    create_user(USER3)  # member, have INVITE
+    user3 = create_user(USER3)  # member, have INVITE
     pteam1 = create_pteam(USER1, PTEAM1)
     invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER2, invitation.invitation_id)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, ["invite"])
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER3, invitation.invitation_id)
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}",
+        headers=headers(USER1),
+        json={"is_admin": True},
+    )
 
     # create invitation
-    request_auth = list(map(models.PTeamAuthEnum, ["topic_status"]))
-    invitation1 = invite_to_pteam(USER1, pteam1.pteam_id, request_auth)
+    invitation1 = invite_to_pteam(USER1, pteam1.pteam_id)
 
     # get by master
     response = client.get(f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER1))
@@ -1240,14 +619,13 @@ def test_list_invitations():
     assert data.expiration == invitation1.expiration
     assert data.limit_count == invitation1.limit_count
     assert data.used_count == invitation1.used_count == 0
-    assert set(data.authorities) == set(request_auth)
 
-    # get without INVITE
+    # get without admin
     response = client.get(f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER2))
     assert response.status_code == 403
     assert response.reason_phrase == "Forbidden"
 
-    # get with INVITE, without ADMIN
+    # get with admin
     response = client.get(f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER3))
     assert response.status_code == 200
     assert len(response.json()) == 1  # invitation0 should be expired
@@ -1257,7 +635,6 @@ def test_list_invitations():
     assert data.expiration == invitation1.expiration
     assert data.limit_count == invitation1.limit_count
     assert data.used_count == invitation1.used_count == 0
-    assert set(data.authorities) == set(request_auth)
 
 
 def test_delete_invitation():
@@ -1304,8 +681,8 @@ def test_delete_invitation__by_another():
     assert response.status_code == 403
     assert response.reason_phrase == "Forbidden"
 
-    # delete by pteam member without INVITE
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)  # no INVITE
+    # delete by pteam member without admin
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER3, invitation.invitation_id)
     response = client.delete(
         f"/pteams/{pteam1.pteam_id}/invitation/{target_invitation.invitation_id}",
@@ -1313,11 +690,11 @@ def test_delete_invitation__by_another():
     )
     assert response.status_code == 403
 
-    # delete by pteam member with INVITE
+    # delete by pteam member with admin
     response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority",
+        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}",
         headers=headers(USER1),
-        json=[{"user_id": str(user3.user_id), "authorities": ["invite"]}],
+        json={"is_admin": True},
     )
     assert response.status_code == 200
     response = client.delete(
@@ -1378,11 +755,8 @@ def test_apply_invitation():
     assert set(x["user_id"] for x in members) == set(str(x.user_id) for x in [user1])
     response = client.get("/users/me", headers=headers(USER2))
     assert response.status_code == 200
-    pteams = response.json()["pteams"]
-    assert len(pteams) == 0
-    response = client.get(f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1))
-    auth_map = {x["user_id"]: x for x in response.json()}
-    assert auth_map.get(str(user2.user_id)) is None
+    pteam_roles = response.json()["pteam_roles"]
+    assert len(pteam_roles) == 0
 
     invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER2, invitation.invitation_id)
@@ -1394,29 +768,23 @@ def test_apply_invitation():
     assert set(x["user_id"] for x in members) == set(str(x.user_id) for x in [user1, user2])
     response = client.get("/users/me", headers=headers(USER2))
     assert response.status_code == 200
-    pteams = response.json()["pteams"]
-    assert {UUID(pteam["pteam_id"]) for pteam in pteams} == {x.pteam_id for x in [pteam1]}
-    response = client.get(f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1))
-    auth_map = {x["user_id"]: x for x in response.json()}
-    assert auth_map.get(str(user2.user_id)) is None  # no individual auth
+    pteam_roles = response.json()["pteam_roles"]
+    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in pteam_roles} == {
+        x.pteam_id for x in [pteam1]
+    }
 
 
 def test_apply_invitation__individual_auth():
     create_user(USER1)
     user2 = create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
-    request_auth = list(map(models.PTeamAuthEnum, ["topic_status", "invite"]))
 
-    response = client.get(f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1))
-    auth_map = {x["user_id"]: x for x in response.json()}
-    assert auth_map.get(str(user2.user_id)) is None
-
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, request_auth)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    response = client.get(f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER1))
-    auth_map = {x["user_id"]: x for x in response.json()}
-    assert set(auth_map.get(str(user2.user_id), {}).get("authorities", [])) == set(request_auth)
+    response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER1))
+    members_map = {UUID(x["user_id"]): x for x in response.json()}
+    assert {p["is_admin"] for p in members_map.get(user2.user_id).get("pteam_roles", [])} == {False}
 
 
 def test_delete_member__last_admin():
@@ -1427,7 +795,7 @@ def test_delete_member__last_admin():
     assert response.status_code == 200
     data = response.json()
     assert data["user_id"] == str(user1.user_id)
-    assert {UUID(pteam["pteam_id"]) for pteam in data["pteams"]} == {pteam1.pteam_id}
+    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {pteam1.pteam_id}
 
     # try leaving the pteam
     response = client.delete(
@@ -1446,7 +814,7 @@ def test_delete_member__last_admin_another():
     assert response.status_code == 200
     data = response.json()
     assert data["user_id"] == str(user1.user_id)
-    assert {UUID(pteam["pteam_id"]) for pteam in data["pteams"]} == {pteam1.pteam_id}
+    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {pteam1.pteam_id}
 
     # invite another member (not ADMIN)
     create_user(USER2)
@@ -1649,7 +1017,7 @@ def test_delete_member__not_last_admin():
     assert response.status_code == 200
     data = response.json()
     assert data["user_id"] == str(user1.user_id)
-    assert {UUID(pteam["pteam_id"]) for pteam in data["pteams"]} == {pteam1.pteam_id}
+    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {pteam1.pteam_id}
 
     # invite another member (not ADMIN)
     user2 = create_user(USER2)
@@ -1658,9 +1026,9 @@ def test_delete_member__not_last_admin():
 
     # make the other member ADMIN
     response = client.put(
-        f"/pteams/{pteam1.pteam_id}/authority",
+        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
         headers=headers(USER1),
-        json=[{"user_id": str(user2.user_id), "authorities": ["admin"]}],
+        json={"is_admin": True},
     )
     assert response.status_code == 200
 
@@ -1674,13 +1042,13 @@ def test_delete_member__not_last_admin():
     assert response.status_code == 200
     data = response.json()
     assert data["user_id"] == str(user1.user_id)
-    assert data["pteams"] == []
+    assert data["pteam_roles"] == []
 
-    # lost extra authorities on leaving.
-    response = client.get(f"/pteams/{pteam1.pteam_id}/authority", headers=headers(USER2))
+    # user1 does not belong to pteam1
+    response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER2))
     assert response.status_code == 200
-    auth_map = {x["user_id"]: x for x in response.json()}
-    assert auth_map.get(str(user1.user_id)) is None
+    members_map = {UUID(x["user_id"]): x for x in response.json()}
+    assert members_map.get(user1.user_id) is None
 
 
 def test_delete_member__by_admin():
@@ -1690,8 +1058,13 @@ def test_delete_member__by_admin():
     pteam1 = create_pteam(USER1, PTEAM1)
     invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER2, invitation.invitation_id)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, ["admin", "invite"])
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER3, invitation.invitation_id)
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}",
+        headers=headers(USER1),
+        json={"is_admin": True},
+    )
 
     # kickout the other ADMIN
     response = client.delete(
@@ -1719,8 +1092,13 @@ def test_delete_member__by_admin_myself():
     user2 = create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
     # invite another ADMIN
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id, ["admin"])
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER2, invitation.invitation_id)
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
+        headers=headers(USER1),
+        json={"is_admin": True},
+    )
 
     # kickout myself
     response = client.delete(
@@ -1771,7 +1149,10 @@ def test_get_pteam_members():
     keys = ["user_id", "uid", "email", "disabled", "years"]
     for key in keys:
         assert str(members[0].get(key)) == str(getattr(user1, key))
-    assert {UUID(pteam["pteam_id"]) for pteam in members[0]["pteams"]} == {pteam1.pteam_id}
+    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in members[0]["pteam_roles"]} == {
+        pteam1.pteam_id
+    }
+    assert {pteam["is_admin"] for pteam in members[0]["pteam_roles"]} == {True}
 
     user2 = create_user(USER2)
     invitation = invite_to_pteam(USER1, pteam1.pteam_id)
@@ -1787,10 +1168,22 @@ def test_get_pteam_members():
         assert str(members_map.get(user1.user_id).get(key)) == str(getattr(user1, key))
         assert str(members_map.get(user2.user_id).get(key)) == str(getattr(user2, key))
     assert (
-        {UUID(p["pteam_id"]) for p in members_map.get(user1.user_id).get("pteams", [])}
-        == {UUID(p["pteam_id"]) for p in members_map.get(user2.user_id).get("pteams", [])}
+        {
+            UUID(p["pteam"]["pteam_id"])
+            for p in members_map.get(user1.user_id).get("pteam_roles", [])
+        }
+        == {
+            UUID(p["pteam"]["pteam_id"])
+            for p in members_map.get(user2.user_id).get("pteam_roles", [])
+        }
         == {pteam1.pteam_id}
     )
+    assert {
+        pteam["is_admin"] for pteam in members_map.get(user1.user_id).get("pteam_roles", [])
+    } == {True}
+    assert {
+        pteam["is_admin"] for pteam in members_map.get(user2.user_id).get("pteam_roles", [])
+    } == {False}
 
 
 def test_get_pteam_members__by_member():
@@ -1810,10 +1203,22 @@ def test_get_pteam_members__by_member():
         assert str(members_map.get(user1.user_id).get(key)) == str(getattr(user1, key))
         assert str(members_map.get(user2.user_id).get(key)) == str(getattr(user2, key))
     assert (
-        {UUID(p["pteam_id"]) for p in members_map.get(user1.user_id).get("pteams", [])}
-        == {UUID(p["pteam_id"]) for p in members_map.get(user2.user_id).get("pteams", [])}
+        {
+            UUID(p["pteam"]["pteam_id"])
+            for p in members_map.get(user1.user_id).get("pteam_roles", [])
+        }
+        == {
+            UUID(p["pteam"]["pteam_id"])
+            for p in members_map.get(user2.user_id).get("pteam_roles", [])
+        }
         == {pteam1.pteam_id}
     )
+    assert {
+        pteam["is_admin"] for pteam in members_map.get(user1.user_id).get("pteam_roles", [])
+    } == {True}
+    assert {
+        pteam["is_admin"] for pteam in members_map.get(user2.user_id).get("pteam_roles", [])
+    } == {False}
 
 
 def test_get_pteam_members__by_not_member():
@@ -1824,6 +1229,75 @@ def test_get_pteam_members__by_not_member():
     response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER2))
     assert response.status_code == 403
     assert response.reason_phrase == "Forbidden"
+
+
+def test_update_pteam_members():
+    create_user(USER1)
+    user2 = create_user(USER2)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER2, invitation.invitation_id)
+
+    request = {"is_admin": True}
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER1), json=request
+    )
+    assert response.status_code == 200
+    assert response.json()["pteam_id"] == str(pteam1.pteam_id)
+    assert response.json()["user_id"] == str(user2.user_id)
+    assert response.json()["is_admin"] == request["is_admin"]
+
+
+def test_update_pteam_members__by_not_admin():
+    create_user(USER1)
+    create_user(USER2)
+    user3 = create_user(USER3)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER2, invitation.invitation_id)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER3, invitation.invitation_id)
+
+    request = {"is_admin": True}
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}", headers=headers(USER2), json=request
+    )
+    assert response.status_code == 403
+    assert response.reason_phrase == "Forbidden"
+    assert response.json()["detail"] == "You do not have authority"
+
+
+def test_update_pteam_members__by_not_member():
+    user1 = create_user(USER1)
+    create_user(USER2)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER2, invitation.invitation_id)
+
+    request = {"is_admin": False}
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER2), json=request
+    )
+
+    assert response.status_code == 403
+    assert response.reason_phrase == "Forbidden"
+    assert response.json()["detail"] == "You do not have authority"
+
+
+def test_update_pteam_members__by_last_admin():
+    user1 = create_user(USER1)
+    create_user(USER2)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER2, invitation.invitation_id)
+
+    request = {"is_admin": False}
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1), json=request
+    )
+    assert response.status_code == 400
+    assert response.reason_phrase == "Bad Request"
+    assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
 
 def test_get_pteam_topics():
