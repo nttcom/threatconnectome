@@ -568,6 +568,7 @@ def main() -> None:
             ]
 
             CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"
+            cve_id = vuln_id if re.match(CVE_PATTERN, vuln_id) else None
             topics[topic_id] = {
                 "title": title,
                 "abstract": abstract,
@@ -575,7 +576,7 @@ def main() -> None:
                 "misp_tags": misp_tags,
                 "actions": actions,
                 "cvss_v3_score": cvss_v3_score,
-                "cve_id": vuln_id if re.match(CVE_PATTERN, vuln_id) else None,
+                "cve_id": cve_id,
             }
 
     tc_client = ThreatconnectomeClient(
