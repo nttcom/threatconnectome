@@ -168,6 +168,25 @@ def get_threats_data(tc_client: ThreatconnectomeClient, service_id: str) -> list
     return threats
 
 
+def encode_purl_type(type: str) -> str:
+    return type.replace("@", "%40")
+
+
+def generate_purl(tag_name: str, tag_version: str) -> str:
+
+    # tag_name syntax
+    # {pkg_name}:{pkg_info}:{pkg_mgr}
+    splited_tag_name = tag_name.split(":")
+    if len(splited_tag_name) < 2:
+        print(f"ERROR: The tag_name has invalid syntax. tag_name: {tag_name}")
+        return ""
+    pkg_name = splited_tag_name[0]
+    pkg_info = splited_tag_name[1]
+    type = encode_purl_type(pkg_info)
+
+    return f"pkg:{type}/{pkg_name}@{tag_version}"
+
+
 def add_tag_data_to_threat(
     tc_client: ThreatconnectomeClient, pteam_id: str, service_id: str, threats: list
 ) -> list:
@@ -175,7 +194,10 @@ def add_tag_data_to_threat(
     for threat in threats:
         dependency = tc_client.get_dependency(pteam_id, service_id, threat["dependency_id"])
         tag = tc_client.get_tag(dependency["tag_id"])
+        purl = generate_purl(tag["tag_name"], dependency["version"])
+
         threat_with_tag_data = {
+            "purl": purl,
             "threat_id": threat["threat_id"],
             "threat_safety_impact": threat["threat_safety_impact"],
             "topic_id": threat["topic_id"],
