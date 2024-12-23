@@ -6,7 +6,7 @@ import React from "react";
 import { TcError } from "../../components/TcError";
 
 export function PTeamStatusCardFallback({ error }) {
-  //console.log(error);
+  console.log(error);
   return (
     <TableRow
       sx={{
