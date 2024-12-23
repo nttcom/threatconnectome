@@ -17,6 +17,7 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
+import { TcError } from "../../components/TcError";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
@@ -85,17 +86,19 @@ export function TopicCard(props) {
 
   if (skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId) return <></>;
   if (pteamTopicActionsError)
-    return <>{`Cannot get topicActions: ${errorToString(pteamTopicActionsError)}`}</>;
+    throw new TcError(errorToString(pteamTopicActionsError), { api: "getPTeamTopicActions" });
   if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
   if (ticketsRelatedToServiceTopicTagError)
-    return <>{`Cannot get tcikets: ${errorToString(ticketsRelatedToServiceTopicTagError)}`}</>;
+    throw new TcError(errorToString(ticketsRelatedToServiceTopicTagError), {
+      api: "getTicketsRelatedToServiceTopicTag",
+    });
   if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
-  if (topicError) return <>{`Cannot get Topic: ${errorToString(topicError)}`}</>;
+  if (topicError) throw new TcError(errorToString(topicError), { api: "getTopic" });
   if (topicIsLoading) return <>Now loading Topic...</>;
-  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsError) throw new TcError(errorToString(allTagsError), { api: "getAllTags" });
   if (allTagsIsLoading) return <>Now loading allTags...</>;
   if (serviceDependenciesError)
-    return <>{`Cannot get serviceDependencies: ${errorToString(serviceDependenciesError)}`}</>;
+    throw new TcError(errorToString(serviceDependenciesError), { api: "getServiceDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
   if (!pteamId || !serviceId || !members || !tagId) {
     return <>Now Loading...</>;
