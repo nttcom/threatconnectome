@@ -26,6 +26,7 @@ import {
   useGetTopicQuery,
   useGetDependenciesQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { dateTimeFormat, errorToString } from "../../utils/func";
 import { parseVulnerableVersions, versionMatch } from "../../utils/versions";
 
@@ -85,17 +86,19 @@ export function TopicCard(props) {
 
   if (skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId) return <></>;
   if (pteamTopicActionsError)
-    return <>{`Cannot get topicActions: ${errorToString(pteamTopicActionsError)}`}</>;
+    throw new APIError(errorToString(pteamTopicActionsError), { api: "getPTeamTopicActions" });
   if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
   if (ticketsRelatedToServiceTopicTagError)
-    return <>{`Cannot get tcikets: ${errorToString(ticketsRelatedToServiceTopicTagError)}`}</>;
+    throw new APIError(errorToString(ticketsRelatedToServiceTopicTagError), {
+      api: "getTicketsRelatedToServiceTopicTag",
+    });
   if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
-  if (topicError) return <>{`Cannot get Topic: ${errorToString(topicError)}`}</>;
+  if (topicError) throw new APIError(errorToString(topicError), { api: "getTopic" });
   if (topicIsLoading) return <>Now loading Topic...</>;
-  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getAllTags" });
   if (allTagsIsLoading) return <>Now loading allTags...</>;
   if (serviceDependenciesError)
-    return <>{`Cannot get serviceDependencies: ${errorToString(serviceDependenciesError)}`}</>;
+    throw new APIError(errorToString(serviceDependenciesError), { api: "getServiceDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
   if (!pteamId || !serviceId || !members || !tagId) {
     return <>Now Loading...</>;

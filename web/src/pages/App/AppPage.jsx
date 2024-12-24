@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
 import React, { useEffect } from "react";
 import { useCookies } from "react-cookie";
+import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
@@ -14,6 +15,7 @@ import { errorToString } from "../../utils/func";
 import { authCookieName } from "../Login/LoginPage";
 
 import { AppBar } from "./AppBar";
+import { AppFallback } from "./AppFallback";
 import { Drawer } from "./Drawer";
 import { Main } from "./Main";
 
@@ -96,7 +98,9 @@ export function App() {
       <Main open={system.drawerOpen}>
         <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" m={1}>
           <Box display="flex" flexDirection="column" flexGrow={1} maxWidth={mainMaxWidth}>
-            <Outlet />
+            <ErrorBoundary FallbackComponent={AppFallback}>
+              <Outlet />
+            </ErrorBoundary>
           </Box>
         </Box>
       </Main>
