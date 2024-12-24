@@ -44,7 +44,8 @@ export function TeamSelector() {
   useEffect(() => {
     if (!userMe) return;
     setCurrentTeamName(
-      userMe.pteams?.find((x) => x.pteam_id === locationReader.getPTeamId())?.pteam_name,
+      userMe.pteam_roles?.find((x) => x.pteam.pteam_id === locationReader.getPTeamId())?.pteam
+        .pteam_name,
     );
   }, [userMe, locationReader]);
 
@@ -54,7 +55,9 @@ export function TeamSelector() {
 
   const switchToPTeam = (teamId) => {
     handleClose();
-    setCurrentTeamName(userMe.pteams?.find((x) => x.pteam_id === teamId)?.pteam_name);
+    setCurrentTeamName(
+      userMe.pteam_roles?.find((x) => x.pteam.pteam_id === teamId)?.pteam.pteam_name,
+    );
     const newParams = new URLSearchParams();
     newParams.set("pteamId", teamId);
     navigate("/?" + newParams.toString());
@@ -91,16 +94,16 @@ export function TeamSelector() {
           onClose={handleClose}
         >
           <ListSubheader sx={{ color: drawerParams.hoverColor }}>Product Team</ListSubheader>
-          {userMe?.pteams &&
-            [...userMe.pteams]
-              .sort((a, b) => a.pteam_name.localeCompare(b.pteam_name)) // alphabetically
-              .map((pteam) => (
+          {userMe?.pteam_roles &&
+            [...userMe.pteam_roles]
+              .sort((a, b) => a.pteam.pteam_name.localeCompare(b.pteam.pteam_name)) // alphabetically
+              .map((pteam_role) => (
                 <MenuItem
-                  key={pteam.pteam_id}
-                  value={pteam.pteam_id}
-                  onClick={() => switchToPTeam(pteam.pteam_id)}
+                  key={pteam_role.pteam.pteam_id}
+                  value={pteam_role.pteam.pteam_id}
+                  onClick={() => switchToPTeam(pteam_role.pteam.pteam_id)}
                 >
-                  {textTrim(pteam.pteam_name)}
+                  {textTrim(pteam_role.pteam.pteam_name)}
                 </MenuItem>
               ))}
           <MenuItem onClick={() => setOpenPTeamCreationModal(true)}>
