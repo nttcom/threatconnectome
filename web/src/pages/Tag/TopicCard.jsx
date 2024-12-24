@@ -17,7 +17,6 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { TcError } from "../../components/TcError";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
@@ -27,6 +26,7 @@ import {
   useGetTopicQuery,
   useGetDependenciesQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { dateTimeFormat, errorToString } from "../../utils/func";
 import { parseVulnerableVersions, versionMatch } from "../../utils/versions";
 
@@ -86,19 +86,19 @@ export function TopicCard(props) {
 
   if (skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId) return <></>;
   if (pteamTopicActionsError)
-    throw new TcError(errorToString(pteamTopicActionsError), { api: "getPTeamTopicActions" });
+    throw new APIError(errorToString(pteamTopicActionsError), { api: "getPTeamTopicActions" });
   if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
   if (ticketsRelatedToServiceTopicTagError)
-    throw new TcError(errorToString(ticketsRelatedToServiceTopicTagError), {
+    throw new APIError(errorToString(ticketsRelatedToServiceTopicTagError), {
       api: "getTicketsRelatedToServiceTopicTag",
     });
   if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
-  if (topicError) throw new TcError(errorToString(topicError), { api: "getTopic" });
+  if (topicError) throw new APIError(errorToString(topicError), { api: "getTopic" });
   if (topicIsLoading) return <>Now loading Topic...</>;
-  if (allTagsError) throw new TcError(errorToString(allTagsError), { api: "getAllTags" });
+  if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getAllTags" });
   if (allTagsIsLoading) return <>Now loading allTags...</>;
   if (serviceDependenciesError)
-    throw new TcError(errorToString(serviceDependenciesError), { api: "getServiceDependencies" });
+    throw new APIError(errorToString(serviceDependenciesError), { api: "getServiceDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
   if (!pteamId || !serviceId || !members || !tagId) {
     return <>Now Loading...</>;

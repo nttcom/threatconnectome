@@ -3,7 +3,7 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { TcError } from "../../components/TcError";
+import { APIError } from "../../utils/APIError";
 
 export function PTeamStatusCardFallback({ error }) {
   console.log(error);
@@ -18,7 +18,7 @@ export function PTeamStatusCardFallback({ error }) {
       <TableCell colSpan={1000}>
         <Box>
           <Typography>Error occurred at PTeamStatusCard: {error.message}</Typography>
-          {error instanceof TcError && (
+          {error instanceof APIError && (
             <Typography>called API: {error.api || "unknown"}</Typography>
           )}
         </Box>
