@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import sys
+import urllib.parse
 from functools import partial
 from time import sleep
 from typing import Callable
@@ -168,10 +169,6 @@ def get_threats_data(tc_client: ThreatconnectomeClient, service_id: str) -> list
     return threats
 
 
-def encode_purl_type(type: str) -> str:
-    return type.replace("@", "%40")
-
-
 def generate_purl(tag_name: str, tag_version: str) -> str:
 
     # tag_name syntax
@@ -182,9 +179,12 @@ def generate_purl(tag_name: str, tag_version: str) -> str:
         return ""
     pkg_name = splited_tag_name[0]
     pkg_info = splited_tag_name[1]
-    type = encode_purl_type(pkg_info)
+    # The type must NOT be percent-encoded
+    type = pkg_info
+    name = urllib.parse.quote(pkg_name)
+    version = urllib.parse.quote(tag_version)
 
-    return f"pkg:{type}/{pkg_name}@{tag_version}"
+    return f"pkg:{type}/{name}@{version}"
 
 
 def add_tag_data_to_threat(
