@@ -1231,7 +1231,7 @@ def test_get_pteam_members__by_not_member():
     assert response.reason_phrase == "Forbidden"
 
 
-def test_update_pteam_members():
+def test_it_should_return_200_when_admin_updates_pteam_members():
     create_user(USER1)
     user2 = create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -1248,7 +1248,30 @@ def test_update_pteam_members():
     assert response.json()["is_admin"] == request["is_admin"]
 
 
-def test_update_pteam_members__by_not_admin():
+def test_it_should_return_200_when_admin_updates_itself():
+    create_user(USER1)
+    user2 = create_user(USER2)
+    pteam1 = create_pteam(USER1, PTEAM1)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER2, invitation.invitation_id)
+
+    request1 = {"is_admin": True}
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER1), json=request1
+    )
+    assert response.status_code == 200
+
+    request2 = {"is_admin": False}
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER2), json=request2
+    )
+    assert response.status_code == 200
+    assert response.json()["pteam_id"] == str(pteam1.pteam_id)
+    assert response.json()["user_id"] == str(user2.user_id)
+    assert response.json()["is_admin"] == request2["is_admin"]
+
+
+def test_it_should_return_403_when_no_admin_update_pteam_members():
     create_user(USER1)
     create_user(USER2)
     user3 = create_user(USER3)
@@ -1267,14 +1290,43 @@ def test_update_pteam_members__by_not_admin():
     assert response.json()["detail"] == "You do not have authority"
 
 
-def test_update_pteam_members__by_not_member():
-    user1 = create_user(USER1)
-    create_user(USER2)
+def test_it_should_return_403_when_no_admin_update_itself():
+    create_user(USER1)
+    user2 = create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
     invitation = invite_to_pteam(USER1, pteam1.pteam_id)
     accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    request = {"is_admin": False}
+    request = {"is_admin": True}
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER2), json=request
+    )
+    assert response.status_code == 403
+    assert response.reason_phrase == "Forbidden"
+    assert response.json()["detail"] == "You do not have authority"
+
+
+def test_it_should_return_403_when_admin_update_no_members():
+    create_user(USER1)
+    user2 = create_user(USER2)
+    pteam1 = create_pteam(USER1, PTEAM1)
+
+    request = {"is_admin": True}
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER1), json=request
+    )
+
+    assert response.status_code == 403
+    assert response.reason_phrase == "Forbidden"
+    assert response.json()["detail"] == "Not a pteam member"
+
+
+def test_it_should_return_403_when_outsider_try_update_pteam_members():
+    user1 = create_user(USER1)
+    create_user(USER2)
+    pteam1 = create_pteam(USER1, PTEAM1)
+
+    request = {"is_admin": True}
     response = client.put(
         f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER2), json=request
     )
@@ -1284,7 +1336,7 @@ def test_update_pteam_members__by_not_member():
     assert response.json()["detail"] == "You do not have authority"
 
 
-def test_update_pteam_members__by_last_admin():
+def test_it_should_return_400_when_try_to_remove_last_admin():
     user1 = create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
