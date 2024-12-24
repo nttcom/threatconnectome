@@ -10,7 +10,7 @@ import React, { useState } from "react";
 import { PTeamAuthEditor } from "../../components/PTeamAuthEditor";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery, useGetUserMeQuery } from "../../services/tcApi";
-import { errorToString } from "../../utils/func";
+import { errorToString, checkAdmin } from "../../utils/func";
 
 import { PTeamMemberRemoveModal } from "./PTeamMemberRemoveModal";
 
@@ -75,7 +75,7 @@ export function PTeamMemberMenu(props) {
           <KeyIcon sx={{ mr: 1 }} />
           Authorities
         </MenuItem>
-        {(isAdmin || userId === userMe.user_id) && (
+        {(checkAdmin(userMe, pteamId) || userId === userMe.user_id) && (
           <MenuItem onClick={handleRemoveMember}>
             <PersonOffIcon sx={{ mr: 1 }} />
             Remove from PTeam
@@ -88,6 +88,7 @@ export function PTeamMemberMenu(props) {
             pteamId={pteamId}
             userId={userId}
             userEmail={userEmail}
+            isAdmin={isAdmin}
             onClose={() => setOpenAuth(false)}
           />
         </DialogContent>

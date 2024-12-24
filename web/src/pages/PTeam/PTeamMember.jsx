@@ -16,14 +16,13 @@ import React from "react";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { experienceColors } from "../../utils/const";
+import { checkAdmin } from "../../utils/func.js";
 
 import { PTeamInviteModal } from "./PTeamInviteModal";
 import { PTeamMemberMenu } from "./PTeamMemberMenu";
 
 export function PTeamMember(props) {
-  const { pteamId, members, authorities, isAdmin } = props;
-
-  const checkAdmin = (userId) => (authorities[userId] ?? []).includes("admin");
+  const { pteamId, members } = props;
 
   return (
     <>
@@ -55,7 +54,7 @@ export function PTeamMember(props) {
                     >
                       <TableCell align="left" style={{ width: "30%" }}>
                         <Box display="flex" flexDirection="row">
-                          {checkAdmin(member.user_id) && <StarIcon color="warning" />}
+                          {checkAdmin(member, pteamId) && <StarIcon color="warning" />}
                           <Typography>{member.email}</Typography>
                         </Box>
                         <UUIDTypography>{member.user_id}</UUIDTypography>
@@ -79,7 +78,7 @@ export function PTeamMember(props) {
                           pteamId={pteamId}
                           userId={member.user_id}
                           userEmail={member.email}
-                          isAdmin={isAdmin}
+                          isAdmin={checkAdmin(member)}
                         />
                       </TableCell>
                     </TableRow>
@@ -101,6 +100,4 @@ PTeamMember.propTypes = {
     disabled: PropTypes.bool,
     years: PropTypes.number,
   }).isRequired,
-  authorities: PropTypes.object.isRequired,
-  isAdmin: PropTypes.bool.isRequired,
 };
