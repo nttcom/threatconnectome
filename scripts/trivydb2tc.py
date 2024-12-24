@@ -230,8 +230,11 @@ class ThreatconnectomeClient:
         _func = partial(func, *args, **{k: v for k, v in kwargs.items() if k != "headers"})
 
         def _resp_to_msg(resp: requests.Response) -> str:
-            data = resp.json()
-            return f"{resp.status_code}: {resp.reason}: {data.get('detail')}"
+            try:
+                data = resp.json()
+                return f"{resp.status_code}: {resp.reason}: {data.get('detail')}"
+            except ValueError:
+                return f"{resp.status_code}: {resp.reason}: {resp.text}"
 
         while True:
             try:
