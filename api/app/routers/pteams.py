@@ -1202,14 +1202,12 @@ def update_pteam_member(
 ):
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
+    if not (user := persistence.get_pteam_account_role(db, pteam_id, user_id)):
+        raise NOT_A_PTEAM_MEMBER
     if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
-    if user := persistence.get_pteam_account_role(db, pteam_id, user_id):
-        user.is_admin = data.is_admin
-    else:
-        raise NOT_A_PTEAM_MEMBER
-
+    user.is_admin = data.is_admin
     db.flush()
 
     if data.is_admin is False and command.missing_pteam_admin(db, pteam):
