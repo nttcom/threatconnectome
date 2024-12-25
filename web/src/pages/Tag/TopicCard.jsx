@@ -138,7 +138,7 @@ export function TopicCard(props) {
           isRelatedAction(action, currentTagDict.tag_name) ||
           isRelatedAction(action, currentTagDict.parent_name),
       )
-    : pteamTopicActions ?? [];
+    : (pteamTopicActions ?? []);
 
   return (
     <Card variant="outlined" sx={{ marginTop: "8px", marginBottom: "20px", width: "100%" }}>
