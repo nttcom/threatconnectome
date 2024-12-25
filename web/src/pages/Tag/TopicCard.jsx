@@ -138,7 +138,7 @@ export function TopicCard(props) {
           isRelatedAction(action, currentTagDict.tag_name) ||
           isRelatedAction(action, currentTagDict.parent_name),
       )
-    : (pteamTopicActions ?? []);
+    : pteamTopicActions ?? [];
 
   return (
     <Card variant="outlined" sx={{ marginTop: "8px", marginBottom: "20px", width: "100%" }}>
@@ -316,7 +316,7 @@ export function TopicCard(props) {
               {topic.misp_tags && topic.misp_tags.length > 0 && (
                 <>
                   <Typography sx={{ fontWeight: 900 }} mt={3} mb={2}>
-                    MISP tags
+                    Topic tags
                   </Typography>
                   <Box mb={5}>
                     {topic.misp_tags.map((mispTag) => (
