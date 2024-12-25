@@ -194,11 +194,11 @@ export function TopicDetail() {
         </Card>
         {/* SSVC decision points */}
         <TopicSSVCCards exploitation={topic.exploitation} automatable={topic.automatable} />
-        {/* MISP Tag */}
+        {/* Topic Tag */}
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
-              <Typography sx={{ fontWeight: "bold" }}>MISP Tag</Typography>
+              <Typography sx={{ fontWeight: "bold" }}>Topic Tag</Typography>
             </Box>
             {topic.misp_tags.length === 0 ? (
               <Typography sx={{ margin: 1 }}>No data</Typography>
