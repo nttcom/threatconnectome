@@ -16,16 +16,14 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import dialogStyle from "../cssModule/dialog.module.css";
-import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
-import { useUpdatePTeamMemberMutation } from "../services/tcApi";
-import { errorToString } from "../utils/func";
+import dialogStyle from "../../cssModule/dialog.module.css";
+import { useUpdatePTeamMemberMutation } from "../../services/tcApi";
+import { errorToString } from "../../utils/func";
 
-function PTeamAuthEditorMain(props) {
-  // wrap me to make sure currentAuth is ready as initial value for useState
-  const { pteamId, userId, userEmail, onClose, isAdmin } = props;
+export function PTeamAuthEditor(props) {
+  const { pteamId, memberUserId, userEmail, isCurrentMemberAdmin, onClose } = props;
 
-  const [checked, setChecked] = useState(isAdmin);
+  const [checked, setChecked] = useState(isCurrentMemberAdmin);
 
   const [updatePTeamMember] = useUpdatePTeamMemberMutation();
 
@@ -47,7 +45,7 @@ function PTeamAuthEditorMain(props) {
 
     const data = { is_admin: checked };
 
-    await updatePTeamMember({ pteamId, userId, data })
+    await updatePTeamMember({ pteamId, memberUserId, data })
       .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
@@ -96,36 +94,10 @@ function PTeamAuthEditorMain(props) {
   );
 }
 
-PTeamAuthEditorMain.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  userId: PropTypes.string,
-  userEmail: PropTypes.string,
-  onClose: PropTypes.func,
-  isAdmin: PropTypes.bool.isRequired,
-};
-
-export function PTeamAuthEditor(props) {
-  const { pteamId, userId, userEmail, isAdmin, onClose } = props;
-
-  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
-
-  if (skip) return <></>;
-
-  return (
-    <PTeamAuthEditorMain
-      pteamId={pteamId}
-      userId={userId}
-      userEmail={userEmail}
-      onClose={onClose}
-      isAdmin={isAdmin}
-    />
-  );
-}
-
 PTeamAuthEditor.propTypes = {
   pteamId: PropTypes.string.isRequired,
-  userId: PropTypes.string,
+  memberUserId: PropTypes.string,
   userEmail: PropTypes.string,
-  isAdmin: PropTypes.bool.isRequired,
+  isCurrentMemberAdmin: PropTypes.bool.isRequired,
   onClose: PropTypes.func,
 };

@@ -137,10 +137,7 @@ export const cvssSeverityRating = (cvssScore) => {
 };
 
 export const checkAdmin = (member, pteamId) => {
-  for (var pteam_role of member.pteam_roles) {
-    if (pteam_role.pteam.pteam_id === pteamId && pteam_role.is_admin === true) {
-      return true;
-    }
-  }
-  return false;
+  return member.pteam_roles.some(
+    (pteam_role) => pteam_role.pteam.pteam_id === pteamId && pteam_role.is_admin,
+  );
 };
