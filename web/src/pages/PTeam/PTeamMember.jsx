@@ -76,7 +76,7 @@ export function PTeamMember(props) {
                       <TableCell align="right">
                         <PTeamMemberMenu
                           pteamId={pteamId}
-                          membaerUserId={member.user_id}
+                          memberUserId={member.user_id}
                           userEmail={member.email}
                           isCurrentMemberAdmin={checkAdmin(member, pteamId)}
                         />
