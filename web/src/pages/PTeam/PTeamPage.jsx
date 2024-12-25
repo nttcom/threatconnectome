@@ -5,11 +5,7 @@ import { useLocation } from "react-router";
 import { PTeamLabel } from "../../components/PTeamLabel";
 import { TabPanel } from "../../components/TabPanel";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
-import {
-  useGetPTeamAuthQuery,
-  useGetPTeamMembersQuery,
-  useGetUserMeQuery,
-} from "../../services/tcApi";
+import { useGetPTeamMembersQuery } from "../../services/tcApi";
 import { experienceColors, noPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
@@ -25,16 +21,6 @@ export function PTeam() {
 
   const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
   const {
-    data: userMe,
-    error: userMeError,
-    isLoading: userMeIsLoading,
-  } = useGetUserMeQuery(undefined, { skip });
-  const {
-    data: authorities,
-    error: authoritiesError,
-    isLoading: authoritiesIsLoading,
-  } = useGetPTeamAuthQuery(pteamId, { skip });
-  const {
     data: members,
     error: membersError,
     isLoading: membersIsLoading,
@@ -43,14 +29,9 @@ export function PTeam() {
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skip) return <></>;
 
-  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
-  if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (authoritiesError) return <>{`Cannot get Authorities: ${errorToString(authoritiesError)}`}</>;
-  if (authoritiesIsLoading) return <>Now loading Authorities...</>;
   if (membersError) return <>{`Cannot get PTeam: ${errorToString(membersError)}`}</>;
   if (membersIsLoading) return <>Now loading Members...</>;
 
-  const isAdmin = (authorities[userMe.user_id] ?? []).includes("admin");
   const filterModes = ["All", "PTeam"];
 
   const tabHandleChange = (event, newValue) => {
@@ -110,12 +91,7 @@ export function PTeam() {
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>
-          <PTeamMember
-            pteamId={pteamId}
-            members={members}
-            authorities={authorities}
-            isAdmin={isAdmin}
-          />
+          <PTeamMember pteamId={pteamId} members={members} />
         </TabPanel>
       </Box>
     </>

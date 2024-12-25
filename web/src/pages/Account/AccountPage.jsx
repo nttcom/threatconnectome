@@ -112,11 +112,11 @@ export function Account() {
             <Typography>PTeam:</Typography>
           </Box>
           <Box display="flex" flexDirection="column" width="70%">
-            {userMe.pteams?.length >= 1 ? (
-              userMe.pteams.map((pteam, index) => (
+            {userMe.pteam_roles?.length >= 1 ? (
+              userMe.pteam_roles.map((pteam_role, index) => (
                 <Box alignItems="baseline" display="flex" flexDirection="row" key={index}>
-                  <Typography mr={1}>{pteam.pteam_name}</Typography>
-                  <UUIDTypography>{pteam.pteam_id}</UUIDTypography>
+                  <Typography mr={1}>{pteam_role.pteam.pteam_name}</Typography>
+                  <UUIDTypography>{pteam_role.pteam.pteam_id}</UUIDTypography>
                 </Box>
               ))
             ) : (
