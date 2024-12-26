@@ -198,7 +198,7 @@ export function TopicDetail() {
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
-              <Typography sx={{ fontWeight: "bold" }}>Topic Tag</Typography>
+              <Typography sx={{ fontWeight: "bold" }}>Topic Tags</Typography>
             </Box>
             {topic.misp_tags.length === 0 ? (
               <Typography sx={{ margin: 1 }}>No data</Typography>

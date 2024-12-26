@@ -116,7 +116,7 @@ export function TopicSearchModal(props) {
   const mispForm = (
     <Grid container sx={{ margin: 1.5 }}>
       <Grid item xs={2} md={2}>
-        <Typography sx={{ marginTop: "10px" }}>Topic Tag</Typography>
+        <Typography sx={{ marginTop: "10px" }}>Topic Tags</Typography>
       </Grid>
       <Grid item xs={10} md={10}>
         <TextField
