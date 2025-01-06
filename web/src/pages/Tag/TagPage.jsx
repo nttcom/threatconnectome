@@ -63,8 +63,8 @@ export function Tag() {
   if (!getTopicIdsReady) return <></>;
   if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
   if (allTagsIsLoading) return <>Now loading allTags...</>;
-  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
-  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading Team...</>;
   if (serviceDependenciesError)
     return <>{`Cannot get serviceDependencies: ${errorToString(serviceDependenciesError)}`}</>;
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;

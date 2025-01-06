@@ -72,7 +72,7 @@ def create_mail_alert_for_new_topic(
             f"Title: {topic_title}",
             f"SSVC Priority: {ssvc_priority_label}",
             "",
-            f"PTeam: {pteam_name}",
+            f"Team: {pteam_name}",
             f"Services: {', '.join(services)}",
             f"Artifact: {tag_name}",
             "",

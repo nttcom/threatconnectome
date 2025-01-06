@@ -37,7 +37,7 @@ export function PTeamGeneralSetting(props) {
     <Box>
       <Box mb={4}>
         <Typography sx={{ fontWeight: 900 }} mb={1}>
-          PTeam name
+          Team name
         </Typography>
         <TextField
           size="small"

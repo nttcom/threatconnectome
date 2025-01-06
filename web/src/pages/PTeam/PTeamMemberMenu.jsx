@@ -37,8 +37,8 @@ export function PTeamMemberMenu(props) {
   if (skip) return <></>;
   if (userMeError) return <>{`Cannot get userInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
-  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading Team...</>;
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -80,7 +80,7 @@ export function PTeamMemberMenu(props) {
         {(isCurrentUserAdmin || memberUserId === userMe.user_id) && (
           <MenuItem onClick={handleRemoveMember}>
             <PersonOffIcon sx={{ mr: 1 }} />
-            Remove from PTeam
+            Remove from Team
           </MenuItem>
         )}
       </Menu>

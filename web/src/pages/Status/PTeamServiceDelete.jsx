@@ -39,8 +39,8 @@ export function PTeamServiceDelete(props) {
   } = useGetPTeamQuery(pteamId, { skip });
 
   if (skip) return <></>;
-  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
-  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading Team...</>;
 
   const services = pteam.services;
 

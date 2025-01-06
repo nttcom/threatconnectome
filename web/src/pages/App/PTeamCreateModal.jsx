@@ -64,7 +64,7 @@ export function PTeamCreateModal(props) {
       <Dialog fullWidth open={open} onClose={() => onSetOpen(false)}>
         <DialogTitle>
           <Box display="flex" flexDirection="row">
-            <Typography className={dialogStyle.dialog_title}>Create PTeam</Typography>
+            <Typography className={dialogStyle.dialog_title}>Create Team</Typography>
             <Box flexGrow={1} />
             <IconButton onClick={() => onSetOpen(false)}>
               <CloseIcon />
@@ -74,7 +74,7 @@ export function PTeamCreateModal(props) {
         <DialogContent>
           <Box display="flex" flexDirection="column">
             <TextField
-              label="PTeam name"
+              label="Team name"
               onChange={(event) => setPTeamName(event.target.value)}
               required
               error={!pteamName}

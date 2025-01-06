@@ -109,7 +109,7 @@ export function Account() {
         </Box>
         <Box alignItems="center" display="flex" flexDirection="row" my={1}>
           <Box display="flex" flexDirection="row" width="30%">
-            <Typography>PTeam:</Typography>
+            <Typography>Team:</Typography>
           </Box>
           <Box display="flex" flexDirection="column" width="70%">
             {userMe.pteam_roles?.length >= 1 ? (

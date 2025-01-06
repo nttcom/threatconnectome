@@ -29,7 +29,7 @@ export function PTeam() {
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skip) return <></>;
 
-  if (membersError) return <>{`Cannot get PTeam: ${errorToString(membersError)}`}</>;
+  if (membersError) return <>{`Cannot get Team: ${errorToString(membersError)}`}</>;
   if (membersIsLoading) return <>Now loading Members...</>;
 
   const filterModes = ["All", "PTeam"];

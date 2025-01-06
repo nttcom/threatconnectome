@@ -185,8 +185,8 @@ export function Status() {
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skipByAuth || !pteamId) return <></>;
-  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
-  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading Team...</>;
 
   if (isActiveAllServicesMode) {
     if (pteamTagsSummaryError)

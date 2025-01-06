@@ -35,8 +35,8 @@ export function PTeamSettingsModal(props) {
   } = useGetPTeamQuery(pteamId, { skip });
 
   if (skip) return <></>;
-  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
-  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamIsLoading) return <>Now loading Team...</>;
 
   const handleClose = () => onSetShow(false);
 
@@ -47,7 +47,7 @@ export function PTeamSettingsModal(props) {
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           <Typography flexGrow={1} className={dialogStyle.dialog_title}>
-            PTeam settings
+            Team settings
           </Typography>
           <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
             <CloseIcon />
