@@ -19,7 +19,6 @@ import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetPTeamQuery } from "../services/tcApi";
 import { a11yProps, errorToString } from "../utils/func.js";
 
-import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
 import { PTeamNotificationSetting } from "./PTeamNotificationSetting";
 
@@ -60,7 +59,6 @@ export function PTeamSettingsModal(props) {
           <Tabs aria-label="tabs" onChange={handleChangeTab} value={tab}>
             <Tab label="General" {...a11yProps(0)} />
             <Tab label="Notification" {...a11yProps(1)} />
-            <Tab label="Authorities" {...a11yProps(2)} />
           </Tabs>
         </Box>
         <TabPanel index={0} value={tab}>
@@ -68,9 +66,6 @@ export function PTeamSettingsModal(props) {
         </TabPanel>
         <TabPanel index={1} value={tab}>
           <PTeamNotificationSetting pteam={pteam} />
-        </TabPanel>
-        <TabPanel index={2} value={tab}>
-          <PTeamAuthEditor pteamId={pteamId} />
         </TabPanel>
       </DialogContent>
     </Dialog>

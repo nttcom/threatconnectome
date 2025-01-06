@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas
+from app import models, persistence, schemas
 from app.auth import get_current_user, token_scheme, verify_id_token
 from app.database import get_db
 
@@ -100,9 +100,6 @@ def delete_user(
     """
     Delete current user.
     """
-
-    # delete all related objects  # FIXME: should deleted on cascade
-    command.workaround_delete_team_authes_by_user_id(db, current_user.user_id)
 
     for log in current_user.action_logs:
         # actoin logs shoud not be deleted, but should be anonymized

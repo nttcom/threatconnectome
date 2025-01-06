@@ -301,7 +301,7 @@ export function TopicManagement() {
               </TableCell>
               <TableCell style={{ width: "3%", fontWeight: 900 }}>Action</TableCell>
               <TableCell style={{ width: "25%", fontWeight: 900 }}>Title</TableCell>
-              <TableCell style={{ width: "35%", fontWeight: 900 }}>MISP Tag</TableCell>
+              <TableCell style={{ width: "35%", fontWeight: 900 }}>Topic Tags</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

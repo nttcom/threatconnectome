@@ -26,7 +26,9 @@ export function PTeamLabel(props) {
   if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
-  const pteamName = userMe.pteams.find((pteam) => pteam.pteam_id === pteamId)?.pteam_name ?? "-";
+  const pteamName =
+    userMe.pteam_roles.find((pteam_role) => pteam_role.pteam.pteam_id === pteamId)?.pteam
+      .pteam_name ?? "-";
 
   return (
     <>
