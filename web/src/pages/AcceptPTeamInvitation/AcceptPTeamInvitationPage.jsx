@@ -48,9 +48,9 @@ export function AcceptPTeamInvitation() {
 
   return (
     <>
-      <Typography variant="h6">Do you accept the invitation to the pteam below?</Typography>
-      <Typography>PTeam Name: {detail.pteam_name}</Typography>
-      <Typography>PTeam ID: {detail.pteam_id}</Typography>
+      <Typography variant="h6">Do you accept the invitation to the team below?</Typography>
+      <Typography>Team Name: {detail.pteam_name}</Typography>
+      <Typography>Team ID: {detail.pteam_id}</Typography>
       <Typography>
         Invitation created by {detail.email} ({detail.user_id})
       </Typography>

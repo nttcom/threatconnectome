@@ -1,5 +1,5 @@
 import { Add as AddIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from "@mui/icons-material";
-import { Box, Button, ListSubheader, Menu, MenuItem } from "@mui/material";
+import { Box, Button, Menu, MenuItem } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -93,7 +93,6 @@ export function TeamSelector() {
           open={open}
           onClose={handleClose}
         >
-          <ListSubheader sx={{ color: drawerParams.hoverColor }}>Product Team</ListSubheader>
           {userMe?.pteam_roles &&
             [...userMe.pteam_roles]
               .sort((a, b) => a.pteam.pteam_name.localeCompare(b.pteam.pteam_name)) // alphabetically
@@ -108,7 +107,7 @@ export function TeamSelector() {
               ))}
           <MenuItem onClick={() => setOpenPTeamCreationModal(true)}>
             <AddIcon fontSize="small" />
-            Create PTeam
+            Create Team
           </MenuItem>
         </Menu>
         <PTeamCreateModal
