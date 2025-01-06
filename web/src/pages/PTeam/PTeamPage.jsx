@@ -1,4 +1,4 @@
-import { Avatar, Box, MenuItem, Tab, Tabs, TextField, Tooltip } from "@mui/material";
+import { Avatar, Box, Tab, Tabs, Tooltip } from "@mui/material";
 import React, { useState } from "react";
 import { useLocation } from "react-router";
 
@@ -12,7 +12,6 @@ import { a11yProps, errorToString } from "../../utils/func.js";
 import { PTeamMember } from "./PTeamMember.jsx";
 
 export function PTeam() {
-  const [filterMode, setFilterMode] = useState("PTeam");
   const [tabValue, setTabValue] = useState(0);
 
   const location = useLocation();
@@ -32,8 +31,6 @@ export function PTeam() {
   if (membersError) return <>{`Cannot get PTeam: ${errorToString(membersError)}`}</>;
   if (membersIsLoading) return <>Now loading Members...</>;
 
-  const filterModes = ["All", "PTeam"];
-
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);
   };
@@ -43,21 +40,6 @@ export function PTeam() {
       <Box alignItems="center" display="flex" flexDirection="row" flexGrow={1} mb={1}>
         <PTeamLabel pteamId={pteamId} />
         <Box alignItems="flex-end" display="flex" flexDirection="column">
-          <TextField
-            label="Filter"
-            margin="dense"
-            onChange={(event) => setFilterMode(event.target.value)}
-            select
-            size="small"
-            value={filterMode}
-            sx={{ mx: 1, width: 100 }}
-          >
-            {filterModes.map((mode) => (
-              <MenuItem key={mode} value={mode}>
-                {mode}
-              </MenuItem>
-            ))}
-          </TextField>
           <Box alignItems="center" display="flex" flexDirection="row">
             {members &&
               (() => {
