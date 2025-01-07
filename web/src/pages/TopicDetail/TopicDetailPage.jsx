@@ -23,7 +23,7 @@ import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
 import { cvssProps } from "../../utils/const";
-import { errorToString, cvssSeverityRating } from "../../utils/func";
+import { errorToString, cvssConvertToName } from "../../utils/func";
 
 import { TopicSSVCCards } from "./TopicSSVCCards";
 
@@ -72,7 +72,7 @@ export function TopicDetail() {
   const cvssScore =
     topic.cvss_v3_score === undefined || topic.cvss_v3_score === null ? "N/A" : topic.cvss_v3_score;
 
-  const cvss = cvssSeverityRating(cvssScore);
+  const cvss = cvssConvertToName(cvssScore);
 
   return (
     <>
