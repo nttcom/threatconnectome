@@ -332,6 +332,8 @@ export const drawerParams = {
   hoverColor: brown[700],
 };
 
+export const cvssNames = ["None", "Low", "Medium", "High", "Critical"];
+
 export const cvssProps = {
   None: {
     cvssBgcolor: grey[600],

@@ -120,7 +120,7 @@ export const compareSSVCPriority = (prio1, prio2) => {
   else return 1;
 };
 
-export const cvssSeverityRating = (cvssScore) => {
+export const cvssConvertToName = (cvssScore) => {
   let rating;
   if (0 < cvssScore && cvssScore < 4.0) {
     rating = "Low";
@@ -134,6 +134,29 @@ export const cvssSeverityRating = (cvssScore) => {
     rating = "None";
   }
   return rating;
+};
+
+export const cvssConvertToScore = (cvssName) => {
+  let minCvssScore;
+  let maxCvssScore;
+  if (cvssName === "None") {
+    minCvssScore = 0.0;
+    maxCvssScore = 0.0;
+  } else if (cvssName === "Low") {
+    minCvssScore = 0.1;
+    maxCvssScore = 3.9;
+  } else if (cvssName === "Medium") {
+    minCvssScore = 4.0;
+    maxCvssScore = 6.9;
+  } else if (cvssName === "High") {
+    minCvssScore = 7.0;
+    maxCvssScore = 8.9;
+  } else if (cvssName === "Critical") {
+    minCvssScore = 9.0;
+    maxCvssScore = 10.0;
+  }
+
+  return [minCvssScore, maxCvssScore];
 };
 
 export const checkAdmin = (member, pteamId) => {

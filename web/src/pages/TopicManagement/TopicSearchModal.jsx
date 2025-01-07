@@ -6,9 +6,12 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   FormControlLabel,
   IconButton,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   Grid,
   FormControl,
@@ -23,6 +26,8 @@ import React, { useState } from "react";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import dialogStyle from "../../cssModule/dialog.module.css";
+import { cvssNames } from "../../utils/const";
+import { cvssConvertToScore } from "../../utils/func";
 
 export function TopicSearchModal(props) {
   const { show, onSearch, onCancel } = props;
@@ -35,6 +40,9 @@ export function TopicSearchModal(props) {
   const [updatedBefore, setUpdatedBefore] = useState(null); // Date object
   const [adModeChange, setAdModeChange] = useState(false);
   const [dateFormList, setDateFormList] = useState("");
+  const [cvssName, setCvssName] = useState("");
+  const [minCvssScore, setMinCvssScore] = useState("");
+  const [maxCvssScore, setMaxCvssScore] = useState("");
 
   const now = new Date();
 
@@ -56,6 +64,8 @@ export function TopicSearchModal(props) {
       creatorIds: creatorIds,
       updatedAfter: updatedAfter?.toISOString(),
       updatedBefore: updatedBefore?.toISOString(),
+      minCvssV3Score: minCvssScore,
+      maxCvssV3Score: maxCvssScore,
     };
     onSearch(params);
     clearAllParams();
@@ -67,6 +77,9 @@ export function TopicSearchModal(props) {
     setUpdatedAfter(null);
     setUpdatedBefore(null);
     setDateFormList("");
+    setCvssName("");
+    setMinCvssScore("");
+    setMaxCvssScore("");
   };
 
   const clearAllParams = () => {
@@ -94,6 +107,31 @@ export function TopicSearchModal(props) {
         break;
     }
     setDateFormList(event.target.value);
+  };
+
+  const handleCvssName = (event, newCvssName) => {
+    setCvssName(newCvssName);
+    const score = cvssConvertToScore(newCvssName);
+    setMinCvssScore(score[0]);
+    setMaxCvssScore(score[1]);
+  };
+
+  const handleMinCvssScore = (event) => {
+    setCvssName("");
+    const inputValue = event.target.value;
+    const regex = /^\d*\.?\d{0,1}$/; // Regular expression to allow only numbers to one decimal place
+    if (regex.test(inputValue) && 0 <= inputValue && inputValue <= 10) {
+      setMinCvssScore(inputValue);
+    }
+  };
+
+  const handleMaxCvssScore = (event) => {
+    setCvssName("");
+    const inputValue = event.target.value;
+    const regex = /^\d*\.?\d{0,1}$/; // Regular expression to allow only numbers to one decimal place
+    if (regex.test(inputValue) && 0 <= inputValue && inputValue <= 10) {
+      setMaxCvssScore(inputValue);
+    }
   };
 
   const titleForm = (
@@ -126,6 +164,49 @@ export function TopicSearchModal(props) {
           size="small"
           sx={{ width: "95%" }}
         />
+      </Grid>
+    </Grid>
+  );
+
+  const cvssForm = (
+    <Grid container sx={{ margin: 1.5 }} alignItems={"center"}>
+      <Grid item xs={2} md={2}>
+        <Typography sx={{ marginTop: "10px" }}>CVSS v3</Typography>
+      </Grid>
+      <Grid item xs={10} md={10}>
+        <ToggleButtonGroup
+          color="primary"
+          exclusive
+          value={cvssName}
+          onChange={handleCvssName}
+          sx={{ width: "95%" }}
+          fullWidth
+        >
+          {cvssNames.map((cvssName) => (
+            <ToggleButton key={cvssName} value={cvssName}>
+              {cvssName}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+        <Box display="flex" flexDirection="row" sx={{ mt: 2 }}>
+          <TextField
+            value={minCvssScore}
+            onChange={handleMinCvssScore}
+            variant="outlined"
+            size="small"
+            sx={{ width: "40%" }}
+          />
+          <Box display="flex" alignItems="center" justifyContent="center" sx={{ width: "15%" }}>
+            <Divider orientation="horizontal" sx={{ borderColor: "black", width: "20%" }} />
+          </Box>
+          <TextField
+            value={maxCvssScore}
+            onChange={handleMaxCvssScore}
+            variant="outlined"
+            size="small"
+            sx={{ width: "40%" }}
+          />
+        </Box>
       </Grid>
     </Grid>
   );
@@ -251,6 +332,7 @@ export function TopicSearchModal(props) {
             {mispForm}
             {adModeChange && (
               <Box>
+                {cvssForm}
                 {dateForm}
                 {uuidForm}
                 {creatorForm}
