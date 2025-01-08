@@ -27,7 +27,10 @@ export function AcceptPTeamInvitation() {
   } = useGetPTeamInvitationQuery(tokenId, { skip });
 
   if (skip) return <></>;
-  if (detailError) throw new APIError(errorToString(detailError), { api: "getPTeamInvitation" });
+  if (detailError)
+    throw new APIError("This invitation is invalid or already expired.", {
+      api: "getPTeamInvitation",
+    });
   if (detailIsLoading) return <>Now loading user info...</>;
 
   const handleAccept = async (event) => {
