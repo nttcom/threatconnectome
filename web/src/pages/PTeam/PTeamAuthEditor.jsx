@@ -85,7 +85,7 @@ export function PTeamAuthEditor(props) {
                   onChange={handleCheckedChange}
                 />
               </TableCell>
-              <TableCell>Role</TableCell>
+              <TableCell>Administrator</TableCell>
               <TableCell>To administrate the pteam.</TableCell>
             </TableRow>
           </TableBody>
