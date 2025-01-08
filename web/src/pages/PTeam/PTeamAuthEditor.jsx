@@ -1,8 +1,6 @@
 import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
-  Button,
-  Checkbox,
   IconButton,
   Table,
   TableBody,
@@ -20,45 +18,8 @@ import dialogStyle from "../../cssModule/dialog.module.css";
 import { useUpdatePTeamMemberMutation } from "../../services/tcApi";
 import { errorToString } from "../../utils/func";
 
-function AdminCheckbox(props) {
-  const { checked, editable, modified, onChange } = props;
-
-  return (
-    <>
-      <Box display="flex" flexDirection="row" alignItems="center" width="40px">
-        <Checkbox
-          checked={checked}
-          disabled={!editable}
-          onChange={editable ? onChange : undefined}
-          fontSize="small"
-        />
-        {modified && "*"}
-      </Box>
-    </>
-  );
-}
-
-AdminCheckbox.propTypes = {
-  checked: PropTypes.bool.isRequired,
-  editable: PropTypes.bool.isRequired,
-  modified: PropTypes.bool.isRequired,
-  onChange: PropTypes.func.isRequired,
-};
-
-function UpdateAuthButton(props) {
-  const { disabled, onUpdate } = props;
-
-  return (
-    <Button disabled={disabled} onClick={onUpdate} className={dialogStyle.submit_btn}>
-      Update
-    </Button>
-  );
-}
-
-UpdateAuthButton.propTypes = {
-  disabled: PropTypes.bool.isRequired,
-  onUpdate: PropTypes.func.isRequired,
-};
+import { AuthAdminCheckbox } from "./AuthAdminCheckbox";
+import { UpdateAuthButton } from "./UpdateAuthButton";
 
 export function PTeamAuthEditor(props) {
   const { pteamId, memberUserId, userEmail, isTargetMemberAdmin, isCurrentUserAdmin, onClose } =
@@ -117,7 +78,7 @@ export function PTeamAuthEditor(props) {
           <TableBody>
             <TableRow>
               <TableCell>
-                <AdminCheckbox
+                <AuthAdminCheckbox
                   checked={checked}
                   editable={isCurrentUserAdmin}
                   modified={isTargetMemberAdmin !== checked}
