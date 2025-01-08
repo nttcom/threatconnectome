@@ -22,6 +22,7 @@ import React from "react";
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetThreatQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import {
   safetyImpactDescription,
   safetyImpactProps,
@@ -75,12 +76,11 @@ export function TopicTicketAccordion(props) {
     data: threat,
     error: threatError,
     isLoading: threatIsLoading,
-  } = useGetThreatQuery(ticket.threat_id, { skipByAuth });
+  } = useGetThreatQuery(ticket.ticket_id, { skipByAuth });
 
   if (skipByAuth) return <></>;
   if (threatIsLoading) return ErrorAccordion("Now loading Threat...", defaultExpanded);
-  if (threatError)
-    return ErrorAccordion(`Cannot get Threat: ${errorToString(threatError)}`, defaultExpanded);
+  if (threatError) throw new APIError(errorToString(threatError), { api: "getThreat" });
 
   const StyledTooltip = styled(({ className, ...props }) => (
     <Tooltip {...props} classes={{ popper: className }} />
