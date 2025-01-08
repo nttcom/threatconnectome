@@ -78,7 +78,7 @@ export function PTeamMember(props) {
                           pteamId={pteamId}
                           memberUserId={member.user_id}
                           userEmail={member.email}
-                          isCurrentMemberAdmin={checkAdmin(member, pteamId)}
+                          isTargetMemberAdmin={checkAdmin(member, pteamId)}
                         />
                       </TableCell>
                     </TableRow>
