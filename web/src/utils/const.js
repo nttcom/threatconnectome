@@ -332,7 +332,13 @@ export const drawerParams = {
   hoverColor: brown[700],
 };
 
-export const cvssNames = ["None", "Low", "Medium", "High", "Critical"];
+export const cvssRatings = {
+  None: { min: 0.0, max: 0.0 },
+  Low: { min: 0.1, max: 3.9 },
+  Medium: { min: 4.0, max: 6.9 },
+  High: { min: 7.0, max: 8.9 },
+  Critical: { min: 9.0, max: 10.0 },
+};
 
 export const cvssProps = {
   None: {
