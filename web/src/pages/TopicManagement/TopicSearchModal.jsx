@@ -26,7 +26,7 @@ import React, { useState } from "react";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import dialogStyle from "../../cssModule/dialog.module.css";
-import { cvssNames } from "../../utils/const";
+import { cvssRatings } from "../../utils/const";
 import { cvssConvertToScore } from "../../utils/func";
 
 export function TopicSearchModal(props) {
@@ -45,6 +45,7 @@ export function TopicSearchModal(props) {
   const [maxCvssScore, setMaxCvssScore] = useState("");
 
   const now = new Date();
+  const cvssRatingsKeys = Object.keys(cvssRatings);
 
   const advancedChange = (event) => {
     setAdModeChange(event.target.checked);
@@ -118,21 +119,21 @@ export function TopicSearchModal(props) {
 
   const handleMinCvssScore = (event) => {
     setCvssName("");
-    const inputValue = event.target.value;
-    const regex = /^\d*\.?\d{0,1}$/; // Regular expression to allow only numbers to one decimal place
-    if (regex.test(inputValue) && 0 <= inputValue && inputValue <= 10) {
-      setMinCvssScore(inputValue);
-    }
+    setMinCvssScore(event.target.value);
   };
 
   const handleMaxCvssScore = (event) => {
     setCvssName("");
-    const inputValue = event.target.value;
-    const regex = /^\d*\.?\d{0,1}$/; // Regular expression to allow only numbers to one decimal place
-    if (regex.test(inputValue) && 0 <= inputValue && inputValue <= 10) {
-      setMaxCvssScore(inputValue);
-    }
+    setMaxCvssScore(event.target.value);
   };
+
+  const isValidCvssScore = (cvssScore) => {
+    const regex = /^\d+(\.\d{1})?$/; // Regular expression to allow only numbers to one decimal place
+    console.log(0 <= cvssScore && cvssScore <= 10);
+    return (regex.test(cvssScore) && 0 <= cvssScore && cvssScore <= 10) || cvssScore === "";
+  };
+
+  const isValidUserInput = isValidCvssScore(minCvssScore) && isValidCvssScore(maxCvssScore);
 
   const titleForm = (
     <Grid container sx={{ margin: 1.5, width: "100%" }}>
@@ -182,9 +183,9 @@ export function TopicSearchModal(props) {
           sx={{ width: "95%" }}
           fullWidth
         >
-          {cvssNames.map((cvssName) => (
-            <ToggleButton key={cvssName} value={cvssName}>
-              {cvssName}
+          {cvssRatingsKeys.map((cvssRatingKey) => (
+            <ToggleButton key={cvssRatingKey} value={cvssRatingKey}>
+              {cvssRatingKey}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
@@ -342,7 +343,11 @@ export function TopicSearchModal(props) {
         </DialogContent>
         <DialogActions className={dialogStyle.action_area}>
           <Box display="flex">
-            <Button className={dialogStyle.submit_btn} onClick={handleSearch}>
+            <Button
+              className={dialogStyle.submit_btn}
+              onClick={handleSearch}
+              disabled={!isValidUserInput}
+            >
               Search
             </Button>
           </Box>
