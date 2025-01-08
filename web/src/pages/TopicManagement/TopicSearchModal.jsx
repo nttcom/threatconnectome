@@ -129,7 +129,6 @@ export function TopicSearchModal(props) {
 
   const isValidCvssScore = (cvssScore) => {
     const regex = /^\d+(\.\d{1})?$/; // Regular expression to allow only numbers to one decimal place
-    console.log(0 <= cvssScore && cvssScore <= 10);
     return (regex.test(cvssScore) && 0 <= cvssScore && cvssScore <= 10) || cvssScore === "";
   };
 
