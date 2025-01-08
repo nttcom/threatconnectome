@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useApplyPTeamInvitationMutation, useGetPTeamInvitationQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { commonButtonStyle } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
@@ -26,7 +27,10 @@ export function AcceptPTeamInvitation() {
   } = useGetPTeamInvitationQuery(tokenId, { skip });
 
   if (skip) return <></>;
-  if (detailError) return <>{"This invitation is invalid or already expired."}</>;
+  if (detailError)
+    throw new APIError("This invitation is invalid or already expired.", {
+      api: "getPTeamInvitation",
+    });
   if (detailIsLoading) return <>Now loading user info...</>;
 
   const handleAccept = async (event) => {
