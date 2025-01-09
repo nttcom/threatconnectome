@@ -12,6 +12,7 @@ import {
   useGetTagsQuery,
   useGetDependenciesQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError.js";
 import { noPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
@@ -61,15 +62,15 @@ export function Tag() {
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (!getTopicIdsReady) return <></>;
-  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getTags" });
   if (allTagsIsLoading) return <>Now loading allTags...</>;
-  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>Now loading Team...</>;
   if (serviceDependenciesError)
-    return <>{`Cannot get serviceDependencies: ${errorToString(serviceDependenciesError)}`}</>;
+    throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
   if (taggedTopicsError)
-    return <>{`Cannot get TaggedTopics: ${errorToString(taggedTopicsError)}`}</>;
+    throw new APIError(errorToString(taggedTopicsError), { api: "getPTeamServiceTaggedTopicIds" });
   if (taggedTopicsIsLoading) return <>Now loading TaggedTopics...</>;
 
   const numSolved = taggedTopics.solved?.topic_ids?.length ?? 0;

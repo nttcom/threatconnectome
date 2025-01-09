@@ -4,6 +4,7 @@ import React, { useState } from "react";
 
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetPTeamMembersQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { sortedSSVCPriorities } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
@@ -25,7 +26,7 @@ export function PTeamTaggedTopics(props) {
   } = useGetPTeamMembersQuery(pteamId, { skip });
 
   if (skip) return <></>;
-  if (membersError) return <>{`Cannot get PTeamMembers: ${errorToString(membersError)}`}</>;
+  if (membersError) throw new APIError(errorToString(membersError), { api: "getPTeamMembers" });
   if (membersIsLoading) return <>Now loading PTeamMembers...</>;
 
   if (taggedTopics === undefined) {
