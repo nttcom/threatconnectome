@@ -44,16 +44,8 @@ import { errorToString, cvssConvertToName } from "../../utils/func";
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "./TopicSearchModal";
 
-function getDisplayMessage(topicError, topicIsLoading, topicActionsError, topicActionsIsLoading) {
-  if (topicActionsError)
-    throw new APIError(errorToString(topicActionsError), {
-      api: "getTopicActions",
-    });
+function getDisplayMessage(topicIsLoading, topicActionsIsLoading) {
   if (topicActionsIsLoading) return "Now loading topicActions...";
-  if (topicError)
-    throw new APIError(errorToString(topicError), {
-      api: "getTopic",
-    });
   if (topicIsLoading) return "Now loading Topic...";
   return "";
 }
@@ -80,12 +72,20 @@ function TopicManagementTableRow(props) {
     isLoading: topicActionsIsLoading,
   } = useGetTopicActionsQuery(topicId, { skip });
 
-  if (skip || topicError || topicIsLoading || topicActionsError || topicActionsIsLoading)
+  if (topicError)
+    throw new APIError(errorToString(topicError), {
+      api: "getTopic",
+    });
+
+  if (topicActionsError)
+    throw new APIError(errorToString(topicActionsError), {
+      api: "getTopicActions",
+    });
+
+  if (skip || topicIsLoading || topicActionsIsLoading)
     return (
       <TableRow>
-        <TableCell>
-          {getDisplayMessage(topicError, topicIsLoading, topicActionsError, topicActionsIsLoading)}
-        </TableCell>
+        <TableCell>{getDisplayMessage(topicIsLoading, topicActionsIsLoading)}</TableCell>
       </TableRow>
     );
 
