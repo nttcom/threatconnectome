@@ -38,7 +38,7 @@ import {
   useSearchTopicsQuery,
 } from "../../services/tcApi";
 import { cvssProps } from "../../utils/const";
-import { errorToString, cvssSeverityRating } from "../../utils/func";
+import { errorToString, cvssConvertToName } from "../../utils/func";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "./TopicSearchModal";
@@ -85,7 +85,7 @@ function TopicManagementTableRow(props) {
   const cvssScore =
     topic.cvss_v3_score === undefined || topic.cvss_v3_score === null ? "N/A" : topic.cvss_v3_score;
 
-  const cvss = cvssSeverityRating(cvssScore);
+  const cvss = cvssConvertToName(cvssScore);
 
   return (
     <TableRow
@@ -174,6 +174,11 @@ export function TopicManagement() {
     if (params?.creatorIds?.length > 0) query.creator_ids = params.creatorIds.split(delimiter);
     if (params?.updatedAfter) query.updated_after = params.updatedAfter;
     if (params?.updatedBefore) query.updated_before = params.updatedBefore;
+    if (params?.minCvssV3Score || params?.minCvssV3Score === 0)
+      query.min_cvss_v3_score = params.minCvssV3Score;
+    if (params?.maxCvssV3Score || params?.maxCvssV3Score === 0)
+      query.max_cvss_v3_score = params.maxCvssV3Score;
+
     return query;
   };
 

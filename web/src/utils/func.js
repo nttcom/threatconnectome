@@ -1,5 +1,7 @@
 import { addMinutes, format } from "date-fns";
 
+import { cvssRatings } from "./const";
+
 export const a11yProps = (index) => ({
   id: `tab-${index}`,
   "aria-controls": `tabpanel-${index}`,
@@ -120,7 +122,7 @@ export const compareSSVCPriority = (prio1, prio2) => {
   else return 1;
 };
 
-export const cvssSeverityRating = (cvssScore) => {
+export const cvssConvertToName = (cvssScore) => {
   let rating;
   if (0 < cvssScore && cvssScore < 4.0) {
     rating = "Low";
@@ -134,6 +136,14 @@ export const cvssSeverityRating = (cvssScore) => {
     rating = "None";
   }
   return rating;
+};
+
+export const cvssConvertToScore = (cvssName) => {
+  const rating = cvssRatings[cvssName];
+  if (rating) {
+    return [rating.min, rating.max];
+  }
+  return [undefined, undefined];
 };
 
 export const checkAdmin = (member, pteamId) => {
