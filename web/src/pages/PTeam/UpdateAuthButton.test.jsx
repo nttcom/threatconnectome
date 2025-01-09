@@ -1,6 +1,6 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
+import React from "react";
 
 import { UpdateAuthButton } from "./UpdateAuthButton";
 
