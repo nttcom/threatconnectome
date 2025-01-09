@@ -17,6 +17,14 @@ const plugins = [
     },
     'icons',
   ],
+  [
+    "module:react-native-dotenv",
+    {
+      "path": "./.env.test",
+    },
+  ],
 ];
 
-module.exports = { plugins };
+const presets = ["@babel/preset-react", "@babel/preset-env"];
+
+module.exports = { plugins, presets };

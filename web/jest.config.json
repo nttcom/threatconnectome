@@ -1,0 +1,11 @@
+{
+  "testRegex": "((\\.|/*.)(test|spec))\\.(js|jsx)$",
+  "testEnvironment": "jest-environment-jsdom",
+  "testEnvironmentOptions": {
+    "browsers": ["chrome", "firefox" ]
+  },
+  "setupFilesAfterEnv": ["./jest.setup.js"],
+  "moduleNameMapper": {
+     "\\.css$": "<rootDir>/__mocks__/cssMock.js"
+  }
+}
