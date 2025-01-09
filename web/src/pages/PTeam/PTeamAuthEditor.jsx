@@ -1,8 +1,6 @@
 import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
-  Button,
-  Checkbox,
   IconButton,
   Table,
   TableBody,
@@ -20,10 +18,14 @@ import dialogStyle from "../../cssModule/dialog.module.css";
 import { useUpdatePTeamMemberMutation } from "../../services/tcApi";
 import { errorToString } from "../../utils/func";
 
-export function PTeamAuthEditor(props) {
-  const { pteamId, memberUserId, userEmail, isCurrentMemberAdmin, onClose } = props;
+import { AuthAdminCheckbox } from "./AuthAdminCheckbox";
+import { UpdateAuthButton } from "./UpdateAuthButton";
 
-  const [checked, setChecked] = useState(isCurrentMemberAdmin);
+export function PTeamAuthEditor(props) {
+  const { pteamId, memberUserId, userEmail, isTargetMemberAdmin, isCurrentUserAdmin, onClose } =
+    props;
+
+  const [checked, setChecked] = useState(isTargetMemberAdmin);
 
   const [updatePTeamMember] = useUpdatePTeamMemberMutation();
 
@@ -33,7 +35,7 @@ export function PTeamAuthEditor(props) {
     setChecked(event.target.checked);
   };
 
-  const handleSave = async (targets) => {
+  const handleSave = async () => {
     function onSuccess(success) {
       enqueueSnackbar("Update pteam authority succeeded", { variant: "success" });
     }
@@ -76,7 +78,12 @@ export function PTeamAuthEditor(props) {
           <TableBody>
             <TableRow>
               <TableCell>
-                <Checkbox checked={checked} onChange={handleCheckedChange} fontSize="small" />
+                <AuthAdminCheckbox
+                  checked={checked}
+                  editable={isCurrentUserAdmin}
+                  modified={isTargetMemberAdmin !== checked}
+                  onChange={handleCheckedChange}
+                />
               </TableCell>
               <TableCell>Administrator</TableCell>
               <TableCell>To administrate the pteam.</TableCell>
@@ -86,9 +93,7 @@ export function PTeamAuthEditor(props) {
       </TableContainer>
       <Box display="flex" mt={2}>
         <Box flexGrow={1} />
-        <Button onClick={handleSave} className={dialogStyle.submit_btn}>
-          Update
-        </Button>
+        <UpdateAuthButton disabled={isTargetMemberAdmin === checked} onUpdate={handleSave} />
       </Box>
     </>
   );
@@ -98,6 +103,7 @@ PTeamAuthEditor.propTypes = {
   pteamId: PropTypes.string.isRequired,
   memberUserId: PropTypes.string,
   userEmail: PropTypes.string,
-  isCurrentMemberAdmin: PropTypes.bool.isRequired,
+  isTargetMemberAdmin: PropTypes.bool.isRequired,
+  isCurrentUserAdmin: PropTypes.bool.isRequired,
   onClose: PropTypes.func,
 };

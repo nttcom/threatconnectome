@@ -15,7 +15,7 @@ import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamMemberRemoveModal } from "./PTeamMemberRemoveModal";
 
 export function PTeamMemberMenu(props) {
-  const { pteamId, memberUserId, userEmail, isCurrentMemberAdmin } = props;
+  const { pteamId, memberUserId, userEmail, isTargetMemberAdmin } = props;
 
   const [openAuth, setOpenAuth] = useState(false);
   const [openRemove, setOpenRemove] = useState(false);
@@ -90,20 +90,23 @@ export function PTeamMemberMenu(props) {
             pteamId={pteamId}
             memberUserId={memberUserId}
             userEmail={userEmail}
-            isCurrentMemberAdmin={isCurrentMemberAdmin}
+            isTargetMemberAdmin={isTargetMemberAdmin}
+            isCurrentUserAdmin={isCurrentUserAdmin}
             onClose={() => setOpenAuth(false)}
           />
         </DialogContent>
       </Dialog>
-      <Dialog open={openRemove} onClose={() => setOpenRemove(false)}>
-        <PTeamMemberRemoveModal
-          memberUserId={memberUserId}
-          userName={userEmail}
-          pteamId={pteamId}
-          pteamName={pteam.pteam_name}
-          onClose={() => setOpenRemove(false)}
-        />
-      </Dialog>
+      {(isCurrentUserAdmin || memberUserId === userMe.user_id) && (
+        <Dialog open={openRemove} onClose={() => setOpenRemove(false)}>
+          <PTeamMemberRemoveModal
+            memberUserId={memberUserId}
+            userName={userEmail}
+            pteamId={pteamId}
+            pteamName={pteam.pteam_name}
+            onClose={() => setOpenRemove(false)}
+          />
+        </Dialog>
+      )}
     </>
   );
 }
@@ -112,5 +115,5 @@ PTeamMemberMenu.propTypes = {
   pteamId: PropTypes.string.isRequired,
   memberUserId: PropTypes.string.isRequired,
   userEmail: PropTypes.string.isRequired,
-  isCurrentMemberAdmin: PropTypes.bool.isRequired,
+  isTargetMemberAdmin: PropTypes.bool.isRequired,
 };
