@@ -76,7 +76,7 @@ export function TopicTicketAccordion(props) {
     data: threat,
     error: threatError,
     isLoading: threatIsLoading,
-  } = useGetThreatQuery(ticket.ticket_id, { skipByAuth });
+  } = useGetThreatQuery(ticket.threat_id, { skipByAuth });
 
   if (skipByAuth) return <></>;
   if (threatIsLoading) return ErrorAccordion("Now loading Threat...", defaultExpanded);
