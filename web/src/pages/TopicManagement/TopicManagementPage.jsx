@@ -37,6 +37,7 @@ import {
   useGetTopicQuery,
   useSearchTopicsQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
 import { errorToString, cvssConvertToName } from "../../utils/func";
 
@@ -44,9 +45,15 @@ import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "./TopicSearchModal";
 
 function getDisplayMessage(topicError, topicIsLoading, topicActionsError, topicActionsIsLoading) {
-  if (topicActionsError) return `Cannot get topicActions: ${errorToString(topicActionsError)}`;
+  if (topicActionsError)
+    throw new APIError(errorToString(topicActionsError), {
+      api: "getTopicActions",
+    });
   if (topicActionsIsLoading) return "Now loading topicActions...";
-  if (topicError) return `Cannot get Topic: ${errorToString(topicError)}`;
+  if (topicError)
+    throw new APIError(errorToString(topicError), {
+      api: "getTopic",
+    });
   if (topicIsLoading) return "Now loading Topic...";
   return "";
 }
@@ -159,7 +166,10 @@ export function TopicManagement() {
   } = useSearchTopicsQuery(searchParams, { skip, refetchOnMountOrArgChange: true });
 
   if (skip) return <>Now loading auth token...</>;
-  if (searchResultError) return <>{`Search topics failed: ${errorToString(searchResultError)}`}</>;
+  if (searchResultError)
+    throw new APIError(errorToString(searchResultError), {
+      api: "searchTopics",
+    });
   if (searchResultIsLoading) return <>Now searching topics...</>;
 
   const topics = searchResult.topics;
