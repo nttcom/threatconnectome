@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { LocationReader } from "../../utils/LocationReader";
 import { drawerParams } from "../../utils/const";
 import { errorToString } from "../../utils/func";
@@ -50,7 +51,7 @@ export function TeamSelector() {
   }, [userMe, locationReader]);
 
   if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const switchToPTeam = (teamId) => {
