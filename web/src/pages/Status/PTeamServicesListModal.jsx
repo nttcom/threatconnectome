@@ -24,6 +24,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetPTeamServiceThumbnailQuery, useGetPTeamQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
@@ -91,7 +92,10 @@ export function PTeamServicesListModal(props) {
   } = useGetPTeamQuery(pteamId, { skip });
 
   if (skip) return <></>;
-  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamError)
+    throw new APIError(errorToString(pteamError), {
+      api: "getPTeam",
+    });
   if (pteamIsLoading) return <>Now loading Team...</>;
 
   const targetServices = pteam.services

@@ -17,6 +17,7 @@ import { useLocation, useNavigate } from "react-router";
 import styles from "../../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useDeletePTeamServiceMutation, useGetPTeamQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
 export function PTeamServiceDelete(props) {
@@ -39,7 +40,10 @@ export function PTeamServiceDelete(props) {
   } = useGetPTeamQuery(pteamId, { skip });
 
   if (skip) return <></>;
-  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamError)
+    throw new APIError(errorToString(pteamError), {
+      api: "getPTeam",
+    });
   if (pteamIsLoading) return <>Now loading Team...</>;
 
   const services = pteam.services;
