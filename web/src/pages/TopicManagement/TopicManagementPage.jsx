@@ -37,16 +37,15 @@ import {
   useGetTopicQuery,
   useSearchTopicsQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
 import { errorToString, cvssConvertToName } from "../../utils/func";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "./TopicSearchModal";
 
-function getDisplayMessage(topicError, topicIsLoading, topicActionsError, topicActionsIsLoading) {
-  if (topicActionsError) return `Cannot get topicActions: ${errorToString(topicActionsError)}`;
+function getDisplayMessage(topicIsLoading, topicActionsIsLoading) {
   if (topicActionsIsLoading) return "Now loading topicActions...";
-  if (topicError) return `Cannot get Topic: ${errorToString(topicError)}`;
   if (topicIsLoading) return "Now loading Topic...";
   return "";
 }
@@ -73,12 +72,20 @@ function TopicManagementTableRow(props) {
     isLoading: topicActionsIsLoading,
   } = useGetTopicActionsQuery(topicId, { skip });
 
-  if (skip || topicError || topicIsLoading || topicActionsError || topicActionsIsLoading)
+  if (topicError)
+    throw new APIError(errorToString(topicError), {
+      api: "getTopic",
+    });
+
+  if (topicActionsError)
+    throw new APIError(errorToString(topicActionsError), {
+      api: "getTopicActions",
+    });
+
+  if (skip || topicIsLoading || topicActionsIsLoading)
     return (
       <TableRow>
-        <TableCell>
-          {getDisplayMessage(topicError, topicIsLoading, topicActionsError, topicActionsIsLoading)}
-        </TableCell>
+        <TableCell>{getDisplayMessage(topicIsLoading, topicActionsIsLoading)}</TableCell>
       </TableRow>
     );
 
@@ -159,7 +166,10 @@ export function TopicManagement() {
   } = useSearchTopicsQuery(searchParams, { skip, refetchOnMountOrArgChange: true });
 
   if (skip) return <>Now loading auth token...</>;
-  if (searchResultError) return <>{`Search topics failed: ${errorToString(searchResultError)}`}</>;
+  if (searchResultError)
+    throw new APIError(errorToString(searchResultError), {
+      api: "searchTopics",
+    });
   if (searchResultIsLoading) return <>Now searching topics...</>;
 
   const topics = searchResult.topics;
