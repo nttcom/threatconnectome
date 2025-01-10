@@ -9,6 +9,7 @@ import React, { useState } from "react";
 
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery, useGetUserMeQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { errorToString, checkAdmin } from "../../utils/func";
 
 import { PTeamAuthEditor } from "./PTeamAuthEditor";
@@ -35,9 +36,15 @@ export function PTeamMemberMenu(props) {
   } = useGetPTeamQuery(pteamId, { skip });
 
   if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get userInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeError)
+    throw new APIError(errorToString(userMeError), {
+      api: "getUserMe",
+    });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamError)
+    throw new APIError(errorToString(pteamError), {
+      api: "getPTeam",
+    });
   if (pteamIsLoading) return <>Now loading Team...</>;
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);

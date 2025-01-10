@@ -6,6 +6,7 @@ import { PTeamLabel } from "../../components/PTeamLabel";
 import { TabPanel } from "../../components/TabPanel";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetPTeamMembersQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { experienceColors, noPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
@@ -28,7 +29,11 @@ export function PTeam() {
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skip) return <></>;
 
-  if (membersError) return <>{`Cannot get Team: ${errorToString(membersError)}`}</>;
+  if (membersError)
+    throw new APIError(errorToString(membersError), {
+      api: "getPTeamMembers",
+    });
+
   if (membersIsLoading) return <>Now loading Members...</>;
 
   const tabHandleChange = (event, newValue) => {
