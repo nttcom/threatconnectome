@@ -10,7 +10,6 @@ test.each([
     expectedParam: "",
   },
   // navigate location.pathname in status page
-  // in status page
   {
     locationPathname: "/",
     locationSearch: "?pteamId=dummyPteamId1",
