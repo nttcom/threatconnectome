@@ -51,7 +51,7 @@ test.each([
     expectedParam: "pteamId=pteamId1",
   },
 ])(
-  "checkPTeamIdInParams not navigate",
+  "checkPTeamIdInParams test",
   ({ locationPathname, locationSearch, pteamRoles, navigateCallCount, expectedParam }) => {
     const location = {
       pathname: locationPathname,
