@@ -22,6 +22,7 @@ import { useParams } from "react-router-dom";
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
 import { errorToString, cvssConvertToName } from "../../utils/func";
 
@@ -63,10 +64,10 @@ export function TopicDetail() {
   } = useGetTopicActionsQuery(topicId, { skip });
 
   if (skip) return <></>;
-  if (topicError) return <>{`Cannot get Topic: ${errorToString(topicError)}`}</>;
+  if (topicError) throw new APIError(errorToString(topicError), { api: "getTopic" });
   if (topicIsLoading) return <>Now loading Topic...</>;
   if (topicActionsError)
-    return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
+    throw new APIError(errorToString(topicActionsError), { api: "getTopicActions" });
   if (topicActionsIsLoading) return <>Now loading topicActions...</>;
 
   const cvssScore =
