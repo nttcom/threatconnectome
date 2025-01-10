@@ -39,7 +39,7 @@ const testUpdateAuthButton = () => {
     const button = screen.getByRole("button");
     await ue.click(button);
 
-    expect(mockOnUpdate.mock.calls).toHaveLength(1);
+    expect(mockOnUpdate).toBeCalledTimes(1);
   });
 
   it("UpdateAuthButton does not call onUpdate if disabled and clicked", async () => {
@@ -51,7 +51,7 @@ const testUpdateAuthButton = () => {
     const button = screen.getByRole("button");
     await ue.click(button);
 
-    expect(mockOnUpdate.mock.calls).toHaveLength(0);
+    expect(mockOnUpdate).toBeCalledTimes(0);
   });
 };
 

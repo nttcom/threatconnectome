@@ -73,7 +73,7 @@ const testAuthAdminCheckbox = () => {
     const checkbox = screen.getByRole("checkbox");
     await ue.click(checkbox);
 
-    expect(mockOnChange.mock.calls).toHaveLength(1);
+    expect(mockOnChange).toBeCalledTimes(1);
   });
 
   it("AuthAdminCheckbox not calls onChange when disabled and clicked", async () => {
@@ -85,7 +85,7 @@ const testAuthAdminCheckbox = () => {
     const checkbox = screen.getByRole("checkbox");
     await ue.click(checkbox);
 
-    expect(mockOnChange.mock.calls).toHaveLength(0);
+    expect(mockOnChange).toBeCalledTimes(0);
   });
 };
 
