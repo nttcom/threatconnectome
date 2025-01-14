@@ -15,7 +15,7 @@ import { AppBar } from "./AppBar";
 import { AppFallback } from "./AppFallback";
 import { Drawer } from "./Drawer";
 import { Main } from "./Main";
-import { ParamsChecker } from "./ParamsChecker";
+import { OutletWithCheckedParams } from "./OutletWithCheckedParams";
 
 export function App() {
   /* eslint-disable-next-line no-unused-vars */
@@ -61,7 +61,7 @@ export function App() {
         <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" m={1}>
           <Box display="flex" flexDirection="column" flexGrow={1} maxWidth={mainMaxWidth}>
             <ErrorBoundary FallbackComponent={AppFallback}>
-              <ParamsChecker />
+              <OutletWithCheckedParams />
             </ErrorBoundary>
           </Box>
         </Box>

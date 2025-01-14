@@ -1,4 +1,4 @@
-import { navigateSpecifiedPteam } from "../utils/locationChecker";
+import { navigateSpecifiedPteam } from "../utils/locationNavigator";
 
 test.each([
   // not navigate
