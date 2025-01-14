@@ -16,6 +16,7 @@ import React, { useState } from "react";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery, useUpdateUserMutation } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
 export function Account() {
@@ -35,7 +36,10 @@ export function Account() {
   } = useGetUserMeQuery(undefined, { skip });
 
   if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get user info: ${errorToString(userMeError)}`}</>;
+  if (userMeError)
+    throw new APIError(errorToString(userMeError), {
+      api: "getUserMe",
+    });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const handleEditMode = () => {
