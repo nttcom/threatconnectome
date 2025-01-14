@@ -1,6 +1,6 @@
 import { LocationReader } from "./LocationReader";
 
-export const checkPTeamIdInParams = (location, pteam_roles, navigate) => {
+export const navigateSpecifiedPteam = (location, pteam_roles, navigate) => {
   const params = new URLSearchParams(location.search);
   const locationReader = new LocationReader(location);
 

@@ -1,4 +1,4 @@
-import { checkPTeamIdInParams } from "../utils/locationChecker";
+import { navigateSpecifiedPteam } from "../utils/locationChecker";
 
 test.each([
   // not navigate
@@ -50,7 +50,7 @@ test.each([
     expectedParam: "pteamId=pteamId1",
   },
 ])(
-  "checkPTeamIdInParams test",
+  "navigateSpecifiedPteam test",
   ({ locationPathname, locationSearch, pteamRoles, navigateCallCount, expectedParam }) => {
     const location = {
       pathname: locationPathname,
@@ -58,13 +58,13 @@ test.each([
     };
     const mockNavigate = jest.fn();
 
-    checkPTeamIdInParams(location, pteamRoles, mockNavigate);
+    navigateSpecifiedPteam(location, pteamRoles, mockNavigate);
 
     expect(mockNavigate).toBeCalledTimes(navigateCallCount);
     if (navigateCallCount === 1) {
       const expectNavigatePath =
         expectedParam === "" ? locationPathname : locationPathname + "?" + expectedParam;
-      expect(mockNavigate.mock.calls[0][0]).toBe(expectNavigatePath);
+      expect(mockNavigate).toHaveBeenCalledWith(expectNavigatePath);
     }
   },
 );

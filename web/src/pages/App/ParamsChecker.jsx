@@ -5,7 +5,7 @@ import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
-import { checkPTeamIdInParams } from "../../utils/locationChecker";
+import { navigateSpecifiedPteam } from "../../utils/locationChecker";
 
 export function ParamsChecker() {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export function ParamsChecker() {
 
   useEffect(() => {
     if (!userMe || userMeIsFetching) return;
-    checkPTeamIdInParams(location, userMe.pteam_roles, navigate);
+    navigateSpecifiedPteam(location, userMe.pteam_roles, navigate);
   }, [navigate, location, userMe, userMeIsFetching]);
 
   if (skip) return <></>;
