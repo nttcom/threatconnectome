@@ -2,6 +2,7 @@ import { Menu as MenuIcon } from "@mui/icons-material";
 import { AppBar as MuiAppBar, Box, Button, Divider, IconButton, Toolbar } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
@@ -10,6 +11,7 @@ import { tcApi } from "../../services/tcApi";
 import { setDrawerOpen } from "../../slices/system";
 import { drawerWidth } from "../../utils/const";
 
+import { AppFallback } from "./AppFallback";
 import { TeamSelector } from "./TeamSelector";
 
 const StyledAppBar = styled(MuiAppBar, {
@@ -65,7 +67,9 @@ export function AppBar() {
           </IconButton>
           <Divider orientation="vertical" flexItem sx={{ mr: 2 }} />
           <Box flexGrow={1} />
-          <TeamSelector />
+          <ErrorBoundary FallbackComponent={AppFallback}>
+            <TeamSelector />
+          </ErrorBoundary>
           <Button color="inherit" onClick={handleLogout}>
             Logout
           </Button>
