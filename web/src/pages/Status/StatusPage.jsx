@@ -38,6 +38,7 @@ import {
   useGetPTeamTagsSummaryQuery,
   useGetPTeamServiceTagsSummaryQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
@@ -185,18 +186,25 @@ export function Status() {
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skipByAuth || !pteamId) return <></>;
-  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamError)
+    throw new APIError(errorToString(pteamError), {
+      api: "getPTeam",
+    });
   if (pteamIsLoading) return <>Now loading Team...</>;
 
   if (isActiveAllServicesMode) {
     if (pteamTagsSummaryError)
-      return <>{`Cannot get pteamTagsSummary: ${errorToString(pteamTagsSummaryError)}`}</>;
+      throw new APIError(errorToString(pteamTagsSummaryError), {
+        api: "getPTeamTagsSummary",
+      });
 
     if (!pteamTagsSummary || pteamTagsSummaryIsFetching)
       return <>Now loading pteamTagsSummary...</>;
   } else {
     if (serviceTagsSummaryError)
-      return <>{`Cannot get serviceTagsSummary: ${errorToString(serviceTagsSummaryError)}`}</>;
+      throw new APIError(errorToString(serviceTagsSummaryError), {
+        api: "getPTeamServiceTagsSummary",
+      });
 
     if (
       (serviceId || pteam.services.length > 0) &&
