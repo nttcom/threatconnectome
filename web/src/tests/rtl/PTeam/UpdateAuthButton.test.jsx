@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import React from "react";
 
-import { UpdateAuthButton } from "./UpdateAuthButton";
+import { UpdateAuthButton } from "../../../pages/PTeam/UpdateAuthButton";
 
 const mockTemplate = () => {
   throw new Error("Not implemented: You should override mock using jest.fn().");
