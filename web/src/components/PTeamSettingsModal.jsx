@@ -17,6 +17,7 @@ import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetPTeamQuery } from "../services/tcApi";
+import { APIError } from "../utils/APIError";
 import { a11yProps, errorToString } from "../utils/func.js";
 
 import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
@@ -35,7 +36,10 @@ export function PTeamSettingsModal(props) {
   } = useGetPTeamQuery(pteamId, { skip });
 
   if (skip) return <></>;
-  if (pteamError) return <>{`Cannot get Team: ${errorToString(pteamError)}`}</>;
+  if (pteamError)
+    throw new APIError(errorToString(pteamError), {
+      api: "getPTeam",
+    });
   if (pteamIsLoading) return <>Now loading Team...</>;
 
   const handleClose = () => onSetShow(false);

@@ -5,6 +5,7 @@ import React, { useState } from "react";
 
 import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
 import { useGetUserMeQuery } from "../services/tcApi";
+import { APIError } from "../utils/APIError";
 import { errorToString } from "../utils/func";
 
 import { PTeamSettingsModal } from "./PTeamSettingsModal";
@@ -23,7 +24,10 @@ export function PTeamLabel(props) {
   } = useGetUserMeQuery(undefined, { skip });
 
   if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeError)
+    throw new APIError(errorToString(userMeError), {
+      api: "getUserMe",
+    });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const pteamName =
