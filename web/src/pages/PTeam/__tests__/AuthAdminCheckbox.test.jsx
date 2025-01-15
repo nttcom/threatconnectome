@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import React from "react";
 
-import { AuthAdminCheckbox } from "./AuthAdminCheckbox";
+import { AuthAdminCheckbox } from "../AuthAdminCheckbox";
 
 const mockTemplate = () => {
   throw new Error("Not implemented: You should override mock using jest.fn().");
