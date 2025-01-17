@@ -81,7 +81,7 @@ describe("TestLoginPage", () => {
     ["auth/user-not-found", /User not found/],
     ["auth/wrong-password", /Wrong password/],
     ["unexpected-error", /Something went wrong/],
-  ])("Login shows error message when login failed: %2$s", async (errorCode, expected) => {
+  ])("Login shows error message when login failed: %s", async (errorCode, expected) => {
     const mockSignInWithEmailAndPassword = genApiMock(false, { code: errorCode });
     useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
     const ue = userEvent.setup();
