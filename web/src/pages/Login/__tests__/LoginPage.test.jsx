@@ -1,15 +1,15 @@
-import { Provider } from "react-redux";
-import { BrowserRouter } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
+import { Provider } from "react-redux";
+import { BrowserRouter } from "react-router-dom";
 
-import { Login } from "../LoginPage";
-import store from "../../../store";
 import {
   useSignInWithEmailAndPasswordMutation,
-  useSignInWithSamlMutation,
+  // useSignInWithSamlMutation,
 } from "../../../services/firebaseApi";
+import store from "../../../store";
+import { Login } from "../LoginPage";
 
 const renderLogin = () => {
   render(
@@ -36,7 +36,7 @@ const renderLogin = () => {
 jest.mock("../../../services/firebaseApi", () => ({
   ...jest.requireActual("../../../services/firebaseApi"),
   useSignInWithEmailAndPasswordMutation: jest.fn(),
-  useSignInWithSamlMutation: jest.fn(),
+  // useSignInWithSamlMutation: jest.fn(),
 }));
 
 const genApiMock = (isSuccess = true, returnValue = undefined) => {
