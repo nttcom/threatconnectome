@@ -8,6 +8,7 @@ import {
   useSignInWithEmailAndPasswordMutation,
   // useSignInWithSamlMutation,
 } from "../../../services/firebaseApi";
+import { useTryLoginMutation, useCreateUserMutation } from "../../../services/tcApi";
 import store from "../../../store";
 import { Login } from "../LoginPage";
 
@@ -36,7 +37,18 @@ const renderLogin = () => {
 jest.mock("../../../services/firebaseApi", () => ({
   ...jest.requireActual("../../../services/firebaseApi"),
   useSignInWithEmailAndPasswordMutation: jest.fn(),
-  // useSignInWithSamlMutation: jest.fn(),
+}));
+
+jest.mock("../../../services/tcApi", () => ({
+  ...jest.requireActual("../../../services/tcApi"),
+  useTryLoginMutation: jest.fn(),
+  useCreateUserMutation: jest.fn(),
+}));
+
+const mockedNavigator = jest.fn();
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockedNavigator,
 }));
 
 const genApiMock = (isSuccess = true, returnValue = undefined) => {
@@ -54,6 +66,13 @@ describe("TestLoginPage", () => {
   it("Login calls signInWithEmailAndPassword with inputed values", async () => {
     const mockSignInWithEmailAndPassword = genApiMock();
     useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+    const mockTryLogin = genApiMock();
+    useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+    const mockCreateUser = genApiMock();
+    useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
     const ue = userEvent.setup();
     renderLogin();
 
@@ -72,6 +91,9 @@ describe("TestLoginPage", () => {
       email: emailValue,
       password: passwordValue,
     });
+    expect(mockTryLogin).toBeCalledTimes(0);
+    expect(mockedNavigator).toBeCalledTimes(0);
+    expect(mockCreateUser).toBeCalledTimes(0);
   });
 
   it.concurrent.each([
@@ -84,6 +106,13 @@ describe("TestLoginPage", () => {
   ])("Login shows error message when login failed: %s", async (errorCode, expected) => {
     const mockSignInWithEmailAndPassword = genApiMock(false, { code: errorCode });
     useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+    const mockTryLogin = genApiMock();
+    useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+    const mockCreateUser = genApiMock();
+    useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
     const ue = userEvent.setup();
     renderLogin();
 
@@ -101,5 +130,38 @@ describe("TestLoginPage", () => {
     await ue.click(loginButton);
 
     expect(screen.getByText(expectedMessageRegexp)).toBeInTheDocument();
+    expect(mockTryLogin).toBeCalledTimes(0);
+    expect(mockedNavigator).toBeCalledTimes(0);
+    expect(mockCreateUser).toBeCalledTimes(0);
+  });
+
+  it("Navigate when authentication successful without location.state", async () => {
+    const testCredential = { user: { accessToken: "test_token" } };
+    const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+    useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+    const mockTryLogin = genApiMock();
+    useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+    const mockCreateUser = genApiMock();
+    useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+    const ue = userEvent.setup();
+    renderLogin();
+
+    const emailValue = "user1@localhost.localdomain";
+    const passwordValue = "secret keyword";
+
+    const emailField = screen.getByRole("textbox", { name: "Email Address" });
+    const passwordField = screen.getByLabelText(/^Password/);
+    const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+    await ue.type(emailField, emailValue);
+    await ue.type(passwordField, passwordValue);
+    await ue.click(loginButton);
+
+    expect(mockTryLogin).toBeCalledTimes(1);
+    expect(mockedNavigator).toBeCalledTimes(1);
+    expect(mockedNavigator).toHaveBeenCalledWith({ pathname: "/", search: "" });
+    expect(mockCreateUser).toBeCalledTimes(0);
   });
 });
