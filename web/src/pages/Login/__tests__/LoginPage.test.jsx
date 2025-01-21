@@ -43,9 +43,11 @@ jest.mock("../../../services/tcApi", () => ({
 }));
 
 const mockedNavigator = jest.fn();
+const testLocation = { state: null };
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => mockedNavigator,
+  useLocation: () => testLocation,
 }));
 
 const genApiMock = (isSuccess = true, returnValue = undefined) => {
@@ -58,6 +60,7 @@ const genApiMock = (isSuccess = true, returnValue = undefined) => {
 describe("TestLoginPage", () => {
   afterEach(() => {
     jest.clearAllMocks();
+    testLocation.state = null;
   });
 
   it("Login calls signInWithEmailAndPassword with inputed values", async () => {
@@ -181,6 +184,41 @@ describe("TestLoginPage", () => {
     expect(mockTryLogin).toBeCalledTimes(1);
     expect(mockedNavigator).toBeCalledTimes(1);
     expect(mockedNavigator).toHaveBeenCalledWith({ pathname: "/", search: "" });
+    expect(mockCreateUser).toBeCalledTimes(0);
+  });
+
+  it("Navigate when authentication successful after page access without login", async () => {
+    const testCredential = { user: { accessToken: "test_token" } };
+    const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+    useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+    const mockTryLogin = genApiMock();
+    useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+    const mockCreateUser = genApiMock();
+    useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+    testLocation.state = { from: "/pteam", search: "?pteamId=test_id" };
+
+    const ue = userEvent.setup();
+    renderLogin();
+
+    const emailValue = "user1@localhost.localdomain";
+    const passwordValue = "secret keyword";
+
+    const emailField = screen.getByRole("textbox", { name: "Email Address" });
+    const passwordField = screen.getByLabelText(/^Password/);
+    const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+    await ue.type(emailField, emailValue);
+    await ue.type(passwordField, passwordValue);
+    await ue.click(loginButton);
+
+    expect(mockTryLogin).toBeCalledTimes(1);
+    expect(mockedNavigator).toBeCalledTimes(1);
+    expect(mockedNavigator).toHaveBeenCalledWith({
+      pathname: "/pteam",
+      search: "?pteamId=test_id",
+    });
     expect(mockCreateUser).toBeCalledTimes(0);
   });
 
