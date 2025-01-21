@@ -16,7 +16,6 @@ import {
 } from "@mui/material";
 import { sendEmailVerification } from "firebase/auth";
 import React, { useEffect, useState } from "react";
-import { useCookies } from "react-cookie";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -39,9 +38,6 @@ export function Login() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  /* eslint-disable-next-line no-unused-vars */
-  const [_cookies, setCookie, removeCookie] = useCookies([authCookieName]);
-
   const metemcyberAuthUrl = process.env.REACT_APP_METEMCYBER_AUTH_URL;
 
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
@@ -51,9 +47,8 @@ export function Login() {
 
   useEffect(() => {
     dispatch(clearAuth());
-    removeCookie(authCookieName, cookiesOptions);
     setMessage(location.state?.message);
-  }, [dispatch, location, removeCookie]);
+  }, [dispatch, location]);
 
   const callSignInWithEmailAndPassword = async (email, password) => {
     return await signInWithEmailAndPassword({ email, password })
@@ -83,8 +78,6 @@ export function Login() {
   };
 
   const navigateInternalPage = async (userCredential) => {
-    const accessToken = userCredential.user.accessToken;
-    setCookie(authCookieName, accessToken, cookiesOptions);
     try {
       await tryLogin().unwrap();
       navigate({

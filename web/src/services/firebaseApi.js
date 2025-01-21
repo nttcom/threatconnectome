@@ -1,5 +1,10 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  setPersistence,
+  browserSessionPersistence,
+} from "firebase/auth";
 
 import { setAuthToken } from "../slices/auth";
 import { auth, samlProvider } from "../utils/firebase";
@@ -26,6 +31,7 @@ export const firebaseApi = createApi({
     */
     signInWithEmailAndPassword: builder.mutation({
       queryFn: async ({ email, password }, { dispatch }) => {
+        await setPersistence(auth, browserSessionPersistence);
         return await signInWithEmailAndPassword(auth, email, password)
           .then((credential) => {
             dispatch(setAuthToken(credential.user.accessToken));
