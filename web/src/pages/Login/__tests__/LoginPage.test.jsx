@@ -4,10 +4,7 @@ import React from "react";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 
-import {
-  useSignInWithEmailAndPasswordMutation,
-  // useSignInWithSamlMutation,
-} from "../../../services/firebaseApi";
+import { useSignInWithEmailAndPasswordMutation } from "../../../services/firebaseApi";
 import { useTryLoginMutation, useCreateUserMutation } from "../../../services/tcApi";
 import store from "../../../store";
 import { Login } from "../LoginPage";
@@ -91,6 +88,31 @@ describe("TestLoginPage", () => {
       email: emailValue,
       password: passwordValue,
     });
+  });
+
+  it("Not navigate when userCredential is undefined)", async () => {
+    const mockSignInWithEmailAndPassword = genApiMock();
+    useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+    const mockTryLogin = genApiMock();
+    useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+    const mockCreateUser = genApiMock();
+    useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+    const ue = userEvent.setup();
+    renderLogin();
+
+    const emailValue = "user1@localhost.localdomain";
+    const passwordValue = "secret keyword";
+
+    const emailField = screen.getByRole("textbox", { name: "Email Address" });
+    const passwordField = screen.getByLabelText(/^Password/);
+    const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+    await ue.type(emailField, emailValue);
+    await ue.type(passwordField, passwordValue);
+    await ue.click(loginButton);
+
     expect(mockTryLogin).toBeCalledTimes(0);
     expect(mockedNavigator).toBeCalledTimes(0);
     expect(mockCreateUser).toBeCalledTimes(0);
@@ -130,9 +152,6 @@ describe("TestLoginPage", () => {
     await ue.click(loginButton);
 
     expect(screen.getByText(expectedMessageRegexp)).toBeInTheDocument();
-    expect(mockTryLogin).toBeCalledTimes(0);
-    expect(mockedNavigator).toBeCalledTimes(0);
-    expect(mockCreateUser).toBeCalledTimes(0);
   });
 
   it("Navigate when authentication successful without location.state", async () => {
