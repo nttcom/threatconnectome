@@ -187,7 +187,7 @@ describe("TestLoginPage", () => {
     expect(mockCreateUser).toBeCalledTimes(0);
   });
 
-  it("Navigate when authentication successful after page access without login", async () => {
+  it("Navigate back to the page where redirected from, on auth succeeded", async () => {
     const testCredential = { user: { accessToken: "test_token" } };
     const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
     useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
@@ -216,8 +216,8 @@ describe("TestLoginPage", () => {
     expect(mockTryLogin).toBeCalledTimes(1);
     expect(mockedNavigator).toBeCalledTimes(1);
     expect(mockedNavigator).toHaveBeenCalledWith({
-      pathname: "/pteam",
-      search: "?pteamId=test_id",
+      pathname: testLocation.state.from,
+      search: testLocation.state.search,
     });
     expect(mockCreateUser).toBeCalledTimes(0);
   });
