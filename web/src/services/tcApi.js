@@ -22,7 +22,7 @@ const _responseListToDictConverter =
 export const tcApi = createApi({
   reducerPath: "tcApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.REACT_APP_API_BASE_URL,
+    baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: (headers, { getState }) => {
       /* Note: access token is stored in auth.token via firebaseApi or cookie */
       const token = getState().auth.token;

@@ -20,7 +20,7 @@ export const rootPrefix = import.meta.env.PUBLIC_URL.replace(/\/+$/, ""); // tri
 
 export const systemAccount = {
   uuid: "00000000-0000-0000-0000-0000cafe0011",
-  email: import.meta.env.REACT_APP_SYSTEM_EMAIL || "SYSTEM_ACCOUNT",
+  email: import.meta.env.VITE_SYSTEM_EMAIL || "SYSTEM_ACCOUNT",
 };
 
 export const actionTypeChipWidth = 90;

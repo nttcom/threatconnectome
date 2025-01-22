@@ -42,7 +42,7 @@ export function Login() {
   /* eslint-disable-next-line no-unused-vars */
   const [_cookies, setCookie, removeCookie] = useCookies([authCookieName]);
 
-  const metemcyberAuthUrl = import.meta.env.REACT_APP_METEMCYBER_AUTH_URL;
+  const metemcyberAuthUrl = import.meta.env.VITE_METEMCYBER_AUTH_URL;
 
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
   const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
