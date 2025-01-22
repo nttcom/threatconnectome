@@ -31,7 +31,7 @@ export function App() {
     const _checkToken = async () => {
       try {
         const accessToken = await auth.currentUser?.getIdToken(true);
-        if (!accessToken) throw new Error("Missing cookie");
+        if (!accessToken) throw new Error("Missing accessToken");
         dispatch(setAuthToken(accessToken));
         await tryLogin().unwrap(); // throw error if accessToken is expired
       } catch (error) {
