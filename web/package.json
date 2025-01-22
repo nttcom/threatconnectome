@@ -31,9 +31,19 @@
     "redux": "^5.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react-swc": "^3.7.2",
     "customize-cra": "^1.0.0",
+    "eslint": "^9.18.0",
     "eslint-config-prettier": "^9.1.0",
-    "prettier": "^3.2.5"
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "globals": "^15.14.0",
+    "prettier": "^3.2.5",
+    "vite": "^6.0.11"
   },
   "scripts": {
     "build": "react-app-rewired build",
