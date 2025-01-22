@@ -29,7 +29,7 @@ import { clearAuth } from "../../slices/auth";
 import { samlProvider } from "../../utils/firebase";
 
 export const authCookieName = "Authorization";
-export const cookiesOptions = { path: process.env.PUBLIC_URL || "/" };
+export const cookiesOptions = { path: import.meta.env.PUBLIC_URL || "/" };
 
 export function Login() {
   const [message, setMessage] = useState(null);
@@ -42,7 +42,7 @@ export function Login() {
   /* eslint-disable-next-line no-unused-vars */
   const [_cookies, setCookie, removeCookie] = useCookies([authCookieName]);
 
-  const metemcyberAuthUrl = process.env.REACT_APP_METEMCYBER_AUTH_URL;
+  const metemcyberAuthUrl = import.meta.env.REACT_APP_METEMCYBER_AUTH_URL;
 
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
   const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
@@ -95,7 +95,7 @@ export function Login() {
       switch (error.data?.detail) {
         case "Email is not verified. Try logging in on UI and verify email.": {
           const actionCodeSettings = {
-            url: `${window.location.origin}${process.env.PUBLIC_URL}/login`,
+            url: `${window.location.origin}${import.meta.env.PUBLIC_URL}/login`,
           };
           await sendEmailVerification(userCredential.user, actionCodeSettings);
           setMessage(

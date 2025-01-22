@@ -16,11 +16,11 @@ import {
   yellow,
 } from "@mui/material/colors";
 
-export const rootPrefix = process.env.PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
+export const rootPrefix = import.meta.env.PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
 
 export const systemAccount = {
   uuid: "00000000-0000-0000-0000-0000cafe0011",
-  email: process.env.REACT_APP_SYSTEM_EMAIL || "SYSTEM_ACCOUNT",
+  email: import.meta.env.REACT_APP_SYSTEM_EMAIL || "SYSTEM_ACCOUNT",
 };
 
 export const actionTypeChipWidth = 90;
