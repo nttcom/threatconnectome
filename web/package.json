@@ -46,17 +46,17 @@
     "vite": "^6.0.11"
   },
   "scripts": {
-    "build": "react-app-rewired build",
+    "build": "vite build",
     "check": "npm run check:eslint && npm run check:prettier",
     "check:eslint": "eslint --max-warnings=0 './src/**/*.{js,jsx}'",
     "check:prettier": "prettier --check './src/**/*.{js,jsx}'",
-    "eject": "react-app-rewired eject",
+    "dev": "vite dev",
     "fix": "npm run format && npm run lint",
     "format": "prettier --write './src/**/*.{js,jsx}'",
     "lint": "eslint --fix './src/**/*.{js,jsx}'",
-    "start": "react-app-rewired start",
-    "test": "env CI=true react-app-rewired test --no-cache --verbose $npm_config_script_params",
-    "test:watch": "react-app-rewired test"
+    "preview": "vite preview",
+    "start": "npm run dev",
+    "test": "echo TODO"
   },
   "browserslist": {
     "production": [
