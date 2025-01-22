@@ -16,7 +16,7 @@ import {
   yellow,
 } from "@mui/material/colors";
 
-export const rootPrefix = import.meta.env.PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
+export const rootPrefix = import.meta.env.VITE_PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
 
 export const systemAccount = {
   uuid: "00000000-0000-0000-0000-0000cafe0011",

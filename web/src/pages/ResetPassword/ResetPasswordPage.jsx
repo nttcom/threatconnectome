@@ -36,7 +36,7 @@ export function ResetPassword() {
     const data = new FormData(event.currentTarget);
     const actionCodeSettings = {
       handleCodeInApp: false,
-      url: `${window.location.origin}${import.meta.env.PUBLIC_URL}/login`,
+      url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
     };
     try {
       await sendPasswordResetEmail(auth, data.get("email"), actionCodeSettings);

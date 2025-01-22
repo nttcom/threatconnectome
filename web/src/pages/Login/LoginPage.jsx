@@ -29,7 +29,7 @@ import { clearAuth } from "../../slices/auth";
 import { samlProvider } from "../../utils/firebase";
 
 export const authCookieName = "Authorization";
-export const cookiesOptions = { path: import.meta.env.PUBLIC_URL || "/" };
+export const cookiesOptions = { path: import.meta.env.VITE_PUBLIC_URL || "/" };
 
 export function Login() {
   const [message, setMessage] = useState(null);
@@ -95,7 +95,7 @@ export function Login() {
       switch (error.data?.detail) {
         case "Email is not verified. Try logging in on UI and verify email.": {
           const actionCodeSettings = {
-            url: `${window.location.origin}${import.meta.env.PUBLIC_URL}/login`,
+            url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
           };
           await sendEmailVerification(userCredential.user, actionCodeSettings);
           setMessage(
