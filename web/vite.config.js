@@ -10,4 +10,7 @@ export default defineConfig({
   server: {
     cors: true,
   },
+  test: {
+    globals: true,
+  },
 })
