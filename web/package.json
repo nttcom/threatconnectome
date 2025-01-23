@@ -58,7 +58,9 @@
     "lint": "eslint --fix './src/**/*.{js,jsx}'",
     "preview": "vite preview",
     "start": "npm run dev",
-    "test": "echo TODO"
+    "test": "vitest --run",
+    "test:verbose": "vitest --run --reporter=verbose",
+    "test:watch": "vitest"
   },
   "browserslist": {
     "production": [
