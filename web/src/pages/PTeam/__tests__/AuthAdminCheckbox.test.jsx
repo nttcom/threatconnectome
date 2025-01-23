@@ -5,7 +5,7 @@ import React from "react";
 import { AuthAdminCheckbox } from "../AuthAdminCheckbox";
 
 const mockTemplate = () => {
-  throw new Error("Not implemented: You should override mock using jest.fn().");
+  throw new Error("Not implemented: You should override mock using vi.fn().");
 };
 
 const testAuthAdminCheckbox = () => {
@@ -66,7 +66,7 @@ const testAuthAdminCheckbox = () => {
 
   it("AuthAdminCheckbox calls onChange when editable and clicked", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-    const mockOnChange = jest.fn();
+    const mockOnChange = vi.fn();
     const testProps = { ...baseProps, editable: true, onChange: mockOnChange };
     render(<AuthAdminCheckbox {...testProps} />);
 
@@ -78,7 +78,7 @@ const testAuthAdminCheckbox = () => {
 
   it("AuthAdminCheckbox not calls onChange when disabled and clicked", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-    const mockOnChange = jest.fn(() => {});
+    const mockOnChange = vi.fn(() => {});
     const testProps = { ...baseProps, editable: false, onChange: mockOnChange };
     render(<AuthAdminCheckbox {...testProps} />);
 

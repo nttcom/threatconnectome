@@ -31,35 +31,45 @@ const renderLogin = () => {
   );
 };
 
-jest.mock("../../../services/firebaseApi", () => ({
-  ...jest.requireActual("../../../services/firebaseApi"),
-  useSignInWithEmailAndPasswordMutation: jest.fn(),
-}));
+vi.mock("../../../services/firebaseApi", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useSignInWithEmailAndPasswordMutation: vi.fn(),
+  };
+});
 
-jest.mock("../../../services/tcApi", () => ({
-  ...jest.requireActual("../../../services/tcApi"),
-  useTryLoginMutation: jest.fn(),
-  useCreateUserMutation: jest.fn(),
-}));
+vi.mock("../../../services/tcApi", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useTryLoginMutation: vi.fn(),
+    useCreateUserMutation: vi.fn(),
+  };
+});
 
-const mockedNavigator = jest.fn();
+const mockedNavigator = vi.fn();
 const testLocation = { state: null };
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useNavigate: () => mockedNavigator,
-  useLocation: () => testLocation,
-}));
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useNavigate: () => mockedNavigator,
+    useLocation: () => testLocation,
+    BrowserRouter: vi.fn().mockImplementation((props) => props.children),
+  };
+});
 
 const genApiMock = (isSuccess = true, returnValue = undefined) => {
   const mockUnwrap = isSuccess
-    ? jest.fn().mockResolvedValue(returnValue)
-    : jest.fn().mockRejectedValue(returnValue);
-  return jest.fn().mockReturnValue({ unwrap: mockUnwrap });
+    ? vi.fn().mockResolvedValue(returnValue)
+    : vi.fn().mockRejectedValue(returnValue);
+  return vi.fn().mockReturnValue({ unwrap: mockUnwrap });
 };
 
 describe("TestLoginPage", () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     testLocation.state = null;
   });
 
@@ -121,7 +131,7 @@ describe("TestLoginPage", () => {
     expect(mockCreateUser).toBeCalledTimes(0);
   });
 
-  it.concurrent.each([
+  it.sequential.each([
     ["auth/invalid-email", /Invalid email format/],
     ["auth/too-many-requests", /Too many requests/],
     ["auth/user-disabled", /Disabled user/],
