@@ -73,192 +73,277 @@ describe("TestLoginPage", () => {
     testLocation.state = null;
   });
 
-  it("Login calls signInWithEmailAndPassword with inputed values", async () => {
-    const mockSignInWithEmailAndPassword = genApiMock();
-    useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+  describe("Email authentication", () => {
+    it("Login calls signInWithEmailAndPassword with inputed values", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
-    const mockTryLogin = genApiMock();
-    useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
 
-    const mockCreateUser = genApiMock();
-    useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
-    const ue = userEvent.setup();
-    renderLogin();
+      const ue = userEvent.setup();
+      renderLogin();
 
-    const emailValue = "user1@localhost.localdomain";
-    const passwordValue = "secret keyword";
+      const emailValue = "user1@localhost.localdomain";
+      const passwordValue = "secret keyword";
 
-    const emailField = screen.getByRole("textbox", { name: "Email Address" });
-    const passwordField = screen.getByLabelText(/^Password/);
-    const loginButton = screen.getByRole("button", { name: "Log In with Email" });
-    await ue.type(emailField, emailValue);
-    await ue.type(passwordField, passwordValue);
-    await ue.click(loginButton);
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      const passwordField = screen.getByLabelText(/^Password/);
+      const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+      await ue.type(emailField, emailValue);
+      await ue.type(passwordField, passwordValue);
+      await ue.click(loginButton);
 
-    expect(mockSignInWithEmailAndPassword).toBeCalledTimes(1);
-    expect(mockSignInWithEmailAndPassword).toBeCalledWith({
-      email: emailValue,
-      password: passwordValue,
+      expect(mockSignInWithEmailAndPassword).toBeCalledTimes(1);
+      expect(mockSignInWithEmailAndPassword).toBeCalledWith({
+        email: emailValue,
+        password: passwordValue,
+      });
+    });
+
+    it("Not navigate when userCredential is undefined)", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const emailValue = "user1@localhost.localdomain";
+      const passwordValue = "secret keyword";
+
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      const passwordField = screen.getByLabelText(/^Password/);
+      const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+      await ue.type(emailField, emailValue);
+      await ue.type(passwordField, passwordValue);
+      await ue.click(loginButton);
+
+      expect(mockTryLogin).toBeCalledTimes(0);
+      expect(mockedNavigator).toBeCalledTimes(0);
+      expect(mockCreateUser).toBeCalledTimes(0);
+    });
+
+    it.sequential.each([
+      ["auth/invalid-email", /Invalid email format/],
+      ["auth/too-many-requests", /Too many requests/],
+      ["auth/user-disabled", /Disabled user/],
+      ["auth/user-not-found", /User not found/],
+      ["auth/wrong-password", /Wrong password/],
+      ["unexpected-error", /Something went wrong/],
+    ])("Login shows error message when login failed: %s", async (errorCode, expected) => {
+      const mockSignInWithEmailAndPassword = genApiMock(false, { code: errorCode });
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const expectedMessageRegexp = new RegExp(expected);
+      expect(screen.queryByText(expectedMessageRegexp)).not.toBeInTheDocument();
+
+      const emailValue = "user1@localhost.localdomain";
+      const passwordValue = "secret keyword";
+
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      const passwordField = screen.getByLabelText(/^Password/);
+      const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+      await ue.type(emailField, emailValue);
+      await ue.type(passwordField, passwordValue);
+      await ue.click(loginButton);
+
+      expect(screen.getByText(expectedMessageRegexp)).toBeInTheDocument();
+    });
+
+    it("Navigate when authentication successful without location.state", async () => {
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const emailValue = "user1@localhost.localdomain";
+      const passwordValue = "secret keyword";
+
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      const passwordField = screen.getByLabelText(/^Password/);
+      const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+      await ue.type(emailField, emailValue);
+      await ue.type(passwordField, passwordValue);
+      await ue.click(loginButton);
+
+      expect(mockTryLogin).toBeCalledTimes(1);
+      expect(mockedNavigator).toBeCalledTimes(1);
+      expect(mockedNavigator).toHaveBeenCalledWith({ pathname: "/", search: "" });
+      expect(mockCreateUser).toBeCalledTimes(0);
+    });
+
+    it("Navigate back to the page where redirected from, on auth succeeded", async () => {
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      testLocation.state = { from: "/pteam", search: "?pteamId=test_id" };
+
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const emailValue = "user1@localhost.localdomain";
+      const passwordValue = "secret keyword";
+
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      const passwordField = screen.getByLabelText(/^Password/);
+      const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+      await ue.type(emailField, emailValue);
+      await ue.type(passwordField, passwordValue);
+      await ue.click(loginButton);
+
+      expect(mockTryLogin).toBeCalledTimes(1);
+      expect(mockedNavigator).toBeCalledTimes(1);
+      expect(mockedNavigator).toHaveBeenCalledWith({
+        pathname: testLocation.state.from,
+        search: testLocation.state.search,
+      });
+      expect(mockCreateUser).toBeCalledTimes(0);
+    });
+
+    it("Create user when No user in Tc", async () => {
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockTryLogin = genApiMock(false, { data: { detail: "No such user" } });
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const emailValue = "user1@localhost.localdomain";
+      const passwordValue = "secret keyword";
+
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      const passwordField = screen.getByLabelText(/^Password/);
+      const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+      await ue.type(emailField, emailValue);
+      await ue.type(passwordField, passwordValue);
+      await ue.click(loginButton);
+
+      expect(mockTryLogin).toBeCalledTimes(1);
+      expect(mockCreateUser).toBeCalledTimes(1);
+      expect(mockedNavigator).toBeCalledTimes(1);
+      expect(mockedNavigator).toHaveBeenCalledWith("/account", {
+        state: { from: "/", search: "" },
+      });
     });
   });
 
-  it("Not navigate when userCredential is undefined)", async () => {
-    const mockSignInWithEmailAndPassword = genApiMock();
-    useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+  describe("UI elements", () => {
+    it("Change password mask", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
-    const mockTryLogin = genApiMock();
-    useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
 
-    const mockCreateUser = genApiMock();
-    useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
-    const ue = userEvent.setup();
-    renderLogin();
+      const ue = userEvent.setup();
+      renderLogin();
 
-    const emailValue = "user1@localhost.localdomain";
-    const passwordValue = "secret keyword";
+      const passwordField = screen.getByLabelText(/^Password/);
+      const passwordValue = "secret keyword";
+      await ue.type(passwordField, passwordValue);
 
-    const emailField = screen.getByRole("textbox", { name: "Email Address" });
-    const passwordField = screen.getByLabelText(/^Password/);
-    const loginButton = screen.getByRole("button", { name: "Log In with Email" });
-    await ue.type(emailField, emailValue);
-    await ue.type(passwordField, passwordValue);
-    await ue.click(loginButton);
+      const passwordMaskOnButton1 = screen.getByTestId("VisibilityIcon");
 
-    expect(mockTryLogin).toBeCalledTimes(0);
-    expect(mockedNavigator).toBeCalledTimes(0);
-    expect(mockCreateUser).toBeCalledTimes(0);
-  });
+      const passwordMaskOffButton1 = screen.queryByTestId("VisibilityOffIcon");
+      expect(passwordMaskOffButton1).toBeNull();
 
-  it.sequential.each([
-    ["auth/invalid-email", /Invalid email format/],
-    ["auth/too-many-requests", /Too many requests/],
-    ["auth/user-disabled", /Disabled user/],
-    ["auth/user-not-found", /User not found/],
-    ["auth/wrong-password", /Wrong password/],
-    ["unexpected-error", /Something went wrong/],
-  ])("Login shows error message when login failed: %s", async (errorCode, expected) => {
-    const mockSignInWithEmailAndPassword = genApiMock(false, { code: errorCode });
-    useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+      await ue.click(passwordMaskOnButton1);
 
-    const mockTryLogin = genApiMock();
-    useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      const passwordMaskOnButton2 = screen.queryByTestId("VisibilityIcon");
+      expect(passwordMaskOnButton2).toBeNull();
 
-    const mockCreateUser = genApiMock();
-    useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      const passwordMaskOffButton2 = screen.getByTestId("VisibilityOffIcon");
 
-    const ue = userEvent.setup();
-    renderLogin();
+      await ue.click(passwordMaskOffButton2);
 
-    const expectedMessageRegexp = new RegExp(expected);
-    expect(screen.queryByText(expectedMessageRegexp)).not.toBeInTheDocument();
+      const passwordMaskOnButton3 = screen.queryByTestId("VisibilityIcon");
+      expect(passwordMaskOnButton3).toBeInTheDocument();
 
-    const emailValue = "user1@localhost.localdomain";
-    const passwordValue = "secret keyword";
-
-    const emailField = screen.getByRole("textbox", { name: "Email Address" });
-    const passwordField = screen.getByLabelText(/^Password/);
-    const loginButton = screen.getByRole("button", { name: "Log In with Email" });
-    await ue.type(emailField, emailValue);
-    await ue.type(passwordField, passwordValue);
-    await ue.click(loginButton);
-
-    expect(screen.getByText(expectedMessageRegexp)).toBeInTheDocument();
-  });
-
-  it("Navigate when authentication successful without location.state", async () => {
-    const testCredential = { user: { accessToken: "test_token" } };
-    const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
-    useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
-
-    const mockTryLogin = genApiMock();
-    useTryLoginMutation.mockReturnValue([mockTryLogin]);
-
-    const mockCreateUser = genApiMock();
-    useCreateUserMutation.mockReturnValue([mockCreateUser]);
-
-    const ue = userEvent.setup();
-    renderLogin();
-
-    const emailValue = "user1@localhost.localdomain";
-    const passwordValue = "secret keyword";
-
-    const emailField = screen.getByRole("textbox", { name: "Email Address" });
-    const passwordField = screen.getByLabelText(/^Password/);
-    const loginButton = screen.getByRole("button", { name: "Log In with Email" });
-    await ue.type(emailField, emailValue);
-    await ue.type(passwordField, passwordValue);
-    await ue.click(loginButton);
-
-    expect(mockTryLogin).toBeCalledTimes(1);
-    expect(mockedNavigator).toBeCalledTimes(1);
-    expect(mockedNavigator).toHaveBeenCalledWith({ pathname: "/", search: "" });
-    expect(mockCreateUser).toBeCalledTimes(0);
-  });
-
-  it("Navigate back to the page where redirected from, on auth succeeded", async () => {
-    const testCredential = { user: { accessToken: "test_token" } };
-    const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
-    useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
-
-    const mockTryLogin = genApiMock();
-    useTryLoginMutation.mockReturnValue([mockTryLogin]);
-
-    const mockCreateUser = genApiMock();
-    useCreateUserMutation.mockReturnValue([mockCreateUser]);
-
-    testLocation.state = { from: "/pteam", search: "?pteamId=test_id" };
-
-    const ue = userEvent.setup();
-    renderLogin();
-
-    const emailValue = "user1@localhost.localdomain";
-    const passwordValue = "secret keyword";
-
-    const emailField = screen.getByRole("textbox", { name: "Email Address" });
-    const passwordField = screen.getByLabelText(/^Password/);
-    const loginButton = screen.getByRole("button", { name: "Log In with Email" });
-    await ue.type(emailField, emailValue);
-    await ue.type(passwordField, passwordValue);
-    await ue.click(loginButton);
-
-    expect(mockTryLogin).toBeCalledTimes(1);
-    expect(mockedNavigator).toBeCalledTimes(1);
-    expect(mockedNavigator).toHaveBeenCalledWith({
-      pathname: testLocation.state.from,
-      search: testLocation.state.search,
+      const passwordMaskOffButton3 = screen.queryByTestId("VisibilityOffIcon");
+      expect(passwordMaskOffButton3).toBeNull();
     });
-    expect(mockCreateUser).toBeCalledTimes(0);
-  });
 
-  it("Create user when No user in Tc", async () => {
-    const testCredential = { user: { accessToken: "test_token" } };
-    const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
-    useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+    it("Email and password are required", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
-    const mockTryLogin = genApiMock(false, { data: { detail: "No such user" } });
-    useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
 
-    const mockCreateUser = genApiMock();
-    useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
-    const ue = userEvent.setup();
-    renderLogin();
+      const ue = userEvent.setup();
+      renderLogin();
 
-    const emailValue = "user1@localhost.localdomain";
-    const passwordValue = "secret keyword";
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      expect(emailField).toBeRequired();
 
-    const emailField = screen.getByRole("textbox", { name: "Email Address" });
-    const passwordField = screen.getByLabelText(/^Password/);
-    const loginButton = screen.getByRole("button", { name: "Log In with Email" });
-    await ue.type(emailField, emailValue);
-    await ue.type(passwordField, passwordValue);
-    await ue.click(loginButton);
+      const passwordField = screen.getByLabelText(/^Password/);
+      expect(passwordField).toBeRequired();
 
-    expect(mockTryLogin).toBeCalledTimes(1);
-    expect(mockCreateUser).toBeCalledTimes(1);
-    expect(mockedNavigator).toBeCalledTimes(1);
-    expect(mockedNavigator).toHaveBeenCalledWith("/account", { state: { from: "/", search: "" } });
+      const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+      expect(loginButton).toBeEnabled();
+      await ue.click(loginButton);
+      expect(mockSignInWithEmailAndPassword).toBeCalledTimes(0);
+    });
+
+    it("Not visible SAML button without env.REACT_APP_FIREBASE_AUTH_SAML_PROVIDER_ID", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      renderLogin();
+
+      const samlLoginButton = screen.queryByRole("button", { name: "Log In with SAML" });
+      expect(samlLoginButton).toBeNull();
+    });
   });
 });
