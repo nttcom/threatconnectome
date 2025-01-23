@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+import { auth } from "../utils/firebase";
 import { blobToDataURL } from "../utils/func";
 
 const _responseListToDictConverter =
@@ -23,9 +24,8 @@ export const tcApi = createApi({
   reducerPath: "tcApi",
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_API_BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-      /* Note: access token is stored in auth.token via firebaseApi */
-      const token = getState().auth.token;
+    prepareHeaders: async (headers) => {
+      const token = await auth.currentUser?.getIdToken(true);
       if (token) {
         headers.set("authorization", `Bearer ${token}`);
       }
