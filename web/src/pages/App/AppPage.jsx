@@ -1,14 +1,9 @@
 import { Box } from "@mui/material";
-import React, { useEffect } from "react";
+import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
-import { useTryLoginMutation } from "../../services/tcApi";
-import { setAuthToken } from "../../slices/auth";
 import { mainMaxWidth } from "../../utils/const";
-import { auth } from "../../utils/firebase";
 
 import { AppBar } from "./AppBar";
 import { AppFallback } from "./AppFallback";
@@ -17,35 +12,7 @@ import { Main } from "./Main";
 import { OutletWithCheckedParams } from "./OutletWithCheckedParams";
 
 export function App() {
-  const skip = useSkipUntilAuthTokenIsReady();
-
-  const dispatch = useDispatch();
   const system = useSelector((state) => state.system);
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [tryLogin] = useTryLoginMutation();
-
-  useEffect(() => {
-    if (!skip) return; // auth token is ready
-    const _checkToken = async () => {
-      try {
-        const accessToken = await auth.currentUser?.getIdToken(true);
-        if (!accessToken) throw new Error("Missing accessToken");
-        dispatch(setAuthToken(accessToken));
-        await tryLogin().unwrap(); // throw error if accessToken is expired
-      } catch (error) {
-        navigate("/login", {
-          state: {
-            from: location.pathname,
-            search: location.search,
-            message: "Please login to continue.",
-          },
-        });
-      }
-    };
-    _checkToken();
-  }, [dispatch, location, navigate, skip, tryLogin]);
 
   return (
     <>

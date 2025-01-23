@@ -24,7 +24,6 @@ import {
   useSignInWithSamlPopupMutation,
 } from "../../services/firebaseApi";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
-import { clearAuth } from "../../slices/auth";
 import { samlProvider } from "../../utils/firebase";
 
 export const authCookieName = "Authorization";
@@ -45,7 +44,6 @@ export function Login() {
   const [tryLogin] = useTryLoginMutation();
 
   useEffect(() => {
-    dispatch(clearAuth());
     setMessage(location.state?.message);
   }, [dispatch, location]);
 

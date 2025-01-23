@@ -6,7 +6,7 @@ import {
   browserSessionPersistence,
 } from "firebase/auth";
 
-import { setAuthToken } from "../slices/auth";
+// import { setAuthToken } from "../slices/auth";
 import { auth, samlProvider } from "../utils/firebase";
 
 export const firebaseApi = createApi({
@@ -30,11 +30,10 @@ export const firebaseApi = createApi({
     }),
     */
     signInWithEmailAndPassword: builder.mutation({
-      queryFn: async ({ email, password }, { dispatch }) => {
+      queryFn: async ({ email, password }) => {
         await setPersistence(auth, browserSessionPersistence);
         return await signInWithEmailAndPassword(auth, email, password)
           .then((credential) => {
-            dispatch(setAuthToken(credential.user.accessToken));
             return { data: credential };
           })
           .catch((error) => ({ error }));
@@ -42,13 +41,12 @@ export const firebaseApi = createApi({
       invalidatesTags: () => [{ type: "Credential" }],
     }),
     signInWithSamlPopup: builder.mutation({
-      queryFn: async (_, { dispatch }) => {
+      queryFn: async () => {
         if (!samlProvider) {
           return { error: "SAML not supported" };
         }
         return await signInWithPopup(auth, samlProvider)
           .then((credential) => {
-            dispatch(setAuthToken(credential.user.accessToken));
             return { data: credential };
           })
           .catch((error) => ({ error }));
