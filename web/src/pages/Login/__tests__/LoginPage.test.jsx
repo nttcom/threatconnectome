@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { Provider } from "react-redux";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, useLocation, useNavigate } from "react-router-dom";
 
 import { useSignInWithEmailAndPasswordMutation } from "../../../services/firebaseApi";
 import { useTryLoginMutation, useCreateUserMutation } from "../../../services/tcApi";
@@ -48,14 +48,12 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
   };
 });
 
-const mockedNavigator = vi.fn();
-const testLocation = { state: null };
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    useNavigate: () => mockedNavigator,
-    useLocation: () => testLocation,
+    useNavigate: vi.fn(),
+    useLocation: vi.fn(),
     BrowserRouter: vi.fn().mockImplementation((props) => props.children),
   };
 });
@@ -70,7 +68,6 @@ const genApiMock = (isSuccess = true, returnValue = undefined) => {
 describe("TestLoginPage", () => {
   afterEach(() => {
     vi.clearAllMocks();
-    testLocation.state = null;
   });
 
   describe("Email authentication", () => {
@@ -83,6 +80,12 @@ describe("TestLoginPage", () => {
 
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -113,6 +116,12 @@ describe("TestLoginPage", () => {
 
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -149,6 +158,12 @@ describe("TestLoginPage", () => {
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
       const ue = userEvent.setup();
       renderLogin();
 
@@ -178,6 +193,12 @@ describe("TestLoginPage", () => {
 
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -209,7 +230,11 @@ describe("TestLoginPage", () => {
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
-      testLocation.state = { from: "/pteam", search: "?pteamId=test_id" };
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: { from: "/pteam", search: "?pteamId=test_id" } };
+      useLocation.mockReturnValue(testLocation);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -244,6 +269,12 @@ describe("TestLoginPage", () => {
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
       const ue = userEvent.setup();
       renderLogin();
 
@@ -276,6 +307,12 @@ describe("TestLoginPage", () => {
 
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -315,6 +352,12 @@ describe("TestLoginPage", () => {
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
       const ue = userEvent.setup();
       renderLogin();
 
@@ -339,6 +382,12 @@ describe("TestLoginPage", () => {
 
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
 
       renderLogin();
 
