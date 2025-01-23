@@ -4,7 +4,6 @@ import { useLocation } from "react-router";
 
 import { PTeamLabel } from "../../components/PTeamLabel";
 import { TabPanel } from "../../components/TabPanel";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetPTeamMembersQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { experienceColors, noPTeamMessage } from "../../utils/const";
@@ -19,7 +18,7 @@ export function PTeam() {
   const params = new URLSearchParams(location.search);
   const pteamId = params.get("pteamId");
 
-  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const skip = !pteamId;
   const {
     data: members,
     error: membersError,

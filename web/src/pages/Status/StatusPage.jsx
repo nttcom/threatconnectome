@@ -32,7 +32,6 @@ import { useLocation, useNavigate } from "react-router";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import { PTeamLabel } from "../../components/PTeamLabel";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
   useGetPTeamTagsSummaryQuery,
@@ -141,14 +140,12 @@ export function Status() {
     serviceIds: [],
   });
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
-
   const {
     data: pteam,
     error: pteamError,
     isFetching: pteamIsFetching,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip: skipByAuth || !pteamId });
+  } = useGetPTeamQuery(pteamId, { skip: !pteamId });
 
   const {
     currentData: serviceTagsSummary,
@@ -156,7 +153,7 @@ export function Status() {
     isFetching: serviceTagsSummaryIsFetching,
   } = useGetPTeamServiceTagsSummaryQuery(
     { pteamId, serviceId },
-    { skip: skipByAuth || !pteamId || !serviceId || isActiveAllServicesMode },
+    { skip: !pteamId || !serviceId || isActiveAllServicesMode },
   );
 
   const {
@@ -164,7 +161,7 @@ export function Status() {
     error: pteamTagsSummaryError,
     isFetching: pteamTagsSummaryIsFetching,
   } = useGetPTeamTagsSummaryQuery(pteamId, {
-    skip: skipByAuth || !pteamId || !isActiveAllServicesMode,
+    skip: !pteamId || !isActiveAllServicesMode,
   });
 
   useEffect(() => {
@@ -185,7 +182,7 @@ export function Status() {
   }, [pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
 
   if (!pteamId) return <>{noPTeamMessage}</>;
-  if (skipByAuth || !pteamId) return <></>;
+  if (!pteamId) return <></>;
   if (pteamError)
     throw new APIError(errorToString(pteamError), {
       api: "getPTeam",

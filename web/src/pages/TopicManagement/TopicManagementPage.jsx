@@ -31,7 +31,6 @@ import { useNavigate } from "react-router";
 import { useLocation } from "react-router-dom";
 
 import styles from "../../cssModule/button.module.css";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
   useGetTopicActionsQuery,
   useGetTopicQuery,
@@ -58,19 +57,13 @@ function TopicManagementTableRow(props) {
 
   const params = new URLSearchParams(location.search);
 
-  const skip = useSkipUntilAuthTokenIsReady();
-
-  const {
-    data: topic,
-    error: topicError,
-    isLoading: topicIsLoading,
-  } = useGetTopicQuery(topicId, { skip });
+  const { data: topic, error: topicError, isLoading: topicIsLoading } = useGetTopicQuery(topicId);
 
   const {
     data: topicActions,
     error: topicActionsError,
     isLoading: topicActionsIsLoading,
-  } = useGetTopicActionsQuery(topicId, { skip });
+  } = useGetTopicActionsQuery(topicId);
 
   if (topicError)
     throw new APIError(errorToString(topicError), {
@@ -82,7 +75,7 @@ function TopicManagementTableRow(props) {
       api: "getTopicActions",
     });
 
-  if (skip || topicIsLoading || topicActionsIsLoading)
+  if (topicIsLoading || topicActionsIsLoading)
     return (
       <TableRow>
         <TableCell>{getDisplayMessage(topicIsLoading, topicActionsIsLoading)}</TableCell>
@@ -147,8 +140,6 @@ export function TopicManagement() {
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
 
-  const skip = useSkipUntilAuthTokenIsReady();
-
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
 
@@ -163,9 +154,8 @@ export function TopicManagement() {
     data: searchResult,
     error: searchResultError,
     isLoading: searchResultIsLoading,
-  } = useSearchTopicsQuery(searchParams, { skip, refetchOnMountOrArgChange: true });
+  } = useSearchTopicsQuery(searchParams, { refetchOnMountOrArgChange: true });
 
-  if (skip) return <>Now loading auth token...</>;
   if (searchResultError)
     throw new APIError(errorToString(searchResultError), {
       api: "searchTopics",

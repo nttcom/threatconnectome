@@ -5,7 +5,6 @@ import { useParams, useLocation } from "react-router-dom";
 
 import { TabPanel } from "../../components/TabPanel";
 import { UUIDTypography } from "../../components/UUIDTypography";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
   useGetPTeamServiceTaggedTopicIdsQuery,
@@ -22,19 +21,18 @@ import { TagReferences } from "./TagReferences.jsx";
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
   const {
     data: allTags,
     error: allTagsError,
     isLoading: allTagsIsLoading,
-  } = useGetTagsQuery(undefined, { skipByAuth });
+  } = useGetTagsQuery(undefined);
 
   const { tagId } = useParams();
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
-  const getDependenciesReady = !skipByAuth && pteamId && serviceId;
-  const getPTeamReady = !skipByAuth && pteamId;
+  const getDependenciesReady = pteamId && serviceId;
+  const getPTeamReady = pteamId;
   const getTopicIdsReady = getPTeamReady && serviceId && tagId;
 
   const {

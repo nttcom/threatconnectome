@@ -18,7 +18,6 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import {
   useGetPTeamTopicActionsQuery,
   useGetTicketsQuery,
@@ -40,19 +39,14 @@ export function TopicCard(props) {
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
 
-  const {
-    data: topic,
-    error: topicError,
-    isLoading: topicIsLoading,
-  } = useGetTopicQuery(topicId, { skipByAuth });
+  const { data: topic, error: topicError, isLoading: topicIsLoading } = useGetTopicQuery(topicId);
 
   const skipByPTeamId = pteamId === undefined;
   const skipByTopicId = topicId === undefined;
   const skipByServiceId = serviceId === undefined;
   const skipBytagId = tagId === undefined;
-  const getDependenciesReady = !skipByAuth && pteamId && serviceId;
+  const getDependenciesReady = pteamId && serviceId;
 
   const {
     data: serviceDependencies,
@@ -63,15 +57,12 @@ export function TopicCard(props) {
     data: allTags,
     error: allTagsError,
     isLoading: allTagsIsLoading,
-  } = useGetTagsQuery(undefined, { skipByAuth });
+  } = useGetTagsQuery(undefined);
   const {
     data: pteamTopicActionsData,
     error: pteamTopicActionsError,
     isLoading: pteamTopicActionsIsLoading,
-  } = useGetPTeamTopicActionsQuery(
-    { topicId, pteamId },
-    { skip: skipByAuth || skipByPTeamId || skipByTopicId },
-  );
+  } = useGetPTeamTopicActionsQuery({ topicId, pteamId }, { skip: skipByPTeamId || skipByTopicId });
 
   const {
     data: tickets,
@@ -79,12 +70,12 @@ export function TopicCard(props) {
     isLoading: ticketsRelatedToServiceTopicTagIsLoading,
   } = useGetTicketsQuery(
     { pteamId, serviceId, topicId, tagId },
-    { skip: skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId },
+    { skip: skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId },
   );
 
   const handleDetailOpen = () => setDetailOpen(!detailOpen);
 
-  if (skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId) return <></>;
+  if (skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId) return <></>;
   if (pteamTopicActionsError)
     throw new APIError(errorToString(pteamTopicActionsError), { api: "getPTeamTopicActions" });
   if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;

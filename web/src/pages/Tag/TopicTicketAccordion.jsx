@@ -20,7 +20,6 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetThreatQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import {
@@ -71,14 +70,12 @@ export function TopicTicketAccordion(props) {
   const ticketStatus = ticket.ticket_status;
   const ssvcPriority = ticket.ssvc_deployer_priority || "defer";
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
   const {
     data: threat,
     error: threatError,
     isLoading: threatIsLoading,
-  } = useGetThreatQuery(ticket.threat_id, { skipByAuth });
+  } = useGetThreatQuery(ticket.threat_id);
 
-  if (skipByAuth) return <></>;
   if (threatIsLoading) return ErrorAccordion("Now loading Threat...", defaultExpanded);
   if (threatError) throw new APIError(errorToString(threatError), { api: "getThreat" });
 

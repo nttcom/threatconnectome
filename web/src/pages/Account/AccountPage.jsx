@@ -14,7 +14,6 @@ import { useSnackbar } from "notistack";
 import React, { useState } from "react";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery, useUpdateUserMutation } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
@@ -28,14 +27,12 @@ export function Account() {
   const { enqueueSnackbar } = useSnackbar();
 
   const [updateUser] = useUpdateUserMutation();
-  const skip = useSkipUntilAuthTokenIsReady();
   const {
     data: userMe,
     error: userMeError,
     isLoading: userMeIsLoading,
-  } = useGetUserMeQuery(undefined, { skip });
+  } = useGetUserMeQuery(undefined);
 
-  if (skip) return <></>;
   if (userMeError)
     throw new APIError(errorToString(userMeError), {
       api: "getUserMe",
