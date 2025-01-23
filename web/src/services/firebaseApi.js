@@ -6,7 +6,6 @@ import {
   browserSessionPersistence,
 } from "firebase/auth";
 
-// import { setAuthToken } from "../slices/auth";
 import { auth, samlProvider } from "../utils/firebase";
 
 export const firebaseApi = createApi({
