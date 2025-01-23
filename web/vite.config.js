@@ -11,6 +11,8 @@ export default defineConfig({
     cors: true,
   },
   test: {
+    environment: "jsdom",
     globals: true,
+    setupFiles: ["./vitest.setup.js"],
   },
 })
