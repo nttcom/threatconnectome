@@ -1,8 +1,10 @@
 import { Box } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 
+import { useTryLoginMutation } from "../../services/tcApi";
 import { mainMaxWidth } from "../../utils/const";
 
 import { AppBar } from "./AppBar";
@@ -13,6 +15,27 @@ import { OutletWithCheckedParams } from "./OutletWithCheckedParams";
 
 export function App() {
   const system = useSelector((state) => state.system);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [tryLogin] = useTryLoginMutation();
+
+  useEffect(() => {
+    const _checkToken = async () => {
+      try {
+        await tryLogin().unwrap(); // throw error if accessToken is expired
+      } catch (error) {
+        navigate("/login", {
+          state: {
+            from: location.pathname,
+            search: location.search,
+            message: "Please login to continue.",
+          },
+        });
+      }
+    };
+    _checkToken();
+  }, [location, navigate, tryLogin]);
 
   return (
     <>
