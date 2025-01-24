@@ -39,7 +39,6 @@ export function Login() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  /* eslint-disable-next-line no-unused-vars */
   const [_cookies, setCookie, removeCookie] = useCookies([authCookieName]);
 
   const metemcyberAuthUrl = import.meta.env.VITE_METEMCYBER_AUTH_URL;

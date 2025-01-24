@@ -18,7 +18,6 @@ import { Main } from "./Main";
 import { OutletWithCheckedParams } from "./OutletWithCheckedParams";
 
 export function App() {
-  /* eslint-disable-next-line no-unused-vars */
   const [cookies, _setCookie, _removeCookie] = useCookies([authCookieName]);
 
   const skip = useSkipUntilAuthTokenIsReady();
