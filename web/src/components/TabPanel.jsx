@@ -11,7 +11,7 @@ export function TabPanel(props) {
       hidden={value !== index}
       id={`tab-panel-${index}`}
       m={2}
-      role="tab-panel"
+      role="tabpanel"
       {...other}
     >
       {value === index && children}
