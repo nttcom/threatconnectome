@@ -8,7 +8,7 @@ const mockTemplate = () => {
   throw new Error("Not implemented: You should override mock using vi.fn().");
 };
 
-const testUpdateAuthButton = () => {
+describe("TestUpdateAuthButton", () => {
   const baseProps = {
     disabled: false,
     onUpdate: mockTemplate,
@@ -53,6 +53,4 @@ const testUpdateAuthButton = () => {
 
     expect(mockOnUpdate).toBeCalledTimes(0);
   });
-};
-
-describe("TestUpdateAuthButton", testUpdateAuthButton);
+});

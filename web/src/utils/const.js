@@ -18,6 +18,9 @@ import {
 
 export const rootPrefix = import.meta.env.VITE_PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
 
+export const authCookieName = "Authorization";
+export const cookiesOptions = { path: import.meta.env.VITE_PUBLIC_URL || "/" };
+
 export const systemAccount = {
   uuid: "00000000-0000-0000-0000-0000cafe0011",
   email: import.meta.env.VITE_SYSTEM_EMAIL || "SYSTEM_ACCOUNT",

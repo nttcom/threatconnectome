@@ -8,7 +8,7 @@ const mockTemplate = () => {
   throw new Error("Not implemented: You should override mock using vi.fn().");
 };
 
-const testAuthAdminCheckbox = () => {
+describe("TestAuthAdminCheckbox", () => {
   const baseProps = {
     checked: false,
     editable: false,
@@ -87,6 +87,4 @@ const testAuthAdminCheckbox = () => {
 
     expect(mockOnChange).toBeCalledTimes(0);
   });
-};
-
-describe("TestAuthAdminCheckbox", testAuthAdminCheckbox);
+});

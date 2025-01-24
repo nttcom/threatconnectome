@@ -26,10 +26,8 @@ import {
 } from "../../services/firebaseApi";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import { clearAuth } from "../../slices/auth";
+import { authCookieName, cookiesOptions } from "../../utils/const";
 import { samlProvider } from "../../utils/firebase";
-
-export const authCookieName = "Authorization";
-export const cookiesOptions = { path: import.meta.env.VITE_PUBLIC_URL || "/" };
 
 export function Login() {
   const [message, setMessage] = useState(null);
@@ -39,7 +37,6 @@ export function Login() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  /* eslint-disable-next-line no-unused-vars */
   const [_cookies, setCookie, removeCookie] = useCookies([authCookieName]);
 
   const metemcyberAuthUrl = import.meta.env.VITE_METEMCYBER_AUTH_URL;
