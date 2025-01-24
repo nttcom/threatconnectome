@@ -78,7 +78,7 @@ function StatusRatioGraph(props) {
   const { counts, displaySSVCPriority } = props;
   if (displaySSVCPriority === "empty") return "";
   const keys = ["completed", "scheduled", "acknowledged", "alerted"];
-  const total = keys.reduce((ret, key) => ret + counts[key] ?? 0, 0);
+  const total = keys.reduce((ret, key) => ret + (counts[key] ?? 0), 0);
   const ratios = keys.reduce((ret, key) => {
     ret[key] = (100 * (counts[key] ?? 0)) / total;
     return ret;

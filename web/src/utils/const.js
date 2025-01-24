@@ -16,11 +16,14 @@ import {
   yellow,
 } from "@mui/material/colors";
 
-export const rootPrefix = process.env.PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
+export const rootPrefix = import.meta.env.VITE_PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
+
+export const authCookieName = "Authorization";
+export const cookiesOptions = { path: import.meta.env.VITE_PUBLIC_URL || "/" };
 
 export const systemAccount = {
   uuid: "00000000-0000-0000-0000-0000cafe0011",
-  email: process.env.REACT_APP_SYSTEM_EMAIL || "SYSTEM_ACCOUNT",
+  email: import.meta.env.VITE_SYSTEM_EMAIL || "SYSTEM_ACCOUNT",
 };
 
 export const actionTypeChipWidth = 90;

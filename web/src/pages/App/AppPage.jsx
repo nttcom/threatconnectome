@@ -8,17 +8,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useTryLoginMutation } from "../../services/tcApi";
 import { setAuthToken } from "../../slices/auth";
-import { mainMaxWidth } from "../../utils/const";
-import { authCookieName } from "../Login/LoginPage";
+import { authCookieName, mainMaxWidth } from "../../utils/const";
 
 import { AppBar } from "./AppBar";
 import { AppFallback } from "./AppFallback";
 import { Drawer } from "./Drawer";
 import { Main } from "./Main";
-import { ParamsChecker } from "./ParamsChecker";
+import { OutletWithCheckedParams } from "./OutletWithCheckedParams";
 
 export function App() {
-  /* eslint-disable-next-line no-unused-vars */
   const [cookies, _setCookie, _removeCookie] = useCookies([authCookieName]);
 
   const skip = useSkipUntilAuthTokenIsReady();
@@ -61,7 +59,7 @@ export function App() {
         <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" m={1}>
           <Box display="flex" flexDirection="column" flexGrow={1} maxWidth={mainMaxWidth}>
             <ErrorBoundary FallbackComponent={AppFallback}>
-              <ParamsChecker />
+              <OutletWithCheckedParams />
             </ErrorBoundary>
           </Box>
         </Box>

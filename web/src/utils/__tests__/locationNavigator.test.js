@@ -1,4 +1,4 @@
-import { navigateSpecifiedPteam } from "../utils/locationChecker";
+import { navigateSpecifiedPteam } from "../locationNavigator";
 
 test.each([
   // not navigate
@@ -56,7 +56,7 @@ test.each([
       pathname: locationPathname,
       search: locationSearch,
     };
-    const mockNavigate = jest.fn();
+    const mockNavigate = vi.fn();
 
     navigateSpecifiedPteam(location, pteamRoles, mockNavigate);
 

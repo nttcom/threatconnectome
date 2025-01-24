@@ -1,4 +1,4 @@
-import { pickParentTagName } from "../utils/func";
+import { pickParentTagName } from "../func";
 
 test.each([
   { child: "scanelf:alpine-3.18.4:", parent: "scanelf:alpine-3.18.4:" },

@@ -5,9 +5,9 @@ import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
-import { navigateSpecifiedPteam } from "../../utils/locationChecker";
+import { navigateSpecifiedPteam } from "../../utils/locationNavigator";
 
-export function ParamsChecker() {
+export function OutletWithCheckedParams() {
   const navigate = useNavigate();
   const location = useLocation();
 
