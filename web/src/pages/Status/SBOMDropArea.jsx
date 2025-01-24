@@ -93,7 +93,6 @@ export function SBOMDropArea(props) {
   useEffect(() => {
     dropRef.current.addEventListener("dragover", handleDragOver);
     dropRef.current.addEventListener("drop", handleDrop);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDragOver = (event) => {

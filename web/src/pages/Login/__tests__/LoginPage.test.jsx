@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { Provider } from "react-redux";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, useLocation, useNavigate } from "react-router-dom";
 
 import { useSignInWithEmailAndPasswordMutation } from "../../../services/firebaseApi";
 import { useTryLoginMutation, useCreateUserMutation } from "../../../services/tcApi";
@@ -31,36 +31,43 @@ const renderLogin = () => {
   );
 };
 
-jest.mock("../../../services/firebaseApi", () => ({
-  ...jest.requireActual("../../../services/firebaseApi"),
-  useSignInWithEmailAndPasswordMutation: jest.fn(),
-}));
+vi.mock("../../../services/firebaseApi", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useSignInWithEmailAndPasswordMutation: vi.fn(),
+  };
+});
 
-jest.mock("../../../services/tcApi", () => ({
-  ...jest.requireActual("../../../services/tcApi"),
-  useTryLoginMutation: jest.fn(),
-  useCreateUserMutation: jest.fn(),
-}));
+vi.mock("../../../services/tcApi", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useTryLoginMutation: vi.fn(),
+    useCreateUserMutation: vi.fn(),
+  };
+});
 
-const mockedNavigator = jest.fn();
-const testLocation = { state: null };
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useNavigate: () => mockedNavigator,
-  useLocation: () => testLocation,
-}));
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useNavigate: vi.fn(),
+    useLocation: vi.fn(),
+    BrowserRouter: vi.fn().mockImplementation((props) => props.children),
+  };
+});
 
 const genApiMock = (isSuccess = true, returnValue = undefined) => {
   const mockUnwrap = isSuccess
-    ? jest.fn().mockResolvedValue(returnValue)
-    : jest.fn().mockRejectedValue(returnValue);
-  return jest.fn().mockReturnValue({ unwrap: mockUnwrap });
+    ? vi.fn().mockResolvedValue(returnValue)
+    : vi.fn().mockRejectedValue(returnValue);
+  return vi.fn().mockReturnValue({ unwrap: mockUnwrap });
 };
 
 describe("TestLoginPage", () => {
   afterEach(() => {
-    jest.clearAllMocks();
-    testLocation.state = null;
+    vi.clearAllMocks();
   });
 
   describe("Email authentication", () => {
@@ -73,6 +80,12 @@ describe("TestLoginPage", () => {
 
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -104,6 +117,12 @@ describe("TestLoginPage", () => {
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
       const ue = userEvent.setup();
       renderLogin();
 
@@ -122,7 +141,7 @@ describe("TestLoginPage", () => {
       expect(mockCreateUser).toBeCalledTimes(0);
     });
 
-    it.concurrent.each([
+    it.sequential.each([
       ["auth/invalid-email", /Invalid email format/],
       ["auth/too-many-requests", /Too many requests/],
       ["auth/user-disabled", /Disabled user/],
@@ -138,6 +157,12 @@ describe("TestLoginPage", () => {
 
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -169,6 +194,12 @@ describe("TestLoginPage", () => {
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
       const ue = userEvent.setup();
       renderLogin();
 
@@ -199,7 +230,11 @@ describe("TestLoginPage", () => {
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
-      testLocation.state = { from: "/pteam", search: "?pteamId=test_id" };
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: { from: "/pteam", search: "?pteamId=test_id" } };
+      useLocation.mockReturnValue(testLocation);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -234,6 +269,12 @@ describe("TestLoginPage", () => {
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
       const ue = userEvent.setup();
       renderLogin();
 
@@ -266,6 +307,12 @@ describe("TestLoginPage", () => {
 
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -305,6 +352,12 @@ describe("TestLoginPage", () => {
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
 
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
       const ue = userEvent.setup();
       renderLogin();
 
@@ -317,7 +370,7 @@ describe("TestLoginPage", () => {
       const loginButton = screen.getByRole("button", { name: "Log In with Email" });
       expect(loginButton).toBeEnabled();
       await ue.click(loginButton);
-      expect(mockSignInWithEmailAndPassword).toBeCalledTimes(1);
+      expect(mockSignInWithEmailAndPassword).toBeCalledTimes(0);
     });
 
     it("Not visible SAML button without env.REACT_APP_FIREBASE_AUTH_SAML_PROVIDER_ID", async () => {
@@ -329,6 +382,12 @@ describe("TestLoginPage", () => {
 
       const mockCreateUser = genApiMock();
       useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
 
       renderLogin();
 

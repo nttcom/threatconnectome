@@ -36,7 +36,7 @@ root.render(
             anchorOrigin={{ horizontal: "center", vertical: "top" }}
             autoHideDuration={5000}
           >
-            <Router basename={process.env.PUBLIC_URL}>
+            <Router basename={import.meta.env.VITE_PUBLIC_URL}>
               <Routes>
                 <Route exact path="/login" element={<Login />} />
                 <Route path="/reset_password" element={<ResetPassword />} />

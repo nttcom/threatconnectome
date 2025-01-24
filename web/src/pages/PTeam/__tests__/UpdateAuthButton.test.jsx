@@ -5,10 +5,10 @@ import React from "react";
 import { UpdateAuthButton } from "../UpdateAuthButton";
 
 const mockTemplate = () => {
-  throw new Error("Not implemented: You should override mock using jest.fn().");
+  throw new Error("Not implemented: You should override mock using vi.fn().");
 };
 
-const testUpdateAuthButton = () => {
+describe("TestUpdateAuthButton", () => {
   const baseProps = {
     disabled: false,
     onUpdate: mockTemplate,
@@ -32,7 +32,7 @@ const testUpdateAuthButton = () => {
 
   it("UpdateAuthButton calls onUpdate if enabled and clicked", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-    const mockOnUpdate = jest.fn(() => {});
+    const mockOnUpdate = vi.fn(() => {});
     const testProps = { ...baseProps, disabled: false, onUpdate: mockOnUpdate };
     render(<UpdateAuthButton {...testProps} />);
 
@@ -44,7 +44,7 @@ const testUpdateAuthButton = () => {
 
   it("UpdateAuthButton does not call onUpdate if disabled and clicked", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-    const mockOnUpdate = jest.fn(() => {});
+    const mockOnUpdate = vi.fn(() => {});
     const testProps = { ...baseProps, disabled: true, onUpdate: mockOnUpdate };
     render(<UpdateAuthButton {...testProps} />);
 
@@ -53,6 +53,4 @@ const testUpdateAuthButton = () => {
 
     expect(mockOnUpdate).toBeCalledTimes(0);
   });
-};
-
-describe("TestUpdateAuthButton", testUpdateAuthButton);
+});
