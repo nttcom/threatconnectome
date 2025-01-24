@@ -39,8 +39,6 @@ export function Login() {
 
   const [_cookies, setCookie, removeCookie] = useCookies([authCookieName]);
 
-  const metemcyberAuthUrl = import.meta.env.VITE_METEMCYBER_AUTH_URL;
-
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
   const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
   const [createUser] = useCreateUserMutation();
@@ -149,10 +147,9 @@ export function Login() {
       },
     });
   };
-
-  const handleSignUp = () => {
-    if (!metemcyberAuthUrl) return;
-    window.open(metemcyberAuthUrl, "_blank");
+  const handleSignUp = (event) => {
+    event.preventDefault();
+    navigate("/sign_up");
   };
 
   return (
