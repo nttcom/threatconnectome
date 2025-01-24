@@ -8,8 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
 import { useTryLoginMutation } from "../../services/tcApi";
 import { setAuthToken } from "../../slices/auth";
-import { mainMaxWidth } from "../../utils/const";
-import { authCookieName } from "../Login/LoginPage";
+import { authCookieName, mainMaxWidth } from "../../utils/const";
 
 import { AppBar } from "./AppBar";
 import { AppFallback } from "./AppFallback";
