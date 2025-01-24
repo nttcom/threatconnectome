@@ -40,7 +40,7 @@ export function ResetPassword() {
       url: `${window.location.origin}${process.env.PUBLIC_URL}/login`,
     };
     try {
-      await sendPasswordResetEmail(auth, data.get("email"), actionCodeSettings).unwrap();
+      await sendPasswordResetEmail(data.get("email"), actionCodeSettings).unwrap();
       setMessage("An email with a password reset URL was sent to this address.");
     } catch (error) {
       setDisabled(false);
