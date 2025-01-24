@@ -1,5 +1,10 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import {
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+} from "firebase/auth";
 
 import { setAuthToken } from "../slices/auth";
 import { auth, samlProvider } from "../utils/firebase";
@@ -24,6 +29,24 @@ export const firebaseApi = createApi({
       providesTags: () => [{ type: "Credential" }],
     }),
     */
+    sendEmailVerification: builder.mutation({
+      queryFn: async ({ user, actionCodeSettings }) => {
+        return await sendEmailVerification(user, actionCodeSettings)
+          .then((success) => {
+            return { data: success };
+          })
+          .catch((error) => ({ error }));
+      },
+    }),
+    sendPasswordResetEmail: builder.mutation({
+      queryFn: async ({ email, actionCodeSettings }) => {
+        return await sendPasswordResetEmail(auth, email, actionCodeSettings)
+          .then((success) => {
+            return { data: success };
+          })
+          .catch((error) => ({ error }));
+      },
+    }),
     signInWithEmailAndPassword: builder.mutation({
       queryFn: async ({ email, password }, { dispatch }) => {
         return await signInWithEmailAndPassword(auth, email, password)
@@ -54,6 +77,8 @@ export const firebaseApi = createApi({
 
 export const {
   /* useGetAccessTokenQuery, */
+  useSendEmailVerificationMutation,
+  useSendPasswordResetEmailMutation,
   useSignInWithEmailAndPasswordMutation,
   useSignInWithSamlPopupMutation,
 } = firebaseApi;

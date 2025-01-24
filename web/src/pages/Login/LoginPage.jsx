@@ -14,13 +14,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { sendEmailVerification } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import {
+  useSendEmailVerificationMutation,
   useSignInWithEmailAndPasswordMutation,
   useSignInWithSamlPopupMutation,
 } from "../../services/firebaseApi";
@@ -44,6 +44,7 @@ export function Login() {
 
   const metemcyberAuthUrl = process.env.REACT_APP_METEMCYBER_AUTH_URL;
 
+  const [sendEmailVerification] = useSendEmailVerificationMutation();
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
   const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
   const [createUser] = useCreateUserMutation();
