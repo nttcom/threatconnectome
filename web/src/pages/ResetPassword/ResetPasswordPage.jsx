@@ -39,7 +39,10 @@ export function ResetPassword() {
       url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
     };
     try {
-      await sendPasswordResetEmail(data.get("email"), actionCodeSettings).unwrap();
+      await sendPasswordResetEmail({
+        email: data.get("email"),
+        actionCodeSettings: actionCodeSettings,
+      }).unwrap();
       setMessage("An email with a password reset URL was sent to this address.");
     } catch (error) {
       setDisabled(false);
