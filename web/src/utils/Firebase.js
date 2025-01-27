@@ -4,6 +4,7 @@ import { getAuth, connectAuthEmulator, SAMLAuthProvider } from "firebase/auth";
 class Firebase {
   constructor() {
     this.auth = null;
+    this.providerId = null;
     this.samlProvider = null;
   }
 
@@ -32,10 +33,14 @@ class Firebase {
   }
 
   getSamlProvider() {
+    if (this.providerId != import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID) {
+      this.samlProvider = null;
+    }
+
     if (this.samlProvider == null) {
-      const providerId = import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID;
-      if (providerId) {
-        this.samlProvider = new SAMLAuthProvider(providerId);
+      this.providerId = import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID;
+      if (this.providerId) {
+        this.samlProvider = new SAMLAuthProvider(this.providerId);
       }
     }
 

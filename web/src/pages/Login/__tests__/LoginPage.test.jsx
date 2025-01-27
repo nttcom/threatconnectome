@@ -81,6 +81,7 @@ const genApiMock = (isSuccess = true, returnValue = undefined) => {
 describe("TestLoginPage", () => {
   afterEach(() => {
     vi.clearAllMocks();
+    import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "";
   });
 
   describe("Email authentication", () => {
@@ -608,7 +609,6 @@ describe("TestLoginPage", () => {
       const testLocation = { state: null };
       useLocation.mockReturnValue(testLocation);
 
-      import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "";
       renderLogin();
 
       const samlLoginButton = screen.queryByRole("button", { name: "Log In with SAML" });
