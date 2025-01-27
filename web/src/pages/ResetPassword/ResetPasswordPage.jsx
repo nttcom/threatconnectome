@@ -12,7 +12,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { auth } from "../../utils/firebase";
+import Firebase from "../../utils/Firebase";
 
 export function ResetPassword() {
   const [disabled, setDisabled] = useState(false);
@@ -39,7 +39,7 @@ export function ResetPassword() {
       url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
     };
     try {
-      await sendPasswordResetEmail(auth, data.get("email"), actionCodeSettings);
+      await sendPasswordResetEmail(Firebase.getAuth(), data.get("email"), actionCodeSettings);
     } catch (error) {
       setDisabled(false);
       switch (error.code) {

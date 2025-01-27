@@ -27,7 +27,7 @@ import {
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import { clearAuth } from "../../slices/auth";
 import { authCookieName, cookiesOptions } from "../../utils/const";
-import { samlProvider } from "../../utils/firebase";
+import Firebase from "../../utils/Firebase";
 
 export function Login() {
   const [message, setMessage] = useState(null);
@@ -207,7 +207,7 @@ export function Login() {
         </Button>
       </Box>
       {/* show saml login button if samlProviderId is set as env */}
-      {samlProvider && (
+      {Firebase.getSamlProvider() != null && (
         <>
           <Divider />
           <Button
