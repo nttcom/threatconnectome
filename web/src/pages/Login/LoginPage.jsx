@@ -93,7 +93,10 @@ export function Login() {
           const actionCodeSettings = {
             url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
           };
-          await sendEmailVerification(userCredential.user, actionCodeSettings);
+          await sendEmailVerification({
+            user: userCredential.user,
+            actionCodeSettings: actionCodeSettings,
+          });
           setMessage(
             "Your email address is not verified. An email for verification was sent to your address.",
           );
