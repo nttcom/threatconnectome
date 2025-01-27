@@ -20,6 +20,7 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
@@ -48,14 +49,20 @@ export function TopicDetail() {
 
   const [showAllArtifacts, setShowAllArtifacts] = useState(false);
 
-  const { data: topic, error: topicError, isLoading: topicIsLoading } = useGetTopicQuery(topicId);
+  const skip = useSkipUntilAuthUserIsReady();
+  const {
+    data: topic,
+    error: topicError,
+    isLoading: topicIsLoading,
+  } = useGetTopicQuery(topicId, { skip });
 
   const {
     data: topicActions,
     error: topicActionsError,
     isLoading: topicActionsIsLoading,
-  } = useGetTopicActionsQuery(topicId);
+  } = useGetTopicActionsQuery(topicId, { skip });
 
+  if (skip) return <></>;
   if (topicError) throw new APIError(errorToString(topicError), { api: "getTopic" });
   if (topicIsLoading) return <>Now loading Topic...</>;
   if (topicActionsError)

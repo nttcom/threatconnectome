@@ -22,6 +22,7 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamServiceThumbnailQuery, useGetPTeamQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
@@ -83,7 +84,7 @@ export function PTeamServicesListModal(props) {
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
 
-  const skip = !pteamId;
+  const skip = useSkipUntilAuthUserIsReady() || !pteamId;
   const {
     data: pteam,
     error: pteamError,

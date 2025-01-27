@@ -18,6 +18,7 @@ import React, { useState } from "react";
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import dialogStyle from "../../cssModule/dialog.module.css";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useCreateActionLogMutation,
   useUpdateTicketStatusMutation,
@@ -39,14 +40,16 @@ export function ReportCompletedActions(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: userMe,
     error: userMeError,
     isLoading: userMeIsLoading,
-  } = useGetUserMeQuery(undefined);
+  } = useGetUserMeQuery(undefined, { skip });
   const [createActionLog] = useCreateActionLogMutation();
   const [updateTicketStatus] = useUpdateTicketStatusMutation();
 
+  if (skip) return <></>;
   if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 

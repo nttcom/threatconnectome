@@ -4,6 +4,7 @@ import { grey } from "@mui/material/colors";
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { LocationReader } from "../../utils/LocationReader";
@@ -34,11 +35,12 @@ export function TeamSelector() {
   const [openPTeamCreationModal, setOpenPTeamCreationModal] = useState(false);
   const locationReader = useMemo(() => new LocationReader(location), [location]);
 
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: userMe,
     error: userMeError,
     isLoading: userMeIsLoading,
-  } = useGetUserMeQuery(undefined);
+  } = useGetUserMeQuery(undefined, { skip });
 
   useEffect(() => {
     if (!userMe) return;
@@ -48,6 +50,7 @@ export function TeamSelector() {
     );
   }, [userMe, locationReader]);
 
+  if (skip) return <></>;
   if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 

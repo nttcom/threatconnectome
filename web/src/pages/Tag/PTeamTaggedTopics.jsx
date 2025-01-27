@@ -2,6 +2,7 @@ import { Box, List, ListItem, MenuItem, Pagination, Select, Typography } from "@
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamMembersQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { sortedSSVCPriorities } from "../../utils/const";
@@ -16,7 +17,7 @@ export function PTeamTaggedTopics(props) {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
-  const skip = !pteamId;
+  const skip = useSkipUntilAuthUserIsReady() || !pteamId;
 
   const {
     data: members,

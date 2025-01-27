@@ -3,6 +3,7 @@ import { useSnackbar } from "notistack";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useApplyPTeamInvitationMutation, useGetPTeamInvitationQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { commonButtonStyle } from "../../utils/const";
@@ -18,12 +19,14 @@ export function AcceptPTeamInvitation() {
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
 
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: detail,
     error: detailError,
     isLoading: detailIsLoading,
-  } = useGetPTeamInvitationQuery(tokenId);
+  } = useGetPTeamInvitationQuery(tokenId, { skip });
 
+  if (skip) return <></>;
   if (detailError)
     throw new APIError("This invitation is invalid or already expired.", {
       api: "getPTeamInvitation",

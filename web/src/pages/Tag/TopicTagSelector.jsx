@@ -21,6 +21,7 @@ import React, { useEffect, useState } from "react";
 import { FixedSizeList } from "react-window";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useCreateTagMutation, useGetTagsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { commonButtonStyle } from "../../utils/const";
@@ -37,11 +38,12 @@ export function TopicTagSelector(props) {
 
   const [createTag] = useCreateTagMutation();
 
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: allTags,
     error: allTagsError,
     isLoading: allTagsIsLoading,
-  } = useGetTagsQuery(undefined);
+  } = useGetTagsQuery(undefined, { skip });
 
   const fixedTag = (orig) => orig.trim().toLowerCase(); // normalize to compare
 
@@ -51,6 +53,7 @@ export function TopicTagSelector(props) {
     }
   }, [allTags, search]);
 
+  if (skip) return <></>;
   if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getTags" });
   if (allTagsIsLoading) return <>Now loading allTags...</>;
 

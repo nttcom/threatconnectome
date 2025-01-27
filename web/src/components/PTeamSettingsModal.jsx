@@ -15,6 +15,7 @@ import React, { useState } from "react";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useGetPTeamQuery } from "../services/tcApi";
 import { APIError } from "../utils/APIError";
 import { a11yProps, errorToString } from "../utils/func.js";
@@ -26,7 +27,7 @@ export function PTeamSettingsModal(props) {
   const { pteamId, onSetShow, show, defaultTabIndex } = props;
   const [tab, setTab] = useState(defaultTabIndex ?? 0);
 
-  const skip = !pteamId;
+  const skip = useSkipUntilAuthUserIsReady() || !pteamId;
 
   const {
     data: pteam,

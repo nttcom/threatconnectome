@@ -3,6 +3,7 @@ import { Box, IconButton, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
+import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useGetUserMeQuery } from "../services/tcApi";
 import { APIError } from "../utils/APIError";
 import { errorToString } from "../utils/func";
@@ -15,12 +16,15 @@ export function PTeamLabel(props) {
 
   const [pteamSettingsModalOpen, setPTeamSettingsModalOpen] = useState(false);
 
+  const skip = useSkipUntilAuthUserIsReady();
+
   const {
     data: userMe,
     error: userMeError,
     isLoading: userMeIsLoading,
-  } = useGetUserMeQuery(undefined);
+  } = useGetUserMeQuery(undefined, { skip });
 
+  if (skip) return <></>;
   if (userMeError)
     throw new APIError(errorToString(userMeError), {
       api: "getUserMe",
