@@ -4,6 +4,10 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
+  createUserWithEmailAndPassword,
+  applyActionCode,
+  verifyPasswordResetCode,
+  confirmPasswordReset,
 } from "firebase/auth";
 
 import { setAuthToken } from "../slices/auth";
@@ -72,6 +76,48 @@ export const firebaseApi = createApi({
       },
       invalidatesTags: () => [{ type: "Credential" }],
     }),
+    createUserWithEmailAndPassword: builder.mutation({
+      queryFn: async ({ email, password }) => {
+        return await createUserWithEmailAndPassword(auth, email, password)
+          .then((credential) => {
+            return { data: credential };
+          })
+          .catch((error) => ({ error }));
+      },
+      invalidatesTags: () => [{ type: "Credential" }],
+    }),
+    applyActionCode: builder.mutation({
+      queryFn: async ({ actionCode }) => {
+        return await applyActionCode(auth, actionCode)
+          .then(() => {
+            return { data: { success: true, message: "Action code applied successfully" } };
+          })
+          .catch((error) => ({ error }));
+      },
+      invalidatesTags: () => [{ type: "Credential" }],
+    }),
+    verifyPasswordResetCode: builder.mutation({
+      queryFn: async ({ actionCode }) => {
+        return await verifyPasswordResetCode(auth, actionCode)
+          .then((email) => {
+            return {
+              data: { success: true, email, message: "Password reset code verified successfully" },
+            };
+          })
+          .catch((error) => ({ error }));
+      },
+      invalidatesTags: () => [{ type: "Credential" }],
+    }),
+    confirmPasswordReset: builder.mutation({
+      queryFn: async ({ actionCode, newPassword }) => {
+        return await confirmPasswordReset(auth, actionCode, newPassword)
+          .then(() => {
+            return { data: { success: true, message: "Password has been reset successfully" } };
+          })
+          .catch((error) => ({ error }));
+      },
+      invalidatesTags: () => [{ type: "Credential" }],
+    }),
   }),
 });
 
@@ -81,4 +127,8 @@ export const {
   useSendPasswordResetEmailMutation,
   useSignInWithEmailAndPasswordMutation,
   useSignInWithSamlPopupMutation,
+  useCreateUserWithEmailAndPasswordMutation,
+  useApplyActionCodeMutation,
+  useVerifyPasswordResetCodeMutation,
+  useConfirmPasswordResetMutation,
 } = firebaseApi;

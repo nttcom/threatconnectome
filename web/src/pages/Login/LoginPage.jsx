@@ -26,10 +26,8 @@ import {
 } from "../../services/firebaseApi";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import { clearAuth } from "../../slices/auth";
+import { authCookieName, cookiesOptions } from "../../utils/const";
 import { samlProvider } from "../../utils/firebase";
-
-export const authCookieName = "Authorization";
-export const cookiesOptions = { path: process.env.PUBLIC_URL || "/" };
 
 export function Login() {
   const [message, setMessage] = useState(null);
@@ -39,10 +37,7 @@ export function Login() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  /* eslint-disable-next-line no-unused-vars */
   const [_cookies, setCookie, removeCookie] = useCookies([authCookieName]);
-
-  const metemcyberAuthUrl = process.env.REACT_APP_METEMCYBER_AUTH_URL;
 
   const [sendEmailVerification] = useSendEmailVerificationMutation();
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
@@ -96,7 +91,7 @@ export function Login() {
       switch (error.data?.detail) {
         case "Email is not verified. Try logging in on UI and verify email.": {
           const actionCodeSettings = {
-            url: `${window.location.origin}${process.env.PUBLIC_URL}/login`,
+            url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
           };
           await sendEmailVerification(userCredential.user, actionCodeSettings);
           setMessage(
@@ -153,10 +148,9 @@ export function Login() {
       },
     });
   };
-
-  const handleSignUp = () => {
-    if (!metemcyberAuthUrl) return;
-    window.open(metemcyberAuthUrl, "_blank");
+  const handleSignUp = (event) => {
+    event.preventDefault();
+    navigate("/sign_up");
   };
 
   return (

@@ -40,7 +40,7 @@ export function PTeamInviteModal(props) {
   const [createPTeamInvitation] = useCreatePTeamInvitationMutation();
 
   const tokenToLink = (token) =>
-    `${window.location.origin}${process.env.PUBLIC_URL}/pteam/join?token=${token}`;
+    `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/pteam/join?token=${token}`;
   const handleReset = () => {
     setInvitationLink(null);
     setMaxUses(0);
