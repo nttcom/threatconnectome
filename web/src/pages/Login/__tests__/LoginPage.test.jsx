@@ -333,7 +333,8 @@ describe("TestLoginPage", () => {
       const mockSignInWithEmailAndPassword = genApiMock();
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
-      const mockSignInWithSamlPopup = genApiMock();
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithSamlPopup = genApiMock(true, testCredential);
       useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
 
       const mockTryLogin = genApiMock();
@@ -396,11 +397,11 @@ describe("TestLoginPage", () => {
     });
 
     it("Navigate when authentication successful without location.state", async () => {
-      const testCredential = { user: { accessToken: "test_token" } };
-      const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+      const mockSignInWithEmailAndPassword = genApiMock();
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
-      const mockSignInWithSamlPopup = genApiMock();
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithSamlPopup = genApiMock(true, testCredential);
       useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
 
       const mockTryLogin = genApiMock();
@@ -431,11 +432,11 @@ describe("TestLoginPage", () => {
     });
 
     it("Navigate back to the page where redirected from, on auth succeeded", async () => {
-      const testCredential = { user: { accessToken: "test_token" } };
-      const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+      const mockSignInWithEmailAndPassword = genApiMock();
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
-      const mockSignInWithSamlPopup = genApiMock();
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithSamlPopup = genApiMock(true, testCredential);
       useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
 
       const mockTryLogin = genApiMock();
@@ -469,11 +470,11 @@ describe("TestLoginPage", () => {
     });
 
     it("Create user when No user in Tc", async () => {
-      const testCredential = { user: { accessToken: "test_token" } };
-      const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+      const mockSignInWithEmailAndPassword = genApiMock();
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
-      const mockSignInWithSamlPopup = genApiMock();
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithSamlPopup = genApiMock(true, testCredential);
       useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
 
       const mockTryLogin = genApiMock(false, { data: { detail: "No such user" } });

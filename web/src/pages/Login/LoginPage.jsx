@@ -129,6 +129,7 @@ export function Login() {
 
   const handleLoginWithSaml = () => {
     signInWithSamlPopup()
+      .unwrap()
       .then(async (userCredential) => {
         navigateInternalPage(userCredential);
       })
