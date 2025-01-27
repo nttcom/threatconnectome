@@ -359,6 +359,151 @@ describe("TestLoginPage", () => {
 
       expect(mockSignInWithSamlPopup).toBeCalledTimes(1);
     });
+
+    it("Login shows error message when login failed", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockSignInWithSamlPopup = genApiMock(false);
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
+      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+
+      import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
+
+      const expectedMessageRegexp = new RegExp("Something went wrong.");
+      expect(screen.queryByText(expectedMessageRegexp)).not.toBeInTheDocument();
+
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const loginButton = screen.getByRole("button", { name: "Log In with SAML" });
+      await ue.click(loginButton);
+
+      expect(screen.getByText(expectedMessageRegexp)).toBeInTheDocument();
+    });
+
+    it("Navigate when authentication successful without location.state", async () => {
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
+      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+
+      import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const loginButton = screen.getByRole("button", { name: "Log In with SAML" });
+      await ue.click(loginButton);
+
+      expect(mockTryLogin).toBeCalledTimes(1);
+      expect(mockedNavigator).toBeCalledTimes(1);
+      expect(mockedNavigator).toHaveBeenCalledWith({ pathname: "/", search: "" });
+      expect(mockCreateUser).toBeCalledTimes(0);
+    });
+
+    it("Navigate back to the page where redirected from, on auth succeeded", async () => {
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: { from: "/pteam", search: "?pteamId=test_id" } };
+      useLocation.mockReturnValue(testLocation);
+
+      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+
+      import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const loginButton = screen.getByRole("button", { name: "Log In with SAML" });
+      await ue.click(loginButton);
+
+      expect(mockTryLogin).toBeCalledTimes(1);
+      expect(mockedNavigator).toBeCalledTimes(1);
+      expect(mockedNavigator).toHaveBeenCalledWith({
+        pathname: testLocation.state.from,
+        search: testLocation.state.search,
+      });
+      expect(mockCreateUser).toBeCalledTimes(0);
+    });
+
+    it("Create user when No user in Tc", async () => {
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
+      const mockTryLogin = genApiMock(false, { data: { detail: "No such user" } });
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
+      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+
+      import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const loginButton = screen.getByRole("button", { name: "Log In with SAML" });
+      await ue.click(loginButton);
+
+      expect(mockTryLogin).toBeCalledTimes(1);
+      expect(mockCreateUser).toBeCalledTimes(1);
+      expect(mockedNavigator).toBeCalledTimes(1);
+      expect(mockedNavigator).toHaveBeenCalledWith("/account", {
+        state: { from: "/", search: "" },
+      });
+    });
   });
 
   describe("UI elements", () => {
