@@ -36,6 +36,7 @@ jobs:
         run: npm ci && npm run build
         working-directory: ./web
         env:
+          VITE_PUBLIC_URL: ""
           VITE_API_BASE_URL: "http://traefik/api"
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
