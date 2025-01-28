@@ -7,7 +7,7 @@ import { FaSkullCrossbones, FaVirusSlash } from "react-icons/fa";
 import { MdDoNotTouch, MdPolicy } from "react-icons/md";
 import { TbArrowFork, TbWall } from "react-icons/tb";
 
-export const actionTypeChipColors = {
+const actionTypeChipColors = {
   elimination: <FaVirusSlash />,
   mitigation: <TbWall />,
   detection: <MdPolicy />,

@@ -23,7 +23,7 @@ const _responseListToDictConverter =
 export const tcApi = createApi({
   reducerPath: "tcApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_API_BASE_URL,
+    baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: async (headers) => {
       const token = await auth.currentUser?.getIdToken(true);
       if (token) {

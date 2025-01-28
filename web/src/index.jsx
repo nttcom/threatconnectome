@@ -10,9 +10,11 @@ import {
   AcceptPTeamInvitation,
   Account,
   App,
+  EmailVerification,
   Login,
   ResetPassword,
   Status,
+  SignUp,
   Tag,
   TopicDetail,
   TopicManagement,
@@ -34,10 +36,12 @@ root.render(
           anchorOrigin={{ horizontal: "center", vertical: "top" }}
           autoHideDuration={5000}
         >
-          <Router basename={process.env.PUBLIC_URL}>
+          <Router basename={import.meta.env.VITE_PUBLIC_URL}>
             <Routes>
               <Route exact path="/login" element={<Login />} />
               <Route path="/reset_password" element={<ResetPassword />} />
+              <Route path="/sign_up" element={<SignUp />} />
+              <Route path="/email_verification" element={<EmailVerification />} />
               <Route path="/" element={<App />}>
                 <Route index element={<Status />} />
                 <Route path="account">

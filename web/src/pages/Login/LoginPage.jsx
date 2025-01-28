@@ -26,8 +26,6 @@ import {
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import { samlProvider } from "../../utils/firebase";
 
-export const authCookieName = "Authorization";
-
 export function Login() {
   const [message, setMessage] = useState(null);
   const [visible, setVisible] = useState(false);
@@ -35,8 +33,6 @@ export function Login() {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-
-  const metemcyberAuthUrl = process.env.REACT_APP_METEMCYBER_AUTH_URL;
 
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
   const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
@@ -85,7 +81,7 @@ export function Login() {
       switch (error.data?.detail) {
         case "Email is not verified. Try logging in on UI and verify email.": {
           const actionCodeSettings = {
-            url: `${window.location.origin}${process.env.PUBLIC_URL}/login`,
+            url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
           };
           await sendEmailVerification(userCredential.user, actionCodeSettings);
           setMessage(
@@ -142,10 +138,9 @@ export function Login() {
       },
     });
   };
-
-  const handleSignUp = () => {
-    if (!metemcyberAuthUrl) return;
-    window.open(metemcyberAuthUrl, "_blank");
+  const handleSignUp = (event) => {
+    event.preventDefault();
+    navigate("/sign_up");
   };
 
   return (

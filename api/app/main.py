@@ -24,6 +24,8 @@ def create_app():
     app = FastAPI(title="Threatconnectome")
     origins = [
         "http://localhost:3000",  # dev
+        "http://localhost:4173",  # dev: vite preview
+        "http://localhost:5173",  # dev: vite dev
         "http://localhost:8080",  # dev
         "http://localhost",  # dev
         "https://threatconnectome.firebase.app",  # prod-alias
