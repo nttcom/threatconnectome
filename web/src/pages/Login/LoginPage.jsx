@@ -14,13 +14,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { sendEmailVerification } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import {
+  useSendEmailVerificationMutation,
   useSignInWithEmailAndPasswordMutation,
   useSignInWithSamlPopupMutation,
 } from "../../services/firebaseApi";
@@ -39,6 +39,7 @@ export function Login() {
 
   const [_cookies, setCookie, removeCookie] = useCookies([authCookieName]);
 
+  const [sendEmailVerification] = useSendEmailVerificationMutation();
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
   const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
   const [createUser] = useCreateUserMutation();
@@ -92,7 +93,10 @@ export function Login() {
           const actionCodeSettings = {
             url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
           };
-          await sendEmailVerification(userCredential.user, actionCodeSettings);
+          await sendEmailVerification({
+            user: userCredential.user,
+            actionCodeSettings: actionCodeSettings,
+          });
           setMessage(
             "Your email address is not verified. An email for verification was sent to your address.",
           );
