@@ -13,10 +13,12 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { sendEmailVerification } from "firebase/auth";
 import React, { useState } from "react";
 
-import { useCreateUserWithEmailAndPasswordMutation } from "../../services/firebaseApi";
+import {
+  useSendEmailVerificationMutation,
+  useCreateUserWithEmailAndPasswordMutation,
+} from "../../services/firebaseApi";
 
 export function SignUp() {
   const [message, setMessage] = useState("");
@@ -27,6 +29,7 @@ export function SignUp() {
     visible: false,
   });
   const [disabled, setDisabled] = useState(false);
+  const [sendEmailVerification] = useSendEmailVerificationMutation();
   const [createUserWithEmailAndPassword] = useCreateUserWithEmailAndPasswordMutation();
 
   const handleChange = (prop) => (event) => {
@@ -44,7 +47,14 @@ export function SignUp() {
         email: values.email,
         password: values.password,
       }).unwrap();
-      await sendEmailVerification(userCredential.user);
+      const actionCodeSettings = {
+        handleCodeInApp: false,
+        url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
+      };
+      await sendEmailVerification({
+        user: userCredential.user,
+        actionCodeSettings: actionCodeSettings,
+      }).unwrap();
       setMessage("An email for verification was sent to your address.");
       setDisabled(true);
     } catch (error) {
