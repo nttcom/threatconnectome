@@ -26,8 +26,8 @@ import {
 } from "../../services/firebaseApi";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import { clearAuth } from "../../slices/auth";
+import Firebase from "../../utils/Firebase";
 import { authCookieName, cookiesOptions } from "../../utils/const";
-import { samlProvider } from "../../utils/firebase";
 
 export function Login() {
   const [message, setMessage] = useState(null);
@@ -133,6 +133,7 @@ export function Login() {
 
   const handleLoginWithSaml = () => {
     signInWithSamlPopup()
+      .unwrap()
       .then(async (userCredential) => {
         navigateInternalPage(userCredential);
       })
@@ -211,7 +212,7 @@ export function Login() {
         </Button>
       </Box>
       {/* show saml login button if samlProviderId is set as env */}
-      {samlProvider && (
+      {Firebase.getSamlProvider() != null && (
         <>
           <Divider />
           <Button

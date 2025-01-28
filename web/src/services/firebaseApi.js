@@ -11,7 +11,7 @@ import {
 } from "firebase/auth";
 
 import { setAuthToken } from "../slices/auth";
-import { auth, samlProvider } from "../utils/firebase";
+import Firebase from "../utils/Firebase";
 
 export const firebaseApi = createApi({
   reducerPath: "firebaseApi",
@@ -44,7 +44,7 @@ export const firebaseApi = createApi({
     }),
     sendPasswordResetEmail: builder.mutation({
       queryFn: async ({ email, actionCodeSettings }) => {
-        return await sendPasswordResetEmail(auth, email, actionCodeSettings)
+        return await sendPasswordResetEmail(Firebase.getAuth(), email, actionCodeSettings)
           .then((success) => {
             return { data: success };
           })
@@ -53,7 +53,7 @@ export const firebaseApi = createApi({
     }),
     signInWithEmailAndPassword: builder.mutation({
       queryFn: async ({ email, password }, { dispatch }) => {
-        return await signInWithEmailAndPassword(auth, email, password)
+        return await signInWithEmailAndPassword(Firebase.getAuth(), email, password)
           .then((credential) => {
             dispatch(setAuthToken(credential.user.accessToken));
             return { data: credential };
@@ -64,10 +64,11 @@ export const firebaseApi = createApi({
     }),
     signInWithSamlPopup: builder.mutation({
       queryFn: async (_, { dispatch }) => {
+        const samlProvider = Firebase.getSamlProvider();
         if (!samlProvider) {
           return { error: "SAML not supported" };
         }
-        return await signInWithPopup(auth, samlProvider)
+        return await signInWithPopup(Firebase.getAuth(), samlProvider)
           .then((credential) => {
             dispatch(setAuthToken(credential.user.accessToken));
             return { data: credential };
@@ -78,7 +79,7 @@ export const firebaseApi = createApi({
     }),
     createUserWithEmailAndPassword: builder.mutation({
       queryFn: async ({ email, password }) => {
-        return await createUserWithEmailAndPassword(auth, email, password)
+        return await createUserWithEmailAndPassword(Firebase.getAuth(), email, password)
           .then((credential) => {
             return { data: credential };
           })
@@ -88,7 +89,7 @@ export const firebaseApi = createApi({
     }),
     applyActionCode: builder.mutation({
       queryFn: async ({ actionCode }) => {
-        return await applyActionCode(auth, actionCode)
+        return await applyActionCode(Firebase.getAuth(), actionCode)
           .then(() => {
             return { data: { success: true, message: "Action code applied successfully" } };
           })
@@ -98,7 +99,7 @@ export const firebaseApi = createApi({
     }),
     verifyPasswordResetCode: builder.mutation({
       queryFn: async ({ actionCode }) => {
-        return await verifyPasswordResetCode(auth, actionCode)
+        return await verifyPasswordResetCode(Firebase.getAuth(), actionCode)
           .then((email) => {
             return {
               data: { success: true, email, message: "Password reset code verified successfully" },
@@ -110,7 +111,7 @@ export const firebaseApi = createApi({
     }),
     confirmPasswordReset: builder.mutation({
       queryFn: async ({ actionCode, newPassword }) => {
-        return await confirmPasswordReset(auth, actionCode, newPassword)
+        return await confirmPasswordReset(Firebase.getAuth(), actionCode, newPassword)
           .then(() => {
             return { data: { success: true, message: "Password has been reset successfully" } };
           })
