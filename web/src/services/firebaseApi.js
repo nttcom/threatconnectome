@@ -17,22 +17,6 @@ export const firebaseApi = createApi({
   reducerPath: "firebaseApi",
   baseQuery: fakeBaseQuery(),
   endpoints: (builder) => ({
-    /*
-    getAccessToken builder.query({
-      queryFn: (_, { getState }) => {
-        try {
-          const data = getState().auth.token;
-          if (!data) {
-            throw new Error("No access token");
-          }
-          return { data };
-        } catch (error) {
-          return { error };
-        }
-      },
-      providesTags: () => [{ type: "Credential" }],
-    }),
-    */
     sendEmailVerification: builder.mutation({
       queryFn: async ({ user, actionCodeSettings }) => {
         return await sendEmailVerification(user, actionCodeSettings)
@@ -60,7 +44,6 @@ export const firebaseApi = createApi({
           })
           .catch((error) => ({ error }));
       },
-      invalidatesTags: () => [{ type: "Credential" }],
     }),
     signInWithSamlPopup: builder.mutation({
       queryFn: async (_, { dispatch }) => {
@@ -75,7 +58,6 @@ export const firebaseApi = createApi({
           })
           .catch((error) => ({ error }));
       },
-      invalidatesTags: () => [{ type: "Credential" }],
     }),
     createUserWithEmailAndPassword: builder.mutation({
       queryFn: async ({ email, password }) => {
@@ -85,7 +67,6 @@ export const firebaseApi = createApi({
           })
           .catch((error) => ({ error }));
       },
-      invalidatesTags: () => [{ type: "Credential" }],
     }),
     applyActionCode: builder.mutation({
       queryFn: async ({ actionCode }) => {
@@ -95,7 +76,6 @@ export const firebaseApi = createApi({
           })
           .catch((error) => ({ error }));
       },
-      invalidatesTags: () => [{ type: "Credential" }],
     }),
     verifyPasswordResetCode: builder.mutation({
       queryFn: async ({ actionCode }) => {
@@ -107,7 +87,6 @@ export const firebaseApi = createApi({
           })
           .catch((error) => ({ error }));
       },
-      invalidatesTags: () => [{ type: "Credential" }],
     }),
     confirmPasswordReset: builder.mutation({
       queryFn: async ({ actionCode, newPassword }) => {
@@ -117,13 +96,11 @@ export const firebaseApi = createApi({
           })
           .catch((error) => ({ error }));
       },
-      invalidatesTags: () => [{ type: "Credential" }],
     }),
   }),
 });
 
 export const {
-  /* useGetAccessTokenQuery, */
   useSendEmailVerificationMutation,
   useSendPasswordResetEmailMutation,
   useSignInWithEmailAndPasswordMutation,
