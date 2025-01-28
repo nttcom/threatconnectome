@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-import { auth } from "../utils/firebase";
+import Firebase from "../utils/Firebase";
 import { blobToDataURL } from "../utils/func";
 
 const _responseListToDictConverter =
@@ -25,7 +25,7 @@ export const tcApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: async (headers) => {
-      const token = await auth.currentUser?.getIdToken(true);
+      const token = await Firebase.getAuth().currentUser?.getIdToken(true);
       if (token) {
         headers.set("authorization", `Bearer ${token}`);
       }
