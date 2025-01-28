@@ -590,7 +590,7 @@ describe("TestLoginPage", () => {
       expect(mockSignInWithEmailAndPassword).toBeCalledTimes(0);
     });
 
-    it("Not visible SAML button without env.REACT_APP_FIREBASE_AUTH_SAML_PROVIDER_ID", async () => {
+    it("Not visible SAML button without env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID", async () => {
       const mockSignInWithEmailAndPassword = genApiMock();
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
