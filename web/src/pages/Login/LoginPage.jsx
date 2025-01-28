@@ -26,8 +26,8 @@ import {
 } from "../../services/firebaseApi";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import { clearAuth } from "../../slices/auth";
-import { authCookieName, cookiesOptions } from "../../utils/const";
 import Firebase from "../../utils/Firebase";
+import { authCookieName, cookiesOptions } from "../../utils/const";
 
 export function Login() {
   const [message, setMessage] = useState(null);
