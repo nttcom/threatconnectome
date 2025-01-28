@@ -8,16 +8,17 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { sendPasswordResetEmail } from "firebase/auth";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useSendPasswordResetEmailMutation } from "../../services/firebaseApi";
 import Firebase from "../../utils/Firebase";
 
 export function ResetPassword() {
   const [disabled, setDisabled] = useState(false);
   const [message, setMessage] = useState(null);
 
+  const [sendPasswordResetEmail] = useSendPasswordResetEmailMutation();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -39,7 +40,11 @@ export function ResetPassword() {
       url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
     };
     try {
-      await sendPasswordResetEmail(Firebase.getAuth(), data.get("email"), actionCodeSettings);
+      await sendPasswordResetEmail({
+        email: data.get("email"),
+        actionCodeSettings: actionCodeSettings,
+      }).unwrap();
+      setMessage("An email with a password reset URL was sent to this address.");
     } catch (error) {
       setDisabled(false);
       switch (error.code) {
@@ -52,9 +57,7 @@ export function ResetPassword() {
         default:
           setMessage("Something went wrong.");
       }
-      return;
     }
-    setMessage("An email with a password reset URL was sent to this address.");
   };
 
   return (

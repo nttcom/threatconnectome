@@ -135,6 +135,9 @@ def _get_cve_data_from_json_data(vulnrichment_json: dict) -> tuple:
         )
     )
 
+    if all("other" not in x for x in adp_vulnrichment["metrics"]):
+        return ()
+
     metric = next(
         filter(lambda x: "other" in x and x["other"]["type"] == "ssvc", adp_vulnrichment["metrics"])
     )
