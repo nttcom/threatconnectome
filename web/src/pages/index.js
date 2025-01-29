@@ -10,6 +10,7 @@ import { Status } from "./Status/StatusPage";
 import { Tag } from "./Tag/TagPage";
 import { TopicDetail } from "./TopicDetail/TopicDetailPage";
 import { TopicManagement } from "./TopicManagement/TopicManagementPage";
+import { VulnerabilityPage } from "./VulnerabilityPage";
 
 export {
   AcceptPTeamInvitation,
@@ -24,4 +25,5 @@ export {
   Tag,
   TopicDetail,
   TopicManagement,
+  VulnerabilityPage,
 };
