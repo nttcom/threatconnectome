@@ -132,5 +132,4 @@ export function TopicDetailsDrawer(props) {
 TopicDetailsDrawer.propTypes = {
   open: PropTypes.bool,
   setOpen: PropTypes.func,
-  index: PropTypes.number,
 };
