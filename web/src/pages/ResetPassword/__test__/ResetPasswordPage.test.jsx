@@ -46,7 +46,7 @@ describe("ResetPassword Component", () => {
 
     renderResetPassword();
 
-    sendPasswordResetEmailMock.mockResolvedValueOnce();
+    sendPasswordResetEmailMock.mockResolvedValue();
 
     const emailField = screen.getByRole("textbox", { name: /email address/i });
     const resetButton = screen.getByRole("button", { name: /reset password/i });
@@ -73,7 +73,7 @@ describe("ResetPassword Component", () => {
 
       renderResetPassword();
 
-      sendPasswordResetEmailMock.mockResolvedValueOnce();
+      sendPasswordResetEmailMock.mockResolvedValue();
 
       const emailField = screen.getByRole("textbox", { name: /email address/i });
       const resetButton = screen.getByRole("button", { name: /reset password/i });
@@ -98,7 +98,7 @@ describe("ResetPassword Component", () => {
       const sendPasswordResetEmailMock = vi.fn();
       vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
 
-      sendPasswordResetEmailMock.mockRejectedValueOnce({ code: "auth/invalid-email" });
+      sendPasswordResetEmailMock.mockRejectedValue({ code: "auth/invalid-email" });
 
       renderResetPassword();
 
@@ -116,7 +116,7 @@ describe("ResetPassword Component", () => {
       const sendPasswordResetEmailMock = vi.fn();
       vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
 
-      sendPasswordResetEmailMock.mockRejectedValueOnce({ code: "auth/user-not-found" });
+      sendPasswordResetEmailMock.mockRejectedValue({ code: "auth/user-not-found" });
 
       renderResetPassword();
 
