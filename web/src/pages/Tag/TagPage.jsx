@@ -3,6 +3,7 @@ import { grey } from "@mui/material/colors";
 import React, { useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 
+import { CodeBlock } from "../../components/CodeBlock.jsx";
 import { TabPanel } from "../../components/TabPanel";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
@@ -90,7 +91,7 @@ export function Tag() {
 
   return (
     <>
-      <Box alignItems="center" display="flex" flexDirection="row" mt={3} mb={3}>
+      <Box alignItems="center" display="flex" flexDirection="row" mt={3} mb={2}>
         <Box display="flex" flexDirection="column" flexGrow={1}>
           <Box>
             <Chip
@@ -115,6 +116,12 @@ export function Tag() {
           </Typography>
           <TagReferences references={references} serviceDict={serviceDict} />
         </Box>
+      </Box>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Install
+        </Typography>
+        <CodeBlock />
       </Box>
       <Divider />
       <Box sx={{ width: "100%" }}>
