@@ -1,11 +1,15 @@
 import { Box } from "@mui/material";
+import { onAuthStateChanged } from "firebase/auth";
 import React, { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { setAuthUserIsReady } from "../../slices/auth";
 import { useTryLoginMutation } from "../../services/tcApi";
 import { mainMaxWidth } from "../../utils/const";
+import Firebase from "../../utils/Firebase";
 
 import { AppBar } from "./AppBar";
 import { AppFallback } from "./AppFallback";
@@ -18,13 +22,12 @@ export function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const dispatch = useDispatch();
   const [tryLogin] = useTryLoginMutation();
 
   useEffect(() => {
-    const _checkToken = async () => {
-      try {
-        await tryLogin().unwrap(); // throw error if accessToken is expired
-      } catch (error) {
+    onAuthStateChanged(Firebase.getAuth(), (user) => {
+      if (!user) {
         navigate("/login", {
           state: {
             from: location.pathname,
@@ -32,10 +35,11 @@ export function App() {
             message: "Please login to continue.",
           },
         });
+      } else {
+        dispatch(setAuthUserIsReady(true));
       }
-    };
-    _checkToken();
-  }, [location, navigate, tryLogin]);
+    });
+  }, [location, dispatch, navigate, tryLogin]);
 
   return (
     <>
