@@ -14,11 +14,11 @@ import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import dialogStyle from "../../cssModule/dialog.module.css";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useCreateActionLogMutation,
   useUpdateTicketStatusMutation,
@@ -40,7 +40,7 @@ export function ReportCompletedActions(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const skip = useSkipUntilAuthUserIsReady();
+  const skip = !useSelector((state) => state.auth.authUserIsReady);
   const {
     data: userMe,
     error: userMeError,

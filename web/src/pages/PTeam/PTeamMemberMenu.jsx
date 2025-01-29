@@ -6,8 +6,8 @@ import {
 import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery, useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString, checkAdmin } from "../../utils/func";
@@ -23,7 +23,7 @@ export function PTeamMemberMenu(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  const skip = useSkipUntilAuthUserIsReady() || !pteamId;
+  const skip = !useSelector((state) => state.auth.authUserIsReady) || !pteamId;
   const {
     data: userMe,
     error: userMeError,

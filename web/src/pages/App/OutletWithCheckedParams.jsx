@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
@@ -11,7 +11,7 @@ export function OutletWithCheckedParams() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const skip = useSkipUntilAuthUserIsReady();
+  const skip = !useSelector((state) => state.auth.authUserIsReady);
 
   const {
     data: userMe,

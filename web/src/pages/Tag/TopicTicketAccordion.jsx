@@ -18,9 +18,9 @@ import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React from "react";
+import { useSelector } from "react-redux";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetThreatQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import {
@@ -71,7 +71,7 @@ export function TopicTicketAccordion(props) {
   const ticketStatus = ticket.ticket_status;
   const ssvcPriority = ticket.ssvc_deployer_priority || "defer";
 
-  const skipByAuth = useSkipUntilAuthUserIsReady();
+  const skipByAuth = !useSelector((state) => state.auth.authUserIsReady);
   const {
     data: threat,
     error: threatError,

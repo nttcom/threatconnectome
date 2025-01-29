@@ -13,9 +13,9 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { useSelector } from "react-redux";
 
 import styles from "../../cssModule/dialog.module.css";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useDeletePTeamServiceMutation, useGetPTeamQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
@@ -32,7 +32,7 @@ export function PTeamServiceDelete(props) {
   const params = new URLSearchParams(location.search);
   const serviceId = params.get("serviceId");
 
-  const skip = useSkipUntilAuthUserIsReady() || !!pteamId;
+  const skip = !useSelector((state) => state.auth.authUserIsReady) || !!pteamId;
   const {
     data: pteam,
     error: pteamError,

@@ -29,10 +29,10 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useLocation, useNavigate } from "react-router";
+import { useSelector } from "react-redux";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import { PTeamLabel } from "../../components/PTeamLabel";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
   useGetPTeamTagsSummaryQuery,
@@ -141,7 +141,7 @@ export function Status() {
     serviceIds: [],
   });
 
-  const skipByAuth = useSkipUntilAuthUserIsReady();
+  const skipByAuth = !useSelector((state) => state.auth.authUserIsReady);
 
   const {
     data: pteam,

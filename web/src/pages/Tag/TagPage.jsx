@@ -2,10 +2,10 @@ import { Box, Divider, Tab, Tabs, Typography, Chip } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import React, { useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import { TabPanel } from "../../components/TabPanel";
 import { UUIDTypography } from "../../components/UUIDTypography";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
   useGetPTeamServiceTaggedTopicIdsQuery,
@@ -22,7 +22,7 @@ import { TagReferences } from "./TagReferences.jsx";
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
 
-  const skipByAuth = useSkipUntilAuthUserIsReady();
+  const skipByAuth = !useSelector((state) => state.auth.authUserIsReady);
   const {
     data: allTags,
     error: allTagsError,

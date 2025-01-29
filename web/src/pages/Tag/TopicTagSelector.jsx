@@ -19,9 +19,9 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { FixedSizeList } from "react-window";
+import { useSelector } from "react-redux";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useCreateTagMutation, useGetTagsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { commonButtonStyle } from "../../utils/const";
@@ -38,7 +38,7 @@ export function TopicTagSelector(props) {
 
   const [createTag] = useCreateTagMutation();
 
-  const skip = useSkipUntilAuthUserIsReady();
+  const skip = !useSelector((state) => state.auth.authUserIsReady);
   const {
     data: allTags,
     error: allTagsError,

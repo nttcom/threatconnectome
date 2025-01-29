@@ -29,9 +29,9 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import styles from "../../cssModule/button.module.css";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetTopicActionsQuery,
   useGetTopicQuery,
@@ -58,7 +58,7 @@ function TopicManagementTableRow(props) {
 
   const params = new URLSearchParams(location.search);
 
-  const skip = useSkipUntilAuthUserIsReady();
+  const skip = !useSelector((state) => state.auth.authUserIsReady);
 
   const {
     data: topic,
@@ -147,7 +147,7 @@ export function TopicManagement() {
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
 
-  const skip = useSkipUntilAuthUserIsReady();
+  const skip = !useSelector((state) => state.auth.authUserIsReady);
 
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
