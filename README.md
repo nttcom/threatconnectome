@@ -135,25 +135,25 @@ To change this so that builds also link to the development environment API, the 
 
 :warning: **Values that need to be changed**
 
-- `REACT_APP_API_BASE_URL`
+- `VITE_API_BASE_URL`
   - Set it as `http://localhost:<your_port_for_threatconnectome>/api` for local development
 - Values can be referred from firebase project setting page
 
-  - `REACT_APP_FIREBASE_API_KEY`
+  - `VITE_FIREBASE_API_KEY`
     - The same with `FIREBASE_API_KEY` in ../.envenv
-  - `REACT_APP_FIREBASE_APP_ID`
+  - `VITE_FIREBASE_APP_ID`
     - App ID
   - Values can be referred from `firebaseConfig` on the page
 
-    - `REACT_APP_FIREBASE_AUTH_DOMAIN`
-    - `REACT_APP_FIREBASE_MEASUREMENT_ID`
-    - `REACT_APP_FIREBASE_MESSAGING_SENDER_ID`
-    - `REACT_APP_FIREBASE_PROJECT_ID`
-    - `REACT_APP_FIREBASE_STORAGE_BUCKET`
+    - `VITE_FIREBASE_AUTH_DOMAIN`
+    - `VITE_FIREBASE_MEASUREMENT_ID`
+    - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+    - `VITE_FIREBASE_PROJECT_ID`
+    - `VITE_FIREBASE_STORAGE_BUCKET`
 
-  - `REACT_APP_FIREBASE_AUTH_SAML_PROVIDER_ID`
+  - `VITE_FIREBASE_AUTH_SAML_PROVIDER_ID`
     - Set your saml provider id if needed.
-  - `REACT_APP_FIREBASE_AUTH_EMULATOR_URL`
+  - `VITE_FIREBASE_AUTH_EMULATOR_URL`
     - Set it to `http://localhost:<your_port_for_firebase>`
 
 ### Database settings

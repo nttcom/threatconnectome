@@ -1,10 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { SAMLAuthProvider } from "firebase/auth";
 import React from "react";
 import { Provider } from "react-redux";
 import { BrowserRouter, useLocation, useNavigate } from "react-router-dom";
 
-import { useSignInWithEmailAndPasswordMutation } from "../../../services/firebaseApi";
+import {
+  useSignInWithEmailAndPasswordMutation,
+  useSignInWithSamlPopupMutation,
+} from "../../../services/firebaseApi";
 import { useTryLoginMutation, useCreateUserMutation } from "../../../services/tcApi";
 import store from "../../../store";
 import { Login } from "../LoginPage";
@@ -12,19 +16,7 @@ import { Login } from "../LoginPage";
 const renderLogin = () => {
   render(
     <Provider store={store}>
-      <BrowserRouter
-        future={{
-          /* to prevent React Router Future Flag Warning.
-           * see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath for details.
-           */
-          // v7_fetcherPersist: true,
-          // v7_normalizeFormMethod: true,
-          // v7_partialHydration: true,
-          v7_relativeSplatPath: true,
-          // v7_skipActionErrorRevalidation: true,
-          v7_startTransition: true,
-        }}
-      >
+      <BrowserRouter>
         <Login />
       </BrowserRouter>
     </Provider>,
@@ -36,6 +28,15 @@ vi.mock("../../../services/firebaseApi", async (importOriginal) => {
   return {
     ...actual,
     useSignInWithEmailAndPasswordMutation: vi.fn(),
+    useSignInWithSamlPopupMutation: vi.fn(),
+  };
+});
+
+vi.mock("firebase/auth", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    SAMLAuthProvider: vi.fn(),
   };
 });
 
@@ -68,12 +69,16 @@ const genApiMock = (isSuccess = true, returnValue = undefined) => {
 describe("TestLoginPage", () => {
   afterEach(() => {
     vi.clearAllMocks();
+    import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "";
   });
 
   describe("Email authentication", () => {
     it("Login calls signInWithEmailAndPassword with inputed values", async () => {
       const mockSignInWithEmailAndPassword = genApiMock();
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
 
       const mockTryLogin = genApiMock();
       useTryLoginMutation.mockReturnValue([mockTryLogin]);
@@ -110,6 +115,9 @@ describe("TestLoginPage", () => {
     it("Not navigate when userCredential is undefined)", async () => {
       const mockSignInWithEmailAndPassword = genApiMock();
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
 
       const mockTryLogin = genApiMock();
       useTryLoginMutation.mockReturnValue([mockTryLogin]);
@@ -152,6 +160,9 @@ describe("TestLoginPage", () => {
       const mockSignInWithEmailAndPassword = genApiMock(false, { code: errorCode });
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
       const mockTryLogin = genApiMock();
       useTryLoginMutation.mockReturnValue([mockTryLogin]);
 
@@ -188,6 +199,9 @@ describe("TestLoginPage", () => {
       const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
       const mockTryLogin = genApiMock();
       useTryLoginMutation.mockReturnValue([mockTryLogin]);
 
@@ -223,6 +237,9 @@ describe("TestLoginPage", () => {
       const testCredential = { user: { accessToken: "test_token" } };
       const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
 
       const mockTryLogin = genApiMock();
       useTryLoginMutation.mockReturnValue([mockTryLogin]);
@@ -263,6 +280,9 @@ describe("TestLoginPage", () => {
       const mockSignInWithEmailAndPassword = genApiMock(true, testCredential);
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
       const mockTryLogin = genApiMock(false, { data: { detail: "No such user" } });
       useTryLoginMutation.mockReturnValue([mockTryLogin]);
 
@@ -297,10 +317,192 @@ describe("TestLoginPage", () => {
     });
   });
 
+  describe("SAML authentication", () => {
+    it("Login calls signInWithSamlPopup", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithSamlPopup = genApiMock(true, testCredential);
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
+      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+
+      import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const loginButton = screen.getByRole("button", { name: "Log In with SAML" });
+      await ue.click(loginButton);
+
+      expect(mockSignInWithSamlPopup).toBeCalledTimes(1);
+    });
+
+    it("Login shows error message when login failed", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockSignInWithSamlPopup = genApiMock(false);
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
+      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+
+      import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
+
+      const expectedMessageRegexp = new RegExp("Something went wrong.");
+      expect(screen.queryByText(expectedMessageRegexp)).not.toBeInTheDocument();
+
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const loginButton = screen.getByRole("button", { name: "Log In with SAML" });
+      await ue.click(loginButton);
+
+      expect(screen.getByText(expectedMessageRegexp)).toBeInTheDocument();
+    });
+
+    it("Navigate when authentication successful without location.state", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithSamlPopup = genApiMock(true, testCredential);
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
+      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+
+      import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const loginButton = screen.getByRole("button", { name: "Log In with SAML" });
+      await ue.click(loginButton);
+
+      expect(mockTryLogin).toBeCalledTimes(1);
+      expect(mockedNavigator).toBeCalledTimes(1);
+      expect(mockedNavigator).toHaveBeenCalledWith({ pathname: "/", search: "" });
+      expect(mockCreateUser).toBeCalledTimes(0);
+    });
+
+    it("Navigate back to the page where redirected from, on auth succeeded", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithSamlPopup = genApiMock(true, testCredential);
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: { from: "/pteam", search: "?pteamId=test_id" } };
+      useLocation.mockReturnValue(testLocation);
+
+      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+
+      import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const loginButton = screen.getByRole("button", { name: "Log In with SAML" });
+      await ue.click(loginButton);
+
+      expect(mockTryLogin).toBeCalledTimes(1);
+      expect(mockedNavigator).toBeCalledTimes(1);
+      expect(mockedNavigator).toHaveBeenCalledWith({
+        pathname: testLocation.state.from,
+        search: testLocation.state.search,
+      });
+      expect(mockCreateUser).toBeCalledTimes(0);
+    });
+
+    it("Create user when No user in Tc", async () => {
+      const mockSignInWithEmailAndPassword = genApiMock();
+      useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const testCredential = { user: { accessToken: "test_token" } };
+      const mockSignInWithSamlPopup = genApiMock(true, testCredential);
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
+      const mockTryLogin = genApiMock(false, { data: { detail: "No such user" } });
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
+      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+
+      import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const loginButton = screen.getByRole("button", { name: "Log In with SAML" });
+      await ue.click(loginButton);
+
+      expect(mockTryLogin).toBeCalledTimes(1);
+      expect(mockCreateUser).toBeCalledTimes(1);
+      expect(mockedNavigator).toBeCalledTimes(1);
+      expect(mockedNavigator).toHaveBeenCalledWith("/account", {
+        state: { from: "/", search: "" },
+      });
+    });
+  });
+
   describe("UI elements", () => {
     it("Change password mask", async () => {
       const mockSignInWithEmailAndPassword = genApiMock();
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
 
       const mockTryLogin = genApiMock();
       useTryLoginMutation.mockReturnValue([mockTryLogin]);
@@ -346,6 +548,9 @@ describe("TestLoginPage", () => {
       const mockSignInWithEmailAndPassword = genApiMock();
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
 
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
+
       const mockTryLogin = genApiMock();
       useTryLoginMutation.mockReturnValue([mockTryLogin]);
 
@@ -373,9 +578,12 @@ describe("TestLoginPage", () => {
       expect(mockSignInWithEmailAndPassword).toBeCalledTimes(0);
     });
 
-    it("Not visible SAML button without env.REACT_APP_FIREBASE_AUTH_SAML_PROVIDER_ID", async () => {
+    it("Not visible SAML button without env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID", async () => {
       const mockSignInWithEmailAndPassword = genApiMock();
       useSignInWithEmailAndPasswordMutation.mockReturnValue([mockSignInWithEmailAndPassword]);
+
+      const mockSignInWithSamlPopup = genApiMock();
+      useSignInWithSamlPopupMutation.mockReturnValue([mockSignInWithSamlPopup]);
 
       const mockTryLogin = genApiMock();
       useTryLoginMutation.mockReturnValue([mockTryLogin]);

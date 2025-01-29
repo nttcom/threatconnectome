@@ -44,20 +44,6 @@ export const pickParentTagName = (tagName) => {
   return tokens.slice(0, -1).join(":") + ":"; // trim the right most token
 };
 
-export const pickMismatchedTopicActionTags = (topicTagNames, actionTagNames) => {
-  const mismatchedTagNames = actionTagNames.reduce(
-    (ret, actionTagName) => [
-      ...ret,
-      ...(topicTagNames.includes(actionTagName) ||
-      topicTagNames.includes(pickParentTagName(actionTagName))
-        ? []
-        : [actionTagName]),
-    ],
-    [],
-  );
-  return mismatchedTagNames;
-};
-
 export const validateNotEmpty = (str) => str?.length > 0;
 export const validateUUID = (str) =>
   str?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
