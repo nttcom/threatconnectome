@@ -1,8 +1,9 @@
 import { combineReducers } from "redux";
 
+import auth from "./auth";
 import system from "./system";
 
-export const sliceReducers = { system };
+export const sliceReducers = { auth, system };
 
 const rootReducer = combineReducers(sliceReducers);
 
