@@ -33,7 +33,6 @@ export function TicketRow(props) {
     const {
       target: { value },
     } = event;
-    console.log(value);
     setAssignees(value);
   };
 
