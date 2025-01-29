@@ -133,7 +133,7 @@ export function TicketRow(props) {
       <TableCell>{ticket.dueDate}</TableCell>
       <TableCell>
         <FormControl sx={{ width: 200 }} size="small">
-          <InputLabel id="demo-multiple-chip-label">Assignees</InputLabel>
+          <InputLabel>Assignees</InputLabel>
           <Select
             multiple
             value={assignees}
