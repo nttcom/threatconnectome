@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import React from "react";
 import { Provider, useDispatch } from "react-redux";
-import { BrowserRouter, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { firebaseApi } from "../../../services/firebaseApi";
 import { tcApi } from "../../../services/tcApi";
@@ -15,6 +15,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return {
     ...actual,
     useNavigate: vi.fn(),
+    useLocation: vi.fn(),
   };
 });
 
@@ -29,9 +30,7 @@ vi.mock("react-redux", async (importOriginal) => {
 const renderAppBar = () => {
   render(
     <Provider store={store}>
-      <BrowserRouter>
-        <AppBar />
-      </BrowserRouter>
+      <AppBar />
     </Provider>,
   );
 };
