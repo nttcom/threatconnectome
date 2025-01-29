@@ -1,8 +1,8 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useApplyPTeamInvitationMutation, useGetPTeamInvitationQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";

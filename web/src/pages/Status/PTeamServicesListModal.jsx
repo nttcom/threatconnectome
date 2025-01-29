@@ -20,8 +20,8 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { useGetPTeamServiceThumbnailQuery, useGetPTeamQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";

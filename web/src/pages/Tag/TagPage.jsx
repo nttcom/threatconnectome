@@ -1,8 +1,8 @@
 import { Box, Divider, Tab, Tabs, Typography, Chip } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import React, { useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useParams, useLocation } from "react-router-dom";
 
 import { TabPanel } from "../../components/TabPanel";
 import { UUIDTypography } from "../../components/UUIDTypography";

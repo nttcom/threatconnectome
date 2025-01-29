@@ -18,8 +18,8 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { FixedSizeList } from "react-window";
 import { useSelector } from "react-redux";
+import { FixedSizeList } from "react-window";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { useCreateTagMutation, useGetTagsQuery } from "../../services/tcApi";

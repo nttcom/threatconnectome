@@ -12,8 +12,8 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router";
 import { useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router";
 
 import styles from "../../cssModule/dialog.module.css";
 import { useDeletePTeamServiceMutation, useGetPTeamQuery } from "../../services/tcApi";

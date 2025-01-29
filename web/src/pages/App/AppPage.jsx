@@ -2,14 +2,13 @@ import { Box } from "@mui/material";
 import { onAuthStateChanged } from "firebase/auth";
 import React, { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { setAuthUserIsReady } from "../../slices/auth";
 import { useTryLoginMutation } from "../../services/tcApi";
-import { mainMaxWidth } from "../../utils/const";
+import { setAuthUserIsReady } from "../../slices/auth";
 import Firebase from "../../utils/Firebase";
+import { mainMaxWidth } from "../../utils/const";
 
 import { AppBar } from "./AppBar";
 import { AppFallback } from "./AppFallback";

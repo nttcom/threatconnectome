@@ -1,7 +1,7 @@
 import { Avatar, Box, Tab, Tabs, Tooltip } from "@mui/material";
 import React, { useState } from "react";
-import { useLocation } from "react-router";
 import { useSelector } from "react-redux";
+import { useLocation } from "react-router";
 
 import { PTeamLabel } from "../../components/PTeamLabel";
 import { TabPanel } from "../../components/TabPanel";

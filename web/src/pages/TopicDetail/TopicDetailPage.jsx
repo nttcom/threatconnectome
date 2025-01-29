@@ -17,8 +17,8 @@ import {
 } from "@mui/material";
 import { green, grey, yellow } from "@mui/material/colors";
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
