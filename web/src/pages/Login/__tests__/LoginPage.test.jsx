@@ -16,19 +16,7 @@ import { Login } from "../LoginPage";
 const renderLogin = () => {
   render(
     <Provider store={store}>
-      <BrowserRouter
-        future={{
-          /* to prevent React Router Future Flag Warning.
-           * see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath for details.
-           */
-          // v7_fetcherPersist: true,
-          // v7_normalizeFormMethod: true,
-          // v7_partialHydration: true,
-          v7_relativeSplatPath: true,
-          // v7_skipActionErrorRevalidation: true,
-          v7_startTransition: true,
-        }}
-      >
+      <BrowserRouter>
         <Login />
       </BrowserRouter>
     </Provider>,
