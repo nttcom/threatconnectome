@@ -47,13 +47,9 @@ export function SignUp() {
         email: values.email,
         password: values.password,
       }).unwrap();
-      const actionCodeSettings = {
-        handleCodeInApp: false,
-        url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
-      };
       await sendEmailVerification({
         user: userCredential.user,
-        actionCodeSettings: actionCodeSettings,
+        actionCodeSettings: null,
       }).unwrap();
       setMessage("An email for verification was sent to your address.");
       setDisabled(true);
