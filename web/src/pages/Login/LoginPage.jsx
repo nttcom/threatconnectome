@@ -14,6 +14,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -24,6 +25,7 @@ import {
   useSignInWithSamlPopupMutation,
 } from "../../services/firebaseApi";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
+import { setAuthUserIsReady } from "../../slices/auth";
 import Firebase from "../../utils/Firebase";
 
 export function Login() {
@@ -41,7 +43,9 @@ export function Login() {
   const [tryLogin] = useTryLoginMutation();
 
   useEffect(() => {
+    dispatch(setAuthUserIsReady(false));
     setMessage(location.state?.message);
+    signOut(Firebase.getAuth());
   }, [dispatch, location]);
 
   const callSignInWithEmailAndPassword = async (email, password) => {

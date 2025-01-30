@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import React, { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,6 +25,7 @@ export function App() {
   useEffect(() => {
     onAuthStateChanged(Firebase.getAuth(), (user) => {
       if (!user) {
+        dispatch(setAuthUserIsReady(false));
         navigate("/login", {
           state: {
             from: location.pathname,
