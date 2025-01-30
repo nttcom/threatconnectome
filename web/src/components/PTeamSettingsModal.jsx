@@ -12,10 +12,10 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
+import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useGetPTeamQuery } from "../services/tcApi";
 import { APIError } from "../utils/APIError";
 import { a11yProps, errorToString } from "../utils/func.js";
@@ -27,7 +27,7 @@ export function PTeamSettingsModal(props) {
   const { pteamId, onSetShow, show, defaultTabIndex } = props;
   const [tab, setTab] = useState(defaultTabIndex ?? 0);
 
-  const skip = !useSelector((state) => state.auth.authUserIsReady) || !pteamId;
+  const skip = useSkipUntilAuthUserIsReady() || !pteamId;
 
   const {
     data: pteam,

@@ -2,8 +2,8 @@ import { Settings as SettingsIcon } from "@mui/icons-material";
 import { Box, IconButton, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
+import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useGetUserMeQuery } from "../services/tcApi";
 import { APIError } from "../utils/APIError";
 import { errorToString } from "../utils/func";
@@ -16,7 +16,7 @@ export function PTeamLabel(props) {
 
   const [pteamSettingsModalOpen, setPTeamSettingsModalOpen] = useState(false);
 
-  const skip = !useSelector((state) => state.auth.authUserIsReady);
+  const skip = useSkipUntilAuthUserIsReady();
 
   const {
     data: userMe,

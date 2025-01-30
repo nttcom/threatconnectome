@@ -1,10 +1,10 @@
 import { Avatar, Box, Tab, Tabs, Tooltip } from "@mui/material";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import { useLocation } from "react-router";
 
 import { PTeamLabel } from "../../components/PTeamLabel";
 import { TabPanel } from "../../components/TabPanel";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamMembersQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { experienceColors, noPTeamMessage } from "../../utils/const";
@@ -19,7 +19,7 @@ export function PTeam() {
   const params = new URLSearchParams(location.search);
   const pteamId = params.get("pteamId");
 
-  const skip = !useSelector((state) => state.auth.authUserIsReady) || !pteamId;
+  const skip = useSkipUntilAuthUserIsReady() || !pteamId;
   const {
     data: members,
     error: membersError,

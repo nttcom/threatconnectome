@@ -27,11 +27,11 @@ import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { useLocation } from "react-router-dom";
 
 import styles from "../../cssModule/button.module.css";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetTopicActionsQuery,
   useGetTopicQuery,
@@ -58,8 +58,7 @@ function TopicManagementTableRow(props) {
 
   const params = new URLSearchParams(location.search);
 
-  const skip = !useSelector((state) => state.auth.authUserIsReady);
-
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: topic,
     error: topicError,
@@ -147,7 +146,7 @@ export function TopicManagement() {
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
 
-  const skip = !useSelector((state) => state.auth.authUserIsReady);
+  const skip = useSkipUntilAuthUserIsReady();
 
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");

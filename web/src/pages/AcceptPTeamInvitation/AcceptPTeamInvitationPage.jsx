@@ -1,9 +1,9 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import React from "react";
-import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useApplyPTeamInvitationMutation, useGetPTeamInvitationQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { commonButtonStyle } from "../../utils/const";
@@ -19,7 +19,7 @@ export function AcceptPTeamInvitation() {
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
 
-  const skip = !useSelector((state) => state.auth.authUserIsReady);
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: detail,
     error: detailError,

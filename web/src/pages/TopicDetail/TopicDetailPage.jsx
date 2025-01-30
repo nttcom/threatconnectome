@@ -17,10 +17,10 @@ import {
 } from "@mui/material";
 import { green, grey, yellow } from "@mui/material/colors";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
@@ -49,7 +49,7 @@ export function TopicDetail() {
 
   const [showAllArtifacts, setShowAllArtifacts] = useState(false);
 
-  const skip = !useSelector((state) => state.auth.authUserIsReady);
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: topic,
     error: topicError,

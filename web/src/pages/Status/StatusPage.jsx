@@ -28,11 +28,11 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import { PTeamLabel } from "../../components/PTeamLabel";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
   useGetPTeamTagsSummaryQuery,
@@ -141,7 +141,7 @@ export function Status() {
     serviceIds: [],
   });
 
-  const skipByAuth = !useSelector((state) => state.auth.authUserIsReady);
+  const skipByAuth = useSkipUntilAuthUserIsReady();
 
   const {
     data: pteam,

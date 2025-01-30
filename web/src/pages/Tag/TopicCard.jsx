@@ -15,10 +15,10 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamTopicActionsQuery,
   useGetTicketsQuery,
@@ -41,7 +41,7 @@ export function TopicCard(props) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
 
-  const skipByAuth = !useSelector((state) => state.auth.authUserIsReady);
+  const skipByAuth = useSkipUntilAuthUserIsReady();
   const {
     data: topic,
     error: topicError,

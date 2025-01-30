@@ -12,9 +12,9 @@ import {
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery, useUpdateUserMutation } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
@@ -28,7 +28,7 @@ export function Account() {
   const { enqueueSnackbar } = useSnackbar();
 
   const [updateUser] = useUpdateUserMutation();
-  const skip = !useSelector((state) => state.auth.authUserIsReady);
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: userMe,
     error: userMeError,

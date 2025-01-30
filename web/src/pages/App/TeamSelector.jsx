@@ -2,9 +2,9 @@ import { Add as AddIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from "@mui
 import { Box, Button, Menu, MenuItem } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import React, { useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { LocationReader } from "../../utils/LocationReader";
@@ -35,7 +35,7 @@ export function TeamSelector() {
   const [openPTeamCreationModal, setOpenPTeamCreationModal] = useState(false);
   const locationReader = useMemo(() => new LocationReader(location), [location]);
 
-  const skip = !useSelector((state) => state.auth.authUserIsReady);
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: userMe,
     error: userMeError,
