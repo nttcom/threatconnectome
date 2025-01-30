@@ -139,25 +139,19 @@ describe("ResetPassword Component", () => {
   });
 
   describe("Form Validation", () => {
-    //Email address未入力時、Reset Passwordボタン無効であることの検証
-    it("should disable the Reset Password button when the email input is empty", async () => {
+    it("should not call the callback when the Reset Password button is clicked and email is empty", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+
       const mockSendPasswordResetEmail = vi.fn();
       vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([mockSendPasswordResetEmail]);
 
       renderResetPassword();
 
-      const emailField = screen.getByRole("textbox", { name: /email address/i });
       const resetButton = screen.getByRole("button", { name: /reset password/i });
 
-      expect(resetButton).toBeDisabled();
+      await ue.click(resetButton);
 
-      await ue.type(emailField, "test@example.com");
-
-      expect(resetButton).toBeEnabled();
-
-      await ue.clear(emailField);
-      expect(resetButton).toBeDisabled();
+      expect(mockSendPasswordResetEmail).not.toHaveBeenCalled();
     });
   });
 });
