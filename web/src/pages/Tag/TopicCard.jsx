@@ -18,7 +18,7 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamTopicActionsQuery,
   useGetTicketsQuery,
@@ -40,8 +40,8 @@ export function TopicCard(props) {
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
 
+  const skipByAuth = useSkipUntilAuthUserIsReady();
   const {
     data: topic,
     error: topicError,

@@ -3,7 +3,7 @@ import { useSnackbar } from "notistack";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useApplyPTeamInvitationMutation, useGetPTeamInvitationQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { commonButtonStyle } from "../../utils/const";
@@ -19,7 +19,7 @@ export function AcceptPTeamInvitation() {
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: detail,
     error: detailError,

@@ -1,14 +1,13 @@
 import { Box } from "@mui/material";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import React, { useEffect } from "react";
-import { useCookies } from "react-cookie";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
-import { useTryLoginMutation } from "../../services/tcApi";
-import { setAuthToken } from "../../slices/auth";
-import { authCookieName, mainMaxWidth } from "../../utils/const";
+import { setAuthUserIsReady } from "../../slices/auth";
+import Firebase from "../../utils/Firebase";
+import { mainMaxWidth } from "../../utils/const";
 
 import { AppBar } from "./AppBar";
 import { AppFallback } from "./AppFallback";
@@ -17,26 +16,16 @@ import { Main } from "./Main";
 import { OutletWithCheckedParams } from "./OutletWithCheckedParams";
 
 export function App() {
-  const [cookies, _setCookie, _removeCookie] = useCookies([authCookieName]);
-
-  const skip = useSkipUntilAuthTokenIsReady();
-
-  const dispatch = useDispatch();
   const system = useSelector((state) => state.system);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [tryLogin] = useTryLoginMutation();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!skip) return; // auth token is ready
-    const _checkToken = async () => {
-      try {
-        const accessToken = cookies[authCookieName];
-        if (!accessToken) throw new Error("Missing cookie");
-        dispatch(setAuthToken(accessToken));
-        await tryLogin().unwrap(); // throw error if accessToken is expired
-      } catch (error) {
+    onAuthStateChanged(Firebase.getAuth(), (user) => {
+      if (!user) {
+        dispatch(setAuthUserIsReady(false));
         navigate("/login", {
           state: {
             from: location.pathname,
@@ -44,10 +33,11 @@ export function App() {
             message: "Please login to continue.",
           },
         });
+      } else {
+        dispatch(setAuthUserIsReady(true));
       }
-    };
-    _checkToken();
-  }, [cookies, dispatch, location, navigate, skip, tryLogin]);
+    });
+  }, [location, dispatch, navigate]);
 
   return (
     <>

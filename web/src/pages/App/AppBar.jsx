@@ -1,6 +1,7 @@
 import { Menu as MenuIcon } from "@mui/icons-material";
 import { AppBar as MuiAppBar, Box, Button, Divider, IconButton, Toolbar } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { signOut } from "firebase/auth";
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,7 +9,9 @@ import { useNavigate } from "react-router-dom";
 
 import { firebaseApi } from "../../services/firebaseApi";
 import { tcApi } from "../../services/tcApi";
+import { setAuthUserIsReady } from "../../slices/auth";
 import { setDrawerOpen } from "../../slices/system";
+import Firebase from "../../utils/Firebase";
 import { drawerWidth } from "../../utils/const";
 
 import { AppFallback } from "./AppFallback";
@@ -46,9 +49,16 @@ export function AppBar() {
   const handleLogout = () => {
     dispatch(firebaseApi.util.resetApiState()); // reset RTKQ
     dispatch(tcApi.util.resetApiState()); // reset RTKQ
-    navigate("/login", {
-      state: { message: "Logged out successfully.", from: null, search: null },
-    });
+    dispatch(setAuthUserIsReady(false));
+    signOut(Firebase.getAuth())
+      .then(() => {
+        navigate("/login", {
+          state: { message: "Logged out successfully.", from: null, search: null },
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   return (

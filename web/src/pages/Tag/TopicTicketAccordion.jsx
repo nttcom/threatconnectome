@@ -20,7 +20,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetThreatQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import {
@@ -71,7 +71,7 @@ export function TopicTicketAccordion(props) {
   const ticketStatus = ticket.ticket_status;
   const ssvcPriority = ticket.ssvc_deployer_priority || "defer";
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const skipByAuth = useSkipUntilAuthUserIsReady();
   const {
     data: threat,
     error: threatError,

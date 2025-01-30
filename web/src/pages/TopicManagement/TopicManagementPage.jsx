@@ -31,7 +31,7 @@ import { useNavigate } from "react-router";
 import { useLocation } from "react-router-dom";
 
 import styles from "../../cssModule/button.module.css";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetTopicActionsQuery,
   useGetTopicQuery,
@@ -58,8 +58,7 @@ function TopicManagementTableRow(props) {
 
   const params = new URLSearchParams(location.search);
 
-  const skip = useSkipUntilAuthTokenIsReady();
-
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: topic,
     error: topicError,
@@ -147,7 +146,7 @@ export function TopicManagement() {
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
 
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");

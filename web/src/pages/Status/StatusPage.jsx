@@ -32,7 +32,7 @@ import { useLocation, useNavigate } from "react-router";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import { PTeamLabel } from "../../components/PTeamLabel";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
   useGetPTeamTagsSummaryQuery,
@@ -141,7 +141,7 @@ export function Status() {
     serviceIds: [],
   });
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const skipByAuth = useSkipUntilAuthUserIsReady();
 
   const {
     data: pteam,
