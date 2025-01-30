@@ -5,7 +5,6 @@ import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useTryLoginMutation } from "../../services/tcApi";
 import { setAuthUserIsReady } from "../../slices/auth";
 import Firebase from "../../utils/Firebase";
 import { mainMaxWidth } from "../../utils/const";
@@ -22,7 +21,6 @@ export function App() {
   const navigate = useNavigate();
 
   const dispatch = useDispatch();
-  const [tryLogin] = useTryLoginMutation();
 
   useEffect(() => {
     onAuthStateChanged(Firebase.getAuth(), (user) => {
@@ -38,7 +36,7 @@ export function App() {
         dispatch(setAuthUserIsReady(true));
       }
     });
-  }, [location, dispatch, navigate, tryLogin]);
+  }, [location, dispatch, navigate]);
 
   return (
     <>
