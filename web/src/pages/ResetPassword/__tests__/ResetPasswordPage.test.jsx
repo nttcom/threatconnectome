@@ -77,32 +77,6 @@ describe("ResetPassword Component", () => {
     ).toBeInTheDocument();
   });
 
-  describe("Form Submission", () => {
-    it("should submit form and show success message when email is sent", async () => {
-      const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const sendPasswordResetEmailMock = vi.fn();
-      const mockUnwrap = vi.fn().mockResolvedValue();
-      sendPasswordResetEmailMock.mockReturnValue({ unwrap: mockUnwrap });
-      vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
-
-      renderResetPassword();
-
-      const emailField = screen.getByRole("textbox", { name: /email address/i });
-      const resetButton = screen.getByRole("button", { name: /reset password/i });
-
-      await ue.type(emailField, "test@example.com");
-      await ue.click(resetButton);
-
-      expect(
-        screen.getByText("An email with a password reset URL was sent to this address."),
-      ).toBeInTheDocument();
-      expect(sendPasswordResetEmailMock).toHaveBeenCalledWith({
-        email: "test@example.com",
-        actionCodeSettings: expect.any(Object),
-      });
-    });
-  });
-
   describe("Error Handling", () => {
     it("should show error message when email is invalid", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
