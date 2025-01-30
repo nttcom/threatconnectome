@@ -71,7 +71,6 @@ describe("ResetPassword Component", () => {
   });
 
   describe("Form Submission", () => {
-    // api成功時にメッセージ表示されることの検証
     it("should submit form and show success message when email is sent", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const sendPasswordResetEmailMock = vi.fn();
@@ -98,7 +97,6 @@ describe("ResetPassword Component", () => {
   });
 
   describe("Error Handling", () => {
-    // api失敗時にエラーメッセージ表示されることの検証
     it("should show error message when email is invalid", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const sendPasswordResetEmailMock = vi.fn();
