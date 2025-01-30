@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 
-import ResetPassword from "./ResetPassword";
+import ResetPasswordForm from "./ResetPasswordForm";
 import VerifyEmail from "./VerifyEmail";
 
 export function EmailVerification() {
@@ -15,7 +15,7 @@ export function EmailVerification() {
     case "verifyEmail":
       return <VerifyEmail oobCode={oobCode} />;
     case "resetPassword":
-      return <ResetPassword oobCode={oobCode} />;
+      return <ResetPasswordForm oobCode={oobCode} />;
     case "recoverEmail":
       // future work?
       break;
