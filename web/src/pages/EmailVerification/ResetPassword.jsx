@@ -61,7 +61,7 @@ export default function ResetPassword(props) {
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton onClick={() => setVisible(!visible)}>
-                  {visible ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                  {visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
                 </IconButton>
               </InputAdornment>
             ),
