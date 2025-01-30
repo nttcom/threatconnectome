@@ -154,7 +154,12 @@ export function Login() {
   };
   const handleSignUp = (event) => {
     event.preventDefault();
-    navigate("/sign_up");
+    navigate("/sign_up", {
+      state: {
+        from: location.state?.from ?? "/",
+        search: location.state?.search ?? "",
+      },
+    });
   };
 
   return (

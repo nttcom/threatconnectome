@@ -9,11 +9,13 @@ import {
   CssBaseline,
   IconButton,
   InputAdornment,
+  Link,
   TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import {
   useSendEmailVerificationMutation,
@@ -31,6 +33,8 @@ export function SignUp() {
   const [disabled, setDisabled] = useState(false);
   const [sendEmailVerification] = useSendEmailVerificationMutation();
   const [createUserWithEmailAndPassword] = useCreateUserWithEmailAndPasswordMutation();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleChange = (prop) => (event) => {
     values.edited.add(prop);
@@ -82,6 +86,14 @@ export function SignUp() {
     setValues({ ...values, visible: !values.visible });
   };
 
+  const handleLogIn = () =>
+    navigate("/login", {
+      state: {
+        from: location.state?.from ?? "/",
+        search: location.state?.search ?? "",
+      },
+    });
+
   return (
     <>
       <Container component="main" maxWidth="xs">
@@ -102,19 +114,20 @@ export function SignUp() {
             error={values.edited.has("email") && !values.email.match(/^.+@.+$/)}
             fullWidth
             label="Email Address"
-            margin="dense"
+            margin="normal"
             onChange={handleChange("email")}
             required
             value={values.email}
             inputProps={{ pattern: "^.+@.+$" }}
           />
+
           <Tooltip arrow placement="bottom-end" title="Password should be at least 8 characters.">
             <TextField
               autoComplete="new-password"
               error={values.edited.has("password") && values.password.length < 8}
               fullWidth
               label="Password"
-              margin="dense"
+              margin="normal"
               onChange={handleChange("password")}
               required
               type={values.visible ? "text" : "password"}
@@ -124,7 +137,7 @@ export function SignUp() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={handleVisibility}>
-                      {values.visible ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                      {values.visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -141,6 +154,11 @@ export function SignUp() {
           >
             Sign up
           </Button>
+        </Box>
+        <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
+          <Link component="button" onClick={handleLogIn} variant="body1">
+            Back to log in
+          </Link>
         </Box>
         <Box alignItems="center" display="flex" flexDirection="column" mt={3}>
           <Typography>{message}</Typography>

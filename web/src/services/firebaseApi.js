@@ -71,8 +71,8 @@ export const firebaseApi = createApi({
     applyActionCode: builder.mutation({
       queryFn: async ({ actionCode }) => {
         return await applyActionCode(Firebase.getAuth(), actionCode)
-          .then(() => {
-            return { data: { success: true, message: "Action code applied successfully" } };
+          .then((success) => {
+            return { data: success };
           })
           .catch((error) => ({ error }));
       },
@@ -81,9 +81,7 @@ export const firebaseApi = createApi({
       queryFn: async ({ actionCode }) => {
         return await verifyPasswordResetCode(Firebase.getAuth(), actionCode)
           .then((email) => {
-            return {
-              data: { success: true, email, message: "Password reset code verified successfully" },
-            };
+            return { data: email };
           })
           .catch((error) => ({ error }));
       },
@@ -91,8 +89,8 @@ export const firebaseApi = createApi({
     confirmPasswordReset: builder.mutation({
       queryFn: async ({ actionCode, newPassword }) => {
         return await confirmPasswordReset(Firebase.getAuth(), actionCode, newPassword)
-          .then(() => {
-            return { data: { success: true, message: "Password has been reset successfully" } };
+          .then((success) => {
+            return { data: success };
           })
           .catch((error) => ({ error }));
       },
