@@ -51,7 +51,7 @@ export default function ResetPassword(props) {
           autoComplete="new-password"
           error={password.length < 8}
           label="New Password"
-          margin="dense"
+          margin="normal"
           onChange={(event) => setPassword(event.target.value)}
           required
           type={visible ? "text" : "password"}
