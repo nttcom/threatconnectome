@@ -14,7 +14,7 @@ vi.mock("../../../services/firebaseApi", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    useSendPasswordResetEmailMutation: vi.fn(() => [sendPasswordResetEmailMock, {}]),
+    useSendPasswordResetEmailMutation: vi.fn(),
   };
 });
 console.log(store.getState());
@@ -38,7 +38,14 @@ const genApiMock = (isSuccess = true, returnValue = undefined) => {
 describe("ResetPassword Component", () => {
   describe("Rendering", () => {
     it("should render ResetPassword form", () => {
+      const sendPasswordResetEmailMock = vi.fn();
+      const mockUnwrap = vi.fn().mockResolvedValue();
+      sendPasswordResetEmailMock.mockReturnValue({ unwrap: mockUnwrap });
+
+      vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
+
       renderResetPassword();
+
       expect(screen.getByRole("textbox", { name: /email address/i })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /reset password/i })).toBeInTheDocument();
       expect(screen.getByText("Back to log in")).toBeInTheDocument();
