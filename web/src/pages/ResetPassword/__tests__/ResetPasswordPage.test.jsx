@@ -28,6 +28,13 @@ const renderResetPassword = () => {
   );
 };
 
+const genApiMock = (isSuccess = true, returnValue = undefined) => {
+  const mockUnwrap = isSuccess
+    ? vi.fn().mockResolvedValue(returnValue)
+    : vi.fn().mockRejectedValue(returnValue);
+  return vi.fn().mockReturnValue({ unwrap: mockUnwrap });
+};
+
 describe("ResetPassword Component", () => {
   describe("Rendering", () => {
     it("should render ResetPassword form", () => {
@@ -41,12 +48,11 @@ describe("ResetPassword Component", () => {
   it("should call firebase API with correct parameters", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
     const sendPasswordResetEmailMock = vi.fn();
-
+    const mockUnwrap = vi.fn().mockResolvedValue();
+    sendPasswordResetEmailMock.mockReturnValue({ unwrap: mockUnwrap });
     vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
 
     renderResetPassword();
-
-    sendPasswordResetEmailMock.mockResolvedValue();
 
     const emailField = screen.getByRole("textbox", { name: /email address/i });
     const resetButton = screen.getByRole("button", { name: /reset password/i });
@@ -69,11 +75,11 @@ describe("ResetPassword Component", () => {
     it("should submit form and show success message when email is sent", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const sendPasswordResetEmailMock = vi.fn();
+      const mockUnwrap = vi.fn().mockResolvedValue();
+      sendPasswordResetEmailMock.mockReturnValue({ unwrap: mockUnwrap });
       vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
 
       renderResetPassword();
-
-      sendPasswordResetEmailMock.mockResolvedValue();
 
       const emailField = screen.getByRole("textbox", { name: /email address/i });
       const resetButton = screen.getByRole("button", { name: /reset password/i });
@@ -98,7 +104,8 @@ describe("ResetPassword Component", () => {
       const sendPasswordResetEmailMock = vi.fn();
       vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
 
-      sendPasswordResetEmailMock.mockRejectedValue({ code: "auth/invalid-email" });
+      const mockSendPasswordResetEmail = genApiMock(false, { code: "auth/invalid-email" });
+      useSendPasswordResetEmailMutation.mockReturnValue([mockSendPasswordResetEmail]);
 
       renderResetPassword();
 
@@ -116,7 +123,8 @@ describe("ResetPassword Component", () => {
       const sendPasswordResetEmailMock = vi.fn();
       vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
 
-      sendPasswordResetEmailMock.mockRejectedValue({ code: "auth/user-not-found" });
+      const mockSendPasswordResetEmail = genApiMock(false, { code: "auth/user-not-found" });
+      useSendPasswordResetEmailMutation.mockReturnValue([mockSendPasswordResetEmail]);
 
       renderResetPassword();
 
@@ -134,6 +142,8 @@ describe("ResetPassword Component", () => {
     //Email address未入力時、Reset Passwordボタン無効であることの検証
     it("should disable the Reset Password button when the email input is empty", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+      const mockSendPasswordResetEmail = vi.fn();
+      vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([mockSendPasswordResetEmail]);
 
       renderResetPassword();
 
