@@ -19,7 +19,7 @@ import {
   useConfirmPasswordResetMutation,
 } from "../../services/firebaseApi";
 
-export default function ResetPassword(props) {
+export default function ResetPasswordForm(props) {
   const { oobCode } = props;
   const [disabled, setDisabled] = useState(false);
   const [message, setMessage] = useState(null);
@@ -51,7 +51,7 @@ export default function ResetPassword(props) {
           autoComplete="new-password"
           error={password.length < 8}
           label="New Password"
-          margin="dense"
+          margin="normal"
           onChange={(event) => setPassword(event.target.value)}
           required
           type={visible ? "text" : "password"}
@@ -61,7 +61,7 @@ export default function ResetPassword(props) {
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton onClick={() => setVisible(!visible)}>
-                  {visible ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                  {visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
                 </IconButton>
               </InputAdornment>
             ),
@@ -83,6 +83,6 @@ export default function ResetPassword(props) {
   );
 }
 
-ResetPassword.propTypes = {
+ResetPasswordForm.propTypes = {
   oobCode: PropTypes.string.isRequired,
 };
