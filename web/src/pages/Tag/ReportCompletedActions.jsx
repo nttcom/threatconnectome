@@ -18,7 +18,7 @@ import React, { useState } from "react";
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import dialogStyle from "../../cssModule/dialog.module.css";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useCreateActionLogMutation,
   useUpdateTicketStatusMutation,
@@ -40,7 +40,7 @@ export function ReportCompletedActions(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: userMe,
     error: userMeError,

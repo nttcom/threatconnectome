@@ -21,7 +21,7 @@ import React, { useEffect, useState } from "react";
 import { FixedSizeList } from "react-window";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useCreateTagMutation, useGetTagsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { commonButtonStyle } from "../../utils/const";
@@ -38,7 +38,7 @@ export function TopicTagSelector(props) {
 
   const [createTag] = useCreateTagMutation();
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: allTags,
     error: allTagsError,

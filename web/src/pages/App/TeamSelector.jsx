@@ -4,7 +4,7 @@ import { grey } from "@mui/material/colors";
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { LocationReader } from "../../utils/LocationReader";
@@ -35,7 +35,7 @@ export function TeamSelector() {
   const [openPTeamCreationModal, setOpenPTeamCreationModal] = useState(false);
   const locationReader = useMemo(() => new LocationReader(location), [location]);
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: userMe,
     error: userMeError,

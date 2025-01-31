@@ -14,8 +14,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
-import { useCookies } from "react-cookie";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -25,9 +25,8 @@ import {
   useSignInWithSamlPopupMutation,
 } from "../../services/firebaseApi";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
-import { clearAuth } from "../../slices/auth";
+import { setAuthUserIsReady } from "../../slices/auth";
 import Firebase from "../../utils/Firebase";
-import { authCookieName, cookiesOptions } from "../../utils/const";
 
 export function Login() {
   const [message, setMessage] = useState(null);
@@ -37,8 +36,6 @@ export function Login() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [_cookies, setCookie, removeCookie] = useCookies([authCookieName]);
-
   const [sendEmailVerification] = useSendEmailVerificationMutation();
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
   const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
@@ -46,10 +43,10 @@ export function Login() {
   const [tryLogin] = useTryLoginMutation();
 
   useEffect(() => {
-    dispatch(clearAuth());
-    removeCookie(authCookieName, cookiesOptions);
+    dispatch(setAuthUserIsReady(false));
     setMessage(location.state?.message);
-  }, [dispatch, location, removeCookie]);
+    signOut(Firebase.getAuth());
+  }, [dispatch, location]);
 
   const callSignInWithEmailAndPassword = async (email, password) => {
     return await signInWithEmailAndPassword({ email, password })
@@ -79,8 +76,6 @@ export function Login() {
   };
 
   const navigateInternalPage = async (userCredential) => {
-    const accessToken = userCredential.user.accessToken;
-    setCookie(authCookieName, accessToken, cookiesOptions);
     try {
       await tryLogin().unwrap();
       navigate({

@@ -20,7 +20,7 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
@@ -49,8 +49,7 @@ export function TopicDetail() {
 
   const [showAllArtifacts, setShowAllArtifacts] = useState(false);
 
-  const skip = useSkipUntilAuthTokenIsReady();
-
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: topic,
     error: topicError,

@@ -8,9 +8,10 @@ import {
   applyActionCode,
   verifyPasswordResetCode,
   confirmPasswordReset,
+  setPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 
-import { setAuthToken } from "../slices/auth";
 import Firebase from "../utils/Firebase";
 
 export const firebaseApi = createApi({
@@ -36,24 +37,23 @@ export const firebaseApi = createApi({
       },
     }),
     signInWithEmailAndPassword: builder.mutation({
-      queryFn: async ({ email, password }, { dispatch }) => {
+      queryFn: async ({ email, password }) => {
+        await setPersistence(Firebase.getAuth(), browserSessionPersistence);
         return await signInWithEmailAndPassword(Firebase.getAuth(), email, password)
           .then((credential) => {
-            dispatch(setAuthToken(credential.user.accessToken));
             return { data: credential };
           })
           .catch((error) => ({ error }));
       },
     }),
     signInWithSamlPopup: builder.mutation({
-      queryFn: async (_, { dispatch }) => {
+      queryFn: async () => {
         const samlProvider = Firebase.getSamlProvider();
         if (!samlProvider) {
           return { error: "SAML not supported" };
         }
         return await signInWithPopup(Firebase.getAuth(), samlProvider)
           .then((credential) => {
-            dispatch(setAuthToken(credential.user.accessToken));
             return { data: credential };
           })
           .catch((error) => ({ error }));
