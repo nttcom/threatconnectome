@@ -15,7 +15,7 @@ vi.mock("../../../services/firebaseApi", async (importOriginal) => {
     useSendPasswordResetEmailMutation: vi.fn(),
   };
 });
-console.log(store.getState());
+
 const renderResetPassword = () => {
   render(
     <Provider store={store}>
