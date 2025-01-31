@@ -8,8 +8,6 @@ import { useSendPasswordResetEmailMutation } from "../../../services/firebaseApi
 import store from "../../../store";
 import { ResetPassword } from "../ResetPasswordPage";
 
-const sendPasswordResetEmailMock = vi.fn();
-
 vi.mock("../../../services/firebaseApi", async (importOriginal) => {
   const actual = await importOriginal();
   return {
