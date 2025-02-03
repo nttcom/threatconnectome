@@ -36,7 +36,16 @@ root.render(
           anchorOrigin={{ horizontal: "center", vertical: "top" }}
           autoHideDuration={5000}
         >
-          <Router basename={import.meta.env.VITE_PUBLIC_URL}>
+          <Router
+            basename={import.meta.env.VITE_PUBLIC_URL}
+            future={{
+              /* to prevent React Router Future Flag Warning.
+               * see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath for details.
+               */
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
             <Routes>
               <Route exact path="/login" element={<Login />} />
               <Route path="/reset_password" element={<ResetPassword />} />
