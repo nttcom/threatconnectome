@@ -23,7 +23,7 @@ def test_create_user():
     assert user1.user_id != ZERO_FILLED_UUID
 
 
-def test_duplicate_email(testdb):
+def test_duplicate_email_user_can_be_registered(testdb):
     email = USER1["email"]
     account = models.Account(uid="test_uid1", email=email, years=2)
     persistence.create_account(testdb, account)
