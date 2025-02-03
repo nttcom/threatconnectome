@@ -15,7 +15,6 @@ router = APIRouter(
 
 @router.post("/token", response_model=Token)
 def login_for_access_token(username: str = Form(), password: SecretStr = Form()) -> Token:
-    # get_access_token_from_firebase(username, password.get_secret_value())
     payload = {
         "email": username,
         "password": password.get_secret_value(),

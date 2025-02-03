@@ -44,7 +44,7 @@ def create_user(
             detail="The requested Email information could not be retrieved.",
         )
 
-    if persistence.get_account_by_firebase_uid(db, uid):
+    if persistence.get_account_by_uid(db, uid):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uid already used")
 
     account = models.Account(**data.model_dump(), uid=uid, email=email)

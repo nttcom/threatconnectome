@@ -195,7 +195,7 @@ class Account(Base):
     __tablename__ = "account"
 
     user_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    uid: Mapped[str | None] = mapped_column(unique=True)  # UID on Firebase
+    uid: Mapped[str | None] = mapped_column(unique=True)
     email: Mapped[Str255 | None]
     disabled: Mapped[bool] = mapped_column(default=False)
     years: Mapped[int | None]
