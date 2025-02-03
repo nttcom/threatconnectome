@@ -9,7 +9,7 @@ from app import models
 ### Account
 
 
-def get_account_by_firebase_uid(db: Session, uid: str) -> models.Account | None:
+def get_account_by_uid(db: Session, uid: str) -> models.Account | None:
     return db.scalars(select(models.Account).where(models.Account.uid == uid)).one_or_none()
 
 

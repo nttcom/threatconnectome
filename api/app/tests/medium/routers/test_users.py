@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app import models, persistence
 from app.constants import ZERO_FILLED_UUID
 from app.main import app
 from app.tests.medium.constants import USER1, USER2
@@ -16,6 +17,17 @@ client = TestClient(app)
 
 
 def test_create_user():
+    user1 = create_user(USER1)
+    assert user1.email == USER1["email"]
+    assert user1.years == USER1["years"]
+    assert user1.user_id != ZERO_FILLED_UUID
+
+
+def test_duplicate_email_user_can_be_registered(testdb):
+    email = USER1["email"]
+    account = models.Account(uid="test_uid1", email=email, years=2)
+    persistence.create_account(testdb, account)
+
     user1 = create_user(USER1)
     assert user1.email == USER1["email"]
     assert user1.years == USER1["years"]

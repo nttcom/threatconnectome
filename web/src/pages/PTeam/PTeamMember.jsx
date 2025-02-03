@@ -49,7 +49,7 @@ export function PTeamMember(props) {
                   .filter((member) => member.disabled === false)
                   .map((member) => (
                     <TableRow
-                      key={member.email}
+                      key={member.user_id}
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell align="left" style={{ width: "30%" }}>
