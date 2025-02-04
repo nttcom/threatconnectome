@@ -136,7 +136,7 @@ export function SignUp() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={handleVisibility}>
+                    <IconButton onClick={handleVisibility} aria-label="toggle password visibility">
                       {values.visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
                     </IconButton>
                   </InputAdornment>
