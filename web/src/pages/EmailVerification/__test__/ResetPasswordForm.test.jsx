@@ -31,11 +31,11 @@ describe("TestResetPasswordForm", () => {
     beforeEach(() => {
       const VerifyPasswordResetCodeMock = vi.fn();
       VerifyPasswordResetCodeMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      vi.mocked(useVerifyPasswordResetCodeMutation).mockReturnValue([VerifyPasswordResetCodeMock]);
+      useVerifyPasswordResetCodeMutation.mockReturnValue([VerifyPasswordResetCodeMock]);
 
       const ConfirmPasswordResetMock = vi.fn();
       ConfirmPasswordResetMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      vi.mocked(useConfirmPasswordResetMutation).mockReturnValue([ConfirmPasswordResetMock]);
+      useConfirmPasswordResetMutation.mockReturnValue([ConfirmPasswordResetMock]);
     });
 
     afterEach(() => {
@@ -66,11 +66,11 @@ describe("TestResetPasswordForm", () => {
 
       const VerifyPasswordResetCodeMock = vi.fn();
       VerifyPasswordResetCodeMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      vi.mocked(useVerifyPasswordResetCodeMutation).mockReturnValue([VerifyPasswordResetCodeMock]);
+      useVerifyPasswordResetCodeMutation.mockReturnValue([VerifyPasswordResetCodeMock]);
 
       const ConfirmPasswordResetMock = vi.fn();
       ConfirmPasswordResetMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      vi.mocked(useConfirmPasswordResetMutation).mockReturnValue([ConfirmPasswordResetMock]);
+      useConfirmPasswordResetMutation.mockReturnValue([ConfirmPasswordResetMock]);
 
       renderVerifyEmail("00000");
 
@@ -97,11 +97,11 @@ describe("TestResetPasswordForm", () => {
 
       const VerifyPasswordResetCodeMock = vi.fn();
       VerifyPasswordResetCodeMock.mockReturnValue({ unwrap: vi.fn().mockRejectedValue() });
-      vi.mocked(useVerifyPasswordResetCodeMutation).mockReturnValue([VerifyPasswordResetCodeMock]);
+      useVerifyPasswordResetCodeMutation.mockReturnValue([VerifyPasswordResetCodeMock]);
 
       const ConfirmPasswordResetMock = vi.fn();
       ConfirmPasswordResetMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      vi.mocked(useConfirmPasswordResetMutation).mockReturnValue([ConfirmPasswordResetMock]);
+      useConfirmPasswordResetMutation.mockReturnValue([ConfirmPasswordResetMock]);
 
       renderVerifyEmail("00000");
 

@@ -26,9 +26,8 @@ describe("TestVerifyEmail", () => {
   describe("Rendering", () => {
     beforeEach(() => {
       const ApplyActionCodeMock = vi.fn();
-      const mockUnwrap = vi.fn().mockResolvedValue();
-      ApplyActionCodeMock.mockReturnValue({ unwrap: mockUnwrap });
-      vi.mocked(useApplyActionCodeMutation).mockReturnValue([ApplyActionCodeMock]);
+      ApplyActionCodeMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
+      useApplyActionCodeMutation.mockReturnValue([ApplyActionCodeMock]);
     });
 
     afterEach(() => {
@@ -50,9 +49,8 @@ describe("TestVerifyEmail", () => {
     it("triggers verification when the verify email button is clicked", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const ApplyActionCodeMock = vi.fn();
-      const mockUnwrap = vi.fn().mockResolvedValue();
-      ApplyActionCodeMock.mockReturnValue({ unwrap: mockUnwrap });
-      vi.mocked(useApplyActionCodeMutation).mockReturnValue([ApplyActionCodeMock]);
+      ApplyActionCodeMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
+      useApplyActionCodeMutation.mockReturnValue([ApplyActionCodeMock]);
 
       renderVerifyEmail();
       await ue.click(screen.getByRole("button", { name: /Verify Email/i }));
@@ -63,9 +61,8 @@ describe("TestVerifyEmail", () => {
     it("handles error", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const ApplyActionCodeMock = vi.fn();
-      const mockUnwrap = vi.fn().mockRejectedValue();
-      ApplyActionCodeMock.mockReturnValue({ unwrap: mockUnwrap });
-      vi.mocked(useApplyActionCodeMutation).mockReturnValue([ApplyActionCodeMock]);
+      ApplyActionCodeMock.mockReturnValue({ unwrap: vi.fn().mockRejectedValue() });
+      useApplyActionCodeMutation.mockReturnValue([ApplyActionCodeMock]);
 
       renderVerifyEmail();
       await ue.click(screen.getByRole("button", { name: /Verify Email/i }));

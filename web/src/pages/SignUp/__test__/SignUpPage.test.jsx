@@ -40,15 +40,16 @@ describe("TestSignUpPage", () => {
   describe("Rendering", () => {
     beforeEach(() => {
       const CreateUserWithEmailAndPasswordMutationMock = vi.fn();
-      const mockUnwrap = vi.fn().mockResolvedValue();
-      CreateUserWithEmailAndPasswordMutationMock.mockReturnValue({ unwrap: mockUnwrap });
-      vi.mocked(useCreateUserWithEmailAndPasswordMutation).mockReturnValue([
+      CreateUserWithEmailAndPasswordMutationMock.mockReturnValue({
+        unwrap: vi.fn().mockResolvedValue(),
+      });
+      useCreateUserWithEmailAndPasswordMutation.mockReturnValue([
         CreateUserWithEmailAndPasswordMutationMock,
       ]);
 
       const SendEmailVerificationMock = vi.fn();
-      SendEmailVerificationMock.mockReturnValue({ unwrap: mockUnwrap });
-      vi.mocked(useSendEmailVerificationMutation).mockReturnValue([SendEmailVerificationMock]);
+      SendEmailVerificationMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
+      useSendEmailVerificationMutation.mockReturnValue([SendEmailVerificationMock]);
     });
 
     afterEach(() => {
@@ -94,12 +95,12 @@ describe("TestSignUpPage", () => {
         }),
       }));
 
-      vi.mocked(useCreateUserWithEmailAndPasswordMutation).mockReturnValue([
+      useCreateUserWithEmailAndPasswordMutation.mockReturnValue([
         CreateUserWithEmailAndPasswordMutationMock,
       ]);
       const SendEmailVerificationMock = vi.fn();
       SendEmailVerificationMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue(undefined) });
-      vi.mocked(useSendEmailVerificationMutation).mockReturnValue([SendEmailVerificationMock]);
+      useSendEmailVerificationMutation.mockReturnValue([SendEmailVerificationMock]);
 
       renderSignUp();
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
@@ -143,12 +144,12 @@ describe("TestSignUpPage", () => {
         }),
       }));
 
-      vi.mocked(useCreateUserWithEmailAndPasswordMutation).mockReturnValue([
+      useCreateUserWithEmailAndPasswordMutation.mockReturnValue([
         CreateUserWithEmailAndPasswordMutationMock,
       ]);
       const SendEmailVerificationMock = vi.fn();
       SendEmailVerificationMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue(undefined) });
-      vi.mocked(useSendEmailVerificationMutation).mockReturnValue([SendEmailVerificationMock]);
+      useSendEmailVerificationMutation.mockReturnValue([SendEmailVerificationMock]);
 
       renderSignUp();
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
@@ -173,12 +174,12 @@ describe("TestSignUpPage", () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
     const navigateMock = vi.fn();
-    vi.mocked(useNavigate).mockReturnValue(navigateMock);
+    useNavigate.mockReturnValue(navigateMock);
 
     const locationMock = {
       state: { from: "/test_from", search: "/test_from" },
     };
-    vi.mocked(useLocation).mockReturnValue(locationMock);
+    useLocation.mockReturnValue(locationMock);
 
     renderSignUp();
     await ue.click(screen.getByRole("button", { name: /Back to log in/i }));
