@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { SAMLAuthProvider } from "firebase/auth";
 import React from "react";
 import { Provider } from "react-redux";
-import { BrowserRouter, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import {
   useSignInWithEmailAndPasswordMutation,
@@ -16,9 +16,7 @@ import { Login } from "../LoginPage";
 const renderLogin = () => {
   render(
     <Provider store={store}>
-      <BrowserRouter>
-        <Login />
-      </BrowserRouter>
+      <Login />
     </Provider>,
   );
 };
@@ -55,7 +53,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
     ...actual,
     useNavigate: vi.fn(),
     useLocation: vi.fn(),
-    BrowserRouter: vi.fn().mockImplementation((props) => props.children),
   };
 });
 
