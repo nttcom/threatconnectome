@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import React from "react";
 import { Provider } from "react-redux";
+
 import { useApplyActionCodeMutation } from "../../../services/firebaseApi";
 import store from "../../../store";
 import VerifyEmail from "../VerifyEmail";
