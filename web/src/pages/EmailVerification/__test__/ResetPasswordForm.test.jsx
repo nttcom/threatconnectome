@@ -96,9 +96,13 @@ describe("TestResetPasswordForm", () => {
     it("handles error", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
-      const VerifyPasswordResetCodeMock = vi.fn();
-      VerifyPasswordResetCodeMock.mockReturnValue({ unwrap: vi.fn().mockRejectedValue() });
+      const VerifyPasswordResetCodeMock = vi.fn(() => ({
+        unwrap: vi.fn().mockRejectedValue({
+          code: "error_code",
+        }),
+      }));
       useVerifyPasswordResetCodeMutation.mockReturnValue([VerifyPasswordResetCodeMock]);
+      const consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const ConfirmPasswordResetMock = vi.fn();
       ConfirmPasswordResetMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
@@ -111,6 +115,10 @@ describe("TestResetPasswordForm", () => {
       await ue.type(passwordField, "Password1234@");
 
       await ue.click(screen.getByRole("button", { name: /submit/i }));
+
+      expect(consoleErrorMock).toHaveBeenCalledWith({
+        code: "error_code",
+      });
 
       expect(screen.getByRole("button", { name: /submit/i })).toBeDisabled();
       expect(VerifyPasswordResetCodeMock).toHaveBeenCalledWith({

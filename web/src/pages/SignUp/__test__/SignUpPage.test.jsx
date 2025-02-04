@@ -151,6 +151,7 @@ describe("TestSignUpPage", () => {
       const SendEmailVerificationMock = vi.fn();
       SendEmailVerificationMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue(undefined) });
       useSendEmailVerificationMutation.mockReturnValue([SendEmailVerificationMock]);
+      const consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
 
       renderSignUp();
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
@@ -161,6 +162,10 @@ describe("TestSignUpPage", () => {
       await ue.type(passwordField, "Password1234@");
 
       await ue.click(screen.getByRole("button", { name: /sign up/i }));
+
+      expect(consoleErrorMock).toHaveBeenCalledWith({
+        code: error_code,
+      });
 
       expect(CreateUserWithEmailAndPasswordMutationMock).toHaveBeenCalledWith({
         email: "test@example.com",

@@ -61,12 +61,19 @@ describe("TestVerifyEmail", () => {
 
     it("handles error", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const ApplyActionCodeMock = vi.fn();
-      ApplyActionCodeMock.mockReturnValue({ unwrap: vi.fn().mockRejectedValue() });
+      const ApplyActionCodeMock = vi.fn(() => ({
+        unwrap: vi.fn().mockRejectedValue({
+          code: "error_code",
+        }),
+      }));
       useApplyActionCodeMutation.mockReturnValue([ApplyActionCodeMock]);
+      const consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
 
       renderVerifyEmail();
       await ue.click(screen.getByRole("button", { name: /Verify Email/i }));
+      expect(consoleErrorMock).toHaveBeenCalledWith({
+        code: "error_code",
+      });
       expect(screen.getByRole("button", { name: /Verify Email/i })).toBeDisabled();
       expect(screen.getByText(/something went wrong/)).toBeInTheDocument();
     });
