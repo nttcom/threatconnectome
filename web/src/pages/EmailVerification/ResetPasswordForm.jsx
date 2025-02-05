@@ -60,7 +60,10 @@ export default function ResetPasswordForm(props) {
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton onClick={() => setVisible(!visible)}>
+                <IconButton
+                  onClick={() => setVisible(!visible)}
+                  aria-label="toggle password visibility"
+                >
                   {visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
                 </IconButton>
               </InputAdornment>
