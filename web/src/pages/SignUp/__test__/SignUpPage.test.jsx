@@ -89,6 +89,8 @@ describe("TestSignUpPage", () => {
   describe("Sian up button behabior", () => {
     it("creates an account when given valid parameters", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+      const validEmail = "test@example.com";
+      const validPassword = "Password1234@";
 
       const CreateUserWithEmailAndPasswordMutationMock = vi.fn(({ email }) => ({
         unwrap: vi.fn().mockResolvedValue({
@@ -105,21 +107,21 @@ describe("TestSignUpPage", () => {
 
       renderSignUp();
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
-      await ue.type(emailField, "test@example.com");
+      await ue.type(emailField, validEmail);
 
       const passwordFields = screen.getAllByLabelText(/^Password/);
       const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
-      await ue.type(passwordField, "Password1234@");
+      await ue.type(passwordField, validPassword);
 
       await ue.click(screen.getByRole("button", { name: /sign up/i }));
 
       expect(CreateUserWithEmailAndPasswordMutationMock).toHaveBeenCalledWith({
-        email: "test@example.com",
-        password: "Password1234@",
+        email: validEmail,
+        password: validPassword,
       });
 
       expect(SendEmailVerificationMock).toHaveBeenCalledWith({
-        user: { email: "test@example.com", uid: "12345" },
+        user: { email: validEmail, uid: "12345" },
         actionCodeSettings: null,
       });
 
@@ -136,12 +138,14 @@ describe("TestSignUpPage", () => {
       ["auth/weak-password", "Weak password. Password should be at least 6 characters."],
       ["auth/operation-not-allowed", "Something went wrong."],
       ["other errors", "Something went wrong."],
-    ])("handles error for %s", async (error_code, error_message) => {
+    ])("handles error for %s", async (errorCode, errorMessage) => {
+      const validEmail = "test@example.com";
+      const validPassword = "Password1234@";
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
       const CreateUserWithEmailAndPasswordMutationMock = vi.fn(() => ({
         unwrap: vi.fn().mockRejectedValue({
-          code: error_code,
+          code: errorCode,
         }),
       }));
 
@@ -155,24 +159,24 @@ describe("TestSignUpPage", () => {
 
       renderSignUp();
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
-      await ue.type(emailField, "test@example.com");
+      await ue.type(emailField, validEmail);
 
       const passwordFields = screen.getAllByLabelText(/^Password/);
       const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
-      await ue.type(passwordField, "Password1234@");
+      await ue.type(passwordField, validPassword);
 
       await ue.click(screen.getByRole("button", { name: /sign up/i }));
 
       expect(consoleErrorMock).toHaveBeenCalledWith({
-        code: error_code,
+        code: errorCode,
       });
 
       expect(CreateUserWithEmailAndPasswordMutationMock).toHaveBeenCalledWith({
-        email: "test@example.com",
-        password: "Password1234@",
+        email: validEmail,
+        password: validPassword,
       });
 
-      expect(screen.getByText(error_message)).toBeInTheDocument();
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
   });
 
@@ -214,24 +218,27 @@ describe("TestSignUpPage", () => {
 
   it("shows error when password is less than 8 characters", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+    const tooShortPassword = "pass";
+    const validPassword = "Password1234@";
 
     renderSignUp();
     const passwordFields = screen.getAllByLabelText(/^Password/);
     const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
-    await ue.type(passwordField, "pass");
+    await ue.type(passwordField, tooShortPassword);
     expect(passwordField).toHaveAttribute("aria-invalid", "true");
 
-    await ue.type(passwordField, "Password123@");
+    await ue.type(passwordField, validPassword);
     expect(passwordField).toHaveAttribute("aria-invalid", "false");
   });
 
   it("shows error when email is invalid format", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+    const invalidEmail = "invalid email format";
 
     renderSignUp();
     const emailField = screen.getByRole("textbox", { name: "Email Address" });
 
-    await ue.type(emailField, "invalidemail");
+    await ue.type(emailField, invalidEmail);
     expect(emailField).toHaveAttribute("aria-invalid", "true");
 
     await ue.type(emailField, "test@example.com");
