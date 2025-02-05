@@ -27,8 +27,7 @@ import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import styles from "../../cssModule/button.module.css";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
