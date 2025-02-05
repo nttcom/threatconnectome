@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { BrowserRouter, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetPTeamQuery, useGetPTeamServiceTagsSummaryQuery } from "../../../services/tcApi";
@@ -11,9 +11,7 @@ import { Status } from "../StatusPage";
 const renderStatusPage = () => {
   render(
     <Provider store={store}>
-      <BrowserRouter>
-        <Status />
-      </BrowserRouter>
+      <Status />
     </Provider>,
   );
 };
