@@ -22,7 +22,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
     ...actual,
     useNavigate: vi.fn(),
     useLocation: vi.fn(),
-    BrowserRouter: vi.fn().mockImplementation((props) => props.children),
   };
 });
 
@@ -208,7 +207,7 @@ describe("StatusPage", () => {
       const ue = userEvent.setup();
       renderStatusPage();
 
-      await ue.click(screen.getByLabelText("upload button"));
+      await ue.click(screen.getByLabelText("sbom file upload area button"));
       expect(screen.getByText("Drop SBOM file here")).toBeInTheDocument();
     });
   });
