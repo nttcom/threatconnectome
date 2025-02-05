@@ -41,6 +41,7 @@ export function PTeamServiceTabs(props) {
         <Tab
           icon={<UploadFile />}
           label="Upload"
+          aria-label="upload button"
           onClick={() => setIsActiveUploadMode(1)}
           sx={{
             textTransform: "none",
