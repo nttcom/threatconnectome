@@ -4,7 +4,8 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.auth import get_firebase_credentials, setup_firebase_auth
+from app.auth.auth_module import get_auth_module
+from app.auth.firebase_auth_module import FirebaseAuthModule
 from app.routers import (
     actionlogs,
     actions,
@@ -54,11 +55,14 @@ def create_app():
     app.include_router(users.router)
     app.include_router(threat.router)
 
-    # setup firebase
-    cred = setup_firebase_auth()
+    # setup auth
+    auth_module = FirebaseAuthModule()
+
+    def override_get_auth_module():
+        return auth_module
 
     # Dependency injection as needed
-    app.dependency_overrides[get_firebase_credentials] = lambda: cred
+    app.dependency_overrides[get_auth_module] = override_get_auth_module
 
     return app
 
