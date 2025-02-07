@@ -5,7 +5,8 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
-from app.auth import get_current_user, token_scheme, verify_id_token
+from app.account import get_current_user
+from app.auth.auth_module import AuthModule, get_auth_module, token_scheme
 from app.database import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -25,18 +26,13 @@ def get_my_user_info(
 def create_user(
     data: schemas.UserCreateRequest,
     token: HTTPAuthorizationCredentials = Depends(token_scheme),
+    auth_module: AuthModule = Depends(get_auth_module),
     db: Session = Depends(get_db),
 ):
     """
     Create a user.
     """
-    user_info = verify_id_token(token)
-    uid = user_info.uid
-    email = user_info.email
-    # if user_info.email is empty, get email from auth provider data
-    if email is None:
-        if len(user_info.provider_data) > 0:
-            email = user_info.provider_data[0].email
+    uid, email = auth_module.check_and_get_user_info(token)
 
     if not email:
         raise HTTPException(

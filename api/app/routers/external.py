@@ -2,7 +2,7 @@ from email_validator import validate_email
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 
-from app.auth import get_current_user
+from app.account import get_current_user
 from app.constants import SYSTEM_EMAIL
 from app.models import Account
 from app.notification.sendgrid import (
