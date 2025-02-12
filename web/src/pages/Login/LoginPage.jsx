@@ -19,6 +19,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useAuth } from "../../hooks/auth";
 import {
   useSendEmailVerificationMutation,
   useSignInWithEmailAndPasswordMutation,
@@ -37,10 +38,10 @@ export function Login() {
   const navigate = useNavigate();
 
   const [sendEmailVerification] = useSendEmailVerificationMutation();
-  const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
   const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
   const [createUser] = useCreateUserMutation();
   const [tryLogin] = useTryLoginMutation();
+  const { signInWithEmailAndPassword } = useAuth();
 
   useEffect(() => {
     dispatch(setAuthUserIsReady(false));
@@ -49,30 +50,10 @@ export function Login() {
   }, [dispatch, location]);
 
   const callSignInWithEmailAndPassword = async (email, password) => {
-    return await signInWithEmailAndPassword({ email, password })
-      .unwrap()
-      .catch((error) => {
-        switch (error.code) {
-          case "auth/invalid-email":
-            setMessage("Invalid email format.");
-            break;
-          case "auth/too-many-requests":
-            setMessage("Too many requests.");
-            break;
-          case "auth/user-disabled":
-            setMessage("Disabled user.");
-            break;
-          case "auth/user-not-found":
-            setMessage("User not found.");
-            break;
-          case "auth/wrong-password":
-            setMessage("Wrong password.");
-            break;
-          default:
-            setMessage("Something went wrong.");
-        }
-        return undefined;
-      });
+    return await signInWithEmailAndPassword({ email, password }).catch((authError) => {
+      setMessage(authError.message);
+      return undefined;
+    });
   };
 
   const navigateInternalPage = async (userCredential) => {
