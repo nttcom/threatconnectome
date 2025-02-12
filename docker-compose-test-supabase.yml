@@ -14,7 +14,7 @@ services:
       - --root-path
       - /api
     depends_on:
-      test-threatconnectome-db:
+      testdb:
         condition: service_healthy
     environment:
       WEBUI_URL: ${WEBUI_URL}
@@ -32,7 +32,7 @@ services:
       - ./api/app:/app:ro
       - ./api/app/alembic:/app/alembic:rw  # for 'alembic revision --autogenerate'
       - ./key:/key:ro
-  test-threatconnectome-db:
+  testdb:
     image: postgres:14
     command:
       - postgres
