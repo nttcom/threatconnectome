@@ -16,8 +16,14 @@ services:
     depends_on:
       threatconnectome-db:
         condition: service_healthy
-    env_file:
-      - ./.env
+    environment:
+      WEBUI_URL: ${WEBUI_URL}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_SCHEMA: ${DB_SCHEMA}
+      TESTDB_HOST: ${TESTDB_HOST}
     labels:
       - traefik.http.routers.api.entrypoints=http
       - traefik.http.routers.api.priority=10
@@ -44,8 +50,8 @@ services:
       - -c
       - log_statement=all
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     restart: always
     healthcheck:
       test:
@@ -246,7 +252,7 @@ services:
       # Changes required for Pooler support
       - ./volumes/db/pooler.sql:/docker-entrypoint-initdb.d/migrations/99-pooler.sql:Z
       # Use named volume to persist pgsodium decryption key between restarts
-      - db-config:/etc/postgresql-custom
+      - supabase-db-config:/etc/postgresql-custom
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
       interval: 5s
@@ -272,5 +278,5 @@ services:
       ]
 
 volumes:
-  db-config:
+  supabase-db-config:
 
