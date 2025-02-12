@@ -1,12 +1,12 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
 from app.account import get_current_user
-from app.auth.auth_module import AuthModule, get_auth_module, token_scheme
+from app.auth.auth_module import AuthModule, get_auth_module
 from app.database import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -25,7 +25,9 @@ def get_my_user_info(
 @router.post("", response_model=schemas.UserResponse)
 def create_user(
     data: schemas.UserCreateRequest,
-    token: HTTPAuthorizationCredentials = Depends(token_scheme),
+    token: HTTPAuthorizationCredentials = Depends(
+        HTTPBearer(scheme_name=None, description=None, auto_error=False)
+    ),
     auth_module: AuthModule = Depends(get_auth_module),
     db: Session = Depends(get_db),
 ):

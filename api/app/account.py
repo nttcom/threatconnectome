@@ -1,16 +1,18 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app import persistence
-from app.auth.auth_module import AuthModule, get_auth_module, token_scheme
+from app.auth.auth_module import AuthModule, get_auth_module
 
 from .database import get_db
 from .models import Account
 
 
 def get_current_user(
-    token: HTTPAuthorizationCredentials = Depends(token_scheme),
+    token: HTTPAuthorizationCredentials = Depends(
+        HTTPBearer(scheme_name=None, description=None, auto_error=False)
+    ),
     auth_module: AuthModule = Depends(get_auth_module),
     db: Session = Depends(get_db),
 ) -> Account:

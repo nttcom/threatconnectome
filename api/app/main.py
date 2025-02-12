@@ -58,11 +58,8 @@ def create_app():
     # setup auth
     auth_module = FirebaseAuthModule()
 
-    def override_get_auth_module():
-        return auth_module
-
     # Dependency injection as needed
-    app.dependency_overrides[get_auth_module] = override_get_auth_module
+    app.dependency_overrides[get_auth_module] = lambda: auth_module
 
     return app
 

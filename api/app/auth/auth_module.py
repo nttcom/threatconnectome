@@ -1,13 +1,3 @@
-from fastapi import Depends
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-
-token_scheme = HTTPBearer(scheme_name=None, description=None, auto_error=False)
-
-
-def get_credentials(token: HTTPAuthorizationCredentials = Depends(token_scheme)):
-    return token.credentials
-
-
 def get_auth_module():
     return AuthModule(None)
 
