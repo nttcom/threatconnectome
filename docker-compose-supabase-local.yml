@@ -23,7 +23,6 @@ services:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_SCHEMA: ${DB_SCHEMA}
-      TESTDB_HOST: ${TESTDB_HOST}
     labels:
       - traefik.http.routers.api.entrypoints=http
       - traefik.http.routers.api.priority=10
