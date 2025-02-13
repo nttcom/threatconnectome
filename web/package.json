@@ -11,6 +11,7 @@
     "@mui/material": "^5.15.10",
     "@mui/x-date-pickers": "^6.19.4",
     "@reduxjs/toolkit": "^2.2.0",
+    "@supabase/supabase-js": "^2.48.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
