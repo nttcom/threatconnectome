@@ -25,20 +25,18 @@ class SupabaseAuthModule(AuthModule):
             "email": username,
             "password": password.get_secret_value(),
         }
-
-        response = self.supabase.auth.sign_in_with_password(payload)
-        session_data = response["session"]
-
+        user_data = self.supabase.auth.sign_in_with_password(payload)
+        session = user_data.dict().get("session")
         return Token(
-            access_token=session_data["access_token"],
+            access_token=session.get("access_token"),
             token_type="bearer",
-            refresh_token=session_data["refresh_token"],
+            refresh_token=session.get("refresh_token"),
         )
 
     def refresh_access_token(self, refresh_token) -> Token:
         return Token(access_token="", token_type="bearer", refresh_token="")
 
     def check_and_get_user_info(self, token):
-        response = self.supabase.auth.get_user(token)
-        user_data = response["user"]
-        return user_data["id"], user_data["email"]
+        user_data = self.supabase.auth.get_user(token.credentials)
+        user = user_data.dict().get("user")
+        return user.get("id"), user.get("email")
