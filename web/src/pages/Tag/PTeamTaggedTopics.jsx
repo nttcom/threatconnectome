@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -42,6 +42,9 @@ export function PTeamTaggedTopics(props) {
           />
         ))}
       </Box>
+      <Typography variant="subtitle2" color="textSecondary">
+        Default safety impact: Negligible
+      </Typography>
       <Box sx={{ my: 2 }}>
         <TopicTable />
       </Box>

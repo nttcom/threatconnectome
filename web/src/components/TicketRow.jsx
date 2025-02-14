@@ -1,16 +1,15 @@
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
   Box,
   Chip,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   OutlinedInput,
   Select,
   TableCell,
   TableRow,
-  ToggleButton,
-  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -20,7 +19,6 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import { WarningTooltip } from "../pages/Tag/WarningTooltip.jsx";
-import { safetyImpactProps, sortedSafetyImpacts } from "../utils/const.js";
 
 import { SSVCPriorityStatusChip } from "./SSVCPriorityStatusChip.jsx";
 
@@ -54,6 +52,7 @@ export function TicketRow(props) {
 
   const safetyImpactList = ["Negligible", "Marginal", "Critical", "Catastrophic"];
   const [currentSafetyImpact, setCurrentSafetyImpact] = useState(safetyImpactList[0]);
+  const defaultSafetyImpact = safetyImpactList[0];
 
   const statusList = ["Alerted", "Acknowledged", "Scheduled", "Completed"];
   const [currentStatus, setCurrentStatus] = useState(statusList[0]);
@@ -77,41 +76,32 @@ export function TicketRow(props) {
               ))}
             </Select>
           </FormControl>
-          <StyledTooltip
-            arrow
-            title={
-              <>
-                <Typography variant="body2">
-                  The safety impact of the vulnerability. (based on IEC 61508)
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    p: 1,
-                  }}
-                >
-                  <ToggleButtonGroup
-                    color="primary"
-                    size="small"
-                    orientation="vertical"
-                    value={currentSafetyImpact}
-                  >
-                    {sortedSafetyImpacts.map((safetyImpact) => {
-                      const displayName = safetyImpactProps[safetyImpact].displayName;
-                      return (
-                        <ToggleButton key={safetyImpact} value={displayName} disabled>
-                          {displayName}
-                        </ToggleButton>
-                      );
-                    })}
-                  </ToggleButtonGroup>
-                </Box>
-              </>
-            }
-          >
-            <HelpOutlineOutlinedIcon color="action" fontSize="small" />
-          </StyledTooltip>
+          {currentSafetyImpact !== defaultSafetyImpact && (
+            <StyledTooltip
+              arrow
+              title={
+                <>
+                  <Typography variant="h6">
+                    Why was it changed from the default safety impact?
+                  </Typography>
+                  <Box sx={{ p: 1 }}>
+                    <Typography variant="body2">
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                      incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+                      nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                      Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+                      eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+                      in culpa qui officia deserunt mollit anim id est laborum.
+                    </Typography>
+                  </Box>
+                </>
+              }
+            >
+              <IconButton size="small">
+                <InfoOutlinedIcon color="primary" fontSize="small" />
+              </IconButton>
+            </StyledTooltip>
+          )}
         </Box>
       </TableCell>
       <TableCell>
