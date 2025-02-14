@@ -27,7 +27,7 @@ services:
       SENDGRID_API_KEY: fake_api_key_for_sendgrid_test
       SYSTEM_EMAIL: ic-metemcyber@example.com
       AUTH_SERVICE: SUPABASE
-      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
+      SUPABASE_PUBLIC_URL: http://localhost:8000
       SUPABASE_ANON_KEY: ${ANON_KEY}
     networks:
       - test-network

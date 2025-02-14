@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3ba09361c8d1fedb768f9835c1432b0817e7fb6bfc8daf5fab224e1f89ed2d8d"
+            "sha256": "fd707fa960c31c254d6d6f2b5818b6a5285bbc447f0b9fc3ce3874d8c806cdcf"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -397,9 +397,16 @@
                 "sha256:f51f5705ab27898afda1aaa430f34ad90dc117421057782022edf0600bec5f14",
                 "sha256:fd0ee90072861e276b0ff08bd627abec29e32a53b2be44e41dbcdf87cbee2b00"
             ],
-            "index": "pypi",
             "markers": "python_version >= '3.7' and python_full_version not in '3.9.0, 3.9.1'",
             "version": "==44.0.1"
+        },
+        "deprecation": {
+            "hashes": [
+                "sha256:72b3bde64e5d778694b0cf68178aed03d15e15477116add3fb773e581f9518ff",
+                "sha256:a10811591210e1fb0e768a8c25517cabeabcba6f0bf96564f8ff45189f90b14a"
+            ],
+            "index": "pypi",
+            "version": "==2.1.0"
         },
         "dnspython": {
             "hashes": [
@@ -1731,7 +1738,7 @@
                 "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d",
                 "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"
             ],
-            "markers": "python_version >= '3.8'",
+            "markers": "python_version < '3.11'",
             "version": "==4.12.2"
         },
         "univers": {
@@ -2309,7 +2316,7 @@
                 "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d",
                 "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"
             ],
-            "markers": "python_version >= '3.8'",
+            "markers": "python_version < '3.11'",
             "version": "==4.12.2"
         },
         "urllib3": {
