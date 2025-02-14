@@ -11,9 +11,9 @@ class SupabaseAuthModule(AuthModule):
     def __init__(self):
         super().__init__()
 
-        url = os.getenv("SUPABASE_PUBLIC_URL")
+        url = os.getenv("SUPABASE_URL")
         if url is None:
-            raise Exception(f"Unsupported SUPABASE_PUBLIC_URL: {url}")
+            raise Exception(f"Unsupported SUPABASE_URL: {url}")
         key = os.getenv("SUPABASE_ANON_KEY")
         if key is None:
             raise Exception(f"Unsupported SUPABASE_ANON_KEY: {key}")
