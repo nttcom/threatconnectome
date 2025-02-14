@@ -23,6 +23,7 @@ services:
       DB_HOST: ${TESTDB_HOST} # override env_file
       DB_PORT: ${DB_PORT}
       DB_SCHEMA: ${DB_SCHEMA}
+      TESTDB_HOST: ${TESTDB_HOST}
       FIREBASE_AUTH_EMULATOR_HOST: testfirebase:9099
       SENDGRID_API_KEY: fake_api_key_for_sendgrid_test
       SYSTEM_EMAIL: ic-metemcyber@example.com
