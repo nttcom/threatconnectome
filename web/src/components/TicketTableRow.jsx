@@ -22,7 +22,7 @@ import { WarningTooltip } from "../pages/Tag/WarningTooltip.jsx";
 
 import { SSVCPriorityStatusChip } from "./SSVCPriorityStatusChip.jsx";
 
-export function TicketRow(props) {
+export function TicketTableRow(props) {
   const { ticket } = props;
   const userNames = ["test@example.com", "test2@example.com"];
   const [assignees, setAssignees] = useState([]);
@@ -154,6 +154,6 @@ export function TicketRow(props) {
   );
 }
 
-TicketRow.propTypes = {
+TicketTableRow.propTypes = {
   ticket: PropTypes.object,
 };

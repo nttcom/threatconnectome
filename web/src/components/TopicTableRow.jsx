@@ -1,20 +1,11 @@
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
-import {
-  Button,
-  Collapse,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from "@mui/material";
+import { Button, Collapse, IconButton, TableCell, TableRow } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { TicketRow } from "./TicketRow.jsx";
+import { TicketTable } from "./TicketTable.jsx";
 import { TopicDetailsDrawer } from "./TopicDetailsDrawer";
 
 export function TopicTableRow(props) {
@@ -62,25 +53,7 @@ export function TopicTableRow(props) {
       <TableRow>
         <TableCell sx={{ py: 0 }} colSpan={7}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Table size="small" sx={{ m: 1 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: "bold" }}>Target</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Safety Impact</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Due date</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Assignees</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }} align="center">
-                    SSVC
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {row.tickets.map((ticket) => (
-                  <TicketRow key={ticket.target} ticket={ticket} />
-                ))}
-              </TableBody>
-            </Table>
+            <TicketTable tickets={row.tickets} />
           </Collapse>
         </TableCell>
       </TableRow>
