@@ -26,6 +26,9 @@ services:
       FIREBASE_AUTH_EMULATOR_HOST: testfirebase:9099
       SENDGRID_API_KEY: fake_api_key_for_sendgrid_test
       SYSTEM_EMAIL: ic-metemcyber@example.com
+      AUTH_SERVICE: SUPABASE
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
     networks:
       - test-network
     volumes:
@@ -56,6 +59,7 @@ services:
       retries: 2
     networks:
       - test-network
+
   
   studio:
     container_name: supabase-studio
@@ -70,12 +74,12 @@ services:
       STUDIO_PG_META_URL: http://meta:8080
       POSTGRES_PASSWORD: ${SUPABASE_DB_PASSWORD}
 
-      DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION}
-      DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT}
+      DEFAULT_ORGANIZATION_NAME: Default Organization
+      DEFAULT_PROJECT_NAME: Default Project
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
 
       SUPABASE_URL: http://kong:8000
-      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
+      SUPABASE_PUBLIC_URL: http://localhost:8000
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       AUTH_JWT_SECRET: ${JWT_SECRET}
@@ -93,8 +97,8 @@ services:
     image: kong:2.8.1
     restart: unless-stopped
     ports:
-      - ${KONG_HTTP_PORT}:8000/tcp
-      - ${KONG_HTTPS_PORT}:8443/tcp
+      - 8000:8000/tcp
+      - 8443:8443/tcp
     volumes:
       # https://github.com/supabase/supabase/issues/12661
       - ./volumes/api/kong.yml:/home/kong/temp.yml:ro
@@ -129,43 +133,43 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      API_EXTERNAL_URL: ${API_EXTERNAL_URL}
+      API_EXTERNAL_URL: http://localhost:8000
 
       GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${SUPABASE_DB_PASSWORD}@${SUPABASE_HOST}:${SUPABASE_DB_PORT}/${SUPABASE_DB}
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${SUPABASE_DB_PASSWORD}@supabase-db:5431/postgres
 
-      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_SITE_URL: http://localhost:3000
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
-      GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP}
+      GOTRUE_DISABLE_SIGNUP: false
 
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_JWT_AUD: authenticated
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
-      GOTRUE_JWT_EXP: ${JWT_EXPIRY}
+      GOTRUE_JWT_EXP: 3600
       GOTRUE_JWT_SECRET: ${JWT_SECRET}
 
-      GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP}
-      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS}
-      GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: true
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: false
+      GOTRUE_MAILER_AUTOCONFIRM: false
 
       # Uncomment to bypass nonce check in ID Token flow. Commonly set to true when using Google Sign In on mobile.
       # GOTRUE_EXTERNAL_SKIP_NONCE_CHECK: true
 
       # GOTRUE_MAILER_SECURE_EMAIL_CHANGE_ENABLED: true
       # GOTRUE_SMTP_MAX_FREQUENCY: 1s
-      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL}
-      GOTRUE_SMTP_HOST: ${SMTP_HOST}
-      GOTRUE_SMTP_PORT: ${SMTP_PORT}
-      GOTRUE_SMTP_USER: ${SMTP_USER}
-      GOTRUE_SMTP_PASS: ${SMTP_PASS}
-      GOTRUE_SMTP_SENDER_NAME: ${SMTP_SENDER_NAME}
-      GOTRUE_MAILER_URLPATHS_INVITE: ${MAILER_URLPATHS_INVITE}
-      GOTRUE_MAILER_URLPATHS_CONFIRMATION: ${MAILER_URLPATHS_CONFIRMATION}
-      GOTRUE_MAILER_URLPATHS_RECOVERY: ${MAILER_URLPATHS_RECOVERY}
-      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: ${MAILER_URLPATHS_EMAIL_CHANGE}
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@example.com
+      GOTRUE_SMTP_HOST: supabase-mail
+      GOTRUE_SMTP_PORT: 2500
+      GOTRUE_SMTP_USER: fake_mail_user
+      GOTRUE_SMTP_PASS: fake_mail_password
+      GOTRUE_SMTP_SENDER_NAME: fake_sender
+      GOTRUE_MAILER_URLPATHS_INVITE: "/auth/v1/verify"
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: "/auth/v1/verify"
+      GOTRUE_MAILER_URLPATHS_RECOVERY: "/auth/v1/verify"
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: "/auth/v1/verify"
 
-      GOTRUE_EXTERNAL_PHONE_ENABLED: ${ENABLE_PHONE_SIGNUP}
-      GOTRUE_SMS_AUTOCONFIRM: ${ENABLE_PHONE_AUTOCONFIRM}
+      GOTRUE_EXTERNAL_PHONE_ENABLED: true
+      GOTRUE_SMS_AUTOCONFIRM: true
       # Uncomment to enable custom access token hook. Please see: https://supabase.com/docs/guides/auth/auth-hooks for full list of hooks and additional details about custom_access_token_hook
 
       # GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_ENABLED: "true"
@@ -196,9 +200,9 @@ services:
         condition: service_healthy
     environment:
       PG_META_PORT: 8080
-      PG_META_DB_HOST: ${SUPABASE_HOST}
-      PG_META_DB_PORT: ${SUPABASE_DB_PORT}
-      PG_META_DB_NAME: ${SUPABASE_DB}
+      PG_META_DB_HOST: supabase-db
+      PG_META_DB_PORT: 5431
+      PG_META_DB_NAME: postgres
       PG_META_DB_USER: supabase_admin
       PG_META_DB_PASSWORD: ${SUPABASE_DB_PASSWORD}
 
@@ -231,14 +235,14 @@ services:
       retries: 10
     environment:
       POSTGRES_HOST: /var/run/postgresql
-      PGPORT: ${SUPABASE_DB_PORT}
-      POSTGRES_PORT: ${SUPABASE_DB_PORT}
+      PGPORT: 5431
+      POSTGRES_PORT: 5431
       PGPASSWORD: ${SUPABASE_DB_PASSWORD}
       POSTGRES_PASSWORD: ${SUPABASE_DB_PASSWORD}
-      PGDATABASE: ${SUPABASE_DB}
-      POSTGRES_DB: ${SUPABASE_DB}
+      PGDATABASE: postgres
+      POSTGRES_DB: postgres
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXP: ${JWT_EXPIRY}
+      JWT_EXP: 3600
     command:
       [
         "postgres",

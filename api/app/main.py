@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth.auth_module import get_auth_module
 from app.auth.firebase_auth_module import FirebaseAuthModule
+from app.auth.supabase_auth_module import SupabaseAuthModule
 from app.routers import (
     actionlogs,
     actions,
@@ -56,7 +57,15 @@ def create_app():
     app.include_router(threat.router)
 
     # setup auth
-    auth_module = FirebaseAuthModule()
+
+    auth_service = os.environ.get("AUTH_SERVICE")
+    match auth_service:
+        case "FIREBASE":
+            auth_module = FirebaseAuthModule()
+        case "SUPABASE":
+            auth_module = SupabaseAuthModule()
+        case _:
+            raise Exception(f"Unsupported AUTH_SERVICE: {auth_service}")
 
     # Dependency injection as needed
     app.dependency_overrides[get_auth_module] = lambda: auth_module
