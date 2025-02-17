@@ -11,18 +11,17 @@ import {
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useSendPasswordResetEmailMutation } from "../../services/firebaseApi";
-import Firebase from "../../utils/Firebase";
+import { useAuth } from "../../hooks/auth";
 
 export function ResetPassword() {
   const [disabled, setDisabled] = useState(false);
   const [message, setMessage] = useState(null);
 
-  const [sendPasswordResetEmail] = useSendPasswordResetEmailMutation();
   const location = useLocation();
   const navigate = useNavigate();
+  const { sendPasswordResetEmail } = useAuth();
 
-  const handleLogIn = () =>
+  const handleBackToLogIn = () =>
     navigate("/login", {
       state: {
         from: location.state?.from ?? "/",
@@ -35,29 +34,34 @@ export function ResetPassword() {
     setDisabled(true);
     setMessage("Processing...");
     const data = new FormData(event.currentTarget);
+    // actionCodeSettings for Firebase
     const actionCodeSettings = {
       handleCodeInApp: false,
       url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
     };
-    try {
-      await sendPasswordResetEmail({
-        email: data.get("email"),
-        actionCodeSettings: actionCodeSettings,
-      }).unwrap();
-      setMessage("An email with a password reset URL was sent to this address.");
-    } catch (error) {
-      setDisabled(false);
-      switch (error.code) {
-        case "auth/invalid-email":
-          setMessage("Invalid email format.");
-          break;
-        case "auth/user-not-found":
-          setMessage("User does not exist. Check the email address.");
-          break;
-        default:
-          setMessage("Something went wrong.");
-      }
-    }
+    // redirectTo for Supabase
+    const redirectTo =
+      `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}` +
+      "/email_verification?mode=resetPassword";
+    await sendPasswordResetEmail({
+      email: data.get("email"),
+      actionCodeSettings,
+      redirectTo,
+    })
+      .then(() => {
+        let msg = "An email with a password reset URL was sent to this address.";
+        if (
+          import.meta.env.VITE_AUTH_SERVICE !== "firebase" ||
+          import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_URL
+        ) {
+          msg += " (Maybe no email is actually sent by current auth provider)";
+        }
+        setMessage(msg);
+      })
+      .catch((error) => {
+        setDisabled(false);
+        setMessage(error.message);
+      });
   };
 
   return (
@@ -96,7 +100,7 @@ export function ResetPassword() {
       </Box>
       <Divider />
       <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
-        <Link component="button" onClick={handleLogIn} variant="body1">
+        <Link component="button" onClick={handleBackToLogIn} variant="body1">
           Back to log in
         </Link>
       </Box>

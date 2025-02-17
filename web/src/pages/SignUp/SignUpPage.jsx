@@ -17,10 +17,7 @@ import {
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import {
-  useSendEmailVerificationMutation,
-  useCreateUserWithEmailAndPasswordMutation,
-} from "../../services/firebaseApi";
+import { useAuth } from "../../hooks/auth";
 
 export function SignUp() {
   const [message, setMessage] = useState("");
@@ -31,10 +28,9 @@ export function SignUp() {
     visible: false,
   });
   const [disabled, setDisabled] = useState(false);
-  const [sendEmailVerification] = useSendEmailVerificationMutation();
-  const [createUserWithEmailAndPassword] = useCreateUserWithEmailAndPasswordMutation();
   const location = useLocation();
   const navigate = useNavigate();
+  const { createUserWithEmailAndPassword, sendEmailVerification } = useAuth();
 
   const handleChange = (prop) => (event) => {
     values.edited.add(prop);
@@ -47,38 +43,23 @@ export function SignUp() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const userCredential = await createUserWithEmailAndPassword({
+      await createUserWithEmailAndPassword({
         email: values.email,
         password: values.password,
-      }).unwrap();
-      await sendEmailVerification({
-        user: userCredential.user,
-        actionCodeSettings: null,
-      }).unwrap();
-      setMessage("An email for verification was sent to your address.");
+      });
+      if (
+        import.meta.env.VITE_AUTH_SERVICE === "firebase" &&
+        !import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_URL
+        // TODO: should care about supabase + ENABLE_EMAIL_AUTO_CONFIRM=false?
+      ) {
+        await sendEmailVerification({ actionCodeSettings: null });
+        setMessage("An email for verification was sent to your address.");
+      } else {
+        setMessage("Signed up successfully.");
+      }
       setDisabled(true);
     } catch (error) {
-      console.error(error);
-      switch (error.code) {
-        case "auth/internal-error":
-          setMessage("Unauthorized Email Domain.");
-          break;
-        case "auth/email-already-in-use":
-          setMessage("Email already in use.");
-          break;
-        case "auth/invalid-email":
-          setMessage("Invalid email format.");
-          break;
-        case "auth/too-many-requests":
-          setMessage("Too many requests.");
-          break;
-        case "auth/weak-password":
-          setMessage("Weak password. Password should be at least 6 characters.");
-          break;
-        case "auth/operation-not-allowed":
-        default:
-          setMessage("Something went wrong.");
-      }
+      setMessage(error.message);
     }
   };
 

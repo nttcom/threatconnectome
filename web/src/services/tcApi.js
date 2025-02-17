@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import Firebase from "../utils/Firebase";
+import Supabase from "../utils/Supabase";
 import { blobToDataURL } from "../utils/func";
 
 const _responseListToDictConverter =
@@ -20,12 +21,17 @@ const _responseListToDictConverter =
     }, {});
   };
 
+const _getBearerToken = {
+  supabase: Supabase.getBearerToken.bind(Supabase),
+  firebase: Firebase.getBearerToken.bind(Firebase),
+}[import.meta.env.VITE_AUTH_SERVICE];
+
 export const tcApi = createApi({
   reducerPath: "tcApi",
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: async (headers) => {
-      const token = await Firebase.getAuth().currentUser?.getIdToken(true);
+      const token = await _getBearerToken();
       if (token) {
         headers.set("authorization", `Bearer ${token}`);
       }

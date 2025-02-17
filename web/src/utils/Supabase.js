@@ -14,6 +14,11 @@ class Supabase {
     }
     return this.client;
   }
+
+  async getBearerToken() {
+    const session = await this.getClient()?.auth?.getSession();
+    return session?.data?.session?.access_token;
+  }
 }
 
 export default new Supabase();

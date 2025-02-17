@@ -21,5 +21,6 @@ export function EmailVerification() {
       break;
     default:
       console.error("Invalid mode");
+      return <>Invalid Request</>;
   }
 }

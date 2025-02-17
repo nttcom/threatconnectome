@@ -13,6 +13,10 @@ export class AuthError extends Error {
 }
 
 export class AuthProvider {
+  onAuthStateChanged() {
+    // should return unsubscribe handler
+    throw new Error("Not implemented");
+  }
   async createUserWithEmailAndPassword() {
     throw new Error("Not implemented");
   }
@@ -34,7 +38,7 @@ export class AuthProvider {
   async verifyPasswordResetCode() {
     throw new Error("Not implemented");
   }
-  async confirmPassword() {
+  async confirmPasswordReset() {
     throw new Error("Not implemented");
   }
 }

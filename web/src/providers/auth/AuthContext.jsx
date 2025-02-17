@@ -10,6 +10,7 @@ export function AuthProvider(props) {
 
   const authProvider = AuthProviderFactory.create();
 
+  const onAuthStateChanged = authProvider.onAuthStateChanged;
   const createUserWithEmailAndPassword = authProvider.createUserWithEmailAndPassword;
   const signInWithEmailAndPassword = authProvider.signInWithEmailAndPassword;
   const signInWithSamlPopup = authProvider.signInWithSamlPopup;
@@ -22,6 +23,7 @@ export function AuthProvider(props) {
   return (
     <AuthContext.Provider
       value={{
+        onAuthStateChanged,
         createUserWithEmailAndPassword,
         signInWithEmailAndPassword,
         signInWithSamlPopup,

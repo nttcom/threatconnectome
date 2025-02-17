@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const _initialState = {
   authUserIsReady: false,
+  redirectedFrom: { from: undefined, search: undefined },
 };
 
 const authSlice = createSlice({
@@ -12,11 +13,15 @@ const authSlice = createSlice({
       ...state,
       authUserIsReady: action.payload,
     }),
+    setRedirectedFrom: (state, action) => ({
+      ...state,
+      redirectedFrom: { from: action.payload.from, search: action.payload.search },
+    }),
   },
 });
 
 const { actions, reducer } = authSlice;
 
-export const { setAuthUserIsReady } = actions;
+export const { setAuthUserIsReady, setRedirectedFrom } = actions;
 
 export default reducer;
