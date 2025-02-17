@@ -1,6 +1,6 @@
 import os
 
-from supabase import Client, create_client
+from supabase import create_client
 
 from app.auth.auth_module import AuthModule
 
@@ -18,7 +18,7 @@ class SupabaseAuthModule(AuthModule):
         if key is None:
             raise Exception(f"Unsupported SUPABASE_ANON_KEY: {key}")
 
-        self.supabase: Client = create_client(url, key)
+        self.supabase = create_client(url, key)
 
     def login_for_access_token(self, username, password) -> Token:
         payload = {
