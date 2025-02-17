@@ -26,7 +26,7 @@ class SupabaseAuthModule(AuthModule):
             "password": password.get_secret_value(),
         }
         user_data = self.supabase.auth.sign_in_with_password(payload)
-        session = user_data.dict().get("session")
+        session = user_data.model_dump().get("session")
         return Token(
             access_token=session.get("access_token"),
             token_type="bearer",
@@ -39,5 +39,5 @@ class SupabaseAuthModule(AuthModule):
     def check_and_get_user_info(self, token):
         super().check_token(token)
         user_data = self.supabase.auth.get_user(token.credentials)
-        user = user_data.dict().get("user")
+        user = user_data.model_dump().get("user")
         return user.get("id"), user.get("email")
