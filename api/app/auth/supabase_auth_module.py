@@ -37,6 +37,7 @@ class SupabaseAuthModule(AuthModule):
         return Token(access_token="", token_type="bearer", refresh_token="")
 
     def check_and_get_user_info(self, token):
+        super().check_token(token)
         user_data = self.supabase.auth.get_user(token.credentials)
         user = user_data.dict().get("user")
         return user.get("id"), user.get("email")

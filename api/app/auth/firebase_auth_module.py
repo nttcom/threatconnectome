@@ -103,6 +103,7 @@ class FirebaseAuthModule(AuthModule):
         )
 
     def check_and_get_user_info(self, token):
+        super().check_token(token)
         try:
             decoded_token = auth.verify_id_token(token.credentials, check_revoked=True)
         except auth.ExpiredIdTokenError as error:

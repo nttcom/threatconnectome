@@ -1,3 +1,5 @@
+from fastapi import HTTPException, status
+
 from ..schemas import Token
 
 
@@ -17,3 +19,11 @@ class AuthModule:
 
     def check_and_get_user_info(self, token):
         pass
+
+    def check_token(self, token):
+        if token is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
