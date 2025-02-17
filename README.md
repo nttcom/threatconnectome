@@ -27,7 +27,7 @@ cd threatconnectome
 ```
 
 > To stop a running service:
-> 
+>
 > ```bash
 > ./demo_stop.sh
 > ```
@@ -77,10 +77,10 @@ git clone https://github.com/nttcom/threatconnectome.git
 
 ### Set up environment variables
 
-Copy .env.example, change it to .env and edit the contents
+Copy .env.firebase.example, change it to .env and edit the contents
 
 ```bash
-cp .env.example .env
+cp .env.firebase.example .env
 vi .env  # change default values
 ```
 
