@@ -5,7 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
-from app.account import get_current_user
+from app.auth.account import get_current_user
 from app.auth.auth_module import AuthModule, get_auth_module
 from app.database import get_db
 

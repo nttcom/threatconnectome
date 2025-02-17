@@ -12,7 +12,7 @@ from PIL import Image
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
-from app.account import get_current_user
+from app.auth.account import get_current_user
 from app.business.ssvc_business import get_topic_ids_summary_by_service_id_and_tag_id
 from app.business.tag_business import (
     create_topic_tag,

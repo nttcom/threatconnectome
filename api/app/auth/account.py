@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from app import persistence
 from app.auth.auth_module import AuthModule, get_auth_module
 
-from .database import get_db
-from .models import Account
+from ..database import get_db
+from ..models import Account
 
 
 def get_current_user(
