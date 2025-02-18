@@ -59,6 +59,7 @@ export function SignUp() {
       }
       setDisabled(true);
     } catch (error) {
+      console.error(error);
       setMessage(error.message);
     }
   };
