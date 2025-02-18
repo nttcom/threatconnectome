@@ -2,10 +2,8 @@ import { Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
 import PropTypes from "prop-types";
 import React from "react";
 
-import { TicketTableRow } from "./TicketTableRow";
-
 export function TicketTable(props) {
-  const { tickets } = props;
+  const { children } = props;
 
   return (
     <Table size="small" sx={{ m: 1 }}>
@@ -21,15 +19,12 @@ export function TicketTable(props) {
           </TableCell>
         </TableRow>
       </TableHead>
-      <TableBody>
-        {tickets.map((ticket) => (
-          <TicketTableRow key={ticket.target} ticket={ticket} />
-        ))}
-      </TableBody>
+      <TableBody>{children}</TableBody>
     </Table>
   );
 }
 
 TicketTable.propTypes = {
   tickets: PropTypes.array,
+  children: PropTypes.array,
 };

@@ -128,7 +128,7 @@ export function TicketTableRow(props) {
             multiple
             value={assignees}
             onChange={handleChange}
-            input={<OutlinedInput id="select-multiple-chip" label="Assingees" />}
+            input={<OutlinedInput label="Assingees" />}
             renderValue={(selected) => (
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                 {selected.map((value) => (

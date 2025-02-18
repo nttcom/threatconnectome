@@ -6,6 +6,7 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import { TicketTable } from "./TicketTable.jsx";
+import { TicketTableRow } from "./TicketTableRow.jsx";
 import { TopicDetailsDrawer } from "./TopicDetailsDrawer";
 
 export function TopicTableRow(props) {
@@ -43,7 +44,6 @@ export function TopicTableRow(props) {
             variant="outlined"
             startIcon={<KeyboardDoubleArrowLeftIcon />}
             size="small"
-            sx={{ ml: 1 }}
             onClick={() => setDrawerOpen(true)}
           >
             Details
@@ -53,7 +53,11 @@ export function TopicTableRow(props) {
       <TableRow>
         <TableCell sx={{ py: 0 }} colSpan={7}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <TicketTable tickets={row.tickets} />
+            <TicketTable>
+              {row.tickets.map((ticket) => (
+                <TicketTableRow key={ticket.target} ticket={ticket} />
+              ))}
+            </TicketTable>
           </Collapse>
         </TableCell>
       </TableRow>
@@ -68,5 +72,4 @@ TopicTableRow.propTypes = {
     tickets: PropTypes.array,
     lastUpdated: PropTypes.string,
   }).isRequired,
-  index: PropTypes.number,
 };

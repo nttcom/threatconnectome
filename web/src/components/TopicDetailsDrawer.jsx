@@ -47,7 +47,7 @@ export function TopicDetailsDrawer(props) {
             <Typography variant="h6" sx={{ fontWeight: "bold" }}>
               Artifact Tag
             </Typography>
-            <Card variant="outlined" display="flex" sx={{ p: 2 }}>
+            <Card variant="outlined" sx={{ p: 2 }}>
               <Typography variant="h5">urllib3:pypi:pipenv</Typography>
               <Box display="flex" flexDirection="row" justifyContent="center">
                 {/* left half -- affected versions */}
