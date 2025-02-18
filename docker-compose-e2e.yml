@@ -27,6 +27,7 @@ services:
       - DB_PORT=${DB_PORT}
       - DB_SCHEMA=${DB_SCHEMA}
       - TESTDB_HOST=${TESTDB_HOST}
+      - AUTH_SERVICE=FIREBASE
       - FIREBASE_API_KEY=${FIREBASE_API_KEY}
       - FIREBASE_CRED=${FIREBASE_CRED}
     labels:

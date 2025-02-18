@@ -1429,29 +1429,11 @@ def test_upload_pteam_tags_file():
                     )
                 )
 
-    def _compare_ext_tags(_tag1: dict, _tag2: dict) -> bool:
-        if not isinstance(_tag1, dict) or not isinstance(_tag2, dict):
-            return False
-        _keys = {"tag_name", "tag_id", "parent_name", "parent_id"}
-        if any(_tag1.get(_key) != _tag2.get(_key) for _key in _keys):
-            return False
-        return compare_references(_tag1["references"], _tag1["references"])
-
-    def _compare_responsed_tags(_tags1: list[dict], _tags2: list[dict]) -> bool:
-        if not isinstance(_tags1, list) or not isinstance(_tags2, list):
-            return False
-        if len(_tags1) != len(_tags2):
-            return False
-        return all(_compare_ext_tags(_tags1[_idx], _tags2[_idx]) for _idx in range(len(_tags1)))
-
     params = {"service": "threatconnectome", "force_mode": True}
 
     # upload a line
     lines = [
-        (
-            '{"tag_name":"teststring",'
-            '"references":[{"target":"api/Pipfile.lock","version":"1.0"}]}'
-        )
+        '{"tag_name":"teststring",' '"references":[{"target":"api/Pipfile.lock","version":"1.0"}]}'
     ]
     data = _eval_upload_tags_file(lines, params)
     tags = {tag["tag_name"]: tag for tag in data}
@@ -1464,11 +1446,9 @@ def test_upload_pteam_tags_file():
 
     # upload 2 lines
     lines += [
-        (
-            '{"tag_name":"test1",'
-            '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
-            '{"target":"api3/Pipfile.lock","version":"0.1"}]}'
-        )
+        '{"tag_name":"test1",'
+        '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
+        '{"target":"api3/Pipfile.lock","version":"0.1"}]}'
     ]
     data = _eval_upload_tags_file(lines, params)
     tags = {tag["tag_name"]: tag for tag in data}
@@ -1489,11 +1469,9 @@ def test_upload_pteam_tags_file():
 
     # upload duplicated lines
     lines += [
-        (
-            '{"tag_name":"test1",'
-            '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
-            '{"target":"api3/Pipfile.lock","version":"0.1"}]}'
-        )
+        '{"tag_name":"test1",'
+        '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
+        '{"target":"api3/Pipfile.lock","version":"0.1"}]}'
     ]
     data = _eval_upload_tags_file(lines, params)
     tags = {tag["tag_name"]: tag for tag in data}

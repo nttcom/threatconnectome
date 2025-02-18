@@ -20,12 +20,16 @@ services:
       WEBUI_URL: ${WEBUI_URL}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: ${TESTDB_HOST} # override env_file
+      DB_HOST: ${TESTDB_HOST}
       DB_PORT: ${DB_PORT}
       DB_SCHEMA: ${DB_SCHEMA}
+      TESTDB_HOST: ${TESTDB_HOST}
       FIREBASE_AUTH_EMULATOR_HOST: testfirebase:9099
       SENDGRID_API_KEY: fake_api_key_for_sendgrid_test
       SYSTEM_EMAIL: ic-metemcyber@example.com
+      AUTH_SERVICE: SUPABASE
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
     networks:
       - test-network
     volumes:
@@ -56,6 +60,7 @@ services:
       retries: 2
     networks:
       - test-network
+
   
   studio:
     container_name: supabase-studio
@@ -112,6 +117,8 @@ services:
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
     # https://unix.stackexchange.com/a/294837
     entrypoint: bash -c 'eval "echo \"$$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
+    networks:
+      - test-network
 
   auth:
     container_name: supabase-auth
@@ -185,6 +192,8 @@ services:
       # GOTRUE_HOOK_SEND_EMAIL_ENABLED: "false"
       # GOTRUE_HOOK_SEND_EMAIL_URI: "http://host.docker.internal:54321/functions/v1/email_sender"
       # GOTRUE_HOOK_SEND_EMAIL_SECRETS: "v1,whsec_VGhpcyBpcyBhbiBleGFtcGxlIG9mIGEgc2hvcnRlciBCYXNlNjQgc3RyaW5n"
+    networks:
+      - test-network
 
   meta:
     container_name: supabase-meta
@@ -247,6 +256,8 @@ services:
         "-c",
         "log_min_messages=fatal", # prevents Realtime polling queries from appearing in logs
       ]
+    networks:
+      - test-network
 
 volumes:
   supabase-db-config:

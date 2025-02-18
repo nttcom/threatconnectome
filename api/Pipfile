@@ -20,6 +20,8 @@ packageurl-python = "*"
 sendgrid = "*"
 email-validator = "*"
 pillow = "*"
+supabase = "*"
+deprecation = "*"
 
 [dev-packages]
 mypy = "*"

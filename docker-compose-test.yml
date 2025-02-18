@@ -25,6 +25,7 @@ services:
       - DB_HOST=${TESTDB_HOST} # override env_file
       - SENDGRID_API_KEY=fake_api_key_for_sendgrid_test
       - SYSTEM_EMAIL=ic-metemcyber@example.com
+      - AUTH_SERVICE=FIREBASE
     networks:
       - test-network
     volumes:
