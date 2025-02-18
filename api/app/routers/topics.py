@@ -8,7 +8,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
-from app.auth import get_current_user
+from app.auth.account import get_current_user
 from app.business.misp_tag_business import get_or_create_misp_tag
 from app.business.tag_business import check_topic_action_tags_integrity
 from app.business.ticket_business import ticket_meets_condition_to_create_alert
