@@ -2,9 +2,9 @@ import json
 import os
 
 import requests
-from fastapi import HTTPException, status
 from firebase_admin import auth, credentials, initialize_app
 
+from app.auth.auth_exception import AuthErrorType, AuthException
 from app.auth.auth_module import AuthModule
 
 from ..schemas import Token
@@ -41,19 +41,16 @@ class FirebaseAuthModule(AuthModule):
                 timeout=30,
             )
         except requests.exceptions.Timeout as firebase_timeout:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
+            raise AuthException(
+                AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
             ) from firebase_timeout
 
         data = resp.json()
         if not resp.ok:
             error_message = data["error"]["message"]
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=error_message if error_message else "Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
+            raise AuthException(
+                AuthErrorType.UNAUTHORIZED,
+                error_message if error_message else "Could not validate credentials",
             )
         return Token(
             access_token=data["idToken"], token_type="bearer", refresh_token=data["refreshToken"]
@@ -82,19 +79,17 @@ class FirebaseAuthModule(AuthModule):
                 timeout=30,
             )
         except requests.exceptions.Timeout as firebase_timeout:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Could not refresh token",
-                headers={"WWW-Authenticate": "Bearer"},
+            raise AuthException(
+                AuthErrorType.INTERNAL_SERVER_ERROR,
+                "Could not refresh token",
             ) from firebase_timeout
 
         data: dict = resp.json()
         if not resp.ok:
             error_message: str = data["error"]["message"]
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=error_message if error_message else "Could not refresh token",
-                headers={"WWW-Authenticate": "Bearer"},
+            raise AuthException(
+                AuthErrorType.UNAUTHORIZED,
+                error_message if error_message else "Could not refresh token",
             )
         return Token(
             access_token=data["id_token"],
@@ -107,30 +102,29 @@ class FirebaseAuthModule(AuthModule):
         try:
             decoded_token = auth.verify_id_token(token.credentials, check_revoked=True)
         except auth.ExpiredIdTokenError as error:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has expired",
+            raise AuthException(
+                AuthErrorType.UNAUTHORIZED,
+                "Token has expired",
             ) from error
         except auth.RevokedIdTokenError as error:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has revoked",
+            raise AuthException(
+                AuthErrorType.UNAUTHORIZED,
+                "Token has revoked",
             ) from error
         except auth.CertificateFetchError as error:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Failed to obtain required credentials",
+            raise AuthException(
+                AuthErrorType.SERVICE_UNAVAILABLE,
+                "Failed to obtain required credentials",
             ) from error
         except auth.UserDisabledError as error:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Disabled user",
+            raise AuthException(
+                AuthErrorType.UNAUTHORIZED,
+                "Disabled user",
             ) from error
         except (auth.InvalidIdTokenError, ValueError) as error:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
+            raise AuthException(
+                AuthErrorType.UNAUTHORIZED,
+                "Could not validate credentials",
             ) from error
 
         user_info = auth.get_user(decoded_token["uid"])
@@ -138,9 +132,9 @@ class FirebaseAuthModule(AuthModule):
         # check email verified if not using firebase emulator
         emulator_host = os.getenv("FIREBASE_AUTH_EMULATOR_HOST", "")
         if emulator_host == "" and user_info.email_verified is False:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Email is not verified. Try logging in on UI and verify email.",
+            raise AuthException(
+                AuthErrorType.UNAUTHORIZED,
+                "Email is not verified. Try logging in on UI and verify email.",
             )
 
         email = user_info.email
