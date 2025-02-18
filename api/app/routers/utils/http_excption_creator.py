@@ -1,5 +1,6 @@
-from app.auth.auth_exception import AuthErrorType, AuthException
 from fastapi import HTTPException, status
+
+from app.auth.auth_exception import AuthErrorType, AuthException
 
 
 def get_status_code(error_type: AuthErrorType):
