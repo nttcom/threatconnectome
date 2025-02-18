@@ -3,26 +3,25 @@ import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event"
 import React from "react";
 import { Provider } from "react-redux";
 
-import {
-  useVerifyPasswordResetCodeMutation,
-  useConfirmPasswordResetMutation,
-} from "../../../services/firebaseApi";
+import { useAuth } from "../../../hooks/auth";
+import { AuthProvider } from "../../../providers/auth/AuthContext";
 import store from "../../../store";
 import ResetPasswordForm from "../ResetPasswordForm";
 
-vi.mock("../../../services/firebaseApi", async (importOriginal) => {
+vi.mock("../../../hooks/auth", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    useVerifyPasswordResetCodeMutation: vi.fn(),
-    useConfirmPasswordResetMutation: vi.fn(),
+    useAuth: vi.fn(),
   };
 });
 
 const renderVerifyEmail = (oobCode) => {
   render(
     <Provider store={store}>
-      <ResetPasswordForm oobCode={oobCode} />
+      <AuthProvider>
+        <ResetPasswordForm oobCode={oobCode} />
+      </AuthProvider>
     </Provider>,
   );
 };
@@ -30,13 +29,12 @@ const renderVerifyEmail = (oobCode) => {
 describe("TestResetPasswordForm", () => {
   describe("Rendering", () => {
     beforeEach(() => {
-      const VerifyPasswordResetCodeMock = vi.fn();
-      VerifyPasswordResetCodeMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      useVerifyPasswordResetCodeMutation.mockReturnValue([VerifyPasswordResetCodeMock]);
-
-      const ConfirmPasswordResetMock = vi.fn();
-      ConfirmPasswordResetMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      useConfirmPasswordResetMutation.mockReturnValue([ConfirmPasswordResetMock]);
+      const mockVerifyPasswordResetCode = vi.fn();
+      const mockConfirmPasswordReset = vi.fn();
+      useAuth.mockReturnValue({
+        verifyPasswordResetCode: mockVerifyPasswordResetCode,
+        confirmPasswordReset: mockConfirmPasswordReset,
+      });
     });
 
     afterEach(() => {
@@ -46,7 +44,7 @@ describe("TestResetPasswordForm", () => {
     it("renders the heading", () => {
       const oobCodeExample = "00000";
       renderVerifyEmail(oobCodeExample);
-      expect(screen.getByRole("heading", { name: /Reset Password/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Reset Password" })).toBeInTheDocument();
     });
 
     it("renders the password input field", () => {
@@ -60,7 +58,7 @@ describe("TestResetPasswordForm", () => {
     it("renders the submit button", () => {
       const oobCodeExample = "00000";
       renderVerifyEmail(oobCodeExample);
-      expect(screen.getByRole("button", { name: /submit/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Submit" })).toBeInTheDocument();
     });
   });
 
@@ -70,13 +68,12 @@ describe("TestResetPasswordForm", () => {
       const oobCodeExample = "00000";
       const validPassword = "Password1234@";
 
-      const VerifyPasswordResetCodeMock = vi.fn();
-      VerifyPasswordResetCodeMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      useVerifyPasswordResetCodeMutation.mockReturnValue([VerifyPasswordResetCodeMock]);
-
-      const ConfirmPasswordResetMock = vi.fn();
-      ConfirmPasswordResetMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      useConfirmPasswordResetMutation.mockReturnValue([ConfirmPasswordResetMock]);
+      const mockVerifyPasswordResetCode = vi.fn().mockResolvedValue();
+      const mockConfirmPasswordReset = vi.fn().mockResolvedValue();
+      useAuth.mockReturnValue({
+        verifyPasswordResetCode: mockVerifyPasswordResetCode,
+        confirmPasswordReset: mockConfirmPasswordReset,
+      });
 
       renderVerifyEmail(oobCodeExample);
 
@@ -84,14 +81,14 @@ describe("TestResetPasswordForm", () => {
       const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
       await ue.type(passwordField, validPassword);
 
-      await ue.click(screen.getByRole("button", { name: /submit/i }));
+      await ue.click(screen.getByRole("button", { name: "Submit" }));
 
-      expect(screen.getByRole("button", { name: /submit/i })).toBeDisabled();
-      expect(VerifyPasswordResetCodeMock).toHaveBeenCalledWith({
+      expect(screen.getByRole("button", { name: "Submit" })).toBeDisabled();
+      expect(mockVerifyPasswordResetCode).toHaveBeenCalledWith({
         actionCode: oobCodeExample,
       });
 
-      expect(ConfirmPasswordResetMock).toHaveBeenCalledWith({
+      expect(mockConfirmPasswordReset).toHaveBeenCalledWith({
         actionCode: oobCodeExample,
         newPassword: validPassword,
       });
@@ -103,18 +100,18 @@ describe("TestResetPasswordForm", () => {
       const oobCodeExample = "00000";
       const validPassword = "Password1234@";
       const errorCode = "error";
+      const errorMessage = "Something went wrong.";
 
-      const VerifyPasswordResetCodeMock = vi.fn(() => ({
-        unwrap: vi.fn().mockRejectedValue({
-          code: errorCode,
-        }),
-      }));
-      useVerifyPasswordResetCodeMutation.mockReturnValue([VerifyPasswordResetCodeMock]);
-      const consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
-
-      const ConfirmPasswordResetMock = vi.fn();
-      ConfirmPasswordResetMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      useConfirmPasswordResetMutation.mockReturnValue([ConfirmPasswordResetMock]);
+      const mockVerifyPasswordResetCode = vi.fn().mockRejectedValue({
+        code: errorCode,
+        message: errorMessage,
+      });
+      const mockConfirmPasswordReset = vi.fn();
+      useAuth.mockReturnValue({
+        verifyPasswordResetCode: mockVerifyPasswordResetCode,
+        confirmPasswordReset: mockConfirmPasswordReset,
+      });
+      const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
       renderVerifyEmail(oobCodeExample);
 
@@ -122,20 +119,22 @@ describe("TestResetPasswordForm", () => {
       const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
       await ue.type(passwordField, validPassword);
 
-      await ue.click(screen.getByRole("button", { name: /submit/i }));
+      await ue.click(screen.getByRole("button", { name: "Submit" }));
 
-      expect(consoleErrorMock).toHaveBeenCalledWith({
+      expect(mockConsoleError).toHaveBeenCalledWith({
         code: errorCode,
+        message: errorMessage,
       });
 
-      expect(screen.getByRole("button", { name: /submit/i })).toBeDisabled();
-      expect(VerifyPasswordResetCodeMock).toHaveBeenCalledWith({
+      expect(screen.getByRole("button", { name: "Submit" })).toBeDisabled();
+      expect(mockVerifyPasswordResetCode).toHaveBeenCalledWith({
         actionCode: oobCodeExample,
       });
 
-      expect(screen.getByText(/something went wrong/)).toBeInTheDocument();
+      expect(screen.getByText(new RegExp(errorMessage))).toBeInTheDocument();
     });
   });
+
   it("change password mask when click visibility icon button", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
     const oobCodeExample = "00000";

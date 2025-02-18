@@ -29,6 +29,14 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
+    useGetUserMeQuery: vi.fn().mockReturnValue({
+      // minimal mock for PTeamLabel
+      data: {
+        pteam_roles: [],
+      },
+      error: undefined,
+      isLoading: false,
+    }),
     useGetPTeamQuery: vi.fn(),
     useGetPTeamServiceTagsSummaryQuery: vi.fn(),
   };

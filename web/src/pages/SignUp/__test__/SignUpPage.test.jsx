@@ -4,19 +4,16 @@ import React from "react";
 import { Provider } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import {
-  useCreateUserWithEmailAndPasswordMutation,
-  useSendEmailVerificationMutation,
-} from "../../../services/firebaseApi";
+import { useAuth } from "../../../hooks/auth";
+import { AuthProvider } from "../../../providers/auth/AuthContext";
 import store from "../../../store";
 import { SignUp } from "../SignUpPage";
 
-vi.mock("../../../services/firebaseApi", async (importOriginal) => {
+vi.mock("../../../hooks/auth", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    useCreateUserWithEmailAndPasswordMutation: vi.fn(),
-    useSendEmailVerificationMutation: vi.fn(),
+    useAuth: vi.fn(),
   };
 });
 
@@ -32,7 +29,9 @@ vi.mock("react-router-dom", async (importOriginal) => {
 const renderSignUp = () => {
   render(
     <Provider store={store}>
-      <SignUp />
+      <AuthProvider>
+        <SignUp />
+      </AuthProvider>
     </Provider>,
   );
 };
@@ -40,17 +39,12 @@ const renderSignUp = () => {
 describe("TestSignUpPage", () => {
   describe("Rendering", () => {
     beforeEach(() => {
-      const CreateUserWithEmailAndPasswordMutationMock = vi.fn();
-      CreateUserWithEmailAndPasswordMutationMock.mockReturnValue({
-        unwrap: vi.fn().mockResolvedValue(),
+      const mockCreateUserWithEmailAndPassword = vi.fn().mockResolvedValue();
+      const mockSendEmailVerification = vi.fn().mockResolvedValue();
+      useAuth.mockReturnValue({
+        createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
+        sendEmailVerification: mockSendEmailVerification,
       });
-      useCreateUserWithEmailAndPasswordMutation.mockReturnValue([
-        CreateUserWithEmailAndPasswordMutationMock,
-      ]);
-
-      const SendEmailVerificationMock = vi.fn();
-      SendEmailVerificationMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      useSendEmailVerificationMutation.mockReturnValue([SendEmailVerificationMock]);
     });
 
     afterEach(() => {
@@ -59,7 +53,7 @@ describe("TestSignUpPage", () => {
 
     it("renders the heading", () => {
       renderSignUp();
-      expect(screen.getByRole("heading", { name: /Threatconnectome/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Threatconnectome" })).toBeInTheDocument();
     });
 
     it("renders the email input field", () => {
@@ -77,85 +71,78 @@ describe("TestSignUpPage", () => {
 
     it("renders the sign-up button", () => {
       renderSignUp();
-      expect(screen.getByRole("button", { name: /sign up/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Sign up" })).toBeInTheDocument();
     });
 
     it("renders the back to login link", () => {
       renderSignUp();
-      expect(screen.getByRole("button", { name: /Back to log in/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Back to log in" })).toBeInTheDocument();
     });
   });
 
-  describe("Sian up button behabior", () => {
+  describe("Sign up button behabior", () => {
     it("creates an account when given valid parameters", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const validEmail = "test@example.com";
-      const validPassword = "Password1234@";
+      const emailValue = "test@example.com";
+      const passwordValue = "Password1234@";
+      const uidValue = "12345";
 
-      const CreateUserWithEmailAndPasswordMutationMock = vi.fn(({ email }) => ({
-        unwrap: vi.fn().mockResolvedValue({
-          user: { email: email, uid: "12345" },
-        }),
-      }));
-
-      useCreateUserWithEmailAndPasswordMutation.mockReturnValue([
-        CreateUserWithEmailAndPasswordMutationMock,
-      ]);
-      const SendEmailVerificationMock = vi.fn();
-      SendEmailVerificationMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue(undefined) });
-      useSendEmailVerificationMutation.mockReturnValue([SendEmailVerificationMock]);
+      const mockCreateUserWithEmailAndPassword = vi.fn().mockResolvedValue({
+        user: { email: emailValue, uid: uidValue },
+      });
+      const mockSendEmailVerification = vi.fn().mockResolvedValue(undefined);
+      useAuth.mockReturnValue({
+        createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
+        sendEmailVerification: mockSendEmailVerification,
+      });
 
       renderSignUp();
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
-      await ue.type(emailField, validEmail);
+      await ue.type(emailField, emailValue);
 
       const passwordFields = screen.getAllByLabelText(/^Password/);
       const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
-      await ue.type(passwordField, validPassword);
+      await ue.type(passwordField, passwordValue);
 
-      await ue.click(screen.getByRole("button", { name: /sign up/i }));
+      await ue.click(screen.getByRole("button", { name: "Sign up" }));
 
-      expect(CreateUserWithEmailAndPasswordMutationMock).toHaveBeenCalledWith({
-        email: validEmail,
-        password: validPassword,
+      expect(mockCreateUserWithEmailAndPassword).toHaveBeenCalledWith({
+        email: emailValue,
+        password: passwordValue,
       });
 
-      expect(SendEmailVerificationMock).toHaveBeenCalledWith({
-        user: { email: validEmail, uid: "12345" },
+      // sendEmailVerification is skipped if using Supabase or Firebase-Emulator
+      /*
+      expect(mockSendEmailVerification).toHaveBeenCalledWith({
+        user: { email: emailValue, uid: uidValue },
         actionCodeSettings: null,
       });
-
       expect(
         screen.getByText("An email for verification was sent to your address."),
       ).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /sign up/i })).toBeDisabled();
+      */
+      expect(mockSendEmailVerification).toBeCalledTimes(0);
+      expect(screen.getByText("Signed up successfully.")).toBeInTheDocument();
+
+      expect(screen.getByRole("button", { name: "Sign up" })).toBeDisabled();
     });
-    it.sequential.each([
-      ["auth/internal-error", "Unauthorized Email Domain."],
-      ["auth/email-already-in-use", "Email already in use."],
-      ["auth/invalid-email", "Invalid email format."],
-      ["auth/too-many-requests", "Too many requests."],
-      ["auth/weak-password", "Weak password. Password should be at least 6 characters."],
-      ["auth/operation-not-allowed", "Something went wrong."],
-      ["other errors", "Something went wrong."],
-    ])("handles error for %s", async (errorCode, errorMessage) => {
+    it("handles error", async () => {
       const validEmail = "test@example.com";
       const validPassword = "Password1234@";
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+      const errorCode = "test error";
+      const errorMessage = "Something went wrong.";
 
-      const CreateUserWithEmailAndPasswordMutationMock = vi.fn(() => ({
-        unwrap: vi.fn().mockRejectedValue({
-          code: errorCode,
-        }),
-      }));
-
-      useCreateUserWithEmailAndPasswordMutation.mockReturnValue([
-        CreateUserWithEmailAndPasswordMutationMock,
-      ]);
-      const SendEmailVerificationMock = vi.fn();
-      SendEmailVerificationMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue(undefined) });
-      useSendEmailVerificationMutation.mockReturnValue([SendEmailVerificationMock]);
-      const consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
+      const mockCreateUserWithEmailAndPassword = vi.fn().mockRejectedValue({
+        code: errorCode,
+        message: errorMessage,
+      });
+      const mockSendEmailVerification = vi.fn().mockResolvedValue(undefined);
+      useAuth.mockReturnValue({
+        createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
+        sendEmailVerification: mockSendEmailVerification,
+      });
+      const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
       renderSignUp();
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
@@ -165,13 +152,14 @@ describe("TestSignUpPage", () => {
       const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
       await ue.type(passwordField, validPassword);
 
-      await ue.click(screen.getByRole("button", { name: /sign up/i }));
+      await ue.click(screen.getByRole("button", { name: "Sign up" }));
 
-      expect(consoleErrorMock).toHaveBeenCalledWith({
+      expect(mockConsoleError).toHaveBeenCalledWith({
         code: errorCode,
+        message: errorMessage,
       });
 
-      expect(CreateUserWithEmailAndPasswordMutationMock).toHaveBeenCalledWith({
+      expect(mockCreateUserWithEmailAndPassword).toHaveBeenCalledWith({
         email: validEmail,
         password: validPassword,
       });
@@ -183,21 +171,21 @@ describe("TestSignUpPage", () => {
   it("navigate login page when click link button", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
-    const navigateMock = vi.fn();
-    useNavigate.mockReturnValue(navigateMock);
+    const mockNavigate = vi.fn();
+    useNavigate.mockReturnValue(mockNavigate);
 
-    const locationMock = {
+    const mockLocation = {
       state: { from: "/test_from", search: "/test_from" },
     };
-    useLocation.mockReturnValue(locationMock);
+    useLocation.mockReturnValue(mockLocation);
 
     renderSignUp();
-    await ue.click(screen.getByRole("button", { name: /Back to log in/i }));
+    await ue.click(screen.getByRole("button", { name: "Back to log in" }));
 
-    expect(navigateMock).toHaveBeenCalledWith("/login", {
+    expect(mockNavigate).toHaveBeenCalledWith("/login", {
       state: {
-        from: locationMock.state.from,
-        search: locationMock.state.search,
+        from: mockLocation.state.from,
+        search: mockLocation.state.search,
       },
     });
   });

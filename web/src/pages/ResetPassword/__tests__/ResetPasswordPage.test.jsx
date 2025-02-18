@@ -4,24 +4,35 @@ import React from "react";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 
-import { useSendPasswordResetEmailMutation } from "../../../services/firebaseApi";
+import { useAuth } from "../../../hooks/auth";
+import { AuthProvider } from "../../../providers/auth/AuthContext";
 import store from "../../../store";
 import { ResetPassword } from "../ResetPasswordPage";
 
-vi.mock("../../../services/firebaseApi", async (importOriginal) => {
+vi.mock("../../../hooks/auth", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    useSendPasswordResetEmailMutation: vi.fn(),
+    useAuth: vi.fn(),
   };
 });
 
 const renderResetPassword = () => {
   render(
     <Provider store={store}>
-      <BrowserRouter>
-        <ResetPassword />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter
+          future={{
+            /* to prevent React Router Future Flag Warning.
+             * see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath for details.
+             */
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <ResetPassword />
+        </BrowserRouter>
+      </AuthProvider>
     </Provider>,
   );
 };
@@ -36,58 +47,55 @@ const genApiMock = (isSuccess = true, returnValue = undefined) => {
 describe("ResetPassword Component", () => {
   describe("Rendering", () => {
     it("should render ResetPassword form", () => {
-      const sendPasswordResetEmailMock = vi.fn();
-      const mockUnwrap = vi.fn().mockResolvedValue();
-      sendPasswordResetEmailMock.mockReturnValue({ unwrap: mockUnwrap });
-
-      vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
+      const mockSendPasswordResetEmail = vi.fn().mockResolvedValue();
+      useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
 
       renderResetPassword();
 
-      expect(screen.getByRole("textbox", { name: /email address/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /reset password/i })).toBeInTheDocument();
+      expect(screen.getByRole("textbox", { name: "Email Address" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Reset Password" })).toBeInTheDocument();
       expect(screen.getByText("Back to log in")).toBeInTheDocument();
     });
   });
 
-  it("should call firebase API with correct parameters", async () => {
+  it("should call auth API with correct parameters", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-    const sendPasswordResetEmailMock = vi.fn();
-    const mockUnwrap = vi.fn().mockResolvedValue();
-    sendPasswordResetEmailMock.mockReturnValue({ unwrap: mockUnwrap });
-    vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
+    const mockSendPasswordResetEmail = vi.fn().mockResolvedValue();
+    useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
 
     renderResetPassword();
 
-    const emailField = screen.getByRole("textbox", { name: /email address/i });
-    const resetButton = screen.getByRole("button", { name: /reset password/i });
+    const emailField = screen.getByRole("textbox", { name: "Email Address" });
+    const submitButton = screen.getByRole("button", { name: "Reset Password" });
 
-    await ue.type(emailField, "test@example.com");
-    await ue.click(resetButton);
+    const emailValue = "test@example.com";
+    await ue.type(emailField, emailValue);
+    await ue.click(submitButton);
 
-    expect(sendPasswordResetEmailMock).toHaveBeenCalledWith({
-      email: "test@example.com",
+    expect(mockSendPasswordResetEmail).toHaveBeenCalledWith({
+      email: emailValue,
       actionCodeSettings: expect.any(Object),
+      redirectTo: expect.any(String),
     });
 
     expect(
-      screen.getByText("An email with a password reset URL was sent to this address."),
+      screen.getByText(new RegExp("An email with a password reset URL was sent to this address.")),
     ).toBeInTheDocument();
   });
 
   describe("Error Handling", () => {
     it("should show error message when email is invalid", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const sendPasswordResetEmailMock = vi.fn();
-      vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
-
-      const mockSendPasswordResetEmail = genApiMock(false, { code: "auth/invalid-email" });
-      useSendPasswordResetEmailMutation.mockReturnValue([mockSendPasswordResetEmail]);
+      const mockSendPasswordResetEmail = vi.fn().mockRejectedValue({
+        code: "auth/invalid-email",
+        message: "Invalid email format.",
+      });
+      useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
 
       renderResetPassword();
 
-      const emailField = screen.getByRole("textbox", { name: /email address/i });
-      const resetButton = screen.getByRole("button", { name: /reset password/i });
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      const resetButton = screen.getByRole("button", { name: "Reset Password" });
 
       await ue.type(emailField, "invalid-email");
       await ue.click(resetButton);
@@ -97,34 +105,33 @@ describe("ResetPassword Component", () => {
 
     it("should show error message when user does not exist", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const sendPasswordResetEmailMock = vi.fn();
-      vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([sendPasswordResetEmailMock]);
-
-      const mockSendPasswordResetEmail = genApiMock(false, { code: "auth/user-not-found" });
-      useSendPasswordResetEmailMutation.mockReturnValue([mockSendPasswordResetEmail]);
+      const mockSendPasswordResetEmail = vi.fn().mockRejectedValue({
+        code: "auth/user-not-found",
+        message: "User not found.",
+      });
+      useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
 
       renderResetPassword();
 
-      const emailField = screen.getByRole("textbox", { name: /email address/i });
-      const resetButton = screen.getByRole("button", { name: /reset password/i });
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      const resetButton = screen.getByRole("button", { name: "Reset Password" });
 
       await ue.type(emailField, "nonexistentuser@example.com");
       await ue.click(resetButton);
 
-      expect(screen.getByText("User does not exist. Check the email address.")).toBeInTheDocument();
+      expect(screen.getByText("User not found.")).toBeInTheDocument();
     });
   });
 
   describe("Form Validation", () => {
     it("should not call the callback when the Reset Password button is clicked and email is empty", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-
-      const mockSendPasswordResetEmail = vi.fn();
-      vi.mocked(useSendPasswordResetEmailMutation).mockReturnValue([mockSendPasswordResetEmail]);
+      const mockSendPasswordResetEmail = vi.fn().mockResolvedValue();
+      useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
 
       renderResetPassword();
 
-      const resetButton = screen.getByRole("button", { name: /reset password/i });
+      const resetButton = screen.getByRole("button", { name: "Reset Password" });
 
       await ue.click(resetButton);
 
