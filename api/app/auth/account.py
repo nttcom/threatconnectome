@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app import persistence
 from app.auth.auth_exception import AuthException
 from app.auth.auth_module import AuthModule, get_auth_module
-from app.routers.http_excption_creator import create_http_excption
+from app.routers.utils.http_excption_creator import create_http_exception
 
 from ..database import get_db
 from ..models import Account
@@ -21,7 +21,7 @@ def get_current_user(
     try:
         uid, email = auth_module.check_and_get_user_info(token)
     except AuthException as auth_exception:
-        raise create_http_excption(auth_exception)
+        raise create_http_exception(auth_exception)
     user = persistence.get_account_by_uid(db, uid)
     if not user:
         raise HTTPException(

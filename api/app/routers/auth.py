@@ -3,7 +3,7 @@ from pydantic import SecretStr
 
 from app.auth.auth_exception import AuthException
 from app.auth.auth_module import AuthModule, get_auth_module
-from app.routers.http_excption_creator import create_http_excption
+from app.routers.utils.http_excption_creator import create_http_exception
 
 from ..schemas import RefreshTokenRequest, Token
 
@@ -22,7 +22,7 @@ def login_for_access_token(
     try:
         return auth_module.login_for_access_token(username, password)
     except AuthException as auth_exception:
-        raise create_http_excption(auth_exception)
+        raise create_http_exception(auth_exception)
 
 
 @router.post("/refresh", response_model=Token)
@@ -32,4 +32,4 @@ def refresh_access_token(
     try:
         return auth_module.refresh_access_token(request.refresh_token)
     except AuthException as auth_exception:
-        raise create_http_excption(auth_exception)
+        raise create_http_exception(auth_exception)

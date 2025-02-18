@@ -1,6 +1,5 @@
-from fastapi import HTTPException, status
-
 from app.auth.auth_exception import AuthErrorType, AuthException
+from fastapi import HTTPException, status
 
 
 def get_status_code(error_type: AuthErrorType):
@@ -13,7 +12,7 @@ def get_status_code(error_type: AuthErrorType):
             return status.HTTP_503_SERVICE_UNAVAILABLE
 
 
-def create_http_excption(auth_exception: AuthException) -> HTTPException:
+def create_http_exception(auth_exception: AuthException) -> HTTPException:
     return HTTPException(
         status_code=get_status_code(auth_exception.error_type),
         detail=auth_exception.message,
