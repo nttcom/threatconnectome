@@ -21,13 +21,7 @@ export function ResetPassword() {
   const navigate = useNavigate();
   const { sendPasswordResetEmail } = useAuth();
 
-  const handleBackToLogIn = () =>
-    navigate("/login", {
-      state: {
-        from: location.state?.from ?? "/",
-        search: location.state?.search ?? "",
-      },
-    });
+  const handleBackToLogIn = () => navigate("/login");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
