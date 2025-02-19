@@ -41,6 +41,18 @@ services:
     volumes:
       - ./api/app:/app:ro
       - ./key:/key:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import requests, sys; sys.exit(0 if requests.get('http://localhost/api/').status_code == 404 else 1)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
   testdb:
     image: postgres:14
     command:
@@ -66,8 +78,10 @@ services:
   traefik:
     image: traefik:latest
     depends_on:
-      - api
-      - web
+      api:
+        condition: service_healthy
+      web:
+        condition: service_started
     ports:
       - 80:80
       - 8080:8080
