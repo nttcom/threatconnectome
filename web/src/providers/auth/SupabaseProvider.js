@@ -2,7 +2,8 @@ import Supabase from "../../utils/Supabase";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
-const supabase = import.meta.env.AUTH_SERVICE === "supabase" ? Supabase.getClient() : undefined;
+const supabase =
+  import.meta.env.VITE_AUTH_SERVICE === "supabase" ? Supabase.getClient() : undefined;
 
 const _immediateEmitEvent = async (signInCallback, signOutCallback) => {
   const result = await supabase.auth.getSession();
