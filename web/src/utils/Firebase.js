@@ -46,6 +46,10 @@ class Firebase {
 
     return this.samlProvider;
   }
+
+  async getBearerToken() {
+    return await this.getAuth()?.currentUser?.getIdToken(true);
+  }
 }
 
 export default new Firebase();

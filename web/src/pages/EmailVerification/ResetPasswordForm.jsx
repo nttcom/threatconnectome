@@ -14,10 +14,7 @@ import {
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import {
-  useVerifyPasswordResetCodeMutation,
-  useConfirmPasswordResetMutation,
-} from "../../services/firebaseApi";
+import { useAuth } from "../../hooks/auth";
 
 export default function ResetPasswordForm(props) {
   const { oobCode } = props;
@@ -26,19 +23,24 @@ export default function ResetPasswordForm(props) {
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
 
-  const [verifyPasswordResetCode] = useVerifyPasswordResetCodeMutation();
-  const [confirmPasswordReset] = useConfirmPasswordResetMutation();
+  const { verifyPasswordResetCode, confirmPasswordReset } = useAuth();
 
   async function handleResetPassword() {
     setDisabled(true);
-    try {
-      await verifyPasswordResetCode({ actionCode: oobCode }).unwrap();
-      await confirmPasswordReset({ actionCode: oobCode, newPassword: password }).unwrap();
-      setMessage("update password success");
-    } catch (error) {
-      console.error(error);
-      setMessage("something went wrong");
-    }
+    await verifyPasswordResetCode({ actionCode: oobCode })
+      .then(() => confirmPasswordReset({ actionCode: oobCode, newPassword: password }))
+      .then(() => setMessage("update password success"))
+      .catch((error) => {
+        console.error(error);
+        setMessage(error.message);
+      });
+  }
+
+  if (import.meta.env.VITE_AUTH_SERVICE === "supabase") {
+    return <>Sorry. Resetting password is not supported for supabase, currently.</>;
+  }
+  if (!oobCode) {
+    return <>Missing oobCode</>;
   }
 
   return (
@@ -87,5 +89,5 @@ export default function ResetPasswordForm(props) {
 }
 
 ResetPasswordForm.propTypes = {
-  oobCode: PropTypes.string.isRequired,
+  oobCode: PropTypes.string,
 };

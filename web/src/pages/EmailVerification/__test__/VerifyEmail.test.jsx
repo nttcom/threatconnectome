@@ -3,22 +3,25 @@ import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event"
 import React from "react";
 import { Provider } from "react-redux";
 
-import { useApplyActionCodeMutation } from "../../../services/firebaseApi";
+import { useAuth } from "../../../hooks/auth";
+import { AuthProvider } from "../../../providers/auth/AuthContext";
 import store from "../../../store";
 import VerifyEmail from "../VerifyEmail";
 
-vi.mock("../../../services/firebaseApi", async (importOriginal) => {
+vi.mock("../../../hooks/auth", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    useApplyActionCodeMutation: vi.fn(),
+    useAuth: vi.fn(),
   };
 });
 
 const renderVerifyEmail = () => {
   render(
     <Provider store={store}>
-      <VerifyEmail />
+      <AuthProvider>
+        <VerifyEmail />
+      </AuthProvider>
     </Provider>,
   );
 };
@@ -26,9 +29,8 @@ const renderVerifyEmail = () => {
 describe("TestVerifyEmail", () => {
   describe("Rendering", () => {
     beforeEach(() => {
-      const ApplyActionCodeMock = vi.fn();
-      ApplyActionCodeMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      useApplyActionCodeMutation.mockReturnValue([ApplyActionCodeMock]);
+      const mockApplyActionCode = vi.fn().mockResolvedValue();
+      useAuth.mockReturnValue({ applyActionCode: mockApplyActionCode });
     });
 
     afterEach(() => {
@@ -37,46 +39,45 @@ describe("TestVerifyEmail", () => {
 
     it("renders the heading", () => {
       renderVerifyEmail();
-      expect(screen.getByRole("heading", { name: /Email Verification/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Email Verification" })).toBeInTheDocument();
     });
 
     it("renders the verify email button", () => {
       renderVerifyEmail();
-      expect(screen.getByRole("button", { name: /Verify Email/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Verify Email" })).toBeInTheDocument();
     });
   });
 
   describe("Verify email button behabior", () => {
     it("triggers verification when the verify email button is clicked", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const ApplyActionCodeMock = vi.fn();
-      ApplyActionCodeMock.mockReturnValue({ unwrap: vi.fn().mockResolvedValue() });
-      useApplyActionCodeMutation.mockReturnValue([ApplyActionCodeMock]);
+      const mockApplyActionCode = vi.fn().mockResolvedValue();
+      useAuth.mockReturnValue({ applyActionCode: mockApplyActionCode });
 
       renderVerifyEmail();
-      await ue.click(screen.getByRole("button", { name: /Verify Email/i }));
-      expect(screen.getByRole("button", { name: /Verify Email/i })).toBeDisabled();
+      await ue.click(screen.getByRole("button", { name: "Verify Email" }));
+      expect(screen.getByRole("button", { name: "Verify Email" })).toBeDisabled();
       expect(screen.getByText(/email verification success/)).toBeInTheDocument();
     });
 
     it("handles error", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const errorCode = "error code";
-      const ApplyActionCodeMock = vi.fn(() => ({
-        unwrap: vi.fn().mockRejectedValue({
-          code: errorCode,
-        }),
-      }));
-      useApplyActionCodeMutation.mockReturnValue([ApplyActionCodeMock]);
-      const consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
+      const errorMessage = "Something went wrong.";
+      const mockApplyActionCode = vi
+        .fn()
+        .mockRejectedValue({ code: errorCode, message: errorMessage });
+      useAuth.mockReturnValue({ applyActionCode: mockApplyActionCode });
+      const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
       renderVerifyEmail();
-      await ue.click(screen.getByRole("button", { name: /Verify Email/i }));
-      expect(consoleErrorMock).toHaveBeenCalledWith({
+      await ue.click(screen.getByRole("button", { name: "Verify Email" }));
+      expect(mockConsoleError).toHaveBeenCalledWith({
         code: errorCode,
+        message: errorMessage,
       });
-      expect(screen.getByRole("button", { name: /Verify Email/i })).toBeDisabled();
-      expect(screen.getByText(/something went wrong/)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Verify Email" })).toBeDisabled();
+      expect(screen.getByText(new RegExp(errorMessage))).toBeInTheDocument();
     });
   });
 });

@@ -2,24 +2,24 @@ import { Box, Button, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { useApplyActionCodeMutation } from "../../services/firebaseApi";
+import { useAuth } from "../../hooks/auth";
 
 export default function VerifyEmail(props) {
   const { oobCode } = props;
   const [disabled, setDisabled] = useState(false);
   const [message, setMessage] = useState(null);
-  const [applyActionCode] = useApplyActionCodeMutation();
+
+  const { applyActionCode } = useAuth();
 
   function handleVerifyEmail() {
     setDisabled(true);
     applyActionCode({ actionCode: oobCode })
-      .unwrap()
       .then((resp) => {
         setMessage("email verification success");
       })
       .catch((error) => {
         console.error(error);
-        setMessage("something went wrong");
+        setMessage(error.message);
       });
   }
 

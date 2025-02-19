@@ -3,6 +3,7 @@ import React from "react";
 import { Provider, useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 
+import { AuthProvider } from "../../../providers/auth/AuthContext";
 import store from "../../../store";
 import { EmailVerification } from "../EmailVerificationPage";
 
@@ -26,7 +27,9 @@ vi.mock("react-redux", async (importOriginal) => {
 const renderEmailVerification = () => {
   render(
     <Provider store={store}>
-      <EmailVerification />
+      <AuthProvider>
+        <EmailVerification />
+      </AuthProvider>
     </Provider>,
   );
 };
@@ -52,9 +55,9 @@ describe("TestEmailVerificationPage", () => {
     const testLocation = { search: "?mode=invalidmode&oobCode=00000" };
     useLocation.mockReturnValue(testLocation);
 
-    const consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => {});
+    const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
     renderEmailVerification();
-    expect(consoleErrorMock).toHaveBeenCalledWith("Invalid mode");
+    expect(mockConsoleError).toHaveBeenCalledWith("Invalid mode");
   });
 });

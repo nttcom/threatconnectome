@@ -1,12 +1,11 @@
 import { Box } from "@mui/material";
-import { onAuthStateChanged, signOut } from "firebase/auth";
 import React, { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { setAuthUserIsReady } from "../../slices/auth";
-import Firebase from "../../utils/Firebase";
+import { useAuth } from "../../hooks/auth";
+import { setAuthUserIsReady, setRedirectedFrom } from "../../slices/auth";
 import { mainMaxWidth } from "../../utils/const";
 
 import { AppBar } from "./AppBar";
@@ -19,25 +18,27 @@ export function App() {
   const system = useSelector((state) => state.system);
   const location = useLocation();
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
+  const { onAuthStateChanged } = useAuth();
 
   useEffect(() => {
-    onAuthStateChanged(Firebase.getAuth(), (user) => {
-      if (!user) {
-        dispatch(setAuthUserIsReady(false));
-        navigate("/login", {
-          state: {
-            from: location.pathname,
-            search: location.search,
-            message: "Please login to continue.",
-          },
-        });
-      } else {
-        dispatch(setAuthUserIsReady(true));
-      }
-    });
-  }, [location, dispatch, navigate]);
+    const signInCallback = () => dispatch(setAuthUserIsReady(true));
+    const signOutCallback = () => {
+      dispatch(setAuthUserIsReady(false));
+      navigate("/login", {
+        state: {
+          message: "Please login to continue.",
+        },
+      });
+    };
+    const unsubscribe = onAuthStateChanged({ signInCallback, signOutCallback });
+    return () => unsubscribe(); // unsubscribe at unmounting.
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, []);
+
+  useEffect(() => {
+    dispatch(setRedirectedFrom({ from: location.pathname, search: location.search }));
+  }, [dispatch, location.pathname, location.search]);
 
   return (
     <>

@@ -14,73 +14,48 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import {
-  useSendEmailVerificationMutation,
-  useSignInWithEmailAndPasswordMutation,
-  useSignInWithSamlPopupMutation,
-} from "../../services/firebaseApi";
+import { useAuth } from "../../hooks/auth";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import { setAuthUserIsReady } from "../../slices/auth";
-import Firebase from "../../utils/Firebase";
+import Firebase from "../../utils/Firebase"; // FIXME: remove after supporting saml provider
 
 export function Login() {
   const [message, setMessage] = useState(null);
   const [visible, setVisible] = useState(false);
+  const redirectedFrom = useSelector((state) => state.auth.redirectedFrom);
 
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [sendEmailVerification] = useSendEmailVerificationMutation();
-  const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
-  const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
   const [createUser] = useCreateUserMutation();
   const [tryLogin] = useTryLoginMutation();
+  const { sendEmailVerification, signInWithEmailAndPassword, signInWithSamlPopup, signOut } =
+    useAuth();
 
   useEffect(() => {
     dispatch(setAuthUserIsReady(false));
     setMessage(location.state?.message);
-    signOut(Firebase.getAuth());
-  }, [dispatch, location]);
+    signOut();
+  }, [dispatch, location, signOut]);
 
   const callSignInWithEmailAndPassword = async (email, password) => {
-    return await signInWithEmailAndPassword({ email, password })
-      .unwrap()
-      .catch((error) => {
-        switch (error.code) {
-          case "auth/invalid-email":
-            setMessage("Invalid email format.");
-            break;
-          case "auth/too-many-requests":
-            setMessage("Too many requests.");
-            break;
-          case "auth/user-disabled":
-            setMessage("Disabled user.");
-            break;
-          case "auth/user-not-found":
-            setMessage("User not found.");
-            break;
-          case "auth/wrong-password":
-            setMessage("Wrong password.");
-            break;
-          default:
-            setMessage("Something went wrong.");
-        }
-        return undefined;
-      });
+    return await signInWithEmailAndPassword({ email, password }).catch((authError) => {
+      setMessage(authError.message);
+      return undefined;
+    });
   };
 
-  const navigateInternalPage = async (userCredential) => {
+  const navigateInternalPage = async () => {
     try {
       await tryLogin().unwrap();
       navigate({
-        pathname: location.state?.from ?? "/",
-        search: location.state?.search ?? "",
+        pathname: redirectedFrom.from ?? "/",
+        search: redirectedFrom.search ?? "",
       });
     } catch (error) {
       switch (error.data?.detail) {
@@ -88,13 +63,14 @@ export function Login() {
           const actionCodeSettings = {
             url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
           };
-          await sendEmailVerification({
-            user: userCredential.user,
-            actionCodeSettings: actionCodeSettings,
-          });
-          setMessage(
-            "Your email address is not verified. An email for verification was sent to your address.",
-          );
+          await sendEmailVerification({ actionCodeSettings })
+            .then(() =>
+              setMessage(
+                "Your email address is not verified." +
+                  " An email for verification was sent to your address.",
+              ),
+            )
+            .catch((error) => setMessage(error.message));
           break;
         }
         case "No such user":
@@ -102,8 +78,8 @@ export function Login() {
           // TODO: navigate to the first time login page, or say hello on snackbar.
           navigate("/account", {
             state: {
-              from: location.state?.from ?? "/",
-              search: location.state?.search ?? "",
+              from: redirectedFrom.from ?? "/",
+              search: redirectedFrom.search ?? "",
             },
           });
           break;
@@ -118,20 +94,14 @@ export function Login() {
     event.preventDefault();
     setMessage("Logging in...");
     const data = new FormData(event.currentTarget);
-    const userCredential = await callSignInWithEmailAndPassword(
-      data.get("email"),
-      data.get("password"),
-    );
-    if (userCredential === undefined) return;
-    navigateInternalPage(userCredential);
+    const authData = await callSignInWithEmailAndPassword(data.get("email"), data.get("password"));
+    if (authData === undefined) return;
+    navigateInternalPage();
   };
 
   const handleLoginWithSaml = () => {
     signInWithSamlPopup()
-      .unwrap()
-      .then(async (userCredential) => {
-        navigateInternalPage(userCredential);
-      })
+      .then(() => navigateInternalPage())
       .catch((error) => {
         setMessage("Something went wrong.");
         console.error(error);
@@ -142,8 +112,8 @@ export function Login() {
     event.preventDefault();
     navigate("/reset_password", {
       state: {
-        from: location.state?.from ?? "/",
-        search: location.state?.search ?? "",
+        from: redirectedFrom.from ?? "/",
+        search: redirectedFrom.search ?? "",
       },
     });
   };
@@ -151,8 +121,8 @@ export function Login() {
     event.preventDefault();
     navigate("/sign_up", {
       state: {
-        from: location.state?.from ?? "/",
-        search: location.state?.search ?? "",
+        from: redirectedFrom.from ?? "/",
+        search: redirectedFrom.search ?? "",
       },
     });
   };
@@ -212,7 +182,7 @@ export function Login() {
         </Button>
       </Box>
       {/* show saml login button if samlProviderId is set as env */}
-      {Firebase.getSamlProvider() != null && (
+      {Firebase.getSamlProvider() != null && ( // FIXME
         <>
           <Divider />
           <Button
