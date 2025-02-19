@@ -16,8 +16,19 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file:
-      - ./.env
+    environment:
+      WEBUI_URL: ${WEBUI_URL}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_SCHEMA: postgres
+      SYSTEM_EMAIL: ${SYSTEM_EMAIL}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      AUTH_SERVICE: FIREBASE
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY}
+      FIREBASE_CRED: /key/firebase_credentials.json
+      FIREBASE_AUTH_EMULATOR_HOST: firebase:9099 # use firebase auth emulator
     labels:
       - traefik.http.routers.api.entrypoints=http
       - traefik.http.routers.api.priority=10
@@ -29,6 +40,7 @@ services:
     restart: always
     volumes:
       - ./api/app:/app:ro
+      - ./api/app/alembic:/app/alembic:rw # for 'alembic revision --autogenerate'
       - ./key:/key:ro
   db:
     image: postgres:14
@@ -68,11 +80,9 @@ services:
       - ./traefik:/etc/traefik
       - /var/run/docker.sock:/var/run/docker.sock
   web:
-    image: nginx:stable
-    command:
-      - /usr/sbin/nginx
-      - -g
-      - daemon off;
+    build:
+      context: ./web
+      dockerfile: ../web.dockerfile
     labels:
       - traefik.http.routers.web.entrypoints=http
       - traefik.http.routers.web.priority=1
@@ -80,4 +90,14 @@ services:
     restart: always
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./web/build:/usr/share/nginx/html
+  firebase:
+    build: ./firebase
+    ports:
+      - 4000:4000 # Emulator Suite UI
+      - 9099:9099 # Auth
+    volumes:
+      - ./firebase:/opt/workspace
+    working_dir: /opt/workspace
+    command: "firebase emulators:start --import=./data --export-on-exit"
+    tty: true
+    restart: always

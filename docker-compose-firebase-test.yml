@@ -18,14 +18,19 @@ services:
         condition: service_healthy
       testfirebase:
         condition: service_healthy
-    env_file:
-      - ./.env
     environment:
-      - FIREBASE_AUTH_EMULATOR_HOST=testfirebase:9099
-      - DB_HOST=${TESTDB_HOST} # override env_file
-      - SENDGRID_API_KEY=fake_api_key_for_sendgrid_test
-      - SYSTEM_EMAIL=ic-metemcyber@example.com
-      - AUTH_SERVICE=FIREBASE
+      WEBUI_URL: ${WEBUI_URL}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: testdb
+      DB_PORT: 5432
+      DB_SCHEMA: postgres
+      SYSTEM_EMAIL: ic-metemcyber@example.com
+      SENDGRID_API_KEY: fake_api_key_for_sendgrid_test
+      AUTH_SERVICE: FIREBASE
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY}
+      FIREBASE_CRED: /key/firebase_credentials.json
+      FIREBASE_AUTH_EMULATOR_HOST: testfirebase:9099
     networks:
       - test-network
     volumes:
