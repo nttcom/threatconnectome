@@ -14,8 +14,8 @@ vi.mock("notistack", () => ({
 vi.mock("../../../services/tcApi", async (importOriginal) => {
   const actual = await importOriginal();
   return {
-    ...actual, // 既存のエクスポートを維持
-    useUploadSBOMFileMutation: vi.fn(), // ここをモック
+    ...actual,
+    useUploadSBOMFileMutation: vi.fn(),
   };
 });
 
@@ -35,7 +35,7 @@ describe("SBOM Upload Flow", () => {
     useSnackbar.mockReturnValue({ enqueueSnackbar });
 
     mockUpload = vi.fn(() => ({
-      unwrap: vi.fn(() => Promise.resolve()), // unwrap() が Promise を返すように設定
+      unwrap: vi.fn(() => Promise.resolve()),
     }));
 
     useUploadSBOMFileMutation.mockReturnValue([mockUpload]);
@@ -91,7 +91,7 @@ describe("SBOM Upload Flow", () => {
 
   it("正常終了時の動作", async () => {
     const successMockUpload = vi.fn(() => ({
-      unwrap: vi.fn(() => Promise.resolve({})), // 成功時のレスポンス
+      unwrap: vi.fn(() => Promise.resolve({})),
     }));
     useUploadSBOMFileMutation.mockReturnValue([successMockUpload]);
     renderSBOMDropAreaPage();
@@ -120,7 +120,7 @@ describe("SBOM Upload Flow", () => {
 
   it("異常終了時の動作", async () => {
     const errorMockUpload = vi.fn(() => ({
-      unwrap: vi.fn(() => Promise.reject(new Error("Upload failed"))), // 失敗を再現
+      unwrap: vi.fn(() => Promise.reject(new Error("Upload failed"))),
     }));
     useUploadSBOMFileMutation.mockReturnValue([errorMockUpload]);
     renderSBOMDropAreaPage();
