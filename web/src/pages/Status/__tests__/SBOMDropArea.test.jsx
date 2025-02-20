@@ -57,7 +57,7 @@ describe("SBOM Upload Flow", () => {
 
     expect(screen.getByText("Upload SBOM File")).toBeInTheDocument();
 
-    const input = screen.getByRole("textbox", { name: /service name/i });
+    const input = screen.getByRole("textbox", { name: "Service name" });
     await ue.type(input, "test-service");
 
     const uploadButton = screen.getByText("Upload");
@@ -78,7 +78,7 @@ describe("SBOM Upload Flow", () => {
       },
     });
 
-    const input = screen.getByRole("textbox", { name: /service name/i });
+    const input = screen.getByRole("textbox", { name: "Service name" });
     await ue.type(input, "test-service");
     await ue.click(screen.getByText("Upload"));
 
@@ -86,7 +86,7 @@ describe("SBOM Upload Flow", () => {
     expect(enqueueSnackbar).toHaveBeenCalledWith("Uploading SBOM file: sbom.json", {
       variant: "info",
     });
-    expect(await screen.findByText(/Uploading SBOM file/)).toBeInTheDocument();
+    expect(await screen.findByText("Uploading SBOM file")).toBeInTheDocument();
   });
 
   it("正常終了時の動作", async () => {
@@ -107,7 +107,7 @@ describe("SBOM Upload Flow", () => {
       },
     });
 
-    const input = screen.getByRole("textbox", { name: /service name/i });
+    const input = screen.getByRole("textbox", { name: "Service name" });
     await ue.type(input, "test-service");
     await ue.click(screen.getByText("Upload"));
 
@@ -136,7 +136,7 @@ describe("SBOM Upload Flow", () => {
       },
     });
 
-    const input = screen.getByRole("textbox", { name: /service name/i });
+    const input = screen.getByRole("textbox", { name: "Service name" });
     await ue.type(input, "test-service");
     await ue.click(screen.getByText("Upload"));
 
