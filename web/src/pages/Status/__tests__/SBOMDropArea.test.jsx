@@ -31,9 +31,6 @@ describe("SBOM Upload Flow", () => {
   let enqueueSnackbar, mockUpload;
 
   beforeEach(() => {
-    enqueueSnackbar = vi.fn();
-    useSnackbar.mockReturnValue({ enqueueSnackbar });
-
     mockUpload = vi.fn(() => ({
       unwrap: vi.fn(() => Promise.resolve()),
     }));
