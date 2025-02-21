@@ -182,7 +182,8 @@ export function Login() {
         </Button>
       </Box>
       {/* show saml login button if samlProviderId is set as env */}
-      {Firebase.getSamlProvider() != null && ( // FIXME
+      {
+        // FIXME
         <>
           <Divider />
           <Button
@@ -194,7 +195,7 @@ export function Login() {
             Log In with SAML
           </Button>
         </>
-      )}
+      }
       <Divider />
       <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
         <Typography mr={1}>No metemcyber account?</Typography>
