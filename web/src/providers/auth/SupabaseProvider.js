@@ -68,8 +68,20 @@ export class SupabaseProvider extends AuthProvider {
   }
 
   async signInWithSamlPopup() {
-    // TODO
-    throw new Error("Not implemented");
+    return await supabase.auth
+      .signInWithOAuth({
+        provider: "keycloak",
+        options: { scopes: "openid" },
+      })
+      .then((result) => {
+        if (!result.error) {
+          return new AuthData(result);
+        }
+        throw new SupabaseAuthError(result.error);
+      })
+      .catch((error) => {
+        throw error;
+      });
   }
 
   async sendPasswordResetEmail({ email, redirectTo }) {
