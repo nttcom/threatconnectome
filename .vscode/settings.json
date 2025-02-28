@@ -18,7 +18,7 @@
     "python.languageServer": "Pylance",
 
     "black-formatter.args": ["--config", "api/pyproject.toml"],
-    "ruff.lint.args": ["--config", "api/pyproject.toml"],
+    "ruff.configuration": "api/pyproject.toml",
     //"ruff.fixAll": true,
     "files.insertFinalNewline": true,
     "editor.formatOnSave": true
