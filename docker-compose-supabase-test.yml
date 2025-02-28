@@ -21,6 +21,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: testdb
+      TESTDB_HOST: testdb
       DB_PORT: 5432
       DB_SCHEMA: postgres
       SENDGRID_API_KEY: fake_api_key_for_sendgrid_test
@@ -137,7 +138,7 @@ services:
       API_EXTERNAL_URL: http://localhost:8000
 
       GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${SUPABASE_DB_PASSWORD}@supabase-db:4431/postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${SUPABASE_DB_PASSWORD}@supabase-db:5432/postgres
 
       GOTRUE_SITE_URL: http://localhost:3000
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
@@ -204,7 +205,7 @@ services:
     environment:
       PG_META_PORT: 8080
       PG_META_DB_HOST: supabase-db
-      PG_META_DB_PORT: 4431
+      PG_META_DB_PORT: 5432
       PG_META_DB_NAME: postgres
       PG_META_DB_USER: supabase_admin
       PG_META_DB_PASSWORD: ${SUPABASE_DB_PASSWORD}
@@ -238,8 +239,8 @@ services:
       retries: 10
     environment:
       POSTGRES_HOST: /var/run/postgresql
-      PGPORT: 4431
-      POSTGRES_PORT: 4431
+      PGPORT: 5432
+      POSTGRES_PORT: 5432
       PGPASSWORD: ${SUPABASE_DB_PASSWORD}
       POSTGRES_PASSWORD: ${SUPABASE_DB_PASSWORD}
       PGDATABASE: postgres
@@ -252,7 +253,7 @@ services:
         "-c",
         "config_file=/etc/postgresql/postgresql.conf",
         "-c",
-        "log_min_messages=fatal", # prevents Realtime polling queries from appearing in logs
+        "log_min_messages=fatal" # prevents Realtime polling queries from appearing in logs
       ]
     networks:
       - test-network
