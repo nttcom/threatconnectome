@@ -47,6 +47,7 @@ jobs:
           VITE_FIREBASE_AUTH_EMULATOR_URL: "http://testfirebase:9099"
           VITE_METEMCYBER_AUTH_URL: "http://testfirebase:9099"
           VITE_PUBLIC_URL: ""
+          VITE_AUTH_SERVICE: "firebase"
       - name: docker compose build
         run: docker compose -f docker-compose-e2e.yml build
       - name: migrate db

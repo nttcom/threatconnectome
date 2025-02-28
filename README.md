@@ -108,13 +108,11 @@ vi .env  # change default values
     - Authentication credential file to sign into api
   - `TESTDB_HOST`
     - Hostname of testdb
-  - `FLASHSENSE_API_URL`
-    - To specify the flashsense API URL
   - `SYSTEM_EMAIL`
     - Email address recorded when the system executes an event
     - From email address for sending email with sendgrid
   - `SENDGRID_API_KEY`
-    -Api key to send email with sendgrid
+    - Api key to send email with sendgrid
 
 :warning: **Files that need to be placed**
 
