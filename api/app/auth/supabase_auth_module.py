@@ -1,8 +1,7 @@
 import os
 
-from supabase import create_client
-
 from app.auth.auth_module import AuthModule
+from supabase import create_client
 
 from ..schemas import Token
 
@@ -34,7 +33,13 @@ class SupabaseAuthModule(AuthModule):
         )
 
     def refresh_access_token(self, refresh_token) -> Token:
-        return Token(access_token="", token_type="bearer", refresh_token="")
+        session_data = self.supabase.auth.get_session()
+        session = session_data.model_dump()
+        return Token(
+            access_token=session.get("access_token"),
+            token_type="bearer",
+            refresh_token=session.get("refresh_token"),
+        )
 
     def check_and_get_user_info(self, token):
         super().check_token(token)
