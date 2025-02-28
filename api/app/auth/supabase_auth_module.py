@@ -1,7 +1,8 @@
 import os
 
-from app.auth.auth_module import AuthModule
 from supabase import create_client
+
+from app.auth.auth_module import AuthModule
 
 from ..schemas import Token
 
