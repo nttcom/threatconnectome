@@ -75,11 +75,11 @@ Teams registerd in demo environment as following:
 git clone https://github.com/nttcom/threatconnectome.git
 ```
 
-:house:　**Instration for on-premises environment**
-
-Threatconnectome can run in an on-premises environment using Supabase.
-To set up an environment using Supabase, you need to configure environment variables and use a docker-compose-supabase-local.yml
-Therefore, in [Set up environment variables](#set-up-environment-variables), [Set up production environment variables](#set-up-production-environment-variables), and [Run Docker Compose](#run-docker-compose), follow the items marked with :house: instead of the usual setup.
+> :house:　**Instration for on-premises environment**
+>
+> Threatconnectome can run in an on-premises environment using Supabase.
+> To set up an environment using Supabase, you need to configure environment variables and use a docker-compose-supabase-local.yml
+> Therefore, in [Set up environment variables](#set-up-environment-variables), [Set up production environment variables](#set-up-production-environment-variables), and [Run Docker Compose](#run-docker-compose), follow the items marked with :house: instead of the usual setup.
 
 ### Set up environment variables
 
@@ -127,9 +127,9 @@ vi .env  # change default values
     - Refer to [this document](https://firebase.google.com/docs/admin/setup?hl=en#initialize_the_sdk_in_non-google_environments) to download the JSON file that service account private key.
 
 > :house:　**Set up environment variables for on-premises environment**
-
+>
 > Instead of .env.firebase.example, copy .env.supabase.example, rename it to .env, and edit its contents.
-
+>
 > ```bash
 > cp .env.supabase.example .env
 > vi .env  # change default values
@@ -171,7 +171,7 @@ To change this so that builds also link to the development environment API, the 
 
 > :house: **Set up production environment variables for on-premises environment**
 > Instead of .env.produciton.example, copy .env.supabase.example, rename it to .env.production.local, and edit its contents.
-
+>
 > ```bash
 > cd ./web
 > cp .env.supabase.example .env.production.local
@@ -225,18 +225,18 @@ sudo docker compose -f docker-compose-local.yml exec api sh -c "cd app && alembi
 ```
 
 > :house: **Run Docker Compose**
-
+>
 > In an on-premises environment, use docker-compose-supabase-local.yml instead of docker-compose-local.yml.
-
+>
 > - For local development environmrnt:
-
+>
 > ```bash
 > cd ..
 > sudo docker compose -f docker-compose-supabase-local.yml up -d --build  # to start containers
 > ```
-
+>
 > And set up database if it is the first time to start.
-
+>
 > ```bash
 > sudo docker compose -f docker-compose-supabase-local.yml exec api sh -c "cd app && alembic upgrade head"
 > ```
@@ -279,9 +279,9 @@ sudo docker compose -f docker-compose-local.yml down
 
 > :house: **Stop of Threatconnectome**
 > Stop Docker Compose from running in the on-premises environment.
-
+>
 > - For local development environmrnt:
-
+>
 > ```bash
 > sudo docker compose -f docker-compose-supabase-local.yml down
 > ```
