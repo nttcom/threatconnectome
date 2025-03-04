@@ -170,6 +170,7 @@ To change this so that builds also link to the development environment API, the 
     - Set it to `http://localhost:<your_port_for_firebase>`
 
 > :house: **Set up production environment variables for on-premises environment**
+>
 > Instead of .env.produciton.example, copy .env.supabase.example, rename it to .env.production.local, and edit its contents.
 >
 > ```bash
@@ -224,7 +225,7 @@ And set up database if it is the first time to start.
 sudo docker compose -f docker-compose-local.yml exec api sh -c "cd app && alembic upgrade head"
 ```
 
-> :house: **Run Docker Compose**
+> :house: **Run Docker Compose for on-premises environment**
 >
 > In an on-premises environment, use docker-compose-supabase-local.yml instead of docker-compose-local.yml.
 >
@@ -277,7 +278,7 @@ Stop Docker Compose from running.
 sudo docker compose -f docker-compose-local.yml down
 ```
 
-> :house: **Stop of Threatconnectome**
+> :house: **Stop of Threatconnectome for on-premises environment**
 > Stop Docker Compose from running in the on-premises environment.
 >
 > - For local development environmrnt:
