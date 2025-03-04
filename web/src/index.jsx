@@ -24,7 +24,7 @@ import {
   TopicDetail,
   TopicManagement,
   PTeam,
-  VulnerabilityPage,
+  Vulnerability,
 } from "./pages";
 import { AuthProvider } from "./providers/auth/AuthContext";
 import store from "./store";
@@ -78,7 +78,7 @@ root.render(
                     <Route path=":topicId" element={<TopicDetail />} />
                   </Route>
                   <Route path="vulnerability">
-                    <Route index element={<VulnerabilityPage />} />
+                    <Route index element={<Vulnerability />} />
                   </Route>
                 </Route>
               </Routes>
