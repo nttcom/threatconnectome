@@ -48,7 +48,7 @@ class Firebase {
   }
 
   async getBearerToken() {
-    return await this.getAuth()?.currentUser?.getIdToken(true);
+    return await this.getAuth()?.currentUser?.getIdToken();
   }
 }
 
