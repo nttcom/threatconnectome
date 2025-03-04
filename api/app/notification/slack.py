@@ -8,10 +8,12 @@ from slack_sdk.webhook import WebhookClient
 
 from app import models
 
-WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
-WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
+NOTIFICATION_WEBUI_URL = os.getenv("NOTIFICATION_WEBUI_URL", "http://localhost")
+NOTIFICATION_WEBUI_URL += (
+    "" if NOTIFICATION_WEBUI_URL.endswith("/") else "/"
+)  # for the case baseurl has subpath
 # CAUTION: do *NOT* urljoin subpath which starts with "/"
-TAG_URL = urljoin(WEBUI_URL, "tags/")
+TAG_URL = urljoin(NOTIFICATION_WEBUI_URL, "tags/")
 SSVC_PRIORITY_LABEL = {
     models.SSVCDeployerPriorityEnum.IMMEDIATE: ":red_circle: Immediate",
     models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: ":large_orange_circle: Out-of-cycle",
@@ -101,7 +103,7 @@ def create_slack_blocks_to_notify_sbom_upload_succeeded(
     )
     params = {"pteamId": pteam_id, "serviceId": service_id}
     encoded_params = urlencode(params)
-    service_url = urljoin(WEBUI_URL, f"?{encoded_params}")
+    service_url = urljoin(NOTIFICATION_WEBUI_URL, f"?{encoded_params}")
     blocks.extend(
         [
             {
