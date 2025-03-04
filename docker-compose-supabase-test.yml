@@ -17,7 +17,7 @@ services:
       testdb:
         condition: service_healthy
     environment:
-      WEBUI_URL: ${WEBUI_URL}
+      NOTIFICATION_WEBUI_URL: http://localhost
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: testdb
