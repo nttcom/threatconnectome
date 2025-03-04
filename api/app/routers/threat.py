@@ -7,6 +7,7 @@ from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
 from app.database import get_db
 from app.routers.validators.account_validator import check_pteam_membership
+from app.utility.unicode_tool import count_full_width_and_half_width_characters
 
 router = APIRouter(prefix="/threats", tags=["threats"])
 
@@ -62,19 +63,39 @@ def update_threat_safety_impact(
     """
     Update threat_safety_impact.
     """
+    max_reason_safety_impact_length_in_half = 500
 
     if not (threat := persistence.get_threat_by_id(db, threat_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
 
     pteam = threat.dependency.service.pteam
 
-    if check_pteam_membership(pteam, current_user):
-        update_data = requests.model_dump(exclude_unset=True)
-        if "threat_safety_impact" in update_data.keys():
-            threat.threat_safety_impact = requests.threat_safety_impact
-            db.commit()
-
-        return threat
-
-    else:
+    if not check_pteam_membership(pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
+
+    update_data = requests.model_dump(exclude_unset=True)
+    if "threat_safety_impact" in update_data.keys():
+        threat.threat_safety_impact = requests.threat_safety_impact
+    if "reason_safety_impact" in update_data.keys():
+        if requests.reason_safety_impact is None:
+            threat.reason_safety_impact = None
+        elif description := requests.reason_safety_impact.strip():
+            if (
+                count_full_width_and_half_width_characters(description)
+                > max_reason_safety_impact_length_in_half
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Too long reason_safety_impact. "
+                        f"Max length is {max_reason_safety_impact_length_in_half} in half-width "
+                        f"or {int(max_reason_safety_impact_length_in_half / 2)} in full-width"
+                    ),
+                )
+            threat.reason_safety_impact = description
+        else:
+            threat.reason_safety_impact = None
+
+    db.commit()
+
+    return threat

@@ -531,18 +531,26 @@ def test_create_threat(testdb: Session):
 
 
 @pytest.mark.parametrize(
-    "threat_safety_impact",
+    "threat_safety_impact, reason_safety_impact",
     [
-        (models.SafetyImpactEnum.NEGLIGIBLE),
-        (models.SafetyImpactEnum.MARGINAL),
-        (models.SafetyImpactEnum.CRITICAL),
-        (models.SafetyImpactEnum.CATASTROPHIC),
+        (models.SafetyImpactEnum.NEGLIGIBLE, "test reason1"),
+        (models.SafetyImpactEnum.MARGINAL, "test reason2"),
+        (models.SafetyImpactEnum.CRITICAL, None),
+        (
+            models.SafetyImpactEnum.CATASTROPHIC,
+            "",
+        ),
     ],
 )
 def test_update_threat(
-    threat1: schemas.ThreatResponse, testdb: Session, threat_safety_impact: models.SafetyImpactEnum
+    threat1: schemas.ThreatResponse,
+    testdb: Session,
+    threat_safety_impact: models.SafetyImpactEnum,
+    reason_safety_impact: str,
 ):
-    request = schemas.ThreatUpdateRequest(threat_safety_impact=threat_safety_impact).model_dump()
+    request = schemas.ThreatUpdateRequest(
+        threat_safety_impact=threat_safety_impact, reason_safety_impact=reason_safety_impact
+    ).model_dump()
     user1_access_token = _get_access_token(USER1)
     _headers_user1 = {
         "Authorization": f"Bearer {user1_access_token}",
@@ -565,16 +573,21 @@ def test_update_threat(
         threat_safety_impact.value if threat_safety_impact is not None else None
     )
     assert data["threat_safety_impact"] == threat_safety_impact_value
+    expected_reason_safety_impact = None if reason_safety_impact == "" else reason_safety_impact
+    assert data["reason_safety_impact"] == expected_reason_safety_impact
 
     db_data = persistence.get_threat_by_id(testdb, threat1.threat_id)
     assert db_data
     assert str(db_data.threat_id) == str(threat1.threat_id)
     assert str(db_data.dependency_id) == str(threat1.dependency_id)
     assert str(db_data.topic_id) == str(threat1.topic_id)
+
     db_data_threat_safety_impact_value = (
         db_data.threat_safety_impact.value if db_data.threat_safety_impact is not None else None
     )
     assert db_data_threat_safety_impact_value == threat_safety_impact_value
+
+    assert db_data.reason_safety_impact == expected_reason_safety_impact
 
 
 def test_update_threat_should_set_None_when_threat_safety_impact_is_None(
@@ -616,6 +629,79 @@ def test_update_threat_should_not_set_when_threat_safety_impact_is_not_specifye(
 
     assert response.status_code == 200
     assert response.json()["threat_safety_impact"] == models.SafetyImpactEnum.CRITICAL.value
+
+
+def test_update_threat_should_set_None_when_reason_safety_impact_is_None(
+    threat1: schemas.ThreatResponse,
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    advance_request = {"reason_safety_impact": "advance reason"}
+    response = client.put(update_url, headers=_headers_user1, json=advance_request)
+
+    none_request = {"reason_safety_impact": None}
+    response = client.put(update_url, headers=_headers_user1, json=none_request)
+
+    assert response.status_code == 200
+    assert response.json()["threat_safety_impact"] is None
+
+
+def test_update_threat_should_not_set_when_reason_safety_impact_is_not_specifye(
+    threat1: schemas.ThreatResponse,
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    test_reason = "test reason"
+    advance_request = {"reason_safety_impact": test_reason}
+    response = client.put(update_url, headers=_headers_user1, json=advance_request)
+
+    empty_request: dict = {}
+    response = client.put(update_url, headers=_headers_user1, json=empty_request)
+
+    assert response.status_code == 200
+    assert response.json()["reason_safety_impact"] == test_reason
+
+
+@pytest.mark.parametrize(
+    "reason, is_error",
+    [
+        ("123456789_" * 50, False),
+        ("123456789_" * 50 + "x", True),
+        ("１２３４５６７８９＿" * 25, False),
+        ("１２３４５６７８９＿" * 25 + "ｘ", True),
+    ],
+)
+def test_length_of_reason_safety_impact(threat1: schemas.ThreatResponse, reason, is_error):
+
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    request = {"reason_safety_impact": reason}
+    response = client.put(update_url, headers=_headers_user1, json=request)
+
+    if is_error:
+        assert response.status_code == 400
+        assert (
+            response.json()["detail"]
+            == "Too long reason_safety_impact. Max length is 500 in half-width or 250 in full-width"
+        )
+    else:
+        assert response.status_code == 200
+        assert response.json()["reason_safety_impact"] == reason
 
 
 @pytest.mark.parametrize(

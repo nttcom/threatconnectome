@@ -313,6 +313,7 @@ class Threat(Base):
 
     threat_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     threat_safety_impact: Mapped[SafetyImpactEnum | None] = mapped_column(nullable=True)
+    reason_safety_impact: Mapped[str | None]
     dependency_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
     )
