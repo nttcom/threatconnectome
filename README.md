@@ -216,13 +216,13 @@ Start Docker Compose and check that the system is operating normally.
 
 ```bash
 cd ..
-sudo docker compose -f docker-compose-local.yml up -d --build  # to start containers
+sudo docker compose -f docker-compose-firebase-local.yml up -d --build  # to start containers
 ```
 
 And set up database if it is the first time to start.
 
 ```bash
-sudo docker compose -f docker-compose-local.yml exec api sh -c "cd app && alembic upgrade head"
+sudo docker compose -f docker-compose-firebase-local.yml exec api sh -c "cd app && alembic upgrade head"
 ```
 
 > :house: **Run Docker Compose for on-premises environment**
@@ -275,7 +275,7 @@ Stop Docker Compose from running.
 > For local development environmrnt:
 
 ```bash
-sudo docker compose -f docker-compose-local.yml down
+sudo docker compose -f docker-compose-firebase-local.yml down
 ```
 
 > :house: **Stop of Threatconnectome for on-premises environment**
