@@ -126,14 +126,14 @@ vi .env  # change default values
   - Place the Authentication credential file the path of `FIREBASE_CRED`
     - Refer to [this document](https://firebase.google.com/docs/admin/setup?hl=en#initialize_the_sdk_in_non-google_environments) to download the JSON file that service account private key.
 
-:house:　**Set up environment variables for on-premises environment**
+> :house:　**Set up environment variables for on-premises environment**
 
-Instead of .env.firebase.example, copy .env.supabase.example, rename it to .env, and edit its contents.
+> Instead of .env.firebase.example, copy .env.supabase.example, rename it to .env, and edit its contents.
 
-```bash
-cp .env.supabase.example .env
-vi .env  # change default values
-```
+> ```bash
+> cp .env.supabase.example .env
+> vi .env  # change default values
+> ```
 
 ### Set up production environment variables
 
@@ -169,8 +169,8 @@ To change this so that builds also link to the development environment API, the 
   - `VITE_FIREBASE_AUTH_EMULATOR_URL`
     - Set it to `http://localhost:<your_port_for_firebase>`
 
-:house: **Set up production environment variables for on-premises environment**
-Instead of .env.produciton.example, copy .env.supabase.example, rename it to .env.production.local, and edit its contents.
+> :house: **Set up production environment variables for on-premises environment**
+> Instead of .env.produciton.example, copy .env.supabase.example, rename it to .env.production.local, and edit its contents.
 
 > ```bash
 > cd ./web
@@ -224,22 +224,22 @@ And set up database if it is the first time to start.
 sudo docker compose -f docker-compose-local.yml exec api sh -c "cd app && alembic upgrade head"
 ```
 
-:house: **Run Docker Compose**
+> :house: **Run Docker Compose**
 
-In an on-premises environment, use docker-compose-supabase-local.yml instead of docker-compose-local.yml.
+> In an on-premises environment, use docker-compose-supabase-local.yml instead of docker-compose-local.yml.
 
-> For local development environmrnt:
+> - For local development environmrnt:
 
-```bash
-cd ..
-sudo docker compose -f docker-compose-supabase-local.yml up -d --build  # to start containers
-```
+> ```bash
+> cd ..
+> sudo docker compose -f docker-compose-supabase-local.yml up -d --build  # to start containers
+> ```
 
-And set up database if it is the first time to start.
+> And set up database if it is the first time to start.
 
-```bash
-sudo docker compose -f docker-compose-supabase-local.yml exec api sh -c "cd app && alembic upgrade head"
-```
+> ```bash
+> sudo docker compose -f docker-compose-supabase-local.yml exec api sh -c "cd app && alembic upgrade head"
+> ```
 
 ### Log in to Web UI
 
@@ -276,6 +276,15 @@ Stop Docker Compose from running.
 ```bash
 sudo docker compose -f docker-compose-local.yml down
 ```
+
+> :house: **Stop of Threatconnectome**
+> Stop Docker Compose from running in the on-premises environment.
+
+> - For local development environmrnt:
+
+> ```bash
+> sudo docker compose -f docker-compose-supabase-local.yml down
+> ```
 
 ## :wrench: Troubleshooting
 
