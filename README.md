@@ -75,6 +75,11 @@ Teams registerd in demo environment as following:
 git clone https://github.com/nttcom/threatconnectome.git
 ```
 
+:house:　**Instration for on-premises environment**
+
+Threatconnectome can run in an on-premises environment using Supabase.
+To set up an environment using Supabase, you need to configure environment variables and use a docker-compose-supabase-local.yml
+
 ### Set up environment variables
 
 Copy .env.firebase.example, change it to .env and edit the contents
@@ -120,6 +125,15 @@ vi .env  # change default values
   - Place the Authentication credential file the path of `FIREBASE_CRED`
     - Refer to [this document](https://firebase.google.com/docs/admin/setup?hl=en#initialize_the_sdk_in_non-google_environments) to download the JSON file that service account private key.
 
+:house:　**Set up environment variables for on-premises environment**
+
+Copy .env.supabase.example, change it to .env and edit the contents.
+
+```bash
+cp .env.supabase.example .env
+vi .env  # change default values
+```
+
 ### Set up production environment variables
 
 In the default configuration, the test server links to the development API running on `localhost` and the build links to the production API.
@@ -154,6 +168,16 @@ To change this so that builds also link to the development environment API, the 
   - `VITE_FIREBASE_AUTH_EMULATOR_URL`
     - Set it to `http://localhost:<your_port_for_firebase>`
 
+:house: **Set up production environment variables for on-premises environment**
+In the default configuration, the test server links to the development API running on `localhost` and the build links to the production API.
+To change this so that builds also link to the development environment API, the following must be done in advance.
+
+> ```bash
+> cd ./web
+> cp .env.supabase.example .env.production.local
+> vi .env.production.local  # set values
+> ```
+
 ### Database settings
 
 `docker-compose-prod.yml` is for public environment. Parts that have been commented out, are depending on whether the firebase local emulator is needed to be deplyed or not.
@@ -184,6 +208,23 @@ npm run build  # to build what is specified in package.json
 ## :sparkles: Get Started to Threatconnectome
 
 ### Run Docker Compose
+
+Start Docker Compose and check that the system is operating normally.
+
+> For local development environmrnt:
+
+```bash
+cd ..
+sudo docker compose -f docker-compose-local.yml up -d --build  # to start containers
+```
+
+And set up database if it is the first time to start.
+
+```bash
+sudo docker compose -f docker-compose-local.yml exec api sh -c "cd app && alembic upgrade head"
+```
+
+:house: **Run Docker Compose**
 
 Start Docker Compose and check that the system is operating normally.
 
