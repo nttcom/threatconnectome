@@ -101,7 +101,7 @@ services:
       retries: 3
     environment:
       STUDIO_PG_META_URL: http://meta:8080
-      POSTGRES_PASSWORD: ${SUPABASE_DB_PASSWORD}
+      POSTGRES_PASSWORD: ${SUPABASE_POSTGRES_PASSWORD}
 
       DEFAULT_ORGANIZATION_NAME: Default Organization
       DEFAULT_PROJECT_NAME: Default Project
@@ -165,7 +165,7 @@ services:
       API_EXTERNAL_URL: http://localhost:8000
 
       GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${SUPABASE_DB_PASSWORD}@supabase-db:5432/postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${SUPABASE_POSTGRES_PASSWORD}@supabase-db:5432/postgres
 
       GOTRUE_SITE_URL: http://localhost:3000
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
@@ -233,7 +233,7 @@ services:
       PG_META_DB_PORT: 5432
       PG_META_DB_NAME: postgres
       PG_META_DB_USER: supabase_admin
-      PG_META_DB_PASSWORD: ${SUPABASE_DB_PASSWORD}
+      PG_META_DB_PASSWORD: ${SUPABASE_POSTGRES_PASSWORD}
 
   supabase-db:
     container_name: supabase-db
@@ -266,8 +266,8 @@ services:
       POSTGRES_HOST: /var/run/postgresql
       PGPORT: 5432
       POSTGRES_PORT: 5432
-      PGPASSWORD: ${SUPABASE_DB_PASSWORD}
-      POSTGRES_PASSWORD: ${SUPABASE_DB_PASSWORD}
+      PGPASSWORD: ${SUPABASE_POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${SUPABASE_POSTGRES_PASSWORD}
       PGDATABASE: postgres
       POSTGRES_DB: postgres
       JWT_SECRET: ${JWT_SECRET}
