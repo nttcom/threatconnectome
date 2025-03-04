@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator, SAMLAuthProvider } from "firebase/auth";
+import { connectAuthEmulator, getAuth, SAMLAuthProvider } from "firebase/auth";
 
 class Firebase {
   constructor() {
@@ -48,7 +48,7 @@ class Firebase {
   }
 
   async getBearerToken() {
-    return await this.getAuth()?.currentUser?.getIdToken(true);
+    return await this.getAuth()?.currentUser?.getIdToken();
   }
 }
 
