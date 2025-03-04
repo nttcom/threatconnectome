@@ -79,6 +79,7 @@ git clone https://github.com/nttcom/threatconnectome.git
 
 Threatconnectome can run in an on-premises environment using Supabase.
 To set up an environment using Supabase, you need to configure environment variables and use a docker-compose-supabase-local.yml
+Therefore, in [Set up environment variables](#set-up-environment-variables), [Set up production environment variables](#set-up-production-environment-variables), and [Run Docker Compose](#run-docker-compose), follow the items marked with :house: instead of the usual setup.
 
 ### Set up environment variables
 
@@ -127,7 +128,7 @@ vi .env  # change default values
 
 :house:　**Set up environment variables for on-premises environment**
 
-Copy .env.supabase.example, change it to .env and edit the contents.
+Instead of .env.firebase.example, copy .env.supabase.example, rename it to .env, and edit its contents.
 
 ```bash
 cp .env.supabase.example .env
@@ -169,8 +170,7 @@ To change this so that builds also link to the development environment API, the 
     - Set it to `http://localhost:<your_port_for_firebase>`
 
 :house: **Set up production environment variables for on-premises environment**
-In the default configuration, the test server links to the development API running on `localhost` and the build links to the production API.
-To change this so that builds also link to the development environment API, the following must be done in advance.
+Instead of .env.produciton.example, copy .env.supabase.example, rename it to .env.production.local, and edit its contents.
 
 > ```bash
 > cd ./web
@@ -226,19 +226,19 @@ sudo docker compose -f docker-compose-local.yml exec api sh -c "cd app && alembi
 
 :house: **Run Docker Compose**
 
-Start Docker Compose and check that the system is operating normally.
+In an on-premises environment, use docker-compose-supabase-local.yml instead of docker-compose-local.yml.
 
 > For local development environmrnt:
 
 ```bash
 cd ..
-sudo docker compose -f docker-compose-local.yml up -d --build  # to start containers
+sudo docker compose -f docker-compose-supabase-local.yml up -d --build  # to start containers
 ```
 
 And set up database if it is the first time to start.
 
 ```bash
-sudo docker compose -f docker-compose-local.yml exec api sh -c "cd app && alembic upgrade head"
+sudo docker compose -f docker-compose-supabase-local.yml exec api sh -c "cd app && alembic upgrade head"
 ```
 
 ### Log in to Web UI
