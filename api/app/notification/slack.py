@@ -101,7 +101,7 @@ def create_slack_blocks_to_notify_sbom_upload_succeeded(
     )
     params = {"pteamId": pteam_id, "serviceId": service_id}
     encoded_params = urlencode(params)
-    service_url = urljoin(NOTIFICATION_WEBUI_URL, f"?{encoded_params}")
+    service_url = urljoin(WEBUI_URL, f"?{encoded_params}")
     blocks.extend(
         [
             {
