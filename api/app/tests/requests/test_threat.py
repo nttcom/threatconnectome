@@ -673,15 +673,13 @@ def test_update_threat_should_not_set_when_reason_safety_impact_is_not_specifye(
 
 
 @pytest.mark.parametrize(
-    "reason, is_error",
+    "reason",
     [
-        ("123456789_" * 50, False),
-        ("123456789_" * 50 + "x", True),
-        ("１２３４５６７８９＿" * 25, False),
-        ("１２３４５６７８９＿" * 25 + "ｘ", True),
+        ("123456789_" * 50),
+        ("１２３４５６７８９＿" * 25),
     ],
 )
-def test_length_of_reason_safety_impact(threat1: schemas.ThreatResponse, reason, is_error):
+def test_max_length_of_reason_safety_impact(threat1: schemas.ThreatResponse, reason):
 
     update_url = "/threats/" + str(threat1.threat_id)
     user1_access_token = _get_access_token(USER1)
@@ -693,15 +691,35 @@ def test_length_of_reason_safety_impact(threat1: schemas.ThreatResponse, reason,
     request = {"reason_safety_impact": reason}
     response = client.put(update_url, headers=_headers_user1, json=request)
 
-    if is_error:
-        assert response.status_code == 400
-        assert (
-            response.json()["detail"]
-            == "Too long reason_safety_impact. Max length is 500 in half-width or 250 in full-width"
-        )
-    else:
-        assert response.status_code == 200
-        assert response.json()["reason_safety_impact"] == reason
+    assert response.status_code == 200
+    assert response.json()["reason_safety_impact"] == reason
+
+
+@pytest.mark.parametrize(
+    "reason",
+    [
+        ("123456789_" * 50 + "x"),
+        ("１２３４５６７８９＿" * 25 + "ｘ"),
+    ],
+)
+def test_it_shoud_return400_when_too_long_reason_safety_impact(
+    threat1: schemas.ThreatResponse, reason
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    request = {"reason_safety_impact": reason}
+    response = client.put(update_url, headers=_headers_user1, json=request)
+
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "Too long reason_safety_impact. Max length is 500 in half-width or 250 in full-width"
+    )
 
 
 @pytest.mark.parametrize(
