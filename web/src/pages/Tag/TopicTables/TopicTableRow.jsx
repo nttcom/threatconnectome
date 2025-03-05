@@ -7,7 +7,7 @@ import React, { useState } from "react";
 
 import { TicketTable } from "./TicketTable.jsx";
 import { TicketTableRow } from "./TicketTableRow.jsx";
-import { TopicDetailsDrawer } from "./TopicDetailsDrawer";
+import { TopicDetailsDrawer } from "./TopicDetailsDrawer.jsx";
 
 export function TopicTableRow(props) {
   const { row } = props;

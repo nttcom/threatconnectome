@@ -12,9 +12,9 @@ import {
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { WarningTooltip } from "../pages/Tag/WarningTooltip.jsx";
+import { WarningTooltip } from "../WarningTooltip.jsx";
 
-import { SSVCPriorityStatusChip } from "./SSVCPriorityStatusChip.jsx";
+import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip.jsx";
 import { SelectSafetyImpactForm } from "./SelectSafetyImpactForm.jsx";
 
 export function TicketTableRow(props) {

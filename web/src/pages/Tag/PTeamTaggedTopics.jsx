@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { TopicTable } from "../../components/TopicTable";
+import { TopicTable } from "./TopicTables/TopicTable";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamMembersQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
