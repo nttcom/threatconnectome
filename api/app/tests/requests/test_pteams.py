@@ -3102,6 +3102,7 @@ class TestGetTickets:
                     if db_threat1.threat_safety_impact
                     else db_threat1.threat_safety_impact
                 ),
+                "reason_safety_impact": None,
             },
             "ticket_status": {
                 "status_id": db_status1.status_id,  # do not check
@@ -3170,6 +3171,7 @@ class TestGetTickets:
                     if db_threat1.threat_safety_impact
                     else db_threat1.threat_safety_impact
                 ),
+                "reason_safety_impact": None,
             },
             "ticket_status": {
                 "status_id": str(db_ticket_status1.status_id),
