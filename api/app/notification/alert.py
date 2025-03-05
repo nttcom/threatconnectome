@@ -33,13 +33,13 @@ def _ready_alert_by_email() -> bool:
 
 def _pteam_tag_page_link(pteam_id: UUID | str, tag_id: UUID | str, service_id: UUID | str) -> str:
     return urljoin(
-        os.getenv("NOTIFICATION_WEBUI_URL", "http://localhost"),
+        os.getenv("WEBUI_URL", "http://localhost"),
         f"/tags/{str(tag_id)}?pteamId={str(pteam_id)}&serviceId={str(service_id)}",
     )
 
 
 def _pteam_service_tab_link(pteam_id: UUID | str, service_id: UUID | str) -> str:
-    baseurl = os.getenv("NOTIFICATION_WEBUI_URL", "http://localhost")
+    baseurl = os.getenv("WEBUI_URL", "http://localhost")
     baseurl += "" if baseurl.endswith("/") else "/"
     params = {"pteamId": str(pteam_id), "serviceId": str(service_id)}
     encoded_params = urlencode(params)

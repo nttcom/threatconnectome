@@ -8,12 +8,10 @@ from slack_sdk.webhook import WebhookClient
 
 from app import models
 
-NOTIFICATION_WEBUI_URL = os.getenv("NOTIFICATION_WEBUI_URL", "http://localhost")
-NOTIFICATION_WEBUI_URL += (
-    "" if NOTIFICATION_WEBUI_URL.endswith("/") else "/"
-)  # for the case baseurl has subpath
+WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
+WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
 # CAUTION: do *NOT* urljoin subpath which starts with "/"
-TAG_URL = urljoin(NOTIFICATION_WEBUI_URL, "tags/")
+TAG_URL = urljoin(WEBUI_URL, "tags/")
 SSVC_PRIORITY_LABEL = {
     models.SSVCDeployerPriorityEnum.IMMEDIATE: ":red_circle: Immediate",
     models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: ":large_orange_circle: Out-of-cycle",

@@ -19,7 +19,7 @@ services:
       testfirebase:
         condition: service_healthy
     environment:
-      NOTIFICATION_WEBUI_URL: http://localhost
+      WEBUI_URL: http://localhost
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: testdb
