@@ -79,9 +79,9 @@ def update_threat_safety_impact(
     if "reason_safety_impact" in update_data.keys():
         if requests.reason_safety_impact is None:
             threat.reason_safety_impact = None
-        elif description := requests.reason_safety_impact.strip():
+        elif reason_safety_impact := requests.reason_safety_impact.strip():
             if (
-                count_full_width_and_half_width_characters(description)
+                count_full_width_and_half_width_characters(reason_safety_impact)
                 > max_reason_safety_impact_length_in_half
             ):
                 raise HTTPException(
@@ -92,7 +92,7 @@ def update_threat_safety_impact(
                         f"or {int(max_reason_safety_impact_length_in_half / 2)} in full-width"
                     ),
                 )
-            threat.reason_safety_impact = description
+            threat.reason_safety_impact = reason_safety_impact
         else:
             threat.reason_safety_impact = None
 
