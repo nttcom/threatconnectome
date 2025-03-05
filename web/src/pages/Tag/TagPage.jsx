@@ -3,7 +3,6 @@ import { grey } from "@mui/material/colors";
 import React, { useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 
-import { CodeBlock } from "../../components/CodeBlock.jsx";
 import { TabPanel } from "../../components/TabPanel";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
@@ -17,6 +16,7 @@ import { APIError } from "../../utils/APIError.js";
 import { noPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
+import { CodeBlock } from "./CodeBlock.jsx";
 import { PTeamTaggedTopics } from "./PTeamTaggedTopics.jsx";
 import { TagReferences } from "./TagReferences.jsx";
 
@@ -90,6 +90,9 @@ export function Tag() {
 
   const handleTabChange = (event, value) => setTabValue(value);
 
+  // CodeBlock is not implemented
+  const visibleCodeBlock = false;
+
   return (
     <>
       <Box alignItems="center" display="flex" flexDirection="row" mt={3} mb={2}>
@@ -118,12 +121,7 @@ export function Tag() {
           <TagReferences references={references} serviceDict={serviceDict} />
         </Box>
       </Box>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Install
-        </Typography>
-        <CodeBlock />
-      </Box>
+      <CodeBlock visible={visibleCodeBlock} />
       <Divider />
       <Box sx={{ width: "100%" }}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
