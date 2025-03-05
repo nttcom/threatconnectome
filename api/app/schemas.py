@@ -346,10 +346,12 @@ class ThreatResponse(ORMModel):
     dependency_id: UUID
     topic_id: UUID
     threat_safety_impact: SafetyImpactEnum | None = None
+    reason_safety_impact: str | None = None
 
 
 class ThreatUpdateRequest(ORMModel):
     threat_safety_impact: SafetyImpactEnum | None = None
+    reason_safety_impact: str | None = None
 
 
 class TicketStatusRequest(ORMModel):
