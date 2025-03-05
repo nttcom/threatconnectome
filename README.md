@@ -134,6 +134,22 @@ vi .env  # change default values
 > cp .env.supabase.example .env
 > vi .env  # change default values
 > ```
+>
+> .env.supabase.example includes additional environment variables required for using Supabase.
+>
+> - SUPABASE_POSTGRES_PASSWORD
+>   - Password to be set for the Supabase Postgres
+> - JWT_SECRET
+>   - Json Web Token
+> - ANON_KEY
+> - SERVICE_ROLE_KEY
+>   - API key of Supabase
+> - DASHBOARD_USERNAME
+>   - Username of Supabase dashboard
+> - DASHBOARD_PASSWORD
+>   - Password to be set for the Supabase dashboard
+> - LOGFLARE_API_KEY
+>   - API key of logflare
 
 ### Set up production environment variables
 
@@ -142,7 +158,7 @@ To change this so that builds also link to the development environment API, the 
 
 > ```bash
 > cd ./web
-> cp .env.production.example .env.production.local
+> cp .env.production..firebase.example .env.production.local
 > vi .env.production.local  # set values
 > ```
 
@@ -178,6 +194,13 @@ To change this so that builds also link to the development environment API, the 
 > cp .env.supabase.example .env.production.local
 > vi .env.production.local  # set values
 > ```
+>
+> .env.supabase.example includes additional environment variables required for using Supabase.
+>
+> - VITE_SUPABASE_URL
+>   - URL which the kong container (not auth container) listens to
+> - VITE_SUPABASE_ANON_KEY
+>   - should same with ANON_KEY in ../.env
 
 ### Database settings
 
@@ -316,7 +339,7 @@ If you want to define development environment variables, do the following
 
 ```bash
 cd ./web
-cp .env.development.example .env.development.local
+cp .env.development.firebase.example .env.development.local
 vi .env.development.local  # set values
 ```
 
@@ -349,6 +372,16 @@ Docker containers in docker-compose-local.yml
 | traefik | Reverse proxy |
 | web | Nginx hosting front-end |
 | firebase | emulator of firebase authentication |
+
+> :house: **Docker container for on-premises environment**
+
+> | Container name  | Description |
+> | --------------- | ----------- |
+> | supabase-auth   |             |
+> | supabase-db     |             |
+> | supabase-studio |             |
+> | supabase-kong   |             |
+> | supabase-meta   |             |
 
 ## Top directory structure
 
