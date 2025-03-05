@@ -43,7 +43,7 @@ export function PTeamTaggedTopics(props) {
         ))}
       </Box>
       <Typography variant="subtitle2" color="textSecondary">
-        Default safety impact: Negligible
+        Default safety impact: {service.service_safety_impact}
       </Typography>
       <Box sx={{ my: 2 }}>
         <TopicTable />
