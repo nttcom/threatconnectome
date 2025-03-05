@@ -200,7 +200,7 @@ To change this so that builds also link to the development environment API, the 
 > - VITE_SUPABASE_URL
 >   - URL which the kong container (not auth container) listens to
 > - VITE_SUPABASE_ANON_KEY
->   - should same with ANON_KEY in ../.env
+>   - Same value with ANON_KEY in ../.env
 
 ### Database settings
 
@@ -374,14 +374,16 @@ Docker containers in docker-compose-local.yml
 | firebase | emulator of firebase authentication |
 
 > :house: **Docker container for on-premises environment**
-
-> | Container name  | Description |
-> | --------------- | ----------- |
-> | supabase-auth   |             |
-> | supabase-db     |             |
-> | supabase-studio |             |
-> | supabase-kong   |             |
-> | supabase-meta   |             |
+>
+> In an on-premises environment, the following containers are required for Supabase.
+>
+> | Container name  | Description               |
+> | --------------- | ------------------------- |
+> | supabase-auth   | Authentication Server     |
+> | supabase-db     | Database of postgresSQL   |
+> | supabase-studio | Dashboard                 |
+> | supabase-kong   | Api Gateway               |
+> | supabase-meta   | Api server of postgresSQL |
 
 ## Top directory structure
 
