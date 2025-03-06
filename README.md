@@ -126,7 +126,7 @@ vi .env  # change default values
   - Place the Authentication credential file the path of `FIREBASE_CRED`
     - Refer to [this document](https://firebase.google.com/docs/admin/setup?hl=en#initialize_the_sdk_in_non-google_environments) to download the JSON file that service account private key.
 
-> :house:　**Set up environment variables for on-premises environment**
+> :house: **Set up environment variables for on-premises environment**
 >
 > Instead of .env.firebase.example, copy .env.supabase.example, rename it to .env, and edit its contents.
 >
@@ -158,8 +158,8 @@ To change this so that builds also link to the development environment API, the 
 
 > ```bash
 > cd ./web
-> cp .env.production..firebase.example .env.production.local
-> vi .env.production.local  # set values
+> cp .env.firebase.example .env
+> vi .env  # set values
 > ```
 
 :warning: **Values that need to be changed**
@@ -191,8 +191,8 @@ To change this so that builds also link to the development environment API, the 
 >
 > ```bash
 > cd ./web
-> cp .env.supabase.example .env.production.local
-> vi .env.production.local  # set values
+> cp .env.supabase.example .env
+> vi .env  # set values
 > ```
 >
 > .env.supabase.example includes additional environment variables required for using Supabase.
@@ -339,8 +339,8 @@ If you want to define development environment variables, do the following
 
 ```bash
 cd ./web
-cp .env.development.firebase.example .env.development.local
-vi .env.development.local  # set values
+cp .env.firebase.example .env
+vi .env  # set values
 ```
 
 If you want to run it, please type the following command
