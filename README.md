@@ -75,7 +75,7 @@ Teams registerd in demo environment as following:
 git clone https://github.com/nttcom/threatconnectome.git
 ```
 
-> :house:　**Instration for on-premises environment**
+> :house:　**Installation for on-premises environment**
 >
 > Threatconnectome can run in an on-premises environment using Supabase.
 > To set up an environment using Supabase, you need to configure environment variables and use a docker-compose-supabase-local.yml
