@@ -137,18 +137,18 @@ vi .env  # change default values
 >
 > .env.supabase.example includes additional environment variables required for using Supabase.
 >
-> - SUPABASE_POSTGRES_PASSWORD
+> - `SUPABASE_POSTGRES_PASSWORD`
 >   - Password to be set for the Supabase Postgres
-> - JWT_SECRET
+> - `JWT_SECRET`
 >   - Secret Json Web Token
-> - ANON_KEY
-> - SERVICE_ROLE_KEY
+> - `ANON_KEY`
+> - `SERVICE_ROLE_KEY`
 >   - API key of Supabase
-> - DASHBOARD_USERNAME
+> - `DASHBOARD_USERNAME`
 >   - Username of Supabase dashboard
-> - DASHBOARD_PASSWORD
+> - `DASHBOARD_PASSWORD`
 >   - Password to be set for the Supabase dashboard
-> - LOGFLARE_API_KEY
+> - `LOGFLARE_API_KEY`
 >   - API key of logflare
 
 ### Set up production environment variables
