@@ -140,7 +140,7 @@ vi .env  # change default values
 > - SUPABASE_POSTGRES_PASSWORD
 >   - Password to be set for the Supabase Postgres
 > - JWT_SECRET
->   - Json Web Token
+>   - Secret Json Web Token
 > - ANON_KEY
 > - SERVICE_ROLE_KEY
 >   - API key of Supabase
@@ -197,10 +197,12 @@ To change this so that builds also link to the development environment API, the 
 >
 > .env.supabase.example includes additional environment variables required for using Supabase.
 >
-> - VITE_SUPABASE_URL
->   - URL which the kong container (not auth container) listens to
-> - VITE_SUPABASE_ANON_KEY
->   - Same value with ANON_KEY in ../.env
+> - `VITE_AUTH_SERVICE`
+> - Authentication service to be used (fixed to suupabase).
+> - `VITE_SUPABASE_URL`
+>   - URL which the kong container (not auth container) listens to.
+> - `VITE_SUPABASE_ANON_KEY`
+>   - Same value with ANON_KEY in ../.env.
 
 ### Database settings
 
@@ -349,6 +351,10 @@ If you want to run it, please type the following command
 cd ./web
 npm run start  # to check operation and launch the >webpage when developing Web UI
 ```
+
+> :house: **Set up development environment variables of Web UI for on-premises environment**
+>
+> In an on-premises environment, use .env.supabase.local instead of .env.firebase.local.
 
 ## :test_tube: Testing
 
