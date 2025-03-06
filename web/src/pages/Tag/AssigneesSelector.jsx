@@ -9,10 +9,10 @@ import { errorToString, setEquals } from "../../utils/func";
 export function AssigneesSelector(props) {
   const { pteamId, serviceId, topicId, tagId, ticketId, currentAssigneeIds, members } = props;
 
-  const [assigneeEmails, setAssigneeEmails] = useState(
+  const [assigneeUserIds, setAssigneeUserIds] = useState(
     Object.values(members)
       .filter((member) => currentAssigneeIds.includes(member.user_id))
-      .map((member) => member.email),
+      .map((member) => member.user_id),
   );
 
   const { enqueueSnackbar } = useSnackbar();
@@ -21,7 +21,7 @@ export function AssigneesSelector(props) {
 
   const handleApply = async () => {
     const newAssigneeIds = Object.values(members)
-      .filter((member) => assigneeEmails.includes(member.email))
+      .filter((member) => assigneeUserIds.includes(member.user_id))
       .map((member) => member.user_id);
     if (setEquals(new Set(newAssigneeIds), new Set(currentAssigneeIds))) return; // not modified
 
@@ -39,7 +39,7 @@ export function AssigneesSelector(props) {
     const {
       target: { value },
     } = event;
-    setAssigneeEmails((typeof value === "string" ? value.split(",") : value).sort());
+    setAssigneeUserIds((typeof value === "string" ? value.split(",") : value).sort());
   };
 
   if (!pteamId || !serviceId || !topicId || !tagId || !ticketId || !members) return <></>;
@@ -49,12 +49,19 @@ export function AssigneesSelector(props) {
       <Select
         multiple
         displayEmpty
-        value={assigneeEmails}
+        value={assigneeUserIds}
         onChange={handleAssigneesChange}
         onClose={handleApply}
         input={<Input sx={{ display: "flex", fontSize: 14 }} />}
         renderValue={(selected) => {
-          return selected.length === 0 ? <em>Select assignees</em> : selected.join(", ");
+          return selected.length === 0 ? (
+            <em>Select assignees</em>
+          ) : (
+            Object.values(members)
+              .filter((member) => selected.includes(member.user_id))
+              .map((member) => member.email)
+              .join(", ")
+          );
         }}
         MenuProps={{
           PaperProps: {
@@ -70,8 +77,8 @@ export function AssigneesSelector(props) {
           <em>Select assignees</em>
         </MenuItem>
         {Object.values(members).map((member) => (
-          <MenuItem key={member.user_id} value={member.email}>
-            <Checkbox checked={assigneeEmails.includes(member.email)} />
+          <MenuItem key={member.user_id} value={member.user_id}>
+            <Checkbox checked={assigneeUserIds.includes(member.user_id)} />
             <ListItemText primary={member.email} sx={{ "& span": { fontSize: 14 } }} />
           </MenuItem>
         ))}

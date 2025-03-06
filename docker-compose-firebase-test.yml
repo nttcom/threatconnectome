@@ -1,0 +1,83 @@
+version: "3.5"
+services:
+  testapi:
+    build:
+      context: ./api
+      dockerfile: ../api-test.dockerfile
+    command:
+      - uvicorn
+      - app.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "80"
+      - --root-path
+      - /api
+    depends_on:
+      testdb:
+        condition: service_healthy
+      testfirebase:
+        condition: service_healthy
+    environment:
+      WEBUI_URL: http://localhost
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: testdb
+      TESTDB_HOST: testdb
+      DB_PORT: 5432
+      DB_SCHEMA: postgres
+      SYSTEM_EMAIL: ic-metemcyber@example.com
+      SENDGRID_API_KEY: fake_api_key_for_sendgrid_test
+      AUTH_SERVICE: FIREBASE
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY}
+      FIREBASE_CRED: /key/firebase_credentials.json
+      FIREBASE_AUTH_EMULATOR_HOST: testfirebase:9099
+    networks:
+      - test-network
+    volumes:
+      - ./api/app:/app:ro
+      - ./api/app/alembic:/app/alembic:rw  # for 'alembic revision --autogenerate'
+      - ./key:/key:ro
+  testdb:
+    image: postgres:14
+    command:
+      - postgres
+      # - -c
+      # - log_connections=on
+      - -c
+      - log_destination=stderr
+      # - -c
+      # - log_disconnections=on
+      - -c
+      - log_statement=all
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${DB_USER}
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    networks:
+      - test-network
+  testfirebase:
+    build: ./firebase
+    ports:
+      - 4000:4000 # Emulator Suite UI
+      - 9099:9099 # Auth
+    volumes:
+      - ./firebase:/opt/workspace
+    working_dir: /opt/workspace
+    command: "firebase emulators:start --import=./data-test"
+    tty: true
+    healthcheck:
+      test: curl --fail http://localhost:9099 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    networks:
+      - test-network
+networks:
+  test-network:

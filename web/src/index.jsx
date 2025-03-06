@@ -2,7 +2,6 @@ import { CssBaseline } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { SnackbarProvider } from "notistack";
 import React from "react";
-import { CookiesProvider } from "react-cookie";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
@@ -11,14 +10,17 @@ import {
   AcceptPTeamInvitation,
   Account,
   App,
+  EmailVerification,
   Login,
   ResetPassword,
   Status,
+  SignUp,
   Tag,
   TopicDetail,
   TopicManagement,
   PTeam,
 } from "./pages";
+import { AuthProvider } from "./providers/auth/AuthContext";
 import store from "./store";
 
 const container = document.getElementById("root");
@@ -26,20 +28,31 @@ const root = createRoot(container);
 
 root.render(
   <React.StrictMode>
-    <CookiesProvider>
-      <Provider store={store}>
-        <ThemeProvider theme={createTheme()}>
-          <CssBaseline />
-          <SnackbarProvider
-            maxSnack={3}
-            preventDuplicate={true}
-            anchorOrigin={{ horizontal: "center", vertical: "top" }}
-            autoHideDuration={5000}
-          >
-            <Router basename={process.env.PUBLIC_URL}>
+    <Provider store={store}>
+      <ThemeProvider theme={createTheme()}>
+        <CssBaseline />
+        <SnackbarProvider
+          maxSnack={3}
+          preventDuplicate={true}
+          anchorOrigin={{ horizontal: "center", vertical: "top" }}
+          autoHideDuration={5000}
+        >
+          <AuthProvider>
+            <Router
+              basename={import.meta.env.VITE_PUBLIC_URL}
+              future={{
+                /* to prevent React Router Future Flag Warning.
+                 * see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath for details.
+                 */
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
               <Routes>
                 <Route exact path="/login" element={<Login />} />
                 <Route path="/reset_password" element={<ResetPassword />} />
+                <Route path="/sign_up" element={<SignUp />} />
+                <Route path="/email_verification" element={<EmailVerification />} />
                 <Route path="/" element={<App />}>
                   <Route index element={<Status />} />
                   <Route path="account">
@@ -61,9 +74,9 @@ root.render(
                 </Route>
               </Routes>
             </Router>
-          </SnackbarProvider>
-        </ThemeProvider>
-      </Provider>
-    </CookiesProvider>
+          </AuthProvider>
+        </SnackbarProvider>
+      </ThemeProvider>
+    </Provider>
   </React.StrictMode>,
 );

@@ -18,12 +18,13 @@ import React, { useState } from "react";
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import dialogStyle from "../../cssModule/dialog.module.css";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useCreateActionLogMutation,
   useUpdateTicketStatusMutation,
   useGetUserMeQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
 import { ActionTypeChip } from "./ActionTypeChip";
@@ -39,7 +40,7 @@ export function ReportCompletedActions(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: userMe,
     error: userMeError,
@@ -49,7 +50,7 @@ export function ReportCompletedActions(props) {
   const [updateTicketStatus] = useUpdateTicketStatusMutation();
 
   if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const handleAction = async () =>

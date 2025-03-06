@@ -10,7 +10,29 @@ Threatconnectome supports vulnerability management in industries where products 
 - PSIRT-friendly UI and Web API
 - SPDX 2.3 and CycloneDX 1.6 support
 
-## Demo environment
+## :rocket: Quick Start
+
+Just clone this project and move to `threatconnectome`.
+
+```bash
+git clone https://github.com/nttcom/threatconnectome
+cd threatconnectome
+```
+
+:partying_face: Try it out!
+
+```bash
+# Note: You need docker installed and running to be able to run this script.
+./demo_start.sh
+```
+
+> To stop a running service:
+>
+> ```bash
+> ./demo_stop.sh
+> ```
+
+## :eyes: Live demo
 
 :warning: Do not input personal information.
 
@@ -55,10 +77,10 @@ git clone https://github.com/nttcom/threatconnectome.git
 
 ### Set up environment variables
 
-Copy .env.example, change it to .env and edit the contents
+Copy .env.firebase.example, change it to .env and edit the contents
 
 ```bash
-cp .env.example .env
+cp .env.firebase.example .env
 vi .env  # change default values
 ```
 
@@ -86,13 +108,11 @@ vi .env  # change default values
     - Authentication credential file to sign into api
   - `TESTDB_HOST`
     - Hostname of testdb
-  - `FLASHSENSE_API_URL`
-    - To specify the flashsense API URL
   - `SYSTEM_EMAIL`
     - Email address recorded when the system executes an event
     - From email address for sending email with sendgrid
   - `SENDGRID_API_KEY`
-    -Api key to send email with sendgrid
+    - Api key to send email with sendgrid
 
 :warning: **Files that need to be placed**
 
@@ -113,25 +133,25 @@ To change this so that builds also link to the development environment API, the 
 
 :warning: **Values that need to be changed**
 
-- `REACT_APP_API_BASE_URL`
+- `VITE_API_BASE_URL`
   - Set it as `http://localhost:<your_port_for_threatconnectome>/api` for local development
 - Values can be referred from firebase project setting page
 
-  - `REACT_APP_FIREBASE_API_KEY`
+  - `VITE_FIREBASE_API_KEY`
     - The same with `FIREBASE_API_KEY` in ../.envenv
-  - `REACT_APP_FIREBASE_APP_ID`
+  - `VITE_FIREBASE_APP_ID`
     - App ID
   - Values can be referred from `firebaseConfig` on the page
 
-    - `REACT_APP_FIREBASE_AUTH_DOMAIN`
-    - `REACT_APP_FIREBASE_MEASUREMENT_ID`
-    - `REACT_APP_FIREBASE_MESSAGING_SENDER_ID`
-    - `REACT_APP_FIREBASE_PROJECT_ID`
-    - `REACT_APP_FIREBASE_STORAGE_BUCKET`
+    - `VITE_FIREBASE_AUTH_DOMAIN`
+    - `VITE_FIREBASE_MEASUREMENT_ID`
+    - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+    - `VITE_FIREBASE_PROJECT_ID`
+    - `VITE_FIREBASE_STORAGE_BUCKET`
 
-  - `REACT_APP_FIREBASE_AUTH_SAML_PROVIDER_ID`
+  - `VITE_FIREBASE_AUTH_SAML_PROVIDER_ID`
     - Set your saml provider id if needed.
-  - `REACT_APP_FIREBASE_AUTH_EMULATOR_URL`
+  - `VITE_FIREBASE_AUTH_EMULATOR_URL`
     - Set it to `http://localhost:<your_port_for_firebase>`
 
 ### Database settings

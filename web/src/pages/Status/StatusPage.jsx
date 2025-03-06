@@ -27,16 +27,18 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { ErrorBoundary } from "react-error-boundary";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import { PTeamLabel } from "../../components/PTeamLabel";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
   useGetPTeamTagsSummaryQuery,
   useGetPTeamServiceTagsSummaryQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
@@ -45,6 +47,7 @@ import { PTeamServiceDetails } from "./PTeamServiceDetails";
 import { PTeamServiceTabs } from "./PTeamServiceTabs";
 import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
+import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
 import { SBOMDropArea } from "./SBOMDropArea";
 
 const ssvcPriorityCountMax = 99999;
@@ -138,7 +141,7 @@ export function Status() {
     serviceIds: [],
   });
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const skipByAuth = useSkipUntilAuthUserIsReady();
 
   const {
     data: pteam,
@@ -183,18 +186,25 @@ export function Status() {
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skipByAuth || !pteamId) return <></>;
-  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
-  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (pteamError)
+    throw new APIError(errorToString(pteamError), {
+      api: "getPTeam",
+    });
+  if (pteamIsLoading) return <>Now loading Team...</>;
 
   if (isActiveAllServicesMode) {
     if (pteamTagsSummaryError)
-      return <>{`Cannot get pteamTagsSummary: ${errorToString(pteamTagsSummaryError)}`}</>;
+      throw new APIError(errorToString(pteamTagsSummaryError), {
+        api: "getPTeamTagsSummary",
+      });
 
     if (!pteamTagsSummary || pteamTagsSummaryIsFetching)
       return <>Now loading pteamTagsSummary...</>;
   } else {
     if (serviceTagsSummaryError)
-      return <>{`Cannot get serviceTagsSummary: ${errorToString(serviceTagsSummaryError)}`}</>;
+      throw new APIError(errorToString(serviceTagsSummaryError), {
+        api: "getPTeamServiceTagsSummary",
+      });
 
     if (
       (serviceId || pteam.services.length > 0) &&
@@ -481,26 +491,30 @@ export function Status() {
               {isActiveAllServicesMode ? (
                 <>
                   {targetTags.map((tag) => (
-                    <PTeamStatusCard
-                      key={tag.tag_id}
-                      onHandleClick={() =>
-                        handleNavigateServiceList(tag.tag_id, tag.tag_name, tag.service_ids)
-                      }
-                      pteam={pteam}
-                      tag={tag}
-                      serviceIds={tag.service_ids}
-                    />
+                    <ErrorBoundary key={tag.tag_id} FallbackComponent={PTeamStatusCardFallback}>
+                      <PTeamStatusCard
+                        key={tag.tag_id}
+                        onHandleClick={() =>
+                          handleNavigateServiceList(tag.tag_id, tag.tag_name, tag.service_ids)
+                        }
+                        pteam={pteam}
+                        tag={tag}
+                        serviceIds={tag.service_ids}
+                      />
+                    </ErrorBoundary>
                   ))}
                 </>
               ) : (
                 <>
                   {targetTags.map((tag) => (
-                    <PTeamStatusCard
-                      key={tag.tag_id}
-                      onHandleClick={() => handleNavigateTag(tag.tag_id)}
-                      pteam={pteam}
-                      tag={tag}
-                    />
+                    <ErrorBoundary key={tag.tag_id} FallbackComponent={PTeamStatusCardFallback}>
+                      <PTeamStatusCard
+                        key={tag.tag_id}
+                        onHandleClick={() => handleNavigateTag(tag.tag_id)}
+                        pteam={pteam}
+                        tag={tag}
+                      />
+                    </ErrorBoundary>
                   ))}
                 </>
               )}

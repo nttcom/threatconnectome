@@ -21,8 +21,9 @@ import React, { useEffect, useState } from "react";
 import { FixedSizeList } from "react-window";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useCreateTagMutation, useGetTagsQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { commonButtonStyle } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
@@ -37,7 +38,7 @@ export function TopicTagSelector(props) {
 
   const [createTag] = useCreateTagMutation();
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: allTags,
     error: allTagsError,
@@ -53,7 +54,7 @@ export function TopicTagSelector(props) {
   }, [allTags, search]);
 
   if (skip) return <></>;
-  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getTags" });
   if (allTagsIsLoading) return <>Now loading allTags...</>;
 
   const handleCreateTag = async () => {

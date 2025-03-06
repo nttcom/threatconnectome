@@ -14,93 +14,63 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { sendEmailVerification } from "firebase/auth";
 import React, { useEffect, useState } from "react";
-import { useCookies } from "react-cookie";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import {
-  useSignInWithEmailAndPasswordMutation,
-  useSignInWithSamlPopupMutation,
-} from "../../services/firebaseApi";
+import { useAuth } from "../../hooks/auth";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
-import { clearAuth } from "../../slices/auth";
-import { samlProvider } from "../../utils/firebase";
-
-export const authCookieName = "Authorization";
-export const cookiesOptions = { path: process.env.PUBLIC_URL || "/" };
+import { setAuthUserIsReady } from "../../slices/auth";
+import Firebase from "../../utils/Firebase"; // FIXME: remove after supporting saml provider
 
 export function Login() {
   const [message, setMessage] = useState(null);
   const [visible, setVisible] = useState(false);
+  const redirectedFrom = useSelector((state) => state.auth.redirectedFrom);
 
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
-  /* eslint-disable-next-line no-unused-vars */
-  const [_cookies, setCookie, removeCookie] = useCookies([authCookieName]);
-
-  const metemcyberAuthUrl = process.env.REACT_APP_METEMCYBER_AUTH_URL;
-
-  const [signInWithEmailAndPassword] = useSignInWithEmailAndPasswordMutation();
-  const [signInWithSamlPopup] = useSignInWithSamlPopupMutation();
   const [createUser] = useCreateUserMutation();
   const [tryLogin] = useTryLoginMutation();
+  const { sendEmailVerification, signInWithEmailAndPassword, signInWithSamlPopup, signOut } =
+    useAuth();
 
   useEffect(() => {
-    dispatch(clearAuth());
-    removeCookie(authCookieName, cookiesOptions);
+    dispatch(setAuthUserIsReady(false));
     setMessage(location.state?.message);
-  }, [dispatch, location, removeCookie]);
+    signOut();
+  }, [dispatch, location, signOut]);
 
   const callSignInWithEmailAndPassword = async (email, password) => {
-    return await signInWithEmailAndPassword({ email, password })
-      .unwrap()
-      .catch((error) => {
-        switch (error.code) {
-          case "auth/invalid-email":
-            setMessage("Invalid email format.");
-            break;
-          case "auth/too-many-requests":
-            setMessage("Too many requests.");
-            break;
-          case "auth/user-disabled":
-            setMessage("Disabled user.");
-            break;
-          case "auth/user-not-found":
-            setMessage("User not found.");
-            break;
-          case "auth/wrong-password":
-            setMessage("Wrong password.");
-            break;
-          default:
-            setMessage("Something went wrong.");
-        }
-        return undefined;
-      });
+    return await signInWithEmailAndPassword({ email, password }).catch((authError) => {
+      setMessage(authError.message);
+      return undefined;
+    });
   };
 
-  const navigateInternalPage = async (userCredential) => {
-    const accessToken = userCredential.user.accessToken;
-    setCookie(authCookieName, accessToken, cookiesOptions);
+  const navigateInternalPage = async () => {
     try {
       await tryLogin().unwrap();
       navigate({
-        pathname: location.state?.from ?? "/",
-        search: location.state?.search ?? "",
+        pathname: redirectedFrom.from ?? "/",
+        search: redirectedFrom.search ?? "",
       });
     } catch (error) {
       switch (error.data?.detail) {
         case "Email is not verified. Try logging in on UI and verify email.": {
           const actionCodeSettings = {
-            url: `${window.location.origin}${process.env.PUBLIC_URL}/login`,
+            url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
           };
-          await sendEmailVerification(userCredential.user, actionCodeSettings);
-          setMessage(
-            "Your email address is not verified. An email for verification was sent to your address.",
-          );
+          await sendEmailVerification({ actionCodeSettings })
+            .then(() =>
+              setMessage(
+                "Your email address is not verified." +
+                  " An email for verification was sent to your address.",
+              ),
+            )
+            .catch((error) => setMessage(error.message));
           break;
         }
         case "No such user":
@@ -108,8 +78,8 @@ export function Login() {
           // TODO: navigate to the first time login page, or say hello on snackbar.
           navigate("/account", {
             state: {
-              from: location.state?.from ?? "/",
-              search: location.state?.search ?? "",
+              from: redirectedFrom.from ?? "/",
+              search: redirectedFrom.search ?? "",
             },
           });
           break;
@@ -124,19 +94,14 @@ export function Login() {
     event.preventDefault();
     setMessage("Logging in...");
     const data = new FormData(event.currentTarget);
-    const userCredential = await callSignInWithEmailAndPassword(
-      data.get("email"),
-      data.get("password"),
-    );
-    if (userCredential === undefined) return;
-    navigateInternalPage(userCredential);
+    const authData = await callSignInWithEmailAndPassword(data.get("email"), data.get("password"));
+    if (authData === undefined) return;
+    navigateInternalPage();
   };
 
   const handleLoginWithSaml = () => {
     signInWithSamlPopup()
-      .then(async (userCredential) => {
-        navigateInternalPage(userCredential);
-      })
+      .then(() => navigateInternalPage())
       .catch((error) => {
         setMessage("Something went wrong.");
         console.error(error);
@@ -147,15 +112,19 @@ export function Login() {
     event.preventDefault();
     navigate("/reset_password", {
       state: {
-        from: location.state?.from ?? "/",
-        search: location.state?.search ?? "",
+        from: redirectedFrom.from ?? "/",
+        search: redirectedFrom.search ?? "",
       },
     });
   };
-
-  const handleSignUp = () => {
-    if (!metemcyberAuthUrl) return;
-    window.open(metemcyberAuthUrl, "_blank");
+  const handleSignUp = (event) => {
+    event.preventDefault();
+    navigate("/sign_up", {
+      state: {
+        from: redirectedFrom.from ?? "/",
+        search: redirectedFrom.search ?? "",
+      },
+    });
   };
 
   return (
@@ -213,7 +182,7 @@ export function Login() {
         </Button>
       </Box>
       {/* show saml login button if samlProviderId is set as env */}
-      {samlProvider && (
+      {Firebase.getSamlProvider() != null && ( // FIXME
         <>
           <Divider />
           <Button

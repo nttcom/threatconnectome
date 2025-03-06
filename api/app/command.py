@@ -17,43 +17,31 @@ from sqlalchemy.orm import Session, joinedload
 from app import models, schemas
 
 sortkey2orderby: dict[schemas.TopicSortKey, list] = {
-    schemas.TopicSortKey.THREAT_IMPACT: [
-        models.Topic.threat_impact,
+    schemas.TopicSortKey.CVSS_V3_SCORE: [
+        models.Topic.cvss_v3_score.nulls_first(),
         models.Topic.updated_at.desc(),
     ],
-    schemas.TopicSortKey.THREAT_IMPACT_DESC: [
-        models.Topic.threat_impact.desc(),
+    schemas.TopicSortKey.CVSS_V3_SCORE_DESC: [
+        models.Topic.cvss_v3_score.desc().nullslast(),
         models.Topic.updated_at.desc(),
     ],
     schemas.TopicSortKey.UPDATED_AT: [
         models.Topic.updated_at,
-        models.Topic.threat_impact,
+        models.Topic.cvss_v3_score.desc().nullslast(),
     ],
     schemas.TopicSortKey.UPDATED_AT_DESC: [
         models.Topic.updated_at.desc(),
-        models.Topic.threat_impact,
+        models.Topic.cvss_v3_score.desc().nullslast(),
     ],
 }
-
-
-def workaround_delete_team_authes_by_user_id(db: Session, user_id: UUID | str) -> None:
-    # this is workaround until models fixed with delete on cascade
-    db.execute(delete(models.PTeamAuthority).where(models.PTeamAuthority.user_id == str(user_id)))
-    db.flush()
-
-
-def workaround_delete_pteam_authority(db: Session, auth: models.PTeamAuthority) -> None:
-    # this is workaround until models fixed with delete on cascade
-    db.delete(auth)
-    db.flush()
 
 
 def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
     return (
         db.execute(
-            select(models.PTeamAuthority).where(
-                models.PTeamAuthority.pteam_id == pteam.pteam_id,
-                models.PTeamAuthority.authority.op("&")(models.PTeamAuthIntFlag.ADMIN) != 0,
+            select(models.PTeamAccountRole).where(
+                models.PTeamAccountRole.pteam_id == pteam.pteam_id,
+                models.PTeamAccountRole.is_admin.is_(True),
             )
         ).first()
         is None
@@ -65,16 +53,23 @@ def search_threats(
     service_id: UUID | str | None,
     dependency_id: UUID | str | None,
     topic_id: UUID | str | None,
+    user_id: UUID | str | None = None,
 ) -> Sequence[models.Threat]:
     select_stmt = select(models.Threat)
+
+    select_stmt = (
+        select_stmt.join(models.Dependency)
+        .join(models.Service)
+        .join(models.PTeam)
+        .join(models.PTeamAccountRole)
+        .join(models.Account)
+    )
+
+    if user_id:
+        select_stmt = select_stmt.where(models.Account.user_id == str(user_id))
+
     if service_id:
-        select_stmt = select_stmt.join(
-            models.Dependency,
-            and_(
-                models.Dependency.dependency_id == models.Threat.dependency_id,
-                models.Dependency.service_id == str(service_id),
-            ),
-        )
+        select_stmt = select_stmt.where(models.Dependency.service_id == str(service_id))
     if dependency_id:
         select_stmt = select_stmt.where(models.Threat.dependency_id == str(dependency_id))
     if topic_id:
@@ -87,8 +82,9 @@ def search_topics_internal(
     db: Session,
     offset: int = 0,
     limit: int = 10,
-    sort_key: schemas.TopicSortKey = schemas.TopicSortKey.THREAT_IMPACT,
-    threat_impacts: list[int] | None = None,
+    sort_key: schemas.TopicSortKey = schemas.TopicSortKey.CVSS_V3_SCORE_DESC,
+    min_cvss_v3_score: float | None = None,
+    max_cvss_v3_score: float | None = None,
     title_words: list[str | None] | None = None,
     abstract_words: list[str | None] | None = None,
     tag_ids: list[str | None] | None = None,
@@ -100,12 +96,18 @@ def search_topics_internal(
     updated_after: datetime | None = None,
     updated_before: datetime | None = None,
     pteam_id: UUID | None = None,
+    cve_ids: list[str | None] | None = None,
 ) -> dict:
     # search conditions
-    search_by_threat_impacts_stmt = (
+    search_by_min_cvss_v3_score_stmt = (
         true()
-        if threat_impacts is None  # do not filter by threat_impact
-        else models.Topic.threat_impact.in_(threat_impacts)
+        if min_cvss_v3_score is None  # do not filter by min_cvss_v3_score
+        else models.Topic.cvss_v3_score >= min_cvss_v3_score
+    )
+    search_by_max_cvss_v3_score_stmt = (
+        true()
+        if max_cvss_v3_score is None  # do not filter by max_cvss_v3_score
+        else models.Topic.cvss_v3_score <= max_cvss_v3_score
     )
     search_by_tag_ids_stmt = (
         true()
@@ -198,8 +200,13 @@ def search_topics_internal(
         else models.Topic.updated_at >= updated_after
     )
 
+    search_by_cve_ids_stmt = (
+        true() if cve_ids is None else models.Topic.cve_id.in_(cve_ids)  # do not filter by cve_id
+    )
+
     search_conditions = [
-        search_by_threat_impacts_stmt,
+        search_by_min_cvss_v3_score_stmt,
+        search_by_max_cvss_v3_score_stmt,
         search_by_tag_ids_stmt,
         search_by_misp_tag_ids_stmt,
         search_by_topic_ids_stmt,
@@ -210,6 +217,7 @@ def search_topics_internal(
         search_by_created_after_stmt,
         search_by_updated_before_stmt,
         search_by_updated_after_stmt,
+        search_by_cve_ids_stmt,
     ]
     filter_topics_stmt = and_(
         true(),

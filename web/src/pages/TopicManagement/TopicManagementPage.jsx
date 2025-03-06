@@ -27,26 +27,24 @@ import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import styles from "../../cssModule/button.module.css";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetTopicActionsQuery,
   useGetTopicQuery,
   useSearchTopicsQuery,
 } from "../../services/tcApi";
-import { difficulty, difficultyColors } from "../../utils/const";
-import { errorToString } from "../../utils/func";
+import { APIError } from "../../utils/APIError";
+import { cvssProps } from "../../utils/const";
+import { errorToString, cvssConvertToName } from "../../utils/func";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 import { TopicSearchModal } from "./TopicSearchModal";
 
-function getDisplayMessage(topicError, topicIsLoading, topicActionsError, topicActionsIsLoading) {
-  if (topicActionsError) return `Cannot get topicActions: ${errorToString(topicActionsError)}`;
+function getDisplayMessage(topicIsLoading, topicActionsIsLoading) {
   if (topicActionsIsLoading) return "Now loading topicActions...";
-  if (topicError) return `Cannot get Topic: ${errorToString(topicError)}`;
   if (topicIsLoading) return "Now loading Topic...";
   return "";
 }
@@ -59,8 +57,7 @@ function TopicManagementTableRow(props) {
 
   const params = new URLSearchParams(location.search);
 
-  const skip = useSkipUntilAuthTokenIsReady();
-
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: topic,
     error: topicError,
@@ -73,14 +70,27 @@ function TopicManagementTableRow(props) {
     isLoading: topicActionsIsLoading,
   } = useGetTopicActionsQuery(topicId, { skip });
 
-  if (skip || topicError || topicIsLoading || topicActionsError || topicActionsIsLoading)
+  if (topicError)
+    throw new APIError(errorToString(topicError), {
+      api: "getTopic",
+    });
+
+  if (topicActionsError)
+    throw new APIError(errorToString(topicActionsError), {
+      api: "getTopicActions",
+    });
+
+  if (skip || topicIsLoading || topicActionsIsLoading)
     return (
       <TableRow>
-        <TableCell>
-          {getDisplayMessage(topicError, topicIsLoading, topicActionsError, topicActionsIsLoading)}
-        </TableCell>
+        <TableCell>{getDisplayMessage(topicIsLoading, topicActionsIsLoading)}</TableCell>
       </TableRow>
     );
+
+  const cvssScore =
+    topic.cvss_v3_score === undefined || topic.cvss_v3_score === null ? "N/A" : topic.cvss_v3_score;
+
+  const cvss = cvssConvertToName(cvssScore);
 
   return (
     <TableRow
@@ -90,7 +100,7 @@ function TopicManagementTableRow(props) {
         cursor: "pointer",
         "&:last-child td, &:last-child th": { border: 0 },
         "&:hover": { bgcolor: grey[100] },
-        borderLeft: `solid 5px ${difficultyColors[difficulty[topic.threat_impact - 1]]}`,
+        borderLeft: `solid 5px ${cvssProps[cvss].cvssBgcolor}`,
       }}
       onClick={() => navigate(`/topics/${topic.topic_id}?${params.toString()}`)}
     >
@@ -135,7 +145,7 @@ export function TopicManagement() {
   const [perPage, setPerPage] = useState(perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
 
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
@@ -154,7 +164,10 @@ export function TopicManagement() {
   } = useSearchTopicsQuery(searchParams, { skip, refetchOnMountOrArgChange: true });
 
   if (skip) return <>Now loading auth token...</>;
-  if (searchResultError) return <>{`Search topics failed: ${errorToString(searchResultError)}`}</>;
+  if (searchResultError)
+    throw new APIError(errorToString(searchResultError), {
+      api: "searchTopics",
+    });
   if (searchResultIsLoading) return <>Now searching topics...</>;
 
   const topics = searchResult.topics;
@@ -169,6 +182,11 @@ export function TopicManagement() {
     if (params?.creatorIds?.length > 0) query.creator_ids = params.creatorIds.split(delimiter);
     if (params?.updatedAfter) query.updated_after = params.updatedAfter;
     if (params?.updatedBefore) query.updated_before = params.updatedBefore;
+    if (params?.minCvssV3Score || params?.minCvssV3Score === 0)
+      query.min_cvss_v3_score = params.minCvssV3Score;
+    if (params?.maxCvssV3Score || params?.maxCvssV3Score === 0)
+      query.max_cvss_v3_score = params.maxCvssV3Score;
+
     return query;
   };
 
@@ -296,7 +314,7 @@ export function TopicManagement() {
               </TableCell>
               <TableCell style={{ width: "3%", fontWeight: 900 }}>Action</TableCell>
               <TableCell style={{ width: "25%", fontWeight: 900 }}>Title</TableCell>
-              <TableCell style={{ width: "35%", fontWeight: 900 }}>MISP Tag</TableCell>
+              <TableCell style={{ width: "35%", fontWeight: 900 }}>Topic Tags</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

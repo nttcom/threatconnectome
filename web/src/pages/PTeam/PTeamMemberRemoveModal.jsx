@@ -17,7 +17,7 @@ import { useDeletePTeamMemberMutation } from "../../services/tcApi";
 import { errorToString } from "../../utils/func";
 
 export function PTeamMemberRemoveModal(props) {
-  const { userId, userName, pteamId, pteamName, onClose } = props;
+  const { memberUserId, userName, pteamId, pteamName, onClose } = props;
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -31,7 +31,7 @@ export function PTeamMemberRemoveModal(props) {
     function onError(error) {
       enqueueSnackbar(`Remove member failed: ${errorToString(error)}`, { variant: "error" });
     }
-    await deletePTeamMember({ pteamId, userId })
+    await deletePTeamMember({ pteamId, userId: memberUserId })
       .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));
@@ -75,7 +75,7 @@ export function PTeamMemberRemoveModal(props) {
 }
 
 PTeamMemberRemoveModal.propTypes = {
-  userId: PropTypes.string.isRequired,
+  memberUserId: PropTypes.string.isRequired,
   userName: PropTypes.string.isRequired,
   pteamId: PropTypes.string.isRequired,
   pteamName: PropTypes.string.isRequired,

@@ -1,4 +1,4 @@
-import { Edit as EditIcon, Update as UpdateIcon } from "@mui/icons-material";
+import { Update as UpdateIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -8,7 +8,6 @@ import {
   Chip,
   Collapse,
   Divider,
-  IconButton,
   List,
   Switch,
   Typography,
@@ -19,7 +18,7 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamTopicActionsQuery,
   useGetTicketsQuery,
@@ -27,23 +26,22 @@ import {
   useGetTopicQuery,
   useGetDependenciesQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { dateTimeFormat, errorToString } from "../../utils/func";
 import { parseVulnerableVersions, versionMatch } from "../../utils/versions";
 
 import { ActionItem } from "./ActionItem";
-import { TopicModal } from "./TopicModal";
 import { TopicTicketAccordion } from "./TopicTicketAccordion";
 
 export function TopicCard(props) {
-  const { pteamId, topicId, currentTagId, service, references, members } = props;
+  const { pteamId, topicId, service, references, members } = props;
   const { tagId } = useParams();
   const serviceId = service?.service_id;
 
   const [detailOpen, setDetailOpen] = useState(false);
-  const [topicModalOpen, setTopicModalOpen] = useState(false);
   const [actionFilter, setActionFilter] = useState(true);
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
 
+  const skipByAuth = useSkipUntilAuthUserIsReady();
   const {
     data: topic,
     error: topicError,
@@ -88,17 +86,19 @@ export function TopicCard(props) {
 
   if (skipByAuth || skipByPTeamId || skipByTopicId || skipByServiceId || skipBytagId) return <></>;
   if (pteamTopicActionsError)
-    return <>{`Cannot get topicActions: ${errorToString(pteamTopicActionsError)}`}</>;
+    throw new APIError(errorToString(pteamTopicActionsError), { api: "getPTeamTopicActions" });
   if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
   if (ticketsRelatedToServiceTopicTagError)
-    return <>{`Cannot get tcikets: ${errorToString(ticketsRelatedToServiceTopicTagError)}`}</>;
+    throw new APIError(errorToString(ticketsRelatedToServiceTopicTagError), {
+      api: "getTicketsRelatedToServiceTopicTag",
+    });
   if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
-  if (topicError) return <>{`Cannot get Topic: ${errorToString(topicError)}`}</>;
+  if (topicError) throw new APIError(errorToString(topicError), { api: "getTopic" });
   if (topicIsLoading) return <>Now loading Topic...</>;
-  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getAllTags" });
   if (allTagsIsLoading) return <>Now loading allTags...</>;
   if (serviceDependenciesError)
-    return <>{`Cannot get serviceDependencies: ${errorToString(serviceDependenciesError)}`}</>;
+    throw new APIError(errorToString(serviceDependenciesError), { api: "getServiceDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
   if (!pteamId || !serviceId || !members || !tagId) {
     return <>Now Loading...</>;
@@ -162,20 +162,6 @@ export function TopicCard(props) {
             </Box>
           </Box>
         </Box>
-        <Box mt={3} mr={2} display="flex" flexDirection="row">
-          <IconButton onClick={() => setTopicModalOpen(true)}>
-            <EditIcon />
-          </IconButton>
-        </Box>
-        <TopicModal
-          open={topicModalOpen}
-          onSetOpen={setTopicModalOpen}
-          presetTopic={topic}
-          presetTagId={currentTagId}
-          presetParentTagId={currentTagDict.parent_id}
-          presetActions={pteamTopicActions}
-          pteamId={pteamId}
-        />
       </Box>
       <Divider />
       <Box display="flex" sx={{ height: "350px" }}>
@@ -330,7 +316,7 @@ export function TopicCard(props) {
               {topic.misp_tags && topic.misp_tags.length > 0 && (
                 <>
                   <Typography sx={{ fontWeight: 900 }} mt={3} mb={2}>
-                    MISP tags
+                    Topic tags
                   </Typography>
                   <Box mb={5}>
                     {topic.misp_tags.map((mispTag) => (
@@ -397,7 +383,6 @@ export function TopicCard(props) {
 TopicCard.propTypes = {
   pteamId: PropTypes.string.isRequired,
   topicId: PropTypes.string.isRequired,
-  currentTagId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
   members: PropTypes.object.isRequired,

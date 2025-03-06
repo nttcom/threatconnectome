@@ -17,6 +17,7 @@ services:
     env_file:
       - ./.env
     environment:
+      - AUTH_SERVICE=FIREBASE
       - FIREBASE_AUTH_EMULATOR_HOST=firebase:9099 # use firebase auth emulator
     labels:
       - traefik.http.routers.api.entrypoints=http
@@ -52,6 +53,7 @@ services:
       retries: 2
     volumes:
       - ./data:/var/lib/postgresql/data
+      - ./demo/demo_db_init.d:/docker-entrypoint-initdb.d
   traefik:
     image: traefik:latest
     depends_on:

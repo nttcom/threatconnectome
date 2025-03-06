@@ -15,14 +15,16 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { amber, green, grey, orange, red, yellow } from "@mui/material/colors";
+import { green, grey, yellow } from "@mui/material/colors";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
-import { errorToString } from "../../utils/func";
+import { APIError } from "../../utils/APIError";
+import { cvssProps } from "../../utils/const";
+import { errorToString, cvssConvertToName } from "../../utils/func";
 
 import { TopicSSVCCards } from "./TopicSSVCCards";
 
@@ -47,8 +49,7 @@ export function TopicDetail() {
 
   const [showAllArtifacts, setShowAllArtifacts] = useState(false);
 
-  const skip = useSkipUntilAuthTokenIsReady();
-
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: topic,
     error: topicError,
@@ -62,34 +63,24 @@ export function TopicDetail() {
   } = useGetTopicActionsQuery(topicId, { skip });
 
   if (skip) return <></>;
-  if (topicError) return <>{`Cannot get Topic: ${errorToString(topicError)}`}</>;
+  if (topicError) throw new APIError(errorToString(topicError), { api: "getTopic" });
   if (topicIsLoading) return <>Now loading Topic...</>;
   if (topicActionsError)
-    return <>{`Cannot get topicActions: ${errorToString(topicActionsError)}`}</>;
+    throw new APIError(errorToString(topicActionsError), { api: "getTopicActions" });
   if (topicActionsIsLoading) return <>Now loading topicActions...</>;
 
-  const CVSSScore =
+  const cvssScore =
     topic.cvss_v3_score === undefined || topic.cvss_v3_score === null ? "N/A" : topic.cvss_v3_score;
-  let CVSSBgcolor;
-  let threatCardBgcolor;
-  if (CVSSScore === "N/A" || CVSSScore === 0.0) {
-    CVSSBgcolor = grey[600];
-    threatCardBgcolor = grey[100];
-  } else if (CVSSScore < 7.0) {
-    CVSSBgcolor = amber[600];
-    threatCardBgcolor = amber[100];
-  } else if (CVSSScore < 9.0) {
-    CVSSBgcolor = orange[600];
-    threatCardBgcolor = orange[100];
-  } else {
-    CVSSBgcolor = red[600];
-    threatCardBgcolor = red[100];
-  }
+
+  const cvss = cvssConvertToName(cvssScore);
 
   return (
     <>
       <Box>
-        <Card variant="outlined" sx={{ margin: 1, backgroundColor: threatCardBgcolor }}>
+        <Card
+          variant="outlined"
+          sx={{ margin: 1, backgroundColor: cvssProps[cvss].threatCardBgcolor }}
+        >
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
               <Avatar
@@ -98,11 +89,11 @@ export function TopicDetail() {
                   height: 60,
                   width: 60,
                   fontWeight: "bold",
-                  backgroundColor: CVSSBgcolor,
+                  backgroundColor: cvssProps[cvss].cvssBgcolor,
                 }}
                 variant="rounded"
               >
-                {CVSSScore === "N/A" ? CVSSScore : CVSSScore.toFixed(1)}
+                {cvssScore === "N/A" ? cvssScore : cvssScore.toFixed(1)}
               </Avatar>
               <Typography variant="h5">{topic.title}</Typography>
             </Box>
@@ -203,11 +194,11 @@ export function TopicDetail() {
         </Card>
         {/* SSVC decision points */}
         <TopicSSVCCards exploitation={topic.exploitation} automatable={topic.automatable} />
-        {/* MISP Tag */}
+        {/* Topic Tag */}
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
-              <Typography sx={{ fontWeight: "bold" }}>MISP Tag</Typography>
+              <Typography sx={{ fontWeight: "bold" }}>Topic Tags</Typography>
             </Box>
             {topic.misp_tags.length === 0 ? (
               <Typography sx={{ margin: 1 }}>No data</Typography>

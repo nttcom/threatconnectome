@@ -5,13 +5,14 @@ import { useParams, useLocation } from "react-router-dom";
 
 import { TabPanel } from "../../components/TabPanel";
 import { UUIDTypography } from "../../components/UUIDTypography";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
   useGetPTeamServiceTaggedTopicIdsQuery,
   useGetTagsQuery,
   useGetDependenciesQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError.js";
 import { noPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
@@ -21,7 +22,7 @@ import { TagReferences } from "./TagReferences.jsx";
 export function Tag() {
   const [tabValue, setTabValue] = useState(0);
 
-  const skipByAuth = useSkipUntilAuthTokenIsReady();
+  const skipByAuth = useSkipUntilAuthUserIsReady();
   const {
     data: allTags,
     error: allTagsError,
@@ -61,15 +62,15 @@ export function Tag() {
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (!getTopicIdsReady) return <></>;
-  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
+  if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getTags" });
   if (allTagsIsLoading) return <>Now loading allTags...</>;
-  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
-  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
+  if (pteamIsLoading) return <>Now loading Team...</>;
   if (serviceDependenciesError)
-    return <>{`Cannot get serviceDependencies: ${errorToString(serviceDependenciesError)}`}</>;
+    throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
   if (taggedTopicsError)
-    return <>{`Cannot get TaggedTopics: ${errorToString(taggedTopicsError)}`}</>;
+    throw new APIError(errorToString(taggedTopicsError), { api: "getPTeamServiceTaggedTopicIds" });
   if (taggedTopicsIsLoading) return <>Now loading TaggedTopics...</>;
 
   const numSolved = taggedTopics.solved?.topic_ids?.length ?? 0;
@@ -127,7 +128,6 @@ export function Tag() {
         <TabPanel value={tabValue} index={0}>
           <PTeamTaggedTopics
             pteamId={pteamId}
-            tagId={tagId}
             service={serviceDict}
             references={references}
             taggedTopics={taggedTopicsUnsolved}
@@ -136,7 +136,6 @@ export function Tag() {
         <TabPanel value={tabValue} index={1}>
           <PTeamTaggedTopics
             pteamId={pteamId}
-            tagId={tagId}
             service={serviceDict}
             references={references}
             taggedTopics={taggedTopicsSolved}

@@ -39,6 +39,18 @@ header_threat = {
 }
 
 
+def _get_access_token(user: dict) -> str:
+    body = {
+        "username": user["email"],
+        "password": user["pass"],
+    }
+    response = client.post("/auth/token", data=body)
+    if response.status_code != 200:
+        raise HTTPError(response)
+    data = response.json()
+    return data["access_token"]
+
+
 @pytest.fixture(scope="function")
 def threat1(testdb: Session) -> schemas.ThreatResponse:
     return threat_utils.create_threat(testdb, USER1, PTEAM1, TOPIC1, None)
@@ -49,9 +61,15 @@ def threat2(testdb: Session) -> schemas.ThreatResponse:
     return threat_utils.create_threat(testdb, USER2, PTEAM2, TOPIC2, None)
 
 
-def test_get_threat(threat1: schemas.ThreatResponse):
+def test_get_threat(threat1: schemas.ThreatResponse, threat2: schemas.ThreatResponse):
+    user1_access_token = _get_access_token(USER1)
+    _headers = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
 
-    response = client.get("/threats/" + str(threat1.threat_id), headers=header_threat)
+    response = client.get("/threats/" + str(threat1.threat_id), headers=_headers)
     if response.status_code != 200:
         raise HTTPError(response)
     data = response.json()
@@ -65,11 +83,29 @@ def test_get_threat(threat1: schemas.ThreatResponse):
         assert data["threat_safety_impact"] == threat1.threat_safety_impact
 
 
-def test_get_threat_no_data():
+def test_get_threat_no_data(threat1: schemas.ThreatResponse):
+    user1_access_token = _get_access_token(USER1)
+    _headers = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
     with pytest.raises(HTTPError, match=r"404: Not Found: No such threat"):
-        response = client.get(
-            "/threats/3fa85f64-5717-4562-b3fc-2c963f66afa6", headers=header_threat
-        )
+        response = client.get("/threats/3fa85f64-5717-4562-b3fc-2c963f66afa6", headers=_headers)
+        if response.status_code != 200:
+            raise HTTPError(response)
+
+
+def test_get_threat_invalid_user(threat1: schemas.ThreatResponse, threat2: schemas.ThreatResponse):
+    user2_access_token = _get_access_token(USER2)
+    _headers = {
+        "Authorization": f"Bearer {user2_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+
+    with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
+        response = client.get("/threats/" + str(threat1.threat_id), headers=_headers)
         if response.status_code != 200:
             raise HTTPError(response)
 
@@ -168,7 +204,14 @@ def test_get_all_threats(testdb: Session):
     persistence.create_threat(testdb, threat2)
     testdb.commit()
 
-    response = client.get("/threats", headers=header_threat)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+
+    response = client.get("/threats", headers=_headers_user1)
     if response.status_code != 200:
         raise HTTPError(response)
     data = response.json()
@@ -186,6 +229,109 @@ def test_get_all_threats(testdb: Session):
     assert response_threat2["dependency_id"] == str(threat2.dependency_id)
     assert response_threat2["topic_id"] == str(threat2.topic_id)
     assert response_threat2["threat_safety_impact"] == threat2_safety_impact
+
+
+def test_get_all_threats_no_threat_user(testdb: Session):
+    # create pteam
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+
+    create_user(USER2)
+
+    # create topic
+    tag1 = create_tag(USER1, TAG1)
+    tag2 = create_tag(USER1, TAG2)
+
+    action1 = {
+        **ACTION1,
+        "ext": {
+            "tags": [tag1.parent_name],
+            "vulnerable_versions": {
+                tag1.parent_name: ["<0.30"],
+            },
+        },
+    }
+    action2 = {
+        **ACTION1,
+        "ext": {
+            "tags": [tag2.parent_name],
+            "vulnerable_versions": {
+                tag1.parent_name: ["<0.30"],
+            },
+        },
+    }
+
+    topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.parent_name]}, actions=[action1])
+    topic2 = create_topic(USER1, {**TOPIC2, "tags": [tag2.parent_name]}, actions=[action2])
+
+    # create service
+    service1_name = "service_x"
+    service1_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Service).values(
+            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=service1_name
+        )
+    )
+
+    service2_name = "service_y"
+    service2_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Service).values(
+            service_id=service2_id, pteam_id=pteam1.pteam_id, service_name=service2_name
+        )
+    )
+
+    # create dependency
+    dependency1_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Dependency).values(
+            dependency_id=dependency1_id,
+            service_id=service1_id,
+            tag_id=str(tag1.tag_id),
+            version="1.0",
+            target="Pipfile.lock",
+        )
+    )
+
+    dependency2_id = str(uuid.uuid4())
+    testdb.execute(
+        insert(models.Dependency).values(
+            dependency_id=dependency2_id,
+            service_id=service2_id,
+            tag_id=str(tag2.tag_id),
+            version="1.0",
+            target="Pipfile.lock",
+        )
+    )
+
+    # create threat
+    threat1 = models.Threat(
+        dependency_id=str(dependency1_id),
+        topic_id=str(topic1.topic_id),
+    )
+
+    threat2 = models.Threat(
+        dependency_id=str(dependency2_id),
+        topic_id=str(topic2.topic_id),
+    )
+
+    persistence.create_threat(testdb, threat1)
+    persistence.create_threat(testdb, threat2)
+    testdb.commit()
+
+    user2_access_token = _get_access_token(USER2)
+    _headers_user2 = {
+        "Authorization": f"Bearer {user2_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+
+    response = client.get("/threats", headers=_headers_user2)
+    if response.status_code != 200:
+        raise HTTPError(response)
+
+    data = response.json()
+    assert len(data) == 0
 
 
 @pytest.mark.parametrize(
@@ -299,7 +445,14 @@ def test_get_all_threats_with_param(
     if exist_topic_id:
         params["topic_id"] = str(threat1.topic_id)
 
-    response = client.get("/threats", headers=header_threat, params=params)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+
+    response = client.get("/threats", headers=_headers_user1, params=params)
     if response.status_code != 200:
         raise HTTPError(response)
     data = response.json()
@@ -378,69 +531,35 @@ def test_create_threat(testdb: Session):
 
 
 @pytest.mark.parametrize(
-    "threat_safety_impact",
+    "threat_safety_impact, reason_safety_impact",
     [
-        (models.SafetyImpactEnum.NEGLIGIBLE),
-        (models.SafetyImpactEnum.MARGINAL),
-        (models.SafetyImpactEnum.CRITICAL),
-        (models.SafetyImpactEnum.CATASTROPHIC),
+        (models.SafetyImpactEnum.NEGLIGIBLE, "test reason1"),
+        (models.SafetyImpactEnum.MARGINAL, "test reason2"),
+        (models.SafetyImpactEnum.CRITICAL, None),
+        (
+            models.SafetyImpactEnum.CATASTROPHIC,
+            "",
+        ),
     ],
 )
-def test_update_threat_safety_impact(
-    testdb: Session, threat_safety_impact: models.SafetyImpactEnum
+def test_update_threat(
+    threat1: schemas.ThreatResponse,
+    testdb: Session,
+    threat_safety_impact: models.SafetyImpactEnum,
+    reason_safety_impact: str,
 ):
-    # create pteam
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    # create topic
-    tag1 = create_tag(USER1, TAG1)
-
-    action1 = {
-        **ACTION1,
-        "ext": {
-            "tags": [tag1.parent_name],
-            "vulnerable_versions": {
-                tag1.parent_name: ["<0.30"],
-            },
-        },
+    request = schemas.ThreatUpdateRequest(
+        threat_safety_impact=threat_safety_impact, reason_safety_impact=reason_safety_impact
+    ).model_dump()
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
     }
-
-    topic1 = create_topic(USER1, {**TOPIC1, "tags": [tag1.parent_name]}, actions=[action1])
-    # create service
-    service1_name = "service_x"
-    service1_id = str(uuid.uuid4())
-    testdb.execute(
-        insert(models.Service).values(
-            service_id=service1_id, pteam_id=pteam1.pteam_id, service_name=service1_name
-        )
-    )
-
-    # create dependency
-    dependency1_id = str(uuid.uuid4())
-    testdb.execute(
-        insert(models.Dependency).values(
-            dependency_id=dependency1_id,
-            service_id=service1_id,
-            tag_id=str(tag1.tag_id),
-            version="1.0",
-            target="Pipfile.lock",
-        )
-    )
-
-    # create threat
-    threat1 = models.Threat(
-        dependency_id=str(dependency1_id),
-        topic_id=str(topic1.topic_id),
-    )
-
-    persistence.create_threat(testdb, threat1)
-    testdb.commit()
-
-    request = schemas.ThreatUpdateRequest(threat_safety_impact=threat_safety_impact).model_dump()
     response = client.put(
         "/threats/" + str(threat1.threat_id),
-        headers=header_threat,
+        headers=_headers_user1,
         json=request,
     )
     if response.status_code != 200:
@@ -454,13 +573,183 @@ def test_update_threat_safety_impact(
         threat_safety_impact.value if threat_safety_impact is not None else None
     )
     assert data["threat_safety_impact"] == threat_safety_impact_value
+    expected_reason_safety_impact = None if reason_safety_impact == "" else reason_safety_impact
+    assert data["reason_safety_impact"] == expected_reason_safety_impact
 
     db_data = persistence.get_threat_by_id(testdb, threat1.threat_id)
     assert db_data
     assert str(db_data.threat_id) == str(threat1.threat_id)
     assert str(db_data.dependency_id) == str(threat1.dependency_id)
     assert str(db_data.topic_id) == str(threat1.topic_id)
+
     db_data_threat_safety_impact_value = (
         db_data.threat_safety_impact.value if db_data.threat_safety_impact is not None else None
     )
     assert db_data_threat_safety_impact_value == threat_safety_impact_value
+
+    assert db_data.reason_safety_impact == expected_reason_safety_impact
+
+
+def test_update_threat_should_set_None_when_threat_safety_impact_is_None(
+    threat1: schemas.ThreatResponse,
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    advance_request = {"threat_safety_impact": models.SafetyImpactEnum.CRITICAL.value}
+    response = client.put(update_url, headers=_headers_user1, json=advance_request)
+
+    none_request = {"threat_safety_impact": None}
+    response = client.put(update_url, headers=_headers_user1, json=none_request)
+
+    assert response.status_code == 200
+    assert response.json()["threat_safety_impact"] is None
+
+
+def test_update_threat_should_not_set_when_threat_safety_impact_is_not_specifye(
+    threat1: schemas.ThreatResponse,
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+
+    advance_request = {"threat_safety_impact": models.SafetyImpactEnum.CRITICAL.value}
+    response = client.put(update_url, headers=_headers_user1, json=advance_request)
+
+    empty_request: dict = {}
+    response = client.put(update_url, headers=_headers_user1, json=empty_request)
+
+    assert response.status_code == 200
+    assert response.json()["threat_safety_impact"] == models.SafetyImpactEnum.CRITICAL.value
+
+
+def test_update_threat_should_set_None_when_reason_safety_impact_is_None(
+    threat1: schemas.ThreatResponse,
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    advance_request = {"reason_safety_impact": "advance reason"}
+    response = client.put(update_url, headers=_headers_user1, json=advance_request)
+
+    none_request = {"reason_safety_impact": None}
+    response = client.put(update_url, headers=_headers_user1, json=none_request)
+
+    assert response.status_code == 200
+    assert response.json()["threat_safety_impact"] is None
+
+
+def test_update_threat_should_not_set_when_reason_safety_impact_is_not_specifye(
+    threat1: schemas.ThreatResponse,
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    test_reason = "test reason"
+    advance_request = {"reason_safety_impact": test_reason}
+    response = client.put(update_url, headers=_headers_user1, json=advance_request)
+
+    empty_request: dict = {}
+    response = client.put(update_url, headers=_headers_user1, json=empty_request)
+
+    assert response.status_code == 200
+    assert response.json()["reason_safety_impact"] == test_reason
+
+
+@pytest.mark.parametrize(
+    "reason",
+    [
+        ("123456789_" * 50),
+        ("１２３４５６７８９＿" * 25),
+    ],
+)
+def test_max_length_of_reason_safety_impact(threat1: schemas.ThreatResponse, reason):
+
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    request = {"reason_safety_impact": reason}
+    response = client.put(update_url, headers=_headers_user1, json=request)
+
+    assert response.status_code == 200
+    assert response.json()["reason_safety_impact"] == reason
+
+
+@pytest.mark.parametrize(
+    "reason",
+    [
+        ("123456789_" * 50 + "x"),
+        ("１２３４５６７８９＿" * 25 + "ｘ"),
+    ],
+)
+def test_it_shoud_return400_when_too_long_reason_safety_impact(
+    threat1: schemas.ThreatResponse, reason
+):
+    update_url = "/threats/" + str(threat1.threat_id)
+    user1_access_token = _get_access_token(USER1)
+    _headers_user1 = {
+        "Authorization": f"Bearer {user1_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+    request = {"reason_safety_impact": reason}
+    response = client.put(update_url, headers=_headers_user1, json=request)
+
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "Too long reason_safety_impact. Max length is 500 in half-width or 250 in full-width"
+    )
+
+
+@pytest.mark.parametrize(
+    "threat_safety_impact",
+    [
+        (models.SafetyImpactEnum.NEGLIGIBLE),
+        (models.SafetyImpactEnum.MARGINAL),
+        (models.SafetyImpactEnum.CRITICAL),
+        (models.SafetyImpactEnum.CATASTROPHIC),
+    ],
+)
+def test_update_threat_invalid_user(
+    threat1: schemas.ThreatResponse, testdb: Session, threat_safety_impact: models.SafetyImpactEnum
+):
+
+    create_user(USER2)
+
+    request = schemas.ThreatUpdateRequest(threat_safety_impact=threat_safety_impact).model_dump()
+    user2_access_token = _get_access_token(USER2)
+    _headers_user2 = {
+        "Authorization": f"Bearer {user2_access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json",
+    }
+
+    with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
+        response = client.put(
+            "/threats/" + str(threat1.threat_id),
+            headers=_headers_user2,
+            json=request,
+        )
+        if response.status_code != 200:
+            raise HTTPError(response)

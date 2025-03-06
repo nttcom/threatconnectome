@@ -1,5 +1,7 @@
 import { addMinutes, format } from "date-fns";
 
+import { cvssRatings } from "./const";
+
 export const a11yProps = (index) => ({
   id: `tab-${index}`,
   "aria-controls": `tabpanel-${index}`,
@@ -40,20 +42,6 @@ export const pickParentTagName = (tagName) => {
   const tokens = tagName.split(":");
   if (tokens.length < 3) return null;
   return tokens.slice(0, -1).join(":") + ":"; // trim the right most token
-};
-
-export const pickMismatchedTopicActionTags = (topicTagNames, actionTagNames) => {
-  const mismatchedTagNames = actionTagNames.reduce(
-    (ret, actionTagName) => [
-      ...ret,
-      ...(topicTagNames.includes(actionTagName) ||
-      topicTagNames.includes(pickParentTagName(actionTagName))
-        ? []
-        : [actionTagName]),
-    ],
-    [],
-  );
-  return mismatchedTagNames;
 };
 
 export const validateNotEmpty = (str) => str?.length > 0;
@@ -118,4 +106,34 @@ export const compareSSVCPriority = (prio1, prio2) => {
   if (int1 === int2) return 0;
   else if (int1 < int2) return -1;
   else return 1;
+};
+
+export const cvssConvertToName = (cvssScore) => {
+  let rating;
+  if (0 < cvssScore && cvssScore < 4.0) {
+    rating = "Low";
+  } else if (4.0 <= cvssScore && cvssScore < 7.0) {
+    rating = "Medium";
+  } else if (7.0 <= cvssScore && cvssScore < 9.0) {
+    rating = "High";
+  } else if (9.0 <= cvssScore && cvssScore <= 10.0) {
+    rating = "Critical";
+  } else {
+    rating = "None";
+  }
+  return rating;
+};
+
+export const cvssConvertToScore = (cvssName) => {
+  const rating = cvssRatings[cvssName];
+  if (rating) {
+    return [rating.min, rating.max];
+  }
+  return [undefined, undefined];
+};
+
+export const checkAdmin = (member, pteamId) => {
+  return member.pteam_roles.some(
+    (pteam_role) => pteam_role.pteam.pteam_id === pteamId && pteam_role.is_admin,
+  );
 };

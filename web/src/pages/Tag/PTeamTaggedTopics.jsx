@@ -2,27 +2,23 @@ import { Box, List, ListItem, MenuItem, Pagination, Select, Typography } from "@
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
-import { useGetPTeamMembersQuery, useGetTagsQuery } from "../../services/tcApi";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import { useGetPTeamMembersQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { sortedSSVCPriorities } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
-import { PTeamStatusMenu } from "./PTeamStatusMenu";
 import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 import { TopicCard } from "./TopicCard";
 
 export function PTeamTaggedTopics(props) {
-  const { pteamId, tagId, service, references, taggedTopics } = props;
+  const { pteamId, service, references, taggedTopics } = props;
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
-  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
-  const {
-    data: allTags,
-    error: allTagsError,
-    isLoading: allTagsIsLoading,
-  } = useGetTagsQuery(undefined, { skip });
+  const skip = useSkipUntilAuthUserIsReady() || !pteamId;
+
   const {
     data: members,
     error: membersError,
@@ -30,9 +26,7 @@ export function PTeamTaggedTopics(props) {
   } = useGetPTeamMembersQuery(pteamId, { skip });
 
   if (skip) return <></>;
-  if (allTagsError) return <>{`Cannot get allTags: ${errorToString(allTagsError)}`}</>;
-  if (allTagsIsLoading) return <>Now loading allTags...</>;
-  if (membersError) return <>{`Cannot get PTeamMembers: ${errorToString(membersError)}`}</>;
+  if (membersError) throw new APIError(errorToString(membersError), { api: "getPTeamMembers" });
   if (membersIsLoading) return <>Now loading PTeamMembers...</>;
 
   if (taggedTopics === undefined) {
@@ -40,8 +34,6 @@ export function PTeamTaggedTopics(props) {
   }
 
   const targetTopicIds = taggedTopics.topic_ids.slice(perPage * (page - 1), perPage * page);
-  const presetTagId = tagId;
-  const presetParentTagId = allTags.find((tag) => tag.tag_id === tagId)?.parent_id;
 
   const paginationRow = (
     <Box display="flex" alignItems="center" sx={{ mt: 1 }}>
@@ -83,12 +75,6 @@ export function PTeamTaggedTopics(props) {
             outerSx={{ mr: "10px" }}
           />
         ))}
-        <Box flexGrow={1} />
-        <PTeamStatusMenu
-          presetTagId={presetTagId}
-          presetParentTagId={presetParentTagId}
-          pteamId={pteamId}
-        />
       </Box>
       {paginationRow}
       <List sx={{ p: 0 }}>
@@ -98,7 +84,6 @@ export function PTeamTaggedTopics(props) {
               key={topicId}
               pteamId={pteamId}
               topicId={topicId}
-              currentTagId={tagId}
               service={service}
               references={references}
               members={members}
@@ -112,7 +97,6 @@ export function PTeamTaggedTopics(props) {
 }
 PTeamTaggedTopics.propTypes = {
   pteamId: PropTypes.string.isRequired,
-  tagId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
   taggedTopics: PropTypes.object.isRequired,

@@ -3,8 +3,9 @@ import { useSnackbar } from "notistack";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useApplyPTeamInvitationMutation, useGetPTeamInvitationQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { commonButtonStyle } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
@@ -18,7 +19,7 @@ export function AcceptPTeamInvitation() {
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: detail,
     error: detailError,
@@ -26,7 +27,10 @@ export function AcceptPTeamInvitation() {
   } = useGetPTeamInvitationQuery(tokenId, { skip });
 
   if (skip) return <></>;
-  if (detailError) return <>{"This invitation is invalid or already expired."}</>;
+  if (detailError)
+    throw new APIError("This invitation is invalid or already expired.", {
+      api: "getPTeamInvitation",
+    });
   if (detailIsLoading) return <>Now loading user info...</>;
 
   const handleAccept = async (event) => {
@@ -48,9 +52,9 @@ export function AcceptPTeamInvitation() {
 
   return (
     <>
-      <Typography variant="h6">Do you accept the invitation to the pteam below?</Typography>
-      <Typography>PTeam Name: {detail.pteam_name}</Typography>
-      <Typography>PTeam ID: {detail.pteam_id}</Typography>
+      <Typography variant="h6">Do you accept the invitation to the team below?</Typography>
+      <Typography>Team Name: {detail.pteam_name}</Typography>
+      <Typography>Team ID: {detail.pteam_id}</Typography>
       <Typography>
         Invitation created by {detail.email} ({detail.user_id})
       </Typography>

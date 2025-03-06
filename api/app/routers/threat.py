@@ -3,8 +3,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app import command, persistence, schemas
+from app import command, models, persistence, schemas
+from app.auth.account import get_current_user
 from app.database import get_db
+from app.routers.validators.account_validator import check_pteam_membership
+from app.utility.unicode_tool import count_full_width_and_half_width_characters
 
 router = APIRouter(prefix="/threats", tags=["threats"])
 
@@ -14,6 +17,7 @@ def get_threats(
     service_id: UUID | None = Query(None),
     dependency_id: UUID | None = Query(None),
     topic_id: UUID | None = Query(None),
+    current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -24,13 +28,15 @@ def get_threats(
     - **dependency_id** (Optional) filter by specified service_id. Default is None.
     - **topic_id** (Optional) filter by specified topic_id. Default is None.
     """
-    threats = command.search_threats(db, service_id, dependency_id, topic_id)
+    threats = command.search_threats(db, service_id, dependency_id, topic_id, current_user.user_id)
+
     return threats
 
 
 @router.get("/{threat_id}", response_model=schemas.ThreatResponse)
 def get_threat(
     threat_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -39,23 +45,57 @@ def get_threat(
     if not (threat := persistence.get_threat_by_id(db, threat_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
 
-    return threat
+    pteam = threat.dependency.service.pteam
+
+    if check_pteam_membership(pteam, current_user):
+        return threat
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
 
 
 @router.put("/{threat_id}", response_model=schemas.ThreatResponse)
 def update_threat_safety_impact(
     threat_id: UUID,
     requests: schemas.ThreatUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Update threat_safety_impact.
     """
+    max_reason_safety_impact_length_in_half = 500
 
     if not (threat := persistence.get_threat_by_id(db, threat_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
 
-    threat.threat_safety_impact = requests.threat_safety_impact
+    pteam = threat.dependency.service.pteam
+
+    if not check_pteam_membership(pteam, current_user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
+
+    update_data = requests.model_dump(exclude_unset=True)
+    if "threat_safety_impact" in update_data.keys():
+        threat.threat_safety_impact = requests.threat_safety_impact
+    if "reason_safety_impact" in update_data.keys():
+        if requests.reason_safety_impact is None:
+            threat.reason_safety_impact = None
+        elif reason_safety_impact := requests.reason_safety_impact.strip():
+            if (
+                count_full_width_and_half_width_characters(reason_safety_impact)
+                > max_reason_safety_impact_length_in_half
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Too long reason_safety_impact. "
+                        f"Max length is {max_reason_safety_impact_length_in_half} in half-width "
+                        f"or {int(max_reason_safety_impact_length_in_half / 2)} in full-width"
+                    ),
+                )
+            threat.reason_safety_impact = reason_safety_impact
+        else:
+            threat.reason_safety_impact = None
 
     db.commit()
+
     return threat

@@ -101,7 +101,7 @@ export function Drawer() {
             <StyledListItemIcon>
               <GroupsIcon />
             </StyledListItemIcon>
-            <ListItemText>PTeam</ListItemText>
+            <ListItemText>Team</ListItemText>
           </StyledListItemButton>
         </>
         {/* Topics */}

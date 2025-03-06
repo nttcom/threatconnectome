@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import random
+import re
 import sys
 import uuid
 from functools import partial
@@ -229,8 +230,11 @@ class ThreatconnectomeClient:
         _func = partial(func, *args, **{k: v for k, v in kwargs.items() if k != "headers"})
 
         def _resp_to_msg(resp: requests.Response) -> str:
-            data = resp.json()
-            return f"{resp.status_code}: {resp.reason}: {data.get('detail')}"
+            try:
+                data = resp.json()
+                return f"{resp.status_code}: {resp.reason}: {data.get('detail')}"
+            except ValueError:
+                return f"{resp.status_code}: {resp.reason}: {resp.text}"
 
         while True:
             try:
@@ -533,7 +537,6 @@ def main() -> None:
                     abstract = "\n".join(vuln_details["References"])
                 else:
                     abstract = "There is no description."
-                severity = vuln_details["Severity"]
 
                 if (
                     "CVSS" in vuln_details
@@ -547,7 +550,6 @@ def main() -> None:
             else:
                 title = vuln_id
                 abstract = "This Vuln is not yet published."
-                severity = "UNKNOWN"
                 cvss_v3_score = None
             if vuln_content["tags"]:
                 tags = list(vuln_content["tags"])
@@ -568,15 +570,16 @@ def main() -> None:
                 for x in vuln_content["actions"].values()
             ]
 
-            convert_impact = {"CRITICAL": 1, "HIGH": 2, "MEDIUM": 3, "LOW": 3, "UNKNOWN": 4}
+            CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"
+            cve_id = vuln_id if re.match(CVE_PATTERN, vuln_id) else None
             topics[topic_id] = {
                 "title": title,
                 "abstract": abstract,
-                "threat_impact": convert_impact.get(severity, 4),
                 "tags": tags,
                 "misp_tags": misp_tags,
                 "actions": actions,
                 "cvss_v3_score": cvss_v3_score,
+                "cve_id": cve_id,
             }
 
     tc_client = ThreatconnectomeClient(

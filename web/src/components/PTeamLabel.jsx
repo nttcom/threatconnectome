@@ -3,8 +3,9 @@ import { Box, IconButton, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { useSkipUntilAuthTokenIsReady } from "../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useGetUserMeQuery } from "../services/tcApi";
+import { APIError } from "../utils/APIError";
 import { errorToString } from "../utils/func";
 
 import { PTeamSettingsModal } from "./PTeamSettingsModal";
@@ -15,7 +16,8 @@ export function PTeamLabel(props) {
 
   const [pteamSettingsModalOpen, setPTeamSettingsModalOpen] = useState(false);
 
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
+
   const {
     data: userMe,
     error: userMeError,
@@ -23,10 +25,15 @@ export function PTeamLabel(props) {
   } = useGetUserMeQuery(undefined, { skip });
 
   if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get UserInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeError)
+    throw new APIError(errorToString(userMeError), {
+      api: "getUserMe",
+    });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
-  const pteamName = userMe.pteams.find((pteam) => pteam.pteam_id === pteamId)?.pteam_name ?? "-";
+  const pteamName =
+    userMe.pteam_roles.find((pteam_role) => pteam_role.pteam.pteam_id === pteamId)?.pteam
+      .pteam_name ?? "-";
 
   return (
     <>

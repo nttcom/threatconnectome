@@ -14,8 +14,9 @@ import { useSnackbar } from "notistack";
 import React, { useState } from "react";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery, useUpdateUserMutation } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
 export function Account() {
@@ -27,7 +28,7 @@ export function Account() {
   const { enqueueSnackbar } = useSnackbar();
 
   const [updateUser] = useUpdateUserMutation();
-  const skip = useSkipUntilAuthTokenIsReady();
+  const skip = useSkipUntilAuthUserIsReady();
   const {
     data: userMe,
     error: userMeError,
@@ -35,7 +36,10 @@ export function Account() {
   } = useGetUserMeQuery(undefined, { skip });
 
   if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get user info: ${errorToString(userMeError)}`}</>;
+  if (userMeError)
+    throw new APIError(errorToString(userMeError), {
+      api: "getUserMe",
+    });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
   const handleEditMode = () => {
@@ -109,14 +113,14 @@ export function Account() {
         </Box>
         <Box alignItems="center" display="flex" flexDirection="row" my={1}>
           <Box display="flex" flexDirection="row" width="30%">
-            <Typography>PTeam:</Typography>
+            <Typography>Team:</Typography>
           </Box>
           <Box display="flex" flexDirection="column" width="70%">
-            {userMe.pteams?.length >= 1 ? (
-              userMe.pteams.map((pteam, index) => (
+            {userMe.pteam_roles?.length >= 1 ? (
+              userMe.pteam_roles.map((pteam_role, index) => (
                 <Box alignItems="baseline" display="flex" flexDirection="row" key={index}>
-                  <Typography mr={1}>{pteam.pteam_name}</Typography>
-                  <UUIDTypography>{pteam.pteam_id}</UUIDTypography>
+                  <Typography mr={1}>{pteam_role.pteam.pteam_name}</Typography>
+                  <UUIDTypography>{pteam_role.pteam.pteam_id}</UUIDTypography>
                 </Box>
               ))
             ) : (

@@ -7,22 +7,23 @@ import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { PTeamAuthEditor } from "../../components/PTeamAuthEditor";
-import { useSkipUntilAuthTokenIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery, useGetUserMeQuery } from "../../services/tcApi";
-import { errorToString } from "../../utils/func";
+import { APIError } from "../../utils/APIError";
+import { errorToString, checkAdmin } from "../../utils/func";
 
+import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamMemberRemoveModal } from "./PTeamMemberRemoveModal";
 
 export function PTeamMemberMenu(props) {
-  const { pteamId, userId, userEmail, isAdmin } = props;
+  const { pteamId, memberUserId, userEmail, isTargetMemberAdmin } = props;
 
   const [openAuth, setOpenAuth] = useState(false);
   const [openRemove, setOpenRemove] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  const skip = useSkipUntilAuthTokenIsReady() || !pteamId;
+  const skip = useSkipUntilAuthUserIsReady() || !pteamId;
   const {
     data: userMe,
     error: userMeError,
@@ -35,10 +36,16 @@ export function PTeamMemberMenu(props) {
   } = useGetPTeamQuery(pteamId, { skip });
 
   if (skip) return <></>;
-  if (userMeError) return <>{`Cannot get userInfo: ${errorToString(userMeError)}`}</>;
+  if (userMeError)
+    throw new APIError(errorToString(userMeError), {
+      api: "getUserMe",
+    });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
-  if (pteamError) return <>{`Cannot get PTeam: ${errorToString(pteamError)}`}</>;
-  if (pteamIsLoading) return <>Now loading PTeam...</>;
+  if (pteamError)
+    throw new APIError(errorToString(pteamError), {
+      api: "getPTeam",
+    });
+  if (pteamIsLoading) return <>Now loading Team...</>;
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -51,11 +58,13 @@ export function PTeamMemberMenu(props) {
     setOpenRemove(true);
   };
 
+  const isCurrentUserAdmin = checkAdmin(userMe, pteamId);
+
   return (
     <>
       <Button
-        id={`pteam-member-button-${userId}`}
-        aria-controls={open ? `pteam-member-menu-${userId}` : undefined}
+        id={`pteam-member-button-${memberUserId}`}
+        aria-controls={open ? `pteam-member-menu-${memberUserId}` : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
@@ -63,8 +72,8 @@ export function PTeamMemberMenu(props) {
         <MoreVertIcon sx={{ color: "gray" }} />
       </Button>
       <Menu
-        id={`pteam-member-menu-${userId}`}
-        aria-labelledby={`pteam-member-button-${userId}`}
+        id={`pteam-member-menu-${memberUserId}`}
+        aria-labelledby={`pteam-member-button-${memberUserId}`}
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
@@ -75,10 +84,10 @@ export function PTeamMemberMenu(props) {
           <KeyIcon sx={{ mr: 1 }} />
           Authorities
         </MenuItem>
-        {(isAdmin || userId === userMe.user_id) && (
+        {(isCurrentUserAdmin || memberUserId === userMe.user_id) && (
           <MenuItem onClick={handleRemoveMember}>
             <PersonOffIcon sx={{ mr: 1 }} />
-            Remove from PTeam
+            Remove from Team
           </MenuItem>
         )}
       </Menu>
@@ -86,28 +95,32 @@ export function PTeamMemberMenu(props) {
         <DialogContent>
           <PTeamAuthEditor
             pteamId={pteamId}
-            userId={userId}
+            memberUserId={memberUserId}
             userEmail={userEmail}
+            isTargetMemberAdmin={isTargetMemberAdmin}
+            isCurrentUserAdmin={isCurrentUserAdmin}
             onClose={() => setOpenAuth(false)}
           />
         </DialogContent>
       </Dialog>
-      <Dialog open={openRemove} onClose={() => setOpenRemove(false)}>
-        <PTeamMemberRemoveModal
-          userId={userId}
-          userName={userEmail}
-          pteamId={pteamId}
-          pteamName={pteam.pteam_name}
-          onClose={() => setOpenRemove(false)}
-        />
-      </Dialog>
+      {(isCurrentUserAdmin || memberUserId === userMe.user_id) && (
+        <Dialog open={openRemove} onClose={() => setOpenRemove(false)}>
+          <PTeamMemberRemoveModal
+            memberUserId={memberUserId}
+            userName={userEmail}
+            pteamId={pteamId}
+            pteamName={pteam.pteam_name}
+            onClose={() => setOpenRemove(false)}
+          />
+        </Dialog>
+      )}
     </>
   );
 }
 
 PTeamMemberMenu.propTypes = {
   pteamId: PropTypes.string.isRequired,
-  userId: PropTypes.string.isRequired,
+  memberUserId: PropTypes.string.isRequired,
   userEmail: PropTypes.string.isRequired,
-  isAdmin: PropTypes.bool.isRequired,
+  isTargetMemberAdmin: PropTypes.bool.isRequired,
 };

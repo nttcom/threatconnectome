@@ -492,6 +492,23 @@ class TestUpdatePartialAction:
         data = common_put(USER1, self.action1_api, ext=new_ext)
         assert data == {**self.action_data1, "ext": new_ext}
 
+    @pytest.mark.parametrize(
+        "field_name, expected_response_detail",
+        [
+            ("action", "Cannot specify None for action"),
+            ("action_type", "Cannot specify None for action_type"),
+            ("recommended", "Cannot specify None for recommended"),
+            ("ext", "Cannot specify None for ext"),
+        ],
+    )
+    def test_update_should_return_400_when_required_fields_is_None(
+        self, field_name, expected_response_detail
+    ):
+        request = {field_name: None}
+        response = client.put(self.action1_api, headers=headers(USER1), json=request)
+        assert response.status_code == 400
+        assert response.json()["detail"] == expected_response_detail
+
     # update at once
 
     def test_multiple_update(self):

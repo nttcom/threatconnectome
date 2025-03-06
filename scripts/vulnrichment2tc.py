@@ -72,8 +72,11 @@ class ThreatconnectomeClient:
         _func = partial(func, *args, **{k: v for k, v in kwargs.items() if k != "headers"})
 
         def _resp_to_msg(resp: requests.Response) -> str:
-            data = resp.json()
-            return f"{resp.status_code}: {resp.reason}: {data.get('detail')}"
+            try:
+                data = resp.json()
+                return f"{resp.status_code}: {resp.reason}: {data.get('detail')}"
+            except ValueError:
+                return f"{resp.status_code}: {resp.reason}: {resp.text}"
 
         while True:
             try:
@@ -131,6 +134,9 @@ def _get_cve_data_from_json_data(vulnrichment_json: dict) -> tuple:
             vulnrichment_json["containers"]["adp"],
         )
     )
+
+    if all("other" not in x for x in adp_vulnrichment["metrics"]):
+        return ()
 
     metric = next(
         filter(lambda x: "other" in x and x["other"]["type"] == "ssvc", adp_vulnrichment["metrics"])

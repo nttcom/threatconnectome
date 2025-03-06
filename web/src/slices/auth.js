@@ -1,25 +1,27 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const _initialState = {
-  token: undefined,
+  authUserIsReady: false,
+  redirectedFrom: { from: undefined, search: undefined },
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState: _initialState,
   reducers: {
-    clearAuth: (state, action) => ({
-      ..._initialState,
-    }),
-    setAuthToken: (state, action) => ({
+    setAuthUserIsReady: (state, action) => ({
       ...state,
-      token: action.payload,
+      authUserIsReady: action.payload,
+    }),
+    setRedirectedFrom: (state, action) => ({
+      ...state,
+      redirectedFrom: { from: action.payload.from, search: action.payload.search },
     }),
   },
 });
 
 const { actions, reducer } = authSlice;
 
-export const { clearAuth, setAuthToken } = actions;
+export const { setAuthUserIsReady, setRedirectedFrom } = actions;
 
 export default reducer;

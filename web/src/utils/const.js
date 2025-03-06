@@ -16,11 +16,11 @@ import {
   yellow,
 } from "@mui/material/colors";
 
-export const rootPrefix = process.env.PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
+export const rootPrefix = import.meta.env.VITE_PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
 
 export const systemAccount = {
   uuid: "00000000-0000-0000-0000-0000cafe0011",
-  email: process.env.REACT_APP_SYSTEM_EMAIL || "SYSTEM_ACCOUNT",
+  email: import.meta.env.VITE_SYSTEM_EMAIL || "SYSTEM_ACCOUNT",
 };
 
 export const actionTypeChipWidth = 90;
@@ -38,32 +38,6 @@ export const actionTypeChipColors = {
   rejection: "secondary",
 };
 export const actionTypes = Object.keys(actionTypeChipColors);
-
-export const difficulty = ["high", "middle", "low"];
-
-export const difficultyColors = {
-  low: amber[500],
-  middle: yellow[700],
-  high: red[500],
-};
-
-export const avatarGroupStyle = {
-  alignItems: "center",
-  "& .MuiAvatarGroup-avatar": {
-    border: `2px solid ${grey[400]}`,
-    height: "33px",
-    width: "33px",
-    "&.low": {
-      border: `2px solid ${difficultyColors.low}`,
-    },
-    "&.middle": {
-      border: `2px solid ${difficultyColors.middle}`,
-    },
-    "&.high": {
-      border: `2px solid ${difficultyColors.high}`,
-    },
-  },
-};
 
 export const experienceColors = {
   0: green[500],
@@ -356,4 +330,35 @@ export const noPTeamMessage = "You do not belong to any pteam. Please create a p
 export const drawerParams = {
   mainColor: brown[900],
   hoverColor: brown[700],
+};
+
+export const cvssRatings = {
+  None: { min: 0.0, max: 0.0 },
+  Low: { min: 0.1, max: 3.9 },
+  Medium: { min: 4.0, max: 6.9 },
+  High: { min: 7.0, max: 8.9 },
+  Critical: { min: 9.0, max: 10.0 },
+};
+
+export const cvssProps = {
+  None: {
+    cvssBgcolor: grey[600],
+    threatCardBgcolor: grey[100],
+  },
+  Low: {
+    cvssBgcolor: amber[600],
+    threatCardBgcolor: amber[100],
+  },
+  Medium: {
+    cvssBgcolor: amber[600],
+    threatCardBgcolor: amber[100],
+  },
+  High: {
+    cvssBgcolor: orange[600],
+    threatCardBgcolor: orange[100],
+  },
+  Critical: {
+    cvssBgcolor: red[600],
+    threatCardBgcolor: red[100],
+  },
 };

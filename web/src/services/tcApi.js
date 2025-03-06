@@ -1,5 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+import Firebase from "../utils/Firebase";
+import Supabase from "../utils/Supabase";
 import { blobToDataURL } from "../utils/func";
 
 const _responseListToDictConverter =
@@ -19,13 +21,17 @@ const _responseListToDictConverter =
     }, {});
   };
 
+const _getBearerToken = {
+  supabase: Supabase.getBearerToken.bind(Supabase),
+  firebase: Firebase.getBearerToken.bind(Firebase),
+}[import.meta.env.VITE_AUTH_SERVICE];
+
 export const tcApi = createApi({
   reducerPath: "tcApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_API_BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-      /* Note: access token is stored in auth.token via firebaseApi or cookie */
-      const token = getState().auth.token;
+    baseUrl: import.meta.env.VITE_API_BASE_URL,
+    prepareHeaders: async (headers) => {
+      const token = await _getBearerToken();
       if (token) {
         headers.set("authorization", `Bearer ${token}`);
       }
@@ -108,7 +114,7 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "PTeamAccount", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [{ type: "PTeamAccountRole", id: "ALL" }],
     }),
     updatePTeam: builder.mutation({
       query: ({ pteamId, data }) => ({
@@ -120,27 +126,6 @@ export const tcApi = createApi({
         { type: "PTeam", id: arg.pteamId },
         { type: "PTeam", id: "ALL" },
       ],
-    }),
-
-    /* PTeam Auth Info */
-    getPTeamAuthInfo: builder.query({
-      query: () => "pteams/auth_info",
-      /* No tags to provide */
-    }),
-
-    /* PTeam Authority */
-    getPTeamAuth: builder.query({
-      query: (pteamId) => `pteams/${pteamId}/authority`,
-      transformResponse: _responseListToDictConverter("user_id", "authorities"),
-      providesTags: (result, error, pteamId) => [{ type: "PTeamAuthority", id: pteamId }],
-    }),
-    updatePTeamAuth: builder.mutation({
-      query: ({ pteamId, data }) => ({
-        url: `pteams/${pteamId}/authority`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [{ type: "PTeamAuthority", id: arg.pteamId }],
     }),
 
     /* PTeam Invitation */
@@ -168,8 +153,7 @@ export const tcApi = createApi({
         body: data,
       }),
       invalidatesTags: (result, error, arg) => [
-        { type: "PTeamAccount", id: "ALL" },
-        { type: "PTeamAuthority", id: result?.pteam_id },
+        { type: "PTeamAccountRole", id: "ALL" },
         { type: "PTeamInvitation", id: "ALL" },
       ],
     }),
@@ -185,7 +169,7 @@ export const tcApi = createApi({
             )
           : []),
         { type: "PTeam", id: "ALL" },
-        { type: "PTeamAccount", id: "ALL" },
+        { type: "PTeamAccountRole", id: "ALL" },
       ],
       transformResponse: _responseListToDictConverter("user_id"),
     }),
@@ -195,9 +179,19 @@ export const tcApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: (result, error, arg) => [
-        { type: "PTeamAccount", id: `${arg.pteamId}:${arg.userId}` },
-        { type: "PTeamAccount", id: "ALL" },
-        { type: "PTeamAuthority", id: arg.pteamId },
+        { type: "PTeamAccountRole", id: `${arg.pteamId}:${arg.userId}` },
+        { type: "PTeamAccountRole", id: "ALL" },
+      ],
+    }),
+    updatePTeamMember: builder.mutation({
+      query: ({ pteamId, userId, data }) => ({
+        url: `pteams/${pteamId}/members/${userId}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "PTeamAccountRole", id: `${arg.pteamId}:${arg.userId}` },
+        { type: "PTeamAccountRole", id: "ALL" },
       ],
     }),
 
@@ -305,6 +299,18 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [{ type: "Tag", id: "ALL" }],
     }),
 
+    /* Threat */
+    getThreat: builder.query({
+      query: (threatId) => ({
+        url: `threats/${threatId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        { type: "Threat", id: "ALL" },
+        { type: "Service", id: "ALL" },
+      ],
+    }),
+
     /* Ticket */
     getTickets: builder.query({
       query: ({ pteamId, serviceId, topicId, tagId }) => ({
@@ -407,13 +413,13 @@ export const tcApi = createApi({
       query: () => "users/me",
       providesTags: (result, error, _) => [
         { type: "Account", id: result?.user_id },
-        ...(result?.pteams.reduce(
-          (ret, pteam) => [
+        ...(result?.pteam_roles.reduce(
+          (ret, pteam_role) => [
             ...ret,
-            { type: "PTeam", id: pteam.pteam_id },
-            { type: "PTeamAccount", id: `${pteam.pteam_id}:${result?.user_id}` },
+            { type: "PTeam", id: pteam_role.pteam.pteam_id },
+            { type: "PTeamAccountRole", id: `${pteam_role.pteam.pteam_id}:${result?.user_id}` },
           ],
-          [{ type: "PTeamAccount", id: "ALL" }],
+          [{ type: "PTeamAccountRole", id: "ALL" }],
         ) ?? []),
       ],
     }),
@@ -465,14 +471,12 @@ export const {
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
-  useGetPTeamAuthInfoQuery,
-  useGetPTeamAuthQuery,
-  useUpdatePTeamAuthMutation,
   useGetPTeamInvitationQuery,
   useCreatePTeamInvitationMutation,
   useApplyPTeamInvitationMutation,
   useGetPTeamMembersQuery,
   useDeletePTeamMemberMutation,
+  useUpdatePTeamMemberMutation,
   useUpdatePTeamServiceMutation,
   useDeletePTeamServiceMutation,
   useGetPTeamServiceTaggedTopicIdsQuery,
@@ -482,6 +486,7 @@ export const {
   useUploadSBOMFileMutation,
   useGetTagsQuery,
   useCreateTagMutation,
+  useGetThreatQuery,
   useGetTicketsQuery,
   useUpdateTicketStatusMutation,
   useGetTopicQuery,

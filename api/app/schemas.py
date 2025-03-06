@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from enum import Enum
 from uuid import UUID
@@ -10,7 +11,6 @@ from app.models import (
     AutomatableEnum,
     ExploitationEnum,
     MissionImpactEnum,
-    PTeamAuthEnum,
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
     SystemExposureEnum,
@@ -23,8 +23,8 @@ class ORMModel(BaseModel):
 
 
 class TopicSortKey(str, Enum):
-    THREAT_IMPACT = "threat_impact"
-    THREAT_IMPACT_DESC = "threat_impact_desc"
+    CVSS_V3_SCORE = "cvss_v3_score"
+    CVSS_V3_SCORE_DESC = "cvss_v3_score_desc"
     UPDATED_AT = "updated_at"
     UPDATED_AT_DESC = "updated_at_desc"
 
@@ -55,13 +55,18 @@ class PTeamEntry(ORMModel):
     contact_info: str
 
 
+class PTeamRole(ORMModel):
+    is_admin: bool
+    pteam: PTeamEntry
+
+
 class UserResponse(ORMModel):
     user_id: UUID
     uid: str
     email: str
     disabled: bool
     years: int
-    pteams: list[PTeamEntry]
+    pteam_roles: list[PTeamRole]
 
 
 class UserCreateRequest(ORMModel):
@@ -135,8 +140,14 @@ class MispTagResponse(ORMModel):
     tag_name: str
 
 
-def threat_impact_range(value):
-    assert value is None or 0 < value <= 4, "Specify a threat_impact between 1 and 4"
+CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"
+
+
+def validate_cve_id(value):
+    if value is None:
+        return value
+    if not re.match(CVE_PATTERN, value):
+        raise ValueError(f"Invalid CVE ID format: {value}")
     return value
 
 
@@ -151,14 +162,14 @@ class Topic(TopicEntry):
     topic_id: UUID
     title: str
     abstract: str
-    threat_impact: int
     created_by: UUID
     created_at: datetime
     exploitation: ExploitationEnum | None
     automatable: AutomatableEnum | None
     cvss_v3_score: float | None
+    cve_id: str | None
 
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class TopicResponse(Topic):
@@ -207,28 +218,28 @@ class ActionUpdateRequest(ORMModel):
 class TopicCreateRequest(ORMModel):
     title: str
     abstract: str
-    threat_impact: int
     tags: list[str] = []
     misp_tags: list[str] = []
     actions: list[ActionCreateRequest] = []
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
+    cve_id: str | None = None
 
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class TopicUpdateRequest(ORMModel):
     title: str | None = None
     abstract: str | None = None
-    threat_impact: int | None = None
     tags: list[str] | None = None
     misp_tags: list[str] | None = None
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
+    cve_id: str | None = None
 
-    _threat_impact_range = field_validator("threat_impact", mode="before")(threat_impact_range)
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class PTeamInfo(PTeamEntry):
@@ -270,20 +281,19 @@ class PTeamAuthInfo(ORMModel):
     pseudo_uuids: list[PseudoUUID]
 
 
-class PTeamAuthRequest(ORMModel):
-    user_id: UUID
-    authorities: list[PTeamAuthEnum]
+class PTeamMemberRequest(ORMModel):
+    is_admin: bool
 
 
-class PTeamAuthResponse(ORMModel):
+class PTeamMemberResponse(ORMModel):
+    pteam_id: UUID
     user_id: UUID
-    authorities: list[PTeamAuthEnum]
+    is_admin: bool
 
 
 class PTeamInvitationRequest(ORMModel):
     expiration: datetime
     limit_count: int | None = None
-    authorities: list[PTeamAuthEnum] | None = None  # require ADMIN for not-None
 
 
 class PTeamInvitationResponse(ORMModel):
@@ -292,7 +302,6 @@ class PTeamInvitationResponse(ORMModel):
     expiration: datetime
     limit_count: int | None = None  # None for unlimited
     used_count: int
-    authorities: list[PTeamAuthEnum]
 
 
 class PTeamInviterResponse(ORMModel):
@@ -337,10 +346,12 @@ class ThreatResponse(ORMModel):
     dependency_id: UUID
     topic_id: UUID
     threat_safety_impact: SafetyImpactEnum | None = None
+    reason_safety_impact: str | None = None
 
 
 class ThreatUpdateRequest(ORMModel):
     threat_safety_impact: SafetyImpactEnum | None = None
+    reason_safety_impact: str | None = None
 
 
 class TicketStatusRequest(ORMModel):

@@ -65,7 +65,7 @@ def test_create_topic():
     assert topic1.topic_id == TOPIC1["topic_id"]
     assert topic1.title == TOPIC1["title"]
     assert topic1.abstract == TOPIC1["abstract"]
-    assert topic1.threat_impact == TOPIC1["threat_impact"]
+    assert topic1.cve_id == TOPIC1["cve_id"]
     assert topic1.created_by == user1.user_id
     assert isinstance(topic1.created_at, datetime)
     assert isinstance(topic1.updated_at, datetime)
@@ -156,14 +156,6 @@ def test_create_topic_and_action__with_new_tags():
         )
 
 
-def test_create_wrong_threat_level_topic():
-    create_user(USER1)
-    _topic = TOPIC1.copy()
-    _topic["threat_impact"] = -1
-    with pytest.raises(HTTPError, match="422: Unprocessable Entity"):
-        create_topic(USER1, _topic)
-
-
 def test_it_should_return_422_when_use_try_to_create_wrong_exploitation_topic():
     create_user(USER1)
     create_tag(USER1, TAG1)
@@ -230,6 +222,21 @@ def test_it_should_return_None_when_cvss_v3_score_is_None_in_request():
     assert response.json()["cvss_v3_score"] is None
 
 
+def test_create_topic_invalid_cve_format():
+    create_user(USER1)
+    _topic = TOPIC1.copy()
+    _topic["cve_id"] = "XXXXXXX"
+    request = {**_topic}
+    del request["topic_id"]
+
+    with pytest.raises(HTTPError, match=r"422: Unprocessable Entity: "):
+        response = client.post(
+            f"/topics/{_topic['topic_id']}", headers=headers(USER1), json=request
+        )
+        if response.status_code != 200:
+            raise HTTPError(response)
+
+
 def test_get_topic():
     user1 = create_user(USER1)
     create_pteam(USER1, PTEAM1)
@@ -245,7 +252,7 @@ def test_get_topic():
     assert responsed_topic.topic_id == TOPIC1["topic_id"]
     assert responsed_topic.title == TOPIC1["title"]
     assert responsed_topic.abstract == TOPIC1["abstract"]
-    assert responsed_topic.threat_impact == TOPIC1["threat_impact"]
+    assert responsed_topic.cve_id == TOPIC1["cve_id"]
     assert responsed_topic.created_by == user1.user_id
     assert responsed_topic.created_at == topic1.created_at
     assert responsed_topic.updated_at == topic1.updated_at
@@ -263,15 +270,15 @@ def test_get_all_topics():
     create_user(USER2)
     create_pteam(USER1, PTEAM1)
 
-    topic1 = create_topic(USER1, {**TOPIC1, "threat_impact": 1}, actions=[ACTION1, ACTION2])
-    topic2 = create_topic(USER1, {**TOPIC2, "threat_impact": 2}, actions=[ACTION3])
-    topic3 = create_topic(USER1, {**TOPIC3, "threat_impact": 3})
-    topic4 = create_topic(USER1, {**TOPIC4, "threat_impact": 2})
-    topic5 = create_topic(USER2, {**TOPIC1, "threat_impact": 1, "topic_id": str(uuid4())})
+    topic1 = create_topic(USER1, {**TOPIC1, "cvss_v3_score": 10}, actions=[ACTION1, ACTION2])
+    topic2 = create_topic(USER1, {**TOPIC2, "cvss_v3_score": 2}, actions=[ACTION3])
+    topic3 = create_topic(USER1, {**TOPIC3, "cvss_v3_score": None})
+    topic4 = create_topic(USER1, {**TOPIC4, "cvss_v3_score": 2})
+    topic5 = create_topic(USER2, {**TOPIC1, "cvss_v3_score": 10, "topic_id": str(uuid4())})
 
     data = assert_200(client.get("/topics", headers=headers(USER1)))
     assert len(data) == 5
-    # sorted orders are [threat_impact, updated_at(desc)]
+    # sorted orders are [cvss_v3_score(desc), updated_at(desc)]
     assert data[0]["topic_id"] == str(topic5.topic_id)
     assert data[1]["topic_id"] == str(topic1.topic_id)
     assert data[2]["topic_id"] == str(topic4.topic_id)
@@ -291,12 +298,12 @@ def test_update_topic():
     request = {
         "title": "topic one dash",
         "abstract": "abstract one dash",
-        "threat_impact": 2,
         "tags": [tag1.tag_name],
         "misp_tags": ["tlp:white"],
         "exploitation": "public_poc",
         "automatable": "no",
         "cvss_v3_score": 5.5,
+        "cve_id": "CVE-1111-1111",
     }
     response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
 
@@ -306,8 +313,8 @@ def test_update_topic():
     assert responsed_topic.title != TOPIC1["title"]
     assert responsed_topic.abstract == request["abstract"]
     assert responsed_topic.abstract != TOPIC1["abstract"]
-    assert responsed_topic.threat_impact == request["threat_impact"]
-    assert responsed_topic.threat_impact != TOPIC1["threat_impact"]
+    assert responsed_topic.cve_id == request["cve_id"]
+    assert responsed_topic.cve_id != TOPIC1["cve_id"]
     assert request["tags"][0] in [tag.tag_name for tag in responsed_topic.tags]
     assert TOPIC1["tags"][0] not in [tag.tag_name for tag in responsed_topic.tags]
     assert request["misp_tags"][0] in [misp_tag.tag_name for misp_tag in responsed_topic.misp_tags]
@@ -369,6 +376,32 @@ def test_update_topic_not_creater():
         )
 
 
+def test_update_topic__invalid_cve_format():
+    create_user(USER1)
+    create_pteam(USER1, PTEAM1)
+    tag1 = create_tag(USER1, "omega")
+    create_topic(
+        USER1,
+        TOPIC1,
+        actions=[ACTION1],
+    )
+    request = {
+        "title": "topic one dash",
+        "abstract": "abstract one dash",
+        "tags": [tag1.tag_name],
+        "misp_tags": ["tlp:white"],
+        "exploitation": "public_poc",
+        "automatable": "no",
+        "cvss_v3_score": 5.5,
+        "cve_id": "XXXXXXXXX",  # invalid format
+    }
+
+    with pytest.raises(HTTPError, match=r"422: Unprocessable Entity: "):
+        response = client.put(f"/topics/{TOPIC1['topic_id']}", headers=headers(USER1), json=request)
+        if response.status_code != 200:
+            raise HTTPError(response)
+
+
 class TestUpdateTopic:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self):
@@ -392,7 +425,6 @@ class TestUpdateTopic:
                 "topic_id": topic_id,
                 "title": "test topic " + topic_id,
                 "abstract": "test abstract " + topic_id,
-                "threat_impact": 1,
                 "tags": [tag.tag_name for tag in tags],
                 "misp_tags": [],
                 "actions": [
@@ -529,7 +561,7 @@ class TestUpdateTopic:
         send_alert_to_pteam_in_common.assert_called_once()
         send_alert_to_pteam_in_topics.assert_not_called()
 
-    def test_it_should_return_400_when_cvss_v3_score_is_out_of_range(self, mocker):
+    def test_it_should_return_400_when_cvss_v3_score_is_out_of_range(self):
         request = {
             "cvss_v3_score": 10.1,
         }
@@ -541,6 +573,29 @@ class TestUpdateTopic:
 
         assert response.status_code == 400
         assert response.json()["detail"] == "cvss_v3_score is out of range"
+
+    @pytest.mark.parametrize(
+        "field_name, expected_response_detail",
+        [
+            ("title", "Cannot specify None for title"),
+            ("abstract", "Cannot specify None for abstract"),
+            ("tags", "Cannot specify None for tags"),
+            ("misp_tags", "Cannot specify None for misp_tags"),
+            ("exploitation", "Cannot specify None for exploitation"),
+            ("automatable", "Cannot specify None for automatable"),
+        ],
+    )
+    def test_it_should_return_400_when_required_fields_is_None(
+        self, field_name, expected_response_detail
+    ):
+        request = {field_name: None}
+        response = client.put(
+            f"/topics/{self.topic.topic_id}",
+            headers=headers(USER1),
+            json=request,
+        )
+        assert response.status_code == 400
+        assert response.json()["detail"] == expected_response_detail
 
 
 def test_delete_topic(testdb: Session):
@@ -960,7 +1015,7 @@ class TestSearchTopics:
                 "topic_id": uuid4(),
                 "title": "",
                 "abstract": "",
-                "threat_impact": 1,
+                "cvss_v3_score": 10.0,
                 **params,
                 "exploitation": "active",
                 "automatable": "yes",
@@ -979,13 +1034,13 @@ class TestSearchTopics:
             }
             return result
 
-    class TestSearchByThreatImpact(Common_):
+    class TestSearchByCvssV3Score(Common_):
         @pytest.fixture(scope="function", autouse=True)
-        def setup_for_threat_impact(self):
-            self.topic1 = self.create_minimal_topic(USER1, {"threat_impact": 1})
-            self.topic2 = self.create_minimal_topic(USER1, {"threat_impact": 2})
-            self.topic3 = self.create_minimal_topic(USER1, {"threat_impact": 3})
-            self.topic4 = self.create_minimal_topic(USER1, {"threat_impact": 4})
+        def setup_for_cvss_v3_score(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"cvss_v3_score": 10})
+            self.topic2 = self.create_minimal_topic(USER1, {"cvss_v3_score": 8})
+            self.topic3 = self.create_minimal_topic(USER1, {"cvss_v3_score": 3})
+            self.topic4 = self.create_minimal_topic(USER1, {"cvss_v3_score": None})
             self.topics = {
                 1: self.topic1,
                 2: self.topic2,
@@ -994,23 +1049,27 @@ class TestSearchTopics:
             }
 
         @pytest.mark.parametrize(
-            "search_words, expected",
+            "min_cvss_v3_score, max_cvss_v3_score, expected",
             [
-                (None, {1, 2, 3, 4}),
-                ([0], set()),  # wrong params are just ignored
-                ([1], {1}),
-                ([2], {2}),
-                ([3], {3}),
-                ([4], {4}),
-                ([5], set()),  # wrong params are just ignored
-                (["xxx"], "422: Unprocessable Entity:"),  # not integer
-                ([1, 2], {1, 2}),
-                ([""], "422: Unprocessable Entity:"),  # reserved keyword does not make sense
-                ([1, 5], {1}),  # wrong params are just ignored
+                (None, None, {1, 2, 3, 4}),
+                (0, 10, {1, 2, 3}),
+                (-1, 11, {1, 2, 3}),
+                (10, 0, set()),  # wrong params are just ignored
+                (10, None, {1}),
+                (None, 3, {3}),
+                (8, 8, {2}),
+                (8, 10, {1, 2}),
+                (["xxx"], None, "422: Unprocessable Entity:"),  # not float
+                (None, ["xxx"], "422: Unprocessable Entity:"),  # not float
+                ("", None, "422: Unprocessable Entity:"),  # reserved keyword does not make sense
             ],
         )
-        def test_search_by_threat_impact(self, search_words, expected):
-            search_params = {} if search_words is None else {"threat_impacts": search_words}
+        def test_search_by_cvss_v3_score(self, min_cvss_v3_score, max_cvss_v3_score, expected):
+            search_params = {}
+            if min_cvss_v3_score is not None:
+                search_params["min_cvss_v3_score"] = min_cvss_v3_score
+            if max_cvss_v3_score is not None:
+                search_params["max_cvss_v3_score"] = max_cvss_v3_score
             self.try_search_topics(USER1, self.topics, search_params, expected)
 
     class TestSearchByTitle(Common_):
@@ -1288,9 +1347,9 @@ class TestSearchTopics:
             self.timestamp0 = datetime.now()
             self.topic3 = self.create_minimal_topic(USER1, {})
             self.timestamp1 = datetime.now()
-            update_topic(USER1, self.topic2, {"threat_impact": 3})
+            update_topic(USER1, self.topic2, {"cvss_v3_score": 3})
             self.timestamp2 = datetime.now()
-            update_topic(USER1, self.topic1, {"threat_impact": 2})
+            update_topic(USER1, self.topic1, {"cvss_v3_score": 2})
             self.timestamp3 = datetime.now()
             self.topics = {
                 1: self.topic1,
@@ -1440,16 +1499,16 @@ class TestSearchTopics:
     class TestSearchResultSlice(ExtCommonForResultSlice_):
         @pytest.fixture(scope="function", autouse=True)
         def setup_for_result_slice(self):
-            self.topic1 = self.create_minimal_topic(USER1, {"threat_impact": 1})
-            self.topic2 = self.create_minimal_topic(USER1, {"threat_impact": 2})
-            self.topic3 = self.create_minimal_topic(USER1, {"threat_impact": 3})
-            self.topic4 = self.create_minimal_topic(USER1, {"threat_impact": 4})
-            self.topic5 = self.create_minimal_topic(USER1, {"threat_impact": 1})
-            self.topic6 = self.create_minimal_topic(USER1, {"threat_impact": 2})
-            self.topic7 = self.create_minimal_topic(USER1, {"threat_impact": 3})
-            update_topic(USER1, self.topic5, {"threat_impact": 2})
-            update_topic(USER1, self.topic2, {"threat_impact": 1})
-            update_topic(USER1, self.topic6, {"threat_impact": 3})
+            self.topic1 = self.create_minimal_topic(USER1, {"cvss_v3_score": 10})
+            self.topic2 = self.create_minimal_topic(USER1, {"cvss_v3_score": 8})
+            self.topic3 = self.create_minimal_topic(USER1, {"cvss_v3_score": 3})
+            self.topic4 = self.create_minimal_topic(USER1, {"cvss_v3_score": None})
+            self.topic5 = self.create_minimal_topic(USER1, {"cvss_v3_score": 10})
+            self.topic6 = self.create_minimal_topic(USER1, {"cvss_v3_score": 8})
+            self.topic7 = self.create_minimal_topic(USER1, {"cvss_v3_score": 3})
+            update_topic(USER1, self.topic5, {"cvss_v3_score": 8})
+            update_topic(USER1, self.topic2, {"cvss_v3_score": 10})
+            update_topic(USER1, self.topic6, {"cvss_v3_score": 3})
             self.topics = {
                 1: self.topic1,
                 2: self.topic2,
@@ -1472,51 +1531,51 @@ class TestSearchTopics:
                 # sort_key
                 (
                     (None, None, None),  # check defaults
-                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "cvss_v3_score_desc"),
                 ),
                 ((None, None, "my_sort_key"), "422: Unprocessable Entity: "),
                 (
-                    (None, None, "threat_impact"),  # implicit 2nd key is updated_at_desc
-                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                    (None, None, "cvss_v3_score_desc"),  # implicit 2nd key is updated_at_desc
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "cvss_v3_score_desc"),
                 ),
                 (
-                    (None, None, "threat_impact_desc"),  # implicit 2nd key is updated_at_desc
-                    ([4, 6, 7, 3, 5, 2, 1], 7, 0, 10, "threat_impact_desc"),
+                    (None, None, "cvss_v3_score"),  # implicit 2nd key is updated_at_desc
+                    ([4, 6, 7, 3, 5, 2, 1], 7, 0, 10, "cvss_v3_score"),
                 ),
                 (
-                    (None, None, "updated_at"),  # implicit 2nd key is threat_impact
+                    (None, None, "updated_at"),  # implicit 2nd key is cvss_v3_score_desc
                     ([1, 3, 4, 7, 5, 2, 6], 7, 0, 10, "updated_at"),
                 ),
                 (
-                    (None, None, "updated_at_desc"),  # implicit 2nd key is threat_impact
+                    (None, None, "updated_at_desc"),  # implicit 2nd key is cvss_v3_score_desc
                     ([6, 2, 5, 7, 4, 3, 1], 7, 0, 10, "updated_at_desc"),
                 ),
                 # offset
                 (
                     (0, None, None),
-                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "cvss_v3_score_desc"),
                 ),
                 (("xxx", None, None), "422: Unprocessable Entity: "),
                 ((-1, None, None), "422: Unprocessable Entity: "),  # offset should be >=0
                 (
                     (5, None, None),
-                    ([3, 4], 7, 5, 10, "threat_impact"),
+                    ([3, 4], 7, 5, 10, "cvss_v3_score_desc"),
                 ),
                 (
                     (10, None, None),
-                    ([], 7, 10, 10, "threat_impact"),
+                    ([], 7, 10, 10, "cvss_v3_score_desc"),
                 ),
                 # limit
                 (
                     (None, 10, None),
-                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "threat_impact"),
+                    ([2, 1, 5, 6, 7, 3, 4], 7, 0, 10, "cvss_v3_score_desc"),
                 ),
                 ((None, "xxx", None), "422: Unprocessable Entity: "),
                 ((None, 0, None), "422: Unprocessable Entity: "),  # limit should be >= 1
                 ((None, 101, None), "422: Unprocessable Entity: "),  # limit should be <= 100
                 (
                     (None, 5, None),
-                    ([2, 1, 5, 6, 7], 7, 0, 5, "threat_impact"),
+                    ([2, 1, 5, 6, 7], 7, 0, 5, "cvss_v3_score_desc"),
                 ),
                 # complex
                 (
@@ -1533,3 +1592,34 @@ class TestSearchTopics:
                 **({} if sort_key is None else {"sort_key": sort_key}),
             }
             self.try_search_topics(USER1, self.topics, fixed_search_params, expected)
+
+    class TestSearchByCveId(Common_):
+        @pytest.fixture(scope="function", autouse=True)
+        def setup_for_threat_impact(self):
+            self.topic1 = self.create_minimal_topic(USER1, {"cve_id": "CVE-0000-0000"})
+            self.topic2 = self.create_minimal_topic(USER1, {"cve_id": "CVE-1111-1111"})
+            self.topic3 = self.create_minimal_topic(USER1, {"cve_id": "CVE-2222-2222"})
+            self.topic4 = self.create_minimal_topic(USER1, {"cve_id": "CVE-3333-3333"})
+            self.topics = {
+                1: self.topic1,
+                2: self.topic2,
+                3: self.topic3,
+                4: self.topic4,
+            }
+
+        @pytest.mark.parametrize(
+            "search_words, expected",
+            [
+                (None, {1, 2, 3, 4}),
+                (["CVE-0000-0000"], {1}),
+                (["CVE-1111-1111"], {2}),
+                (["CVE-2222-2222"], {3}),
+                (["CVE-3333-3333"], {4}),
+                (["CVE-0000-0000", "CVE-2222-2222"], {1, 3}),
+                (["CVE-5555-5555"], set()),
+                (["xxxxxxxxxxxxx"], "422: Unprocessable Entity: "),
+            ],
+        )
+        def test_search_by_cve_id(self, search_words, expected):
+            search_params = {} if search_words is None else {"cve_ids": search_words}
+            self.try_search_topics(USER1, self.topics, search_params, expected)

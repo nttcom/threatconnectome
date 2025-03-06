@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Sequence
 from uuid import UUID
@@ -7,7 +8,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
-from app.auth import get_current_user
+from app.auth.account import get_current_user
 from app.business.misp_tag_business import get_or_create_misp_tag
 from app.business.tag_business import check_topic_action_tags_integrity
 from app.business.ticket_business import ticket_meets_condition_to_create_alert
@@ -51,8 +52,9 @@ def get_topics(
 def search_topics(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),  # 10 is default in web/src/pages/TopicManagement.jsx
-    sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.THREAT_IMPACT),
-    threat_impacts: list[int] | None = Query(None),
+    sort_key: schemas.TopicSortKey = Query(schemas.TopicSortKey.CVSS_V3_SCORE_DESC),
+    min_cvss_v3_score: float | None = Query(None),
+    max_cvss_v3_score: float | None = Query(None),
     topic_ids: list[str] | None = Query(None),
     title_words: list[str] | None = Query(None),
     abstract_words: list[str] | None = Query(None),
@@ -64,13 +66,15 @@ def search_topics(
     updated_after: datetime | None = Query(None),
     updated_before: datetime | None = Query(None),
     pteam_id: UUID | None = Query(None),
+    cve_ids: str | list[str] | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Search topics by following parameters with sort and pagination.
 
-    - threat_impacts
+    - min_cvss_v3_score
+    - max_cvss_v3_score
     - title_words
     - abstract_words
     - tag_names
@@ -81,6 +85,7 @@ def search_topics(
     - updated_before
     - topic_ids
     - creator_ids
+    - cve_id
 
     Defaults are "" for strings, None for datetimes, both means skip filtering.
     Different parameters are AND conditions.
@@ -149,22 +154,24 @@ def search_topics(
                 continue
             fixed_abstract_words.add(abstract_word)
 
-    fixed_threat_impacts: set[int] = set()
-    if threat_impacts is not None:
-        for threat_impact in threat_impacts:
-            try:
-                int_val = int(threat_impact)
-                if int_val in {1, 2, 3, 4}:
-                    fixed_threat_impacts.add(int_val)
-            except ValueError:
-                pass
+    fixed_cve_ids: set[str | None] = set()
+    if cve_ids is not None:
+        for cve_id in cve_ids:
+            if re.match(schemas.CVE_PATTERN, cve_id):
+                fixed_cve_ids.add(cve_id)
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=f"Invalid CVE ID format: {cve_id}",
+                )
 
     return command.search_topics_internal(
         db,
         offset=offset,
         limit=limit,
         sort_key=sort_key,
-        threat_impacts=None if threat_impacts is None else list(fixed_threat_impacts),
+        min_cvss_v3_score=min_cvss_v3_score,
+        max_cvss_v3_score=max_cvss_v3_score,
         title_words=None if title_words is None else list(fixed_title_words),
         abstract_words=None if abstract_words is None else list(fixed_abstract_words),
         tag_ids=None if tag_names is None else list(fixed_tag_ids),
@@ -176,6 +183,7 @@ def search_topics(
         updated_after=updated_after,
         updated_before=updated_before,
         pteam_id=pteam_id,
+        cve_ids=None if cve_ids is None else list(fixed_cve_ids),
     )
 
 
@@ -203,8 +211,6 @@ def create_topic(
 ):
     """
     Create a topic.
-    - `threat_impact` : The value is in 1, 2, 3, 4.
-      (immediate: 1, off-cycle: 2, acceptable: 3, none: 4)
     - `tags` : Optional. The default is an empty list.
     - `misp_tags` : Optional. The default is an empty list.
     - `actions` : Optional. The default is an empty list.
@@ -270,7 +276,7 @@ def create_topic(
         topic_id=str(topic_id),
         title=data.title,
         abstract=data.abstract,
-        threat_impact=data.threat_impact,
+        cve_id=data.cve_id,
         created_by=current_user.user_id,
         created_at=now,
         updated_at=now,
@@ -338,6 +344,36 @@ def update_topic(
     tags_updated = new_tags is not None and set(new_tags) != set(topic.tags)
 
     update_data = data.model_dump(exclude_unset=True)
+    if "title" in update_data.keys() and data.title is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for title",
+        )
+    if "abstract" in update_data.keys() and data.abstract is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for abstract",
+        )
+    if "tags" in update_data.keys() and data.tags is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for tags",
+        )
+    if "misp_tags" in update_data.keys() and data.misp_tags is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for misp_tags",
+        )
+    if "exploitation" in update_data.keys() and data.exploitation is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for exploitation",
+        )
+    if "automatable" in update_data.keys() and data.automatable is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for automatable",
+        )
     if "cvss_v3_score" in update_data.keys() and data.cvss_v3_score is not None:
         if data.cvss_v3_score > 10.0 or data.cvss_v3_score < 0:
             raise HTTPException(
@@ -354,8 +390,8 @@ def update_topic(
         topic.title = data.title
     if data.abstract is not None:
         topic.abstract = data.abstract
-    if data.threat_impact is not None:
-        topic.threat_impact = data.threat_impact
+    if data.cve_id is not None:
+        topic.cve_id = data.cve_id
     if data.exploitation is not None:
         previous_exploitation = topic.exploitation
         topic.exploitation = data.exploitation

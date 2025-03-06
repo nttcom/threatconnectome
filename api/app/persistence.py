@@ -9,7 +9,7 @@ from app import models
 ### Account
 
 
-def get_account_by_firebase_uid(db: Session, uid: str) -> models.Account | None:
+def get_account_by_uid(db: Session, uid: str) -> models.Account | None:
     return db.scalars(select(models.Account).where(models.Account.uid == uid)).one_or_none()
 
 
@@ -67,8 +67,8 @@ def get_action_logs_by_user_id(db: Session, user_id: UUID | str) -> Sequence[mod
         select(models.ActionLog).where(
             models.ActionLog.pteam_id.in_(
                 db.scalars(
-                    select(models.PTeamAccount.pteam_id).where(
-                        models.PTeamAccount.user_id == str(user_id)
+                    select(models.PTeamAccountRole.pteam_id).where(
+                        models.PTeamAccountRole.user_id == str(user_id)
                     )
                 )
             )
@@ -91,8 +91,8 @@ def get_topic_logs_by_user_id(
             models.ActionLog.topic_id == str(topic_id),
             models.ActionLog.pteam_id.in_(
                 db.scalars(
-                    select(models.PTeamAccount.pteam_id).where(
-                        models.PTeamAccount.user_id == str(user_id)
+                    select(models.PTeamAccountRole.pteam_id).where(
+                        models.PTeamAccountRole.user_id == str(user_id)
                     )
                 )
             ),
@@ -148,30 +148,22 @@ def delete_pteam_invitation(db: Session, invitation: models.PTeamInvitation) -> 
     db.flush()
 
 
-### PTeamAuthority # TODO: should obsolete direct access?
+### PTeamAccountRole
 
 
-def get_pteam_authority(
-    db: Session,
-    pteam_id: UUID | str,
-    user_id: UUID | str,
-) -> models.PTeamAuthority | None:
+def get_pteam_account_role(
+    db: Session, pteam_id: UUID | str, user_id: UUID | str
+) -> models.PTeamAccountRole | None:
     return db.scalars(
-        select(models.PTeamAuthority).where(
-            models.PTeamAuthority.pteam_id == str(pteam_id),
-            models.PTeamAuthority.user_id == str(user_id),
+        select(models.PTeamAccountRole).where(
+            models.PTeamAccountRole.pteam_id == str(pteam_id),
+            models.PTeamAccountRole.user_id == str(user_id),
         )
     ).one_or_none()
 
 
-def get_pteam_all_authorities(db: Session, pteam_id: UUID | str) -> Sequence[models.PTeamAuthority]:
-    return db.scalars(
-        select(models.PTeamAuthority).where(models.PTeamAuthority.pteam_id == str(pteam_id))
-    ).all()
-
-
-def create_pteam_authority(db: Session, auth: models.PTeamAuthority) -> None:
-    db.add(auth)
+def create_pteam_account_role(db: Session, account_role: models.PTeamAccountRole) -> None:
+    db.add(account_role)
     db.flush()
 
 

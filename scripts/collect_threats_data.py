@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import sys
+import urllib.parse
 from functools import partial
 from time import sleep
 from typing import Callable
@@ -71,8 +72,11 @@ class ThreatconnectomeClient:
         _func = partial(func, *args, **{k: v for k, v in kwargs.items() if k != "headers"})
 
         def _resp_to_msg(resp: requests.Response) -> str:
-            data = resp.json()
-            return f"{resp.status_code}: {resp.reason}: {data.get('detail')}"
+            try:
+                data = resp.json()
+                return f"{resp.status_code}: {resp.reason}: {data.get('detail')}"
+            except ValueError:
+                return f"{resp.status_code}: {resp.reason}: {resp.text}"
 
         while True:
             try:
@@ -148,8 +152,12 @@ def get_pteam_and_service_data(
                 service_id=service["service_id"],
                 service_name=service["service_name"],
                 service_description=service["description"],
+                service_safety_impact=service["service_safety_impact"],
             )
             break
+
+    if "service_name" not in pteam_and_service_data:
+        sys.exit("ERROR: The pairing of pteam_id and service_id is incorrect")
 
     return pteam_and_service_data
 
@@ -157,7 +165,29 @@ def get_pteam_and_service_data(
 def get_threats_data(tc_client: ThreatconnectomeClient, service_id: str) -> list:
     params = {"service_id": service_id}
     threats = tc_client.get_threats(params)
+
+    if len(threats) == 0:
+        sys.exit("The threats data associated with service_id is empty")
+
     return threats
+
+
+def generate_purl(tag_name: str, tag_version: str) -> str:
+
+    # tag_name syntax
+    # {pkg_name}:{pkg_info}:{pkg_mgr}
+    splited_tag_name = tag_name.split(":")
+    if len(splited_tag_name) < 2:
+        print(f"ERROR: The tag_name has invalid syntax. tag_name: {tag_name}")
+        return ""
+    pkg_name = splited_tag_name[0]
+    pkg_info = splited_tag_name[1]
+    # The type must NOT be percent-encoded
+    type = pkg_info
+    name = urllib.parse.quote(pkg_name)
+    version = urllib.parse.quote(tag_version)
+
+    return f"pkg:{type}/{name}@{version}"
 
 
 def add_tag_data_to_threat(
@@ -167,8 +197,12 @@ def add_tag_data_to_threat(
     for threat in threats:
         dependency = tc_client.get_dependency(pteam_id, service_id, threat["dependency_id"])
         tag = tc_client.get_tag(dependency["tag_id"])
+        purl = generate_purl(tag["tag_name"], dependency["version"])
+
         threat_with_tag_data = {
+            "purl": purl,
             "threat_id": threat["threat_id"],
+            "threat_safety_impact": threat["threat_safety_impact"],
             "topic_id": threat["topic_id"],
             "tag_id": dependency["tag_id"],
             "tag_version": dependency["version"],
@@ -201,7 +235,7 @@ def add_cve_data_to_threat(tc_client: ThreatconnectomeClient, threats: list) -> 
 
 
 def output_json_file(threats: dict, service_id: str):
-    filename = "collect_threats_data" + service_id + ".json"
+    filename = "collect_threats_data_" + service_id + ".json"
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(threats, f, ensure_ascii=False, indent=2)
 

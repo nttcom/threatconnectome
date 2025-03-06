@@ -1,12 +1,15 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas
-from app.auth import get_current_user, token_scheme, verify_id_token
+from app import models, persistence, schemas
+from app.auth.account import get_current_user
+from app.auth.auth_exception import AuthException
+from app.auth.auth_module import AuthModule, get_auth_module
 from app.database import get_db
+from app.routers.utils.http_excption_creator import create_http_exception
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -24,19 +27,19 @@ def get_my_user_info(
 @router.post("", response_model=schemas.UserResponse)
 def create_user(
     data: schemas.UserCreateRequest,
-    token: HTTPAuthorizationCredentials = Depends(token_scheme),
+    token: HTTPAuthorizationCredentials = Depends(
+        HTTPBearer(scheme_name=None, description=None, auto_error=False)
+    ),
+    auth_module: AuthModule = Depends(get_auth_module),
     db: Session = Depends(get_db),
 ):
     """
     Create a user.
     """
-    user_info = verify_id_token(token)
-    uid = user_info.uid
-    email = user_info.email
-    # if user_info.email is empty, get email from auth provider data
-    if email is None:
-        if len(user_info.provider_data) > 0:
-            email = user_info.provider_data[0].email
+    try:
+        uid, email = auth_module.check_and_get_user_info(token)
+    except AuthException as auth_exception:
+        raise create_http_exception(auth_exception)
 
     if not email:
         raise HTTPException(
@@ -44,8 +47,8 @@ def create_user(
             detail="The requested Email information could not be retrieved.",
         )
 
-    if persistence.get_account_by_email(db, email):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already used")
+    if persistence.get_account_by_uid(db, uid):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uid already used")
 
     account = models.Account(**data.model_dump(), uid=uid, email=email)
     persistence.create_account(db, account)
@@ -72,6 +75,17 @@ def update_user(
             detail="Information can only be updated by user himself",
         )
 
+    update_data = data.model_dump(exclude_unset=True)
+    if "disabled" in update_data.keys() and data.disabled is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for disabled",
+        )
+    if "years" in update_data.keys() and data.years is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for years",
+        )
     if data.disabled is not None:
         user.disabled = data.disabled
     if data.years is not None:
@@ -89,9 +103,6 @@ def delete_user(
     """
     Delete current user.
     """
-
-    # delete all related objects  # FIXME: should deleted on cascade
-    command.workaround_delete_team_authes_by_user_id(db, current_user.user_id)
 
     for log in current_user.action_logs:
         # actoin logs shoud not be deleted, but should be anonymized
