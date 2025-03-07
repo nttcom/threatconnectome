@@ -14,6 +14,7 @@ export function AuthProvider(props) {
   const createUserWithEmailAndPassword = authProvider.createUserWithEmailAndPassword;
   const signInWithEmailAndPassword = authProvider.signInWithEmailAndPassword;
   const signInWithSamlPopup = authProvider.signInWithSamlPopup;
+  const signInWithRedirect = authProvider.signInWithRedirect;
   const signOut = authProvider.signOut;
   const sendEmailVerification = authProvider.sendEmailVerification;
   const sendPasswordResetEmail = authProvider.sendPasswordResetEmail;
@@ -27,6 +28,7 @@ export function AuthProvider(props) {
         createUserWithEmailAndPassword,
         signInWithEmailAndPassword,
         signInWithSamlPopup,
+        signInWithRedirect,
         signOut,
         sendEmailVerification,
         sendPasswordResetEmail,
