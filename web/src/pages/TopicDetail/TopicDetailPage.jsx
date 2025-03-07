@@ -25,6 +25,7 @@ import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi"
 import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
 import { errorToString, cvssConvertToName } from "../../utils/func";
+import { pickAffectedVersions } from "../../utils/topicUtils";
 
 import { TopicSSVCCards } from "./TopicSSVCCards";
 
@@ -32,17 +33,6 @@ const artifactTagChip = (chipNumber) => {
   const artifactTagMax = 99;
   return chipNumber <= artifactTagMax ? chipNumber : `${artifactTagMax}+`;
 };
-
-function pickAffectedVersions(topicActions, tagName) {
-  const versions = topicActions.reduce(
-    (ret, action) => [...ret, ...(action.ext?.vulnerable_versions?.[tagName] ?? [])],
-    [],
-  );
-  if (versions.length > 0) {
-    return [...new Set(versions)].sort();
-  }
-  return ["?"]; // default(fake?) affected version for the case not found
-}
 
 export function TopicDetail() {
   const { topicId } = useParams();
