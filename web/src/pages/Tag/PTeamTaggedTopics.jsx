@@ -8,7 +8,7 @@ import { sortedSSVCPriorities } from "../../utils/const";
 import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 
 export function PTeamTaggedTopics(props) {
-  const { pteamId, service, references, taggedTopics } = props;
+  const { pteamId, service, tagId, references, taggedTopics } = props;
 
   if (taggedTopics === undefined) {
     return <>Loading...</>;
@@ -30,7 +30,12 @@ export function PTeamTaggedTopics(props) {
         Default safety impact: {service.service_safety_impact}
       </Typography>
       <Box sx={{ my: 2 }}>
-        <TopicTable />
+        <TopicTable
+          pteamId={pteamId}
+          serviceId={service.service_id}
+          tagId={tagId}
+          topicIds={taggedTopics.topic_ids}
+        />
       </Box>
     </>
   );
@@ -38,6 +43,7 @@ export function PTeamTaggedTopics(props) {
 PTeamTaggedTopics.propTypes = {
   pteamId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
+  tagId: PropTypes.string.isRequired,
   references: PropTypes.array.isRequired,
   taggedTopics: PropTypes.object.isRequired,
 };

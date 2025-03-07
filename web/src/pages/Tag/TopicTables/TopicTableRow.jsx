@@ -1,75 +1,102 @@
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
-import { Button, Collapse, IconButton, TableCell, TableRow } from "@mui/material";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { TicketTable } from "./TicketTable.jsx";
-import { TicketTableRow } from "./TicketTableRow.jsx";
-import { TopicDetailsDrawer } from "./TopicDetailsDrawer.jsx";
+import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
+import {
+  useGetDependenciesQuery,
+  useGetPTeamTopicActionsQuery,
+  useGetTagsQuery,
+  useGetTicketsQuery,
+  useGetTopicQuery,
+} from "../../../services/tcApi";
+import { APIError } from "../../../utils/APIError";
+import { errorToString } from "../../../utils/func";
+
+import { TopicTableRowView } from "./TopicTableRowView.jsx";
 
 export function TopicTableRow(props) {
-  const { row } = props;
-  const [open, setOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { pteamId, serviceId, tagId, topicId } = props;
+
+  const skipByAuth = useSkipUntilAuthUserIsReady();
+
+  const skipByPTeamId = pteamId === undefined;
+  const skipByServiceId = serviceId === undefined;
+  const skipByTopicId = topicId === undefined;
+  const skipBytagId = tagId === undefined;
+
+  const {
+    data: allTags,
+    error: allTagsError,
+    isLoading: allTagsIsLoading,
+  } = useGetTagsQuery(undefined, { skipByAuth });
+
+  const {
+    data: serviceDependencies,
+    error: serviceDependenciesError,
+    isLoading: serviceDependenciesIsLoading,
+  } = useGetDependenciesQuery(
+    { pteamId, serviceId },
+    { skip: skipByAuth || skipByPTeamId || skipByServiceId },
+  );
+
+  const {
+    data: topic,
+    error: topicError,
+    isLoading: topicIsLoading,
+  } = useGetTopicQuery(topicId, { skip: skipByAuth || skipByTopicId });
+
+  const {
+    data: pteamTopicActionsData,
+    error: pteamTopicActionsError,
+    isLoading: pteamTopicActionsIsLoading,
+  } = useGetPTeamTopicActionsQuery(
+    { topicId, pteamId },
+    { skip: skipByAuth || skipByPTeamId || skipByTopicId },
+  );
+
+  const {
+    data: tickets,
+    error: ticketsRelatedToServiceTopicTagError,
+    isLoading: ticketsRelatedToServiceTopicTagIsLoading,
+  } = useGetTicketsQuery(
+    { pteamId, serviceId, topicId, tagId },
+    { skip: skipByAuth || skipByPTeamId || skipByServiceId || skipByTopicId || skipBytagId },
+  );
+
+  if (skipByAuth || skipByPTeamId || skipByServiceId || skipByTopicId || skipBytagId) return <></>;
+  if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getAllTags" });
+  if (allTagsIsLoading) return <>Now loading allTags...</>;
+  if (serviceDependenciesError)
+    throw new APIError(errorToString(serviceDependenciesError), { api: "getServiceDependencies" });
+  if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
+  if (topicError) throw new APIError(errorToString(topicError), { api: "getTopic" });
+  if (topicIsLoading) return <>Now loading Topic...</>;
+  if (pteamTopicActionsError)
+    throw new APIError(errorToString(pteamTopicActionsError), { api: "getPTeamTopicActions" });
+  if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
+  if (ticketsRelatedToServiceTopicTagError)
+    throw new APIError(errorToString(ticketsRelatedToServiceTopicTagError), {
+      api: "getTicketsRelatedToServiceTopicTag",
+    });
+  if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
 
   return (
-    <>
-      <TableRow>
-        <TableCell sx={{ bgcolor: "grey.50" }}>
-          <IconButton size="small" onClick={() => setOpen(!open)}>
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell sx={{ maxWidth: 300, bgcolor: "grey.50" }}>{row.title}</TableCell>
-        <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {row.tickets.length}
-        </TableCell>
-        <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {row.lastUpdated}
-        </TableCell>
-        <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {"'<1.26.19',"}
-          <br />
-          {"'>=2.0.0, <2.2.2'"}
-        </TableCell>
-        <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {"'1.26.19',"}
-          <br />
-          {"'2.2.2'"}
-        </TableCell>
-        <TableCell align="right" sx={{ bgcolor: "grey.50" }}>
-          <Button
-            variant="outlined"
-            startIcon={<KeyboardDoubleArrowLeftIcon />}
-            size="small"
-            onClick={() => setDrawerOpen(true)}
-          >
-            Details
-          </Button>
-        </TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell sx={{ py: 0 }} colSpan={7}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <TicketTable>
-              {row.tickets.map((ticket) => (
-                <TicketTableRow key={ticket.target} ticket={ticket} />
-              ))}
-            </TicketTable>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-      <TopicDetailsDrawer open={drawerOpen} setOpen={setDrawerOpen} />
-    </>
+    <TopicTableRowView
+      pteamId={pteamId}
+      serviceId={serviceId}
+      tagId={tagId}
+      topicId={topicId}
+      allTags={allTags}
+      serviceDependencies={serviceDependencies}
+      topic={topic}
+      pteamTopicActionsData={pteamTopicActionsData}
+      tickets={tickets}
+    />
   );
 }
-
 TopicTableRow.propTypes = {
-  row: PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    tickets: PropTypes.array,
-    lastUpdated: PropTypes.string,
-  }).isRequired,
+  pteamId: PropTypes.string.isRequired,
+  serviceId: PropTypes.string.isRequired,
+  tagId: PropTypes.string.isRequired,
+  topicId: PropTypes.string.isRequired,
 };

@@ -134,6 +134,7 @@ export function Tag() {
           <PTeamTaggedTopics
             pteamId={pteamId}
             service={serviceDict}
+            tagId={tagId}
             references={references}
             taggedTopics={taggedTopicsUnsolved}
           />
@@ -142,6 +143,7 @@ export function Tag() {
           <PTeamTaggedTopics
             pteamId={pteamId}
             service={serviceDict}
+            tagId={tagId}
             references={references}
             taggedTopics={taggedTopicsSolved}
           />
