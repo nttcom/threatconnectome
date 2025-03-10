@@ -305,10 +305,19 @@ export const tcApi = createApi({
         url: `threats/${threatId}`,
         method: "GET",
       }),
-      providesTags: (result, error, arg) => [
+      providesTags: (result, error, threatId) => [
         { type: "Threat", id: "ALL" },
+        { type: "Threat", id: threatId },
         { type: "Service", id: "ALL" },
       ],
+    }),
+    updateThreat: builder.mutation({
+      query: ({ threatId, data }) => ({
+        url: `threats/${threatId}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, arg) => [{ type: "Threat", id: arg.threatId }],
     }),
 
     /* Ticket */
@@ -487,6 +496,7 @@ export const {
   useGetTagsQuery,
   useCreateTagMutation,
   useGetThreatQuery,
+  useUpdateThreatMutation,
   useGetTicketsQuery,
   useUpdateTicketStatusMutation,
   useGetTopicQuery,

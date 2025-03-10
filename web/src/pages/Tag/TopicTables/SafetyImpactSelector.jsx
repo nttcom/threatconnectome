@@ -17,27 +17,66 @@ import {
 } from "@mui/material";
 import { tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
+import { useSnackbar } from "notistack";
+import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-export function SafetyImpactSelector() {
-  const safetyImpactList = ["Negligible", "Marginal", "Critical", "Catastrophic"];
-  const defaultSafetyImpact = safetyImpactList[0];
-  const [currentSafetyImpact, setCurrentSafetyImpact] = useState(safetyImpactList[0]);
-  const [pendingSafetyImpact, setPendingSafetyImpact] = useState(currentSafetyImpact);
-  const [open, setOpen] = useState(false);
-  const [reasonChangedSafetyImpact, setReasonChangedSafetyImpact] = useState("");
+import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
+import { useGetThreatQuery, useUpdateThreatMutation } from "../../../services/tcApi";
+import { APIError } from "../../../utils/APIError";
+import { safetyImpactProps, sortedSafetyImpacts } from "../../../utils/const";
+import { errorToString } from "../../../utils/func";
 
-  const handleClickOpen = (e) => {
-    if (e.target.value !== defaultSafetyImpact) {
-      setOpen(true);
-      setPendingSafetyImpact(e.target.value);
-    } else {
-      setCurrentSafetyImpact(e.target.value);
-    }
+export function SafetyImpactSelector(props) {
+  const { threatId } = props;
+
+  const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
+  const [open, setOpen] = useState(false);
+  const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
+
+  const skip = useSkipUntilAuthUserIsReady();
+  const {
+    data: threat,
+    error: threatError,
+    isLoading: threatIsLoading,
+  } = useGetThreatQuery(threatId, { skip });
+
+  const [updateThreat] = useUpdateThreatMutation();
+
+  const { enqueueSnackbar } = useSnackbar();
+
+  if (skip) return <></>;
+  if (threatError) throw new APIError(errorToString(threatError), { api: "getThreat" });
+  if (threatIsLoading) return <>Now loading Threat...</>;
+
+  const handleSelectSafetyImpact = (e) => {
+    setOpen(true);
+    setPendingSafetyImpact(e.target.value);
+    setPendingReasonSafetyImpact(threat.reason_safety_impact);
   };
+
   const handleClose = () => {
     setOpen(false);
-    setReasonChangedSafetyImpact("");
+    setPendingReasonSafetyImpact("");
+  };
+
+  const handleSave = async () => {
+    await updateThreat({
+      threatId,
+      data: {
+        threat_safety_impact: pendingSafetyImpact,
+        reason_safety_impact: pendingReasonSafetyImpact,
+      },
+    })
+      .unwrap()
+      .then(() => {
+        enqueueSnackbar("Change safety impact succeeded", { variant: "success" });
+      })
+      .catch((error) =>
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+      );
+
+    handleClose();
   };
 
   const StyledTooltip = styled(({ className, ...props }) => (
@@ -60,19 +99,19 @@ export function SafetyImpactSelector() {
     <Box sx={{ display: "flex", alignItems: "center" }}>
       <FormControl sx={{ width: 130 }} size="small" variant="standard">
         <Select
-          value={currentSafetyImpact}
+          value={threat.threat_safety_impact}
           onChange={(e) => {
-            handleClickOpen(e);
+            handleSelectSafetyImpact(e);
           }}
         >
-          {safetyImpactList.map((safetyImpact) => (
+          {sortedSafetyImpacts.map((safetyImpact) => (
             <MenuItem key={safetyImpact} value={safetyImpact}>
-              {safetyImpact}
+              {safetyImpactProps[safetyImpact].displayName}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
-      {currentSafetyImpact !== defaultSafetyImpact && (
+      {threat.reason_safety_impact === "" && (
         <StyledTooltip
           arrow
           title={
@@ -81,14 +120,7 @@ export function SafetyImpactSelector() {
                 Why was it changed from the default safety impact?
               </Typography>
               <Box sx={{ p: 1 }}>
-                <Typography variant="body2">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-                  incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-                  exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
-                  irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-                  pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
-                  officia deserunt mollit anim id est laborum.
-                </Typography>
+                <Typography variant="body2">{threat.reason_safety_impact}</Typography>
               </Box>
             </>
           }
@@ -102,7 +134,12 @@ export function SafetyImpactSelector() {
         <DialogTitle>Safety Impact update</DialogTitle>
         <DialogContent>
           <Box sx={{ pb: 2 }}>
-            <DialogContentText>Current: {currentSafetyImpact}</DialogContentText>
+            <DialogContentText>
+              Current:{" "}
+              {threat.threat_safety_impact
+                ? safetyImpactProps[threat.threat_safety_impact].displayName
+                : "None"}
+            </DialogContentText>
             <DialogContentText>Updated: {pendingSafetyImpact}</DialogContentText>
           </Box>
           <DialogContentText>Enter the reason for changing Safety Impact</DialogContentText>
@@ -113,19 +150,13 @@ export function SafetyImpactSelector() {
             multiline
             rows={4}
             placeholder="Continue writing here"
-            value={reasonChangedSafetyImpact}
-            onChange={(e) => setReasonChangedSafetyImpact(e.target.value)}
+            value={pendingReasonSafetyImpact}
+            onChange={(e) => setPendingReasonSafetyImpact(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button
-            onClick={() => {
-              setCurrentSafetyImpact(pendingSafetyImpact);
-              handleClose();
-            }}
-            disabled={!reasonChangedSafetyImpact}
-          >
+          <Button onClick={handleSave} disabled={pendingReasonSafetyImpact === ""}>
             Save
           </Button>
         </DialogActions>
@@ -133,3 +164,6 @@ export function SafetyImpactSelector() {
     </Box>
   );
 }
+SafetyImpactSelector.propTypes = {
+  threatId: PropTypes.string.isRequired,
+};

@@ -43,7 +43,7 @@ export function TicketTableRow(props) {
     <TableRow>
       <TableCell>{target}</TableCell>
       <TableCell>
-        <SafetyImpactSelector />
+        <SafetyImpactSelector threatId={ticket.threat.threat_id} />
       </TableCell>
       <TableCell>
         <Box sx={{ display: "flex", alignItems: "center" }}>
