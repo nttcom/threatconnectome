@@ -16,7 +16,7 @@ import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusCh
 import { WarningTooltip } from "../WarningTooltip.jsx";
 
 import { AssigneesSelector } from "./AssigneesSelector";
-import { SelectSafetyImpactForm } from "./SelectSafetyImpactForm.jsx";
+import { SafetyImpactSelector } from "./SafetyImpactSelector.jsx";
 import { TopicStatusSelector } from "./TopicStatusSelector.jsx";
 
 export function TicketTableRow(props) {
@@ -43,7 +43,7 @@ export function TicketTableRow(props) {
     <TableRow>
       <TableCell>{target}</TableCell>
       <TableCell>
-        <SelectSafetyImpactForm />
+        <SafetyImpactSelector />
       </TableCell>
       <TableCell>
         <Box sx={{ display: "flex", alignItems: "center" }}>

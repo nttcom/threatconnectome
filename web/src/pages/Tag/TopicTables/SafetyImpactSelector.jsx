@@ -19,7 +19,7 @@ import { tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import React, { useState } from "react";
 
-export function SelectSafetyImpactForm() {
+export function SafetyImpactSelector() {
   const safetyImpactList = ["Negligible", "Marginal", "Critical", "Catastrophic"];
   const defaultSafetyImpact = safetyImpactList[0];
   const [currentSafetyImpact, setCurrentSafetyImpact] = useState(safetyImpactList[0]);
