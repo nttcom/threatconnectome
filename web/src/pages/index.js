@@ -1,6 +1,7 @@
 import { AcceptPTeamInvitation } from "./AcceptPTeamInvitation/AcceptPTeamInvitationPage";
 import { Account } from "./Account/AccountPage";
 import { App } from "./App/AppPage";
+import { AuthKeycloakCallback } from "./AuthKeycloakCallback/AuthKeycloakCallbackPage";
 import { EmailVerification } from "./EmailVerification/EmailVerificationPage";
 import { Login } from "./Login/LoginPage";
 import { PTeam } from "./PTeam/PTeamPage";
@@ -16,6 +17,7 @@ export {
   AcceptPTeamInvitation,
   Account,
   App,
+  AuthKeycloakCallback,
   EmailVerification,
   Login,
   PTeam,
