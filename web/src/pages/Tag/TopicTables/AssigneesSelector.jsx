@@ -3,8 +3,8 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { useUpdateTicketStatusMutation } from "../../services/tcApi";
-import { errorToString, setEquals } from "../../utils/func";
+import { useUpdateTicketStatusMutation } from "../../../services/tcApi";
+import { errorToString, setEquals } from "../../../utils/func";
 
 export function AssigneesSelector(props) {
   const { pteamId, serviceId, topicId, tagId, ticketId, currentAssigneeIds, members } = props;
@@ -45,7 +45,7 @@ export function AssigneesSelector(props) {
   if (!pteamId || !serviceId || !topicId || !tagId || !ticketId || !members) return <></>;
 
   return (
-    <FormControl size="small">
+    <FormControl sx={{ width: 200 }} size="small">
       <Select
         multiple
         displayEmpty

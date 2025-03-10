@@ -15,20 +15,19 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { ActionTypeIcon } from "../../components/ActionTypeIcon";
-import { UUIDTypography } from "../../components/UUIDTypography";
-import dialogStyle from "../../cssModule/dialog.module.css";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import { ActionTypeIcon } from "../../../components/ActionTypeIcon";
+import { UUIDTypography } from "../../../components/UUIDTypography";
+import dialogStyle from "../../../cssModule/dialog.module.css";
+import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
   useCreateActionLogMutation,
   useUpdateTicketStatusMutation,
   useGetUserMeQuery,
-} from "../../services/tcApi";
-import { APIError } from "../../utils/APIError";
-import { errorToString } from "../../utils/func";
-
-import { ActionTypeChip } from "./ActionTypeChip";
-import { RecommendedStar } from "./RecommendedStar";
+} from "../../../services/tcApi";
+import { APIError } from "../../../utils/APIError";
+import { errorToString } from "../../../utils/func";
+import { ActionTypeChip } from "../ActionTypeChip";
+import { RecommendedStar } from "../RecommendedStar";
 
 export function ReportCompletedActions(props) {
   const { pteamId, serviceId, ticketId, topicId, tagId, topicActions, onSetShow, show } = props;

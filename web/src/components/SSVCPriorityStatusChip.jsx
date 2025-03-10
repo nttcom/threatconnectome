@@ -28,6 +28,8 @@ export function SSVCPriorityStatusChip(props) {
           alignItems: "center",
           justifyContent: "center",
           padding: "4px",
+          width: 30,
+          height: 30,
           ...ssvcPriorityProp.style,
         }}
       >
