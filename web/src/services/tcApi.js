@@ -290,6 +290,13 @@ export const tcApi = createApi({
       providesTags: (result, error) => [{ type: "Tag", id: "ALL" }],
     }),
 
+    getTag: builder.query({
+      query: (tagId) => ({
+        url: `tags/${tagId}`,
+      }),
+      providesTags: (result, error, tagId) => [{ type: "Tag", id: tagId }],
+    }),
+
     createTag: builder.mutation({
       query: (data) => ({
         url: "tags",
@@ -494,6 +501,7 @@ export const {
   useGetPTeamTagsSummaryQuery,
   useUploadSBOMFileMutation,
   useGetTagsQuery,
+  useGetTagQuery,
   useCreateTagMutation,
   useGetThreatQuery,
   useUpdateThreatMutation,

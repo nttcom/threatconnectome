@@ -79,7 +79,7 @@ root.render(
                     <Route index element={<TopicManagement />} />
                     <Route path=":topicId" element={<TopicDetail />} />
                   </Route>
-                  <Route path="vulnerability">
+                  <Route path="vulnerabilities">
                     <Route index element={<Vulnerability />} />
                   </Route>
                 </Route>
