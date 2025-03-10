@@ -80,6 +80,7 @@ export function Tag() {
   const tagDict = allTags.find((tag) => tag.tag_id === tagId);
   const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
   const references = currentTagDependencies.map((dependency) => ({
+    dependencyId: dependency.dependency_id,
     target: dependency.target,
     version: dependency.version,
     service: serviceDict.service_name,

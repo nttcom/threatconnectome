@@ -1,9 +1,9 @@
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import React from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
-  useGetDependenciesQuery,
+  useGetPTeamMembersQuery,
   useGetPTeamTopicActionsQuery,
   useGetTagsQuery,
   useGetTicketsQuery,
@@ -11,11 +11,12 @@ import {
 } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
+import { isRelatedAction } from "../../../utils/topicUtils.js";
 
 import { TopicTableRowView } from "./TopicTableRowView.jsx";
 
 export function TopicTableRow(props) {
-  const { pteamId, serviceId, tagId, topicId } = props;
+  const { pteamId, serviceId, tagId, topicId, references } = props;
 
   const skipByAuth = useSkipUntilAuthUserIsReady();
 
@@ -31,13 +32,10 @@ export function TopicTableRow(props) {
   } = useGetTagsQuery(undefined, { skipByAuth });
 
   const {
-    data: serviceDependencies,
-    error: serviceDependenciesError,
-    isLoading: serviceDependenciesIsLoading,
-  } = useGetDependenciesQuery(
-    { pteamId, serviceId },
-    { skip: skipByAuth || skipByPTeamId || skipByServiceId },
-  );
+    data: members,
+    error: membersError,
+    isLoading: membersIsLoading,
+  } = useGetPTeamMembersQuery(pteamId, { skip: skipByAuth || skipByPTeamId });
 
   const {
     data: topic,
@@ -66,9 +64,8 @@ export function TopicTableRow(props) {
   if (skipByAuth || skipByPTeamId || skipByServiceId || skipByTopicId || skipBytagId) return <></>;
   if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getAllTags" });
   if (allTagsIsLoading) return <>Now loading allTags...</>;
-  if (serviceDependenciesError)
-    throw new APIError(errorToString(serviceDependenciesError), { api: "getServiceDependencies" });
-  if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
+  if (membersError) throw new APIError(errorToString(membersError), { api: "getPTeamMembers" });
+  if (membersIsLoading) return <>Now loading PTeamMembers...</>;
   if (topicError) throw new APIError(errorToString(topicError), { api: "getTopic" });
   if (topicIsLoading) return <>Now loading Topic...</>;
   if (pteamTopicActionsError)
@@ -80,6 +77,13 @@ export function TopicTableRow(props) {
     });
   if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
 
+  const currentTagDict = allTags.find((tag) => tag.tag_id === tagId);
+  const topicActions = pteamTopicActionsData.actions?.filter(
+    (action) =>
+      isRelatedAction(action, references, currentTagDict.tag_name) ||
+      isRelatedAction(action, references, currentTagDict.parent_name),
+  );
+
   return (
     <TopicTableRowView
       pteamId={pteamId}
@@ -87,9 +91,10 @@ export function TopicTableRow(props) {
       tagId={tagId}
       topicId={topicId}
       allTags={allTags}
-      serviceDependencies={serviceDependencies}
+      members={members}
+      references={references}
       topic={topic}
-      pteamTopicActionsData={pteamTopicActionsData}
+      topicActions={topicActions}
       tickets={tickets}
     />
   );
@@ -99,4 +104,5 @@ TopicTableRow.propTypes = {
   serviceId: PropTypes.string.isRequired,
   tagId: PropTypes.string.isRequired,
   topicId: PropTypes.string.isRequired,
+  references: PropTypes.array.isRequired,
 };

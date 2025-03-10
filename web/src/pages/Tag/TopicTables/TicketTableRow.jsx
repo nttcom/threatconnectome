@@ -12,78 +12,71 @@ import {
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
+import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip.jsx";
 import { WarningTooltip } from "../WarningTooltip.jsx";
 
-import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip.jsx";
+import { AssigneesSelector } from "./AssigneesSelector";
 import { SelectSafetyImpactForm } from "./SelectSafetyImpactForm.jsx";
+import { TopicStatusSelector } from "./TopicStatusSelector.jsx";
 
 export function TicketTableRow(props) {
-  const { ticket } = props;
-  const userNames = ["test@example.com", "test2@example.com"];
-  const [assignees, setAssignees] = useState([]);
-
-  const handleChange = (event) => {
-    const {
-      target: { value },
-    } = event;
-    setAssignees(value);
-  };
+  const {
+    pteamId,
+    serviceId,
+    tagId,
+    topicId,
+    allTags,
+    members,
+    references,
+    topic,
+    topicActions,
+    ticket,
+  } = props;
 
   const statusList = ["Alerted", "Acknowledged", "Scheduled", "Completed"];
   const [currentStatus, setCurrentStatus] = useState(statusList[0]);
-
-  const displaySSVCPriority = "immediate";
+  const target = references.filter(
+    (reference) => reference.dependencyId === ticket.threat.dependency_id,
+  )[0].target;
 
   return (
     <TableRow>
-      <TableCell>{ticket.target}</TableCell>
+      <TableCell>{target}</TableCell>
       <TableCell>
         <SelectSafetyImpactForm />
       </TableCell>
       <TableCell>
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <FormControl sx={{ width: 140 }} size="small" variant="standard">
-            <Select value={currentStatus} onChange={(e) => setCurrentStatus(e.target.value)}>
-              {statusList.map((status) => (
-                <MenuItem key={status} value={status}>
-                  {status}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {currentStatus === "Alerted" && (
+          <TopicStatusSelector
+            pteamId={pteamId}
+            serviceId={serviceId}
+            topicId={topicId}
+            tagId={tagId}
+            ticketId={ticket.ticket_id}
+            currentStatus={ticket.ticket_status}
+            topicActions={topicActions}
+          />
+          {(ticket.ticket_status.topic_status ?? "alerted") === "alerted" && (
             <WarningTooltip message="No one has acknowledged this topic" />
           )}
         </Box>
       </TableCell>
-      <TableCell>{ticket.dueDate}</TableCell>
+      <TableCell>{ticket.ticket_status.scheduled_at}</TableCell>
       <TableCell>
-        <FormControl sx={{ width: 200 }} size="small">
-          <InputLabel>Assignees</InputLabel>
-          <Select
-            multiple
-            value={assignees}
-            onChange={handleChange}
-            input={<OutlinedInput label="Assingees" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip key={value} label={value} size="small" />
-                ))}
-              </Box>
-            )}
-          >
-            {userNames.map((name) => (
-              <MenuItem key={name} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <AssigneesSelector
+          key={ticket.ticket_status.assignees.join("")}
+          pteamId={pteamId}
+          serviceId={serviceId}
+          topicId={topicId}
+          tagId={tagId}
+          ticketId={ticket.ticket_id}
+          currentAssigneeIds={ticket.ticket_status.assignees}
+          members={members}
+        />
       </TableCell>
       <TableCell>
         <Box sx={{ display: "flex", justifyContent: "center" }}>
-          <SSVCPriorityStatusChip displaySSVCPriority={displaySSVCPriority} />
+          <SSVCPriorityStatusChip displaySSVCPriority={ticket.ssvc_deployer_priority} />
         </Box>
       </TableCell>
     </TableRow>
@@ -91,5 +84,14 @@ export function TicketTableRow(props) {
 }
 
 TicketTableRow.propTypes = {
-  ticket: PropTypes.object,
+  pteamId: PropTypes.string.isRequired,
+  serviceId: PropTypes.string.isRequired,
+  tagId: PropTypes.string.isRequired,
+  topicId: PropTypes.string.isRequired,
+  allTags: PropTypes.array.isRequired,
+  members: PropTypes.object.isRequired,
+  references: PropTypes.array.isRequired,
+  topic: PropTypes.object.isRequired,
+  topicActions: PropTypes.array.isRequired,
+  ticket: PropTypes.object.isRequired,
 };

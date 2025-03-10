@@ -25,6 +25,5 @@ export function TicketTable(props) {
 }
 
 TicketTable.propTypes = {
-  tickets: PropTypes.array,
   children: PropTypes.array,
 };

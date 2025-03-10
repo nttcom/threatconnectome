@@ -2,10 +2,10 @@ import { Box, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { TopicTable } from "./TopicTables/TopicTable";
 import { sortedSSVCPriorities } from "../../utils/const";
 
 import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
+import { TopicTable } from "./TopicTables/TopicTable";
 
 export function PTeamTaggedTopics(props) {
   const { pteamId, service, tagId, references, taggedTopics } = props;
@@ -35,6 +35,7 @@ export function PTeamTaggedTopics(props) {
           serviceId={service.service_id}
           tagId={tagId}
           topicIds={taggedTopics.topic_ids}
+          references={references}
         />
       </Box>
     </>

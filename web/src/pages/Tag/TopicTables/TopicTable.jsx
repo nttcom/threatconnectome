@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { TopicTableRow } from "./TopicTableRow";
 
 export function TopicTable(props) {
-  const { pteamId, serviceId, tagId, topicIds } = props;
+  const { pteamId, serviceId, tagId, topicIds, references } = props;
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [page, setPage] = useState(0);
 
@@ -57,6 +57,7 @@ export function TopicTable(props) {
                 serviceId={serviceId}
                 tagId={tagId}
                 topicId={topicId}
+                references={references}
               />
             ))}
           </TableBody>
@@ -79,4 +80,5 @@ TopicTable.propTypes = {
   serviceId: PropTypes.string.isRequired,
   tagId: PropTypes.string.isRequired,
   topicIds: PropTypes.array.isRequired,
+  references: PropTypes.array.isRequired,
 };
