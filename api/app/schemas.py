@@ -116,6 +116,7 @@ class PTeamServiceResponse(ORMModel):
 
 
 class PTeamServiceUpdateRequest(ORMModel):
+    service_name: str | None = None
     description: str | None = None
     keywords: list[str] | None = None
     system_exposure: SystemExposureEnum | None = None
@@ -124,6 +125,7 @@ class PTeamServiceUpdateRequest(ORMModel):
 
 
 class PTeamServiceUpdateResponse(ORMModel):
+    service_name: str
     description: str | None
     keywords: list[str]
     system_exposure: SystemExposureEnum | None

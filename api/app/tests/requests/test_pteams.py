@@ -3230,6 +3230,97 @@ class TestUpdatePTeamService:
             data = response.json()
             return data["access_token"]
 
+    class TestServiceName(Common):
+        error_too_long_service_name = (  # HACK: define as a tuple instead of str
+            "Too long service name. Max length is 255 in half-width or 127 in full-width",
+        )
+        chars_255_in_half = "1" * 255
+        chars_127_in_full = "１" * 127
+        complex_255_in_half = "1１" * 85
+
+        @pytest.mark.parametrize(
+            "service_name, expected",
+            [
+                (None, ("Cannot specify None for service_name",)),
+                ("", ""),
+                ("   ", ""),
+                (chars_255_in_half, chars_255_in_half),
+                (chars_255_in_half + "  ", chars_255_in_half),
+                (chars_255_in_half + "x", error_too_long_service_name),
+                (chars_127_in_full, chars_127_in_full),
+                (chars_127_in_full + " ", chars_127_in_full),
+                (chars_127_in_full + "　", chars_127_in_full),
+                (chars_127_in_full + "ｘ", error_too_long_service_name),
+                (complex_255_in_half, complex_255_in_half),
+                (complex_255_in_half + " ", complex_255_in_half),
+                (complex_255_in_half + "　", complex_255_in_half),
+                (complex_255_in_half + "x", error_too_long_service_name),
+                (complex_255_in_half + "ｘ", error_too_long_service_name),
+            ],
+        )
+        def test_length_of_service_name(self, service_name, expected):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            request = {"service_name": service_name}
+
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            if isinstance(expected, tuple):  # error case
+                assert response.status_code == 400
+                assert response.json()["detail"] == expected[0]
+            else:
+                assert response.status_code == 200
+                assert response.json()["service_name"] == expected
+
+        def test_it_should_return_200_when_service_name_is_not_specify(self):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            request = {"keywords": []}
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 200
+            assert response.json()["service_name"] == "test_service"
+
+        def test_it_should_return_400_when_naming_the_same_service_in_the_same_pteam(self):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+
+            test_service = "test_service1"
+            test_target = "test target"
+            test_version = "1.2.3"
+            refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
+            upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
+
+            request = {"service_name": test_service}
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 400
+            assert response.json()["detail"] == "Service name already exists in the same team"
+
     class TestKeywords(Common):
         @pytest.mark.parametrize(
             "keywords, expected",
