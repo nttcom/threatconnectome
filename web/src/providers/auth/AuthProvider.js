@@ -26,6 +26,10 @@ export class AuthProvider {
   async signInWithSamlPopup() {
     throw new Error("Not implemented");
   }
+  async signInWithRedirect() {
+    // for OAuth
+    throw new Error("Not implemented");
+  }
   async signOut() {
     throw new Error("Not implemented");
   }

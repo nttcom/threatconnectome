@@ -17,10 +17,10 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import { pickAffectedVersions } from "../../../utils/topicUtils.js";
+import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer";
 
 import { TicketTable } from "./TicketTable.jsx";
 import { TicketTableRow } from "./TicketTableRow.jsx";
-import { TopicDetailsDrawer } from "./TopicDetailsDrawer.jsx";
 
 export function TopicTableRowView(props) {
   const {
@@ -107,7 +107,14 @@ export function TopicTableRowView(props) {
           </Collapse>
         </TableCell>
       </TableRow>
-      <TopicDetailsDrawer open={topicDrawerOpen} setOpen={setTopicDrawerOpen} />
+      <VulnerabilityDrawer
+        open={topicDrawerOpen}
+        setOpen={setTopicDrawerOpen}
+        pteamId={pteamId}
+        serviceId={serviceId}
+        serviceTagId={tagId}
+        topicId={topicId}
+      />
     </>
   );
 }

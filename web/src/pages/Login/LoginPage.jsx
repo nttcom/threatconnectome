@@ -21,7 +21,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/auth";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import { setAuthUserIsReady } from "../../slices/auth";
-import Firebase from "../../utils/Firebase"; // FIXME: remove after supporting saml provider
+import Firebase from "../../utils/Firebase";
+import { rootPrefix } from "../../utils/const";
 
 export function Login() {
   const [message, setMessage] = useState(null);
@@ -34,8 +35,13 @@ export function Login() {
 
   const [createUser] = useCreateUserMutation();
   const [tryLogin] = useTryLoginMutation();
-  const { sendEmailVerification, signInWithEmailAndPassword, signInWithSamlPopup, signOut } =
-    useAuth();
+  const {
+    sendEmailVerification,
+    signInWithEmailAndPassword,
+    signInWithSamlPopup,
+    signInWithRedirect,
+    signOut,
+  } = useAuth();
 
   useEffect(() => {
     dispatch(setAuthUserIsReady(false));
@@ -60,9 +66,7 @@ export function Login() {
     } catch (error) {
       switch (error.data?.detail) {
         case "Email is not verified. Try logging in on UI and verify email.": {
-          const actionCodeSettings = {
-            url: `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/login`,
-          };
+          const actionCodeSettings = { url: `${window.location.origin}${rootPrefix}/login` };
           await sendEmailVerification({ actionCodeSettings })
             .then(() =>
               setMessage(
@@ -106,6 +110,17 @@ export function Login() {
         setMessage("Something went wrong.");
         console.error(error);
       });
+  };
+
+  const handleLoginWithKeycloak = async () => {
+    /* Note: currently, work with supabase only.
+     * redirectTo: set the page which SUPABASE_AUTH_CONTAINER/auth/v1/callback should redirect to.
+     */
+    const redirectTo = `${window.location.origin}${rootPrefix}/auth_keycloak_callback`;
+    await signInWithRedirect({ provider: "keycloak", redirectTo }).catch((authError) => {
+      setMessage(authError.message);
+      console.error(authError);
+    });
   };
 
   const handleResetPassword = (event) => {
@@ -182,7 +197,7 @@ export function Login() {
         </Button>
       </Box>
       {/* show saml login button if samlProviderId is set as env */}
-      {Firebase.getSamlProvider() != null && ( // FIXME
+      {Firebase.getSamlProvider() != null && (
         <>
           <Divider />
           <Button
@@ -195,6 +210,22 @@ export function Login() {
           </Button>
         </>
       )}
+      {/* show Keycloak login button if KEYCLOAK_ENABLED is true */}
+      {/* currently, work with supabase only */}
+      {import.meta.env.VITE_AUTH_SERVICE === "supabase" &&
+        (import.meta.env.VITE_KEYCLOAK_ENABLED || "false").toLowerCase() === "true" && (
+          <>
+            <Divider />
+            <Button
+              fullWidth
+              onClick={handleLoginWithKeycloak}
+              variant="contained"
+              sx={{ textTransform: "none", mb: 2, mt: 2 }}
+            >
+              Log In with Keycloak
+            </Button>
+          </>
+        )}
       <Divider />
       <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
         <Typography mr={1}>No metemcyber account?</Typography>

@@ -15,6 +15,7 @@ import {
   AcceptPTeamInvitation,
   Account,
   App,
+  AuthKeycloakCallback,
   EmailVerification,
   Login,
   ResetPassword,
@@ -56,9 +57,10 @@ root.render(
             >
               <Routes>
                 <Route exact path="/login" element={<Login />} />
+                <Route path="/auth_keycloak_callback" element={<AuthKeycloakCallback />} />
+                <Route path="/email_verification" element={<EmailVerification />} />
                 <Route path="/reset_password" element={<ResetPassword />} />
                 <Route path="/sign_up" element={<SignUp />} />
-                <Route path="/email_verification" element={<EmailVerification />} />
                 <Route path="/" element={<App />}>
                   <Route index element={<Status />} />
                   <Route path="account">
@@ -77,7 +79,7 @@ root.render(
                     <Route index element={<TopicManagement />} />
                     <Route path=":topicId" element={<TopicDetail />} />
                   </Route>
-                  <Route path="vulnerability">
+                  <Route path="vulnerabilities">
                     <Route index element={<Vulnerability />} />
                   </Route>
                 </Route>

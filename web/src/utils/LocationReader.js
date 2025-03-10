@@ -23,6 +23,10 @@ export class LocationReader {
     return this.location.pathname.includes("/topics");
   }
 
+  isVulnerabilitiesPage() {
+    return this.location.pathname.includes("/vulnerabilities");
+  }
+
   isAccountPage() {
     return this.location.pathname === "/account";
   }
