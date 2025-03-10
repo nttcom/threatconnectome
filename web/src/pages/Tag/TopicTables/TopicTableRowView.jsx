@@ -97,10 +97,8 @@ export function TopicTableRowView(props) {
                   serviceId={serviceId}
                   tagId={tagId}
                   topicId={topicId}
-                  allTags={allTags}
                   members={members}
                   references={references}
-                  topic={topic}
                   topicActions={topicActions}
                   ticket={ticket}
                 />

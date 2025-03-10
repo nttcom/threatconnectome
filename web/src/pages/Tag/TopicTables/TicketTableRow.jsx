@@ -1,16 +1,6 @@
-import {
-  Box,
-  Chip,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  OutlinedInput,
-  Select,
-  TableCell,
-  TableRow,
-} from "@mui/material";
+import { Box, TableCell, TableRow } from "@mui/material";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import React from "react";
 
 import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip.jsx";
 import { WarningTooltip } from "../WarningTooltip.jsx";
@@ -20,21 +10,8 @@ import { SafetyImpactSelector } from "./SafetyImpactSelector.jsx";
 import { TopicStatusSelector } from "./TopicStatusSelector.jsx";
 
 export function TicketTableRow(props) {
-  const {
-    pteamId,
-    serviceId,
-    tagId,
-    topicId,
-    allTags,
-    members,
-    references,
-    topic,
-    topicActions,
-    ticket,
-  } = props;
+  const { pteamId, serviceId, tagId, topicId, members, references, topicActions, ticket } = props;
 
-  const statusList = ["Alerted", "Acknowledged", "Scheduled", "Completed"];
-  const [currentStatus, setCurrentStatus] = useState(statusList[0]);
   const target = references.filter(
     (reference) => reference.dependencyId === ticket.threat.dependency_id,
   )[0].target;
@@ -88,10 +65,8 @@ TicketTableRow.propTypes = {
   serviceId: PropTypes.string.isRequired,
   tagId: PropTypes.string.isRequired,
   topicId: PropTypes.string.isRequired,
-  allTags: PropTypes.array.isRequired,
   members: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
-  topic: PropTypes.object.isRequired,
   topicActions: PropTypes.array.isRequired,
   ticket: PropTypes.object.isRequired,
 };
