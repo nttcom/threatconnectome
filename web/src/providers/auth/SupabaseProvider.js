@@ -67,9 +67,25 @@ export class SupabaseProvider extends AuthProvider {
       });
   }
 
-  async signInWithSamlPopup() {
-    // TODO
-    throw new Error("Not implemented");
+  async signInWithRedirect({ provider, redirectTo }) {
+    let options = { redirectTo };
+    switch (provider) {
+      case "keycloak":
+        options["scopes"] = "openid";
+        break;
+      default:
+        throw new Error(`Implementation error. not defined provider: ${provider}`);
+    }
+    await supabase.auth
+      .signInWithOAuth({ provider, options })
+      .then((result) => {
+        if (result.error) {
+          throw new SupabaseAuthError(result.error);
+        }
+      })
+      .catch((error) => {
+        throw error;
+      });
   }
 
   async sendPasswordResetEmail({ email, redirectTo }) {
