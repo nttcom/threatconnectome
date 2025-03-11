@@ -250,6 +250,31 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/services/${serviceId}/thumbnail`,
         responseHandler: async (response) => await blobToDataURL(await response.blob()),
       }),
+      providesTags: (result, error) => [
+        { type: "Service", id: "ALL" },
+        { type: "Service.thumbnail", id: "ALL" },
+      ],
+    }),
+
+    updatePTeamServiceThumbnail: builder.mutation({
+      query: ({ pteamId, serviceId, imageFile }) => {
+        const imageFileData = new FormData();
+        imageFileData.append("uploaded", imageFile);
+        return {
+          url: `pteams/${pteamId}/services/${serviceId}/thumbnail`,
+          method: "POST",
+          body: imageFileData,
+        };
+      },
+      invalidatesTags: (result, error, arg) => [{ type: "Service.thumbnail", id: "ALL" }],
+    }),
+
+    deletePTeamServiceThumbnail: builder.mutation({
+      query: ({ pteamId, serviceId }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}/thumbnail`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, arg) => [{ type: "Service.thumbnail", id: "ALL" }],
     }),
 
     /* PTeam Tags Summary */
@@ -482,6 +507,8 @@ export const {
   useGetPTeamServiceTaggedTopicIdsQuery,
   useGetPTeamServiceTagsSummaryQuery,
   useGetPTeamServiceThumbnailQuery,
+  useUpdatePTeamServiceThumbnailMutation,
+  useDeletePTeamServiceThumbnailMutation,
   useGetPTeamTagsSummaryQuery,
   useUploadSBOMFileMutation,
   useGetTagsQuery,
