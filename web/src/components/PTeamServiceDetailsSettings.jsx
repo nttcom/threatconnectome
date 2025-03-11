@@ -95,9 +95,6 @@ export function PTeamServiceDetailsSettings(props) {
       description: currentDescription,
       service_safety_impact: defaultSafetyImpactValue,
     };
-    if (service.service_name === serviceName) {
-      delete data.service_name;
-    }
     promiseList.push(async () => {
       await updatePTeamService({
         pteamId: pteamId,
