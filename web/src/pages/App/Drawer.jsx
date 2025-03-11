@@ -114,6 +114,7 @@ export function Drawer() {
           </StyledListItemIcon>
           <ListItemText>Topics</ListItemText>
         </StyledListItemButton>
+        {/* Vulnerabilities -- not listed on drawer, currently */}
         {/* Account */}
         <StyledListItemButton
           onClick={() => navigate("/account?" + queryParams)}
