@@ -18,11 +18,6 @@ import {
 
 export const rootPrefix = import.meta.env.VITE_PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
 
-export const systemAccount = {
-  uuid: "00000000-0000-0000-0000-0000cafe0011",
-  email: import.meta.env.VITE_SYSTEM_EMAIL || "SYSTEM_ACCOUNT",
-};
-
 export const actionTypeChipWidth = 90;
 
 export const drawerWidth = 200;
@@ -197,8 +192,6 @@ export const missionImpact = {
 };
 
 /* Safety Impact */
-export const safetyImpactDescription =
-  "The safety impact of the vulnerability. (based on IEC 61508)";
 export const sortedSafetyImpacts = [
   // should match with strings which api returns
   "catastrophic",

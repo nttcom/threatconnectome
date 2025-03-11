@@ -9,7 +9,7 @@ export function WarningTooltip(props) {
   return (
     <Tooltip title={message} placement="top">
       <IconButton size="small" color="error">
-        <ErrorOutlineIcon />
+        <ErrorOutlineIcon fontSize="small" />
       </IconButton>
     </Tooltip>
   );

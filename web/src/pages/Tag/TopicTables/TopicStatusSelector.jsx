@@ -23,10 +23,10 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useRef, useState } from "react";
 
-import dialogStyle from "../../cssModule/dialog.module.css";
-import { useUpdateTicketStatusMutation } from "../../services/tcApi";
-import { topicStatusProps } from "../../utils/const";
-import { errorToString } from "../../utils/func";
+import dialogStyle from "../../../cssModule/dialog.module.css";
+import { useUpdateTicketStatusMutation } from "../../../services/tcApi";
+import { topicStatusProps } from "../../../utils/const";
+import { errorToString } from "../../../utils/func";
 
 import { ReportCompletedActions } from "./ReportCompletedActions";
 
@@ -228,5 +228,5 @@ TopicStatusSelector.propTypes = {
   tagId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentStatus: PropTypes.object.isRequired,
-  topicActions: PropTypes.array,
+  topicActions: PropTypes.array.isRequired,
 };

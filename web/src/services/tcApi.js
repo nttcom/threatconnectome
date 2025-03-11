@@ -290,6 +290,13 @@ export const tcApi = createApi({
       providesTags: (result, error) => [{ type: "Tag", id: "ALL" }],
     }),
 
+    getTag: builder.query({
+      query: (tagId) => ({
+        url: `tags/${tagId}`,
+      }),
+      providesTags: (result, error, tagId) => [{ type: "Tag", id: tagId }],
+    }),
+
     createTag: builder.mutation({
       query: (data) => ({
         url: "tags",
@@ -305,10 +312,19 @@ export const tcApi = createApi({
         url: `threats/${threatId}`,
         method: "GET",
       }),
-      providesTags: (result, error, arg) => [
+      providesTags: (result, error, threatId) => [
         { type: "Threat", id: "ALL" },
+        { type: "Threat", id: threatId },
         { type: "Service", id: "ALL" },
       ],
+    }),
+    updateThreat: builder.mutation({
+      query: ({ threatId, data }) => ({
+        url: `threats/${threatId}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, arg) => [{ type: "Threat", id: arg.threatId }],
     }),
 
     /* Ticket */
@@ -485,8 +501,10 @@ export const {
   useGetPTeamTagsSummaryQuery,
   useUploadSBOMFileMutation,
   useGetTagsQuery,
+  useGetTagQuery,
   useCreateTagMutation,
   useGetThreatQuery,
+  useUpdateThreatMutation,
   useGetTicketsQuery,
   useUpdateTicketStatusMutation,
   useGetTopicQuery,

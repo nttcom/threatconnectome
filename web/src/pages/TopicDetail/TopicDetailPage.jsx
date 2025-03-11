@@ -20,11 +20,13 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
+import { ArtifactTagView } from "../../components/ArtifactTagView";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
 import { errorToString, cvssConvertToName } from "../../utils/func";
+import { pickAffectedVersions } from "../../utils/topicUtils";
 
 import { TopicSSVCCards } from "./TopicSSVCCards";
 
@@ -32,17 +34,6 @@ const artifactTagChip = (chipNumber) => {
   const artifactTagMax = 99;
   return chipNumber <= artifactTagMax ? chipNumber : `${artifactTagMax}+`;
 };
-
-function pickAffectedVersions(topicActions, tagName) {
-  const versions = topicActions.reduce(
-    (ret, action) => [...ret, ...(action.ext?.vulnerable_versions?.[tagName] ?? [])],
-    [],
-  );
-  if (versions.length > 0) {
-    return [...new Set(versions)].sort();
-  }
-  return ["?"]; // default(fake?) affected version for the case not found
-}
 
 export function TopicDetail() {
   const { topicId } = useParams();
@@ -109,54 +100,11 @@ export function TopicDetail() {
             {topic.tags
               .filter((artifactTag, index) => (showAllArtifacts ? true : index === 0))
               .map((artifactTag) => (
-                <Card
+                <ArtifactTagView
                   key={artifactTag.tag_id}
-                  variant="outlined"
-                  display="flex"
-                  sx={{ margin: 1, padding: 2 }}
-                >
-                  <Typography variant="h5">{artifactTag.tag_name}</Typography>
-                  <Box display="flex" flexDirection="row" justifyContent="center">
-                    {/* left half -- affected versions */}
-                    <Box
-                      alignItems="flexStart"
-                      display="flex"
-                      flexDirection="column"
-                      sx={{ width: "50%", minWidth: "50%" }}
-                    >
-                      {pickAffectedVersions(topicActions, artifactTag.tag_name).map(
-                        (affectedVersion) => (
-                          <Box
-                            key={affectedVersion}
-                            alignItems="center"
-                            display="flex"
-                            flexDirection="row"
-                            sx={{ ml: 2 }}
-                          >
-                            <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
-                            <Tooltip title={affectedVersion} placement="right">
-                              <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
-                                {affectedVersion}
-                              </Typography>
-                            </Tooltip>
-                          </Box>
-                        ),
-                      )}
-                    </Box>
-                    {/* right half -- patched versions */}
-                    <Box
-                      alignItems="center"
-                      display="flex"
-                      flexDirection="row"
-                      sx={{ width: "50%", ml: 2 }}
-                    >
-                      <RecommendIcon sx={{ fontSize: 32, color: green[500] }} />
-                      <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
-                        {"-" /* not yet supported */}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Card>
+                  artifactTag={artifactTag}
+                  topicActions={topicActions}
+                />
               ))}
             {/* hide or more button if needed */}
             {topic.tags.length > 1 && (

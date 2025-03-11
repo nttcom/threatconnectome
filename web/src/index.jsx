@@ -1,3 +1,8 @@
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+
 import { CssBaseline } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { SnackbarProvider } from "notistack";
@@ -20,6 +25,7 @@ import {
   TopicDetail,
   TopicManagement,
   PTeam,
+  Vulnerability,
 } from "./pages";
 import { AuthProvider } from "./providers/auth/AuthContext";
 import store from "./store";
@@ -72,6 +78,9 @@ root.render(
                   <Route path="topics">
                     <Route index element={<TopicManagement />} />
                     <Route path=":topicId" element={<TopicDetail />} />
+                  </Route>
+                  <Route path="vulnerabilities">
+                    <Route index element={<Vulnerability />} />
                   </Route>
                 </Route>
               </Routes>
