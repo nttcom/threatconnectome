@@ -49,24 +49,12 @@ export function SafetyImpactSelector(props) {
   if (threatError) throw new APIError(errorToString(threatError), { api: "getThreat" });
   if (threatIsLoading) return <>Now loading Threat...</>;
 
-  const handleSelectSafetyImpact = (e) => {
-    setOpen(true);
-    setPendingSafetyImpact(e.target.value);
-    setPendingReasonSafetyImpact(threat.reason_safety_impact);
-  };
+  const defaultItem = "Default";
 
-  const handleClose = () => {
-    setOpen(false);
-    setPendingReasonSafetyImpact("");
-  };
-
-  const handleSave = async () => {
+  const updateThreatFunction = async (threatId, requestData) => {
     await updateThreat({
       threatId,
-      data: {
-        threat_safety_impact: pendingSafetyImpact,
-        reason_safety_impact: pendingReasonSafetyImpact,
-      },
+      data: requestData,
     })
       .unwrap()
       .then(() => {
@@ -75,8 +63,37 @@ export function SafetyImpactSelector(props) {
       .catch((error) =>
         enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
       );
+  };
 
-    handleClose();
+  const handleSelectSafetyImpact = (e) => {
+    setPendingSafetyImpact(e.target.value);
+
+    if (e.target.value === defaultItem) {
+      setPendingReasonSafetyImpact("");
+      const requestData = {
+        threat_safety_impact: null,
+        reason_safety_impact: null,
+      };
+      updateThreatFunction(threatId, requestData);
+    } else {
+      setPendingReasonSafetyImpact(
+        threat.reason_safety_impact === null ? "" : threat.reason_safety_impact,
+      );
+      setOpen(true);
+    }
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleSave = async () => {
+    const requestData = {
+      threat_safety_impact: pendingSafetyImpact,
+      reason_safety_impact: pendingReasonSafetyImpact,
+    };
+    updateThreatFunction(threatId, requestData);
+    setOpen(false);
   };
 
   const StyledTooltip = styled(({ className, ...props }) => (
@@ -99,11 +116,14 @@ export function SafetyImpactSelector(props) {
     <Box sx={{ display: "flex", alignItems: "center" }}>
       <FormControl sx={{ width: 130 }} size="small" variant="standard">
         <Select
-          value={threat.threat_safety_impact}
+          value={threat.threat_safety_impact ? threat.threat_safety_impact : defaultItem}
           onChange={(e) => {
             handleSelectSafetyImpact(e);
           }}
         >
+          <MenuItem key={defaultItem} value={defaultItem}>
+            {defaultItem}
+          </MenuItem>
           {sortedSafetyImpacts.map((safetyImpact) => (
             <MenuItem key={safetyImpact} value={safetyImpact}>
               {safetyImpactProps[safetyImpact].displayName}
@@ -138,9 +158,14 @@ export function SafetyImpactSelector(props) {
               Current:{" "}
               {threat.threat_safety_impact
                 ? safetyImpactProps[threat.threat_safety_impact].displayName
-                : "None"}
+                : defaultItem}
             </DialogContentText>
-            <DialogContentText>Updated: {pendingSafetyImpact}</DialogContentText>
+            <DialogContentText>
+              Updated:{" "}
+              {pendingSafetyImpact === ""
+                ? defaultItem
+                : safetyImpactProps[pendingSafetyImpact].displayName}
+            </DialogContentText>
           </Box>
           <DialogContentText>Enter the reason for changing Safety Impact</DialogContentText>
           <TextField
