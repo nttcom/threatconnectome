@@ -1,4 +1,3 @@
-import { Warning as WarningIcon } from "@mui/icons-material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
@@ -39,6 +38,8 @@ export function TopicTableRowView(props) {
   const [topicDrawerOpen, setTopicDrawerOpen] = useState(false);
   const currentTagDict = allTags.find((tag) => tag.tag_id === tagId);
 
+  const affectedVersions = pickAffectedVersions(topicActions, currentTagDict.tag_name);
+
   return (
     <>
       <TableRow>
@@ -55,22 +56,16 @@ export function TopicTableRowView(props) {
           {topic.updated_at}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {pickAffectedVersions(topicActions, currentTagDict.tag_name).map((affectedVersion) => (
-            <Box
-              key={affectedVersion}
-              alignItems="center"
-              display="flex"
-              flexDirection="row"
-              sx={{ ml: 2 }}
-            >
-              <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
-              <Tooltip title={affectedVersion} placement="right">
-                <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
-                  {affectedVersion}
-                </Typography>
-              </Tooltip>
-            </Box>
-          ))}
+          {affectedVersions.map((affectedVersion, index) =>
+            index + 1 === affectedVersions.length ? (
+              affectedVersion
+            ) : (
+              <>
+                {affectedVersion}
+                <br />
+              </>
+            ),
+          )}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
           {"-" /* not yet supported */}
