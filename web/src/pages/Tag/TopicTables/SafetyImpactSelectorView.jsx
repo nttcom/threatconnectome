@@ -95,7 +95,7 @@ export function SafetyImpactSelectorView(props) {
           ))}
         </Select>
       </FormControl>
-      {threatSafetyImpact === "" && (
+      {reasonSafetyImpact !== null && (
         <StyledTooltip
           arrow
           title={
@@ -104,7 +104,7 @@ export function SafetyImpactSelectorView(props) {
                 Why was it changed from the default safety impact?
               </Typography>
               <Box sx={{ p: 1 }}>
-                <Typography variant="body2">{threatSafetyImpact}</Typography>
+                <Typography variant="body2">{reasonSafetyImpact}</Typography>
               </Box>
             </>
           }
