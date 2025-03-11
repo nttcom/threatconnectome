@@ -7,8 +7,8 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
-import React, { useState } from "react";
 import PropTypes from "prop-types";
+import React, { useState } from "react";
 
 import { DeleteServiceImageAlertDialog } from "./DeleteServiceImageAlertDialog";
 
