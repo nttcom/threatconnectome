@@ -10,7 +10,11 @@ import React from "react";
 export function DeleteServiceImageAlertDialog(props) {
   const { isDeleteDialogOpen, setIsDeleteDialogOpen, setImageFileData, setImageDeleteFlag } = props;
 
-  const handleClose = () => {
+  const handleCloseCancel = () => {
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleDelete = () => {
     setIsDeleteDialogOpen(false);
     setImageFileData(null);
     setImageDeleteFlag(true);
@@ -18,14 +22,14 @@ export function DeleteServiceImageAlertDialog(props) {
 
   return (
     <>
-      <Dialog open={isDeleteDialogOpen} onClose={handleClose}>
+      <Dialog open={isDeleteDialogOpen} onClose={handleCloseCancel}>
         <DialogTitle>Warning</DialogTitle>
         <DialogContent>
           <DialogContentText>Are you sure you want to delete the image?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleClose}>
+          <Button onClick={handleCloseCancel}>Cancel</Button>
+          <Button variant="contained" onClick={handleDelete}>
             Delete
           </Button>
         </DialogActions>
