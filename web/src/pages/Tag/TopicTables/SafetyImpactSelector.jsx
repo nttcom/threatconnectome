@@ -6,6 +6,7 @@ import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetThreatQuery, useUpdateThreatMutation } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
+
 import { SafetyImpactSelectorView } from "./SafetyImpactSelectorView";
 
 export function SafetyImpactSelector(props) {
@@ -27,7 +28,6 @@ export function SafetyImpactSelector(props) {
   if (threatIsLoading) return <>Now loading Threat...</>;
 
   const updateThreatFunction = async (requestData) => {
-    console.log("testes2");
     await updateThreat({
       threatId,
       data: requestData,
