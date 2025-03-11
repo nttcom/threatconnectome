@@ -1,3 +1,4 @@
+import { TableCell, TableRow } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -14,6 +15,14 @@ import { errorToString } from "../../../utils/func";
 import { isRelatedAction } from "../../../utils/topicUtils.js";
 
 import { TopicTableRowView } from "./TopicTableRowView.jsx";
+
+function SimpleCell(value = "") {
+  return (
+    <TableRow>
+      <TableCell>{value}</TableCell>
+    </TableRow>
+  );
+}
 
 export function TopicTableRow(props) {
   const { pteamId, serviceId, tagId, topicId, references } = props;
@@ -61,21 +70,22 @@ export function TopicTableRow(props) {
     { skip: skipByAuth || skipByPTeamId || skipByServiceId || skipByTopicId || skipBytagId },
   );
 
-  if (skipByAuth || skipByPTeamId || skipByServiceId || skipByTopicId || skipBytagId) return <></>;
+  if (skipByAuth || skipByPTeamId || skipByServiceId || skipByTopicId || skipBytagId)
+    return SimpleCell("");
   if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getAllTags" });
-  if (allTagsIsLoading) return <>Now loading allTags...</>;
+  if (allTagsIsLoading) return SimpleCell("Now loading allTags...");
   if (membersError) throw new APIError(errorToString(membersError), { api: "getPTeamMembers" });
-  if (membersIsLoading) return <>Now loading PTeamMembers...</>;
+  if (membersIsLoading) return SimpleCell("Now loading PTeamMembers...");
   if (topicError) throw new APIError(errorToString(topicError), { api: "getTopic" });
-  if (topicIsLoading) return <>Now loading Topic...</>;
+  if (topicIsLoading) return SimpleCell("Now loading Topic...");
   if (pteamTopicActionsError)
     throw new APIError(errorToString(pteamTopicActionsError), { api: "getPTeamTopicActions" });
-  if (pteamTopicActionsIsLoading) return <>Now loading topicActions...</>;
+  if (pteamTopicActionsIsLoading) return SimpleCell("Now loading topicActions...");
   if (ticketsRelatedToServiceTopicTagError)
     throw new APIError(errorToString(ticketsRelatedToServiceTopicTagError), {
       api: "getTicketsRelatedToServiceTopicTag",
     });
-  if (ticketsRelatedToServiceTopicTagIsLoading) return <>Now loading tickets...</>;
+  if (ticketsRelatedToServiceTopicTagIsLoading) return SimpleCell("Now loading tickets...");
 
   const currentTagDict = allTags.find((tag) => tag.tag_id === tagId);
   const topicActions = pteamTopicActionsData.actions?.filter(
