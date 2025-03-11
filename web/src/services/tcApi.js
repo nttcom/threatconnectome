@@ -250,9 +250,9 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/services/${serviceId}/thumbnail`,
         responseHandler: async (response) => await blobToDataURL(await response.blob()),
       }),
-      providesTags: (result, error) => [
+      providesTags: (result, error, arg) => [
         { type: "Service", id: "ALL" },
-        { type: "Service.thumbnail", id: "ALL" },
+        { type: "Service.thumbnail", id: arg.serviceId },
       ],
     }),
 
@@ -266,7 +266,7 @@ export const tcApi = createApi({
           body: imageFileData,
         };
       },
-      invalidatesTags: (result, error, arg) => [{ type: "Service.thumbnail", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [{ type: "Service.thumbnail", id: arg.serviceId }],
     }),
 
     deletePTeamServiceThumbnail: builder.mutation({
@@ -274,7 +274,7 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/services/${serviceId}/thumbnail`,
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "Service.thumbnail", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [{ type: "Service.thumbnail", id: arg.serviceId }],
     }),
 
     /* PTeam Tags Summary */
