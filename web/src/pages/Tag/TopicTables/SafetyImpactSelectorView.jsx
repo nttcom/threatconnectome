@@ -56,7 +56,6 @@ export function SafetyImpactSelectorView(props) {
       threat_safety_impact: pendingSafetyImpact,
       reason_safety_impact: pendingReasonSafetyImpact,
     };
-    console.log("testes1");
     updateThreatFunction(requestData);
     setOpen(false);
   };
