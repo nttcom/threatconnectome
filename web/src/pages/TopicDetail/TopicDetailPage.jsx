@@ -100,7 +100,11 @@ export function TopicDetail() {
             {topic.tags
               .filter((artifactTag, index) => (showAllArtifacts ? true : index === 0))
               .map((artifactTag) => (
-                <ArtifactTagView artifactTag={artifactTag} topicActions={topicActions} />
+                <ArtifactTagView
+                  key={artifactTag.tag_id}
+                  artifactTag={artifactTag}
+                  topicActions={topicActions}
+                />
               ))}
             {/* hide or more button if needed */}
             {topic.tags.length > 1 && (
