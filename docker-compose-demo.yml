@@ -14,11 +14,19 @@ services:
         condition: service_started
       db:
         condition: service_healthy
-    env_file:
-      - ./.env
     environment:
-      - AUTH_SERVICE=FIREBASE
-      - FIREBASE_AUTH_EMULATOR_HOST=firebase:9099 # use firebase auth emulator
+      WEBUI_URL: ${WEBUI_URL}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_SCHEMA: postgres
+      SYSTEM_EMAIL: ${SYSTEM_EMAIL}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      AUTH_SERVICE: FIREBASE
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY}
+      FIREBASE_CRED: /key/firebase_credentials.json
+      FIREBASE_AUTH_EMULATOR_HOST: firebase:9099 # use firebase auth emulator
     labels:
       - traefik.http.routers.api.entrypoints=http
       - traefik.http.routers.api.priority=10
