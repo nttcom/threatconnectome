@@ -3231,8 +3231,8 @@ class TestUpdatePTeamService:
             return data["access_token"]
 
     class TestServiceName(Common):
-        error_too_long_service_name = (  # HACK: define as a tuple instead of str
-            "Too long service name. Max length is 255 in half-width or 127 in full-width",
+        error_too_long_service_name = (
+            "Too long service name. Max length is 255 in half-width or 127 in full-width"
         )
         chars_255_in_half = "1" * 255
         chars_127_in_full = "１" * 127
@@ -3241,24 +3241,19 @@ class TestUpdatePTeamService:
         @pytest.mark.parametrize(
             "service_name, expected",
             [
-                (None, ("Cannot specify None for service_name",)),
                 ("", ""),
                 ("   ", ""),
                 (chars_255_in_half, chars_255_in_half),
                 (chars_255_in_half + "  ", chars_255_in_half),
-                (chars_255_in_half + "x", error_too_long_service_name),
                 (chars_127_in_full, chars_127_in_full),
                 (chars_127_in_full + " ", chars_127_in_full),
                 (chars_127_in_full + "　", chars_127_in_full),
-                (chars_127_in_full + "ｘ", error_too_long_service_name),
                 (complex_255_in_half, complex_255_in_half),
                 (complex_255_in_half + " ", complex_255_in_half),
                 (complex_255_in_half + "　", complex_255_in_half),
-                (complex_255_in_half + "x", error_too_long_service_name),
-                (complex_255_in_half + "ｘ", error_too_long_service_name),
             ],
         )
-        def test_length_of_service_name(self, service_name, expected):
+        def test_it_should_return_200_when_service_name_within_limits(self, service_name, expected):
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -3273,12 +3268,59 @@ class TestUpdatePTeamService:
                 json=request,
             )
 
-            if isinstance(expected, tuple):  # error case
-                assert response.status_code == 400
-                assert response.json()["detail"] == expected[0]
-            else:
-                assert response.status_code == 200
-                assert response.json()["service_name"] == expected
+            assert response.status_code == 200
+            assert response.json()["service_name"] == expected
+
+        @pytest.mark.parametrize(
+            "service_name, expected",
+            [
+                (chars_255_in_half + "x", error_too_long_service_name),
+                (chars_127_in_full + "ｘ", error_too_long_service_name),
+                (complex_255_in_half + "x", error_too_long_service_name),
+                (complex_255_in_half + "ｘ", error_too_long_service_name),
+            ],
+        )
+        def test_it_should_return_400_when_service_name_too_long(self, service_name, expected):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            request = {"service_name": service_name}
+
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 400
+            assert response.json()["detail"] == expected
+
+        @pytest.mark.parametrize(
+            "service_name, expected",
+            [
+                (None, "Cannot specify None for service_name"),
+            ],
+        )
+        def test_it_should_return_400_when_service_name_is_None(self, service_name, expected):
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            request = {"service_name": service_name}
+
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 400
+            assert response.json()["detail"] == expected
 
         def test_it_should_return_200_when_service_name_is_not_specify(self):
             user1_access_token = self._get_access_token(USER1)
