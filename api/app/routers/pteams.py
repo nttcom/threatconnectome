@@ -167,16 +167,25 @@ def update_pteam_service(
 ):
     """
     Update params of the pteam service.
-
+    - service_name
+      * max length: 255 in half-width or 127 in full-width
     - keywords
       * max number: 5
       * max length: 20 in half-width or 10 in full-width
     - description
       * max length: 300 in half-width or 150 in full-width
     """
+    max_service_name_length_in_half = 255
     max_keywords = 5
     max_keyword_length_in_half = 20
     max_description_length_in_half = 300
+    error_too_long_service_name = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long service name. Max length is {max_service_name_length_in_half} in half-width "
+            f"or {int(max_service_name_length_in_half / 2)} in full-width"
+        ),
+    )
     error_too_many_keywords = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=f"Too many keywords, max number: {max_keywords}",
@@ -206,6 +215,11 @@ def update_pteam_service(
         raise NOT_A_PTEAM_MEMBER
 
     update_data = data.model_dump(exclude_unset=True)
+    if "service_name" in update_data.keys() and data.service_name is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot specify None for service_name",
+        )
     if "keywords" in update_data.keys() and data.keywords is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -249,6 +263,21 @@ def update_pteam_service(
         ):
             raise error_too_long_keyword
         service.keywords = sorted(fixed_words)
+    if data.service_name is not None:
+        update_service_name = data.service_name.strip()
+        if (
+            count_full_width_and_half_width_characters(update_service_name)
+            > max_service_name_length_in_half
+        ):
+            raise error_too_long_service_name
+
+        for _service in pteam.services:
+            if _service.service_name == update_service_name:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Service name already exists in the same team",
+                )
+        service.service_name = update_service_name
 
     need_fix_tickets = False
 
