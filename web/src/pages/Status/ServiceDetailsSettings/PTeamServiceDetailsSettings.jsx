@@ -5,7 +5,7 @@ import {
   useUpdatePTeamServiceMutation,
   useUpdatePTeamServiceThumbnailMutation,
   useDeletePTeamServiceThumbnailMutation,
-} from "../services/tcApi";
+} from "../../../services/tcApi";
 
 import { PTeamServiceDetailsSettingsView } from "./PTeamServiceDetailsSettingsView";
 

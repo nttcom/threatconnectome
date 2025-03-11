@@ -18,7 +18,7 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { errorToString } from "../utils/func";
+import { errorToString } from "../../../utils/func";
 
 import { PTeamServiceImageUploadDeleteButton } from "./PTeamServiceImageUploadDeleteButton";
 

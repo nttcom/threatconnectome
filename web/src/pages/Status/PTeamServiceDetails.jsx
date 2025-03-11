@@ -16,10 +16,10 @@ import {
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { PTeamServiceDetailsSettings } from "../../components/PTeamServiceDetailsSettings";
 import { useGetPTeamServiceThumbnailQuery } from "../../services/tcApi";
 
 import { PTeamStatusSSVCCards } from "./PTeamStatusSSVCCards";
+import { PTeamServiceDetailsSettings } from "./ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
