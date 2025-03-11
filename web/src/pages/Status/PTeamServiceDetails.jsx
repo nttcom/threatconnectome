@@ -84,8 +84,6 @@ export function PTeamServiceDetails(props) {
   const description = service.description;
   const keywords = service.keywords;
 
-  const defaultSafetyImpact = "Catastrophic";
-
   return (
     <>
       <Collapse
@@ -109,7 +107,7 @@ export function PTeamServiceDetails(props) {
         }
       >
         <Card sx={{ display: "flex", height: 200, position: "relative" }}>
-          <PTeamServiceDetailsSettings />
+          <PTeamServiceDetailsSettings pteamId={pteamId} service={service} />
           <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
           <Divider orientation="vertical" variant="middle" flexItem />
           <CardContent sx={{ flex: 1 }}>
@@ -126,7 +124,7 @@ export function PTeamServiceDetails(props) {
               {description}
             </Typography>
             <Typography variant="caption" color="textSecondary">
-              {`Default safety impact: ${defaultSafetyImpact}`}
+              {`Default safety impact: ${service.service_safety_impact}`}
             </Typography>
           </CardContent>
         </Card>

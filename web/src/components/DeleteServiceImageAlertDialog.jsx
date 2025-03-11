@@ -8,10 +8,12 @@ import PropTypes from "prop-types";
 import React from "react";
 
 export function DeleteServiceImageAlertDialog(props) {
-  const { isDeleteDialogOpen, setIsDeleteDialogOpen } = props;
+  const { isDeleteDialogOpen, setIsDeleteDialogOpen, setImageFileData, setImageDeleteFlag } = props;
 
   const handleClose = () => {
     setIsDeleteDialogOpen(false);
+    setImageFileData(null);
+    setImageDeleteFlag(true);
   };
 
   return (
@@ -35,4 +37,6 @@ export function DeleteServiceImageAlertDialog(props) {
 DeleteServiceImageAlertDialog.propTypes = {
   isDeleteDialogOpen: PropTypes.bool,
   setIsDeleteDialogOpen: PropTypes.func,
+  setImageFileData: PropTypes.func,
+  setImageDeleteFlag: PropTypes.func,
 };

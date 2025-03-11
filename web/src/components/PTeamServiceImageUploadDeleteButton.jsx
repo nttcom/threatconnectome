@@ -6,19 +6,36 @@ import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { styled } from "@mui/material/styles";
+import { useSnackbar } from "notistack";
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 
 import { DeleteServiceImageAlertDialog } from "./DeleteServiceImageAlertDialog";
 
-export function PTeamServiceImageUploadDeleteButton() {
+export function PTeamServiceImageUploadDeleteButton(props) {
+  const { setImageFileData, setImageDeleteFlag } = props;
+
   const [anchorEl, setAnchorEl] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const { enqueueSnackbar } = useSnackbar();
+
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+  const handleUploadImage = (event) => {
+    const max_size = 512 * 1024;
+
+    if (event.target.files[0].size < max_size) {
+      setImageFileData(event.target.files[0]);
+      setImageDeleteFlag(false);
+    } else {
+      enqueueSnackbar("Filesize exceeds max(512KiB)", { variant: "error" });
+    }
   };
 
   const VisuallyHiddenInput = styled("input")({
@@ -38,7 +55,13 @@ export function PTeamServiceImageUploadDeleteButton() {
       <ButtonGroup variant="contained" aria-label="Button group with a nested menu">
         <Button component="label" tabIndex={-1} startIcon={<CloudUploadIcon />}>
           Upload image
-          <VisuallyHiddenInput type="file" onChange={(event) => console.log(event.target.files)} />
+          <VisuallyHiddenInput
+            type="file"
+            accept=".png"
+            onChange={(event) => {
+              handleUploadImage(event);
+            }}
+          />
         </Button>
         <Button size="small" onClick={handleClick}>
           <ArrowDropDownIcon />
@@ -58,7 +81,14 @@ export function PTeamServiceImageUploadDeleteButton() {
       <DeleteServiceImageAlertDialog
         isDeleteDialogOpen={isDeleteDialogOpen}
         setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        setImageFileData={setImageFileData}
+        setImageDeleteFlag={setImageDeleteFlag}
       />
     </>
   );
 }
+
+PTeamServiceImageUploadDeleteButton.propTypes = {
+  setImageFileData: PropTypes.func.isRequired,
+  setImageDeleteFlag: PropTypes.func.isRequired,
+};

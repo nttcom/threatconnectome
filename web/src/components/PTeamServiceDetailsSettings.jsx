@@ -14,22 +14,49 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
-import React, { useState } from "react";
+import { useSnackbar } from "notistack";
+import PropTypes from "prop-types";
+import React, { useEffect, useState } from "react";
+
+import {
+  useUpdatePTeamServiceMutation,
+  useUpdatePTeamServiceThumbnailMutation,
+  useDeletePTeamServiceThumbnailMutation,
+} from "../services/tcApi";
+import { errorToString } from "../utils/func";
 
 import { PTeamServiceImageUploadDeleteButton } from "./PTeamServiceImageUploadDeleteButton";
 
-export function PTeamServiceDetailsSettings() {
-  const keywordsList = ["foobar", "keyword"];
-  const [currentKeywordsList, setCurrentKeywordsList] = useState(keywordsList);
+export function PTeamServiceDetailsSettings(props) {
+  const { pteamId, service } = props;
+
+  const [serviceName, setServiceName] = useState(service.service_name);
+  const [imageFileData, setImageFileData] = useState(null);
+  const [imageDeleteFalg, setImageDeleteFlag] = useState(false);
+  const [currentKeywordsList, setCurrentKeywordsList] = useState(service.keywords);
   const [keywordText, setKeywordText] = useState("");
   const [open, setOpen] = useState(false);
-  const [serviceName, setServiceName] = useState("service_name");
   const [keywordAddingMode, setKeywordAddingMode] = useState(false);
+  const [currentDescription, setCurrentDescription] = useState(service.description);
   const safetyImpactList = ["negligible", "marginal", "critical", "catastrophic"];
-  const [defaultSafetyImpactValue, setDefaultSafetyImpactValue] = useState(safetyImpactList[0]);
-  const description =
-    "description description description description description description description description description description description description description description description description description description description description description description description description description ";
-  const [currentDescription, setCurrentDescription] = useState(description);
+  const [defaultSafetyImpactValue, setDefaultSafetyImpactValue] = useState(
+    service.service_safety_impact,
+  );
+
+  const [updatePTeamService] = useUpdatePTeamServiceMutation();
+  const [updatePTeamServiceThumbnail] = useUpdatePTeamServiceThumbnailMutation();
+  const [deletePTeamServiceThumbnail] = useDeletePTeamServiceThumbnailMutation();
+  const { enqueueSnackbar } = useSnackbar();
+
+  useEffect(() => {
+    setServiceName(service.service_name);
+    setImageFileData(null);
+    setImageDeleteFlag(false);
+    setCurrentKeywordsList(service.keywords);
+    setCurrentDescription(service.description);
+    setDefaultSafetyImpactValue(service.service_safety_impact);
+  }, [service]);
+
   const handleClose = () => {
     setOpen(false);
   };
@@ -41,6 +68,53 @@ export function PTeamServiceDetailsSettings() {
     const filteredKeywordsList = keywordsListCopy.filter((keyword) => keyword !== item);
     setCurrentKeywordsList(filteredKeywordsList);
   };
+  const handleUpdatePTeamService = async () => {
+    const promiseList = [];
+    if (imageFileData !== null) {
+      promiseList.push(async () => {
+        await updatePTeamServiceThumbnail({
+          pteamId: pteamId,
+          serviceId: service.service_id,
+          imageFile: imageFileData,
+        }).unwrap();
+      });
+    }
+
+    if (imageDeleteFalg) {
+      promiseList.push(async () => {
+        await deletePTeamServiceThumbnail({
+          pteamId: pteamId,
+          serviceId: service.service_id,
+        }).unwrap();
+      });
+    }
+
+    const data = {
+      service_name: serviceName,
+      keywords: currentKeywordsList,
+      description: currentDescription,
+      service_safety_impact: defaultSafetyImpactValue,
+    };
+    if (service.service_name === serviceName) {
+      delete data.service_name;
+    }
+    promiseList.push(async () => {
+      await updatePTeamService({
+        pteamId: pteamId,
+        serviceId: service.service_id,
+        data: data,
+      }).unwrap();
+    });
+
+    Promise.all(promiseList.map((apiFunc) => apiFunc()))
+      .then(() => {
+        enqueueSnackbar("Update succeeded", { variant: "success" });
+      })
+      .catch((error) => {
+        enqueueSnackbar(`Update failed: ${errorToString(error)}`, { variant: "error" });
+      });
+  };
+
   return (
     <>
       <IconButton onClick={handleClickOpen} sx={{ position: "absolute", right: 0, top: 0 }}>
@@ -67,12 +141,15 @@ export function PTeamServiceDetailsSettings() {
                 <Box
                   component="img"
                   sx={{ height: 200, aspectRatio: "4/3" }}
-                  src="/images/320x240.png"
+                  src="/images/720x480.png"
                   alt=""
                 />
               </Box>
               <Box>
-                <PTeamServiceImageUploadDeleteButton />
+                <PTeamServiceImageUploadDeleteButton
+                  setImageFileData={setImageFileData}
+                  setImageDeleteFlag={setImageDeleteFlag}
+                />
               </Box>
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -127,6 +204,16 @@ export function PTeamServiceDetailsSettings() {
                 )}
               </Box>
             </Box>
+            <Box>
+              <FormLabel>Description</FormLabel>
+              <TextField
+                multiline
+                rows={3}
+                fullWidth
+                value={currentDescription}
+                onChange={(e) => setCurrentDescription(e.target.value)}
+              />
+            </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               <FormLabel>Default Safety Impact</FormLabel>
               <ToggleButtonGroup color="primary" value={defaultSafetyImpactValue} exclusive>
@@ -141,20 +228,17 @@ export function PTeamServiceDetailsSettings() {
                 ))}
               </ToggleButtonGroup>
             </Box>
-            <Box>
-              <FormLabel>Description</FormLabel>
-              <TextField
-                multiline
-                rows={3}
-                fullWidth
-                value={currentDescription}
-                onChange={(e) => setCurrentDescription(e.target.value)}
-              />
-            </Box>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} variant="contained" sx={{ borderRadius: 5, mr: 2, mb: 1 }}>
+          <Button
+            onClick={() => {
+              handleClose();
+              handleUpdatePTeamService();
+            }}
+            variant="contained"
+            sx={{ borderRadius: 5, mr: 2, mb: 1 }}
+          >
             Save
           </Button>
         </DialogActions>
@@ -162,3 +246,8 @@ export function PTeamServiceDetailsSettings() {
     </>
   );
 }
+
+PTeamServiceDetailsSettings.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+  service: PropTypes.object.isRequired,
+};
