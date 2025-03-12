@@ -1,21 +1,9 @@
 import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
-  Recommend as RecommendIcon,
-  Warning as WarningIcon,
 } from "@mui/icons-material";
-import {
-  Avatar,
-  Badge,
-  Box,
-  Button,
-  Card,
-  Chip,
-  MenuItem,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import { green, grey, yellow } from "@mui/material/colors";
+import { Avatar, Badge, Box, Button, Card, Chip, MenuItem, Typography } from "@mui/material";
+import { grey } from "@mui/material/colors";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -26,7 +14,6 @@ import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi"
 import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
 import { errorToString, cvssConvertToName } from "../../utils/func";
-import { pickAffectedVersions } from "../../utils/topicUtils";
 
 import { TopicSSVCCards } from "./TopicSSVCCards";
 

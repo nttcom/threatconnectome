@@ -319,7 +319,6 @@ export const tcApi = createApi({
       query: (tagId) => ({
         url: `tags/${tagId}`,
       }),
-      providesTags: (result, error, tagId) => [{ type: "Tag", id: tagId }],
     }),
 
     createTag: builder.mutation({
