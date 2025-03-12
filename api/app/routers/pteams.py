@@ -271,13 +271,14 @@ def update_pteam_service(
         ):
             raise error_too_long_service_name
 
-        for _service in pteam.services:
-            if _service.service_name == update_service_name:
+        if service.service_name != update_service_name:
+            existing_service_names = [service.service_name for service in pteam.services]
+            if update_service_name in existing_service_names:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Service name already exists in the same team",
                 )
-        service.service_name = update_service_name
+            service.service_name = update_service_name
 
     need_fix_tickets = False
 
