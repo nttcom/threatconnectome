@@ -13,7 +13,7 @@ import React, { useState } from "react";
 import { DeleteServiceImageAlertDialog } from "./DeleteServiceImageAlertDialog";
 
 export function PTeamServiceImageUploadDeleteButton(props) {
-  const { setImageFileData, setImageDeleteFlag } = props;
+  const { setImageFileData, setImageDeleteFlag, setImagePreview } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -28,14 +28,33 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     setAnchorEl(null);
   };
   const handleUploadImage = (event) => {
-    const max_size = 512 * 1024;
+    const widthSize = 720;
+    const heightSize = 480;
+    const maxSize = 512 * 1024;
 
-    if (event.target.files[0].size < max_size) {
-      setImageFileData(event.target.files[0]);
-      setImageDeleteFlag(false);
-    } else {
+    if (event.target.files[0].size >= maxSize) {
       enqueueSnackbar("Filesize exceeds max(512KiB)", { variant: "error" });
+      return;
     }
+
+    const reader = new FileReader();
+    const image = new Image();
+    reader.onload = (e) => {
+      image.src = e.target?.result;
+      image.onload = () => {
+        if (image.naturalWidth === widthSize && image.naturalHeight === heightSize) {
+          setImageFileData(event.target.files[0]);
+          setImageDeleteFlag(false);
+          setImagePreview(e.target?.result);
+        } else {
+          enqueueSnackbar(`Dimensions must be ${widthSize}px ${heightSize} px`, {
+            variant: "error",
+          });
+          return;
+        }
+      };
+    };
+    reader.readAsDataURL(event.target.files[0]);
   };
 
   const VisuallyHiddenInput = styled("input")({
@@ -83,6 +102,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
         setIsDeleteDialogOpen={setIsDeleteDialogOpen}
         setImageFileData={setImageFileData}
         setImageDeleteFlag={setImageDeleteFlag}
+        setImagePreview={setImagePreview}
       />
     </>
   );
@@ -91,4 +111,5 @@ export function PTeamServiceImageUploadDeleteButton(props) {
 PTeamServiceImageUploadDeleteButton.propTypes = {
   setImageFileData: PropTypes.func.isRequired,
   setImageDeleteFlag: PropTypes.func.isRequired,
+  setImagePreview: PropTypes.func.isRequired,
 };

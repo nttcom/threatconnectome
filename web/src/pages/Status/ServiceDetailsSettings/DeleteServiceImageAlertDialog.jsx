@@ -7,8 +7,16 @@ import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
 import React from "react";
 
+const noImageAvailableUrl = "images/720x480.png";
+
 export function DeleteServiceImageAlertDialog(props) {
-  const { isDeleteDialogOpen, setIsDeleteDialogOpen, setImageFileData, setImageDeleteFlag } = props;
+  const {
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    setImageFileData,
+    setImageDeleteFlag,
+    setImagePreview,
+  } = props;
 
   const handleCloseCancel = () => {
     setIsDeleteDialogOpen(false);
@@ -18,6 +26,7 @@ export function DeleteServiceImageAlertDialog(props) {
     setIsDeleteDialogOpen(false);
     setImageFileData(null);
     setImageDeleteFlag(true);
+    setImagePreview(noImageAvailableUrl);
   };
 
   return (
@@ -43,4 +52,5 @@ DeleteServiceImageAlertDialog.propTypes = {
   setIsDeleteDialogOpen: PropTypes.func,
   setImageFileData: PropTypes.func,
   setImageDeleteFlag: PropTypes.func,
+  setImagePreview: PropTypes.func,
 };

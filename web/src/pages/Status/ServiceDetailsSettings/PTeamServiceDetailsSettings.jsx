@@ -5,9 +5,12 @@ import {
   useUpdatePTeamServiceMutation,
   useUpdatePTeamServiceThumbnailMutation,
   useDeletePTeamServiceThumbnailMutation,
+  useGetPTeamServiceThumbnailQuery,
 } from "../../../services/tcApi";
 
 import { PTeamServiceDetailsSettingsView } from "./PTeamServiceDetailsSettingsView";
+
+const noImageAvailableUrl = "images/720x480.png";
 
 export function PTeamServiceDetailsSettings(props) {
   const { pteamId, service } = props;
@@ -39,12 +42,25 @@ export function PTeamServiceDetailsSettings(props) {
     }).unwrap();
   };
 
+  const {
+    data: thumbnail,
+    isError: thumbnailIsError,
+    isLoading: thumbnailIsLoading,
+  } = useGetPTeamServiceThumbnailQuery({
+    pteamId,
+    serviceId: service.service_id,
+  });
+
+  const image =
+    thumbnailIsError || thumbnailIsLoading || !thumbnail ? noImageAvailableUrl : thumbnail;
+
   return (
     <PTeamServiceDetailsSettingsView
       service={service}
       updatePTeamServiceFunc={updatePTeamServiceFunc}
       updatePTeamServiceThumbnailFunc={updatePTeamServiceThumbnailFunc}
       deletePTeamServiceThumbnailFunc={deletePTeamServiceThumbnailFunc}
+      image={image}
     />
   );
 }

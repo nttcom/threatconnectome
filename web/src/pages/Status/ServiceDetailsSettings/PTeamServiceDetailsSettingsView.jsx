@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { errorToString } from "../../../utils/func";
 
@@ -28,11 +28,13 @@ export function PTeamServiceDetailsSettingsView(props) {
     updatePTeamServiceFunc,
     updatePTeamServiceThumbnailFunc,
     deletePTeamServiceThumbnailFunc,
+    image,
   } = props;
 
   const [serviceName, setServiceName] = useState(service.service_name);
   const [imageFileData, setImageFileData] = useState(null);
   const [imageDeleteFalg, setImageDeleteFlag] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
   const [currentKeywordsList, setCurrentKeywordsList] = useState(service.keywords);
   const [keywordText, setKeywordText] = useState("");
   const [open, setOpen] = useState(false);
@@ -44,6 +46,17 @@ export function PTeamServiceDetailsSettingsView(props) {
   );
 
   const { enqueueSnackbar } = useSnackbar();
+
+  useEffect(() => {
+    // Reset the state when switching services
+    setServiceName(service.service_name);
+    setImageFileData(null);
+    setImageDeleteFlag(false);
+    setImagePreview(null);
+    setCurrentKeywordsList(service.keywords);
+    setCurrentDescription(service.description);
+    setDefaultSafetyImpactValue(service.service_safety_impact);
+  }, [service]);
 
   const handleClose = () => {
     setOpen(false);
@@ -59,11 +72,11 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleUpdatePTeamService = async () => {
     const promiseList = [];
     if (imageFileData !== null) {
-      promiseList.push(updatePTeamServiceThumbnailFunc(imageFileData));
+      promiseList.push(() => updatePTeamServiceThumbnailFunc(imageFileData));
     }
 
     if (imageDeleteFalg) {
-      promiseList.push(deletePTeamServiceThumbnailFunc());
+      promiseList.push(() => deletePTeamServiceThumbnailFunc());
     }
 
     const requestData = {
@@ -72,7 +85,7 @@ export function PTeamServiceDetailsSettingsView(props) {
       description: currentDescription,
       service_safety_impact: defaultSafetyImpactValue,
     };
-    promiseList.push(updatePTeamServiceFunc(requestData));
+    promiseList.push(() => updatePTeamServiceFunc(requestData));
 
     Promise.all(promiseList.map((apiFunc) => apiFunc()))
       .then(() => {
@@ -109,7 +122,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                 <Box
                   component="img"
                   sx={{ height: 200, aspectRatio: "4/3" }}
-                  src="/images/720x480.png"
+                  src={imagePreview ? imagePreview : image}
                   alt=""
                 />
               </Box>
@@ -117,6 +130,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                 <PTeamServiceImageUploadDeleteButton
                   setImageFileData={setImageFileData}
                   setImageDeleteFlag={setImageDeleteFlag}
+                  setImagePreview={setImagePreview}
                 />
               </Box>
             </Box>
@@ -220,4 +234,5 @@ PTeamServiceDetailsSettingsView.propTypes = {
   updatePTeamServiceFunc: PropTypes.func.isRequired,
   updatePTeamServiceThumbnailFunc: PropTypes.func.isRequired,
   deletePTeamServiceThumbnailFunc: PropTypes.func.isRequired,
+  image: PropTypes.string.isRequired,
 };
