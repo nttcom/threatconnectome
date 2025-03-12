@@ -24,7 +24,7 @@ export function TopicTableRowView(props) {
     topicActions,
     tickets,
   } = props;
-  const [ticketOpen, setTicketOpen] = useState(false);
+  const [ticketOpen, setTicketOpen] = useState(true);
   const [topicDrawerOpen, setTopicDrawerOpen] = useState(false);
   const currentTagDict = allTags.find((tag) => tag.tag_id === tagId);
 
