@@ -32,7 +32,7 @@ export function PTeamServiceDelete(props) {
   const params = new URLSearchParams(location.search);
   const serviceId = params.get("serviceId");
 
-  const skip = useSkipUntilAuthUserIsReady() || !!pteamId;
+  const skip = useSkipUntilAuthUserIsReady() || !pteamId;
   const {
     data: pteam,
     error: pteamError,
