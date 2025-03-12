@@ -19,6 +19,7 @@ import React, { useState } from "react";
 import { useGetPTeamServiceThumbnailQuery } from "../../services/tcApi";
 
 import { PTeamStatusSSVCCards } from "./PTeamStatusSSVCCards";
+import { PTeamServiceDetailsSettings } from "./ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
@@ -100,25 +101,30 @@ export function PTeamServiceDetails(props) {
                   display: "block",
                   background: "linear-gradient(rgba(255,255,255,0) 0, #fff 80%)",
                   position: "absolute",
+                  zIndex: 10,
                 },
               }
         }
       >
-        <Card sx={{ display: "flex", height: 200 }}>
+        <Card sx={{ display: "flex", height: 200, position: "relative" }}>
+          <PTeamServiceDetailsSettings pteamId={pteamId} service={service} />
           <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
           <Divider orientation="vertical" variant="middle" flexItem />
           <CardContent sx={{ flex: 1 }}>
-            <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+            <Stack direction="row" spacing={1}>
               {keywords.map((keyword) => (
                 <Chip key={keyword} label={keyword} size="small" />
               ))}
             </Stack>
-            <Typography gutterBottom variant="h5">
+            <Typography variant="h5">
               {serviceName}
               <ServiceIDCopyButton ServiceId={service.service_id} />
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
+            <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
               {description}
+            </Typography>
+            <Typography variant="caption" color="textSecondary">
+              {`Default safety impact: ${service.service_safety_impact}`}
             </Typography>
           </CardContent>
         </Card>
