@@ -1,4 +1,4 @@
-import { Box, TableCell, TableRow } from "@mui/material";
+import { Box, TableCell, TableRow, Tooltip } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -18,7 +18,18 @@ export function TicketTableRow(props) {
 
   return (
     <TableRow>
-      <TableCell>{target}</TableCell>
+      <Tooltip arrow placement="bottom-end" title={target}>
+        <TableCell
+          sx={{
+            maxWidth: 200,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {target}
+        </TableCell>
+      </Tooltip>
       <TableCell>
         <SafetyImpactSelector threatId={ticket.threat.threat_id} />
       </TableCell>
