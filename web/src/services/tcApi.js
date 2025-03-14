@@ -506,7 +506,6 @@ export const {
   useUpdateActionMutation,
   useDeleteActionMutation,
   useCreateActionLogMutation,
-  useRemoveWatchingPTeamMutation,
   useGetDependenciesQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
