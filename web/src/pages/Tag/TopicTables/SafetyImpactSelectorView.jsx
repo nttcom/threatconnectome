@@ -23,23 +23,22 @@ import React, { useState } from "react";
 import { safetyImpactProps, sortedSafetyImpacts } from "../../../utils/const";
 
 export function SafetyImpactSelectorView(props) {
-  const {
-    defaultSafetyImpactItem,
-    fixedThreatSafetyImpact,
-    fixedReasonSafetyImpact,
-    pendingSafetyImpact,
-    pendingReasonSafetyImpact,
-    onSelectSafetyImpact,
-    onChangeReason,
-    onSaveReason,
-  } = props;
+  const { fixedThreatSafetyImpact, fixedReasonSafetyImpact, onRevertedToDefault, onSave } = props;
 
+  const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
+  const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
   const [openReasonDialog, setOpenReasonDialog] = useState(false);
 
-  const handleSelectSafetyImpact = (e) => {
-    onSelectSafetyImpact(e.target.value);
+  const defaultSafetyImpactItem = "Default";
 
-    if (e.target.value !== defaultSafetyImpactItem) {
+  const handleSelectSafetyImpact = (e) => {
+    if (e.target.value === defaultSafetyImpactItem) {
+      setPendingSafetyImpact("");
+      setPendingReasonSafetyImpact("");
+      onRevertedToDefault();
+    } else {
+      setPendingSafetyImpact(e.target.value);
+      setPendingReasonSafetyImpact(fixedReasonSafetyImpact === null ? "" : fixedReasonSafetyImpact);
       setOpenReasonDialog(true);
     }
   };
@@ -49,7 +48,11 @@ export function SafetyImpactSelectorView(props) {
   };
 
   const handleSaveReason = async () => {
-    onSaveReason();
+    const requestData = {
+      threat_safety_impact: pendingSafetyImpact,
+      reason_safety_impact: pendingReasonSafetyImpact,
+    };
+    onSave(requestData);
     setOpenReasonDialog(false);
   };
 
@@ -133,7 +136,7 @@ export function SafetyImpactSelectorView(props) {
             rows={4}
             placeholder="Continue writing here"
             value={pendingReasonSafetyImpact}
-            onChange={(e) => onChangeReason(e.target.value)}
+            onChange={(e) => setPendingReasonSafetyImpact(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
@@ -147,12 +150,8 @@ export function SafetyImpactSelectorView(props) {
   );
 }
 SafetyImpactSelectorView.propTypes = {
-  defaultSafetyImpactItem: PropTypes.string.isRequired,
   fixedThreatSafetyImpact: PropTypes.string.isRequired,
   fixedReasonSafetyImpact: PropTypes.string.isRequired,
-  pendingSafetyImpact: PropTypes.string.isRequired,
-  pendingReasonSafetyImpact: PropTypes.string.isRequired,
-  onSelectSafetyImpact: PropTypes.func.isRequired,
-  onChangeReason: PropTypes.func.isRequired,
-  onSaveReason: PropTypes.func.isRequired,
+  onRevertedToDefault: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
 };
