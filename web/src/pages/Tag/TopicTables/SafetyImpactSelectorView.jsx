@@ -23,41 +23,34 @@ import React, { useState } from "react";
 import { safetyImpactProps, sortedSafetyImpacts } from "../../../utils/const";
 
 export function SafetyImpactSelectorView(props) {
-  const { threatSafetyImpact, reasonSafetyImpact, updateThreatFunction } = props;
+  const {
+    defaultSafetyImpactItem,
+    fixedThreatSafetyImpact,
+    fixedReasonSafetyImpact,
+    pendingSafetyImpact,
+    pendingReasonSafetyImpact,
+    onSelectSafetyImpact,
+    onChangeReason,
+    onSaveReason,
+  } = props;
 
-  const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
-  const [open, setOpen] = useState(false);
-  const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
-
-  const defaultItem = "Default";
+  const [openReasonDialog, setOpenReasonDialog] = useState(false);
 
   const handleSelectSafetyImpact = (e) => {
-    if (e.target.value === defaultItem) {
-      setPendingSafetyImpact("");
-      setPendingReasonSafetyImpact("");
-      const requestData = {
-        threat_safety_impact: null,
-        reason_safety_impact: null,
-      };
-      updateThreatFunction(requestData);
-    } else {
-      setPendingSafetyImpact(e.target.value);
-      setPendingReasonSafetyImpact(reasonSafetyImpact === null ? "" : reasonSafetyImpact);
-      setOpen(true);
+    onSelectSafetyImpact(e.target.value);
+
+    if (e.target.value !== defaultSafetyImpactItem) {
+      setOpenReasonDialog(true);
     }
   };
 
   const handleClose = () => {
-    setOpen(false);
+    setOpenReasonDialog(false);
   };
 
-  const handleSave = async () => {
-    const requestData = {
-      threat_safety_impact: pendingSafetyImpact,
-      reason_safety_impact: pendingReasonSafetyImpact,
-    };
-    updateThreatFunction(requestData);
-    setOpen(false);
+  const handleSaveReason = async () => {
+    onSaveReason();
+    setOpenReasonDialog(false);
   };
 
   const StyledTooltip = styled(({ className, ...props }) => (
@@ -80,13 +73,13 @@ export function SafetyImpactSelectorView(props) {
     <Box sx={{ display: "flex", alignItems: "center" }}>
       <FormControl sx={{ width: 130 }} size="small" variant="standard">
         <Select
-          value={threatSafetyImpact ? threatSafetyImpact : defaultItem}
+          value={fixedThreatSafetyImpact ? fixedThreatSafetyImpact : defaultSafetyImpactItem}
           onChange={(e) => {
             handleSelectSafetyImpact(e);
           }}
         >
-          <MenuItem key={defaultItem} value={defaultItem}>
-            {defaultItem}
+          <MenuItem key={defaultSafetyImpactItem} value={defaultSafetyImpactItem}>
+            {defaultSafetyImpactItem}
           </MenuItem>
           {sortedSafetyImpacts.map((safetyImpact) => (
             <MenuItem key={safetyImpact} value={safetyImpact}>
@@ -95,7 +88,7 @@ export function SafetyImpactSelectorView(props) {
           ))}
         </Select>
       </FormControl>
-      {reasonSafetyImpact !== null && (
+      {fixedReasonSafetyImpact !== null && (
         <StyledTooltip
           arrow
           title={
@@ -104,7 +97,7 @@ export function SafetyImpactSelectorView(props) {
                 Why was it changed from the default safety impact?
               </Typography>
               <Box sx={{ p: 1 }}>
-                <Typography variant="body2">{reasonSafetyImpact}</Typography>
+                <Typography variant="body2">{fixedReasonSafetyImpact}</Typography>
               </Box>
             </>
           }
@@ -114,18 +107,20 @@ export function SafetyImpactSelectorView(props) {
           </IconButton>
         </StyledTooltip>
       )}
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <Dialog open={openReasonDialog} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Safety Impact update</DialogTitle>
         <DialogContent>
           <Box sx={{ pb: 2 }}>
             <DialogContentText>
               Current:{" "}
-              {threatSafetyImpact ? safetyImpactProps[threatSafetyImpact].displayName : defaultItem}
+              {fixedThreatSafetyImpact
+                ? safetyImpactProps[fixedThreatSafetyImpact].displayName
+                : defaultSafetyImpactItem}
             </DialogContentText>
             <DialogContentText>
               Updated:{" "}
               {pendingSafetyImpact === ""
-                ? defaultItem
+                ? defaultSafetyImpactItem
                 : safetyImpactProps[pendingSafetyImpact].displayName}
             </DialogContentText>
           </Box>
@@ -138,12 +133,12 @@ export function SafetyImpactSelectorView(props) {
             rows={4}
             placeholder="Continue writing here"
             value={pendingReasonSafetyImpact}
-            onChange={(e) => setPendingReasonSafetyImpact(e.target.value)}
+            onChange={(e) => onChangeReason(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={pendingReasonSafetyImpact === ""}>
+          <Button onClick={handleSaveReason} disabled={pendingReasonSafetyImpact === ""}>
             Save
           </Button>
         </DialogActions>
@@ -152,7 +147,12 @@ export function SafetyImpactSelectorView(props) {
   );
 }
 SafetyImpactSelectorView.propTypes = {
-  threatSafetyImpact: PropTypes.string.isRequired,
-  reasonSafetyImpact: PropTypes.string.isRequired,
-  updateThreatFunction: PropTypes.func.isRequired,
+  defaultSafetyImpactItem: PropTypes.string.isRequired,
+  fixedThreatSafetyImpact: PropTypes.string.isRequired,
+  fixedReasonSafetyImpact: PropTypes.string.isRequired,
+  pendingSafetyImpact: PropTypes.string.isRequired,
+  pendingReasonSafetyImpact: PropTypes.string.isRequired,
+  onSelectSafetyImpact: PropTypes.func.isRequired,
+  onChangeReason: PropTypes.func.isRequired,
+  onSaveReason: PropTypes.func.isRequired,
 };

@@ -1,6 +1,6 @@
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React from "react";
+import React, { useState } from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetThreatQuery, useUpdateThreatMutation } from "../../../services/tcApi";
@@ -11,6 +11,9 @@ import { SafetyImpactSelectorView } from "./SafetyImpactSelectorView";
 
 export function SafetyImpactSelector(props) {
   const { threatId } = props;
+
+  const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
+  const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
 
   const skip = useSkipUntilAuthUserIsReady();
   const {
@@ -41,11 +44,47 @@ export function SafetyImpactSelector(props) {
       );
   };
 
+  const defaultSafetyImpactItem = "Default";
+
+  const handleSelectSafetyImpact = (selectedSafetyImpact) => {
+    if (selectedSafetyImpact === defaultSafetyImpactItem) {
+      setPendingSafetyImpact("");
+      setPendingReasonSafetyImpact("");
+      const requestData = {
+        threat_safety_impact: null,
+        reason_safety_impact: null,
+      };
+      updateThreatFunction(requestData);
+    } else {
+      setPendingSafetyImpact(selectedSafetyImpact);
+      setPendingReasonSafetyImpact(
+        threat.reason_safety_impact === null ? "" : threat.reason_safety_impact,
+      );
+    }
+  };
+
+  const handleChangeReason = (reasonSafetyImpact) => {
+    setPendingReasonSafetyImpact(reasonSafetyImpact);
+  };
+
+  const handleSaveReason = async () => {
+    const requestData = {
+      threat_safety_impact: pendingSafetyImpact,
+      reason_safety_impact: pendingReasonSafetyImpact,
+    };
+    updateThreatFunction(requestData);
+  };
+
   return (
     <SafetyImpactSelectorView
-      threatSafetyImpact={threat.threat_safety_impact}
-      reasonSafetyImpact={threat.reason_safety_impact}
-      updateThreatFunction={updateThreatFunction}
+      defaultSafetyImpactItem={defaultSafetyImpactItem}
+      fixedThreatSafetyImpact={threat.threat_safety_impact}
+      fixedReasonSafetyImpact={threat.reason_safety_impact}
+      pendingSafetyImpact={pendingSafetyImpact}
+      pendingReasonSafetyImpact={pendingReasonSafetyImpact}
+      onSelectSafetyImpact={handleSelectSafetyImpact}
+      onChangeReason={handleChangeReason}
+      onSaveReason={handleSaveReason}
     />
   );
 }
