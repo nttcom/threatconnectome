@@ -9,6 +9,7 @@ import { ResetPassword } from "./ResetPassword/ResetPasswordPage";
 import { SignUp } from "./SignUp/SignUpPage";
 import { Status } from "./Status/StatusPage";
 import { Tag } from "./Tag/TagPage";
+import { ToDo } from "./ToDo/ToDoPage";
 import { TopicDetail } from "./TopicDetail/TopicDetailPage";
 import { TopicManagement } from "./TopicManagement/TopicManagementPage";
 import { Vulnerability } from "./Vulnerability/VulnerabilityPage";
@@ -27,5 +28,6 @@ export {
   Tag,
   TopicDetail,
   TopicManagement,
+  ToDo,
   Vulnerability,
 };

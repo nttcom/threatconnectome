@@ -4,6 +4,7 @@ import {
   Home as HomeIcon,
   Topic as TopicIcon,
 } from "@mui/icons-material";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import {
   Drawer as MuiDrawer,
   List,
@@ -124,6 +125,16 @@ export function Drawer() {
             <AccountCircleIcon />
           </StyledListItemIcon>
           <ListItemText>Account</ListItemText>
+        </StyledListItemButton>
+        {/* ToDo */}
+        <StyledListItemButton
+          onClick={() => navigate("/todo")}
+          selected={locationReader.isToDoPage()}
+        >
+          <StyledListItemIcon>
+            <FormatListBulletedIcon />
+          </StyledListItemIcon>
+          <ListItemText>ToDo</ListItemText>
         </StyledListItemButton>
       </List>
     </MuiDrawer>
