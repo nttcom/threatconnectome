@@ -17,10 +17,16 @@ import {
 } from "@mui/material";
 import { tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
+import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { safetyImpactProps, sortedSafetyImpacts } from "../../../utils/const";
+import {
+  safetyImpactProps,
+  sortedSafetyImpacts,
+  maxReasonSafetyImpactLengthInHalf,
+} from "../../../utils/const";
+import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 
 export function SafetyImpactSelectorView(props) {
   const { threatSafetyImpact, reasonSafetyImpact, updateThreatFunction } = props;
@@ -30,6 +36,8 @@ export function SafetyImpactSelectorView(props) {
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
 
   const defaultItem = "Default";
+
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleSelectSafetyImpact = (e) => {
     if (e.target.value === defaultItem) {
@@ -58,6 +66,19 @@ export function SafetyImpactSelectorView(props) {
     };
     updateThreatFunction(requestData);
     setOpen(false);
+  };
+
+  const handleReasonSafetyImpactLengthCheck = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxReasonSafetyImpactLengthInHalf) {
+      enqueueSnackbar(
+        `Too long reason_safety_impact. Max length is ${maxReasonSafetyImpactLengthInHalf} in half-width or ${Math.floor(maxReasonSafetyImpactLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+        },
+      );
+    } else {
+      setPendingReasonSafetyImpact(string);
+    }
   };
 
   const StyledTooltip = styled(({ className, ...props }) => (
@@ -138,7 +159,7 @@ export function SafetyImpactSelectorView(props) {
             rows={4}
             placeholder="Continue writing here"
             value={pendingReasonSafetyImpact}
-            onChange={(e) => setPendingReasonSafetyImpact(e.target.value)}
+            onChange={(e) => handleReasonSafetyImpactLengthCheck(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
