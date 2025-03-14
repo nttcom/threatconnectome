@@ -86,12 +86,12 @@ def test_show_tag_page_directly(page: Page):
     expect(page.locator("#ssvc-priority-count-chip-out_of_cycle")).to_have_text("0")
     expect(page.locator("#ssvc-priority-count-chip-scheduled")).to_have_text("2")
     expect(page.locator("#ssvc-priority-count-chip-defer")).to_have_text("0")
-    expect(page.get_by_role("heading", name=str(TOPIC1["title"]))).to_have_text(
-        str(TOPIC1["title"])
-    )
-    expect(page.get_by_role("heading", name=str(TOPIC2["title"]))).to_have_text(
-        str(TOPIC2["title"])
-    )
+    expect(
+        page.locator("#tab-panel-0").locator("td", has_text=str(TOPIC1["title"]))
+    ).to_be_visible()
+    expect(
+        page.locator("#tab-panel-0").locator("td", has_text=str(TOPIC2["title"]))
+    ).to_be_visible()
 
 
 def test_show_tag_page(page: Page):
@@ -113,9 +113,9 @@ def test_show_tag_page(page: Page):
     expect(page.locator("#ssvc-priority-count-chip-out_of_cycle")).to_have_text("0")
     expect(page.locator("#ssvc-priority-count-chip-scheduled")).to_have_text("2")
     expect(page.locator("#ssvc-priority-count-chip-defer")).to_have_text("0")
-    expect(page.get_by_role("heading", name=str(TOPIC1["title"]))).to_have_text(
-        str(TOPIC1["title"])
-    )
-    expect(page.get_by_role("heading", name=str(TOPIC2["title"]))).to_have_text(
-        str(TOPIC2["title"])
-    )
+    expect(
+        page.locator("#tab-panel-0").locator("td", has_text=str(TOPIC1["title"]))
+    ).to_be_visible()
+    expect(
+        page.locator("#tab-panel-0").locator("td", has_text=str(TOPIC2["title"]))
+    ).to_be_visible()
