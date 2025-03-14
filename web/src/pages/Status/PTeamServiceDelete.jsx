@@ -70,17 +70,19 @@ export function PTeamServiceDelete(props) {
         variant: "error",
       });
     }
-    checked.map(
-      async (service) =>
-        await deletePTeamService({ pteamId: pteamId, serviceName: service.service_name })
-          .unwrap()
-          .then((success) => onSuccess(success))
-          .catch((error) => onError(error)),
-    );
-    if (checked.find((service) => service.service_id === serviceId)) {
-      params.delete("serviceId"); // current selected serviceId is obsoleted!
-      navigate(location.pathname + "?" + params.toString()); // entrust to default behavior
-    }
+    await Promise.all(
+      checked.map((service) =>
+        deletePTeamService({ pteamId: pteamId, serviceName: service.service_name }).unwrap(),
+      ),
+    )
+      .then((success) => {
+        onSuccess(success);
+        if (checked.find((service) => service.service_id === serviceId)) {
+          params.delete("serviceId"); // current selected serviceId is obsoleted!
+          navigate(location.pathname + "?" + params.toString()); // entrust to default behavior
+        }
+      })
+      .catch((error) => onError(error));
   };
 
   return (
