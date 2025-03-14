@@ -20,6 +20,7 @@ export function AuthProvider(props) {
   const sendPasswordResetEmail = authProvider.sendPasswordResetEmail;
   const verifyPasswordResetCode = authProvider.verifyPasswordResetCode;
   const confirmPassword = authProvider.confirmPassword;
+  const applyActionCode = authProvider.applyActionCode;
 
   return (
     <AuthContext.Provider
@@ -34,6 +35,7 @@ export function AuthProvider(props) {
         sendPasswordResetEmail,
         verifyPasswordResetCode,
         confirmPassword,
+        applyActionCode,
       }}
     >
       {children}
