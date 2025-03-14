@@ -7,7 +7,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
 import React from "react";
 
-const noImageAvailableUrl = "images/720x480.png";
+const serviceDetailsSetttingNoImageUrl = "images/720x480.png";
 
 export function DeleteServiceImageAlertDialog(props) {
   const {
@@ -26,7 +26,7 @@ export function DeleteServiceImageAlertDialog(props) {
     setIsDeleteDialogOpen(false);
     setImageFileData(null);
     setImageDeleteFlag(true);
-    setImagePreview(noImageAvailableUrl);
+    setImagePreview(serviceDetailsSetttingNoImageUrl);
   };
 
   return (

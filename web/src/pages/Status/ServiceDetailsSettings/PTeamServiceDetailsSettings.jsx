@@ -10,7 +10,7 @@ import {
 
 import { PTeamServiceDetailsSettingsView } from "./PTeamServiceDetailsSettingsView";
 
-const noImageAvailableUrl = "images/720x480.png";
+const serviceDetailsSetttingNoImageUrl = "images/720x480.png";
 
 export function PTeamServiceDetailsSettings(props) {
   const { pteamId, service } = props;
@@ -52,7 +52,9 @@ export function PTeamServiceDetailsSettings(props) {
   });
 
   const image =
-    thumbnailIsError || thumbnailIsLoading || !thumbnail ? noImageAvailableUrl : thumbnail;
+    thumbnailIsError || thumbnailIsLoading || !thumbnail
+      ? serviceDetailsSetttingNoImageUrl
+      : thumbnail;
 
   return (
     <PTeamServiceDetailsSettingsView
