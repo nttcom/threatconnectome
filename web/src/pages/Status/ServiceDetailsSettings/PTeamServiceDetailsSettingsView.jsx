@@ -17,6 +17,14 @@ import {
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 
+import {
+  maxServiceNameLengthInHalf,
+  maxDescriptionLengthInHalf,
+  maxKeywordLengthInHalf,
+  maxKeywords,
+} from "../../../utils/const";
+import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
+
 import { PTeamServiceImageUploadDeleteButton } from "./PTeamServiceImageUploadDeleteButton";
 
 export function PTeamServiceDetailsSettingsView(props) {
@@ -58,6 +66,55 @@ export function PTeamServiceDetailsSettingsView(props) {
     const filteredKeywordsList = keywordsListCopy.filter((keyword) => keyword !== item);
     setCurrentKeywordsList(filteredKeywordsList);
   };
+
+  const handleServiceNameSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxServiceNameLengthInHalf) {
+      enqueueSnackbar(
+        `Too long service name. Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+        },
+      );
+    } else {
+      setServiceName(string);
+    }
+  };
+
+  const handleKeywordSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxKeywordLengthInHalf) {
+      enqueueSnackbar(
+        `Too long description. Max length is ${maxKeywordLengthInHalf} in half-width or ${Math.floor(maxKeywordLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+        },
+      );
+    } else {
+      setKeywordText(string);
+    }
+  };
+
+  const handleDescriptionSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxDescriptionLengthInHalf) {
+      enqueueSnackbar(
+        `Too long keyword. Max length is ${maxDescriptionLengthInHalf} in half-width or ${Math.floor(maxDescriptionLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+        },
+      );
+    } else {
+      setCurrentDescription(string);
+    }
+  };
+
+  const handleKeywordCountCheck = () => {
+    if (currentKeywordsList.length >= maxKeywords) {
+      setKeywordAddingMode(false);
+      enqueueSnackbar(`Too many keywords, max number: ${maxKeywords}`, { variant: "error" });
+    } else {
+      setKeywordAddingMode(!keywordAddingMode);
+    }
+  };
+
   const handleUpdatePTeamService = async () =>
     onSave(
       serviceName,
@@ -83,7 +140,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                 required
                 size="small"
                 value={serviceName}
-                onChange={(e) => setServiceName(e.target.value)}
+                onChange={(e) => handleServiceNameSetting(e.target.value)}
                 helperText={serviceName ? "" : "This field is required."}
                 error={!serviceName}
               />
@@ -124,7 +181,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                       variant="outlined"
                       size="small"
                       value={keywordText}
-                      onChange={(e) => setKeywordText(e.target.value)}
+                      onChange={(e) => handleKeywordSetting(e.target.value)}
                       sx={{ mr: 1 }}
                       error={currentKeywordsList.includes(keywordText)}
                       helperText={
@@ -155,9 +212,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                   </Box>
                 ) : (
                   <Box>
-                    <Button onClick={() => setKeywordAddingMode(!keywordAddingMode)}>
-                      + Add a new keyword
-                    </Button>
+                    <Button onClick={handleKeywordCountCheck}>+ Add a new keyword</Button>
                   </Box>
                 )}
               </Box>
@@ -169,7 +224,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                 rows={3}
                 fullWidth
                 value={currentDescription}
-                onChange={(e) => setCurrentDescription(e.target.value)}
+                onChange={(e) => handleDescriptionSetting(e.target.value)}
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>

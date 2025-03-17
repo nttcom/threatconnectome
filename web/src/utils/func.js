@@ -129,3 +129,19 @@ export const checkAdmin = (member, pteamId) => {
     (pteam_role) => pteam_role.pteam.pteam_id === pteamId && pteam_role.is_admin,
   );
 };
+
+export const countFullWidthAndHalfWidthCharacters = (string) => {
+  let count = 0;
+  for (let i = 0; i < string.length; i++) {
+    const char = string[i];
+    if (string[i].match(/[ -~｡-ﾟ]/)) {
+      // half-width characters
+      count += 1;
+    } else {
+      // full-width characters
+      count += 2;
+    }
+  }
+
+  return count;
+};
