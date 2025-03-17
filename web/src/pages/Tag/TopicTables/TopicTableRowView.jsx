@@ -6,6 +6,8 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import { pickAffectedVersions } from "../../../utils/topicUtils.js";
+import { ssvcPriorityProps } from "../../../utils/const.js";
+import { SearchWorstSSVC } from "../../../utils/func.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer";
 
 import { TicketTable } from "./TicketTable.jsx";
@@ -33,7 +35,12 @@ export function TopicTableRowView(props) {
   return (
     <>
       <TableRow>
-        <TableCell sx={{ bgcolor: "grey.50" }}>
+        <TableCell
+          sx={{
+            bgcolor: "grey.50",
+            borderLeft: `solid 5px ${ssvcPriorityProps[SearchWorstSSVC(tickets)].style.bgcolor}`,
+          }}
+        >
           <IconButton size="small" onClick={() => setTicketOpen(!ticketOpen)}>
             {ticketOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
