@@ -98,10 +98,11 @@ export function PTeamServiceImageUploadDeleteButton(props) {
           <ArrowDropDownIcon />
         </Button>
       </ButtonGroup>
-      <Menu anchorEl={anchorEl} open={open} onClose={handleClose} onClick={handleDelete}>
+      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         <MenuItem
           onClick={() => {
             handleClose();
+            handleDelete();
           }}
         >
           <DeleteIcon sx={{ mr: 1 }} />
