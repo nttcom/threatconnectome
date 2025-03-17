@@ -41,11 +41,28 @@ export function SafetyImpactSelector(props) {
       );
   };
 
+  const handleRevertedToDefault = async () => {
+    const requestData = {
+      threat_safety_impact: null,
+      reason_safety_impact: null,
+    };
+    updateThreatFunction(requestData);
+  };
+
+  const handleSave = async (safetyImpact, reasonSafetyImpact) => {
+    const requestData = {
+      threat_safety_impact: safetyImpact,
+      reason_safety_impact: reasonSafetyImpact,
+    };
+    updateThreatFunction(requestData);
+  };
+
   return (
     <SafetyImpactSelectorView
-      threatSafetyImpact={threat.threat_safety_impact}
-      reasonSafetyImpact={threat.reason_safety_impact}
-      updateThreatFunction={updateThreatFunction}
+      fixedThreatSafetyImpact={threat.threat_safety_impact}
+      fixedReasonSafetyImpact={threat.reason_safety_impact}
+      onRevertedToDefault={handleRevertedToDefault}
+      onSave={handleSave}
     />
   );
 }
