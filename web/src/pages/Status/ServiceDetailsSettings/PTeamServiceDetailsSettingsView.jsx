@@ -102,7 +102,7 @@ export function PTeamServiceDetailsSettingsView(props) {
       });
   };
 
-  const handleServiceNameLengthCheck = (string) => {
+  const handleServiceNameSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxServiceNameLengthInHalf) {
       enqueueSnackbar(
         `Too long service name. Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`,
@@ -115,7 +115,7 @@ export function PTeamServiceDetailsSettingsView(props) {
     }
   };
 
-  const handleKeywordLengthCheck = (string) => {
+  const handleKeywordSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxKeywordLengthInHalf) {
       enqueueSnackbar(
         `Too long description. Max length is ${maxKeywordLengthInHalf} in half-width or ${Math.floor(maxKeywordLengthInHalf / 2)} in full-width`,
@@ -128,7 +128,7 @@ export function PTeamServiceDetailsSettingsView(props) {
     }
   };
 
-  const handleDescriptionLengthCheck = (string) => {
+  const handleDescriptionSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxDescriptionLengthInHalf) {
       enqueueSnackbar(
         `Too long keyword. Max length is ${maxDescriptionLengthInHalf} in half-width or ${Math.floor(maxDescriptionLengthInHalf / 2)} in full-width`,
@@ -165,7 +165,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                 required
                 size="small"
                 value={serviceName}
-                onChange={(e) => handleServiceNameLengthCheck(e.target.value)}
+                onChange={(e) => handleServiceNameSetting(e.target.value)}
                 helperText={serviceName ? "" : "This field is required."}
                 error={!serviceName}
               />
@@ -202,7 +202,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                       variant="outlined"
                       size="small"
                       value={keywordText}
-                      onChange={(e) => handleKeywordLengthCheck(e.target.value)}
+                      onChange={(e) => handleKeywordSetting(e.target.value)}
                       sx={{ mr: 1 }}
                       error={currentKeywordsList.includes(keywordText)}
                       helperText={
@@ -245,7 +245,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                 rows={3}
                 fullWidth
                 value={currentDescription}
-                onChange={(e) => handleDescriptionLengthCheck(e.target.value)}
+                onChange={(e) => handleDescriptionSetting(e.target.value)}
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>

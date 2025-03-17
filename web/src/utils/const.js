@@ -29,9 +29,9 @@ export const maxServiceNameLengthInHalf = 255;
 export const maxDescriptionLengthInHalf = 300;
 export const maxKeywordLengthInHalf = 20;
 export const maxKeywords = 5;
-export const imageWidthSize = 720;
-export const imageHeightSize = 480;
-export const imageMaxSize = 512 * 1024;
+export const  =serviceImageWidthSize 720;
+export const serviceImageHeightSize = 480;
+export const serviceImageMaxSize = 512 * 1024;
 
 export const actionTypeChipColors = {
   elimination: "error",
