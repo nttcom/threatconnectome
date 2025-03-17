@@ -48,11 +48,7 @@ export function SafetyImpactSelectorView(props) {
   };
 
   const handleSaveReason = async () => {
-    const requestData = {
-      threat_safety_impact: pendingSafetyImpact,
-      reason_safety_impact: pendingReasonSafetyImpact,
-    };
-    onSave(requestData);
+    onSave(pendingSafetyImpact, pendingReasonSafetyImpact);
     setOpenReasonDialog(false);
   };
 
