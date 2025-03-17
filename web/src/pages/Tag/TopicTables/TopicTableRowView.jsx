@@ -5,9 +5,9 @@ import { Button, Collapse, IconButton, TableCell, TableRow } from "@mui/material
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { pickAffectedVersions } from "../../../utils/topicUtils.js";
 import { ssvcPriorityProps } from "../../../utils/const.js";
 import { SearchWorstSSVC } from "../../../utils/func.js";
+import { pickAffectedVersions } from "../../../utils/topicUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer";
 
 import { TicketTable } from "./TicketTable.jsx";
