@@ -10,6 +10,12 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
+import {
+  serviceImageHeightSize,
+  serviceImageWidthSize,
+  serviceImageMaxSize,
+} from "../../../utils/const";
+
 import { DeleteServiceImageAlertDialog } from "./DeleteServiceImageAlertDialog";
 
 export function PTeamServiceImageUploadDeleteButton(props) {
@@ -28,11 +34,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     setAnchorEl(null);
   };
   const handleUploadImage = (event) => {
-    const widthSize = 720;
-    const heightSize = 480;
-    const maxSize = 512 * 1024;
-
-    if (event.target.files[0].size >= maxSize) {
+    if (event.target.files[0].size >= serviceImageMaxSize) {
       enqueueSnackbar("Filesize exceeds max(512KiB)", { variant: "error" });
       return;
     }
@@ -42,14 +44,20 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     reader.onload = (e) => {
       image.src = e.target?.result;
       image.onload = () => {
-        if (image.naturalWidth === widthSize && image.naturalHeight === heightSize) {
+        if (
+          image.naturalWidth === serviceImageWidthSize &&
+          image.naturalHeight === serviceImageHeightSize
+        ) {
           setImageFileData(event.target.files[0]);
           setImageDeleteFlag(false);
           setImagePreview(e.target?.result);
         } else {
-          enqueueSnackbar(`Dimensions must be ${widthSize}px ${heightSize} px`, {
-            variant: "error",
-          });
+          enqueueSnackbar(
+            `Dimensions must be ${serviceImageWidthSize}px ${serviceImageHeightSize} px`,
+            {
+              variant: "error",
+            },
+          );
           return;
         }
       };
