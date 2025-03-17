@@ -49,10 +49,10 @@ export function SafetyImpactSelector(props) {
     updateThreatFunction(requestData);
   };
 
-  const handleSave = async (pendingSafetyImpact, pendingReasonSafetyImpact) => {
+  const handleSave = async (safetyImpact, reasonSafetyImpact) => {
     const requestData = {
-      threat_safety_impact: pendingSafetyImpact,
-      reason_safety_impact: pendingReasonSafetyImpact,
+      threat_safety_impact: safetyImpact,
+      reason_safety_impact: reasonSafetyImpact,
     };
     updateThreatFunction(requestData);
   };
