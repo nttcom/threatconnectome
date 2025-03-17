@@ -16,15 +16,13 @@ import {
   serviceImageMaxSize,
 } from "../../../utils/const";
 
-import { DeleteServiceImageAlertDialog } from "./DeleteServiceImageAlertDialog";
-
 export function PTeamServiceImageUploadDeleteButton(props) {
   const { setImageFileData, setImageDeleteFlag, setImagePreview } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
+  const serviceDetailsSetttingNoImageUrl = "images/720x480.png";
 
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -65,6 +63,12 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     reader.readAsDataURL(event.target.files[0]);
   };
 
+  const handleDelete = () => {
+    setImageFileData(null);
+    setImageDeleteFlag(true);
+    setImagePreview(serviceDetailsSetttingNoImageUrl);
+  };
+
   const VisuallyHiddenInput = styled("input")({
     clip: "rect(0 0 0 0)",
     clipPath: "inset(50%)",
@@ -98,20 +102,13 @@ export function PTeamServiceImageUploadDeleteButton(props) {
         <MenuItem
           onClick={() => {
             handleClose();
-            setIsDeleteDialogOpen(true);
+            handleDelete();
           }}
         >
           <DeleteIcon sx={{ mr: 1 }} />
           Delete image
         </MenuItem>
       </Menu>
-      <DeleteServiceImageAlertDialog
-        isDeleteDialogOpen={isDeleteDialogOpen}
-        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-        setImageFileData={setImageFileData}
-        setImageDeleteFlag={setImageDeleteFlag}
-        setImagePreview={setImagePreview}
-      />
     </>
   );
 }
