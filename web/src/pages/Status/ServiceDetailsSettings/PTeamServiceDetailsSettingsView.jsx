@@ -27,18 +27,12 @@ import {
   maxKeywordLengthInHalf,
   maxKeywords,
 } from "../../../utils/const";
-import { errorToString, countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
+import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 
 import { PTeamServiceImageUploadDeleteButton } from "./PTeamServiceImageUploadDeleteButton";
 
 export function PTeamServiceDetailsSettingsView(props) {
-  const {
-    service,
-    updatePTeamServiceFunc,
-    updatePTeamServiceThumbnailFunc,
-    deletePTeamServiceThumbnailFunc,
-    image,
-  } = props;
+  const { service, image, onSave } = props;
 
   const [serviceName, setServiceName] = useState(service.service_name);
   const [imageFileData, setImageFileData] = useState(null);
@@ -73,36 +67,10 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleClickOpen = () => {
     setOpen(true);
   };
-  const handleDelete = (item) => {
+  const handleDeleteKeyword = (item) => {
     const keywordsListCopy = JSON.parse(JSON.stringify(currentKeywordsList));
     const filteredKeywordsList = keywordsListCopy.filter((keyword) => keyword !== item);
     setCurrentKeywordsList(filteredKeywordsList);
-  };
-  const handleUpdatePTeamService = async () => {
-    const promiseList = [];
-    if (imageFileData !== null) {
-      promiseList.push(() => updatePTeamServiceThumbnailFunc(imageFileData));
-    }
-
-    if (imageDeleteFalg) {
-      promiseList.push(() => deletePTeamServiceThumbnailFunc());
-    }
-
-    const requestData = {
-      service_name: serviceName,
-      keywords: currentKeywordsList,
-      description: currentDescription,
-      service_safety_impact: defaultSafetyImpactValue,
-    };
-    promiseList.push(() => updatePTeamServiceFunc(requestData));
-
-    Promise.all(promiseList.map((apiFunc) => apiFunc()))
-      .then(() => {
-        enqueueSnackbar("Update succeeded", { variant: "success" });
-      })
-      .catch((error) => {
-        enqueueSnackbar(`Update failed: ${errorToString(error)}`, { variant: "error" });
-      });
   };
 
   const handleServiceNameSetting = (string) => {
@@ -152,6 +120,16 @@ export function PTeamServiceDetailsSettingsView(props) {
       setKeywordAddingMode(!keywordAddingMode);
     }
   };
+
+  const handleUpdatePTeamService = async () =>
+    onSave(
+      serviceName,
+      imageFileData,
+      imageDeleteFalg,
+      currentKeywordsList,
+      currentDescription,
+      defaultSafetyImpactValue,
+    );
 
   return (
     <>
@@ -205,7 +183,11 @@ export function PTeamServiceDetailsSettingsView(props) {
               <Box>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
                   {currentKeywordsList.map((keyword) => (
-                    <Chip key={keyword} label={keyword} onDelete={() => handleDelete(keyword)} />
+                    <Chip
+                      key={keyword}
+                      label={keyword}
+                      onDelete={() => handleDeleteKeyword(keyword)}
+                    />
                   ))}
                 </Stack>
                 {keywordAddingMode ? (
@@ -295,8 +277,6 @@ export function PTeamServiceDetailsSettingsView(props) {
 
 PTeamServiceDetailsSettingsView.propTypes = {
   service: PropTypes.object.isRequired,
-  updatePTeamServiceFunc: PropTypes.func.isRequired,
-  updatePTeamServiceThumbnailFunc: PropTypes.func.isRequired,
-  deletePTeamServiceThumbnailFunc: PropTypes.func.isRequired,
   image: PropTypes.string.isRequired,
+  onSave: PropTypes.func.isRequired,
 };
