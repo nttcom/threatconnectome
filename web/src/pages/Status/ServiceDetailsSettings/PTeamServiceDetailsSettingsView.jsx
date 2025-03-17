@@ -1,4 +1,4 @@
-import SettingsIcon from "@mui/icons-material/Settings";
+import { Close as CloseIcon, Settings as SettingsIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -13,10 +13,13 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Typography,
 } from "@mui/material";
+import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
+import dialogStyle from "../../../cssModule/dialog.module.css";
 
 import {
   maxServiceNameLengthInHalf,
@@ -156,7 +159,16 @@ export function PTeamServiceDetailsSettingsView(props) {
         <SettingsIcon />
       </IconButton>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-        <DialogTitle>Service settings</DialogTitle>
+        <DialogTitle flexGrow={1}>
+          <Box alignItems="center" display="flex" flexDirection="row">
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
+              Service settings
+            </Typography>
+            <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2}>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
