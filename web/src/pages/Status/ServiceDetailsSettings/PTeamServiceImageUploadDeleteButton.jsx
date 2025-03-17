@@ -102,7 +102,6 @@ export function PTeamServiceImageUploadDeleteButton(props) {
         <MenuItem
           onClick={() => {
             handleClose();
-            setIsDeleteDialogOpen(true);
           }}
         >
           <DeleteIcon sx={{ mr: 1 }} />
