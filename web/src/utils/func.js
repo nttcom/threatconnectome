@@ -100,6 +100,16 @@ export const compareSSVCPriority = (prio1, prio2) => {
   else return 1;
 };
 
+export const SearchWorstSSVC = (tickets) => {
+  let worstSSVC = tickets[0].ssvc_deployer_priority;
+  for (let i = 1; i < tickets.length; i++) {
+    if (compareSSVCPriority(worstSSVC, tickets[i].ssvc_deployer_priority) === 1) {
+      worstSSVC = tickets[i].ssvc_deployer_priority;
+    }
+  }
+  return worstSSVC;
+};
+
 export const cvssConvertToName = (cvssScore) => {
   let rating;
   if (0 < cvssScore && cvssScore < 4.0) {
