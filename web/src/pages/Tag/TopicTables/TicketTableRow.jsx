@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip.jsx";
+import { ssvcPriorityProps } from "../../../utils/const";
 import { WarningTooltip } from "../WarningTooltip.jsx";
 
 import { AssigneesSelector } from "./AssigneesSelector";
@@ -25,6 +26,7 @@ export function TicketTableRow(props) {
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
+            borderLeft: `solid 5px ${ssvcPriorityProps[ticket.ssvc_deployer_priority].style.bgcolor}`,
           }}
         >
           {target}
