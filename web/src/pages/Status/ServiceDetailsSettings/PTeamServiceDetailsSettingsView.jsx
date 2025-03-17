@@ -14,6 +14,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
+import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 
@@ -43,6 +44,8 @@ export function PTeamServiceDetailsSettingsView(props) {
   const [defaultSafetyImpactValue, setDefaultSafetyImpactValue] = useState(
     service.service_safety_impact,
   );
+
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     // Reset the state when switching services
