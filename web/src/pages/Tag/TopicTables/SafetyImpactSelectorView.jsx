@@ -167,8 +167,8 @@ export function SafetyImpactSelectorView(props) {
   );
 }
 SafetyImpactSelectorView.propTypes = {
-  fixedThreatSafetyImpact: PropTypes.string.isRequired,
-  fixedReasonSafetyImpact: PropTypes.string.isRequired,
+  fixedThreatSafetyImpact: PropTypes.string,
+  fixedReasonSafetyImpact: PropTypes.string,
   onRevertedToDefault: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
 };
