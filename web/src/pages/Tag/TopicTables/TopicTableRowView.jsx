@@ -5,6 +5,8 @@ import { Button, Collapse, IconButton, TableCell, TableRow } from "@mui/material
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
+import { ssvcPriorityProps } from "../../../utils/const.js";
+import { searchWorstSSVC } from "../../../utils/func.js";
 import { pickAffectedVersions } from "../../../utils/topicUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer";
 
@@ -33,7 +35,12 @@ export function TopicTableRowView(props) {
   return (
     <>
       <TableRow>
-        <TableCell sx={{ bgcolor: "grey.50" }}>
+        <TableCell
+          sx={{
+            bgcolor: "grey.50",
+            borderLeft: `solid 5px ${ssvcPriorityProps[searchWorstSSVC(tickets)].style.bgcolor}`,
+          }}
+        >
           <IconButton size="small" onClick={() => setTicketOpen(!ticketOpen)}>
             {ticketOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
