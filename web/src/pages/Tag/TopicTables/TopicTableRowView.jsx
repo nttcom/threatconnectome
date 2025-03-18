@@ -32,21 +32,6 @@ export function TopicTableRowView(props) {
 
   const affectedVersions = pickAffectedVersions(topicActions, currentTagDict.tag_name);
 
-  // const tmp = [
-  //   {
-  //     ssvc_deployer_priority: "scheduled",
-  //   },
-  //   {
-  //     ssvc_deployer_priority: "Defer",
-  //   },
-  //   {
-  //     ssvc_deployer_priority: "out_of_cycle",
-  //   },
-  //   {
-  //     ssvc_deployer_priority: "immediate",
-  //   },
-  // ];
-
   return (
     <>
       <TableRow>
