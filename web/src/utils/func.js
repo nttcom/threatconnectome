@@ -1,7 +1,6 @@
 import { addMinutes, format } from "date-fns";
 
 import { cvssRatings } from "./const";
-import { AirplaneTicketSharp } from "@mui/icons-material";
 
 export const a11yProps = (index) => ({
   id: `tab-${index}`,
