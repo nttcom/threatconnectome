@@ -6,7 +6,7 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import { ssvcPriorityProps } from "../../../utils/const.js";
-import { SearchWorstSSVC } from "../../../utils/func.js";
+import { searchWorstSSVC } from "../../../utils/func.js";
 import { pickAffectedVersions } from "../../../utils/topicUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer";
 
@@ -32,13 +32,28 @@ export function TopicTableRowView(props) {
 
   const affectedVersions = pickAffectedVersions(topicActions, currentTagDict.tag_name);
 
+  // const tmp = [
+  //   {
+  //     ssvc_deployer_priority: "scheduled",
+  //   },
+  //   {
+  //     ssvc_deployer_priority: "Defer",
+  //   },
+  //   {
+  //     ssvc_deployer_priority: "out_of_cycle",
+  //   },
+  //   {
+  //     ssvc_deployer_priority: "immediate",
+  //   },
+  // ];
+
   return (
     <>
       <TableRow>
         <TableCell
           sx={{
             bgcolor: "grey.50",
-            borderLeft: `solid 5px ${ssvcPriorityProps[SearchWorstSSVC(tickets)].style.bgcolor}`,
+            borderLeft: `solid 5px ${ssvcPriorityProps[searchWorstSSVC(tickets)].style.bgcolor}`,
           }}
         >
           <IconButton size="small" onClick={() => setTicketOpen(!ticketOpen)}>
