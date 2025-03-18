@@ -1,6 +1,7 @@
 import { addMinutes, format } from "date-fns";
 
 import { cvssRatings } from "./const";
+import { AirplaneTicketSharp } from "@mui/icons-material";
 
 export const a11yProps = (index) => ({
   id: `tab-${index}`,
@@ -101,14 +102,18 @@ export const compareSSVCPriority = (prio1, prio2) => {
 };
 
 export const searchWorstSSVC = (tickets) => {
-  const reslut = tickets.slice(1).reduce((worstSSVC, ticket) => {
+  if (!tickets || tickets.length === 0) {
+    return null;
+  }
+
+  const result = tickets.reduce((worstSSVC, ticket) => {
     if (compareSSVCPriority(worstSSVC, ticket.ssvc_deployer_priority) === 1) {
       return ticket.ssvc_deployer_priority;
     }
     return worstSSVC;
   }, tickets[0].ssvc_deployer_priority);
 
-  return reslut;
+  return result;
 };
 
 export const cvssConvertToName = (cvssScore) => {
