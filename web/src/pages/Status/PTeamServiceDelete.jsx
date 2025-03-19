@@ -72,7 +72,7 @@ export function PTeamServiceDelete(props) {
     }
     await Promise.all(
       checked.map((service) =>
-        deletePTeamService({ pteamId: pteamId, serviceName: service.service_name }).unwrap(),
+        deletePTeamService({ pteamId: pteamId, serviceId: service.service_id }).unwrap(),
       ),
     )
       .then((success) => {

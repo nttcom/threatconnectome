@@ -104,10 +104,6 @@ class ThreatconnectomeClient:
         response = self.retry_call(requests.post, url, params=params, files=files)
         return response.json()
 
-    def remove_pteamtags_by_group(self, pteam_id: UUID | str):
-        url = f"{self.api_url}/pteams/{pteam_id}/tags"
-        self.retry_call(requests.delete, url)
-
 
 ARGUMENTS: list[tuple[str, dict]] = [
     (
@@ -195,9 +191,6 @@ def main(args: argparse.Namespace) -> None:
         all_lines = list(args.infile)
         all_lines_length = len(all_lines)
         limit = args.gradual if args.gradual < all_lines_length else all_lines_length
-        trace_message(f"removing all artifact tags for {args.service}...", end="")
-        tc_client.remove_pteamtags_by_group(args.pteam_id)
-        trace_message("done")
         while True:
             if limit > all_lines_length:
                 limit = all_lines_length

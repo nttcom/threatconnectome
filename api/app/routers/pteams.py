@@ -1106,28 +1106,27 @@ def apply_service_tags(
     db.flush()
 
 
-@router.delete("/{pteam_id}/tags", status_code=status.HTTP_204_NO_CONTENT)
-def remove_pteam_tags_by_service(
+@router.delete("/{pteam_id}/services/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_service(
     pteam_id: UUID,
-    service: str = Query("", description="name of service(repository or product)"),
+    service_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Remove pteam tags filtered by service.
+    Remove service.
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-
-    if not (
-        service_model := next(filter(lambda x: x.service_name == service, pteam.services), None)
+    if not (service := persistence.get_service_by_id(db, service_id)) or service.pteam_id != str(
+        pteam_id
     ):
         # do not raise error even if specified service does not exist
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-    pteam.services.remove(service_model)
+    pteam.services.remove(service)
 
     db.commit()
 

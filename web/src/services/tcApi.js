@@ -208,9 +208,8 @@ export const tcApi = createApi({
       ],
     }),
     deletePTeamService: builder.mutation({
-      query: ({ pteamId, serviceName }) => ({
-        url: `pteams/${pteamId}/tags`,
-        params: { service: serviceName },
+      query: ({ pteamId, serviceId }) => ({
+        url: `pteams/${pteamId}/services/${serviceId}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
