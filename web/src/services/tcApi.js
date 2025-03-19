@@ -348,7 +348,10 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "Threat", id: arg.threatId }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "Threat", id: arg.threatId },
+        { type: "Ticket", id: "ALL" },
+      ],
     }),
 
     /* Ticket */
@@ -358,12 +361,7 @@ export const tcApi = createApi({
         method: "GET",
       }),
       providesTags: (result, error, arg) => [
-        ...(result
-          ? result.flatMap((ticket) => [
-              { type: "TicketStatus", id: ticket.ticket_id },
-              { type: "Threat", id: ticket.threat_id },
-            ])
-          : []),
+        ...(result ? result.map((ticket) => ({ type: "TicketStatus", id: ticket.ticket_id })) : []),
         { type: "Ticket", id: "ALL" },
         { type: "Threat", id: "ALL" },
         { type: "Service", id: "ALL" },
