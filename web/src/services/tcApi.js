@@ -320,15 +320,6 @@ export const tcApi = createApi({
       }),
     }),
 
-    createTag: builder.mutation({
-      query: (data) => ({
-        url: "tags",
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [{ type: "Tag", id: "ALL" }],
-    }),
-
     /* Threat */
     getThreat: builder.query({
       query: (threatId) => ({
@@ -526,7 +517,6 @@ export const {
   useUploadSBOMFileMutation,
   useGetTagsQuery,
   useGetTagQuery,
-  useCreateTagMutation,
   useGetThreatQuery,
   useUpdateThreatMutation,
   useGetTicketsQuery,
