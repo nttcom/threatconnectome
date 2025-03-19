@@ -11,7 +11,7 @@ from PIL import Image, ImageChops
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import models, persistence, schemas
 from app.constants import (
     DEFAULT_ALERT_SSVC_PRIORITY,
     ZERO_FILLED_UUID,
@@ -37,7 +37,6 @@ from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     accept_pteam_invitation,
     assert_200,
-    assert_204,
     calc_file_sha256,
     compare_references,
     compare_tags,
@@ -1854,7 +1853,7 @@ def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
     assert response.json() == {"detail": "No such service tag"}
 
 
-def test_remove_pteamtags_by_service():
+def test_remove_pteam_by_service_id(testdb):
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     service1 = "threatconnectome"
@@ -1868,13 +1867,20 @@ def test_remove_pteamtags_by_service():
         for reference in tag.references:
             assert reference["service"] in [service1, service2]
 
-    assert_204(
-        client.delete(
-            f"/pteams/{pteam1.pteam_id}/tags",
-            headers=headers(USER1),
-            params={"service": service1},
-        )
+    def _get_service_id(testdb, pteam_id, service_name):
+        pteam = persistence.get_pteam_by_id(testdb, pteam_id)
+        for service in pteam.services:
+            if service.service_name == service_name:
+                return service.service_id
+        return None
+
+    service_id = _get_service_id(testdb, pteam1.pteam_id, service1)
+    assert service_id
+
+    response = client.delete(
+        f"/pteams/{pteam1.pteam_id}/services/{service_id}", headers=headers(USER1)
     )
+    assert response.status_code == 204
 
 
 def test_upload_pteam_sbom_file_with_syft():
