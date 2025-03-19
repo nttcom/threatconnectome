@@ -60,21 +60,27 @@ def create_ticket_internal(
     return ticket
 
 
-def fix_tickets_for_service(db: Session, service: models.Service):
-    now = datetime.now()
-    for ticket in service.tickets:
-        fixed_priority = ssvc_calculator.calculate_ssvc_priority_by_threat(ticket.threat)
-        if fixed_priority == ticket.ssvc_deployer_priority:
-            continue
-        ticket.ssvc_deployer_priority = fixed_priority
-        # omit flush -- should be flushed in create_alert
-        if ticket_meets_condition_to_create_alert(ticket):
-            alert = models.Alert(
-                ticket_id=ticket.ticket_id,
-                alerted_at=now,
-                alert_content="",  # not used currently
-            )
-            persistence.create_alert(db, alert)
-            send_alert_to_pteam(alert)
+def fix_ticket_ssvc_priority(
+    db: Session,
+    ticket: models.Ticket | None,
+    now: datetime | None = None,
+):
+    if not ticket:  # failsafe
+        return
+    fixed_priority = ssvc_calculator.calculate_ssvc_priority_by_threat(ticket.threat)
+    if fixed_priority == ticket.ssvc_deployer_priority:
+        return
+
+    ticket.ssvc_deployer_priority = fixed_priority
+    # omit flush -- should be flushed in create_alert
+    if ticket_meets_condition_to_create_alert(ticket):
+        now = now or datetime.now()
+        alert = models.Alert(
+            ticket_id=ticket.ticket_id,
+            alerted_at=now,
+            alert_content="",  # not used currently
+        )
+        persistence.create_alert(db, alert)
+        send_alert_to_pteam(alert)
 
     db.flush()

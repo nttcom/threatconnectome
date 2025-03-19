@@ -338,7 +338,10 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "Threat", id: arg.threatId }],
+      invalidatesTags: (result, error, arg) => [
+        { type: "Threat", id: arg.threatId },
+        { type: "Ticket", id: "ALL" },
+      ],
     }),
 
     /* Ticket */

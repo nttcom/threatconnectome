@@ -19,7 +19,7 @@ from app.business.tag_business import (
     get_pteam_ext_tags,
     get_tag_ids_with_parent_ids,
 )
-from app.business.ticket_business import fix_tickets_for_service
+from app.business.ticket_business import fix_ticket_ssvc_priority
 from app.business.topic_business import get_sorted_topics
 from app.database import get_db, open_db_session
 from app.detector.vulnerability_detector import fix_threats_for_dependency
@@ -137,8 +137,11 @@ def force_calculate_ssvc_priority(
         raise NO_SUCH_PTEAM
     if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
-    for service in pteam.services:
-        fix_tickets_for_service(db, service)
+
+    now = datetime.now()
+    for ticket in [ticket for service in pteam.services for ticket in service.tickets]:
+        fix_ticket_ssvc_priority(db, ticket, now=now)
+
     db.commit()
     return "OK"
 
@@ -294,10 +297,10 @@ def update_pteam_service(
         service.service_safety_impact = data.service_safety_impact
         need_fix_tickets = True
 
-    db.flush()
-
     if need_fix_tickets:
-        fix_tickets_for_service(db, service)
+        db.flush()
+        for ticket in service.tickets:
+            fix_ticket_ssvc_priority(db, ticket, now=datetime.now())
 
     db.commit()
 
