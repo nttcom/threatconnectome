@@ -128,4 +128,6 @@ PTeamServiceImageUploadDeleteButton.propTypes = {
   setImageFileData: PropTypes.func.isRequired,
   setImageDeleteFlag: PropTypes.func.isRequired,
   setImagePreview: PropTypes.func.isRequired,
+  setIsChanged: PropTypes.func.isRequired,
+  originalImage: PropTypes.string.isRequired,
 };
