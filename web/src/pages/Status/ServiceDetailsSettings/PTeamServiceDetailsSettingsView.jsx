@@ -68,7 +68,8 @@ export function PTeamServiceDetailsSettingsView(props) {
     const isServiceChanged =
       serviceName !== service.service_name ||
       imageFileData !== null ||
-      currentKeywordsList !== service.keywords ||
+      currentKeywordsList.length !== service.keywords.length ||
+      currentKeywordsList.some((keyword, index) => keyword !== service.keywords[index]) ||
       currentDescription !== service.description ||
       defaultSafetyImpactValue !== service.service_safety_impact;
 
