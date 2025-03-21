@@ -266,9 +266,6 @@ export function PTeamServiceDetailsSettingsView(props) {
                       onClick={() => {
                         setKeywordAddingMode(false);
                         setKeywordText("");
-                        const isKeywordsChanged =
-                          JSON.stringify(currentKeywordsList) !== JSON.stringify(service.keywords);
-                        setIsChanged(isKeywordsChanged);
                       }}
                     >
                       Cancel
