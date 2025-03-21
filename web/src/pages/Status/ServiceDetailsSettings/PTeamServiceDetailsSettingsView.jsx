@@ -113,7 +113,6 @@ export function PTeamServiceDetailsSettingsView(props) {
     } else {
       setKeywordText(string);
       if (string !== service.keywords) {
-        console.log("service.keywords", service.keywords);
         setIsChanged(true);
       } else {
         setIsChanged(false);
