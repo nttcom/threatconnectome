@@ -154,9 +154,9 @@ export function PTeamServiceDetailsSettingsView(props) {
     setDefaultSafetyImpactValue(value);
 
     if (value !== originalSafetyImpactValue) {
-      setIsChanged(true); // 変更があった場合は isChanged を true に
+      setIsChanged(true);
     } else {
-      setIsChanged(false); // 元の値に戻った場合は isChanged を false に
+      setIsChanged(false);
     }
   };
 
@@ -226,7 +226,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                     <Chip
                       key={keyword}
                       label={keyword}
-                      onDelete={() => handleDeleteKeyword(keyword)} // 削除処理
+                      onDelete={() => handleDeleteKeyword(keyword)}
                     />
                   ))}
                 </Stack>
@@ -236,7 +236,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                       variant="outlined"
                       size="small"
                       value={keywordText}
-                      onChange={(e) => handleKeywordSetting(e.target.value)} // キーワード入力処理
+                      onChange={(e) => handleKeywordSetting(e.target.value)}
                       sx={{ mr: 1 }}
                       error={currentKeywordsList.includes(keywordText)}
                       helperText={
