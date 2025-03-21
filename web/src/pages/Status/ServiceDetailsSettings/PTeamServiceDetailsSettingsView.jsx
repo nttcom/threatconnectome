@@ -38,6 +38,7 @@ export function PTeamServiceDetailsSettingsView(props) {
   const [imageFileData, setImageFileData] = useState(null);
   const [imageDeleteFalg, setImageDeleteFlag] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [originalImage, setOriginalImage] = useState(image);
   const [currentKeywordsList, setCurrentKeywordsList] = useState(service.keywords);
   const [originalKeywordsList, setOriginalKeywordsList] = useState(service.keywords);
   const [keywordText, setKeywordText] = useState("");
@@ -214,6 +215,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                   setImageDeleteFlag={setImageDeleteFlag}
                   setImagePreview={setImagePreview}
                   setIsChanged={setIsChanged}
+                  originalImage={originalImage}
                 />
               </Box>
             </Box>
