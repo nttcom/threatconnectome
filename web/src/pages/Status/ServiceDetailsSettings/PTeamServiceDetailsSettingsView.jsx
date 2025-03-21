@@ -38,19 +38,13 @@ export function PTeamServiceDetailsSettingsView(props) {
   const [imageFileData, setImageFileData] = useState(null);
   const [imageDeleteFalg, setImageDeleteFlag] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
-  const [originalImage, setOriginalImage] = useState(image);
   const [currentKeywordsList, setCurrentKeywordsList] = useState(service.keywords);
-  const [originalKeywordsList, setOriginalKeywordsList] = useState(service.keywords);
   const [keywordText, setKeywordText] = useState("");
   const [open, setOpen] = useState(false);
   const [keywordAddingMode, setKeywordAddingMode] = useState(false);
   const [currentDescription, setCurrentDescription] = useState(service.description);
-  const [originalDescription, setOriginalDescription] = useState(service.description);
   const safetyImpactList = ["negligible", "marginal", "critical", "catastrophic"];
   const [defaultSafetyImpactValue, setDefaultSafetyImpactValue] = useState(
-    service.service_safety_impact,
-  );
-  const [originalSafetyImpactValue, setOriginalSafetyImpactValue] = useState(
     service.service_safety_impact,
   );
 
@@ -154,7 +148,7 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleSafetyImpactChange = (value) => {
     setDefaultSafetyImpactValue(value);
 
-    if (value !== originalSafetyImpactValue) {
+    if (value !== service.service_safety_impact) {
       setIsChanged(true);
     } else {
       setIsChanged(false);
@@ -216,7 +210,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                   setImageDeleteFlag={setImageDeleteFlag}
                   setImagePreview={setImagePreview}
                   setIsChanged={setIsChanged}
-                  originalImage={originalImage}
+                  originalImage={image}
                 />
               </Box>
             </Box>
