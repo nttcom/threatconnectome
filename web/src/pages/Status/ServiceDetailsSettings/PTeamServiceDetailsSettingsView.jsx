@@ -65,15 +65,14 @@ export function PTeamServiceDetailsSettingsView(props) {
   }, [service]);
 
   useEffect(() => {
-    const isServiceChanged =
+    setIsChanged(
       serviceName !== service.service_name ||
-      imageFileData !== null ||
-      currentKeywordsList.length !== service.keywords.length ||
-      currentKeywordsList.some((keyword, index) => keyword !== service.keywords[index]) ||
-      currentDescription !== service.description ||
-      defaultSafetyImpactValue !== service.service_safety_impact;
-
-    setIsChanged(isServiceChanged);
+        imageFileData !== null ||
+        currentKeywordsList.length !== service.keywords.length ||
+        currentKeywordsList.some((keyword, index) => keyword !== service.keywords[index]) ||
+        currentDescription !== service.description ||
+        defaultSafetyImpactValue !== service.service_safety_impact,
+    );
   }, [
     serviceName,
     imageFileData,
@@ -82,7 +81,6 @@ export function PTeamServiceDetailsSettingsView(props) {
     defaultSafetyImpactValue,
     service,
   ]);
-
   const handleClose = () => {
     setOpen(false);
   };
