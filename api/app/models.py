@@ -152,7 +152,9 @@ class PTeamAccountRole(Base):
     pteam_id = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
     )
-    user_id = mapped_column(ForeignKey("account.user_id"), primary_key=True, index=True)
+    user_id = mapped_column(
+        ForeignKey("account.user_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
     is_admin: Mapped[bool] = mapped_column(default=False)
 
     pteam = relationship("PTeam", back_populates="pteam_role", uselist=False, cascade="all, delete")
@@ -364,7 +366,9 @@ class TicketStatus(Base):
     ticket_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True
     )
-    user_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("account.user_id"), index=True)
+    user_id: Mapped[StrUUID | None] = mapped_column(
+        ForeignKey("account.user_id", ondelete="SET NULL"), index=True
+    )
     topic_status: Mapped[TopicStatusType]
     note: Mapped[str | None]
     logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
@@ -513,7 +517,9 @@ class Topic(Base):
     title: Mapped[Str255]
     abstract: Mapped[str]
     cve_id: Mapped[str | None] = mapped_column(nullable=True)
-    created_by: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
+    created_by: Mapped[StrUUID | None] = mapped_column(
+        ForeignKey("account.user_id", ondelete="SET NULL"), index=True, nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     content_fingerprint: Mapped[str]
@@ -553,7 +559,9 @@ class TopicAction(Base):
     action_type: Mapped[ActionType] = mapped_column(default=ActionType.elimination)
     recommended: Mapped[bool] = mapped_column(default=False)
     ext: Mapped[dict] = mapped_column(default={})
-    created_by: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
+    created_by: Mapped[StrUUID | None] = mapped_column(
+        ForeignKey("account.user_id", ondelete="SET NULL"), index=True, nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
 
     topic = relationship("Topic", back_populates="actions")
@@ -587,7 +595,9 @@ class ActionLog(Base):
     action: Mapped[str]  # snapshot: don't update even if TopicAction is modified.
     action_type: Mapped[ActionType]
     recommended: Mapped[bool]  # snapshot: don't update even if TopicAction is modified.
-    user_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("account.user_id"), index=True)
+    user_id: Mapped[StrUUID | None] = mapped_column(
+        ForeignKey("account.user_id", ondelete="SET NULL"), index=True
+    )
     pteam_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
     )
@@ -616,7 +626,9 @@ class PTeamInvitation(Base):
     pteam_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
     )
-    user_id: Mapped[StrUUID] = mapped_column(ForeignKey("account.user_id"), index=True)
+    user_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("account.user_id", ondelete="CASCADE"), index=True
+    )
     expiration: Mapped[datetime]
     limit_count: Mapped[int | None]  # None for unlimited
     used_count: Mapped[int] = mapped_column(server_default="0")
