@@ -70,6 +70,24 @@ export function PTeamServiceDetailsSettingsView(props) {
     setIsChanged(false);
   }, [service]);
 
+  useEffect(() => {
+    const isServiceChanged =
+      serviceName !== service.service_name ||
+      imageFileData !== null ||
+      currentKeywordsList !== service.keywords ||
+      currentDescription !== service.description ||
+      defaultSafetyImpactValue !== service.service_safety_impact;
+
+    setIsChanged(isServiceChanged);
+  }, [
+    serviceName,
+    imageFileData,
+    currentKeywordsList,
+    currentDescription,
+    defaultSafetyImpactValue,
+    service,
+  ]);
+
   const handleClose = () => {
     setOpen(false);
   };
@@ -95,11 +113,6 @@ export function PTeamServiceDetailsSettingsView(props) {
       );
     } else {
       setServiceName(string);
-      if (string !== service.service_name) {
-        setIsChanged(true);
-      } else {
-        setIsChanged(false);
-      }
     }
   };
 
@@ -113,11 +126,6 @@ export function PTeamServiceDetailsSettingsView(props) {
       );
     } else {
       setKeywordText(string);
-      if (string !== service.keywords) {
-        setIsChanged(true);
-      } else {
-        setIsChanged(false);
-      }
     }
   };
 
@@ -131,13 +139,6 @@ export function PTeamServiceDetailsSettingsView(props) {
       );
     } else {
       setCurrentDescription(string);
-      if (string === "" && service.description === null) {
-        setIsChanged(false);
-      } else if (string !== service.description) {
-        setIsChanged(true);
-      } else {
-        setIsChanged(false);
-      }
     }
   };
 
