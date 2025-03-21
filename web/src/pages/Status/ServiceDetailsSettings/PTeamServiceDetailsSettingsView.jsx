@@ -145,16 +145,6 @@ export function PTeamServiceDetailsSettingsView(props) {
     }
   };
 
-  const handleSafetyImpactChange = (value) => {
-    setDefaultSafetyImpactValue(value);
-
-    if (value !== service.service_safety_impact) {
-      setIsChanged(true);
-    } else {
-      setIsChanged(false);
-    }
-  };
-
   const handleUpdatePTeamService = async () =>
     onSave(
       serviceName,
@@ -289,7 +279,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                   <ToggleButton
                     key={value}
                     value={value}
-                    onClick={() => handleSafetyImpactChange(value)}
+                    onClick={() => setDefaultSafetyImpactValue(value)}
                   >
                     {value}
                   </ToggleButton>
