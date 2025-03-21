@@ -17,7 +17,8 @@ import {
 } from "../../../utils/const";
 
 export function PTeamServiceImageUploadDeleteButton(props) {
-  const { setImageFileData, setImageDeleteFlag, setImagePreview } = props;
+  const { setImageFileData, setImageDeleteFlag, setImagePreview, setIsChanged, originalImage } =
+    props;
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -49,6 +50,11 @@ export function PTeamServiceImageUploadDeleteButton(props) {
           setImageFileData(event.target.files[0]);
           setImageDeleteFlag(false);
           setImagePreview(e.target?.result);
+          if (originalImage === e.target?.result) {
+            setIsChanged(false);
+          } else {
+            setIsChanged(true);
+          }
         } else {
           enqueueSnackbar(
             `Dimensions must be ${serviceImageWidthSize}px ${serviceImageHeightSize} px`,
@@ -67,6 +73,11 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     setImageFileData(null);
     setImageDeleteFlag(true);
     setImagePreview(serviceDetailsSetttingNoImageUrl);
+    if (originalImage === "images/720x480.png") {
+      setIsChanged(false);
+    } else {
+      setIsChanged(true);
+    }
   };
 
   const VisuallyHiddenInput = styled("input")({
@@ -117,4 +128,6 @@ PTeamServiceImageUploadDeleteButton.propTypes = {
   setImageFileData: PropTypes.func.isRequired,
   setImageDeleteFlag: PropTypes.func.isRequired,
   setImagePreview: PropTypes.func.isRequired,
+  setIsChanged: PropTypes.func.isRequired,
+  originalImage: PropTypes.string.isRequired,
 };
