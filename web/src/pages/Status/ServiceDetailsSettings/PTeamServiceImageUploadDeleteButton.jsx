@@ -8,7 +8,7 @@ import MenuItem from "@mui/material/MenuItem";
 import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   serviceImageHeightSize,
@@ -17,7 +17,7 @@ import {
 } from "../../../utils/const";
 
 export function PTeamServiceImageUploadDeleteButton(props) {
-  const { setImageFileData, setImageDeleteFlag, setImagePreview } = props;
+  const { setImageFileData, setImageDeleteFlag, setImagePreview, setIsChanged } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -49,6 +49,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
           setImageFileData(event.target.files[0]);
           setImageDeleteFlag(false);
           setImagePreview(e.target?.result);
+          setIsChanged(true);
         } else {
           enqueueSnackbar(
             `Dimensions must be ${serviceImageWidthSize}px ${serviceImageHeightSize} px`,
@@ -67,6 +68,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     setImageFileData(null);
     setImageDeleteFlag(true);
     setImagePreview(serviceDetailsSetttingNoImageUrl);
+    setIsChanged(true);
   };
 
   const VisuallyHiddenInput = styled("input")({

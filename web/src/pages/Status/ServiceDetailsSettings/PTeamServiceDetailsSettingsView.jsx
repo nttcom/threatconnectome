@@ -39,14 +39,21 @@ export function PTeamServiceDetailsSettingsView(props) {
   const [imageDeleteFalg, setImageDeleteFlag] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [currentKeywordsList, setCurrentKeywordsList] = useState(service.keywords);
+  const [originalKeywordsList, setOriginalKeywordsList] = useState(service.keywords);
   const [keywordText, setKeywordText] = useState("");
   const [open, setOpen] = useState(false);
   const [keywordAddingMode, setKeywordAddingMode] = useState(false);
   const [currentDescription, setCurrentDescription] = useState(service.description);
+  const [originalDescription, setOriginalDescription] = useState(service.description);
   const safetyImpactList = ["negligible", "marginal", "critical", "catastrophic"];
   const [defaultSafetyImpactValue, setDefaultSafetyImpactValue] = useState(
     service.service_safety_impact,
   );
+  const [originalSafetyImpactValue, setOriginalSafetyImpactValue] = useState(
+    service.service_safety_impact,
+  );
+
+  const [isChanged, setIsChanged] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -59,6 +66,7 @@ export function PTeamServiceDetailsSettingsView(props) {
     setCurrentKeywordsList(service.keywords);
     setCurrentDescription(service.description);
     setDefaultSafetyImpactValue(service.service_safety_impact);
+    setIsChanged(false);
   }, [service]);
 
   const handleClose = () => {
@@ -71,6 +79,9 @@ export function PTeamServiceDetailsSettingsView(props) {
     const keywordsListCopy = JSON.parse(JSON.stringify(currentKeywordsList));
     const filteredKeywordsList = keywordsListCopy.filter((keyword) => keyword !== item);
     setCurrentKeywordsList(filteredKeywordsList);
+    const isKeywordsChanged =
+      JSON.stringify(filteredKeywordsList) !== JSON.stringify(service.keywords);
+    setIsChanged(isKeywordsChanged);
   };
 
   const handleServiceNameSetting = (string) => {
@@ -83,6 +94,11 @@ export function PTeamServiceDetailsSettingsView(props) {
       );
     } else {
       setServiceName(string);
+      if (string !== service.service_name) {
+        setIsChanged(true);
+      } else {
+        setIsChanged(false);
+      }
     }
   };
 
@@ -96,6 +112,12 @@ export function PTeamServiceDetailsSettingsView(props) {
       );
     } else {
       setKeywordText(string);
+      if (string !== service.keywords) {
+        console.log("service.keywords", service.keywords);
+        setIsChanged(true);
+      } else {
+        setIsChanged(false);
+      }
     }
   };
 
@@ -109,6 +131,13 @@ export function PTeamServiceDetailsSettingsView(props) {
       );
     } else {
       setCurrentDescription(string);
+      if (string === "" && service.description === null) {
+        setIsChanged(false);
+      } else if (string !== service.description) {
+        setIsChanged(true);
+      } else {
+        setIsChanged(false);
+      }
     }
   };
 
@@ -118,6 +147,16 @@ export function PTeamServiceDetailsSettingsView(props) {
       enqueueSnackbar(`Too many keywords, max number: ${maxKeywords}`, { variant: "error" });
     } else {
       setKeywordAddingMode(!keywordAddingMode);
+    }
+  };
+
+  const handleSafetyImpactChange = (value) => {
+    setDefaultSafetyImpactValue(value);
+
+    if (value !== originalSafetyImpactValue) {
+      setIsChanged(true); // 変更があった場合は isChanged を true に
+    } else {
+      setIsChanged(false); // 元の値に戻った場合は isChanged を false に
     }
   };
 
@@ -175,6 +214,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                   setImageFileData={setImageFileData}
                   setImageDeleteFlag={setImageDeleteFlag}
                   setImagePreview={setImagePreview}
+                  setIsChanged={setIsChanged}
                 />
               </Box>
             </Box>
@@ -186,7 +226,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                     <Chip
                       key={keyword}
                       label={keyword}
-                      onDelete={() => handleDeleteKeyword(keyword)}
+                      onDelete={() => handleDeleteKeyword(keyword)} // 削除処理
                     />
                   ))}
                 </Stack>
@@ -196,7 +236,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                       variant="outlined"
                       size="small"
                       value={keywordText}
-                      onChange={(e) => handleKeywordSetting(e.target.value)}
+                      onChange={(e) => handleKeywordSetting(e.target.value)} // キーワード入力処理
                       sx={{ mr: 1 }}
                       error={currentKeywordsList.includes(keywordText)}
                       helperText={
@@ -208,9 +248,13 @@ export function PTeamServiceDetailsSettingsView(props) {
                     <Button
                       variant="contained"
                       onClick={() => {
-                        setKeywordAddingMode(false);
-                        setCurrentKeywordsList([...currentKeywordsList, keywordText]);
+                        const updatedKeywordsList = [...currentKeywordsList, keywordText];
+                        setCurrentKeywordsList(updatedKeywordsList);
+                        const isKeywordsChanged =
+                          JSON.stringify(updatedKeywordsList) !== JSON.stringify(service.keywords);
+                        setIsChanged(isKeywordsChanged);
                         setKeywordText("");
+                        setKeywordAddingMode(false);
                       }}
                       disabled={!keywordText || currentKeywordsList.includes(keywordText)}
                     >
@@ -220,6 +264,9 @@ export function PTeamServiceDetailsSettingsView(props) {
                       onClick={() => {
                         setKeywordAddingMode(false);
                         setKeywordText("");
+                        const isKeywordsChanged =
+                          JSON.stringify(currentKeywordsList) !== JSON.stringify(service.keywords);
+                        setIsChanged(isKeywordsChanged);
                       }}
                     >
                       Cancel
@@ -249,7 +296,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                   <ToggleButton
                     key={value}
                     value={value}
-                    onClick={() => setDefaultSafetyImpactValue(value)}
+                    onClick={() => handleSafetyImpactChange(value)}
                   >
                     {value}
                   </ToggleButton>
@@ -266,6 +313,7 @@ export function PTeamServiceDetailsSettingsView(props) {
             }}
             variant="contained"
             sx={{ borderRadius: 5, mr: 2, mb: 1 }}
+            disabled={!isChanged}
           >
             Save
           </Button>
