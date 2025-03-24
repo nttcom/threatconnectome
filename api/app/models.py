@@ -201,8 +201,6 @@ class PackageVersion(Base):
     dependencies = relationship(
         "Dependency", back_populates="package_version", cascade="all, delete-orphan"
     )
-    threats = relationship("Threat", back_populates="package_version", cascade="all, delete-orphan")
-    package = relationship("Package", back_populates="package_versions")
 
 
 class Package(Base):
@@ -216,11 +214,6 @@ class Package(Base):
     package_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(unique=True)
     ecosystem: Mapped[str] = mapped_column(unique=True)
-
-    package_versions = relationship(
-        "PackageVersion", back_populates="package", cascade="all, delete-orphan"
-    )
-    affects = relationship("Affect", back_populates="package")
 
 
 class Dependency(Base):
@@ -253,8 +246,7 @@ class Dependency(Base):
     )
 
     service = relationship("Service", back_populates="dependencies")
-    package_version = relationship("PackageVersion", back_populates="dependencies")
-    tickets = relationship("Ticket", back_populates="dependency", cascade="all, delete-orphan")
+    package_version = relationship("PackageVersion", uselist=False, back_populates="dependencies")
 
 
 class Service(Base):
@@ -325,9 +317,7 @@ class Threat(Base):
         ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
     )
 
-    vuln = relationship("Vuln", back_populates="threats")
-    tickets = relationship("Ticket", uselist=False, back_populates="threat", cascade="all, delete")
-    package_version = relationship("PackageVersion", uselist=False, back_populates="threats")
+    tickets = relationship("Ticket", back_populates="threat", cascade="all, delete")
 
 
 class Ticket(Base):
@@ -353,8 +343,7 @@ class Ticket(Base):
     reason_safety_impact: Mapped[str | None]
     ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
 
-    dependency = relationship("Dependency", back_populates="tickets")
-    threat = relationship("Threat", back_populates="ticket")
+    threat = relationship("Threat", uselist=False, back_populates="ticket")
     alerts = relationship("Alert", back_populates="ticket")
     ticket_status = relationship("TicketStatus", uselist=False, cascade="all, delete-orphan")
 
@@ -495,10 +484,6 @@ class Vuln(Base):
     automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.NO)
     cvss_v3_score: Mapped[float | None] = mapped_column(server_default=None, nullable=True)
 
-    threats = relationship("Threat", back_populates="vuln", cascade="all, delete-orphan")
-    vulun_actions = relationship("VulnAction", back_populates="vuln", cascade="all, delete-orphan")
-    affects = relationship("Affect", back_populates="vuln", cascade="all, delete-orphan")
-
 
 class VulnAction(Base):
     __tablename__ = "vulnaction"
@@ -535,9 +520,6 @@ class Affect(Base):
     )
     affected_versions: Mapped[list[str]] = mapped_column()
     fixed_versions: Mapped[list[str]] = mapped_column()
-
-    vuln = relationship("Vuln", back_populates="affects")
-    package = relationship("Package", back_populates="affects", cascade="all, delete-orphan")
 
 
 class ActionLog(Base):
