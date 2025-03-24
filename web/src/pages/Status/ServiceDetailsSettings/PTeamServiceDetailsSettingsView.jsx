@@ -49,6 +49,7 @@ export function PTeamServiceDetailsSettingsView(props) {
   );
 
   const [isChanged, setIsChanged] = useState(false);
+  const [isImageChanged, setIsImageChanged] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -71,7 +72,8 @@ export function PTeamServiceDetailsSettingsView(props) {
         currentKeywordsList.length !== service.keywords.length ||
         currentKeywordsList.some((keyword, index) => keyword !== service.keywords[index]) ||
         currentDescription !== service.description ||
-        defaultSafetyImpactValue !== service.service_safety_impact,
+        defaultSafetyImpactValue !== service.service_safety_impact ||
+        isImageChanged,
     );
   }, [
     serviceName,
@@ -80,6 +82,7 @@ export function PTeamServiceDetailsSettingsView(props) {
     currentDescription,
     defaultSafetyImpactValue,
     service,
+    isImageChanged,
   ]);
   const handleClose = () => {
     setOpen(false);
@@ -91,9 +94,6 @@ export function PTeamServiceDetailsSettingsView(props) {
     const keywordsListCopy = JSON.parse(JSON.stringify(currentKeywordsList));
     const filteredKeywordsList = keywordsListCopy.filter((keyword) => keyword !== item);
     setCurrentKeywordsList(filteredKeywordsList);
-    const isKeywordsChanged =
-      JSON.stringify(filteredKeywordsList) !== JSON.stringify(service.keywords);
-    setIsChanged(isKeywordsChanged);
   };
 
   const handleServiceNameSetting = (string) => {
@@ -198,7 +198,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                   setImageFileData={setImageFileData}
                   setImageDeleteFlag={setImageDeleteFlag}
                   setImagePreview={setImagePreview}
-                  setIsChanged={setIsChanged}
+                  setIsImageChanged={setIsImageChanged}
                   originalImage={image}
                 />
               </Box>
@@ -235,9 +235,6 @@ export function PTeamServiceDetailsSettingsView(props) {
                       onClick={() => {
                         const updatedKeywordsList = [...currentKeywordsList, keywordText];
                         setCurrentKeywordsList(updatedKeywordsList);
-                        const isKeywordsChanged =
-                          JSON.stringify(updatedKeywordsList) !== JSON.stringify(service.keywords);
-                        setIsChanged(isKeywordsChanged);
                         setKeywordText("");
                         setKeywordAddingMode(false);
                       }}

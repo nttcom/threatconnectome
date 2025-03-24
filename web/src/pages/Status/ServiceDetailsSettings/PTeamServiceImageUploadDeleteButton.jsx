@@ -17,8 +17,13 @@ import {
 } from "../../../utils/const";
 
 export function PTeamServiceImageUploadDeleteButton(props) {
-  const { setImageFileData, setImageDeleteFlag, setImagePreview, setIsChanged, originalImage } =
-    props;
+  const {
+    setImageFileData,
+    setImageDeleteFlag,
+    setImagePreview,
+    setIsImageChanged,
+    originalImage,
+  } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -51,9 +56,9 @@ export function PTeamServiceImageUploadDeleteButton(props) {
           setImageDeleteFlag(false);
           setImagePreview(e.target?.result);
           if (originalImage === e.target?.result) {
-            setIsChanged(false);
+            setIsImageChanged(false);
           } else {
-            setIsChanged(true);
+            setIsImageChanged(true);
           }
         } else {
           enqueueSnackbar(
@@ -74,9 +79,9 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     setImageDeleteFlag(true);
     setImagePreview(serviceDetailsSetttingNoImageUrl);
     if (originalImage === "images/720x480.png") {
-      setIsChanged(false);
+      setIsImageChanged(false);
     } else {
-      setIsChanged(true);
+      setIsImageChanged(true);
     }
   };
 
@@ -128,6 +133,6 @@ PTeamServiceImageUploadDeleteButton.propTypes = {
   setImageFileData: PropTypes.func.isRequired,
   setImageDeleteFlag: PropTypes.func.isRequired,
   setImagePreview: PropTypes.func.isRequired,
-  setIsChanged: PropTypes.func.isRequired,
+  setIsImageChanged: PropTypes.func.isRequired,
   originalImage: PropTypes.string.isRequired,
 };
