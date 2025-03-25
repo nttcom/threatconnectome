@@ -1368,3 +1368,21 @@ def delete_invitation(
     db.commit()  # commit not only deleted but also expired
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)  # avoid Content-Length Header
+
+
+@router.delete("/{pteam_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_pteam(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_admin_authority(db, pteam, current_user):
+        raise NOT_HAVE_AUTH
+
+    persistence.delete_pteam(db, pteam)
+
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
