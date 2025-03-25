@@ -135,6 +135,7 @@ class Base(DeclarativeBase):
             Str255: String(255),
             dict: JSON,
             list[dict]: ARRAY(JSON),
+            list[str]: ARRAY(Text),
             list[StrUUID]: ARRAY(String(36)),
             list[Str255]: ARRAY(String(255)),
             bytes: LargeBinary(),
@@ -185,12 +186,12 @@ class Account(Base):
 
 
 class PackageVersion(Base):
+    __tablename__ = "packageversion"
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if not self.package_version_id:
             self.package_version_id = str(uuid.uuid4())
-
-    __tablename__ = "packageversion"
 
     package_version_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     version: Mapped[str] = mapped_column(unique=True)
@@ -204,16 +205,17 @@ class PackageVersion(Base):
 
 
 class Package(Base):
+    __tablename__ = "package"
+    __table_args__ = (UniqueConstraint("name", "ecosystem", name="package_name_ecosystem_key"),)
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if not self.package_id:
             self.package_id = str(uuid.uuid4())
 
-    __tablename__ = "package"
-
     package_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(unique=True)
-    ecosystem: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[str] = mapped_column()
+    ecosystem: Mapped[str] = mapped_column()
 
 
 class Dependency(Base):
@@ -223,7 +225,7 @@ class Dependency(Base):
             "service_id",
             "package_version_id",
             "target",
-            name="dependency_service_id_tag_id_version_target_key",
+            name="dependency_service_id_package_version_id_target_key",
         ),
     )
 
@@ -303,6 +305,11 @@ class ServiceThumbnail(Base):
 
 class Threat(Base):
     __tablename__ = "threat"
+    __table_args__ = (
+        UniqueConstraint(
+            "package_version_id", "vuln_id", name="threat_package_version_id_vuln_id_key"
+        ),
+    )
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -518,8 +525,8 @@ class Affect(Base):
     package_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("package.package_id", ondelete="CASCADE"), index=True
     )
-    affected_versions: Mapped[list[str]] = mapped_column()
-    fixed_versions: Mapped[list[str]] = mapped_column()
+    affected_versions: Mapped[list[str]] = mapped_column(default=[])
+    fixed_versions: Mapped[list[str]] = mapped_column(default=[])
 
 
 class ActionLog(Base):
