@@ -68,7 +68,6 @@ export function PTeamServiceDetailsSettingsView(props) {
   useEffect(() => {
     setIsChanged(
       serviceName !== service.service_name ||
-        imageFileData !== null ||
         currentKeywordsList.length !== service.keywords.length ||
         currentKeywordsList.some((keyword, index) => keyword !== service.keywords[index]) ||
         currentDescription !== service.description ||
