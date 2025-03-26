@@ -4055,7 +4055,7 @@ class TestDeletePteam:
 
         image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
         with open(image_filepath, "rb") as image_file:
-            thumbnail_response = client.post(
+            client.post(
                 f"/pteams/{created_pteam_id}/services/{created_service_id}/thumbnail",
                 headers=file_upload_headers(USER1),
                 files={"uploaded": image_file},
@@ -4118,16 +4118,16 @@ class TestDeletePteam:
             )
         ).one_or_none()
 
-        assert deleted_pteam == None
-        assert deleted_pteam_account_role == None
-        assert deleted_pteam_slack == None
-        assert deleted_pteam_mail == None
-        assert deleted_service == None
-        assert deleted_service_thumbnail == None
-        assert deleted_dependency == None
-        assert deleted_threat == None
-        assert deleted_ticket == None
-        assert deleted_ticket_status == None
+        assert deleted_pteam is None
+        assert deleted_pteam_account_role is None
+        assert deleted_pteam_slack is None
+        assert deleted_pteam_mail is None
+        assert deleted_service is None
+        assert deleted_service_thumbnail is None
+        assert deleted_dependency is None
+        assert deleted_threat is None
+        assert deleted_ticket is None
+        assert deleted_ticket_status is None
 
     def test_raise_403_if_user_is_not_pteam_admin(self, testdb: Session, pteam_setup):
         create_user(USER2)
