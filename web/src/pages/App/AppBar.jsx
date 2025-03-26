@@ -1,19 +1,16 @@
 import { Menu as MenuIcon } from "@mui/icons-material";
-import { AppBar as MuiAppBar, Box, Button, Divider, IconButton, Toolbar } from "@mui/material";
+import { AppBar as MuiAppBar, Box, Divider, IconButton, Toolbar } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "../../hooks/auth";
-import { tcApi } from "../../services/tcApi";
-import { setAuthUserIsReady, setRedirectedFrom } from "../../slices/auth";
 import { setDrawerOpen } from "../../slices/system";
 import { drawerWidth } from "../../utils/const";
 
 import { AppFallback } from "./AppFallback";
 import { TeamSelector } from "./TeamSelector";
+import { UserMenu } from "./UserMenu";
 
 const StyledAppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
@@ -40,17 +37,7 @@ export function AppBar() {
   const dispatch = useDispatch();
   const system = useSelector((state) => state.system);
 
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
-
   const handleDrawerOpen = () => dispatch(setDrawerOpen(!system.drawerOpen));
-
-  const handleLogout = async () => {
-    dispatch(tcApi.util.resetApiState()); // reset RTKQ
-    dispatch(setAuthUserIsReady(false));
-    dispatch(setRedirectedFrom({}));
-    await signOut();
-  };
 
   return (
     <>
@@ -67,13 +54,11 @@ export function AppBar() {
             <MenuIcon />
           </IconButton>
           <Divider orientation="vertical" flexItem sx={{ mr: 2 }} />
-          <Box flexGrow={1} />
           <ErrorBoundary FallbackComponent={AppFallback}>
             <TeamSelector />
           </ErrorBoundary>
-          <Button color="inherit" onClick={handleLogout}>
-            Logout
-          </Button>
+          <Box flexGrow={1} />
+          <UserMenu />
         </Toolbar>
       </StyledAppBar>
       <Toolbar />
