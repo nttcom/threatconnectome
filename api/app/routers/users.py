@@ -96,7 +96,7 @@ def update_user(
     return user
 
 
-@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
 ):
