@@ -59,7 +59,7 @@ export function UserMenu() {
           <ListItemIcon>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Setting</ListItemText>
+          <ListItemText>Settings</ListItemText>
         </MenuItem>
         <Divider />
         <MenuItem
