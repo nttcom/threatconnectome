@@ -4131,8 +4131,9 @@ class TestDeletePteam:
 
     def test_raise_403_if_user_is_not_pteam_admin(self, testdb: Session, pteam_setup):
         create_user(USER2)
-
         pteam_id = pteam_setup["pteam_id"]
+
+        # delete pteam
         delete_pteam_response = client.delete(
             f"/pteams/{pteam_id}",
             headers=headers(USER2),
@@ -4142,11 +4143,9 @@ class TestDeletePteam:
         assert delete_pteam_response.json()["detail"] == "You do not have authority"
 
     def test_raise_404_if_invalid_pteam_id(self, testdb: Session, pteam_setup):
+        wrong_pteam_id = str(uuid4())
+
         # delete pteam
-        while True:
-            wrong_pteam_id = str(uuid4())
-            if wrong_pteam_id != pteam_setup["pteam_id"]:
-                break
         delete_pteam_response = client.delete(
             f"/pteams/{wrong_pteam_id}",
             headers=headers(USER1),
