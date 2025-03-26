@@ -13,7 +13,6 @@ import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-d
 
 import {
   AcceptPTeamInvitation,
-  Account,
   App,
   AuthKeycloakCallback,
   EmailVerification,
@@ -63,9 +62,6 @@ root.render(
                 <Route path="/sign_up" element={<SignUp />} />
                 <Route path="/" element={<App />}>
                   <Route index element={<Status />} />
-                  <Route path="account">
-                    <Route index element={<Account />} />
-                  </Route>
                   <Route path="pteam">
                     <Route index element={<PTeam />} />
                     <Route path="join" element={<AcceptPTeamInvitation />} />

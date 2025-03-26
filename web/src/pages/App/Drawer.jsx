@@ -1,9 +1,4 @@
-import {
-  AccountCircle as AccountCircleIcon,
-  Groups as GroupsIcon,
-  Home as HomeIcon,
-  Topic as TopicIcon,
-} from "@mui/icons-material";
+import { Groups as GroupsIcon, Home as HomeIcon, Topic as TopicIcon } from "@mui/icons-material";
 import {
   Drawer as MuiDrawer,
   List,
@@ -115,16 +110,6 @@ export function Drawer() {
           <ListItemText>Topics</ListItemText>
         </StyledListItemButton>
         {/* Vulnerabilities -- not listed on drawer, currently */}
-        {/* Account */}
-        <StyledListItemButton
-          onClick={() => navigate("/account?" + queryParams)}
-          selected={locationReader.isAccountPage()}
-        >
-          <StyledListItemIcon>
-            <AccountCircleIcon />
-          </StyledListItemIcon>
-          <ListItemText>Account</ListItemText>
-        </StyledListItemButton>
       </List>
     </MuiDrawer>
   );
