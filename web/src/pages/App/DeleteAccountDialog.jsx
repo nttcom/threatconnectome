@@ -27,23 +27,22 @@ export function DeleteAccountDialog() {
         <Box sx={{ pt: 2, display: "flex", justifyContent: "center" }}>
           <ErrorOutlineIcon fontSize="large" color="error" />
         </Box>
-        <DialogTitle sx={{ textAlign: "center" }}>
-          Delete your entire account permanantly?
-        </DialogTitle>
+        <DialogTitle sx={{ textAlign: "center" }}>Delete your account permanantly?</DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
             <DialogContentText>
-              This action cannot be undone. This will permanentlly delete your entire account.
+              This action cannot be undone. This will permanentlly delete your account.
             </DialogContentText>
             <Box>
-              <Typography>Type in your password to confirm</Typography>
+              <Typography>Type in your email to confirm</Typography>
               <TextField
                 hiddenLabel
                 variant="filled"
                 size="small"
                 sx={{ width: 1 }}
                 error={false}
-                // helperText="The password you entered was incorrect."
+                placeholder="sample@example.com"
+                // helperText="The email you entered was incorrect."
               ></TextField>
             </Box>
           </Stack>
