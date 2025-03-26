@@ -106,9 +106,9 @@ def delete_user(
 
     for log in current_user.action_logs:
         # actoin logs shoud not be deleted, but should be anonymized
-        log.user_id = (
-            None  # Current_user.user_id should be removed from the assignees of the ticket status.
-        )
+        log.user_id = None
+
+    # Current_user.user_id should be removed from the assignees of the ticket status.
 
     def having_only_one_admin(pteam: models.PTeam):
         return len(list(filter(lambda x: x.is_admin is True, pteam.pteam_roles))) == 1
