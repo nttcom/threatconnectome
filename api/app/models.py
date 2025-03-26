@@ -157,10 +157,8 @@ class PTeamAccountRole(Base):
     )
     is_admin: Mapped[bool] = mapped_column(default=False)
 
-    pteam = relationship("PTeam", back_populates="pteam_role", uselist=False, cascade="all, delete")
-    account = relationship(
-        "Account", back_populates="pteam_roles", uselist=False, cascade="all, delete"
-    )
+    pteam = relationship("PTeam", back_populates="pteam_roles", uselist=False)
+    account = relationship("Account", back_populates="pteam_roles", uselist=False)
 
 
 class TopicTag(Base):
@@ -442,9 +440,7 @@ class PTeam(Base):
         cascade="all, delete-orphan",
     )
     members = relationship("Account", secondary=PTeamAccountRole.__tablename__)
-    pteam_role = relationship(
-        "PTeamAccountRole", back_populates="pteam", uselist=False, cascade="all, delete"
-    )
+    pteam_roles = relationship("PTeamAccountRole", back_populates="pteam", cascade="all, delete")
     invitations = relationship(
         "PTeamInvitation", back_populates="pteam", cascade="all, delete-orphan"
     )

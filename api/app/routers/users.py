@@ -96,17 +96,29 @@ def update_user(
     return user
 
 
-@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """
-    Delete current user.
+    Delete current user and left admin-less pteams.
     """
 
     for log in current_user.action_logs:
         # actoin logs shoud not be deleted, but should be anonymized
         log.user_id = None
+
+    # Current_user.user_id should be removed from the assignees of the ticket status.
+
+    def having_only_one_admin(pteam: models.PTeam):
+        return len(list(filter(lambda x: x.is_admin is True, pteam.pteam_roles))) == 1
+
+    for delete_target in [
+        role.pteam
+        for role in current_user.pteam_roles
+        if role.is_admin and having_only_one_admin(role.pteam)
+    ]:
+        persistence.delete_pteam(db, delete_target)
 
     persistence.delete_account(db, current_user)
     db.commit()
