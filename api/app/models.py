@@ -445,7 +445,9 @@ class PTeam(Base):
     pteam_role = relationship(
         "PTeamAccountRole", back_populates="pteam", uselist=False, cascade="all, delete"
     )
-    invitations = relationship("PTeamInvitation", back_populates="pteam")
+    invitations = relationship(
+        "PTeamInvitation", back_populates="pteam", cascade="all, delete-orphan"
+    )
     alert_slack: Mapped["PTeamSlack"] = relationship(
         back_populates="pteam", cascade="all, delete-orphan"
     )
