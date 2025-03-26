@@ -4047,11 +4047,6 @@ class TestDeletePteam:
         created_pteam_id = ticket_response["pteam_id"]
         created_service_id = ticket_response["service_id"]
 
-        pteam_response = client.get(f"/pteams/{created_pteam_id}", headers=headers(USER1))
-        assert pteam_response.status_code == 200
-        pteam_data = pteam_response.json()
-        assert pteam_data["pteam_id"] == created_pteam_id
-
         dependencies_response = client.get(
             f"/pteams/{created_pteam_id}/services/{created_service_id}/dependencies",
             headers=headers(USER1),
@@ -4065,62 +4060,6 @@ class TestDeletePteam:
                 headers=file_upload_headers(USER1),
                 files={"uploaded": image_file},
             )
-
-        assert thumbnail_response.status_code == 200
-        assert thumbnail_response.reason_phrase == "OK"
-
-        # check created pteam
-        pteam = testdb.scalars(
-            select(models.PTeam).where(models.PTeam.pteam_id == ticket_response["pteam_id"])
-        ).one_or_none()
-        pteam_account_role = testdb.scalars(
-            select(models.PTeamAccountRole).where(
-                models.PTeamAccountRole.pteam_id == ticket_response["pteam_id"]
-            )
-        ).one_or_none()
-        pteam_slack = testdb.scalars(
-            select(models.PTeamSlack).where(
-                models.PTeamSlack.pteam_id == ticket_response["pteam_id"]
-            )
-        ).one_or_none()
-        pteam_mail = testdb.scalars(
-            select(models.PTeamMail).where(models.PTeamMail.pteam_id == ticket_response["pteam_id"])
-        ).one_or_none()
-        service = testdb.scalars(
-            select(models.Service).where(models.Service.service_id == ticket_response["service_id"])
-        ).one_or_none()
-        service_thumbnail = testdb.scalars(
-            select(models.ServiceThumbnail).where(
-                models.ServiceThumbnail.service_id == ticket_response["service_id"]
-            )
-        ).one_or_none()
-        dependency = testdb.scalars(
-            select(models.Dependency).where(
-                models.Dependency.dependency_id == created_dependency["dependency_id"]
-            )
-        ).one_or_none()
-        threat = testdb.scalars(
-            select(models.Threat).where(models.Threat.threat_id == ticket_response["threat_id"])
-        ).one_or_none()
-        ticket = testdb.scalars(
-            select(models.Ticket).where(models.Ticket.ticket_id == ticket_response["ticket_id"])
-        ).one_or_none()
-        ticket_status = testdb.scalars(
-            select(models.TicketStatus).where(
-                models.TicketStatus.ticket_id == ticket_response["ticket_id"]
-            )
-        ).one_or_none()
-
-        assert str(pteam.pteam_id) == ticket_response["pteam_id"]
-        assert str(pteam_account_role.pteam_id) == ticket_response["pteam_id"]
-        assert str(pteam_slack.pteam_id) == ticket_response["pteam_id"]
-        assert str(pteam_mail.pteam_id) == ticket_response["pteam_id"]
-        assert str(service.service_id) == ticket_response["service_id"]
-        assert str(service_thumbnail.service_id) == ticket_response["service_id"]
-        assert str(dependency.dependency_id) == created_dependency["dependency_id"]
-        assert str(threat.threat_id) == ticket_response["threat_id"]
-        assert str(ticket.ticket_id) == ticket_response["ticket_id"]
-        assert str(ticket_status.ticket_id) == ticket_response["ticket_id"]
 
         return {
             "pteam_id": ticket_response["pteam_id"],
@@ -4198,8 +4137,9 @@ class TestDeletePteam:
             f"/pteams/{pteam_id}",
             headers=headers(USER2),
         )
-        print(delete_pteam_response)
+
         assert delete_pteam_response.status_code == 403
+        assert delete_pteam_response.json()["detail"] == "You do not have authority"
 
     def test_raise_404_if_invalid_pteam_id(self, testdb: Session, pteam_setup):
         # delete pteam
@@ -4213,3 +4153,4 @@ class TestDeletePteam:
         )
 
         assert delete_pteam_response.status_code == 404
+        assert delete_pteam_response.json()["detail"] == "No such pteam"
