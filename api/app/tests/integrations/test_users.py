@@ -68,7 +68,7 @@ class TestDeleteUser:
         user2 = user_setup["user2"]
         pteam1 = user_setup["pteam1"]
 
-        # user2をadminに設定
+        # user2をadminに設定(use1以外にadminがいる状態に設定)
         client.put(
             f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
             headers=headers(USER1),
@@ -83,16 +83,15 @@ class TestDeleteUser:
         self._verify_user_deleted(user1, testdb)
         self._verify_pteam_not_deleted(pteam1, testdb)  # ユーザー削除後、チームは削除されていない
 
-    def test_user_deletes_last_admin_and_team_is_deleted(self, user_setup, testdb: Session):
+    def test_user_deletes_last_admin_and_pteam_is_deleted(self, user_setup, testdb: Session):
         user1 = user_setup["user1"]
         user2 = user_setup["user2"]
         pteam1 = user_setup["pteam1"]
 
-        # user1が最後のadminであることを確認
+        # user1が最後のadminであることを確認(adminではないuser2を追加)
         client.put(
             f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
             headers=headers(USER1),
-            json={"is_admin": False},
         )
 
         # user1が自分を削除
@@ -104,20 +103,22 @@ class TestDeleteUser:
         self._verify_pteam_deleted(pteam1, testdb)  # 最後のadminを削除したので、PTeamも削除される
 
     def test_delete_user_if_user_is_not_last_admin(self, user_setup, testdb: Session):
+        user1 = user_setup["user1"]
         user2 = user_setup["user2"]
         pteam1 = user_setup["pteam1"]
 
-        # user2をadminでないユーザーに変更
+        # user2をadmin=Trueとして追加
         client.put(
             f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
             headers=headers(USER1),
+            json={"is_admin": True},
         )
 
-        delete_response = client.delete("/users/me", headers=headers(USER2))
+        delete_response = client.delete("/users/me", headers=headers(USER1))
         assert delete_response.status_code == 204
 
         # ユーザー削除後の確認
-        self._verify_user_deleted(user2, testdb)
+        self._verify_user_deleted(user1, testdb)
 
         # 最後のadminではないためPTeamは削除されていないことを確認
         self._verify_pteam_not_deleted(pteam1, testdb)
@@ -136,7 +137,7 @@ class TestDeleteUser:
         delete_response = client.delete("/users/me", headers=headers(USER2))
         assert delete_response.status_code == 204
 
-        # ユーザー削除後の確認
+        # adminでないuser2を削除後の確認
         self._verify_user_deleted(user2, testdb)
 
         # adminではないため、PTeamは削除されていないことを確認
