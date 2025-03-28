@@ -79,7 +79,13 @@ export function TopicTableRowView(props) {
         </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell sx={{ py: 0 }} colSpan={7}>
+        <TableCell
+          sx={{
+            borderLeft: `solid 5px ${ssvcPriorityProps[searchWorstSSVC(tickets)].style.bgcolor}`,
+            py: 0,
+          }}
+          colSpan={7}
+        >
           <Collapse in={ticketOpen} timeout="auto" unmountOnExit>
             <TicketTable>
               {tickets.map((ticket) => (
