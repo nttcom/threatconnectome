@@ -118,6 +118,14 @@ def create_pteam(db: Session, pteam: models.PTeam) -> None:
     db.flush()
 
 
+def delete_pteam(db: Session, pteam: models.PTeam) -> None:
+    db.delete(pteam)
+    db.flush()
+
+
+### PTeamInvitation
+
+
 def get_pteam_invitations(
     db: Session,
     pteam_id: UUID | str,
