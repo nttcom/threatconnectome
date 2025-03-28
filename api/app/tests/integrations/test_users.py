@@ -35,11 +35,10 @@ class TestDeleteUser:
 
         return {"user1": user1, "user2": user2, "pteam1": pteam1}
 
-    def _verify_user_deleted(self, user, testdb: Session):
+    def _get_user_deleted(self, user, testdb: Session):
         deleted_user = testdb.execute(
             select(models.Account).where(models.Account.user_id == str(user.user_id))
         ).scalar_one_or_none()
-        assert deleted_user is None
 
         action_logs = (
             testdb.execute(
@@ -48,20 +47,22 @@ class TestDeleteUser:
             .scalars()
             .all()
         )
-        for log in action_logs:
-            assert log.user_id is None
 
-    def _verify_pteam_not_deleted(self, pteam, testdb: Session):
+        return deleted_user, action_logs
+
+    def _get_pteam_not_deleted(self, pteam, testdb: Session):
         existing_pteam = testdb.execute(
             select(models.PTeam).where(models.PTeam.pteam_id == str(pteam.pteam_id))
         ).scalar_one_or_none()
-        assert existing_pteam is not None
 
-    def _verify_pteam_deleted(self, pteam, testdb: Session):
+        return existing_pteam
+
+    def _get_pteam_deleted(self, pteam, testdb: Session):
         deleted_pteam = testdb.execute(
             select(models.PTeam).where(models.PTeam.pteam_id == str(pteam.pteam_id))
         ).scalar_one_or_none()
-        assert deleted_pteam is None
+
+        return deleted_pteam
 
     def test_user_can_delete_themselves(self, user_setup, testdb: Session):
         user1 = user_setup["user1"]
@@ -80,8 +81,14 @@ class TestDeleteUser:
         assert delete_response.status_code == 204
 
         # ユーザー削除後の確認
-        self._verify_user_deleted(user1, testdb)
-        self._verify_pteam_not_deleted(pteam1, testdb)  # ユーザー削除後、チームは削除されていない
+        deleted_user, action_logs = self._get_user_deleted(user1, testdb)
+        assert deleted_user is None
+        for log in action_logs:
+            assert log.user_id is None
+
+        # チームは削除されていないことを確認
+        existing_pteam = self._get_pteam_not_deleted(pteam1, testdb)
+        assert existing_pteam is not None
 
     def test_user_deletes_last_admin_and_pteam_is_deleted(self, user_setup, testdb: Session):
         user1 = user_setup["user1"]
@@ -99,8 +106,14 @@ class TestDeleteUser:
         assert delete_response.status_code == 204
 
         # ユーザー削除後の確認
-        self._verify_user_deleted(user1, testdb)
-        self._verify_pteam_deleted(pteam1, testdb)  # 最後のadminを削除したので、PTeamも削除される
+        deleted_user, action_logs = self._get_user_deleted(user1, testdb)
+        assert deleted_user is None
+        for log in action_logs:
+            assert log.user_id is None
+
+        # PTeamは削除されていることを確認
+        deleted_pteam = self._get_pteam_deleted(pteam1, testdb)
+        assert deleted_pteam is None
 
     def test_delete_user_if_user_is_not_last_admin(self, user_setup, testdb: Session):
         user1 = user_setup["user1"]
@@ -118,10 +131,14 @@ class TestDeleteUser:
         assert delete_response.status_code == 204
 
         # ユーザー削除後の確認
-        self._verify_user_deleted(user1, testdb)
+        deleted_user, action_logs = self._get_user_deleted(user1, testdb)
+        assert deleted_user is None
+        for log in action_logs:
+            assert log.user_id is None
 
         # 最後のadminではないためPTeamは削除されていないことを確認
-        self._verify_pteam_not_deleted(pteam1, testdb)
+        existing_pteam = self._get_pteam_not_deleted(pteam1, testdb)
+        assert existing_pteam is not None
 
     def test_delete_user_if_user_is_not_admin(self, user_setup, testdb: Session):
         user2 = user_setup["user2"]
@@ -138,7 +155,11 @@ class TestDeleteUser:
         assert delete_response.status_code == 204
 
         # adminでないuser2を削除後の確認
-        self._verify_user_deleted(user2, testdb)
+        deleted_user, action_logs = self._get_user_deleted(user2, testdb)
+        assert deleted_user is None
+        for log in action_logs:
+            assert log.user_id is None
 
         # adminではないため、PTeamは削除されていないことを確認
-        self._verify_pteam_not_deleted(pteam1, testdb)
+        existing_pteam = self._get_pteam_not_deleted(pteam1, testdb)
+        assert existing_pteam is not None
