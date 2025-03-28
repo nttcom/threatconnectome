@@ -79,7 +79,10 @@ def apply_invitation(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Already joined to the pteam"
         )
-    invitation.pteam.members.append(current_user)
+    new_role = models.PTeamAccountRole(
+        pteam_id=invitation.pteam.pteam_id, user_id=current_user.user_id, is_admin=False
+    )
+    invitation.pteam.pteam_roles.append(new_role)
 
     pteam = invitation.pteam  # keep for the case invitation is expired
     invitation.used_count += 1
@@ -1269,12 +1272,11 @@ def delete_member(
     ):
         raise NOT_HAVE_AUTH
 
-    target_users = [x for x in pteam.members if x.user_id == str(user_id)]
-    if len(target_users) == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam member")
-
     # remove from members
-    pteam.members.remove(target_users[0])
+    target_role = persistence.get_pteam_account_role(db, pteam_id, user_id)
+    if target_role is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam member")
+    pteam.pteam_roles.remove(target_role)
 
     db.flush()
     if command.missing_pteam_admin(db, pteam):
