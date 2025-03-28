@@ -10,7 +10,7 @@ export function ArtifactTagView(props) {
   const { artifactTag, topicActions } = props;
 
   return (
-    <Card key={artifactTag.tag_id} variant="outlined" display="flex" sx={{ margin: 1, padding: 2 }}>
+    <Card key={artifactTag.tag_id} variant="outlined" display="flex" sx={{ m: 1, p: 2 }}>
       {/* Title -- tag name */}
       <Typography variant="h5">{artifactTag.tag_name}</Typography>
       <Box display="flex" flexDirection="row" justifyContent="center">
