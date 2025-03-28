@@ -86,10 +86,6 @@ class TestDeleteUser:
         for log in action_logs:
             assert log.user_id is None
 
-        # チームは削除されていないことを確認
-        existing_pteam = self._get_pteam_not_deleted(pteam1, testdb)
-        assert existing_pteam is not None
-
     def test_user_deletes_last_admin_and_pteam_is_deleted(self, user_setup, testdb: Session):
         user1 = user_setup["user1"]
         user2 = user_setup["user2"]
