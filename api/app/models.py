@@ -187,6 +187,9 @@ class Account(Base):
 
 class PackageVersion(Base):
     __tablename__ = "packageversion"
+    __table_args__ = (
+        UniqueConstraint("package_id", "version", name="package_version_package_id_version_key"),
+    )
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -194,7 +197,7 @@ class PackageVersion(Base):
             self.package_version_id = str(uuid.uuid4())
 
     package_version_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    version: Mapped[str] = mapped_column(unique=True)
+    version: Mapped[str] = mapped_column()
     package_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("package.package_id", ondelete="CASCADE"), index=True
     )
@@ -347,7 +350,7 @@ class Ticket(Base):
     )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     ticket_safety_impact: Mapped[SafetyImpactEnum | None] = mapped_column(nullable=True)
-    reason_safety_impact: Mapped[str | None]
+    reason_safety_impact: Mapped[str | None] = mapped_column(nullable=True)
     ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
 
     threat = relationship("Threat", uselist=False, back_populates="ticket")
