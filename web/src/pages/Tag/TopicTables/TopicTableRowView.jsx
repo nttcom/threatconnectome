@@ -81,7 +81,6 @@ export function TopicTableRowView(props) {
       <TableRow>
         <TableCell
           sx={{
-            bgcolor: "grey.50",
             borderLeft: `solid 5px ${ssvcPriorityProps[searchWorstSSVC(tickets)].style.bgcolor}`,
             py: 0,
           }}
