@@ -148,6 +148,10 @@ class Base(DeclarativeBase):
 
 class PTeamAccountRole(Base):
     __tablename__ = "pteamaccountrole"
+    # deleting PTeamAccountRole via relationship may cause SAWarning,
+    #   "DELETE statement on table 'pteamaccountrole' expected to delete 2 row(s); 1 were matched."
+    # set False to confirm_deleted_rows to prevent this warning.
+    __mapper_args__ = {"confirm_deleted_rows": False}
 
     pteam_id = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
@@ -439,8 +443,12 @@ class PTeam(Base):
         back_populates="pteam",
         cascade="all, delete-orphan",
     )
-    members = relationship("Account", secondary=PTeamAccountRole.__tablename__)
-    pteam_roles = relationship("PTeamAccountRole", back_populates="pteam", cascade="all, delete")
+    # set members viewonly to prevent confliction with pream_roles.
+    # to update members, update pteam_foles instead.
+    members = relationship("Account", secondary=PTeamAccountRole.__tablename__, viewonly=True)
+    pteam_roles = relationship(
+        "PTeamAccountRole", back_populates="pteam", cascade="all, delete-orphan"
+    )
     invitations = relationship(
         "PTeamInvitation", back_populates="pteam", cascade="all, delete-orphan"
     )
