@@ -35,21 +35,15 @@ class TestDeleteUser:
 
         return {"user1": user1, "user2": user2, "pteam1": pteam1}
 
-    def test_delete_user_success(self, user_setup, testdb: Session):
-        user1 = user_setup["user1"]
-        pteam1 = user_setup["pteam1"]
-
-        delete_response = client.delete("/users/me", headers=headers(USER1))
-        assert delete_response.status_code == 204
-
+    def _verify_user_deleted(self, user, testdb: Session):
         deleted_user = testdb.execute(
-            select(models.Account).where(models.Account.user_id == str(user1.user_id))
+            select(models.Account).where(models.Account.user_id == str(user.user_id))
         ).scalar_one_or_none()
         assert deleted_user is None
 
         action_logs = (
             testdb.execute(
-                select(models.ActionLog).where(models.ActionLog.user_id == str(user1.user_id))
+                select(models.ActionLog).where(models.ActionLog.user_id == str(user.user_id))
             )
             .scalars()
             .all()
@@ -57,7 +51,93 @@ class TestDeleteUser:
         for log in action_logs:
             assert log.user_id is None
 
+    def _verify_pteam_not_deleted(self, pteam, testdb: Session):
+        existing_pteam = testdb.execute(
+            select(models.PTeam).where(models.PTeam.pteam_id == str(pteam.pteam_id))
+        ).scalar_one_or_none()
+        assert existing_pteam is not None
+
+    def _verify_pteam_deleted(self, pteam, testdb: Session):
         deleted_pteam = testdb.execute(
-            select(models.PTeam).where(models.PTeam.pteam_id == str(pteam1.pteam_id))
+            select(models.PTeam).where(models.PTeam.pteam_id == str(pteam.pteam_id))
         ).scalar_one_or_none()
         assert deleted_pteam is None
+
+    def test_user_can_delete_themselves(self, user_setup, testdb: Session):
+        user1 = user_setup["user1"]
+        user2 = user_setup["user2"]
+        pteam1 = user_setup["pteam1"]
+
+        # user2をadminに設定
+        client.put(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
+            headers=headers(USER1),
+            json={"is_admin": True},
+        )
+
+        # ユーザーが自分を削除できるかを確認
+        delete_response = client.delete("/users/me", headers=headers(USER1))
+        assert delete_response.status_code == 204
+
+        # ユーザー削除後の確認
+        self._verify_user_deleted(user1, testdb)
+        self._verify_pteam_not_deleted(pteam1, testdb)  # ユーザー削除後、チームは削除されていない
+
+    def test_user_deletes_last_admin_and_team_is_deleted(self, user_setup, testdb: Session):
+        user1 = user_setup["user1"]
+        user2 = user_setup["user2"]
+        pteam1 = user_setup["pteam1"]
+
+        # user1が最後のadminであることを確認
+        client.put(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
+            headers=headers(USER1),
+            json={"is_admin": False},
+        )
+
+        # user1が自分を削除
+        delete_response = client.delete("/users/me", headers=headers(USER1))
+        assert delete_response.status_code == 204
+
+        # ユーザー削除後の確認
+        self._verify_user_deleted(user1, testdb)
+        self._verify_pteam_deleted(pteam1, testdb)  # 最後のadminを削除したので、PTeamも削除される
+
+    def test_delete_user_if_user_is_not_last_admin(self, user_setup, testdb: Session):
+        user2 = user_setup["user2"]
+        pteam1 = user_setup["pteam1"]
+
+        # user2をadminでないユーザーに変更
+        client.put(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
+            headers=headers(USER1),
+        )
+
+        delete_response = client.delete("/users/me", headers=headers(USER2))
+        assert delete_response.status_code == 204
+
+        # ユーザー削除後の確認
+        self._verify_user_deleted(user2, testdb)
+
+        # 最後のadminではないためPTeamは削除されていないことを確認
+        self._verify_pteam_not_deleted(pteam1, testdb)
+
+    def test_delete_user_if_user_is_not_admin(self, user_setup, testdb: Session):
+        user2 = user_setup["user2"]
+        pteam1 = user_setup["pteam1"]
+
+        # user2をadminでない状態でPTeamに参加させる
+        client.put(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
+            headers=headers(USER1),
+            json={"is_admin": False},
+        )
+
+        delete_response = client.delete("/users/me", headers=headers(USER2))
+        assert delete_response.status_code == 204
+
+        # ユーザー削除後の確認
+        self._verify_user_deleted(user2, testdb)
+
+        # adminではないため、PTeamは削除されていないことを確認
+        self._verify_pteam_not_deleted(pteam1, testdb)
