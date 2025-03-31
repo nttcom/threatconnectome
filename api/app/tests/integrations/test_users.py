@@ -382,3 +382,127 @@ class TestDeleteUserSideEffects:
             select(models.Topic).where(models.Topic.topic_id == str(self.topic2.topic_id))
         ).one()
         assert db_topic2.created_by == str(self.topic2.created_by)
+
+    def test_pteam_invitations_from_deleted_users_should_be_none(self, testdb):
+        self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
+        self.delete_user_me(USER1)
+
+        db_invitation1 = testdb.scalars(
+            select(models.PTeamInvitation).where(
+                models.PTeamInvitation.user_id == str(self.user1.user_id)
+            )
+        ).one_or_none()
+        assert db_invitation1 is None
+
+    def test_pteam_invitations_from_not_deleted_users_should_be_kept(self, testdb):
+        invite_to_pteam(USER2, self.pteam2.pteam_id)
+        self.delete_user_me(USER1)
+
+        db_invitation2 = testdb.scalars(
+            select(models.PTeamInvitation).where(
+                models.PTeamInvitation.user_id == str(self.user2.user_id)
+            )
+        ).one_or_none()
+        assert db_invitation2 is not None
+
+    def test_ticketstatus_of_deleted_users_should_be_none(self, testdb):
+        self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
+        self.delete_user_me(USER1)
+
+        # Check user_id of deleted user's ticketstatus
+        db_ticketstatus1 = testdb.scalars(
+            select(models.TicketStatus).where(
+                models.TicketStatus.user_id == str(self.user1.user_id),
+            )
+        ).one_or_none()
+        assert db_ticketstatus1 is None
+
+    def test_ticketstatus_of_not_deleted_users_should_be_none(self, testdb):
+        self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
+        self.delete_user_me(USER1)
+
+        # Check user_id of deleted user's ticketstatus
+        db_ticketstatus2 = testdb.scalars(
+            select(models.TicketStatus).where(
+                models.TicketStatus.user_id == str(self.user2.user_id),
+            )
+        ).one_or_none()
+        assert db_ticketstatus2 is not None
+
+    @pytest.mark.skip(
+        reason="process of excluding deleted users' user_id from TicketStatus assignees is not implemented."
+    )
+    def test_ticketstatus_assignees_should_not_include_deleted_user(self, testdb):
+        self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
+        self.delete_user_me(USER1)
+
+        status_request = {
+            "topic_status": models.TopicStatusType.completed.value,
+            "assignees": [str(self.user1.user_id)],
+            "logging_ids": [self.actionlog1["logging_id"]],
+        }
+        set_ticket_status(
+            USER2,
+            self.pteam1.pteam_id,
+            self.service1["service_id"],
+            self.ticket1["ticket_id"],
+            status_request,
+        )
+
+        db_ticketstatus = testdb.scalars(
+            select(models.TicketStatus).where(
+                models.TicketStatus.ticket_id == self.ticket1["ticket_id"]
+            )
+        ).one_or_none()
+
+        assert str(self.user1.user_id) not in db_ticketstatus.assignees
+
+    @pytest.mark.skip(
+        reason="process of excluding deleted users' user_id from TicketStatus assignees is not implemented."
+    )
+    def test_ticketstatus_assignees_should_include_not_deleted_user(self, testdb):
+        self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
+        self.delete_user_me(USER1)
+
+        status_request = {
+            "topic_status": models.TopicStatusType.completed.value,
+            "assignees": [str(self.user2.user_id)],
+            "logging_ids": [self.actionlog1["logging_id"]],
+        }
+        set_ticket_status(
+            USER2,
+            self.pteam1.pteam_id,
+            self.service1["service_id"],
+            self.ticket1["ticket_id"],
+            status_request,
+        )
+
+        db_ticketstatus = testdb.scalars(
+            select(models.TicketStatus).where(
+                models.TicketStatus.ticket_id == self.ticket1["ticket_id"]
+            )
+        ).one_or_none()
+
+        assert str(self.user2.user_id) in db_ticketstatus.assignees
+
+    def test_pteamaccountrole_should_be_deleted_when_user_is_deleted(self, testdb):
+        self.delete_user_me(USER1)
+
+        db_pteam_role = testdb.scalars(
+            select(models.PTeamAccountRole).where(
+                models.PTeamAccountRole.user_id == str(self.user1.user_id)
+            )
+        ).one_or_none()
+
+        assert db_pteam_role is None
+
+    def test_pteamaccountrole_should_not_be_deleted_when_user_is_not_deleted(self, testdb):
+        self.delete_user_me(USER1)
+
+        db_pteam_role = testdb.scalars(
+            select(models.PTeamAccountRole).where(
+                models.PTeamAccountRole.user_id == str(self.user2.user_id)
+            )
+        ).one_or_none()
+
+        assert db_pteam_role is not None
