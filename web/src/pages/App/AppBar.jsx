@@ -10,7 +10,7 @@ import { drawerWidth } from "../../utils/const";
 
 import { AppFallback } from "./AppFallback";
 import { TeamSelector } from "./TeamSelector";
-import { UserMenu } from "./UserMenu";
+import { UserMenu } from "./UserMenu/UserMenu";
 
 const StyledAppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",

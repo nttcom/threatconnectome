@@ -8,26 +8,43 @@ import MenuItem from "@mui/material/MenuItem";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 
-import { useAuth } from "../../hooks/auth";
-import { tcApi } from "../../services/tcApi";
-import { setAuthUserIsReady, setRedirectedFrom } from "../../slices/auth";
+import { useAuth, useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
+import { tcApi, useGetUserMeQuery } from "../../../services/tcApi";
+import { setAuthUserIsReady, setRedirectedFrom } from "../../../slices/auth";
+import { APIError } from "../../../utils/APIError";
+import { errorToString } from "../../../utils/func";
 
-import SettingsDialog from "./SettingsDialog";
+import { AccountSettings } from "./AccountSettings";
 
 export function UserMenu() {
   const dispatch = useDispatch();
   const { signOut } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  const [accountSettingOpen, setAccountSettingOpen] = useState(false);
+
+  const skip = useSkipUntilAuthUserIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+
+  if (skip) return <></>;
+  if (userMeError)
+    throw new APIError(errorToString(userMeError), {
+      api: "getUserMe",
+    });
+  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+
+  const openUserMenu = Boolean(anchorEl);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const [settingOpen, setSettingOpen] = useState(false);
-  const handleClickSettingOpen = () => {
-    setSettingOpen(true);
+  const handleAccountSetting = () => {
+    setAccountSettingOpen(true);
     setAnchorEl(null);
   };
   const handleLogout = async () => {
@@ -39,12 +56,12 @@ export function UserMenu() {
 
   return (
     <>
-      <Button onClick={handleClick} startIcon={<AccountCircleIcon />}>
-        sample@example.com
+      <Button aria-label="user menu" onClick={handleClick} startIcon={<AccountCircleIcon />}>
+        {userMe.email}
       </Button>
       <Menu
         anchorEl={anchorEl}
-        open={open}
+        open={openUserMenu}
         onClose={handleClose}
         anchorOrigin={{
           vertical: "bottom",
@@ -55,7 +72,7 @@ export function UserMenu() {
           horizontal: "right",
         }}
       >
-        <MenuItem onClick={handleClickSettingOpen}>
+        <MenuItem onClick={handleAccountSetting}>
           <ListItemIcon>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
@@ -74,7 +91,11 @@ export function UserMenu() {
           <ListItemText>Logout</ListItemText>
         </MenuItem>
       </Menu>
-      <SettingsDialog open={settingOpen} setOpen={setSettingOpen} />
+      <AccountSettings
+        accountSettingOpen={accountSettingOpen}
+        setAccountSettingOpen={setAccountSettingOpen}
+        userMe={userMe}
+      />
     </>
   );
 }

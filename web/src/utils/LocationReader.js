@@ -27,10 +27,6 @@ export class LocationReader {
     return this.location.pathname.includes("/vulnerabilities");
   }
 
-  isAccountPage() {
-    return this.location.pathname === "/account";
-  }
-
   getPTeamId() {
     const params = new URLSearchParams(this.location.search);
     return params.get("pteamId");

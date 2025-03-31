@@ -11,16 +11,21 @@ import React from "react";
 
 import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
-export default function SettingsDialog(props) {
-  const { open, setOpen } = props;
+export function AccountSettingsDialog(props) {
+  const { accountSettingOpen, setAccountSettingOpen, onSelectYear, userMe } = props;
 
   const handleClose = () => {
-    setOpen(false);
+    setAccountSettingOpen(false);
   };
+
+  // Change Email is not implemented
+  const changeEmaildisabled = true;
+  // Change Password is not implemented
+  const changePasswordDisabled = true;
 
   return (
     <>
-      <Dialog fullWidth maxWidth="sm" open={open} onClose={handleClose}>
+      <Dialog fullWidth maxWidth="sm" open={accountSettingOpen} onClose={handleClose}>
         <DialogTitle>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             Account settings
@@ -35,8 +40,13 @@ export default function SettingsDialog(props) {
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 Email
               </Typography>
-              <DialogContentText>sample@example.com</DialogContentText>
-              <Button variant="contained" size="small" sx={{ mt: 1 }}>
+              <DialogContentText>{userMe.email}</DialogContentText>
+              <Button
+                variant="contained"
+                size="small"
+                sx={{ mt: 1 }}
+                disabled={changeEmaildisabled}
+              >
                 Change Email
               </Button>
             </Box>
@@ -44,13 +54,13 @@ export default function SettingsDialog(props) {
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 User ID
               </Typography>
-              <DialogContentText>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</DialogContentText>
+              <DialogContentText>{userMe.user_id}</DialogContentText>
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 Password
               </Typography>
-              <Button variant="contained" size="small">
+              <Button variant="contained" size="small" disabled={changePasswordDisabled}>
                 Change Password
               </Button>
             </Box>
@@ -58,14 +68,14 @@ export default function SettingsDialog(props) {
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 Team
               </Typography>
-              <DialogContentText>Metemcyber開発チーム 東京</DialogContentText>
-              <DialogContentText variant="caption">
-                xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-              </DialogContentText>
-              <DialogContentText>Metemcyber Dev Team US</DialogContentText>
-              <DialogContentText variant="caption">
-                xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-              </DialogContentText>
+              {userMe.pteam_roles.map((pteam_role) => (
+                <>
+                  <DialogContentText>{pteam_role.pteam.pteam_name}</DialogContentText>
+                  <DialogContentText variant="caption">
+                    {pteam_role.pteam.pteam_id}
+                  </DialogContentText>
+                </>
+              ))}
             </Box>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Box>
@@ -79,7 +89,14 @@ export default function SettingsDialog(props) {
                     </IconButton>
                   </Tooltip>
                 </Box>
-                <Select size="small" defaultValue={0} sx={{ minWidth: 130 }}>
+                <Select
+                  size="small"
+                  defaultValue={userMe.years}
+                  onChange={(e) => {
+                    onSelectYear(e);
+                  }}
+                  sx={{ minWidth: 130 }}
+                >
                   <MenuItem value={0}>0+ year</MenuItem>
                   <MenuItem value={2}>2+ years</MenuItem>
                   <MenuItem value={5}>5+ years</MenuItem>
@@ -96,8 +113,9 @@ export default function SettingsDialog(props) {
     </>
   );
 }
-
-SettingsDialog.propTypes = {
-  open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired,
+AccountSettingsDialog.propTypes = {
+  accountSettingOpen: PropTypes.bool.isRequired,
+  setAccountSettingOpen: PropTypes.func.isRequired,
+  onSelectYear: PropTypes.func.isRequired,
+  userMe: PropTypes.object.isRequired,
 };
