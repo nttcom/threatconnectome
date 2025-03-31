@@ -481,7 +481,7 @@ def downgrade() -> None:
     op.add_column(
         "topicaction",
         sa.Column(
-            "automatable",
+            "action_type",
             type_=sa.Enum(name="actiontype"),
             autoincrement=False,
             nullable=False,
@@ -561,7 +561,7 @@ def downgrade() -> None:
     ## Dependency table
     op.add_column(
         "dependency",
-        sa.Column("tag_id", sa.VARCHAR(length=36), autoincrement=False, nullable=True),
+        sa.Column("tag_id", sa.VARCHAR(length=36), autoincrement=False, nullable=False),
     )
     op.add_column("dependency", sa.Column("version", sa.TEXT(), autoincrement=False, nullable=True))
     op.drop_constraint("dependency_package_version_id_fkey", "dependency", type_="foreignkey")
