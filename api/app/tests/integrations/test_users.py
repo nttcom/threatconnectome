@@ -453,7 +453,7 @@ class TestDeleteUserSideEffects:
             select(models.TicketStatus).where(
                 models.TicketStatus.ticket_id == self.ticket1["ticket_id"]
             )
-        ).one_or_none()
+        ).one()
 
         assert str(self.user1.user_id) not in db_ticketstatus.assignees
 
@@ -481,7 +481,7 @@ class TestDeleteUserSideEffects:
             select(models.TicketStatus).where(
                 models.TicketStatus.ticket_id == self.ticket1["ticket_id"]
             )
-        ).one_or_none()
+        ).one()
 
         assert str(self.user2.user_id) in db_ticketstatus.assignees
 
