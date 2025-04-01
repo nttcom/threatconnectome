@@ -26,7 +26,6 @@ export function TicketTableRow(props) {
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
-            borderLeft: `solid 5px ${ssvcPriorityProps[ticket.ssvc_deployer_priority].style.bgcolor}`,
           }}
         >
           {target}
