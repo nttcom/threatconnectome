@@ -177,6 +177,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                 required
                 size="small"
                 value={serviceName}
+                placeholder={`Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`}
                 onChange={(e) => handleServiceNameSetting(e.target.value)}
                 helperText={serviceName ? "" : "This field is required."}
                 error={!serviceName}
@@ -203,7 +204,7 @@ export function PTeamServiceDetailsSettingsView(props) {
               </Box>
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <FormLabel>Keywords</FormLabel>
+              <FormLabel>Keywords (Max 5)</FormLabel>
               <Box>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
                   {currentKeywordsList.map((keyword) => (
@@ -252,7 +253,12 @@ export function PTeamServiceDetailsSettingsView(props) {
                   </Box>
                 ) : (
                   <Box>
-                    <Button onClick={handleKeywordCountCheck}>+ Add a new keyword</Button>
+                    <Button
+                      onClick={() => setKeywordAddingMode(!keywordAddingMode)}
+                      disabled={currentKeywordsList.length >= maxKeywords}
+                    >
+                      + Add a new keyword
+                    </Button>
                   </Box>
                 )}
               </Box>
@@ -263,6 +269,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                 multiline
                 rows={3}
                 fullWidth
+                placeholder={`Max length is ${maxDescriptionLengthInHalf} in half-width or ${Math.floor(maxDescriptionLengthInHalf / 2)} in full-width`}
                 value={currentDescription}
                 onChange={(e) => handleDescriptionSetting(e.target.value)}
               />
