@@ -434,7 +434,32 @@ class TestDeleteUserSideEffects:
     )
     def test_ticketstatus_assignees_should_not_include_deleted_user(self, testdb):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
+
+        status_request = {
+            "topic_status": models.TopicStatusType.completed.value,
+            "assignees": [str(self.user1.user_id)],
+            "logging_ids": [self.actionlog1["logging_id"]],
+        }
+        set_ticket_status(
+            USER2,
+            self.pteam1.pteam_id,
+            self.service1["service_id"],
+            self.ticket1["ticket_id"],
+            status_request,
+        )
+
         self.delete_user_me(USER1)
+
+        db_ticketstatus = testdb.scalars(
+            select(models.TicketStatus).where(
+                models.TicketStatus.ticket_id == self.ticket1["ticket_id"]
+            )
+        ).one()
+
+        assert str(self.user1.user_id) not in db_ticketstatus.assignees
+
+    def test_ticketstatus_assignees_should_include_not_deleted_user(self, testdb):
+        self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
 
         status_request = {
             "topic_status": models.TopicStatusType.completed.value,
@@ -455,35 +480,7 @@ class TestDeleteUserSideEffects:
             )
         ).one()
 
-        assert str(self.user1.user_id) not in db_ticketstatus.assignees
-
-    @pytest.mark.skip(
-        reason="process of excluding deleted users' user_id from TicketStatus assignees is not implemented."
-    )
-    def test_ticketstatus_assignees_should_include_not_deleted_user(self, testdb):
-        self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
-        self.delete_user_me(USER1)
-
-        status_request = {
-            "topic_status": models.TopicStatusType.completed.value,
-            "assignees": [str(self.user2.user_id)],
-            "logging_ids": [self.actionlog1["logging_id"]],
-        }
-        set_ticket_status(
-            USER2,
-            self.pteam1.pteam_id,
-            self.service1["service_id"],
-            self.ticket1["ticket_id"],
-            status_request,
-        )
-
-        db_ticketstatus = testdb.scalars(
-            select(models.TicketStatus).where(
-                models.TicketStatus.ticket_id == self.ticket1["ticket_id"]
-            )
-        ).one()
-
-        assert str(self.user2.user_id) in db_ticketstatus.assignees
+        assert str(self.user1.user_id) in db_ticketstatus.assignees
 
     def test_pteamaccountrole_should_be_deleted_when_user_is_deleted(self, testdb):
         self.delete_user_me(USER1)
