@@ -430,7 +430,8 @@ class TestDeleteUserSideEffects:
         assert db_ticketstatus is not None
 
     @pytest.mark.skip(
-        reason="process of excluding deleted users' user_id from TicketStatus assignees is not implemented."
+        reason="process of excluding deleted users' user_id from TicketStatus "
+        "assignees is not implemented."
     )
     def test_ticketstatus_assignees_should_not_include_deleted_user(self, testdb):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
