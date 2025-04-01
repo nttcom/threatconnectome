@@ -134,15 +134,6 @@ export function PTeamServiceDetailsSettingsView(props) {
     }
   };
 
-  const handleKeywordCountCheck = () => {
-    if (currentKeywordsList.length >= maxKeywords) {
-      setKeywordAddingMode(false);
-      enqueueSnackbar(`Too many keywords, max number: ${maxKeywords}`, { variant: "error" });
-    } else {
-      setKeywordAddingMode(!keywordAddingMode);
-    }
-  };
-
   const handleUpdatePTeamService = async () =>
     onSave(
       serviceName,
