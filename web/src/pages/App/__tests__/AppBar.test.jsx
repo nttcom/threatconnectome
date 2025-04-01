@@ -5,7 +5,6 @@ import { Provider, useDispatch } from "react-redux";
 
 import { useAuth } from "../../../hooks/auth";
 import { AuthProvider } from "../../../providers/auth/AuthContext";
-
 import { setDrawerOpen } from "../../../slices/system";
 import store from "../../../store";
 import { AppBar } from "../AppBar";
