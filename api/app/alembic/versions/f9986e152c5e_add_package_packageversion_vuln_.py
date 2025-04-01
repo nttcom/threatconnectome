@@ -27,11 +27,11 @@ def insert_from_dependency_tag_table_to_package_table(
         sa.text(
             """
             INSERT INTO Package (package_id, name, ecosystem)
-            SELECT :packege_id, :pkg_name, :ecosystem
+            SELECT :package_id, :pkg_name, :ecosystem
             WHERE NOT EXISTS (SELECT package_id FROM Package WHERE name = :pkg_name AND ecosystem = :ecosystem)
             """
         ),
-        {"packege_id": str(uuid.uuid4()), "pkg_name": name, "ecosystem": ecosystem},
+        {"package_id": str(uuid.uuid4()), "pkg_name": name, "ecosystem": ecosystem},
     )
 
 
