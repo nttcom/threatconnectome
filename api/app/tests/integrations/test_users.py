@@ -323,23 +323,23 @@ class TestDeleteUserSideEffects:
         self.delete_user_me(USER1)
 
         # Check user_id of deleted user's actionlog
-        db_actionlog1 = testdb.scalars(
+        db_actionlog = testdb.scalars(
             select(models.ActionLog).where(
                 models.ActionLog.logging_id == str(self.actionlog1["logging_id"])
             )
         ).one()
-        assert db_actionlog1.user_id is None
+        assert db_actionlog.user_id is None
 
     def test_user_id_of_not_deleted_users_actionlog_should_be_kept(self, testdb):
         self.delete_user_me(USER1)
 
         # Check user_id of non-deleted user's actionlog
-        db_actionlog2 = testdb.scalars(
+        db_actionlog = testdb.scalars(
             select(models.ActionLog).where(
                 models.ActionLog.logging_id == str(self.actionlog2["logging_id"])
             )
         ).one()
-        assert db_actionlog2.user_id == str(self.user2.user_id)
+        assert db_actionlog.user_id == str(self.user2.user_id)
 
     def test_created_by_of_deleted_users_action_should_be_none(self, testdb):
         action1 = self.topic1.actions[0]
@@ -348,20 +348,20 @@ class TestDeleteUserSideEffects:
         self.delete_user_me(USER1)
 
         # Check created_by of deleted user's action
-        db_action1 = testdb.scalars(
+        db_action = testdb.scalars(
             select(models.TopicAction).where(models.TopicAction.action_id == str(action1.action_id))
         ).one()
-        assert db_action1.created_by is None
+        assert db_action.created_by is None
 
     def test_created_by_of_not_deleted_users_action_should_be_kept(self, testdb):
         action2 = self.topic2.actions[0]
         self.delete_user_me(USER1)
 
         # Check created_by of non-deleted user's action
-        db_action2 = testdb.scalars(
+        db_action = testdb.scalars(
             select(models.TopicAction).where(models.TopicAction.action_id == str(action2.action_id))
         ).one()
-        assert db_action2.created_by == str(self.user2.user_id)
+        assert db_action.created_by == str(self.user2.user_id)
 
     def test_created_by_of_deleted_users_topic_should_be_none(self, testdb):
         # Make user2 admin to prevent deletion of pteam1
@@ -369,65 +369,65 @@ class TestDeleteUserSideEffects:
         self.delete_user_me(USER1)
 
         # Check created_by of deleted user's topic
-        db_topic1 = testdb.scalars(
+        db_topic = testdb.scalars(
             select(models.Topic).where(models.Topic.topic_id == str(self.topic1.topic_id))
         ).one()
-        assert db_topic1.created_by is None
+        assert db_topic.created_by is None
 
     def test_created_by_of_not_deleted_users_topic_should_be_kept(self, testdb):
         self.delete_user_me(USER1)
 
         # Check created_by of non-deleted user's topic
-        db_topic2 = testdb.scalars(
+        db_topic = testdb.scalars(
             select(models.Topic).where(models.Topic.topic_id == str(self.topic2.topic_id))
         ).one()
-        assert db_topic2.created_by == str(self.topic2.created_by)
+        assert db_topic.created_by == str(self.topic2.created_by)
 
     def test_pteam_invitations_from_deleted_users_should_be_none(self, testdb):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
         self.delete_user_me(USER1)
 
-        db_invitation1 = testdb.scalars(
+        db_invitation = testdb.scalars(
             select(models.PTeamInvitation).where(
                 models.PTeamInvitation.user_id == str(self.user1.user_id)
             )
         ).one_or_none()
-        assert db_invitation1 is None
+        assert db_invitation is None
 
     def test_pteam_invitations_from_not_deleted_users_should_be_kept(self, testdb):
         invite_to_pteam(USER2, self.pteam2.pteam_id)
         self.delete_user_me(USER1)
 
-        db_invitation2 = testdb.scalars(
+        db_invitation = testdb.scalars(
             select(models.PTeamInvitation).where(
                 models.PTeamInvitation.user_id == str(self.user2.user_id)
             )
         ).one_or_none()
-        assert db_invitation2 is not None
+        assert db_invitation is not None
 
     def test_ticketstatus_of_deleted_users_should_be_none(self, testdb):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
         self.delete_user_me(USER1)
 
         # Check user_id of deleted user's ticketstatus
-        db_ticketstatus1 = testdb.scalars(
+        db_ticketstatus = testdb.scalars(
             select(models.TicketStatus).where(
                 models.TicketStatus.user_id == str(self.user1.user_id),
             )
         ).one_or_none()
-        assert db_ticketstatus1 is None
+        assert db_ticketstatus is None
 
     def test_ticketstatus_of_not_deleted_users_should_be_none(self, testdb):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
         self.delete_user_me(USER1)
 
         # Check user_id of deleted user's ticketstatus
-        db_ticketstatus2 = testdb.scalars(
+        db_ticketstatus = testdb.scalars(
             select(models.TicketStatus).where(
                 models.TicketStatus.user_id == str(self.user2.user_id),
             )
         ).one_or_none()
-        assert db_ticketstatus2 is not None
+        assert db_ticketstatus is not None
 
     @pytest.mark.skip(
         reason="process of excluding deleted users' user_id from TicketStatus assignees is not implemented."
