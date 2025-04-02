@@ -329,6 +329,7 @@ class TestDeleteUserSideEffects:
             )
         ).one()
         assert db_actionlog.user_id is None
+        assert db_actionlog.email == ""
 
     def test_user_id_of_not_deleted_users_actionlog_should_be_kept(self, testdb):
         self.delete_user_me(USER1)
