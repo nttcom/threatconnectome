@@ -105,8 +105,9 @@ def delete_user(
     """
 
     for log in current_user.action_logs:
-        # actoin logs shoud not be deleted, but should be anonymized
+        # action logs should not be deleted, but should be anonymized
         log.user_id = None
+        log.email = ""
 
     # Current_user.user_id should be removed from the assignees of the ticket status.
 

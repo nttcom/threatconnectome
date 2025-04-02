@@ -329,6 +329,7 @@ class TestDeleteUserSideEffects:
             )
         ).one()
         assert db_actionlog.user_id is None
+        assert db_actionlog.email == ""
 
     def test_user_id_of_not_deleted_users_actionlog_should_be_kept(self, testdb):
         self.delete_user_me(USER1)
@@ -430,7 +431,8 @@ class TestDeleteUserSideEffects:
         assert db_ticketstatus is not None
 
     @pytest.mark.skip(
-        reason="process of excluding deleted users' user_id from TicketStatus assignees is not implemented."
+        reason="process of excluding deleted users' user_id from TicketStatus "
+        "assignees is not implemented."
     )
     def test_ticketstatus_assignees_should_not_include_deleted_user(self, testdb):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
