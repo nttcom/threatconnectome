@@ -63,7 +63,7 @@ def test_refresh_token():
 
 def test_delete_user():
     create_user(USER1)
-    response1 = client.delete("/users", headers=headers(USER1))
+    response1 = client.delete("/users/me", headers=headers(USER1))
     assert response1.status_code == 204
     response2 = client.get("/users/me", headers=headers(USER1))
     assert response2.status_code == 404
