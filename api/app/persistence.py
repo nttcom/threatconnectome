@@ -100,6 +100,13 @@ def get_topic_logs_by_user_id(
     ).all()
 
 
+### Affect
+def get_affect_by_package_id(db: Session, package_id: UUID | str) -> Sequence[models.Affect]:
+    return db.scalars(
+        select(models.Affect).where(models.Affect.package_id == str(package_id))
+    ).all()
+
+
 ### PTeam
 
 
@@ -175,81 +182,6 @@ def create_pteam_account_role(db: Session, account_role: models.PTeamAccountRole
     db.flush()
 
 
-### Artifact Tag
-
-
-def get_all_tags(db: Session) -> Sequence[models.Tag]:
-    return db.scalars(select(models.Tag)).all()
-
-
-def get_tag_by_id(db: Session, tag_id: UUID | str) -> models.Tag | None:
-    return db.scalars(select(models.Tag).where(models.Tag.tag_id == str(tag_id))).one_or_none()
-
-
-def get_tag_by_name(db: Session, tag_name: str) -> models.Tag | None:
-    return db.scalars(select(models.Tag).where(models.Tag.tag_name == tag_name)).one_or_none()
-
-
-def create_tag(db: Session, tag: models.Tag) -> None:
-    db.add(tag)
-    db.flush()
-
-
-def delete_tag(db: Session, tag: models.Tag):
-    db.delete(tag)
-    db.flush()
-
-
-### MispTag
-
-
-def get_all_misp_tags(db: Session) -> Sequence[models.MispTag]:
-    return db.scalars(select(models.MispTag)).all()
-
-
-def get_misp_tag_by_name(db: Session, tag_name: str) -> models.MispTag | None:
-    return db.scalars(
-        select(models.MispTag).where(models.MispTag.tag_name == tag_name)
-    ).one_or_none()
-
-
-def create_misp_tag(db: Session, misptag: models.MispTag) -> None:
-    db.add(misptag)
-    db.flush()
-
-
-### Topic
-
-
-def get_all_topics(db: Session) -> Sequence[models.Topic]:
-    return db.scalars(select(models.Topic)).all()
-
-
-def get_topics_by_tag_ids(db: Session, tag_ids: Sequence[UUID | str]) -> Sequence[models.Topic]:
-    return db.scalars(
-        select(models.Topic)
-        .join(models.TopicTag)
-        .where(models.TopicTag.tag_id.in_(list(map(str, tag_ids))))
-        .distinct()
-    ).all()
-
-
-def get_topic_by_id(db: Session, topic_id: UUID | str) -> models.Topic | None:
-    return db.scalars(
-        select(models.Topic).where(models.Topic.topic_id == str(topic_id))
-    ).one_or_none()
-
-
-def create_topic(db: Session, topic: models.Topic):
-    db.add(topic)
-    db.flush()
-
-
-def delete_topic(db: Session, topic: models.Topic):
-    db.delete(topic)
-    db.flush()
-
-
 ### Threat
 
 
@@ -309,6 +241,16 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
 
 
 ### Dependency
+
+
+def get_dependencies_from_package_version_id(
+    db: Session, package_version_id: UUID | str
+) -> Sequence[models.Dependency]:
+    return db.scalars(
+        select(models.Dependency).where(
+            models.Dependency.package_version_id == str(package_version_id),
+        )
+    ).all()
 
 
 def get_dependency_from_service_id_and_tag_id(

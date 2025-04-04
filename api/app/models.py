@@ -206,6 +206,7 @@ class PackageVersion(Base):
         ForeignKey("package.package_id", ondelete="CASCADE"), index=True
     )
 
+    package = relationship("Package", back_populates="package_versions")
     dependencies = relationship(
         "Dependency", back_populates="package_version", cascade="all, delete-orphan"
     )
@@ -223,6 +224,10 @@ class Package(Base):
     package_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column()
     ecosystem: Mapped[str] = mapped_column()
+
+    package_versions = relationship(
+        "PackageVersion", back_populates="package", cascade="all, delete-orphan"
+    )
 
 
 class Dependency(Base):
@@ -331,6 +336,8 @@ class Threat(Base):
         ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
     )
 
+    vuln = relationship("Vuln")
+    package_version = relationship("PackageVersion")
     tickets = relationship("Ticket", back_populates="threat", cascade="all, delete")
 
 
@@ -506,6 +513,9 @@ class Vuln(Base):
     automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.NO)
     cvss_v3_score: Mapped[float | None] = mapped_column(server_default=None, nullable=True)
 
+    vuln_actions = relationship("VulnAction", cascade="all, delete-orphan")
+    affects = relationship("Affect", back_populates="vuln", cascade="all, delete-orphan")
+
 
 class VulnAction(Base):
     __tablename__ = "vulnaction"
@@ -542,6 +552,9 @@ class Affect(Base):
     )
     affected_versions: Mapped[list[str]] = mapped_column(default=[])
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
+
+    package = relationship("Package")
+    vuln = relationship("Vuln", back_populates="affects")
 
 
 class ActionLog(Base):
