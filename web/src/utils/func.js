@@ -36,10 +36,6 @@ export const pickParentTagName = (tagName) => {
   return tokens.slice(0, -1).join(":") + ":"; // trim the right most token
 };
 
-export const validateNotEmpty = (str) => str?.length > 0;
-export const validateUUID = (str) =>
-  str?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
-
 export const errorToString = (error) => {
   if (typeof error === "string") return error;
   if (error.status && error.data?.detail) {
@@ -54,18 +50,6 @@ export const errorToString = (error) => {
     // maybe 422 by Pydantic
     return `${error.response?.status}: ${error.response?.statusText}`;
   return JSON.stringify(error); // not expected case
-};
-
-export const tagsMatched = (allowedTags, actualTags) => {
-  if (allowedTags.length === 0 && actualTags.length === 0) return true;
-  const actualTagsWithParents = new Set(
-    actualTags.reduce((ret, tag) => {
-      const parentTag = pickParentTagName(tag);
-      if (parentTag === null || parentTag === tag) return [...ret, tag];
-      return [...ret, tag, parentTag];
-    }, []),
-  );
-  return [...actualTagsWithParents].some((item) => allowedTags.includes(item));
 };
 
 export const setEquals = (set1, set2) =>
@@ -100,6 +84,21 @@ export const compareSSVCPriority = (prio1, prio2) => {
   else return 1;
 };
 
+export const searchWorstSSVC = (tickets) => {
+  if (!tickets || tickets.length === 0) {
+    return null;
+  }
+
+  const result = tickets.reduce((worstSSVC, ticket) => {
+    if (compareSSVCPriority(worstSSVC, ticket.ssvc_deployer_priority) === 1) {
+      return ticket.ssvc_deployer_priority;
+    }
+    return worstSSVC;
+  }, tickets[0].ssvc_deployer_priority);
+
+  return result;
+};
+
 export const cvssConvertToName = (cvssScore) => {
   let rating;
   if (0 < cvssScore && cvssScore < 4.0) {
@@ -128,4 +127,20 @@ export const checkAdmin = (member, pteamId) => {
   return member.pteam_roles.some(
     (pteam_role) => pteam_role.pteam.pteam_id === pteamId && pteam_role.is_admin,
   );
+};
+
+export const countFullWidthAndHalfWidthCharacters = (string) => {
+  let count = 0;
+  for (let i = 0; i < string.length; i++) {
+    const char = string[i];
+    if (string[i].match(/[ -~｡-ﾟ]/)) {
+      // half-width characters
+      count += 1;
+    } else {
+      // full-width characters
+      count += 2;
+    }
+  }
+
+  return count;
 };

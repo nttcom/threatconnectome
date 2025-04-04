@@ -1,4 +1,4 @@
-import SettingsIcon from "@mui/icons-material/Settings";
+import { Close as CloseIcon, Settings as SettingsIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -13,23 +13,26 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Typography,
 } from "@mui/material";
+import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 
-import { errorToString } from "../../../utils/func";
+import dialogStyle from "../../../cssModule/dialog.module.css";
+import {
+  maxServiceNameLengthInHalf,
+  maxDescriptionLengthInHalf,
+  maxKeywordLengthInHalf,
+  maxKeywords,
+} from "../../../utils/const";
+import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 
 import { PTeamServiceImageUploadDeleteButton } from "./PTeamServiceImageUploadDeleteButton";
 
 export function PTeamServiceDetailsSettingsView(props) {
-  const {
-    service,
-    updatePTeamServiceFunc,
-    updatePTeamServiceThumbnailFunc,
-    deletePTeamServiceThumbnailFunc,
-    image,
-  } = props;
+  const { service, image, onSave } = props;
 
   const [serviceName, setServiceName] = useState(service.service_name);
   const [imageFileData, setImageFileData] = useState(null);
@@ -45,6 +48,9 @@ export function PTeamServiceDetailsSettingsView(props) {
     service.service_safety_impact,
   );
 
+  const [isChanged, setIsChanged] = useState(false);
+  const [isImageChanged, setIsImageChanged] = useState(false);
+
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
@@ -56,45 +62,87 @@ export function PTeamServiceDetailsSettingsView(props) {
     setCurrentKeywordsList(service.keywords);
     setCurrentDescription(service.description);
     setDefaultSafetyImpactValue(service.service_safety_impact);
+    setIsChanged(false);
   }, [service]);
 
+  useEffect(() => {
+    setIsChanged(
+      serviceName !== service.service_name ||
+        currentKeywordsList.length !== service.keywords.length ||
+        currentKeywordsList.some((keyword, index) => keyword !== service.keywords[index]) ||
+        currentDescription !== service.description ||
+        defaultSafetyImpactValue !== service.service_safety_impact ||
+        isImageChanged,
+    );
+  }, [
+    serviceName,
+    imageFileData,
+    currentKeywordsList,
+    currentDescription,
+    defaultSafetyImpactValue,
+    service,
+    isImageChanged,
+  ]);
   const handleClose = () => {
     setOpen(false);
   };
   const handleClickOpen = () => {
     setOpen(true);
   };
-  const handleDelete = (item) => {
+  const handleDeleteKeyword = (item) => {
     const keywordsListCopy = JSON.parse(JSON.stringify(currentKeywordsList));
     const filteredKeywordsList = keywordsListCopy.filter((keyword) => keyword !== item);
     setCurrentKeywordsList(filteredKeywordsList);
   };
-  const handleUpdatePTeamService = async () => {
-    const promiseList = [];
-    if (imageFileData !== null) {
-      promiseList.push(() => updatePTeamServiceThumbnailFunc(imageFileData));
+
+  const handleServiceNameSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxServiceNameLengthInHalf) {
+      enqueueSnackbar(
+        `Too long service name. Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+        },
+      );
+    } else {
+      setServiceName(string);
     }
-
-    if (imageDeleteFalg) {
-      promiseList.push(() => deletePTeamServiceThumbnailFunc());
-    }
-
-    const requestData = {
-      service_name: serviceName,
-      keywords: currentKeywordsList,
-      description: currentDescription,
-      service_safety_impact: defaultSafetyImpactValue,
-    };
-    promiseList.push(() => updatePTeamServiceFunc(requestData));
-
-    Promise.all(promiseList.map((apiFunc) => apiFunc()))
-      .then(() => {
-        enqueueSnackbar("Update succeeded", { variant: "success" });
-      })
-      .catch((error) => {
-        enqueueSnackbar(`Update failed: ${errorToString(error)}`, { variant: "error" });
-      });
   };
+
+  const handleKeywordSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxKeywordLengthInHalf) {
+      enqueueSnackbar(
+        `Too long description. Max length is ${maxKeywordLengthInHalf} in half-width or ${Math.floor(maxKeywordLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+        },
+      );
+    } else {
+      setKeywordText(string);
+    }
+  };
+
+  const handleDescriptionSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxDescriptionLengthInHalf) {
+      enqueueSnackbar(
+        `Too long keyword. Max length is ${maxDescriptionLengthInHalf} in half-width or ${Math.floor(maxDescriptionLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+        },
+      );
+    } else {
+      setCurrentDescription(string);
+    }
+  };
+
+  const handleUpdatePTeamService = async () =>
+    onSave(
+      serviceName,
+      imageFileData,
+      imageDeleteFalg,
+      currentKeywordsList,
+      currentDescription,
+      defaultSafetyImpactValue,
+    );
 
   return (
     <>
@@ -102,7 +150,16 @@ export function PTeamServiceDetailsSettingsView(props) {
         <SettingsIcon />
       </IconButton>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-        <DialogTitle>Service settings</DialogTitle>
+        <DialogTitle flexGrow={1}>
+          <Box alignItems="center" display="flex" flexDirection="row">
+            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
+              Service settings
+            </Typography>
+            <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2}>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -111,7 +168,8 @@ export function PTeamServiceDetailsSettingsView(props) {
                 required
                 size="small"
                 value={serviceName}
-                onChange={(e) => setServiceName(e.target.value)}
+                placeholder={`Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`}
+                onChange={(e) => handleServiceNameSetting(e.target.value)}
                 helperText={serviceName ? "" : "This field is required."}
                 error={!serviceName}
               />
@@ -131,15 +189,21 @@ export function PTeamServiceDetailsSettingsView(props) {
                   setImageFileData={setImageFileData}
                   setImageDeleteFlag={setImageDeleteFlag}
                   setImagePreview={setImagePreview}
+                  setIsImageChanged={setIsImageChanged}
+                  originalImage={image}
                 />
               </Box>
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <FormLabel>Keywords</FormLabel>
+              <FormLabel>Keywords (Max 5)</FormLabel>
               <Box>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
                   {currentKeywordsList.map((keyword) => (
-                    <Chip key={keyword} label={keyword} onDelete={() => handleDelete(keyword)} />
+                    <Chip
+                      key={keyword}
+                      label={keyword}
+                      onDelete={() => handleDeleteKeyword(keyword)}
+                    />
                   ))}
                 </Stack>
                 {keywordAddingMode ? (
@@ -148,7 +212,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                       variant="outlined"
                       size="small"
                       value={keywordText}
-                      onChange={(e) => setKeywordText(e.target.value)}
+                      onChange={(e) => handleKeywordSetting(e.target.value)}
                       sx={{ mr: 1 }}
                       error={currentKeywordsList.includes(keywordText)}
                       helperText={
@@ -160,9 +224,10 @@ export function PTeamServiceDetailsSettingsView(props) {
                     <Button
                       variant="contained"
                       onClick={() => {
-                        setKeywordAddingMode(false);
-                        setCurrentKeywordsList([...currentKeywordsList, keywordText]);
+                        const updatedKeywordsList = [...currentKeywordsList, keywordText];
+                        setCurrentKeywordsList(updatedKeywordsList);
                         setKeywordText("");
+                        setKeywordAddingMode(false);
                       }}
                       disabled={!keywordText || currentKeywordsList.includes(keywordText)}
                     >
@@ -179,7 +244,10 @@ export function PTeamServiceDetailsSettingsView(props) {
                   </Box>
                 ) : (
                   <Box>
-                    <Button onClick={() => setKeywordAddingMode(!keywordAddingMode)}>
+                    <Button
+                      onClick={() => setKeywordAddingMode(!keywordAddingMode)}
+                      disabled={currentKeywordsList.length >= maxKeywords}
+                    >
                       + Add a new keyword
                     </Button>
                   </Box>
@@ -192,8 +260,9 @@ export function PTeamServiceDetailsSettingsView(props) {
                 multiline
                 rows={3}
                 fullWidth
+                placeholder={`Max length is ${maxDescriptionLengthInHalf} in half-width or ${Math.floor(maxDescriptionLengthInHalf / 2)} in full-width`}
                 value={currentDescription}
-                onChange={(e) => setCurrentDescription(e.target.value)}
+                onChange={(e) => handleDescriptionSetting(e.target.value)}
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -220,6 +289,7 @@ export function PTeamServiceDetailsSettingsView(props) {
             }}
             variant="contained"
             sx={{ borderRadius: 5, mr: 2, mb: 1 }}
+            disabled={!isChanged}
           >
             Save
           </Button>
@@ -231,8 +301,6 @@ export function PTeamServiceDetailsSettingsView(props) {
 
 PTeamServiceDetailsSettingsView.propTypes = {
   service: PropTypes.object.isRequired,
-  updatePTeamServiceFunc: PropTypes.func.isRequired,
-  updatePTeamServiceThumbnailFunc: PropTypes.func.isRequired,
-  deletePTeamServiceThumbnailFunc: PropTypes.func.isRequired,
   image: PropTypes.string.isRequired,
+  onSave: PropTypes.func.isRequired,
 };

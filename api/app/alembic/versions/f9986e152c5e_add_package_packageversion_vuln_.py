@@ -1,7 +1,7 @@
 """add Package, PackageVersion, Vuln, VulnAction, Affect table
 
 Revision ID: f9986e152c5e
-Revises: e23a3e347f25
+Revises: c48d64cb47b3
 Create Date: 2025-03-25 08:09:51.526482
 
 """
@@ -15,7 +15,7 @@ from sqlalchemy.sql import column, table
 
 # revision identifiers, used by Alembic.
 revision = "f9986e152c5e"
-down_revision = "e23a3e347f25"
+down_revision = "c48d64cb47b3"
 branch_labels = None
 depends_on = None
 

@@ -45,4 +45,7 @@ export class AuthProvider {
   async confirmPasswordReset() {
     throw new Error("Not implemented");
   }
+  async applyActionCode() {
+    throw new Error("Not implemented");
+  }
 }

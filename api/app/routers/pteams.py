@@ -19,7 +19,7 @@ from app.business.tag_business import (
     get_pteam_ext_tags,
     get_tag_ids_with_parent_ids,
 )
-from app.business.ticket_business import fix_tickets_for_service
+from app.business.ticket_business import fix_ticket_ssvc_priority
 from app.business.topic_business import get_sorted_topics
 from app.database import get_db, open_db_session
 from app.detector.vulnerability_detector import fix_threats_for_dependency
@@ -79,7 +79,10 @@ def apply_invitation(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Already joined to the pteam"
         )
-    invitation.pteam.members.append(current_user)
+    new_role = models.PTeamAccountRole(
+        pteam_id=invitation.pteam.pteam_id, user_id=current_user.user_id, is_admin=False
+    )
+    invitation.pteam.pteam_roles.append(new_role)
 
     pteam = invitation.pteam  # keep for the case invitation is expired
     invitation.used_count += 1
@@ -137,8 +140,11 @@ def force_calculate_ssvc_priority(
         raise NO_SUCH_PTEAM
     if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
-    for service in pteam.services:
-        fix_tickets_for_service(db, service)
+
+    now = datetime.now()
+    for ticket in [ticket for service in pteam.services for ticket in service.tickets]:
+        fix_ticket_ssvc_priority(db, ticket, now=now)
+
     db.commit()
     return "OK"
 
@@ -294,10 +300,10 @@ def update_pteam_service(
         service.service_safety_impact = data.service_safety_impact
         need_fix_tickets = True
 
-    db.flush()
-
     if need_fix_tickets:
-        fix_tickets_for_service(db, service)
+        db.flush()
+        for ticket in service.tickets:
+            fix_ticket_ssvc_priority(db, ticket, now=datetime.now())
 
     db.commit()
 
@@ -1106,28 +1112,27 @@ def apply_service_tags(
     db.flush()
 
 
-@router.delete("/{pteam_id}/tags", status_code=status.HTTP_204_NO_CONTENT)
-def remove_pteam_tags_by_service(
+@router.delete("/{pteam_id}/services/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_service(
     pteam_id: UUID,
-    service: str = Query("", description="name of service(repository or product)"),
+    service_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Remove pteam tags filtered by service.
+    Remove service.
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-
-    if not (
-        service_model := next(filter(lambda x: x.service_name == service, pteam.services), None)
+    if not (service := persistence.get_service_by_id(db, service_id)) or service.pteam_id != str(
+        pteam_id
     ):
         # do not raise error even if specified service does not exist
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-    pteam.services.remove(service_model)
+    pteam.services.remove(service)
 
     db.commit()
 
@@ -1267,12 +1272,11 @@ def delete_member(
     ):
         raise NOT_HAVE_AUTH
 
-    target_users = [x for x in pteam.members if x.user_id == str(user_id)]
-    if len(target_users) == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam member")
-
     # remove from members
-    pteam.members.remove(target_users[0])
+    target_role = persistence.get_pteam_account_role(db, pteam_id, user_id)
+    if target_role is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam member")
+    pteam.pteam_roles.remove(target_role)
 
     db.flush()
     if command.missing_pteam_admin(db, pteam):
@@ -1366,3 +1370,21 @@ def delete_invitation(
     db.commit()  # commit not only deleted but also expired
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)  # avoid Content-Length Header
+
+
+@router.delete("/{pteam_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_pteam(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_admin_authority(db, pteam, current_user):
+        raise NOT_HAVE_AUTH
+
+    persistence.delete_pteam(db, pteam)
+
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -14,6 +14,7 @@ from app.tests.medium.utils import (
     create_tag,
     create_topic,
     create_user,
+    get_service_by_service_name,
     headers,
     update_topic,
     upload_pteam_tags,
@@ -362,3 +363,84 @@ class TestFixThreatsForDependency:
                 assert db_threat1.ticket is None
         else:
             assert len(db_topic1.threats) == 0
+
+
+class TestFixTicketSSVCPriority:
+
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self):
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        tag1 = create_tag(USER1, "foobar:ubuntu-24.04:")
+        action1 = {
+            "action": "test action",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
+            "ext": {
+                "tags": [tag1.tag_name],
+                "vulnerable_versions": {tag1.tag_name: ["< 9999.99.99"]},
+            },
+        }
+        create_topic(USER1, {**TOPIC1, "tags": [tag1.tag_name], "actions": [action1]})
+
+        refs0 = {tag1.tag_name: [("test target", "1.2.3"), ("noise target", "1.2.3")]}
+        service_name = "test service"
+        upload_pteam_tags(USER1, pteam1.pteam_id, service_name, refs0)
+        service1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name)
+        request = {
+            "service_mission_impact": models.MissionImpactEnum.DEGRADED,
+            "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE,
+        }
+        client.put(
+            f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}",
+            headers=headers(USER1),
+            json=request,
+        )
+        # pteam1 should have 2 threats, and 1 ticket for each threat.
+
+    @staticmethod
+    def get_threat_by_dependency_target(testdb, target) -> models.Threat:
+        return testdb.scalars(
+            select(models.Threat).join(models.Dependency).where(models.Dependency.target == target)
+        ).one_or_none()
+
+    @pytest.mark.parametrize(
+        "safety_impact, expected_ssvc_priority",
+        [
+            (models.SafetyImpactEnum.CATASTROPHIC, models.SSVCDeployerPriorityEnum.IMMEDIATE),
+            (models.SafetyImpactEnum.CRITICAL, models.SSVCDeployerPriorityEnum.IMMEDIATE),
+            (models.SafetyImpactEnum.MARGINAL, models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE),
+            (models.SafetyImpactEnum.NEGLIGIBLE, models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE),
+            (None, models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE),
+        ],
+    )
+    def test_fix_priority_if_ticket_safety_impact_modified(
+        self, testdb, safety_impact, expected_ssvc_priority
+    ):
+        not_modified_priority = models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE
+
+        # before modifying threat safety impact
+        db_threat1 = self.get_threat_by_dependency_target(testdb, "test target")
+        db_noise1 = self.get_threat_by_dependency_target(testdb, "noise target")
+
+        assert db_threat1.ticket.ssvc_deployer_priority == not_modified_priority
+        assert db_noise1.ticket.ssvc_deployer_priority == not_modified_priority
+
+        # modify threat safety impact
+        request = {
+            "threat_safety_impact": safety_impact,
+            "reason_safety_impact": "modify reason",
+        }
+        response = client.put(
+            f"/threats/{db_threat1.threat_id}",
+            headers=headers(USER1),
+            json=request,
+        )
+        assert response.status_code == 200
+
+        # after modifying threat safety impact
+        db_threat2 = self.get_threat_by_dependency_target(testdb, "test target")
+        db_noise2 = self.get_threat_by_dependency_target(testdb, "noise target")
+
+        assert db_threat2.ticket.ssvc_deployer_priority == expected_ssvc_priority
+        assert db_noise2.ticket.ssvc_deployer_priority == not_modified_priority

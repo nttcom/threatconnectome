@@ -10,15 +10,25 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
-import { DeleteServiceImageAlertDialog } from "./DeleteServiceImageAlertDialog";
+import {
+  serviceImageHeightSize,
+  serviceImageWidthSize,
+  serviceImageMaxSize,
+} from "../../../utils/const";
 
 export function PTeamServiceImageUploadDeleteButton(props) {
-  const { setImageFileData, setImageDeleteFlag, setImagePreview } = props;
+  const {
+    setImageFileData,
+    setImageDeleteFlag,
+    setImagePreview,
+    setIsImageChanged,
+    originalImage,
+  } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
+  const serviceDetailsSetttingNoImageUrl = "images/720x480.png";
 
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -28,11 +38,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     setAnchorEl(null);
   };
   const handleUploadImage = (event) => {
-    const widthSize = 720;
-    const heightSize = 480;
-    const maxSize = 512 * 1024;
-
-    if (event.target.files[0].size >= maxSize) {
+    if (event.target.files[0].size >= serviceImageMaxSize) {
       enqueueSnackbar("Filesize exceeds max(512KiB)", { variant: "error" });
       return;
     }
@@ -42,19 +48,41 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     reader.onload = (e) => {
       image.src = e.target?.result;
       image.onload = () => {
-        if (image.naturalWidth === widthSize && image.naturalHeight === heightSize) {
+        if (
+          image.naturalWidth === serviceImageWidthSize &&
+          image.naturalHeight === serviceImageHeightSize
+        ) {
           setImageFileData(event.target.files[0]);
           setImageDeleteFlag(false);
           setImagePreview(e.target?.result);
+          if (originalImage === e.target?.result) {
+            setIsImageChanged(false);
+          } else {
+            setIsImageChanged(true);
+          }
         } else {
-          enqueueSnackbar(`Dimensions must be ${widthSize}px ${heightSize} px`, {
-            variant: "error",
-          });
+          enqueueSnackbar(
+            `Dimensions must be ${serviceImageWidthSize}px ${serviceImageHeightSize} px`,
+            {
+              variant: "error",
+            },
+          );
           return;
         }
       };
     };
     reader.readAsDataURL(event.target.files[0]);
+  };
+
+  const handleDelete = () => {
+    setImageFileData(null);
+    setImageDeleteFlag(true);
+    setImagePreview(serviceDetailsSetttingNoImageUrl);
+    if (originalImage === "images/720x480.png") {
+      setIsImageChanged(false);
+    } else {
+      setIsImageChanged(true);
+    }
   };
 
   const VisuallyHiddenInput = styled("input")({
@@ -90,20 +118,13 @@ export function PTeamServiceImageUploadDeleteButton(props) {
         <MenuItem
           onClick={() => {
             handleClose();
-            setIsDeleteDialogOpen(true);
+            handleDelete();
           }}
         >
           <DeleteIcon sx={{ mr: 1 }} />
           Delete image
         </MenuItem>
       </Menu>
-      <DeleteServiceImageAlertDialog
-        isDeleteDialogOpen={isDeleteDialogOpen}
-        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-        setImageFileData={setImageFileData}
-        setImageDeleteFlag={setImageDeleteFlag}
-        setImagePreview={setImagePreview}
-      />
     </>
   );
 }
@@ -112,4 +133,6 @@ PTeamServiceImageUploadDeleteButton.propTypes = {
   setImageFileData: PropTypes.func.isRequired,
   setImageDeleteFlag: PropTypes.func.isRequired,
   setImagePreview: PropTypes.func.isRequired,
+  setIsImageChanged: PropTypes.func.isRequired,
+  originalImage: PropTypes.string.isRequired,
 };

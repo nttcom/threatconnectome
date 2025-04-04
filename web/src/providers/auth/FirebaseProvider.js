@@ -139,4 +139,14 @@ export class FirebaseProvider extends AuthProvider {
         throw new FirebaseAuthError(error);
       });
   }
+
+  async applyActionCode({ actionCode }) {
+    return await applyActionCode(Firebase.getAuth(), actionCode)
+      .then((result) => {
+        return new AuthData(result);
+      })
+      .catch((error) => {
+        throw new FirebaseAuthError(error);
+      });
+  }
 }

@@ -11,7 +11,7 @@ from PIL import Image, ImageChops
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import models, persistence, schemas
 from app.constants import (
     DEFAULT_ALERT_SSVC_PRIORITY,
     ZERO_FILLED_UUID,
@@ -37,7 +37,6 @@ from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     accept_pteam_invitation,
     assert_200,
-    assert_204,
     calc_file_sha256,
     compare_references,
     compare_tags,
@@ -1854,7 +1853,7 @@ def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
     assert response.json() == {"detail": "No such service tag"}
 
 
-def test_remove_pteamtags_by_service():
+def test_remove_pteam_by_service_id(testdb):
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     service1 = "threatconnectome"
@@ -1868,13 +1867,20 @@ def test_remove_pteamtags_by_service():
         for reference in tag.references:
             assert reference["service"] in [service1, service2]
 
-    assert_204(
-        client.delete(
-            f"/pteams/{pteam1.pteam_id}/tags",
-            headers=headers(USER1),
-            params={"service": service1},
-        )
+    def _get_service_id(testdb, pteam_id, service_name):
+        pteam = persistence.get_pteam_by_id(testdb, pteam_id)
+        for service in pteam.services:
+            if service.service_name == service_name:
+                return service.service_id
+        return None
+
+    service_id = _get_service_id(testdb, pteam1.pteam_id, service1)
+    assert service_id
+
+    response = client.delete(
+        f"/pteams/{pteam1.pteam_id}/services/{service_id}", headers=headers(USER1)
     )
+    assert response.status_code == 204
 
 
 def test_upload_pteam_sbom_file_with_syft():
@@ -4032,3 +4038,118 @@ class TestUpdatePTeamService:
             )
             assert response.status_code == 200
             send_alert_to_pteam.assert_not_called()
+
+
+class TestDeletePteam:
+    @pytest.fixture(scope="function")
+    def pteam_setup(self, testdb: Session):
+        ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
+        created_pteam_id = ticket_response["pteam_id"]
+        created_service_id = ticket_response["service_id"]
+
+        dependencies_response = client.get(
+            f"/pteams/{created_pteam_id}/services/{created_service_id}/dependencies",
+            headers=headers(USER1),
+        )
+        created_dependency = dependencies_response.json()[0]
+
+        image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
+        with open(image_filepath, "rb") as image_file:
+            client.post(
+                f"/pteams/{created_pteam_id}/services/{created_service_id}/thumbnail",
+                headers=file_upload_headers(USER1),
+                files={"uploaded": image_file},
+            )
+
+        return {
+            "pteam_id": ticket_response["pteam_id"],
+            "service_id": ticket_response["service_id"],
+            "dependency_id": created_dependency["dependency_id"],
+            "threat_id": ticket_response["threat_id"],
+            "ticket_id": ticket_response["ticket_id"],
+        }
+
+    def test_delete_pteam_if_user_is_pteam_admin(self, testdb: Session, pteam_setup):
+        # delete pteam
+        pteam_id = pteam_setup["pteam_id"]
+        delete_pteam_response = client.delete(
+            f"/pteams/{pteam_id}",
+            headers=headers(USER1),
+        )
+        assert delete_pteam_response.status_code == 204
+
+        # check deleted_pteam
+        deleted_pteam = testdb.scalars(
+            select(models.PTeam).where(models.PTeam.pteam_id == pteam_setup["pteam_id"])
+        ).one_or_none()
+        deleted_pteam_account_role = testdb.scalars(
+            select(models.PTeamAccountRole).where(
+                models.PTeamAccountRole.pteam_id == pteam_setup["pteam_id"]
+            )
+        ).one_or_none()
+        deleted_pteam_slack = testdb.scalars(
+            select(models.PTeamSlack).where(models.PTeamSlack.pteam_id == pteam_setup["pteam_id"])
+        ).one_or_none()
+        deleted_pteam_mail = testdb.scalars(
+            select(models.PTeamMail).where(models.PTeamMail.pteam_id == pteam_setup["pteam_id"])
+        ).one_or_none()
+        deleted_service = testdb.scalars(
+            select(models.Service).where(models.Service.service_id == pteam_setup["service_id"])
+        ).one_or_none()
+        deleted_service_thumbnail = testdb.scalars(
+            select(models.ServiceThumbnail).where(
+                models.ServiceThumbnail.service_id == pteam_setup["service_id"]
+            )
+        ).one_or_none()
+        deleted_dependency = testdb.scalars(
+            select(models.Dependency).where(
+                models.Dependency.dependency_id == pteam_setup["dependency_id"]
+            )
+        ).one_or_none()
+        deleted_threat = testdb.scalars(
+            select(models.Threat).where(models.Threat.threat_id == pteam_setup["threat_id"])
+        ).one_or_none()
+        deleted_ticket = testdb.scalars(
+            select(models.Ticket).where(models.Ticket.ticket_id == pteam_setup["ticket_id"])
+        ).one_or_none()
+        deleted_ticket_status = testdb.scalars(
+            select(models.TicketStatus).where(
+                models.TicketStatus.ticket_id == pteam_setup["ticket_id"]
+            )
+        ).one_or_none()
+
+        assert deleted_pteam is None
+        assert deleted_pteam_account_role is None
+        assert deleted_pteam_slack is None
+        assert deleted_pteam_mail is None
+        assert deleted_service is None
+        assert deleted_service_thumbnail is None
+        assert deleted_dependency is None
+        assert deleted_threat is None
+        assert deleted_ticket is None
+        assert deleted_ticket_status is None
+
+    def test_raise_403_if_user_is_not_pteam_admin(self, testdb: Session, pteam_setup):
+        create_user(USER2)
+        pteam_id = pteam_setup["pteam_id"]
+
+        # delete pteam
+        delete_pteam_response = client.delete(
+            f"/pteams/{pteam_id}",
+            headers=headers(USER2),
+        )
+
+        assert delete_pteam_response.status_code == 403
+        assert delete_pteam_response.json()["detail"] == "You do not have authority"
+
+    def test_raise_404_if_invalid_pteam_id(self, testdb: Session, pteam_setup):
+        wrong_pteam_id = str(uuid4())
+
+        # delete pteam
+        delete_pteam_response = client.delete(
+            f"/pteams/{wrong_pteam_id}",
+            headers=headers(USER1),
+        )
+
+        assert delete_pteam_response.status_code == 404
+        assert delete_pteam_response.json()["detail"] == "No such pteam"

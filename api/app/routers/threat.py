@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
+from app.business.ticket_business import fix_ticket_ssvc_priority
 from app.database import get_db
 from app.routers.validators.account_validator import check_pteam_membership
 from app.utility.unicode_tool import count_full_width_and_half_width_characters
@@ -56,7 +57,7 @@ def get_threat(
 @router.put("/{threat_id}", response_model=schemas.ThreatResponse)
 def update_threat_safety_impact(
     threat_id: UUID,
-    requests: schemas.ThreatUpdateRequest,
+    data: schemas.ThreatUpdateRequest,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -73,13 +74,15 @@ def update_threat_safety_impact(
     if not check_pteam_membership(pteam, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
 
-    update_data = requests.model_dump(exclude_unset=True)
-    if "threat_safety_impact" in update_data.keys():
-        threat.threat_safety_impact = requests.threat_safety_impact
-    if "reason_safety_impact" in update_data.keys():
-        if requests.reason_safety_impact is None:
-            threat.reason_safety_impact = None
-        elif reason_safety_impact := requests.reason_safety_impact.strip():
+    need_fix_ssvc_priority = False
+    updated_keys = data.model_dump(exclude_unset=True).keys()
+    if "threat_safety_impact" in updated_keys:
+        need_fix_ssvc_priority = threat.threat_safety_impact != data.threat_safety_impact
+        threat.threat_safety_impact = data.threat_safety_impact
+    if "reason_safety_impact" in updated_keys:
+        if data.reason_safety_impact and (
+            reason_safety_impact := data.reason_safety_impact.strip()
+        ):
             if (
                 count_full_width_and_half_width_characters(reason_safety_impact)
                 > max_reason_safety_impact_length_in_half
@@ -95,6 +98,10 @@ def update_threat_safety_impact(
             threat.reason_safety_impact = reason_safety_impact
         else:
             threat.reason_safety_impact = None
+
+    if threat.ticket and need_fix_ssvc_priority:
+        db.flush()
+        fix_ticket_ssvc_priority(db, threat.ticket)
 
     db.commit()
 
