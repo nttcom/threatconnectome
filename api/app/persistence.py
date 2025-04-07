@@ -195,6 +195,17 @@ def delete_threat(db: Session, threat: models.Threat) -> None:
     db.flush()
 
 
+def get_threat_by_package_version_id_and_vuln_id(
+    db: Session, package_version_id: UUID | str, vuln_id: UUID | str
+) -> models.Threat | None:
+    return db.scalars(
+        select(models.Threat).where(
+            models.Threat.package_version_id == str(package_version_id),
+            models.Threat.vuln_id == str(vuln_id),
+        )
+    ).one_or_none()
+
+
 def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None:
     return db.scalars(
         select(models.Threat).where(models.Threat.threat_id == str(threat_id))
