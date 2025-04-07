@@ -19,7 +19,7 @@ export function AuthProvider(props) {
   const sendEmailVerification = authProvider.sendEmailVerification;
   const sendPasswordResetEmail = authProvider.sendPasswordResetEmail;
   const verifyPasswordResetCode = authProvider.verifyPasswordResetCode;
-  const confirmPassword = authProvider.confirmPasswordReset;
+  const confirmPasswordReset = authProvider.confirmPasswordReset;
   const applyActionCode = authProvider.applyActionCode;
 
   return (
