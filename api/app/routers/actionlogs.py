@@ -58,8 +58,11 @@ def create_log(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
     if not check_pteam_membership(pteam, user):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam member")
-    if not (persistence.get_topic_by_id(db, data.topic_id)):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
+
+    # TODO Provisional Processing
+    # if not (persistence.get_topic_by_id(db, data.topic_id)):
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
+
     if not (
         topic_action := persistence.get_action_by_id(db, data.action_id)
     ) or topic_action.topic_id != str(data.topic_id):
@@ -96,9 +99,10 @@ def get_topic_logs(
     """
     Get actionlogs associated with the specified topic.
     """
-    topic = persistence.get_topic_by_id(db, topic_id)
-    if topic is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
-    assert topic
+    # TODO Provisional Processing
+    # topic = persistence.get_topic_by_id(db, topic_id)
+    # if topic is None:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
+    # assert topic
     rows = persistence.get_topic_logs_by_user_id(db, topic_id, current_user.user_id)
     return sorted(rows, key=lambda x: x.executed_at, reverse=True)

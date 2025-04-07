@@ -555,9 +555,9 @@ class ActionLog(Base):
     logging_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     action_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
     topic_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
-    action: Mapped[str]  # snapshot: don't update even if TopicAction is modified.
+    action: Mapped[str]  # snapshot: don't update even if VulnAction is modified.
     action_type: Mapped[ActionType]
-    recommended: Mapped[bool]  # snapshot: don't update even if TopicAction is modified.
+    recommended: Mapped[bool]  # snapshot: don't update even if VulnAction is modified.
     user_id: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("account.user_id", ondelete="SET NULL"), index=True
     )
