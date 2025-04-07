@@ -515,6 +515,7 @@ class Vuln(Base):
 
     vuln_actions = relationship("VulnAction", cascade="all, delete-orphan")
     affects = relationship("Affect", back_populates="vuln", cascade="all, delete-orphan")
+    threats = relationship("Threat", cascade="all, delete-orphan")
 
 
 class VulnAction(Base):

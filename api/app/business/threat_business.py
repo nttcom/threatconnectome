@@ -5,7 +5,7 @@ from app.business import ticket_business
 from app.detector import vulnerability_detector
 
 
-def fix_threat_for_create_vuln(db: Session, vuln: models.Vuln):
+def fix_threat_for_vuln(db: Session, vuln: models.Vuln):
     matched_package_version_ids: list[str] = vulnerability_detector.detect_vulnerability_by_vuln(
         vuln
     )
@@ -16,8 +16,13 @@ def fix_threat_for_create_vuln(db: Session, vuln: models.Vuln):
             threat = _get_or_create_threat(db, package_version_id, vuln.vuln_id)
             ticket_business.fix_ticket_by_threat(db, threat, dependency.dependency_id)
 
+    for threat in vuln.threats:
+        if threat.package_version in matched_package_version_ids:
+            continue
+        persistence.delete_threat(db, threat)
 
-def fix_threat_for_create_dependency(db: Session, dependency: models.Dependency):
+
+def fix_threat_for_dependency(db: Session, dependency: models.Dependency):
     matched_vuln_ids: list[str] = vulnerability_detector.detect_vulnerability_by_dependency(
         db, dependency
     )
