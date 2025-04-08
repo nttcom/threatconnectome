@@ -100,6 +100,12 @@ def get_topic_logs_by_user_id(
     ).all()
 
 
+### affect
+def create_affect(db: Session, affect: models.Affect) -> None:
+    db.add(affect)
+    db.flush()
+
+
 ### PTeam
 
 
@@ -218,6 +224,11 @@ def create_misp_tag(db: Session, misptag: models.MispTag) -> None:
     db.flush()
 
 
+### package
+def get_package_by_name(db: Session, name: str) -> models.Package | None:
+    return db.scalars(select(models.Package).where(models.Package.name == name)).one_or_none()
+
+
 ### Topic
 
 
@@ -296,6 +307,16 @@ def create_ticket_status(
     status: models.TicketStatus,
 ) -> None:
     db.add(status)
+    db.flush()
+
+
+### Vuln
+def get_vuln_by_id(db: Session, vuln_id: UUID | str) -> models.Vuln | None:
+    return db.scalars(select(models.Vuln).where(models.Vuln.vuln_id == str(vuln_id))).one_or_none()
+
+
+def create_vuln(db: Session, vuln: models.Vuln):
+    db.add(vuln)
     db.flush()
 
 
