@@ -1,7 +1,7 @@
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from app import models
@@ -187,56 +187,38 @@ def create_pteam_account_role(db: Session, account_role: models.PTeamAccountRole
     db.flush()
 
 
-### Artifact Tag
-
-
-def get_all_tags(db: Session) -> Sequence[models.Tag]:
-    return db.scalars(select(models.Tag)).all()
-
-
-def get_tag_by_id(db: Session, tag_id: UUID | str) -> models.Tag | None:
-    return db.scalars(select(models.Tag).where(models.Tag.tag_id == str(tag_id))).one_or_none()
-
-
-def get_tag_by_name(db: Session, tag_name: str) -> models.Tag | None:
-    return db.scalars(select(models.Tag).where(models.Tag.tag_name == tag_name)).one_or_none()
-
-
-def create_tag(db: Session, tag: models.Tag) -> None:
-    db.add(tag)
-    db.flush()
-
-
-def delete_tag(db: Session, tag: models.Tag):
-    db.delete(tag)
-    db.flush()
-
-
-### MispTag
-
-
-def get_all_misp_tags(db: Session) -> Sequence[models.MispTag]:
-    return db.scalars(select(models.MispTag)).all()
-
-
-def get_misp_tag_by_name(db: Session, tag_name: str) -> models.MispTag | None:
+### Package
+def get_package_by_name_and_ecosystem(
+    db: Session, name: str, ecosystem: str
+) -> models.Package | None:
     return db.scalars(
-        select(models.MispTag).where(models.MispTag.tag_name == tag_name)
+        select(models.Package).where(
+            and_(models.Package.name == name, models.Package.ecosystem == ecosystem)
+        )
     ).one_or_none()
 
 
-def create_misp_tag(db: Session, misptag: models.MispTag) -> None:
-    db.add(misptag)
+def create_package(db: Session, package: models.Package) -> None:
+    db.add(package)
     db.flush()
 
 
-### package
-def get_package_by_name(db: Session, name: str) -> models.Package | None:
-    return db.scalars(select(models.Package).where(models.Package.name == name)).one_or_none()
+### PackageVersion
+def get_package_version_by_package_id_and_version(
+    db: Session, package_id: UUID | str, version: str
+) -> models.PackageVersion | None:
+    return db.scalars(
+        select(models.PackageVersion).where(
+            and_(
+                models.PackageVersion.package_id == str(package_id),
+                models.PackageVersion.version == version,
+            )
+        )
+    ).one_or_none()
 
 
-def create_package(db: Session, package: models.Package):
-    db.add(package)
+def create_package_version(db: Session, package_version: models.PackageVersion) -> None:
+    db.add(package_version)
     db.flush()
 
 
