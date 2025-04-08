@@ -203,10 +203,14 @@ def create_package(db: Session, package: models.Package) -> None:
     db.flush()
 
 
-### PackageVersion
-def get_package_version_by_package_id_and_version(
-    db: Session, package_id: UUID | str, version: str
-) -> models.PackageVersion | None:
+### Topic
+
+
+def get_all_topics(db: Session) -> Sequence[models.Topic]:
+    return db.scalars(select(models.Topic)).all()
+
+
+def get_topics_by_tag_ids(db: Session, tag_ids: Sequence[UUID | str]) -> Sequence[models.Topic]:
     return db.scalars(
         select(models.PackageVersion).where(
             and_(
