@@ -1,7 +1,7 @@
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from app import models
@@ -172,6 +172,41 @@ def get_pteam_account_role(
 
 def create_pteam_account_role(db: Session, account_role: models.PTeamAccountRole) -> None:
     db.add(account_role)
+    db.flush()
+
+
+### Package
+def get_package_by_name_and_ecosystem(
+    db: Session, name: str, ecosystem: str
+) -> models.Package | None:
+    return db.scalars(
+        select(models.Package).where(
+            and_(models.Package.name == name, models.Package.ecosystem == ecosystem)
+        )
+    ).one_or_none()
+
+
+def create_package(db: Session, package: models.Package) -> None:
+    db.add(package)
+    db.flush()
+
+
+### PackageVersion
+def get_package_version_by_package_id_and_version(
+    db: Session, package_id: UUID | str, version: str
+) -> models.PackageVersion | None:
+    return db.scalars(
+        select(models.PackageVersion).where(
+            and_(
+                models.PackageVersion.package_id == str(package_id),
+                models.PackageVersion.version == version,
+            )
+        )
+    ).one_or_none()
+
+
+def create_package_version(db: Session, package_version: models.PackageVersion) -> None:
+    db.add(package_version)
     db.flush()
 
 
