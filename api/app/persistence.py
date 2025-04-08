@@ -226,6 +226,11 @@ def create_package_version(db: Session, package_version: models.PackageVersion) 
     db.flush()
 
 
+def create_package(db: Session, package: models.Package):
+    db.add(package)
+    db.flush()
+
+
 ### Threat
 
 

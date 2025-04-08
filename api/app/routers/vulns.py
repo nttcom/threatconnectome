@@ -29,22 +29,15 @@ def update_vuln(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create default vuln"
             )
 
-        # check same id vuln already exists
-        # if persistence.get_vuln_by_id(db, vuln_id):
-
         # check packages
-        requested_packages: dict[str, models.Package | None] = {
-            package.name: persistence.get_package_by_name(db, package.name)
-            for package in request.vulnerable_packages
-        }
-
-        if not_exist_package_names := [
-            package_name for package_name, package in requested_packages.items() if package is None
-        ]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"No such packages: {', '.join(sorted(not_exist_package_names))}",
-            )
+        requested_packages = {}
+        for vulneraable_package in request.vulnerable_packages:
+            if not (package := persistence.get_package_by_name(db, vulneraable_package.name)):
+                package = models.Package(
+                    name=vulneraable_package.name, ecosystem=vulneraable_package.ecosystem
+                )
+                persistence.create_package(db, package)
+            requested_packages[package.package_id] = vulneraable_package
 
         # check cvss_v3_score range
         if request.cvss_v3_score is not None:
@@ -54,7 +47,7 @@ def update_vuln(
                     detail="cvss_v3_score is out of range",
                 )
 
-        # create or update vuln
+        # create vuln
         now = datetime.now()
 
         ## ToDo add content_fingerprint
@@ -74,13 +67,12 @@ def update_vuln(
 
         persistence.create_vuln(db, vuln)
 
-        for vulnerable_package in request.vulnerable_packages:
-            package = persistence.get_package_by_name(db, vulnerable_package.name)
+        for package_id, vulnerable_package in requested_packages.items():
             affect = models.Affect(
                 vuln_id=str(vuln_id),
-                package_id=package.package_id,
+                package_id=package_id,
                 affected_versions=vulnerable_package.affected_versions,
-                fixed_versions=vulnerable_package,
+                fixed_versions=vulnerable_package.fixed_versions,
             )
             persistence.create_affect(db, affect)
 
