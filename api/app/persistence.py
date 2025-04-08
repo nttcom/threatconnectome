@@ -235,35 +235,8 @@ def get_package_by_name(db: Session, name: str) -> models.Package | None:
     return db.scalars(select(models.Package).where(models.Package.name == name)).one_or_none()
 
 
-### Topic
-
-
-def get_all_topics(db: Session) -> Sequence[models.Topic]:
-    return db.scalars(select(models.Topic)).all()
-
-
-def get_topics_by_tag_ids(db: Session, tag_ids: Sequence[UUID | str]) -> Sequence[models.Topic]:
-    return db.scalars(
-        select(models.Topic)
-        .join(models.TopicTag)
-        .where(models.TopicTag.tag_id.in_(list(map(str, tag_ids))))
-        .distinct()
-    ).all()
-
-
-def get_topic_by_id(db: Session, topic_id: UUID | str) -> models.Topic | None:
-    return db.scalars(
-        select(models.Topic).where(models.Topic.topic_id == str(topic_id))
-    ).one_or_none()
-
-
-def create_topic(db: Session, topic: models.Topic):
-    db.add(topic)
-    db.flush()
-
-
-def delete_topic(db: Session, topic: models.Topic):
-    db.delete(topic)
+def create_package(db: Session, package: models.Package):
+    db.add(package)
     db.flush()
 
 
