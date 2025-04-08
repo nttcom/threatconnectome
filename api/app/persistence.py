@@ -186,6 +186,11 @@ def get_package_by_name(db: Session, name: str) -> models.Package | None:
     return db.scalars(select(models.Package).where(models.Package.name == name)).one_or_none()
 
 
+def create_package(db: Session, package: models.Package):
+    db.add(package)
+    db.flush()
+
+
 ### Threat
 
 
