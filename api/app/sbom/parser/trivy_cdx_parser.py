@@ -75,7 +75,7 @@ class TrivyCDXParser(SBOMParser):
                     return mgr_candidate
             return components_map.get(refs[0])
 
-        def to_tag(self, components_map: dict[str, Any]) -> str | None:
+        def to_tag(self, components_map: dict[str, Any]) -> dict | None:
             if not self.purl:
                 return None
             pkg_name = (
@@ -96,7 +96,8 @@ class TrivyCDXParser(SBOMParser):
                     pkg_info = self._fix_distro(distro) if distro else ""
                 else:
                     pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
-            return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
+
+            return {"pkg_name": pkg_name, "ecosystem": pkg_info, "pkg_mgr": pkg_mgr}
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
@@ -183,12 +184,20 @@ class TrivyCDXParser(SBOMParser):
                 continue  # maybe directory or image
             if not (tag := component.to_tag(components_map)):
                 continue  # omit not packages
-            artifact = artifacts_map.get(tag, Artifact(tag=tag))
-            artifacts_map[tag] = artifact
+            _tag = f"{tag['pkg_name']}:{tag['ecosystem']}:{tag['pkg_mgr']}"
+            artifact = artifacts_map.get(
+                _tag,
+                Artifact(
+                    package_name=tag["pkg_name"],
+                    ecosystem=tag["ecosystem"],
+                    package_manager=tag["pkg_mgr"],
+                ),
+            )
+            artifacts_map[_tag] = artifact
             for _target_ref, target_name in component.targets:
                 new_target = (target_name, component.version)
                 if new_target in artifact.targets:
-                    error_message("conflicted target:", tag, new_target)
+                    error_message("conflicted target:", _tag, new_target)
                 else:
                     artifact.targets.add(new_target)
             artifact.versions.add(component.version)

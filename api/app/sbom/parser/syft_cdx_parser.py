@@ -92,7 +92,7 @@ class SyftCDXParser(SBOMParser):
                         return self.PkgMgrInfo(mgr_name, location_path)  # Eureka!
                 idx += 1
 
-        def to_tag(self) -> str | None:
+        def to_tag(self) -> dict | None:
             if not self.purl:
                 return None
             pkg_name = (
@@ -106,7 +106,7 @@ class SyftCDXParser(SBOMParser):
             pkg_info = distro if distro else self.purl.type
             pkg_mgr = self.mgr_info.name if self.mgr_info else ""
 
-            return f"{pkg_name}:{pkg_info}:{pkg_mgr}"
+            return {"pkg_name": pkg_name, "ecosystem": pkg_info, "pkg_mgr": pkg_mgr}
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
@@ -155,12 +155,20 @@ class SyftCDXParser(SBOMParser):
                 continue  # maybe directory or image
             if not (tag := component.to_tag()):
                 continue  # omit not packages
-            artifact = artifacts_map.get(tag, Artifact(tag=tag))
-            artifacts_map[tag] = artifact
+            _tag = f"{tag['pkg_name']}:{tag['ecosystem']}:{tag['pkg_mgr']}"
+            artifact = artifacts_map.get(
+                _tag,
+                Artifact(
+                    package_name=tag["pkg_name"],
+                    ecosystem=tag["ecosystem"],
+                    package_manager=tag["pkg_mgr"],
+                ),
+            )
+            artifacts_map[_tag] = artifact
             if component.mgr_info:
                 new_target = (component.mgr_info.location_path, component.version)
                 if new_target in artifact.targets:
-                    error_message("conflicted target:", tag, new_target)
+                    error_message("conflicted target:", _tag, new_target)
                 artifact.targets |= {(component.mgr_info.location_path, component.version)}
             artifact.versions |= {component.version}
 
