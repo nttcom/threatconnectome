@@ -246,7 +246,7 @@ class VulnBase(BaseModel):
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
     vulnerable_packages: list[VulnerablePackage] = []
-    _validate_cve_id = field_validator("cveId", mode="before")(validate_cve_id)
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class VulnReponse(VulnBase):
