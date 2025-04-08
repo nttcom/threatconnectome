@@ -36,19 +36,19 @@ def delete_account(db: Session, account: models.Account) -> None:
 ### Action
 
 
-def get_action_by_id(db: Session, action_id: UUID | str) -> models.TopicAction | None:
+def get_action_by_id(db: Session, action_id: UUID | str) -> models.VulnAction | None:
     return db.scalars(
-        select(models.TopicAction).where(models.TopicAction.action_id == str(action_id))
+        select(models.VulnAction).where(models.VulnAction.action_id == str(action_id))
     ).one_or_none()
 
 
-def get_actions_by_topic_id(db: Session, topic_id: UUID | str) -> Sequence[models.TopicAction]:
+def get_actions_by_topic_id(db: Session, topic_id: UUID | str) -> Sequence[models.VulnAction]:
     return db.scalars(
-        select(models.TopicAction).where(models.TopicAction.topic_id == str(topic_id))
+        select(models.VulnAction).where(models.VulnAction.topic_id == str(topic_id))
     ).all()
 
 
-def delete_action(db: Session, action: models.TopicAction) -> None:
+def delete_action(db: Session, action: models.VulnAction) -> None:
     db.delete(action)
     db.flush()
 
@@ -181,84 +181,9 @@ def create_pteam_account_role(db: Session, account_role: models.PTeamAccountRole
     db.flush()
 
 
-### Artifact Tag
-
-
-def get_all_tags(db: Session) -> Sequence[models.Tag]:
-    return db.scalars(select(models.Tag)).all()
-
-
-def get_tag_by_id(db: Session, tag_id: UUID | str) -> models.Tag | None:
-    return db.scalars(select(models.Tag).where(models.Tag.tag_id == str(tag_id))).one_or_none()
-
-
-def get_tag_by_name(db: Session, tag_name: str) -> models.Tag | None:
-    return db.scalars(select(models.Tag).where(models.Tag.tag_name == tag_name)).one_or_none()
-
-
-def create_tag(db: Session, tag: models.Tag) -> None:
-    db.add(tag)
-    db.flush()
-
-
-def delete_tag(db: Session, tag: models.Tag):
-    db.delete(tag)
-    db.flush()
-
-
-### MispTag
-
-
-def get_all_misp_tags(db: Session) -> Sequence[models.MispTag]:
-    return db.scalars(select(models.MispTag)).all()
-
-
-def get_misp_tag_by_name(db: Session, tag_name: str) -> models.MispTag | None:
-    return db.scalars(
-        select(models.MispTag).where(models.MispTag.tag_name == tag_name)
-    ).one_or_none()
-
-
-def create_misp_tag(db: Session, misptag: models.MispTag) -> None:
-    db.add(misptag)
-    db.flush()
-
-
 ### package
 def get_package_by_name(db: Session, name: str) -> models.Package | None:
     return db.scalars(select(models.Package).where(models.Package.name == name)).one_or_none()
-
-
-### Topic
-
-
-def get_all_topics(db: Session) -> Sequence[models.Topic]:
-    return db.scalars(select(models.Topic)).all()
-
-
-def get_topics_by_tag_ids(db: Session, tag_ids: Sequence[UUID | str]) -> Sequence[models.Topic]:
-    return db.scalars(
-        select(models.Topic)
-        .join(models.TopicTag)
-        .where(models.TopicTag.tag_id.in_(list(map(str, tag_ids))))
-        .distinct()
-    ).all()
-
-
-def get_topic_by_id(db: Session, topic_id: UUID | str) -> models.Topic | None:
-    return db.scalars(
-        select(models.Topic).where(models.Topic.topic_id == str(topic_id))
-    ).one_or_none()
-
-
-def create_topic(db: Session, topic: models.Topic):
-    db.add(topic)
-    db.flush()
-
-
-def delete_topic(db: Session, topic: models.Topic):
-    db.delete(topic)
-    db.flush()
 
 
 ### Threat
