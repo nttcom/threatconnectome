@@ -14,15 +14,8 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
 from app.business.ssvc_business import get_topic_ids_summary_by_service_id_and_tag_id
-from app.business.tag_business import (
-    create_topic_tag,
-    get_pteam_ext_tags,
-    get_tag_ids_with_parent_ids,
-)
 from app.business.ticket_business import fix_ticket_ssvc_priority
-from app.business.topic_business import get_sorted_topics
 from app.database import get_db, open_db_session
-from app.detector.vulnerability_detector import fix_threats_for_dependency
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
 from app.routers.validators.account_validator import (
@@ -462,7 +455,9 @@ def get_pteam_service_tags_summary(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    tags_summary = command.get_tags_summary_by_service_id(db, service_id)
+    # TODO Provisional Processing
+    # tags_summary = command.get_tags_summary_by_service_id(db, service_id)
+    tags_summary = []
 
     ssvc_priority_count = _count_ssvc_priority_from_summary(tags_summary)
 
@@ -486,7 +481,9 @@ def get_pteam_tags_summary(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
+    # TODO Provisional Processing
+    # tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
+    tags_summary = []
 
     ssvc_priority_count = _count_ssvc_priority_from_summary(tags_summary)
 
@@ -561,7 +558,9 @@ def get_pteam_tags(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    return get_pteam_ext_tags(pteam)
+    # TODO Provisional Processing
+    # return get_pteam_ext_tags(pteam)
+    return []
 
 
 @router.get(
@@ -583,8 +582,9 @@ def get_service_tagged_topic_ids(
         raise NO_SUCH_SERVICE
     if service.pteam_id != str(pteam_id):
         raise NO_SUCH_SERVICE
-    if not persistence.get_tag_by_id(db, tag_id):
-        raise NO_SUCH_TAG
+    # TODO Provisional Processing
+    # if not persistence.get_tag_by_id(db, tag_id):
+    # raise NO_SUCH_TAG
     if not persistence.get_dependency_from_service_id_and_tag_id(db, service_id, tag_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service tag")
 
@@ -801,10 +801,11 @@ def get_tickets_with_status_by_service_id_and_topic_id(
         raise NO_SUCH_SERVICE
     if service.pteam_id != str(pteam_id):
         raise NO_SUCH_SERVICE
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
-    if not persistence.get_tag_by_id(db, tag_id):
-        raise NO_SUCH_TAG
+    # TODO Provisional Processing
+    # if not persistence.get_topic_by_id(db, topic_id):
+    #     raise NO_SUCH_TOPIC
+    # if not persistence.get_tag_by_id(db, tag_id):
+    # raise NO_SUCH_TAG
 
     tickets = command.get_sorted_tickets_related_to_service_and_topic_and_tag(
         db, service_id, topic_id, tag_id
@@ -837,8 +838,12 @@ def get_pteam_topics(
 
     if not pteam.tags:
         return []
-    topic_tag_ids = get_tag_ids_with_parent_ids(pteam.tags)
-    return get_sorted_topics(persistence.get_topics_by_tag_ids(db, topic_tag_ids))
+    # TODO Provisional Processing
+    # topic_tag_ids = get_tag_ids_with_parent_ids(pteam.tags)
+
+    # TODO Provisional Processing
+    # return get_sorted_topics(persistence.get_topics_by_tag_ids(db, topic_tag_ids))
+    return []
 
 
 @router.post("", response_model=schemas.PTeamInfo)
@@ -1055,7 +1060,9 @@ def upload_pteam_tags_file(
 
     db.commit()
 
-    return get_pteam_ext_tags(pteam)
+    # TODO Provisional Processing
+    # return get_pteam_ext_tags(pteam)
+    return []
 
 
 def apply_service_tags(
@@ -1074,11 +1081,13 @@ def apply_service_tags(
             raise ValueError("Missing references")
         if any(None in {_ref.get("target"), _ref.get("version")} for _ref in _refs):
             raise ValueError("Missing target and|or version")
-        if not (_tag := persistence.get_tag_by_name(db, _tag_name)):
-            if auto_create_tags:
-                _tag = create_topic_tag(db, _tag_name)
-            else:
-                missing_tags.add(_tag_name)
+        # TODO Provisional Processing
+        # if not (_tag := persistence.get_tag_by_name(db, _tag_name)):
+        #     if auto_create_tags:
+        #         _tag = create_topic_tag(db, _tag_name)
+        #     else:
+        #         missing_tags.add(_tag_name)
+        _tag = None
         if _tag:
             for ref in line.get("references", [{}]):
                 new_dependencies_set.add(
@@ -1108,7 +1117,8 @@ def apply_service_tags(
         )
         service.dependencies.append(new_dependency)
         db.flush()
-        fix_threats_for_dependency(db, new_dependency)
+        # TODO Provisional Processing
+        # fix_threats_for_dependency(db, new_dependency)
     db.flush()
 
 

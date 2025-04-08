@@ -7,9 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
 from app.auth.account import get_current_user
-from app.business.tag_business import check_topic_action_tags_integrity
 from app.database import get_db
-from app.detector.vulnerability_detector import fix_threats_for_topic
 
 router = APIRouter(prefix="/actions", tags=["actions"])
 
@@ -28,30 +26,35 @@ def create_action(
     """
     if not data.topic_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing topic_id")
-    if not (topic := persistence.get_topic_by_id(db, data.topic_id)):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
+    # TODO Provisional Processing
+    # if not (topic := persistence.get_topic_by_id(db, data.topic_id)):
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
+
     if data.action_id and persistence.get_action_by_id(db, data.action_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Action id already exists",
         )
-    if not_exist_tags := {
-        tag_name
-        for tag_name in data.ext.get("tags", [])
-        if not persistence.get_tag_by_name(db, tag_name)
-    }:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"No such tags: {', '.join(sorted(not_exist_tags))}",
-        )
-    if not check_topic_action_tags_integrity(topic.tags, data.ext.get("tags")):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Action Tag mismatch with Topic Tag",
-        )
+    # TODO Provisional Processing
+    # if not_exist_tags := {
+    #     tag_name
+    #     for tag_name in data.ext.get("tags", [])
+    #     if not persistence.get_tag_by_name(db, tag_name)
+    # }:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         detail=f"No such tags: {', '.join(sorted(not_exist_tags))}",
+    #     )
+
+    # TODO Provisional Processing
+    # if not check_topic_action_tags_integrity(topic.tags, data.ext.get("tags")):
+    #     raise HTTPException(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         detail="Action Tag mismatch with Topic Tag",
+    #     )
 
     now = datetime.now()
-    action = models.TopicAction(
+    action = models.VulnAction(
         action_id=str(data.action_id) if data.action_id else None,
         # topic_id will be filled at appending to topic.actions
         action=data.action,
@@ -61,10 +64,9 @@ def create_action(
         created_by=current_user.user_id,
         created_at=now,
     )
-    topic.actions.append(action)
+    # TODO Provisional Processing
+    # topic.actions.append(action)
     db.flush()
-
-    fix_threats_for_topic(db, action.topic)
 
     db.commit()
 
@@ -120,20 +122,24 @@ def update_action(
             detail="Cannot specify None for ext",
         )
     if data.ext:
-        if not_exist_tags := {
-            tag_name
-            for tag_name in data.ext.get("tags", [])
-            if not persistence.get_tag_by_name(db, tag_name)
-        }:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"No such tags: {', '.join(sorted(not_exist_tags))}",
-            )
-        if not check_topic_action_tags_integrity(action.topic.tags, data.ext.get("tags")):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Action Tag mismatch with Topic Tag",
-            )
+        # TODO Provisional Processing
+        # if not_exist_tags := {
+        #     tag_name
+        #     for tag_name in data.ext.get("tags", [])
+        #     if not persistence.get_tag_by_name(db, tag_name)
+        # }:
+        #     raise HTTPException(
+        #         status_code=status.HTTP_400_BAD_REQUEST,
+        #         detail=f"No such tags: {', '.join(sorted(not_exist_tags))}",
+        #     )
+
+        # TODO Provisional Processing
+        # if not check_topic_action_tags_integrity(action.topic.tags, data.ext.get("tags")):
+        #     raise HTTPException(
+        #         status_code=status.HTTP_400_BAD_REQUEST,
+        #         detail="Action Tag mismatch with Topic Tag",
+        #     )
+        pass
 
     for key, value in data:
         if value is None:
@@ -164,7 +170,8 @@ def delete_action(
     topic = action.topic
     persistence.delete_action(db, action)
 
-    fix_threats_for_topic(db, topic)
+    # TODO Provisional Processing
+    # fix_threats_for_topic(db, topic)
 
     db.commit()
 

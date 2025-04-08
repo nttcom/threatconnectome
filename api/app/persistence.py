@@ -36,19 +36,19 @@ def delete_account(db: Session, account: models.Account) -> None:
 ### Action
 
 
-def get_action_by_id(db: Session, action_id: UUID | str) -> models.TopicAction | None:
+def get_action_by_id(db: Session, action_id: UUID | str) -> models.VulnAction | None:
     return db.scalars(
-        select(models.TopicAction).where(models.TopicAction.action_id == str(action_id))
+        select(models.VulnAction).where(models.VulnAction.action_id == str(action_id))
     ).one_or_none()
 
 
-def get_actions_by_topic_id(db: Session, topic_id: UUID | str) -> Sequence[models.TopicAction]:
+def get_actions_by_topic_id(db: Session, topic_id: UUID | str) -> Sequence[models.VulnAction]:
     return db.scalars(
-        select(models.TopicAction).where(models.TopicAction.topic_id == str(topic_id))
+        select(models.VulnAction).where(models.VulnAction.topic_id == str(topic_id))
     ).all()
 
 
-def delete_action(db: Session, action: models.TopicAction) -> None:
+def delete_action(db: Session, action: models.VulnAction) -> None:
     db.delete(action)
     db.flush()
 
