@@ -465,6 +465,7 @@ class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
 class DependencyResponse(ORMModel):
     dependency_id: UUID
     service_id: UUID
-    tag_id: UUID
-    version: str
+    package_version_id: UUID
+    package_manager: str
     target: str
+    dependency_mission_impact: str | None
