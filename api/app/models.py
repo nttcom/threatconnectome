@@ -206,6 +206,7 @@ class PackageVersion(Base):
         ForeignKey("package.package_id", ondelete="CASCADE"), index=True
     )
 
+    package = relationship("Package")
     dependencies = relationship(
         "Dependency", back_populates="package_version", cascade="all, delete-orphan"
     )
