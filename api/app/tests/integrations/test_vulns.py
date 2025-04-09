@@ -67,6 +67,14 @@ class TestUpdateVuln:
         assert self.request1["exploitation"] == vuln.exploitation
         assert self.request1["automatable"] == vuln.automatable
         assert self.request1["cvss_v3_score"] == vuln.cvss_v3_score
+        assert (
+            self.request1["vulnerable_packages"][0]["affected_versions"]
+            == vuln.affects[0].affected_versions
+        )
+        assert (
+            self.request1["vulnerable_packages"][0]["fixed_versions"]
+            == vuln.affects[0].fixed_versions
+        )
 
     def test_create_package_if_given_vuln_id_is_new_and_package_does_not_exists(
         self, testdb: Session
@@ -101,6 +109,66 @@ class TestUpdateVuln:
         # Then
         assert response.status_code == 400
         assert response.json()["detail"] == "Cannot create default vuln"
+
+    def test_raise_400_if_requested_title_is_None(self):
+        # Given
+        new_vuln_id = uuid4()
+        title_none_request = {
+            "cve_id": "CVE-0000-0001",
+            "detail": "This vuln is example.",
+            "exploitation": "active",
+            "automatable": "yes",
+            "cvss_v3_score": 7.8,
+            "vulnerable_packages": [
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+        # When
+        response = client.put(
+            f"/vulns/{new_vuln_id}", headers=headers(USER1), json=title_none_request
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert (
+            response.json()["detail"]
+            == "Both 'title' and 'detail' are required when creating a vuln."
+        )
+
+    def test_raise_400_if_requested_detail_is_None(self):
+        # Given
+        new_vuln_id = uuid4()
+        detail_none_request = {
+            "title": "Example vuln",
+            "cve_id": "CVE-0000-0001",
+            "exploitation": "active",
+            "automatable": "yes",
+            "cvss_v3_score": 7.8,
+            "vulnerable_packages": [
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+        # When
+        response = client.put(
+            f"/vulns/{new_vuln_id}", headers=headers(USER1), json=detail_none_request
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert (
+            response.json()["detail"]
+            == "Both 'title' and 'detail' are required when creating a vuln."
+        )
 
     ## move to request
     def test_raise_400_if_cvss_v3_score_is_out_of_range(self):
