@@ -55,7 +55,6 @@ class TestUpdateVuln:
         response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=self.request1)
 
         # Then
-        ## get vulnがないため
         vuln = testdb.scalars(
             select(models.Vuln).where(models.Vuln.vuln_id == str(new_vuln_id))
         ).one_or_none()
@@ -86,7 +85,6 @@ class TestUpdateVuln:
         response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=self.request1)
 
         # Then
-        ## 現状のレスポンスではパッケージIDが返ってこないので、testdb.scalarsを利用して直接名前で検索
         package = testdb.scalars(
             select(models.Package).where(
                 models.Package.name == self.request1["vulnerable_packages"][0]["name"]
