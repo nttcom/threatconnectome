@@ -75,7 +75,7 @@ class TrivyCDXParser(SBOMParser):
                     return mgr_candidate
             return components_map.get(refs[0])
 
-        def to_tag(self, components_map: dict[str, Any]) -> dict | None:
+        def to_package_info(self, components_map: dict[str, Any]) -> dict | None:
             if not self.purl:
                 return None
             pkg_name = (
@@ -178,26 +178,28 @@ class TrivyCDXParser(SBOMParser):
                 pkg_component.targets |= {TrivyCDXParser.CDXComponent.Target(dep_ref, target_name)}
 
         # convert components to artifacts
-        artifacts_map: dict[str, Artifact] = {}  # {tag: artifact}
+        artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
         for component in components_map.values():
             if not component.version:
                 continue  # maybe directory or image
-            if not (tag := component.to_tag(components_map)):
+            if not (package_info := component.to_package_info(components_map)):
                 continue  # omit not packages
-            _tag = f"{tag['pkg_name']}:{tag['ecosystem']}:{tag['pkg_mgr']}"
+            artifacts_key = (
+                f"{package_info['pkg_name']}:{package_info['ecosystem']}:{package_info['pkg_mgr']}"
+            )
             artifact = artifacts_map.get(
-                _tag,
+                artifacts_key,
                 Artifact(
-                    package_name=tag["pkg_name"],
-                    ecosystem=tag["ecosystem"],
-                    package_manager=tag["pkg_mgr"],
+                    package_name=package_info["pkg_name"],
+                    ecosystem=package_info["ecosystem"],
+                    package_manager=package_info["pkg_mgr"],
                 ),
             )
-            artifacts_map[_tag] = artifact
+            artifacts_map[artifacts_key] = artifact
             for _target_ref, target_name in component.targets:
                 new_target = (target_name, component.version)
                 if new_target in artifact.targets:
-                    error_message("conflicted target:", _tag, new_target)
+                    error_message("conflicted target:", artifacts_key, new_target)
                 else:
                     artifact.targets.add(new_target)
             artifact.versions.add(component.version)

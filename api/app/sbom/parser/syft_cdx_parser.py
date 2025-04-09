@@ -92,7 +92,7 @@ class SyftCDXParser(SBOMParser):
                         return self.PkgMgrInfo(mgr_name, location_path)  # Eureka!
                 idx += 1
 
-        def to_tag(self) -> dict | None:
+        def to_package_info(self) -> dict | None:
             if not self.purl:
                 return None
             pkg_name = (
@@ -149,26 +149,28 @@ class SyftCDXParser(SBOMParser):
                 error_message("Dropped component:", data)
 
         # convert components to artifacts
-        artifacts_map: dict[str, Artifact] = {}  # {tag: artifact}
+        artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
         for component in components_map.values():
             if not component.version:
                 continue  # maybe directory or image
-            if not (tag := component.to_tag()):
+            if not (package_info := component.to_package_info()):
                 continue  # omit not packages
-            _tag = f"{tag['pkg_name']}:{tag['ecosystem']}:{tag['pkg_mgr']}"
+            artifacts_key = (
+                f"{package_info['pkg_name']}:{package_info['ecosystem']}:{package_info['pkg_mgr']}"
+            )
             artifact = artifacts_map.get(
-                _tag,
+                artifacts_key,
                 Artifact(
-                    package_name=tag["pkg_name"],
-                    ecosystem=tag["ecosystem"],
-                    package_manager=tag["pkg_mgr"],
+                    package_name=package_info["pkg_name"],
+                    ecosystem=package_info["ecosystem"],
+                    package_manager=package_info["pkg_mgr"],
                 ),
             )
-            artifacts_map[_tag] = artifact
+            artifacts_map[artifacts_key] = artifact
             if component.mgr_info:
                 new_target = (component.mgr_info.location_path, component.version)
                 if new_target in artifact.targets:
-                    error_message("conflicted target:", _tag, new_target)
+                    error_message("conflicted target:", artifacts_key, new_target)
                 artifact.targets |= {(component.mgr_info.location_path, component.version)}
             artifact.versions |= {component.version}
 
