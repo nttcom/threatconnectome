@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -22,7 +23,7 @@ class TestUpdateVuln:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self, testdb: Session):
         self.user1 = create_user(USER1)
-        self.request1 = {
+        self.request1: dict[str, Any] = {
             "title": "Example vuln",
             "cve_id": "CVE-0000-0001",
             "detail": "This vuln is example.",
@@ -60,6 +61,7 @@ class TestUpdateVuln:
         ).one_or_none()
 
         assert response.status_code == 200
+        assert vuln is not None
         assert self.request1["title"] == vuln.title
         assert self.request1["cve_id"] == vuln.cve_id
         assert self.request1["detail"] == vuln.detail
@@ -90,6 +92,8 @@ class TestUpdateVuln:
                 models.Package.name == self.request1["vulnerable_packages"][0]["name"]
             )
         ).one_or_none()
+
         assert response.status_code == 200
+        assert package is not None
         assert self.request1["vulnerable_packages"][0]["name"] == package.name
         assert self.request1["vulnerable_packages"][0]["ecosystem"] == package.ecosystem
