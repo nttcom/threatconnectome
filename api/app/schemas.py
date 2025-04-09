@@ -231,6 +231,32 @@ class TopicCreateRequest(ORMModel):
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
+class VulnerablePackage(BaseModel):
+    name: str
+    ecosystem: str
+    affected_versions: list[str]
+    fixed_versions: list[str]
+
+
+class VulnBase(BaseModel):
+    title: str | None = None
+    cve_id: str | None = None
+    detail: str | None = None
+    exploitation: ExploitationEnum | None = None
+    automatable: AutomatableEnum | None = None
+    cvss_v3_score: float | None = None
+    vulnerable_packages: list[VulnerablePackage] = []
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
+
+
+class VulnReponse(VulnBase):
+    vuln_id: str
+
+
+class VulnUpdate(VulnBase):
+    pass
+
+
 class TopicUpdateRequest(ORMModel):
     title: str | None = None
     abstract: str | None = None

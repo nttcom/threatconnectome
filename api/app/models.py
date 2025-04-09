@@ -507,6 +507,8 @@ class Vuln(Base):
     automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.NO)
     cvss_v3_score: Mapped[float | None] = mapped_column(server_default=None, nullable=True)
 
+    affects = relationship("Affect", back_populates="vuln", cascade="all, delete-orphan")
+
 
 class VulnAction(Base):
     __tablename__ = "vulnaction"
@@ -543,6 +545,8 @@ class Affect(Base):
     )
     affected_versions: Mapped[list[str]] = mapped_column(default=[])
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
+
+    vuln = relationship("Vuln", back_populates="affects")
 
 
 class ActionLog(Base):
