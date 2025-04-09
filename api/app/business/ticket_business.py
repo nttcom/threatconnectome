@@ -8,12 +8,17 @@ from app.notification.alert import send_alert_to_pteam
 from app.ssvc import ssvc_calculator
 
 
-def fix_ticket_by_threat(db: Session, threat: models.Threat, dependency_id: str):
-    if _check_need_ticket(threat):
-        if not threat.ticket:
-            create_ticket_internal(db, threat, dependency_id)
-    elif threat.ticket:
-        persistence.delete_ticket(db, threat.ticket)
+def fix_ticket_by_threat(db: Session, threat: models.Threat):
+    need_ticket = _check_need_ticket(threat)
+    for dependency in threat.package_version.dependencies:
+        if ticket := persistence.get_ticket_by_threat_id_and_dependency_id(
+            db, threat.threat_id, dependency.dependency_id
+        ):
+            if not need_ticket:
+                persistence.delete_ticket(db, ticket)
+        else:
+            if need_ticket:
+                create_ticket_internal(db, threat, dependency.dependency_id)
 
 
 def _check_need_ticket(threat: models.Threat) -> bool:

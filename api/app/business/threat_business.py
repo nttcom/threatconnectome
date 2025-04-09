@@ -5,21 +5,30 @@ from app.business import ticket_business
 from app.detector import vulnerability_detector
 
 
-def fix_threat_for_vuln(db: Session, vuln: models.Vuln):
-    matched_package_version_ids: list[str] = vulnerability_detector.detect_vulnerability_by_vuln(
-        vuln
-    )
+def fix_threat_by_vuln(db: Session, vuln: models.Vuln) -> list[models.Threat]:
+    new_threats: list[models.Threat] = []
+    for affect in vuln.affects:
+        new_threats.extend(_fix_threat_by_affect(db, affect, vuln.vuln_id))
 
-    for package_version_id in matched_package_version_ids:
-        dependencies = persistence.get_dependencies_from_package_version_id(db, package_version_id)
-        for dependency in dependencies:
-            threat = _get_or_create_threat(db, package_version_id, vuln.vuln_id)
-            ticket_business.fix_ticket_by_threat(db, threat, dependency.dependency_id)
+    return new_threats
 
-    for threat in vuln.threats:
-        if threat.package_version in matched_package_version_ids:
-            continue
-        persistence.delete_threat(db, threat)
+
+def _fix_threat_by_affect(db: Session, affect: models.Affect, vuln_id: str) -> list[models.Threat]:
+    new_threats: list[models.Threat] = []
+    for package_version in affect.package.package_versions:
+        if vulnerability_detector.check_matched_package_version_and_affect(package_version, affect):
+            if not (
+                threat := persistence.get_threat_by_package_version_id_and_vuln_id(
+                    db, package_version.package_version_id, vuln_id
+                )
+            ):
+                threat = models.Threat(
+                    package_version_id=package_version.package_version_id, vuln_id=vuln_id
+                )
+                persistence.create_threat(db, threat)
+            new_threats.append(threat)
+
+    return new_threats
 
 
 def fix_threat_for_dependency(db: Session, dependency: models.Dependency):
@@ -28,7 +37,7 @@ def fix_threat_for_dependency(db: Session, dependency: models.Dependency):
     )
     for vuln_id in matched_vuln_ids:
         threat = _get_or_create_threat(db, dependency.package_version.package_version_id, vuln_id)
-        ticket_business.fix_ticket_by_threat(db, threat, dependency.dependency_id)
+        ticket_business.fix_ticket_by_threat(db, threat)
 
 
 def _get_or_create_threat(db: Session, package_version_id: str, vuln_id: str) -> models.Threat:

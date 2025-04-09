@@ -271,6 +271,17 @@ def get_ticket_by_id(db: Session, ticket_id: UUID | str) -> models.Ticket | None
     ).one_or_none()
 
 
+def get_ticket_by_threat_id_and_dependency_id(
+    db: Session, threat_id: UUID | str, dependency_id: UUID | str
+) -> models.Ticket | None:
+    return db.scalars(
+        select(models.Ticket).where(
+            models.Ticket.threat_id == str(threat_id),
+            models.Ticket.dependency_id == str(dependency_id),
+        )
+    ).one_or_none()
+
+
 ### TicketStatus
 
 
