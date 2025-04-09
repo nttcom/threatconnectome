@@ -1893,7 +1893,7 @@ class TestPostUploadPTeamSbomFile:
         # To avoid multiple rows error, pteam2 is created for test
         create_pteam(USER1, PTEAM2)
 
-        params = {"service": "threatconnectome", "force_mode": True}
+        params = {"service": "threatconnectome"}
         sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
         with open(sbom_file, "rb") as tags:
             response = client.post(
@@ -1913,7 +1913,7 @@ class TestPostUploadPTeamSbomFile:
         # To avoid multiple rows error, pteam2 is created for test
         create_pteam(USER1, PTEAM2)
 
-        params = {"service": "threatconnectome", "force_mode": True}
+        params = {"service": "threatconnectome"}
         sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
         with open(sbom_file, "rb") as tags:
             response = client.post(
@@ -1930,7 +1930,7 @@ class TestPostUploadPTeamSbomFile:
         assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
 
     def test_upload_pteam_sbom_file_with_empty_file(self):
-        params = {"service": "threatconnectome", "force_mode": True}
+        params = {"service": "threatconnectome"}
         sbom_file = Path(__file__).resolve().parent / "upload_test" / "empty.json"
         with open(sbom_file, "rb") as tags:
             response = client.post(
@@ -1945,7 +1945,7 @@ class TestPostUploadPTeamSbomFile:
         assert data["detail"] == "Upload file is empty"
 
     def test_upload_pteam_sbom_file_with_wrong_filename(self):
-        params = {"service": "threatconnectome", "force_mode": True}
+        params = {"service": "threatconnectome"}
         sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag.txt"
         with open(sbom_file, "rb") as tags:
             response = client.post(
@@ -1963,7 +1963,7 @@ class TestPostUploadPTeamSbomFile:
         # create 256 alphanumeric characters
         service_name = "a" * 256
 
-        params = {"service": service_name, "force_mode": True}
+        params = {"service": service_name}
         sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
         with open(sbom_file, "rb") as tags:
             response = client.post(
@@ -1979,7 +1979,7 @@ class TestPostUploadPTeamSbomFile:
 
     @pytest.mark.skip(reason="TODO: need api to get background task status")
     def test_upload_pteam_sbom_file_wrong_content_format(self):
-        params = {"service": "threatconnectome", "force_mode": True}
+        params = {"service": "threatconnectome"}
         sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag_with_wrong_format.json"
         with open(sbom_file, "rb") as tags:
             with pytest.raises(HTTPError, match=r"400: Bad Request: Not supported file format"):
