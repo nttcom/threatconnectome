@@ -1883,128 +1883,114 @@ def test_remove_pteam_by_service_id(testdb):
     assert response.status_code == 204
 
 
-def test_upload_pteam_sbom_file_with_syft():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    # To avoid multiple rows error, pteam2 is created for test
-    create_pteam(USER1, PTEAM2)
+class TestPostUploadPTeamSbomFile:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self):
+        self.user1 = create_user(USER1)
+        self.pteam1 = create_pteam(USER1, PTEAM1)
 
-    params = {"service": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
-    with open(sbom_file, "rb") as tags:
-        response = client.post(
-            f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
-            headers=file_upload_headers(USER1),
-            params=params,
-            files={"file": tags},
-        )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["pteam_id"] == str(pteam1.pteam_id)
-    assert data["service_name"] == params["service"]
-    assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
+    def test_upload_pteam_sbom_file_with_syft(self):
+        # To avoid multiple rows error, pteam2 is created for test
+        create_pteam(USER1, PTEAM2)
 
-
-def test_upload_pteam_sbom_file_with_trivy():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    # To avoid multiple rows error, pteam2 is created for test
-    create_pteam(USER1, PTEAM2)
-
-    params = {"service": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
-    with open(sbom_file, "rb") as tags:
-        response = client.post(
-            f"/pteams/{pteam1.pteam_id}/upload_sbom_file",
-            headers=file_upload_headers(USER1),
-            params=params,
-            files={"file": tags},
-        )
-
-    assert response.status_code == 200
-    data = response.json()
-    assert data["pteam_id"] == str(pteam1.pteam_id)
-    assert data["service_name"] == params["service"]
-    assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
-
-
-def test_upload_pteam_sbom_file_with_empty_file():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM1)
-
-    params = {"service": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent / "upload_test" / "empty.json"
-    with open(sbom_file, "rb") as tags:
-        response = client.post(
-            f"/pteams/{pteam.pteam_id}/upload_sbom_file",
-            headers=file_upload_headers(USER1),
-            params=params,
-            files={"file": tags},
-        )
-
-    assert response.status_code == 400
-    data = response.json()
-    assert data["detail"] == "Upload file is empty"
-
-
-def test_upload_pteam_sbom_file_with_wrong_filename():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM1)
-
-    params = {"service": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag.txt"
-    with open(sbom_file, "rb") as tags:
-        response = client.post(
-            f"/pteams/{pteam.pteam_id}/upload_sbom_file",
-            headers=file_upload_headers(USER1),
-            params=params,
-            files={"file": tags},
-        )
-
-    assert response.status_code == 400
-    data = response.json()
-    assert data["detail"] == "Please upload a file with .json as extension"
-
-
-def test_it_should_return_422_when_upload_sbom_with_over_255_char_servicename():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM1)
-
-    # create 256 alphanumeric characters
-    service_name = "a" * 256
-
-    params = {"service": service_name, "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
-    with open(sbom_file, "rb") as tags:
-        response = client.post(
-            f"/pteams/{pteam.pteam_id}/upload_sbom_file",
-            headers=file_upload_headers(USER1),
-            params=params,
-            files={"file": tags},
-        )
-
-    assert response.status_code == 422
-    data = response.json()
-    assert data["detail"] == "Length of Service name exceeds 255 characters"
-
-
-@pytest.mark.skip(reason="TODO: need api to get background task status")
-def test_upload_pteam_sbom_file_wrong_content_format():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM1)
-
-    params = {"service": "threatconnectome", "force_mode": True}
-    sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag_with_wrong_format.json"
-    with open(sbom_file, "rb") as tags:
-        with pytest.raises(HTTPError, match=r"400: Bad Request: Not supported file format"):
-            assert_200(
-                client.post(
-                    f"/pteams/{pteam.pteam_id}/upload_sbom_file",
-                    headers=file_upload_headers(USER1),
-                    params=params,
-                    files={"file": tags},
-                )
+        params = {"service": "threatconnectome", "force_mode": True}
+        sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_syft_cyclonedx.json"
+        with open(sbom_file, "rb") as tags:
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
             )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["pteam_id"] == str(self.pteam1.pteam_id)
+        assert data["service_name"] == params["service"]
+        assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
+
+    def test_upload_pteam_sbom_file_with_trivy(self):
+        # To avoid multiple rows error, pteam2 is created for test
+        create_pteam(USER1, PTEAM2)
+
+        params = {"service": "threatconnectome", "force_mode": True}
+        sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
+        with open(sbom_file, "rb") as tags:
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["pteam_id"] == str(self.pteam1.pteam_id)
+        assert data["service_name"] == params["service"]
+        assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
+
+    def test_upload_pteam_sbom_file_with_empty_file(self):
+        params = {"service": "threatconnectome", "force_mode": True}
+        sbom_file = Path(__file__).resolve().parent / "upload_test" / "empty.json"
+        with open(sbom_file, "rb") as tags:
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
+            )
+
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"] == "Upload file is empty"
+
+    def test_upload_pteam_sbom_file_with_wrong_filename(self):
+        params = {"service": "threatconnectome", "force_mode": True}
+        sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag.txt"
+        with open(sbom_file, "rb") as tags:
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
+            )
+
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"] == "Please upload a file with .json as extension"
+
+    def test_it_should_return_422_when_upload_sbom_with_over_255_char_servicename(self):
+        # create 256 alphanumeric characters
+        service_name = "a" * 256
+
+        params = {"service": service_name, "force_mode": True}
+        sbom_file = Path(__file__).resolve().parent / "upload_test" / "test_trivy_cyclonedx.json"
+        with open(sbom_file, "rb") as tags:
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
+            )
+
+        assert response.status_code == 422
+        data = response.json()
+        assert data["detail"] == "Length of Service name exceeds 255 characters"
+
+    @pytest.mark.skip(reason="TODO: need api to get background task status")
+    def test_upload_pteam_sbom_file_wrong_content_format(self):
+        params = {"service": "threatconnectome", "force_mode": True}
+        sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag_with_wrong_format.json"
+        with open(sbom_file, "rb") as tags:
+            with pytest.raises(HTTPError, match=r"400: Bad Request: Not supported file format"):
+                assert_200(
+                    client.post(
+                        f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
+                        headers=file_upload_headers(USER1),
+                        params=params,
+                        files={"file": tags},
+                    )
+                )
 
 
 class TestGetPTeamServiceTagsSummary:
