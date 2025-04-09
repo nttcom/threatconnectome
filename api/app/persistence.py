@@ -204,6 +204,16 @@ def create_package(db: Session, package: models.Package) -> None:
 
 
 ### PackageVersion
+def get_package_version_by_id(
+    db: Session, package_version_id: UUID | str
+) -> models.PackageVersion | None:
+    return db.scalars(
+        select(models.PackageVersion).where(
+            models.PackageVersion.package_version_id == str(package_version_id)
+        )
+    ).one_or_none()
+
+
 def get_package_version_by_package_id_and_version(
     db: Session, package_id: UUID | str, version: str
 ) -> models.PackageVersion | None:
