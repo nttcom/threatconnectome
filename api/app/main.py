@@ -15,6 +15,7 @@ from app.routers import (
     pteams,
     threat,
     users,
+    vulns,
 )
 from app.ssvc import deployer_data
 
@@ -49,6 +50,7 @@ def create_app():
     app.include_router(pteams.router)
     app.include_router(users.router)
     app.include_router(threat.router)
+    app.include_router(vulns.router)
 
     # setup auth
 
