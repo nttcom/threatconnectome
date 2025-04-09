@@ -926,7 +926,6 @@ def bg_create_tags_from_sbom_json(
     sbom_json: dict,
     pteam_id: UUID | str,
     service_name: str,
-    force_mode: bool,
     filename: str | None,
 ):
     # TODO
@@ -948,7 +947,7 @@ def bg_create_tags_from_sbom_json(
 
         try:
             json_lines = sbom_json_to_artifact_json_lines(sbom_json)
-            apply_service_packages(db, service, json_lines, auto_create_packages=force_mode)
+            apply_service_packages(db, service, json_lines)
         except ValueError:
             notify_sbom_upload_ended(service, filename, False)
             log.error(f"Failed uploading SBOM as a service: {service_name}")
@@ -969,7 +968,6 @@ async def upload_pteam_sbom_file(
     file: UploadFile,
     background_tasks: BackgroundTasks,
     service: str = Query("", description="name of service(repository or product)"),
-    force_mode: bool = Query(False, description="if true, create unexist tags"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -1010,7 +1008,7 @@ async def upload_pteam_sbom_file(
         ) from error
 
     background_tasks.add_task(
-        bg_create_tags_from_sbom_json, sbom_json, pteam_id, service, force_mode, file.filename
+        bg_create_tags_from_sbom_json, sbom_json, pteam_id, service, file.filename
     )
     return ret
 
@@ -1069,10 +1067,7 @@ def apply_service_packages(
     db: Session,
     service: models.Service,
     json_lines: list[dict],
-    auto_create_packages=False,
 ) -> None:
-    # Check file format and get tag_names
-    missing_packages: set[str] = set()
     new_dependencies_set: set[tuple[str, str, str]] = (
         set()
     )  # (package_version_id, target, package_manager)
@@ -1086,16 +1081,13 @@ def apply_service_packages(
         if any(None in {_ref.get("target"), _ref.get("version")} for _ref in _refs):
             raise ValueError("Missing target and|or version")
         package_manager = str(line.get("package_manager", ""))
+
         if not (
             _package := persistence.get_package_by_name_and_ecosystem(db, package_name, ecosystem)
         ):
-            if auto_create_packages:
-                # create new package
-                _package = models.Package(name=package_name, ecosystem=ecosystem)
-                persistence.create_package(db, _package)
-
-            else:
-                missing_packages.add(package_name + ":" + ecosystem)
+            # create new package
+            _package = models.Package(name=package_name, ecosystem=ecosystem)
+            persistence.create_package(db, _package)
 
         if _package:
             for ref in line.get("references", [{}]):
@@ -1113,9 +1105,6 @@ def apply_service_packages(
                 new_dependencies_set.add(
                     (_package_version.package_version_id, ref.get("target", ""), package_manager)
                 )
-
-    if missing_packages:
-        raise ValueError(f"No such packages: {', '.join(sorted(missing_packages))}")
 
     # separate dependencis to keep, delete or create
     obsoleted_dependencies = []
