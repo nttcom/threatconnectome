@@ -1081,12 +1081,11 @@ def apply_service_packages(
             raise ValueError("Missing  package name")
         if not (ecosystem := str(line.get("ecosystem"))):
             raise ValueError("Missing ecosystem")
-        if not (package_manager := str(line.get("package_manager"))):
-            raise ValueError("Missing package_manager")
         if not (_refs := line.get("references")):
             raise ValueError("Missing references")
         if any(None in {_ref.get("target"), _ref.get("version")} for _ref in _refs):
             raise ValueError("Missing target and|or version")
+        package_manager = str(line.get("package_manager", ""))
         if not (
             _package := persistence.get_package_by_name_and_ecosystem(db, package_name, ecosystem)
         ):
