@@ -39,7 +39,11 @@ def update_vuln(
         # check packages
         requested_packages = {}
         for vulneraable_package in request.vulnerable_packages:
-            if not (package := persistence.get_package_by_name(db, vulneraable_package.name)):
+            if not (
+                package := persistence.get_package_by_name_and_ecosystem(
+                    db, vulneraable_package.name, vulneraable_package.ecosystem
+                )
+            ):
                 package = models.Package(
                     name=vulneraable_package.name, ecosystem=vulneraable_package.ecosystem
                 )
