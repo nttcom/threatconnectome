@@ -70,4 +70,9 @@ def sbom_json_to_artifact_json_lines(jdata: dict) -> list[dict]:
         raise ValueError("Not supported file format")
 
     artifacts = sbom_parser.parse_sbom(sbom, sbom_info)
-    return [artifact.to_json() for artifact in sorted(artifacts, key=lambda a: a.tag)]
+    return [
+        artifact.to_json()
+        for artifact in sorted(
+            artifacts, key=lambda a: (a.package_name, a.ecosystem, a.package_manager)
+        )
+    ]

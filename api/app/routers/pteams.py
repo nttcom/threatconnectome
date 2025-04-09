@@ -926,7 +926,6 @@ def bg_create_tags_from_sbom_json(
     sbom_json: dict,
     pteam_id: UUID | str,
     service_name: str,
-    force_mode: bool,
     filename: str | None,
 ):
     # TODO
@@ -948,7 +947,7 @@ def bg_create_tags_from_sbom_json(
 
         try:
             json_lines = sbom_json_to_artifact_json_lines(sbom_json)
-            apply_service_tags(db, service, json_lines, auto_create_tags=force_mode)
+            apply_service_packages(db, service, json_lines)
         except ValueError:
             notify_sbom_upload_ended(service, filename, False)
             log.error(f"Failed uploading SBOM as a service: {service_name}")
@@ -969,7 +968,6 @@ async def upload_pteam_sbom_file(
     file: UploadFile,
     background_tasks: BackgroundTasks,
     service: str = Query("", description="name of service(repository or product)"),
-    force_mode: bool = Query(False, description="if true, create unexist tags"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -1010,7 +1008,7 @@ async def upload_pteam_sbom_file(
         ) from error
 
     background_tasks.add_task(
-        bg_create_tags_from_sbom_json, sbom_json, pteam_id, service, force_mode, file.filename
+        bg_create_tags_from_sbom_json, sbom_json, pteam_id, service, file.filename
     )
     return ret
 
@@ -1065,42 +1063,54 @@ def upload_pteam_tags_file(
     return []
 
 
-def apply_service_tags(
+def apply_service_packages(
     db: Session,
     service: models.Service,
     json_lines: list[dict],
-    auto_create_tags=False,
 ) -> None:
-    # Check file format and get tag_names
-    missing_tags = set()
-    new_dependencies_set: set[tuple[str, str, str]] = set()  # (tag_id, target, version)
+    new_dependencies_set: set[tuple[str, str, str]] = (
+        set()
+    )  # (package_version_id, target, package_manager)
     for line in json_lines:
-        if not (_tag_name := line.get("tag_name")):
-            raise ValueError("Missing tag_name")
+        if not (package_name := str(line.get("package_name"))):
+            raise ValueError("Missing  package name")
+        if not (ecosystem := str(line.get("ecosystem"))):
+            raise ValueError("Missing ecosystem")
         if not (_refs := line.get("references")):
             raise ValueError("Missing references")
         if any(None in {_ref.get("target"), _ref.get("version")} for _ref in _refs):
             raise ValueError("Missing target and|or version")
-        # TODO Provisional Processing
-        # if not (_tag := persistence.get_tag_by_name(db, _tag_name)):
-        #     if auto_create_tags:
-        #         _tag = create_topic_tag(db, _tag_name)
-        #     else:
-        #         missing_tags.add(_tag_name)
-        _tag = None
-        if _tag:
+        package_manager = str(line.get("package_manager", ""))
+
+        if not (
+            _package := persistence.get_package_by_name_and_ecosystem(db, package_name, ecosystem)
+        ):
+            # create new package
+            _package = models.Package(name=package_name, ecosystem=ecosystem)
+            persistence.create_package(db, _package)
+
+        if _package:
             for ref in line.get("references", [{}]):
+                if not (
+                    _package_version := persistence.get_package_version_by_package_id_and_version(
+                        db, _package.package_id, ref.get("version", "")
+                    )
+                ):
+                    # create new package version
+                    _package_version = models.PackageVersion(
+                        package_id=_package.package_id,
+                        version=ref.get("version", ""),
+                    )
+                    persistence.create_package_version(db, _package_version)
                 new_dependencies_set.add(
-                    (_tag.tag_id, ref.get("target", ""), ref.get("version", ""))
+                    (_package_version.package_version_id, ref.get("target", ""), package_manager)
                 )
-    if missing_tags:
-        raise ValueError(f"No such tags: {', '.join(sorted(missing_tags))}")
 
     # separate dependencis to keep, delete or create
     obsoleted_dependencies = []
     for dependency in service.dependencies:
         if (
-            item := (dependency.tag_id, dependency.target, dependency.version)
+            item := (dependency.package_version_id, dependency.target, dependency.package_manager)
         ) in new_dependencies_set:
             new_dependencies_set.remove(item)  # already exists
             continue
@@ -1108,12 +1118,12 @@ def apply_service_tags(
     for obsoleted in obsoleted_dependencies:
         service.dependencies.remove(obsoleted)
     # create new dependencies
-    for [tag_id, target, version] in new_dependencies_set:
+    for [package_version_id, target, package_manager] in new_dependencies_set:
         new_dependency = models.Dependency(
             service_id=service.service_id,
-            tag_id=tag_id,
-            version=version,
+            package_version_id=package_version_id,
             target=target,
+            package_manager=package_manager,
         )
         service.dependencies.append(new_dependency)
         db.flush()
