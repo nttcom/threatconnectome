@@ -76,14 +76,6 @@ class TestUpdateVuln:
             self.request1["vulnerable_packages"][0]["fixed_versions"]
             == vuln.affects[0].fixed_versions
         )
-        assert (
-            self.request1["vulnerable_packages"][0]["affected_versions"]
-            == vuln.affects[0].affected_versions
-        )
-        assert (
-            self.request1["vulnerable_packages"][0]["fixed_versions"]
-            == vuln.affects[0].fixed_versions
-        )
 
     def test_create_package_if_given_vuln_id_is_new_and_package_does_not_exists(
         self, testdb: Session
