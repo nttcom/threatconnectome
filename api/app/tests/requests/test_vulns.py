@@ -196,7 +196,7 @@ class TestGetVuln:
 
     def test_it_should_return_400_when_vuln_id_is_not_registered(self):
         # Given
-        not_registered_vuln_id = UUID(int=0)
+        not_registered_vuln_id = str(uuid4())
 
         # When
         response = client.get(f"/vulns/{not_registered_vuln_id}", headers=headers(USER1))
