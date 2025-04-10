@@ -547,6 +547,7 @@ class Affect(Base):
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
 
     vuln = relationship("Vuln", back_populates="affects")
+    package = relationship("Package")
 
 
 class ActionLog(Base):

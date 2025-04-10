@@ -10,6 +10,8 @@ from app.database import get_db
 
 router = APIRouter(prefix="/vulns", tags=["vulns"])
 
+NO_SUCH_VULN = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
+
 
 @router.put("/{vuln_id}", response_model=schemas.VulnReponse)
 def update_vuln(
@@ -95,3 +97,38 @@ def update_vuln(
         response["vuln_id"] = str(vuln_id)
 
     return schemas.VulnReponse(**response)
+
+
+@router.get("/{vuln_id}", response_model=schemas.VulnReponse)
+def get_vuln(
+    vuln_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get a vuln.
+    """
+    if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
+        raise NO_SUCH_VULN
+
+    # Fetch vulnerable packages associated with the vuln
+    vulnerable_packages = [
+        schemas.VulnerablePackage(
+            name=affect.package.name,
+            ecosystem=affect.package.ecosystem,
+            affected_versions=affect.affected_versions,
+            fixed_versions=affect.fixed_versions,
+        )
+        for affect in vuln.affects
+    ]
+
+    return schemas.VulnReponse(
+        vuln_id=vuln.vuln_id,
+        title=vuln.title,
+        cve_id=vuln.cve_id,
+        detail=vuln.detail,
+        exploitation=vuln.exploitation,
+        automatable=vuln.automatable,
+        cvss_v3_score=vuln.cvss_v3_score,
+        vulnerable_packages=vulnerable_packages,
+    )
