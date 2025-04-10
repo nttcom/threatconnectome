@@ -8,6 +8,11 @@ from app.notification.alert import send_alert_to_pteam
 from app.ssvc import ssvc_calculator
 
 
+def fix_ticket_by_changed_vuln(db: Session, vuln: models.Vuln):
+    for threat in vuln.threats:
+        fix_ticket_by_threat(db, threat)
+
+
 def fix_ticket_by_threat(db: Session, threat: models.Threat):
     need_ticket = _check_need_ticket(threat)
     for dependency in threat.package_version.dependencies:

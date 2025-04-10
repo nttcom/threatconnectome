@@ -70,14 +70,3 @@ def fix_threat_by_vuln_that_removed_affect(db: Session, vuln: models.Vuln):
             for affect in vuln.affects
         ):
             persistence.delete_threat(db, threat)
-
-
-def fix_threat_by_removed_package_version(db: Session, package_version: models.PackageVersion):
-    for threat in package_version.threats:
-        if all(
-            not vulnerability_detector.check_matched_package_version_and_affect(
-                threat.package_version, affect
-            )
-            for affect in dependency.affects
-        ):
-            persistence.delete_threat(db, threat)
