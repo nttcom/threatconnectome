@@ -7,19 +7,15 @@ from app.detector import vulnerability_detector
 def fix_threat_by_vuln(db: Session, vuln: models.Vuln) -> list[models.Threat]:
     new_threats: list[models.Threat] = []
     for affect in vuln.affects:
-        new_threats.extend(_fix_threat_by_affect(db, affect, vuln.vuln_id))
+        new_threats.extend(_fix_threat_by_affect(db, affect))
 
     return new_threats
 
 
-def _fix_threat_by_affect(db: Session, affect: models.Affect, vuln_id: str) -> list[models.Threat]:
+def _fix_threat_by_affect(db: Session, affect: models.Affect) -> list[models.Threat]:
     new_threats: list[models.Threat] = []
     for package_version in affect.package.package_versions:
-        if _check_need_threat(db, package_version, affect):
-            threat = models.Threat(
-                package_version_id=package_version.package_version_id, vuln_id=affect.vuln.vuln_id
-            )
-            persistence.create_threat(db, threat)
+        if threat := fix_threat_for_package_version_and_affect(db, package_version, affect):
             new_threats.append(threat)
 
     return new_threats
@@ -33,23 +29,33 @@ def fix_threat_for_package_version_id(db: Session, package_version_id: str) -> l
 
     new_threats: list[models.Threat] = []
     for affect in affects:
-        if _check_need_threat(db, package_version, affect):
-            threat = models.Threat(
-                package_version_id=package_version.package_version_id, vuln_id=affect.vuln.vuln_id
-            )
-            persistence.create_threat(db, threat)
+        if threat := fix_threat_for_package_version_and_affect(db, package_version, affect):
             new_threats.append(threat)
 
     return new_threats
 
 
-def _check_need_threat(
+def fix_threat_for_package_version_and_affect(
     db: Session, package_version: models.PackageVersion, affect: models.Affect
-) -> bool:
-    if not vulnerability_detector.check_matched_package_version_and_affect(package_version, affect):
-        return False
-
-    threat = persistence.get_threat_by_package_version_id_and_vuln_id(
-        db, package_version.package_version_id, affect.vuln.vuln_id
+) -> models.Threat | None:
+    matched = vulnerability_detector.check_matched_package_version_and_affect(
+        package_version, affect
     )
-    return threat is None
+
+    if not (
+        threat := persistence.get_threat_by_package_version_id_and_vuln_id(
+            db, package_version.package_version_id, affect.vuln.vuln_id
+        )
+    ):
+        if matched:
+            threat = models.Threat(
+                package_version_id=package_version.package_version_id,
+                vuln_id=affect.vuln.vuln_id,
+            )
+            persistence.create_threat(db, threat)
+            return threat
+    else:
+        if not matched:
+            persistence.delete_threat(db, threat)
+
+    return None
