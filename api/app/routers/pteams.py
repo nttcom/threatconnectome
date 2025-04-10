@@ -1127,7 +1127,7 @@ def apply_service_packages(
         )
         service.dependencies.append(new_dependency)
         db.flush()
-        new_threats: list[models.Threat] = threat_business.fix_threat_for_package_version_id(
+        new_threats: list[models.Threat] = threat_business.fix_threat_by_package_version_id(
             db, package_version_id
         )
         for threat in new_threats:

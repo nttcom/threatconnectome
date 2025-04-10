@@ -21,7 +21,7 @@ def _fix_threat_by_affect(db: Session, affect: models.Affect) -> list[models.Thr
     return new_threats
 
 
-def fix_threat_for_package_version_id(db: Session, package_version_id: str) -> list[models.Threat]:
+def fix_threat_by_package_version_id(db: Session, package_version_id: str) -> list[models.Threat]:
     if not (package_version := persistence.get_package_version_by_id(db, package_version_id)):
         return []
 
@@ -68,5 +68,16 @@ def fix_threat_by_vuln_that_removed_affect(db: Session, vuln: models.Vuln):
                 threat.package_version, affect
             )
             for affect in vuln.affects
+        ):
+            persistence.delete_threat(db, threat)
+
+
+def fix_threat_by_removed_package_version(db: Session, package_version: models.PackageVersion):
+    for threat in package_version.threats:
+        if all(
+            not vulnerability_detector.check_matched_package_version_and_affect(
+                threat.package_version, affect
+            )
+            for affect in dependency.affects
         ):
             persistence.delete_threat(db, threat)
