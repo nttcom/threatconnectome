@@ -1,10 +1,10 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
 from app.database import get_db
 
@@ -132,3 +132,44 @@ def get_vuln(
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
     )
+
+
+@router.get("", response_model=list[schemas.VulnReponse])
+def get_vulns(
+    offset: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get a vuln.
+    """
+
+    vulns = command.get_vulns(db, offset, limit)
+    response_vulns = []
+    for vuln in vulns:
+        # Fetch vulnerable packages associated with the vuln
+        vulnerable_packages = [
+            schemas.VulnerablePackage(
+                name=affect.package.name,
+                ecosystem=affect.package.ecosystem,
+                affected_versions=affect.affected_versions,
+                fixed_versions=affect.fixed_versions,
+            )
+            for affect in vuln.affects
+        ]
+
+        response_vulns.append(
+            schemas.VulnReponse(
+                vuln_id=vuln.vuln_id,
+                title=vuln.title,
+                cve_id=vuln.cve_id,
+                detail=vuln.detail,
+                exploitation=vuln.exploitation,
+                automatable=vuln.automatable,
+                cvss_v3_score=vuln.cvss_v3_score,
+                vulnerable_packages=vulnerable_packages,
+            )
+        )
+
+    return response_vulns
