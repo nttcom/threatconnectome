@@ -1,6 +1,6 @@
 from typing import TypeAlias
 
-from univers.versions import GolangVersion, SemverVersion
+from univers.versions import GolangVersion, InvalidVersion, SemverVersion
 
 from app.detector.package_family import PackageFamily
 from app.detector.version.ext_debian_version import ExtDebianVersion
@@ -18,13 +18,16 @@ def gen_version_instance(
     package_family: PackageFamily,
     version_string: str,
 ) -> ComparableVersion:
-    if package_family == PackageFamily.DEBIAN:
-        return ExtDebianVersion.from_string(version_string)
-    if package_family == PackageFamily.PYPI:
-        return ExtPypiVersion(version_string)
-    if package_family == PackageFamily.NPM:
-        return SemverVersion(version_string)
-    if package_family == PackageFamily.GO:
-        return GolangVersion(version_string)
+    try:
+        if package_family == PackageFamily.DEBIAN:
+            return ExtDebianVersion.from_string(version_string)
+        if package_family == PackageFamily.PYPI:
+            return ExtPypiVersion(version_string)
+        if package_family == PackageFamily.NPM:
+            return SemverVersion(version_string)
+        if package_family == PackageFamily.GO:
+            return GolangVersion(version_string)
 
-    return SemverVersion(version_string)
+        return SemverVersion(version_string)
+    except InvalidVersion:
+        raise ValueError(f"Invalid version string: {version_string}")
