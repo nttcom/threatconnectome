@@ -49,6 +49,20 @@ class Slack(ORMModel):
     webhook_url: str
 
 
+class PackageBase(BaseModel):
+    name: str
+    ecosystem: str
+    version: str
+
+
+class PackageCreate(PackageBase):
+    pass
+
+
+class PackageResponse(PackageBase):
+    package_Id: str
+
+
 class PTeamEntry(ORMModel):
     pteam_id: UUID
     pteam_name: str
