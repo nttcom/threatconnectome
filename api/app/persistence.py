@@ -100,7 +100,13 @@ def get_topic_logs_by_user_id(
     ).all()
 
 
-### affect
+### Affect
+def get_affect_by_package_id(db: Session, package_id: UUID | str) -> Sequence[models.Affect]:
+    return db.scalars(
+        select(models.Affect).where(models.Affect.package_id == str(package_id))
+    ).all()
+
+
 def create_affect(db: Session, affect: models.Affect) -> None:
     db.add(affect)
     db.flush()
@@ -198,6 +204,16 @@ def create_package(db: Session, package: models.Package) -> None:
 
 
 ### PackageVersion
+def get_package_version_by_id(
+    db: Session, package_version_id: UUID | str
+) -> models.PackageVersion | None:
+    return db.scalars(
+        select(models.PackageVersion).where(
+            models.PackageVersion.package_version_id == str(package_version_id)
+        )
+    ).one_or_none()
+
+
 def get_package_version_by_package_id_and_version(
     db: Session, package_id: UUID | str, version: str
 ) -> models.PackageVersion | None:
@@ -229,6 +245,17 @@ def delete_threat(db: Session, threat: models.Threat) -> None:
     db.flush()
 
 
+def get_threat_by_package_version_id_and_vuln_id(
+    db: Session, package_version_id: UUID | str, vuln_id: UUID | str
+) -> models.Threat | None:
+    return db.scalars(
+        select(models.Threat).where(
+            models.Threat.package_version_id == str(package_version_id),
+            models.Threat.vuln_id == str(vuln_id),
+        )
+    ).one_or_none()
+
+
 def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None:
     return db.scalars(
         select(models.Threat).where(models.Threat.threat_id == str(threat_id))
@@ -251,6 +278,17 @@ def delete_ticket(db: Session, ticket: models.Ticket) -> None:
 def get_ticket_by_id(db: Session, ticket_id: UUID | str) -> models.Ticket | None:
     return db.scalars(
         select(models.Ticket).where(models.Ticket.ticket_id == str(ticket_id))
+    ).one_or_none()
+
+
+def get_ticket_by_threat_id_and_dependency_id(
+    db: Session, threat_id: UUID | str, dependency_id: UUID | str
+) -> models.Ticket | None:
+    return db.scalars(
+        select(models.Ticket).where(
+            models.Ticket.threat_id == str(threat_id),
+            models.Ticket.dependency_id == str(dependency_id),
+        )
     ).one_or_none()
 
 
@@ -285,6 +323,16 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
 
 
 ### Dependency
+
+
+def get_dependencies_from_package_version_id(
+    db: Session, package_version_id: UUID | str
+) -> Sequence[models.Dependency]:
+    return db.scalars(
+        select(models.Dependency).where(
+            models.Dependency.package_version_id == str(package_version_id),
+        )
+    ).all()
 
 
 def get_dependency_from_service_id_and_tag_id(

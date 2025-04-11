@@ -403,20 +403,6 @@ def make_update_action(pkg_name, version_details: dict):
         action = f"Update {pkg_name} from version {vulnerable_versions} to {fixed_versions}"
     elif fixed_versions:
         action = f"Update {pkg_name} to version {fixed_versions}"
-        if len(fixed_versions) == 1 and "," not in fixed_versions[0]:
-            # guess vulnerable version only if we can
-            fixed_version = fixed_versions[0]
-            if fixed_version.startswith(">="):
-                vulnerable_version = fixed_version.replace(">=", "<", 1)
-            elif fixed_version.startswith(">"):
-                vulnerable_version = fixed_version.replace(">", "<=", 1)
-            elif fixed_version.startswith("~>="):
-                vulnerable_version = fixed_version.replace("~>=", "<", 1)
-            elif fixed_version.startswith("~>"):
-                vulnerable_version = fixed_version.replace("~>", "<=", 1)
-            else:
-                vulnerable_version = f"< {fixed_version}"
-            vulnerable_versions = [vulnerable_version]
     else:
         action = None
 

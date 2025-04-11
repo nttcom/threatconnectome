@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
 from app.auth.account import get_current_user
+from app.business import threat_business, ticket_business
 from app.database import get_db
 
 router = APIRouter(prefix="/vulns", tags=["vulns"])
@@ -89,7 +90,9 @@ def update_vuln(
             )
             persistence.create_affect(db, affect)
 
-        ## ToDo fix_threats_for_topic
+        new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
+        for threat in new_threats:
+            ticket_business.fix_ticket_by_threat(db, threat)
 
         db.commit()
 

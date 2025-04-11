@@ -13,8 +13,8 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
+from app.business import threat_business, ticket_business
 from app.business.ssvc_business import get_topic_ids_summary_by_service_id_and_tag_id
-from app.business.ticket_business import fix_ticket_ssvc_priority
 from app.database import get_db, open_db_session
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
@@ -136,7 +136,7 @@ def force_calculate_ssvc_priority(
 
     now = datetime.now()
     for ticket in [ticket for service in pteam.services for ticket in service.tickets]:
-        fix_ticket_ssvc_priority(db, ticket, now=now)
+        ticket_business.fix_ticket_ssvc_priority(db, ticket, now=now)
 
     db.commit()
     return "OK"
@@ -1127,8 +1127,11 @@ def apply_service_packages(
         )
         service.dependencies.append(new_dependency)
         db.flush()
-        # TODO Provisional Processing
-        # fix_threats_for_dependency(db, new_dependency)
+        threats: list[models.Threat] = threat_business.fix_threat_by_package_version_id(
+            db, package_version_id
+        )
+        for threat in threats:
+            ticket_business.fix_ticket_by_threat(db, threat)
     db.flush()
 
 
