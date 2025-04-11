@@ -204,3 +204,70 @@ class TestGetVuln:
         # Then
         assert response.status_code == 404
         assert response.json()["detail"] == "No such vuln"
+
+
+class TestGetVulns:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, testdb: Session):
+        # Given
+        self.user1 = create_user(USER1)
+        self.headers_user = headers(USER1)
+
+    def test_it_should_return_200_and_vulns_list(self, testdb: Session):
+        # Given
+        vuln_ids = []
+        number_of_vulns = 3
+        for i in range(number_of_vulns):
+            self.vuln_id = uuid4()
+            self.vuln_request = {
+                "title": f"Example vuln {i}",
+                "cve_id": f"CVE-0000-000{i}",
+                "detail": f"This is example vuln {i}.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": f"example-lib-{i}",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+            response = client.put(
+                f"/vulns/{self.vuln_id}", headers=self.headers_user, json=self.vuln_request
+            )
+            vuln_ids.append(self.vuln_id)
+        print(vuln_ids)
+        # When
+        response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        response_data.reverse()
+        assert len(response_data) == number_of_vulns  # Ensure all created vulns are returned
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            assert vuln["vuln_id"] == str(vuln_ids[i])
+            assert vuln["title"] == f"Example vuln {i}"
+            assert vuln["cve_id"] == f"CVE-0000-000{i}"
+            assert vuln["detail"] == f"This is example vuln {i}."
+            assert vuln["exploitation"] == "active"
+            assert vuln["automatable"] == "yes"
+            assert vuln["cvss_v3_score"] == 7.5
+            assert vuln["vulnerable_packages"][0]["name"] == f"example-lib-{i}"
+            assert vuln["vulnerable_packages"][0]["ecosystem"] == "pypi"
+            assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
+            assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
+
+    def test_it_should_return_empty_list_when_no_vulns_exist(self):
+        # When
+        response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert response_data == []  # Ensure no vulns are returned
