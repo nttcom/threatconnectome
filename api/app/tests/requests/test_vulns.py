@@ -137,3 +137,70 @@ class TestUpdateVuln:
         # Then
         assert response.status_code == 400
         assert response.json()["detail"] == "cvss_v3_score is out of range"
+
+
+class TestGetVuln:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self):
+        # Given
+        self.user1 = create_user(USER1)
+        self.new_vuln_id = uuid4()
+        self.request1 = {
+            "title": "Example vuln",
+            "cve_id": "CVE-0000-0001",
+            "detail": "This vuln is example.",
+            "exploitation": "active",
+            "automatable": "yes",
+            "cvss_v3_score": 7.8,
+            "vulnerable_packages": [
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+
+        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.request1)
+
+    def test_it_should_return_200_when_vuln_id_is_correctly_registered(self):
+        # When
+        response = client.get(f"/vulns/{self.new_vuln_id}", headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 200
+        assert response.json()["vuln_id"] == str(self.new_vuln_id)
+        assert response.json()["title"] == self.request1["title"]
+        assert response.json()["cve_id"] == self.request1["cve_id"]
+        assert response.json()["detail"] == self.request1["detail"]
+        assert response.json()["exploitation"] == self.request1["exploitation"]
+        assert response.json()["automatable"] == self.request1["automatable"]
+        assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
+        assert (
+            response.json()["vulnerable_packages"][0]["name"]
+            == self.request1["vulnerable_packages"][0]["name"]
+        )
+        assert (
+            response.json()["vulnerable_packages"][0]["ecosystem"]
+            == self.request1["vulnerable_packages"][0]["ecosystem"]
+        )
+        assert (
+            response.json()["vulnerable_packages"][0]["affected_versions"]
+            == self.request1["vulnerable_packages"][0]["affected_versions"]
+        )
+        assert (
+            response.json()["vulnerable_packages"][0]["fixed_versions"]
+            == self.request1["vulnerable_packages"][0]["fixed_versions"]
+        )
+
+    def test_it_should_return_400_when_vuln_id_is_not_registered(self):
+        # Given
+        not_registered_vuln_id = str(uuid4())
+
+        # When
+        response = client.get(f"/vulns/{not_registered_vuln_id}", headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such vuln"
