@@ -354,7 +354,7 @@ class Ticket(Base):
 
     ticket_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     threat_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True, unique=True
+        ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True
     )
     dependency_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
