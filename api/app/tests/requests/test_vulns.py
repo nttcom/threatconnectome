@@ -204,3 +204,141 @@ class TestGetVuln:
         # Then
         assert response.status_code == 404
         assert response.json()["detail"] == "No such vuln"
+
+
+class TestGetVulns:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, testdb: Session):
+        # Given
+        self.user1 = create_user(USER1)
+        self.headers_user = headers(USER1)
+
+    def test_it_should_return_200_and_vulns_list(self, testdb: Session):
+        # Given
+        vuln_ids = []
+        number_of_vulns = 10
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = {
+                "title": f"Example vuln {i}",
+                "cve_id": f"CVE-0000-000{i}",
+                "detail": f"This is example vuln {i}.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": f"example-lib-{i}",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
+        # When
+        response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        response_data.reverse()
+        assert len(response_data) == number_of_vulns  # Ensure all created vulns are returned
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            assert vuln["vuln_id"] == str(vuln_ids[i])
+            assert vuln["title"] == f"Example vuln {i}"
+            assert vuln["cve_id"] == f"CVE-0000-000{i}"
+            assert vuln["detail"] == f"This is example vuln {i}."
+            assert vuln["exploitation"] == "active"
+            assert vuln["automatable"] == "yes"
+            assert vuln["cvss_v3_score"] == 7.5
+            assert vuln["vulnerable_packages"][0]["name"] == f"example-lib-{i}"
+            assert vuln["vulnerable_packages"][0]["ecosystem"] == "pypi"
+            assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
+            assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
+
+    def test_it_should_return_empty_list_when_no_vulns_exist(self):
+        # When
+        response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert response_data == []  # Ensure no vulns are returned
+
+    def test_it_should_return_correct_number_of_vulns_with_limit(self, testdb: Session):
+        # Given
+        number_of_vulns = 5
+        for i in range(number_of_vulns):
+            vuln_request = {
+                "title": f"Example vuln {i}",
+                "cve_id": f"CVE-0000-000{i}",
+                "detail": f"This is example vuln {i}.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": f"example-lib-{i}",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+            client.put(f"/vulns/{uuid4()}", headers=self.headers_user, json=vuln_request)
+
+        # When
+        response = client.get("/vulns?offset=0&limit=2", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 2  # Ensure only 2 vulns are returned
+
+    def test_it_should_return_correct_vulns_with_offset(self, testdb: Session):
+        # Given
+        number_of_vulns = 5
+        vuln_ids = []
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = {
+                "title": f"Example vuln {i}",
+                "cve_id": f"CVE-0000-000{i}",
+                "detail": f"This is example vuln {i}.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": f"example-lib-{i}",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
+
+        # When
+        response = client.get("/vulns?offset=1&limit=4", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 4  # Ensure 4 vulns are returned
+        assert response_data[0]["vuln_id"] == str(vuln_ids[3])  # Ensure offset is applied
+        assert response_data[0]["title"] == f"Example vuln {3}"
+        assert response_data[0]["cve_id"] == f"CVE-0000-000{3}"
+        assert response_data[0]["detail"] == f"This is example vuln {3}."
+        assert response_data[0]["exploitation"] == "active"
+        assert response_data[0]["automatable"] == "yes"
+        assert response_data[0]["cvss_v3_score"] == 7.5
+        assert response_data[0]["vulnerable_packages"][0]["name"] == f"example-lib-{3}"
+        assert response_data[0]["vulnerable_packages"][0]["ecosystem"] == "pypi"
+        assert response_data[0]["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
+        assert response_data[0]["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]

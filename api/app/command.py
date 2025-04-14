@@ -103,3 +103,18 @@ def get_sorted_tickets_related_to_service_and_topic_and_tag(
     )
     # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#joined-eager-loading
     return db.scalars(select_stmt).unique().all()
+
+
+def get_vulns(
+    db: Session,
+    offset: int,
+    limit: int,
+) -> Sequence[models.Vuln]:
+    select_stmt = (
+        select(models.Vuln)
+        .options(joinedload(models.Vuln.affects))
+        .order_by(models.Vuln.updated_at.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    return db.scalars(select_stmt).unique().all()
