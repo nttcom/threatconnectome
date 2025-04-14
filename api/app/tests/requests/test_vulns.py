@@ -218,8 +218,8 @@ class TestGetVulns:
         vuln_ids = []
         number_of_vulns = 10
         for i in range(number_of_vulns):
-            self.vuln_id = uuid4()
-            self.vuln_request = {
+            vuln_id = uuid4()
+            vuln_request = {
                 "title": f"Example vuln {i}",
                 "cve_id": f"CVE-0000-000{i}",
                 "detail": f"This is example vuln {i}.",
@@ -235,10 +235,8 @@ class TestGetVulns:
                     }
                 ],
             }
-            response = client.put(
-                f"/vulns/{self.vuln_id}", headers=self.headers_user, json=self.vuln_request
-            )
-            vuln_ids.append(self.vuln_id)
+            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
         # When
         response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
 
