@@ -354,7 +354,7 @@ class Ticket(Base):
 
     ticket_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     threat_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True, unique=True
+        ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True
     )
     dependency_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
@@ -364,6 +364,7 @@ class Ticket(Base):
     reason_safety_impact: Mapped[str | None] = mapped_column(nullable=True)
     ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
 
+    dependency = relationship("Dependency")
     threat = relationship("Threat", uselist=False, back_populates="tickets")
     alerts = relationship("Alert", back_populates="ticket")
     ticket_status = relationship("TicketStatus", uselist=False, cascade="all, delete-orphan")

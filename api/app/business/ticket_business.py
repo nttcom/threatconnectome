@@ -18,7 +18,7 @@ def fix_ticket_by_threat(db: Session, threat: models.Threat):
                 persistence.delete_ticket(db, ticket)
         else:
             if need_ticket:
-                create_ticket_internal(db, threat, dependency.dependency_id)
+                create_ticket_internal(db, threat, dependency)
 
 
 def _check_need_ticket(threat: models.Threat) -> bool:
@@ -44,23 +44,26 @@ def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
     if ticket.ticket_status.topic_status == models.TopicStatusType.completed:
         return False
 
-    pteam = ticket.threat.dependency.service.pteam
+    pteam = ticket.dependency.service.pteam
     return ticket.ssvc_deployer_priority <= pteam.alert_ssvc_priority
 
 
 def create_ticket_internal(
     db: Session,
     threat: models.Threat,
-    dependency_id: str,
+    dependency: models.Dependency,
 ) -> models.Ticket:
     now = datetime.now()
 
     ticket = models.Ticket(
         threat_id=threat.threat_id,
-        dependency_id=dependency_id,
+        dependency_id=dependency.dependency_id,
         created_at=now,
-        ssvc_deployer_priority=ssvc_calculator.calculate_ssvc_priority_by_threat(threat),
+        ssvc_deployer_priority=None,
+        threat=threat,
+        dependency=dependency,
     )
+    ticket.ssvc_deployer_priority = ssvc_calculator.calculate_ssvc_priority_by_ticket(ticket)
     persistence.create_ticket(db, ticket)
 
     ticket_status = models.TicketStatus(
@@ -96,7 +99,7 @@ def fix_ticket_ssvc_priority(
 ):
     if not ticket:  # failsafe
         return
-    fixed_priority = ssvc_calculator.calculate_ssvc_priority_by_threat(ticket.threat)
+    fixed_priority = ssvc_calculator.calculate_ssvc_priority_by_ticket(ticket)
     if fixed_priority == ticket.ssvc_deployer_priority:
         return
 
