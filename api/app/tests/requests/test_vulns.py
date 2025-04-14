@@ -356,7 +356,7 @@ class TestDeleteVuln:
             "detail": "This vuln is example.",
             "exploitation": "active",
             "automatable": "yes",
-            "cvss_v3_score": 7.8,
+            "cvss_v3_score": 7.5,
             "vulnerable_packages": [
                 {
                     "name": "example-lib",
