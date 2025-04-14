@@ -216,7 +216,7 @@ class TestGetVulns:
     def test_it_should_return_200_and_vulns_list(self, testdb: Session):
         # Given
         vuln_ids = []
-        number_of_vulns = 3
+        number_of_vulns = 10
         for i in range(number_of_vulns):
             self.vuln_id = uuid4()
             self.vuln_request = {
@@ -239,7 +239,6 @@ class TestGetVulns:
                 f"/vulns/{self.vuln_id}", headers=self.headers_user, json=self.vuln_request
             )
             vuln_ids.append(self.vuln_id)
-        print(vuln_ids)
         # When
         response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
 
