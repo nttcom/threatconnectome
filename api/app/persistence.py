@@ -112,6 +112,11 @@ def create_affect(db: Session, affect: models.Affect) -> None:
     db.flush()
 
 
+def delete_affect(db: Session, affect: models.Affect) -> None:
+    db.delete(affect)
+    db.flush()
+
+
 ### PTeam
 
 
