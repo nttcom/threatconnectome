@@ -268,3 +268,33 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert response_data == []  # Ensure no vulns are returned
+
+    def test_it_should_return_correct_number_of_vulns_with_limit(self, testdb: Session):
+        # Given
+        number_of_vulns = 5
+        for i in range(number_of_vulns):
+            vuln_request = {
+                "title": f"Example vuln {i}",
+                "cve_id": f"CVE-0000-000{i}",
+                "detail": f"This is example vuln {i}.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": f"example-lib-{i}",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+            client.put(f"/vulns/{uuid4()}", headers=self.headers_user, json=vuln_request)
+
+        # When
+        response = client.get("/vulns?offset=0&limit=2", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 2  # Ensure only 2 vulns are returned
