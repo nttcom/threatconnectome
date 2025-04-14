@@ -89,10 +89,8 @@ def calculate_ssvc_priority_by_ticket(
     exploitation = vuln.exploitation
     system_exposure = service.system_exposure
     automatable = vuln.automatable
-    mission_impact = mission_impact = (
-        dependency.dependency_mission_impact or service.service_mission_impact
-    )
-    safety_impact = ticket_safety_impact if ticket_safety_impact else service.service_safety_impact
+    mission_impact = dependency.dependency_mission_impact or service.service_mission_impact
+    safety_impact = ticket_safety_impact or service.service_safety_impact
     human_impact = _calculate_human_impact(safety_impact, mission_impact)
     return _calculate_ssvc_priority(exploitation, system_exposure, automatable, human_impact)
 
