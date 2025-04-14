@@ -102,6 +102,24 @@ def update_vuln(
     return schemas.VulnReponse(**response)
 
 
+@router.delete("/{vuln_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_vuln(
+    vuln_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Delete a vuln.
+    """
+    if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
+        raise NO_SUCH_VULN
+
+    # Delete the vuln and its associated affects
+    persistence.delete_vuln(db, vuln)
+    db.commit()
+    return None
+
+
 @router.get("/{vuln_id}", response_model=schemas.VulnReponse)
 def get_vuln(
     vuln_id: UUID,
