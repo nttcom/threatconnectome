@@ -17,7 +17,7 @@ from app.constants import (
     ZERO_FILLED_UUID,
 )
 from app.main import app
-from app.ssvc.ssvc_calculator import calculate_ssvc_priority_by_threat
+from app.ssvc.ssvc_calculator import calculate_ssvc_priority_by_ticket
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     ACTION1,
@@ -2147,7 +2147,7 @@ class TestGetPTeamServiceTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        expected_ssvc_priority = calculate_ssvc_priority_by_threat(db_threat1)
+        expected_ssvc_priority = calculate_ssvc_priority_by_ticket(db_threat1)
         assert summary["ssvc_priority_count"] == {
             **self.ssvc_priority_count_zero,
             expected_ssvc_priority.value: 1,
@@ -2324,7 +2324,7 @@ class TestGetPTeamTagsSummary:
         assert response.status_code == 200
 
         summary = response.json()
-        expected_ssvc_priority = calculate_ssvc_priority_by_threat(db_threat1)
+        expected_ssvc_priority = calculate_ssvc_priority_by_ticket(db_threat1)
         assert summary["ssvc_priority_count"] == {
             **self.ssvc_priority_count_zero,
             expected_ssvc_priority.value: 1,
@@ -2388,7 +2388,7 @@ class TestGetPTeamTagsSummary:
 
         summary = response.json()
         expected_ssvc_priority = min(  # we have only 1 tag
-            calculate_ssvc_priority_by_threat(db_threat) for db_threat in db_threats
+            calculate_ssvc_priority_by_ticket(db_threat) for db_threat in db_threats
         )
         assert summary["ssvc_priority_count"] == {
             **self.ssvc_priority_count_zero,
