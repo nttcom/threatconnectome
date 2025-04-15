@@ -342,3 +342,51 @@ class TestGetVulns:
         assert response_data[0]["vulnerable_packages"][0]["ecosystem"] == "pypi"
         assert response_data[0]["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
         assert response_data[0]["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
+
+
+class TestDeleteVuln:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self):
+        # Given
+        self.user1 = create_user(USER1)
+        self.new_vuln_id = uuid4()
+        self.request1 = {
+            "title": "Example vuln",
+            "cve_id": "CVE-0000-0001",
+            "detail": "This vuln is example.",
+            "exploitation": "active",
+            "automatable": "yes",
+            "cvss_v3_score": 7.5,
+            "vulnerable_packages": [
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+
+        # Create a vuln to delete
+        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.request1)
+
+    def test_it_should_delete_vuln_when_vuln_id_exists(self):
+        # When
+        response = client.delete(f"/vulns/{self.new_vuln_id}", headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 204  # No Content
+        get_response = client.get(f"/vulns/{self.new_vuln_id}", headers=headers(USER1))
+        assert get_response.status_code == 404  # Not Found
+        assert get_response.json()["detail"] == "No such vuln"
+
+    def test_it_should_return_404_when_vuln_id_does_not_exist(self):
+        # Given
+        non_existent_vuln_id = uuid4()
+
+        # When
+        response = client.delete(f"/vulns/{non_existent_vuln_id}", headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such vuln"

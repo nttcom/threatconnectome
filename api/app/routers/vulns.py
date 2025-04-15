@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
@@ -100,6 +100,24 @@ def update_vuln(
         response["vuln_id"] = str(vuln_id)
 
     return schemas.VulnReponse(**response)
+
+
+@router.delete("/{vuln_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_vuln(
+    vuln_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Delete a vuln.
+    """
+    if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
+        raise NO_SUCH_VULN
+
+    # Delete the vuln and its associated affects
+    persistence.delete_vuln(db, vuln)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/{vuln_id}", response_model=schemas.VulnReponse)
