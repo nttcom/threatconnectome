@@ -376,6 +376,9 @@ class TestDeleteVuln:
 
         # Then
         assert response.status_code == 204  # No Content
+        get_response = client.get(f"/vulns/{self.new_vuln_id}", headers=headers(USER1))
+        assert get_response.status_code == 404  # Not Found
+        assert get_response.json()["detail"] == "No such vuln"
 
     def test_it_should_return_404_when_vuln_id_does_not_exist(self):
         # Given
