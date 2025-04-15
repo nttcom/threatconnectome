@@ -90,14 +90,9 @@ def update_vuln(
             )
             persistence.create_affect(db, affect)
 
-        new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
-        for threat in new_threats:
-            ticket_business.fix_ticket_by_threat(db, threat)
-
-        db.commit()
-
         response = request.model_dump()
         response["vuln_id"] = str(vuln_id)
+        vuln_response = schemas.VulnReponse(**response)
     else:
         # 仕様メモ
         # userがcreated_byとは一致しない場合、403エラーを返す
@@ -125,38 +120,34 @@ def update_vuln(
             "cvss_v3_score",
         ]
         for field in fields_to_check:
-            if field in update_request.keys() and request.title is None:
+            if field in update_request.keys() and getattr(request, field) is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Cannot specify None for {field}",
                 )
 
-        if "vulnerable_packages" in update_request.keys() and request.vulnerable_packages == []:
+        if "cvss_v3_score" in update_request.keys() and (
+            request.cvss_v3_score > 10.0 or request.cvss_v3_score < 0
+        ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot specify None for vulnerable_packages",
+                detail="cvss_v3_score is out of range",
             )
-        if "cvss_v3_score" in update_request.keys() and request.vulnerable_packages == []:
-            if request.cvss_v3_score > 10.0 or request.cvss_v3_score < 0:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="cvss_v3_score is out of range",
-                )
 
         # update vuln
-        if request.title is not None:
+        if "title" in update_request.keys():
             vuln.title = request.title
-        if request.detail is not None:
+        if "detail" in update_request.keys():
             vuln.detail = request.detail
-        if request.cve_id is not None:
+        if "cve_id" in update_request.keys():
             vuln.cve_id = request.cve_id
-        if request.exploitation is not None:
-            previous_exploitation = vuln.exploitation
+        if "exploitation" in update_request.keys():
             vuln.exploitation = request.exploitation
-        if request.automatable is not None:
-            previous_automatable = vuln.automatable
-            vuln.automatable is vuln.automatable
-        if request.vulnerable_packages != []:
+        if "automatable" in update_request.keys():
+            vuln.automatable = request.automatable
+        if "cvss_v3_score" in update_request.keys():
+            vuln.cvss_v3_score = request.cvss_v3_score
+        if "vulnerable_packages" in update_request.keys():
             requested_packages = {}
             for vulneraable_package in request.vulnerable_packages:
                 if not (
@@ -169,33 +160,48 @@ def update_vuln(
                     )
                     persistence.create_package(db, package)
                 requested_packages[package.package_id] = vulneraable_package
-            ## reset affect
+
+            ## delete affect
             for affect in vuln.affects:
-                persistence.delete_affect(db, affect)
+                if affect.package_id not in requested_packages.keys():
+                    persistence.delete_affect(db, affect)
 
             for package_id, vulnerable_package in requested_packages.items():
-                affect = models.Affect(
-                    vuln_id=str(vuln_id),
-                    package_id=package_id,
-                    affected_versions=vulnerable_package.affected_versions,
-                    fixed_versions=vulnerable_package.fixed_versions,
-                )
-                persistence.create_affect(db, affect)
+                if (
+                    persisted_affect := persistence.get_affect_by_package_id_and_vuln_id(
+                        db, package_id, vuln_id
+                    )
+                ) is not None:
+                    persisted_affect.affected_versions = vulnerable_package.affected_versions
+                    persisted_affect.fixed_versions = vulnerable_package.fixed_versions
+                else:
+                    new_affect = models.Affect(
+                        vuln_id=str(vuln_id),
+                        package_id=package_id,
+                        affected_versions=vulnerable_package.affected_versions,
+                        fixed_versions=vulnerable_package.fixed_versions,
+                    )
+                    persistence.create_affect(db, new_affect)
 
         vuln.updated_at = datetime.now()
+        vuln_response = schemas.VulnReponse(
+            vuln_id=vuln.vuln_id,
+            title=vuln.title,
+            cve_id=vuln.cve_id,
+            detail=vuln.detail,
+            exploitation=vuln.exploitation,
+            automatable=vuln.automatable,
+            cvss_v3_score=vuln.cvss_v3_score,
+            vulnerable_packages=request.vulnerable_packages,
+        )
 
-        db.flush()
+    new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
+    for threat in new_threats:
+        ticket_business.fix_ticket_by_threat(db, threat)
 
-        ## ToDO ssvc calucate
-        if (request.exploitation and request.exploitation != previous_exploitation) or (
-            request.automatable and request.automatable != previous_automatable
-        ):
+    db.commit()
 
-            pass
-
-        db.commit()
-
-    return schemas.VulnReponse(**response)
+    return vuln_response
 
 
 @router.get("/{vuln_id}", response_model=schemas.VulnReponse)

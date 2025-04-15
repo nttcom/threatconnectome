@@ -1,14 +1,17 @@
+from datetime import datetime
+from typing import Any
 from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app import models, persistence
+from app.business import ticket_business
 from app.main import app
-from app.tests.medium.constants import (
-    USER1,
-)
+from app.tests.medium.constants import PTEAM1, USER1, USER2
 from app.tests.medium.utils import (
+    create_pteam,
     create_user,
     headers,
 )
@@ -36,6 +39,71 @@ class TestUpdateVuln:
                 }
             ],
         }
+
+    @pytest.fixture(scope="function", autouse=False)
+    def update_setup(self, testdb: Session):
+        self.pteam1 = create_pteam(USER1, PTEAM1)
+
+        self.service1 = models.Service(
+            service_name="Service1 name",
+            pteam_id=str(self.pteam1.pteam_id),
+        )
+        testdb.add(self.service1)
+
+        self.vuln1 = models.Vuln(
+            vuln_id=str(uuid4()),
+            title="Vuln1 title",
+            detail="Vuln1 detail",
+            cve_id="CVE-0000-0001",
+            created_by=str(self.user1.user_id),
+            created_at=datetime(2025, 4, 15, 12, 0, 0),
+            updated_at=datetime(2025, 4, 15, 12, 0, 0),
+            cvss_v3_score=8.0,
+            content_fingerprint="dummy_fingerprint",
+            exploitation="none",
+            automatable="no",
+        )
+
+        testdb.add(self.vuln1)
+
+        self.package1 = models.Package(
+            name="Package1 name",
+            ecosystem="npm",
+        )
+
+        testdb.add(self.package1)
+
+        self.package_version1 = models.PackageVersion(
+            package_id=self.package1.package_id,
+            version="1.0.0",
+        )
+
+        testdb.add(self.package_version1)
+
+        self.dependency1 = models.Dependency(
+            target="dependency1 target",
+            package_manager="npm",
+            package_version_id=self.package_version1.package_version_id,
+            service=self.service1,
+        )
+        testdb.add(self.dependency1)
+
+        self.affect1 = models.Affect(
+            vuln_id=self.vuln1.vuln_id,
+            package_id=self.package1.package_id,
+            affected_versions=["<2.0.0"],
+            fixed_versions=["2.0.0"],
+        )
+
+        testdb.add(self.affect1)
+
+        self.threat1 = models.Threat(
+            package_version_id=self.package_version1.package_version_id, vuln_id=self.vuln1.vuln_id
+        )
+
+        persistence.create_threat(testdb, self.threat1)
+
+        ticket_business.fix_ticket_by_threat(testdb, self.threat1)
 
     def test_raise_400_if_given_vuln_id_is_default_vuln_id(self):
         # Given
@@ -132,6 +200,61 @@ class TestUpdateVuln:
         # When
         response = client.put(
             f"/vulns/{new_vuln_id}", headers=headers(USER1), json=out_of_range_cvss_request
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert response.json()["detail"] == "cvss_v3_score is out of range"
+
+    def test_raise_403_if_current_user_is_not_vuln_creator(self, testdb: Session, update_setup):
+        # Given
+        user2 = create_user(USER2)
+
+        # When
+        response = client.put(
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER2), json=self.request1
+        )
+
+        # Then
+        assert response.status_code == 403
+        assert response.json()["detail"] == "You are not vuln creator"
+
+    @pytest.mark.parametrize(
+        "field_name",
+        [
+            "title",
+            "detail",
+            "cve_id",
+            "exploitation",
+            "automatable",
+            "cvss_v3_score",
+        ],
+    )
+    def test_raise_400_if_field_update_with_none(self, testdb: Session, update_setup, field_name):
+        # Given
+        invalid_request: dict[str, Any] = {
+            f"{field_name}": None,
+        }
+
+        # When
+        response = client.put(
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=invalid_request
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == f"Cannot specify None for {field_name}"
+
+    def test_raise_400_if_cvss_v3_score_update_with_out_of_range(
+        self, testdb: Session, update_setup
+    ):
+        # Given
+        invalid_request: dict[str, Any] = {
+            "cvss_v3_score": 9999.9999,
+        }
+
+        # When
+        response = client.put(
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=invalid_request
         )
 
         # Then
