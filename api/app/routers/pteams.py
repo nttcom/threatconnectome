@@ -37,8 +37,8 @@ NOT_HAVE_AUTH = HTTPException(
     detail="You do not have authority",
 )
 NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
-NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
-NO_SUCH_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
+NO_SUCH_VULN = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
+NO_SUCH_PACKAGE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such package")
 NO_SUCH_SERVICE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
 NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 
@@ -779,36 +779,36 @@ def set_ticket_status(
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/topics/{topic_id}/tags/{tag_id}/tickets",
+    "/{pteam_id}/tickets",
     response_model=list[schemas.TicketResponse],
 )
-def get_tickets_with_status_by_service_id_and_topic_id(
+def get_tickets_by_service_id_and_package_id_and_vuln_id(
     pteam_id: UUID,
-    service_id: UUID,
-    topic_id: UUID,
-    tag_id: UUID,
+    service_id: UUID | None = Query(None),
+    package_id: UUID | None = Query(None),
+    vuln_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Get tickets (with status) related to the service, topic and tag.
+    Get tickets related to the service, package and vuln.
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
-    # TODO Provisional Processing
-    # if not persistence.get_topic_by_id(db, topic_id):
-    #     raise NO_SUCH_TOPIC
-    # if not persistence.get_tag_by_id(db, tag_id):
-    # raise NO_SUCH_TAG
+    if service_id:
+        if not (service := persistence.get_service_by_id(db, service_id)):
+            raise NO_SUCH_SERVICE
+        if service.pteam_id != str(pteam_id):
+            raise NO_SUCH_SERVICE
+    if package_id and not (persistence.get_package_by_id(db, package_id)):
+        raise NO_SUCH_PACKAGE
+    if vuln_id and not (persistence.get_vuln_by_id(db, vuln_id)):
+        raise NO_SUCH_VULN
 
-    tickets = command.get_sorted_tickets_related_to_service_and_topic_and_tag(
-        db, service_id, topic_id, tag_id
+    tickets = command.get_sorted_tickets_related_to_service_and_pakaget_and_vuln(
+        db, service_id, package_id, vuln_id
     )
 
     ret = [

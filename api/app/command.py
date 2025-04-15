@@ -70,11 +70,11 @@ def expire_pteam_invitations(db: Session) -> None:
     db.flush()
 
 
-def get_sorted_tickets_related_to_service_and_topic_and_tag(
+def get_sorted_tickets_related_to_service_and_pakaget_and_vuln(
     db: Session,
-    service_id: UUID | str,
-    topic_id: UUID | str,
-    tag_id: UUID | str,
+    service_id: UUID | str | None,
+    package_id: UUID | str | None,
+    vuln_id: UUID | str | None,
 ) -> Sequence[models.Ticket]:
     select_stmt = (
         select(models.Ticket)
@@ -82,25 +82,34 @@ def get_sorted_tickets_related_to_service_and_topic_and_tag(
             joinedload(models.Ticket.ticket_status, innerjoin=True).joinedload(
                 models.TicketStatus.action_logs, innerjoin=False
             ),
-            joinedload(models.Ticket.threat, innerjoin=True),
         )
         .join(
             models.Threat,
+            models.Threat.threat_id == models.Ticket.threat_id,
+        )
+    )
+
+    if vuln_id:
+        select_stmt = select_stmt.where(models.Threat.vuln_id == str(vuln_id))
+    if package_id:
+        select_stmt = select_stmt.join(
+            models.PackageVersion,
             and_(
-                models.Threat.threat_id == models.Ticket.threat_id,
-                models.Threat.topic_id == str(topic_id),
+                models.PackageVersion.package_version_id == models.Threat.package_version_id,
+                models.PackageVersion.package_id == str(package_id),
             ),
         )
-        .join(
+    if service_id:
+        select_stmt = select_stmt.join(
             models.Dependency,
             and_(
-                models.Dependency.dependency_id == models.Threat.dependency_id,
+                models.Dependency.dependency_id == models.Ticket.dependency_id,
                 models.Dependency.service_id == str(service_id),
-                models.Dependency.tag_id == str(tag_id),
             ),
         )
-        .order_by(models.Ticket.ssvc_deployer_priority, models.Dependency.target)
-    )
+
+    select_stmt = select_stmt.order_by(models.Ticket.ssvc_deployer_priority)
+
     # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#joined-eager-loading
     return db.scalars(select_stmt).unique().all()
 
