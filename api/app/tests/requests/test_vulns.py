@@ -370,7 +370,7 @@ class TestDeleteVuln:
         # Create a vuln to delete
         client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.request1)
 
-    def test_it_should_return_204_when_vuln_is_deleted_successfully(self):
+    def test_it_should_delete_vuln_when_vuln_id_exists(self):
         # When
         response = client.delete(f"/vulns/{self.new_vuln_id}", headers=headers(USER1))
 
