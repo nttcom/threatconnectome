@@ -807,7 +807,7 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
     if vuln_id and not (persistence.get_vuln_by_id(db, vuln_id)):
         raise NO_SUCH_VULN
 
-    tickets = command.get_sorted_tickets_related_to_service_and_pakaget_and_vuln(
+    tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
         db, service_id, package_id, vuln_id
     )
 

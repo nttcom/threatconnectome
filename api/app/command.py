@@ -70,7 +70,7 @@ def expire_pteam_invitations(db: Session) -> None:
     db.flush()
 
 
-def get_sorted_tickets_related_to_service_and_pakaget_and_vuln(
+def get_sorted_tickets_related_to_service_and_package_and_vuln(
     db: Session,
     service_id: UUID | str | None,
     package_id: UUID | str | None,
@@ -108,7 +108,9 @@ def get_sorted_tickets_related_to_service_and_pakaget_and_vuln(
             ),
         )
 
-    select_stmt = select_stmt.order_by(models.Ticket.ssvc_deployer_priority)
+    select_stmt = select_stmt.order_by(
+        models.Ticket.ssvc_deployer_priority, models.Ticket.created_at
+    )
 
     # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#joined-eager-loading
     return db.scalars(select_stmt).unique().all()
