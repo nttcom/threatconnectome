@@ -2979,212 +2979,296 @@ class TestTicketStatus:
 
 
 class TestGetTickets:
+    class Common:
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self, testdb):
+            # Given
+            self.user1 = create_user(USER1)
+            self.pteam1 = create_pteam(USER1, PTEAM1)
 
-    @pytest.fixture(scope="function", autouse=True)
-    def common_setup(self, testdb):
-        # Given
-        self.user1 = create_user(USER1)
-        self.pteam1 = create_pteam(USER1, PTEAM1)
+            test_service = "test_service1"
+            test_target = "test target"
+            test_version = "1.0.0"
 
-        test_service = "test_service"
-        test_target = "test target"
-        test_version = "1.0.0"
+            # Todo: Replace when API is created.
+            self.service1 = models.Service(
+                service_name=test_service,
+                pteam_id=str(self.pteam1.pteam_id),
+            )
+            testdb.add(self.service1)
+            testdb.flush()
 
-        # Todo: Replace when API is created.
-        self.service1 = models.Service(
-            service_name=test_service,
-            pteam_id=str(self.pteam1.pteam_id),
-        )
-        testdb.add(self.service1)
-        testdb.flush()
+            self.package1 = models.Package(
+                name="test_package1",
+                ecosystem="test_ecosystem1",
+            )
+            persistence.create_package(testdb, self.package1)
 
-        self.package1 = models.Package(
-            name="TestPackage",
-            ecosystem="npm",
-        )
-        persistence.create_package(testdb, self.package1)
+            self.package_version1 = models.PackageVersion(
+                package_id=self.package1.package_id,
+                version=test_version,
+            )
+            persistence.create_package_version(testdb, self.package_version1)
 
-        self.package_version1 = models.PackageVersion(
-            package_id=self.package1.package_id,
-            version=test_version,
-        )
-        persistence.create_package_version(testdb, self.package_version1)
+            self.dependency1 = models.Dependency(
+                target=test_target,
+                package_manager="npm",
+                package_version_id=self.package_version1.package_version_id,
+                service=self.service1,
+            )
+            testdb.add(self.dependency1)
+            testdb.flush()
 
-        dependency1 = models.Dependency(
-            target=test_target,
-            package_manager="npm",
-            package_version_id=self.package_version1.package_version_id,
-            service=self.service1,
-        )
-        testdb.add(dependency1)
-        testdb.flush()
+            self.vuln1 = models.Vuln(
+                title="Test Vulnerability1",
+                detail="This is a test vulnerability.",
+                cvss_v3_score=7.5,
+                created_by=self.user1.user_id,
+                created_at="2023-10-01T00:00:00Z",
+                updated_at="2023-10-01T00:00:00Z",
+                content_fingerprint="dummy_fingerprint",
+            )
+            persistence.create_vuln(testdb, self.vuln1)
 
-        self.vuln1 = models.Vuln(
-            title="Test Vulnerability",
-            detail="This is a test vulnerability.",
-            cvss_v3_score=7.5,
-            created_by=self.user1.user_id,
-            created_at="2023-10-01T00:00:00Z",
-            updated_at="2023-10-01T00:00:00Z",
-            content_fingerprint="dummy_fingerprint",
-        )
-        persistence.create_vuln(testdb, self.vuln1)
+            affect1 = models.Affect(
+                vuln_id=self.vuln1.vuln_id,
+                package_id=self.package1.package_id,
+                affected_versions=["<=1.0.0"],
+                fixed_versions=["2.0.0"],
+            )
+            persistence.create_affect(testdb, affect1)
 
-        affect1 = models.Affect(
-            vuln_id=self.vuln1.vuln_id,
-            package_id=self.package1.package_id,
-            affected_versions=["<=1.0.0"],
-            fixed_versions=["2.0.0"],
-        )
-        persistence.create_affect(testdb, affect1)
+            self.threat1 = models.Threat(
+                package_version_id=self.package_version1.package_version_id,
+                vuln_id=self.vuln1.vuln_id,
+            )
+            persistence.create_threat(testdb, self.threat1)
 
-        self.threat1 = models.Threat(
-            package_version_id=self.package_version1.package_version_id, vuln_id=self.vuln1.vuln_id
-        )
-        persistence.create_threat(testdb, self.threat1)
+            ticket_business.fix_ticket_by_threat(testdb, self.threat1)
 
-        ticket_business.fix_ticket_by_threat(testdb, self.threat1)
-
-    def test_it_should_return_200_when_ticket_exists(self, testdb):
-        # Given
-        db_ticket1 = testdb.scalars(select(models.Ticket)).one()
-        db_status1 = testdb.scalars(select(models.TicketStatus)).one()
-        expected_ticket_response1 = {
-            "ticket_id": str(db_ticket1.ticket_id),
-            "threat_id": str(self.threat1.threat_id),
-            "created_at": datetime.isoformat(db_ticket1.created_at),
-            "ssvc_deployer_priority": (
-                None
-                if db_ticket1.ssvc_deployer_priority is None
-                else db_ticket1.ssvc_deployer_priority.value
-            ),
-            "ticket_safety_impact": (
-                None
-                if db_ticket1.ticket_safety_impact is None
-                else db_ticket1.ticket_safety_impact.value
-            ),
-            "reason_safety_impact": None,
-            "threat": {
-                "threat_id": str(self.threat1.threat_id),
-                "package_version_id": str(self.package_version1.package_version_id),
-                "vuln_id": str(self.vuln1.vuln_id),
-            },
-            "ticket_status": {
-                "status_id": db_status1.status_id,  # do not check
+    class TestQueryRarameter(Common):
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup_for_test_query_parameter(self, testdb):
+            # Given
+            db_ticket1 = testdb.scalars(select(models.Ticket)).one()
+            db_status1 = testdb.scalars(select(models.TicketStatus)).one()
+            self.expected_ticket_response1 = {
                 "ticket_id": str(db_ticket1.ticket_id),
-                "topic_status": models.TopicStatusType.alerted.value,
-                "user_id": None,
-                "created_at": datetime.isoformat(db_status1.created_at),  # check later
-                "assignees": [],
-                "note": None,
-                "scheduled_at": None,
-                "action_logs": [],
-            },
-        }
-
-        # When
-        response = client.get(f"/pteams/{self.pteam1.pteam_id}/tickets", headers=headers(USER1))
-
-        # Then
-        assert response.status_code == 200
-
-        assert response.json()[0] == expected_ticket_response1
-
-    def test_it_should_return_200_when_all_queries_are_specified(self, testdb):
-        # Given
-        db_ticket1 = testdb.scalars(select(models.Ticket)).one()
-        db_status1 = testdb.scalars(select(models.TicketStatus)).one()
-        expected_ticket_response1 = {
-            "ticket_id": str(db_ticket1.ticket_id),
-            "threat_id": str(self.threat1.threat_id),
-            "created_at": datetime.isoformat(db_ticket1.created_at),
-            "ssvc_deployer_priority": (
-                None
-                if db_ticket1.ssvc_deployer_priority is None
-                else db_ticket1.ssvc_deployer_priority.value
-            ),
-            "ticket_safety_impact": (
-                None
-                if db_ticket1.ticket_safety_impact is None
-                else db_ticket1.ticket_safety_impact.value
-            ),
-            "reason_safety_impact": None,
-            "threat": {
                 "threat_id": str(self.threat1.threat_id),
-                "package_version_id": str(self.package_version1.package_version_id),
-                "vuln_id": str(self.vuln1.vuln_id),
-            },
-            "ticket_status": {
-                "status_id": db_status1.status_id,  # do not check
-                "ticket_id": str(db_ticket1.ticket_id),
-                "topic_status": models.TopicStatusType.alerted.value,
-                "user_id": None,
-                "created_at": datetime.isoformat(db_status1.created_at),  # check later
-                "assignees": [],
-                "note": None,
-                "scheduled_at": None,
-                "action_logs": [],
-            },
-        }
+                "dependency_id": str(self.dependency1.dependency_id),
+                "created_at": datetime.isoformat(db_ticket1.created_at),
+                "ssvc_deployer_priority": (
+                    None
+                    if db_ticket1.ssvc_deployer_priority is None
+                    else db_ticket1.ssvc_deployer_priority.value
+                ),
+                "ticket_safety_impact": (
+                    None
+                    if db_ticket1.ticket_safety_impact is None
+                    else db_ticket1.ticket_safety_impact.value
+                ),
+                "reason_safety_impact": None,
+                "threat": {
+                    "threat_id": str(self.threat1.threat_id),
+                    "package_version_id": str(self.package_version1.package_version_id),
+                    "vuln_id": str(self.vuln1.vuln_id),
+                },
+                "ticket_status": {
+                    "status_id": db_status1.status_id,  # do not check
+                    "ticket_id": str(db_ticket1.ticket_id),
+                    "topic_status": models.TopicStatusType.alerted.value,
+                    "user_id": None,
+                    "created_at": datetime.isoformat(db_status1.created_at),  # check later
+                    "assignees": [],
+                    "note": None,
+                    "scheduled_at": None,
+                    "action_logs": [],
+                },
+            }
 
-        # When
-        response = client.get(
-            f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={self.service1.service_id}"
-            f"&package_id={self.package1.package_id}&vuln_id={self.vuln1.vuln_id}",
-            headers=headers(USER1),
-        )
+        def test_it_should_return_200_when_ticket_exists(self):
+            # When
+            response = client.get(f"/pteams/{self.pteam1.pteam_id}/tickets", headers=headers(USER1))
 
-        # Then
-        assert response.status_code == 200
-        assert response.json()[0] == expected_ticket_response1
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
 
-    def test_it_should_return_404_when_pteam_id_does_not_exist(self):
-        # When
-        pteam_id = str(uuid4())
-        response = client.get(
-            f"/pteams/{pteam_id}/tickets",
-            headers=headers(USER1),
-        )
+        def test_it_should_return_200_when_all_queries_are_specified(self):
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={self.service1.service_id}"
+                f"&package_id={self.package1.package_id}&vuln_id={self.vuln1.vuln_id}",
+                headers=headers(USER1),
+            )
 
-        # Then
-        assert response.status_code == 404
-        assert response.json()["detail"] == "No such pteam"
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
 
-    def test_it_should_return_404_when_service_id_does_not_exist(self):
-        # When
-        setvice_id = str(uuid4())
-        response = client.get(
-            f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={setvice_id}",
-            headers=headers(USER1),
-        )
+        def test_it_should_return_200_when_package_id_is_specified(self):
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?package_id={self.package1.package_id}",
+                headers=headers(USER1),
+            )
 
-        # Then
-        assert response.status_code == 404
-        assert response.json()["detail"] == "No such service"
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
 
-    def test_it_should_return_404_when_vuln_id_does_not_exist(self):
-        # When
-        vuln_id = str(uuid4())
-        response = client.get(
-            f"/pteams/{self.pteam1.pteam_id}/tickets?vuln_id={vuln_id}",
-            headers=headers(USER1),
-        )
+        def test_it_should_return_200_when_vuln_id_is_specified(self):
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?vuln_id={self.vuln1.vuln_id}",
+                headers=headers(USER1),
+            )
 
-        # Then
-        assert response.status_code == 404
-        assert response.json()["detail"] == "No such vuln"
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
 
-    def test_it_should_return_404_when_package_id_does_not_exist(self):
-        # When
-        package_id = str(uuid4())
-        response = client.get(
-            f"/pteams/{self.pteam1.pteam_id}/tickets?package_id={package_id}",
-            headers=headers(USER1),
-        )
+        def test_it_should_return_200_when_service_id_is_specified(self):
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={self.service1.service_id}",
+                headers=headers(USER1),
+            )
 
-        # Then
-        assert response.status_code == 404
-        assert response.json()["detail"] == "No such package"
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
+
+        def test_it_should_return_no_ticket_when_wrong_package_id(self, testdb):
+            # Given
+            package2 = models.Package(
+                name="test_package2",
+                ecosystem="test_ecosystem2",
+            )
+            persistence.create_package(testdb, package2)
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?package_id={package2.package_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json() == []
+
+        def test_it_should_return_no_ticket_when_wrong_vuln_id(self, testdb):
+            # Given
+            vuln2 = models.Vuln(
+                title="Test Vulnerability2",
+                detail="This is a test vulnerability.",
+                cvss_v3_score=7.5,
+                created_by=self.user1.user_id,
+                created_at="2023-10-01T00:00:00Z",
+                updated_at="2023-10-01T00:00:00Z",
+                content_fingerprint="dummy_fingerprint",
+            )
+            persistence.create_vuln(testdb, vuln2)
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?vuln_id={vuln2.vuln_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json() == []
+
+        def test_it_should_return_no_ticket_when_wrong_service_id(self, testdb):
+            # Given
+            service2 = models.Service(
+                service_name="test_service2",
+                pteam_id=str(self.pteam1.pteam_id),
+            )
+            testdb.add(service2)
+            testdb.flush()
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={service2.service_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json() == []
+
+    class TestWrongId(Common):
+        def test_it_should_return_404_when_pteam_id_does_not_exist(self):
+            # Given
+            pteam_id = str(uuid4())
+
+            # When
+            response = client.get(
+                f"/pteams/{pteam_id}/tickets",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 404
+            assert response.json()["detail"] == "No such pteam"
+
+        def test_it_should_return_404_when_service_id_does_not_exist(self):
+            # Given
+            setvice_id = str(uuid4())
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={setvice_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 404
+            assert response.json()["detail"] == "No such service"
+
+        def test_it_should_return_404_when_vuln_id_does_not_exist(self):
+            # Given
+            vuln_id = str(uuid4())
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?vuln_id={vuln_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 404
+            assert response.json()["detail"] == "No such vuln"
+
+        def test_it_should_return_404_when_package_id_does_not_exist(self):
+            # Given
+            package_id = str(uuid4())
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?package_id={package_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 404
+            assert response.json()["detail"] == "No such package"
+
+        def test_it_should_return_403_when_not_pteam_member(self):
+            # Given
+            create_user(USER2)
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets",
+                headers=headers(USER2),
+            )
+
+            # Then
+            assert response.status_code == 403
+            assert response.json()["detail"] == "Not a pteam member"
 
 
 class TestUpdatePTeamService:
