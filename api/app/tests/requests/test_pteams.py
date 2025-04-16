@@ -3046,7 +3046,7 @@ class TestGetTickets:
 
             ticket_business.fix_ticket_by_threat(testdb, self.threat1)
 
-    class TestQueryRarameter(Common):
+    class TestQueryParameter(Common):
         @pytest.fixture(scope="function", autouse=True)
         def common_setup_for_test_query_parameter(self, testdb):
             # Given
