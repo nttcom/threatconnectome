@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime
 from typing import Any
 from uuid import uuid4
@@ -219,6 +220,32 @@ class TestUpdateVuln:
         assert self.affect1.affected_versions != vuln.affects[0].affected_versions
         assert self.affect1.fixed_versions != vuln.affects[0].fixed_versions
 
+    def test_recalculate_ssvc_when_updating_vuln(self, testdb: Session, update_setup):
+        # Given
+        request = {
+            "exploitation": "active",
+            "automatable": "yes",
+        }
+
+        previous_ticket = copy.deepcopy(
+            persistence.get_ticket_by_threat_id_and_dependency_id(
+                testdb, self.threat1.threat_id, self.dependency1.dependency_id
+            )
+        )
+
+        # When
+        response = client.put(f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=request)
+
+        updated_ticket = persistence.get_ticket_by_threat_id_and_dependency_id(
+            testdb, self.threat1.threat_id, self.dependency1.dependency_id
+        )
+
+        ## previous_ssvc = scheduled,updated_ssvc = immediate
+        assert response.status_code == 200
+        assert previous_ticket is not None
+        assert updated_ticket is not None
+        assert previous_ticket.ssvc_deployer_priority != updated_ticket.ssvc_deployer_priority
+
     def test_send_alert_if_vulnerabilities_are_found_when_updating_vuln(
         self, testdb: Session, mocker, update_setup
     ):
@@ -233,7 +260,6 @@ class TestUpdateVuln:
         # When
         response = client.put(f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=request)
 
-        ## get ticket_id
         ticket = persistence.get_ticket_by_threat_id_and_dependency_id(
             testdb, self.threat1.threat_id, self.dependency1.dependency_id
         )
@@ -244,7 +270,7 @@ class TestUpdateVuln:
                 .where(models.Alert.ticket_id == str(ticket.ticket_id))
                 .order_by(models.Alert.alerted_at.desc())
             ).all()
-
+        assert response.status_code == 200
         assert alerts is not None
         assert alerts[0].ticket.threat.vuln_id == str(self.vuln1.vuln_id)
 

@@ -208,7 +208,7 @@ class TestUpdateVuln:
 
     def test_raise_403_if_current_user_is_not_vuln_creator(self, testdb: Session, update_setup):
         # Given
-        user2 = create_user(USER2)
+        create_user(USER2)
 
         # When
         response = client.put(
