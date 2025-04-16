@@ -328,6 +328,11 @@ def create_vuln(db: Session, vuln: models.Vuln):
     db.flush()
 
 
+def delete_vuln(db: Session, vuln: models.Vuln) -> None:
+    db.delete(vuln)
+    db.flush()
+
+
 ### Service
 
 
