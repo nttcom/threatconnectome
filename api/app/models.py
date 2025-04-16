@@ -336,7 +336,7 @@ class Threat(Base):
         ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
     )
 
-    vuln = relationship("Vuln")
+    vuln = relationship("Vuln", back_populates="threats")
     package_version = relationship("PackageVersion")
     tickets = relationship("Ticket", back_populates="threat", cascade="all, delete")
 
@@ -494,7 +494,7 @@ class Vuln(Base):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if not self.vuln_id:
-            self.vulun_id = str(uuid.uuid4())
+            self.vuln_id = str(uuid.uuid4())
         if not self.exploitation:
             self.exploitation = ExploitationEnum.NONE
         if not self.automatable:
@@ -516,7 +516,7 @@ class Vuln(Base):
 
     vuln_actions = relationship("VulnAction", cascade="all, delete-orphan")
     affects = relationship("Affect", back_populates="vuln", cascade="all, delete-orphan")
-    threats = relationship("Threat", cascade="all, delete-orphan")
+    threats = relationship("Threat", back_populates="vuln", cascade="all, delete-orphan")
 
 
 class VulnAction(Base):

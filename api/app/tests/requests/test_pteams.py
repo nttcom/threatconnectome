@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
+from app.business import ticket_business
 from app.constants import (
     DEFAULT_ALERT_SSVC_PRIORITY,
     ZERO_FILLED_UUID,
@@ -2978,220 +2979,296 @@ class TestTicketStatus:
 
 
 class TestGetTickets:
+    class Common:
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self, testdb):
+            # Given
+            self.user1 = create_user(USER1)
+            self.pteam1 = create_pteam(USER1, PTEAM1)
 
-    @pytest.fixture(scope="function", autouse=True)
-    def common_setup(self):
-        self.user1 = create_user(USER1)
-        self.user2 = create_user(USER2)
-        self.pteam1 = create_pteam(USER1, PTEAM1)
-        invitation1 = invite_to_pteam(USER1, self.pteam1.pteam_id)
-        accept_pteam_invitation(USER2, invitation1.invitation_id)
+            test_service = "test_service1"
+            test_target = "test target"
+            test_version = "1.0.0"
 
-        self.tag1 = create_tag(USER1, TAG1)
-        # add test_service to pteam1
-        test_service = "test_service"
-        test_target = "test target"
-        test_version = "1.2.3"
-        refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
-        upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
-        self.service_id1 = self._get_service_id_by_service_name(
-            USER1, self.pteam1.pteam_id, test_service
-        )
+            # Todo: Replace when API is created.
+            self.service1 = models.Service(
+                service_name=test_service,
+                pteam_id=str(self.pteam1.pteam_id),
+            )
+            testdb.add(self.service1)
+            testdb.flush()
 
-    @pytest.fixture(scope="function", autouse=False)
-    def actionable_topic1(self):
-        action1 = self._gen_action([self.tag1.tag_name])
-        self.topic1 = create_topic(
-            USER1, {**TOPIC1, "tags": [self.tag1.tag_name], "actions": [action1]}
-        )
+            self.package1 = models.Package(
+                name="test_package1",
+                ecosystem="test_ecosystem1",
+            )
+            persistence.create_package(testdb, self.package1)
 
-    @pytest.fixture(scope="function", autouse=False)
-    def not_actionable_topic1(self):
-        self.topic1 = create_topic(USER1, {**TOPIC1, "tags": [self.tag1.tag_name], "actions": []})
+            self.package_version1 = models.PackageVersion(
+                package_id=self.package1.package_id,
+                version=test_version,
+            )
+            persistence.create_package_version(testdb, self.package_version1)
 
-    @staticmethod
-    def _get_access_token(user: dict) -> str:
-        body = {
-            "username": user["email"],
-            "password": user["pass"],
-        }
-        response = client.post("/auth/token", data=body)
-        if response.status_code != 200:
-            raise HTTPError(response)
-        data = response.json()
-        return data["access_token"]
+            self.dependency1 = models.Dependency(
+                target=test_target,
+                package_manager="npm",
+                package_version_id=self.package_version1.package_version_id,
+                service=self.service1,
+            )
+            testdb.add(self.dependency1)
+            testdb.flush()
 
-    @staticmethod
-    def _get_service_id_by_service_name(user: dict, pteam_id: UUID | str, service_name: str) -> str:
-        response = client.get(f"/pteams/{pteam_id}/services", headers=headers(user))
-        if response.status_code != 200:
-            raise HTTPError(response)
-        data = response.json()
-        service = next(filter(lambda x: x["service_name"] == service_name, data))
-        return service["service_id"]
+            self.vuln1 = models.Vuln(
+                title="Test Vulnerability1",
+                detail="This is a test vulnerability.",
+                cvss_v3_score=7.5,
+                created_by=self.user1.user_id,
+                created_at="2023-10-01T00:00:00Z",
+                updated_at="2023-10-01T00:00:00Z",
+                content_fingerprint="dummy_fingerprint",
+            )
+            persistence.create_vuln(testdb, self.vuln1)
 
-    @staticmethod
-    def _gen_action(tag_names: list[str]) -> dict:
-        return {
-            "action": f"sample action for {str(tag_names)}",
-            "action_type": models.ActionType.elimination,
-            "recommended": True,
-            "ext": {
-                "tags": tag_names,
-                "vulnerable_versions": {tag_name: ["<999.99.9"] for tag_name in tag_names},
-            },
-        }
+            affect1 = models.Affect(
+                vuln_id=self.vuln1.vuln_id,
+                package_id=self.package1.package_id,
+                affected_versions=["<=1.0.0"],
+                fixed_versions=["2.0.0"],
+            )
+            persistence.create_affect(testdb, affect1)
 
-    def _set_ticket_status(
-        self, pteam_id: str, service_id: str, ticket_id: str, request: dict
-    ) -> dict:
-        url = f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}"
-        user1_access_token = self._get_access_token(USER1)
-        _headers = {
-            "Authorization": f"Bearer {user1_access_token}",
-            "Content-Type": "application/json",
-            "accept": "application/json",
-        }
-        return client.put(url, headers=_headers, json=request).json()
+            self.threat1 = models.Threat(
+                package_version_id=self.package_version1.package_version_id,
+                vuln_id=self.vuln1.vuln_id,
+            )
+            persistence.create_threat(testdb, self.threat1)
 
-    def test_returns_empty_if_no_tickets(self, not_actionable_topic1):
-        url = (
-            f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-            f"/topics/{self.topic1.topic_id}/tags/{self.tag1.tag_id}/tickets"
-        )
-        user1_access_token = self._get_access_token(USER1)
-        _headers = {
-            "Authorization": f"Bearer {user1_access_token}",
-            "Content-Type": "application/json",
-            "accept": "application/json",
-        }
-        response = client.get(url, headers=_headers)
-        assert response.status_code == 200
-        assert response.json() == []
+            ticket_business.fix_ticket_by_threat(testdb, self.threat1)
 
-    def test_returns_ticket_with_initial_status_if_no_status_created(
-        self, testdb, actionable_topic1
-    ):
-        db_dependency1 = testdb.scalars(select(models.Dependency)).one()
-        db_threat1 = testdb.scalars(select(models.Threat)).one()
-        db_ticket1 = testdb.scalars(select(models.Ticket)).one()
-        db_status1 = testdb.scalars(select(models.TicketStatus)).one()
-        expected_ticket_response1 = {
-            "ticket_id": str(db_ticket1.ticket_id),
-            "threat_id": str(db_threat1.threat_id),
-            "created_at": datetime.isoformat(db_ticket1.created_at),
-            "ssvc_deployer_priority": (
-                None
-                if db_ticket1.ssvc_deployer_priority is None
-                else db_ticket1.ssvc_deployer_priority.value
-            ),
-            "threat": {
-                "threat_id": str(db_threat1.threat_id),
-                "topic_id": str(self.topic1.topic_id),
-                "dependency_id": str(db_dependency1.dependency_id),
-                "threat_safety_impact": (
-                    str(db_threat1.threat_safety_impact.value)
-                    if db_threat1.threat_safety_impact
-                    else db_threat1.threat_safety_impact
+    class TestQueryParameter(Common):
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup_for_test_query_parameter(self, testdb):
+            # Given
+            db_ticket1 = testdb.scalars(select(models.Ticket)).one()
+            db_status1 = testdb.scalars(select(models.TicketStatus)).one()
+            self.expected_ticket_response1 = {
+                "ticket_id": str(db_ticket1.ticket_id),
+                "threat_id": str(self.threat1.threat_id),
+                "dependency_id": str(self.dependency1.dependency_id),
+                "created_at": datetime.isoformat(db_ticket1.created_at),
+                "ssvc_deployer_priority": (
+                    None
+                    if db_ticket1.ssvc_deployer_priority is None
+                    else db_ticket1.ssvc_deployer_priority.value
+                ),
+                "ticket_safety_impact": (
+                    None
+                    if db_ticket1.ticket_safety_impact is None
+                    else db_ticket1.ticket_safety_impact.value
                 ),
                 "reason_safety_impact": None,
-            },
-            "ticket_status": {
-                "status_id": db_status1.status_id,  # do not check
-                "ticket_id": str(db_ticket1.ticket_id),
-                "topic_status": models.TopicStatusType.alerted.value,
-                "user_id": None,
-                "created_at": datetime.isoformat(db_status1.created_at),  # check later
-                "assignees": [],
-                "note": None,
-                "scheduled_at": None,
-                "action_logs": [],
-            },
-        }
+                "threat": {
+                    "threat_id": str(self.threat1.threat_id),
+                    "package_version_id": str(self.package_version1.package_version_id),
+                    "vuln_id": str(self.vuln1.vuln_id),
+                },
+                "ticket_status": {
+                    "status_id": db_status1.status_id,  # do not check
+                    "ticket_id": str(db_ticket1.ticket_id),
+                    "topic_status": models.TopicStatusType.alerted.value,
+                    "user_id": None,
+                    "created_at": datetime.isoformat(db_status1.created_at),  # check later
+                    "assignees": [],
+                    "note": None,
+                    "scheduled_at": None,
+                    "action_logs": [],
+                },
+            }
 
-        url = (
-            f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-            f"/topics/{self.topic1.topic_id}/tags/{self.tag1.tag_id}/tickets"
-        )
-        user1_access_token = self._get_access_token(USER1)
-        _headers = {
-            "Authorization": f"Bearer {user1_access_token}",
-            "Content-Type": "application/json",
-            "accept": "application/json",
-        }
-        response = client.get(url, headers=_headers)
-        assert response.status_code == 200
+        def test_it_should_return_200_when_ticket_exists(self):
+            # When
+            response = client.get(f"/pteams/{self.pteam1.pteam_id}/tickets", headers=headers(USER1))
 
-        now = datetime.now()
-        data = response.json()
-        assert len(data) == 1
-        ticket1 = data[0]
-        assert ticket1 == expected_ticket_response1
-        status1_created_at = datetime.fromisoformat(ticket1["ticket_status"]["created_at"])
-        assert now - timedelta(seconds=10) < status1_created_at < now
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
 
-    def test_returns_ticket_with_current_status_if_status_created(self, testdb, actionable_topic1):
-        db_dependency1 = testdb.scalars(select(models.Dependency)).one()
-        db_threat1 = testdb.scalars(select(models.Threat)).one()
-        db_ticket1 = testdb.scalars(select(models.Ticket)).one()
-        status_request = {
-            "topic_status": models.TopicStatusType.scheduled.value,
-            "assignees": [str(self.user2.user_id)],
-            "note": "assign user2 and schedule at 2345/6/7",
-            "scheduled_at": "2345-06-07T08:09:10",
-        }
-        self._set_ticket_status(
-            self.pteam1.pteam_id, self.service_id1, db_ticket1.ticket_id, status_request
-        )
+        def test_it_should_return_200_when_all_queries_are_specified(self):
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={self.service1.service_id}"
+                f"&package_id={self.package1.package_id}&vuln_id={self.vuln1.vuln_id}",
+                headers=headers(USER1),
+            )
 
-        db_ticket_status1 = testdb.scalars(select(models.TicketStatus)).one()
-        expected_ticket_response1 = {
-            "ticket_id": str(db_ticket1.ticket_id),
-            "threat_id": str(db_threat1.threat_id),
-            "created_at": datetime.isoformat(db_ticket1.created_at),
-            "ssvc_deployer_priority": (
-                None
-                if db_ticket1.ssvc_deployer_priority is None
-                else db_ticket1.ssvc_deployer_priority.value
-            ),
-            "threat": {
-                "threat_id": str(db_threat1.threat_id),
-                "topic_id": str(self.topic1.topic_id),
-                "dependency_id": str(db_dependency1.dependency_id),
-                "threat_safety_impact": (
-                    str(db_threat1.threat_safety_impact.value)
-                    if db_threat1.threat_safety_impact
-                    else db_threat1.threat_safety_impact
-                ),
-                "reason_safety_impact": None,
-            },
-            "ticket_status": {
-                "status_id": str(db_ticket_status1.status_id),
-                "ticket_id": str(db_ticket1.ticket_id),
-                "user_id": str(self.user1.user_id),
-                "created_at": datetime.isoformat(db_ticket_status1.created_at),
-                "action_logs": [],
-                **status_request,
-            },
-        }
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
 
-        url = (
-            f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-            f"/topics/{self.topic1.topic_id}/tags/{self.tag1.tag_id}/tickets"
-        )
-        user1_access_token = self._get_access_token(USER1)
-        _headers = {
-            "Authorization": f"Bearer {user1_access_token}",
-            "Content-Type": "application/json",
-            "accept": "application/json",
-        }
-        response = client.get(url, headers=_headers)
-        assert response.status_code == 200
+        def test_it_should_return_200_when_package_id_is_specified(self):
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?package_id={self.package1.package_id}",
+                headers=headers(USER1),
+            )
 
-        data = response.json()
-        assert len(data) == 1
-        ticket1 = data[0]
-        assert ticket1 == expected_ticket_response1
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
+
+        def test_it_should_return_200_when_vuln_id_is_specified(self):
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?vuln_id={self.vuln1.vuln_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
+
+        def test_it_should_return_200_when_service_id_is_specified(self):
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={self.service1.service_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
+
+        def test_it_should_return_no_ticket_when_wrong_package_id(self, testdb):
+            # Given
+            package2 = models.Package(
+                name="test_package2",
+                ecosystem="test_ecosystem2",
+            )
+            persistence.create_package(testdb, package2)
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?package_id={package2.package_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json() == []
+
+        def test_it_should_return_no_ticket_when_wrong_vuln_id(self, testdb):
+            # Given
+            vuln2 = models.Vuln(
+                title="Test Vulnerability2",
+                detail="This is a test vulnerability.",
+                cvss_v3_score=7.5,
+                created_by=self.user1.user_id,
+                created_at="2023-10-01T00:00:00Z",
+                updated_at="2023-10-01T00:00:00Z",
+                content_fingerprint="dummy_fingerprint",
+            )
+            persistence.create_vuln(testdb, vuln2)
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?vuln_id={vuln2.vuln_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json() == []
+
+        def test_it_should_return_no_ticket_when_wrong_service_id(self, testdb):
+            # Given
+            service2 = models.Service(
+                service_name="test_service2",
+                pteam_id=str(self.pteam1.pteam_id),
+            )
+            testdb.add(service2)
+            testdb.flush()
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={service2.service_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json() == []
+
+    class TestWrongId(Common):
+        def test_it_should_return_404_when_pteam_id_does_not_exist(self):
+            # Given
+            pteam_id = str(uuid4())
+
+            # When
+            response = client.get(
+                f"/pteams/{pteam_id}/tickets",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 404
+            assert response.json()["detail"] == "No such pteam"
+
+        def test_it_should_return_404_when_service_id_does_not_exist(self):
+            # Given
+            setvice_id = str(uuid4())
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={setvice_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 404
+            assert response.json()["detail"] == "No such service"
+
+        def test_it_should_return_404_when_vuln_id_does_not_exist(self):
+            # Given
+            vuln_id = str(uuid4())
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?vuln_id={vuln_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 404
+            assert response.json()["detail"] == "No such vuln"
+
+        def test_it_should_return_404_when_package_id_does_not_exist(self):
+            # Given
+            package_id = str(uuid4())
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?package_id={package_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 404
+            assert response.json()["detail"] == "No such package"
+
+        def test_it_should_return_403_when_not_pteam_member(self):
+            # Given
+            create_user(USER2)
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets",
+                headers=headers(USER2),
+            )
+
+            # Then
+            assert response.status_code == 403
+            assert response.json()["detail"] == "Not a pteam member"
 
 
 class TestUpdatePTeamService:

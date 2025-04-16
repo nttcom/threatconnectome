@@ -372,10 +372,8 @@ class ActionLogRequest(ORMModel):
 
 class ThreatResponse(ORMModel):
     threat_id: UUID
-    dependency_id: UUID
-    topic_id: UUID
-    threat_safety_impact: SafetyImpactEnum | None = None
-    reason_safety_impact: str | None = None
+    package_version_id: UUID
+    vuln_id: UUID
 
 
 class ThreatUpdateRequest(ORMModel):
@@ -406,8 +404,11 @@ class TicketStatusResponse(ORMModel):
 class TicketResponse(ORMModel):
     ticket_id: UUID
     threat_id: UUID
+    dependency_id: UUID
     created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
+    ticket_safety_impact: SafetyImpactEnum | None
+    reason_safety_impact: str | None
     threat: ThreatResponse
     ticket_status: TicketStatusResponse
 
