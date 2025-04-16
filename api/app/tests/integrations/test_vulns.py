@@ -218,3 +218,35 @@ class TestUpdateVuln:
         assert vuln is not None
         assert self.affect1.affected_versions != vuln.affects[0].affected_versions
         assert self.affect1.fixed_versions != vuln.affects[0].fixed_versions
+
+    def test_send_alert_if_vulnerabilities_are_found_when_updating_vuln(
+        self, testdb: Session, mocker, update_setup
+    ):
+        # Given
+        request = {
+            "exploitation": "active",
+            "automatable": "yes",
+        }
+
+        send_alert_to_pteam = mocker.patch("app.business.ticket_business.send_alert_to_pteam")
+
+        # When
+        response = client.put(f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=request)
+
+        ## get ticket_id
+        ticket = persistence.get_ticket_by_threat_id_and_dependency_id(
+            testdb, self.threat1.threat_id, self.dependency1.dependency_id
+        )
+
+        if ticket is not None:
+            alerts = testdb.scalars(
+                select(models.Alert)
+                .where(models.Alert.ticket_id == str(ticket.ticket_id))
+                .order_by(models.Alert.alerted_at.desc())
+            ).all()
+
+        assert alerts is not None
+        assert alerts[0].ticket.threat.vuln_id == str(self.vuln1.vuln_id)
+
+        send_alert_to_pteam.assert_called_once()
+        send_alert_to_pteam.assert_called_with(alerts[0])
