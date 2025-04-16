@@ -494,12 +494,12 @@ def get_pteam_tags_summary(
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/dependencies",
+    "/{pteam_id}/dependencies",
     response_model=list[schemas.DependencyResponse],
 )
 def get_dependencies(
     pteam_id: UUID,
-    service_id: UUID,
+    service_id: UUID | str | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -507,12 +507,19 @@ def get_dependencies(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (
-        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
-    ):
-        raise NO_SUCH_SERVICE
 
-    return service.dependencies
+    dependencies = []
+    if service_id:
+        if not (
+            service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+        ):
+            raise NO_SUCH_SERVICE
+        dependencies = service.dependencies
+    else:
+        for service in pteam.services:
+            dependencies.extend(service.dependencies)
+
+    return dependencies
 
 
 @router.get(
