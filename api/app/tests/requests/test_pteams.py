@@ -1009,6 +1009,153 @@ def test_get_dependency_with_wrong_dependency_id(testdb):
     assert dependency_response.json() == {"detail": "No such dependency"}
 
 
+class TestGetDependencies:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, testdb):
+        # Given
+        self.user1 = create_user(USER1)
+        self.pteam1 = create_pteam(USER1, PTEAM1)
+
+        test_service1 = "test_service1"
+        test_service2 = "test_service2"
+        self.test_target = "test target"
+        test_version = "1.0.0"
+
+        # Todo: Replace when API is created.
+        self.service1 = models.Service(
+            service_name=test_service1,
+            pteam_id=str(self.pteam1.pteam_id),
+        )
+        testdb.add(self.service1)
+        testdb.flush()
+
+        self.service2 = models.Service(
+            service_name=test_service2,
+            pteam_id=str(self.pteam1.pteam_id),
+        )
+        testdb.add(self.service2)
+        testdb.flush()
+
+        self.package1 = models.Package(
+            name="test_package1",
+            ecosystem="test_ecosystem1",
+        )
+        persistence.create_package(testdb, self.package1)
+
+        self.package_version1 = models.PackageVersion(
+            package_id=self.package1.package_id,
+            version=test_version,
+        )
+        persistence.create_package_version(testdb, self.package_version1)
+
+        self.dependency1 = models.Dependency(
+            target=self.test_target,
+            package_manager="npm",
+            package_version_id=self.package_version1.package_version_id,
+            service=self.service1,
+        )
+        testdb.add(self.dependency1)
+        testdb.flush()
+
+        self.dependency2 = models.Dependency(
+            target=self.test_target,
+            package_manager="npm",
+            package_version_id=self.package_version1.package_version_id,
+            service=self.service2,
+        )
+        testdb.add(self.dependency2)
+        testdb.flush()
+
+    def test_is_should_return_200_when_dependencies_exist(self):
+        # Given
+        expected_dependency = [
+            {
+                "dependency_id": str(self.dependency1.dependency_id),
+                "service_id": str(self.service1.service_id),
+                "package_version_id": str(self.package_version1.package_version_id),
+                "package_manager": "npm",
+                "target": self.test_target,
+                "dependency_mission_impact": None,
+            },
+            {
+                "dependency_id": str(self.dependency2.dependency_id),
+                "service_id": str(self.service2.service_id),
+                "package_version_id": str(self.package_version1.package_version_id),
+                "package_manager": "npm",
+                "target": self.test_target,
+                "dependency_mission_impact": None,
+            },
+        ]
+
+        # When
+        response = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/dependencies", headers=headers(USER1)
+        )
+
+        # Then
+        assert response.status_code == 200
+        assert response.json() == expected_dependency
+
+    def test_it_should_return_200_when_service_id_is_specified(self):
+        # Given
+        expected_dependency = {
+            "dependency_id": str(self.dependency1.dependency_id),
+            "service_id": str(self.service1.service_id),
+            "package_version_id": str(self.package_version1.package_version_id),
+            "package_manager": "npm",
+            "target": self.test_target,
+            "dependency_mission_impact": None,
+        }
+
+        # When
+        response = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/dependencies?service_id={self.service1.service_id}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 200
+        assert response.json()[0] == expected_dependency
+
+    def test_it_should_return_404_when_service_id_does_not_exist(self):
+        # Given
+        wrong_service_id = str(uuid4())
+
+        # When
+        response = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/dependencies?service_id={wrong_service_id}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such service"
+
+    def test_it_should_return_404_when_pteam_id_does_not_exist(self):
+        # Given
+        wronge_pteam_id = str(uuid4())
+
+        # When
+        response = client.get(f"/pteams/{wronge_pteam_id}/dependencies", headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such pteam"
+
+    def test_it_should_return_403_when_not_pteam_member(self):
+        # Given
+        create_user(USER2)
+
+        # When
+        response = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/dependencies", headers=headers(USER2)
+        )
+
+        # Then
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Not a pteam member"
+
+
 def test_delete_member__not_last_admin():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
