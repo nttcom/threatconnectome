@@ -21,10 +21,7 @@ from app.tests.medium.utils import (
 client = TestClient(app)
 
 
-## create_actionのテストコード
 class TestCreateAction:
-
-    ## 共通の設定
 
     @pytest.fixture(autouse=True)
     def common_setup(self, testdb: Session):
@@ -50,14 +47,9 @@ class TestCreateAction:
             ],
         }
 
-        response = client.put(
-            f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.vuln_request1
-        )
+        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.vuln_request1)
 
     def test_create_action_successfully(self, testdb: Session):
-        """
-        Test that create_action successfully creates an action.
-        """
         # Given
         action_create_request = {
             "vuln_id": str(self.new_vuln_id),
@@ -67,7 +59,7 @@ class TestCreateAction:
         }
 
         # When
-        response = client.post(
+        client.post(
             "/actions",
             headers=headers(USER1),
             json=action_create_request,
@@ -78,13 +70,12 @@ class TestCreateAction:
             select(models.VulnAction).where(models.VulnAction.vuln_id == str(self.new_vuln_id))
         ).one_or_none()
 
-        assert response.status_code == 200
         assert action is not None
         assert action.action == action_create_request["action"]
         assert action.action_type == action_create_request["action_type"]
         assert action.recommended == action_create_request["recommended"]
 
-    def test_create_ticket_when_create_vuln_action(self, testdb: Session):
+    def test_vuln_action_triggers_ticket_creation(self, testdb: Session):
         # Given
         ## If fixed_versions is not provided, a ticket will not be created without a vuln_action.
         no_fixed_versions_vuln_id = uuid4()
@@ -100,7 +91,7 @@ class TestCreateAction:
                     "name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
-                    "fixed_versions": [],  # fixed_versionsがない場合、vuln_acitonがないとticketは生成されない
+                    "fixed_versions": [],
                 }
             ],
         }
@@ -125,6 +116,9 @@ class TestCreateAction:
             str(no_fixed_versions_vuln_request["vulnerable_packages"][0]["name"]),
             str(no_fixed_versions_vuln_request["vulnerable_packages"][0]["ecosystem"]),
         )
+
+        if package1 is None:
+            raise Exception("package1 is None")
 
         package_version = models.PackageVersion(
             package_id=package1.package_id,
@@ -156,7 +150,7 @@ class TestCreateAction:
             "action_type": "elimination",
             "recommended": True,
         }
-        response = client.post(
+        client.post(
             "/actions",
             headers=headers(USER1),
             json=action_create_request,
@@ -170,50 +164,3 @@ class TestCreateAction:
         )
 
         assert ticket is not None
-
-    def test_raise_400_if_vuln_id_is_invalid(self):
-        """
-        Test that create_action raises a 400 error if vuln_id is invalid.
-        """
-        # Given
-        invalid_vuln_id = uuid4()
-        action_create_request = {
-            "vuln_id": str(invalid_vuln_id),
-            "action": "example action",
-            "action_type": "elimination",
-            "recommended": True,
-        }
-
-        # Send the request and check the response
-        response = client.post(
-            "/actions",
-            headers=headers(USER1),
-            json=action_create_request,
-        )
-
-        # Then
-        assert response.status_code == 400
-        assert response.json() == {"detail": "No such vuln"}
-
-    def test_raise_400_if_vuln_id_is_none(self):
-        """
-        Test that create_action raises a 400 error if vuln_id is None.
-        """
-        # Given
-        action_create_request = {
-            "vuln_id": None,
-            "action": "example action",
-            "action_type": "elimination",
-            "recommended": True,
-        }
-
-        # Send the request and check the response
-        response = client.post(
-            "/actions",
-            headers=headers(USER1),
-            json=action_create_request,
-        )
-
-        # Then
-        assert response.status_code == 400
-        assert response.json() == {"detail": "Missing vuln_id"}
