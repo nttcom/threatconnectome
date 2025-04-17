@@ -1,7 +1,6 @@
 from typing import Any
 from uuid import uuid4
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -23,14 +22,12 @@ client = TestClient(app)
 
 class TestCreateAction:
 
-    @pytest.fixture(autouse=True)
-    def common_setup(self, testdb: Session):
-        # Create a user
-        self.user = create_user(USER1)
+    def test_action_is_created_when_request_is_successful(self, testdb: Session):
+        # Given
+        create_user(USER1)
 
-        # Create a vuln
-        self.new_vuln_id = uuid4()
-        self.vuln_request1 = {
+        new_vuln_id = uuid4()
+        vuln_request1 = {
             "title": "Example vuln",
             "cve_id": "CVE-0000-0001",
             "detail": "This vuln is example.",
@@ -46,13 +43,9 @@ class TestCreateAction:
                 }
             ],
         }
-
-        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.vuln_request1)
-
-    def test_create_action_successfully(self, testdb: Session):
-        # Given
+        client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=vuln_request1)
         action_create_request = {
-            "vuln_id": str(self.new_vuln_id),
+            "vuln_id": str(new_vuln_id),
             "action": "example action",
             "action_type": "elimination",
             "recommended": True,
@@ -67,7 +60,7 @@ class TestCreateAction:
 
         # Then
         action = testdb.scalars(
-            select(models.VulnAction).where(models.VulnAction.vuln_id == str(self.new_vuln_id))
+            select(models.VulnAction).where(models.VulnAction.vuln_id == str(new_vuln_id))
         ).one_or_none()
 
         assert action is not None
@@ -77,6 +70,8 @@ class TestCreateAction:
 
     def test_vuln_action_triggers_ticket_creation(self, testdb: Session):
         # Given
+        create_user(USER1)
+
         ## If fixed_versions is not provided, a ticket will not be created without a vuln_action.
         no_fixed_versions_vuln_id = uuid4()
         no_fixed_versions_vuln_request: dict[str, Any] = {

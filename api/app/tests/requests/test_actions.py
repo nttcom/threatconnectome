@@ -25,7 +25,7 @@ class TestCreateAction:
 
         # Create a vuln
         self.new_vuln_id = uuid4()
-        self.vuln_request1 = {
+        vuln_request1 = {
             "title": "Example vuln",
             "cve_id": "CVE-0000-0001",
             "detail": "This vuln is example.",
@@ -42,7 +42,7 @@ class TestCreateAction:
             ],
         }
 
-        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.vuln_request1)
+        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=vuln_request1)
 
     def test_response_200_if_create_action_successfully(self, testdb: Session):
         # Given
