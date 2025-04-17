@@ -1,18 +1,15 @@
-import CloseIcon from "@mui/icons-material/Close";
 import {
-  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
-  IconButton,
   TextField,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
+import { DialogHeader } from "./DialogHeader";
 import { UPDATE_PASSWORD_DIALOG_STATES } from "./dialogStates";
 
 export function UpdatePasswordDialog(props) {
@@ -22,12 +19,7 @@ export function UpdatePasswordDialog(props) {
   };
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-      <Box sx={{ position: "relative" }}>
-        <DialogTitle sx={{ textAlign: "center" }}>Update your password</DialogTitle>
-        <IconButton sx={{ position: "absolute", right: 8, top: 8 }} onClick={handleClose}>
-          <CloseIcon />
-        </IconButton>
-      </Box>
+      <DialogHeader title="Update your password" onClose={handleClose} />
       <DialogContent>
         <DialogContentText>
           Enter your current password and new password. Your new password must be at least 8
