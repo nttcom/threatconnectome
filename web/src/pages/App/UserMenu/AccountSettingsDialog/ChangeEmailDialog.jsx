@@ -4,6 +4,7 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
+  Stack,
   TextField,
 } from "@mui/material";
 import PropTypes from "prop-types";
@@ -146,28 +147,28 @@ export function ChangeEmailDialog(props) {
           <DialogContentText>
             Enter a new email address and your existing password.
           </DialogContentText>
-          <TextField
-            hiddenLabel
-            size="small"
-            sx={{ width: 1, mt: 2 }}
-            label="New email address"
-            type="email"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-            error={!!errors.newEmail}
-            helperText={errors.newEmail}
-          />
-          <TextField
-            hiddenLabel
-            size="small"
-            sx={{ width: 1, mt: 2 }}
-            label="Current password"
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            error={!!errors.currentPassword}
-            helperText={errors.currentPassword}
-          />
+          <Stack spacing={2} sx={{ mt: 2 }}>
+            <TextField
+              hiddenLabel
+              size="small"
+              label="New email address"
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              error={!!errors.newEmail}
+              helperText={errors.newEmail}
+            />
+            <TextField
+              hiddenLabel
+              size="small"
+              label="Current password"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              error={!!errors.currentPassword}
+              helperText={errors.currentPassword}
+            />
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>

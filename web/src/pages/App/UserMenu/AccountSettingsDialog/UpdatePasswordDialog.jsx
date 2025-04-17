@@ -4,6 +4,7 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
+  Stack,
   TextField,
 } from "@mui/material";
 import PropTypes from "prop-types";
@@ -87,39 +88,38 @@ export function UpdatePasswordDialog(props) {
           Enter your current password and new password. Your new password must be at least 8
           characters long.
         </DialogContentText>
-        <TextField
-          hiddenLabel
-          size="small"
-          sx={{ width: 1, mt: 2 }}
-          label="Current password"
-          type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          error={!!currentPasswordError}
-          helperText={currentPasswordError}
-        />
-        <TextField
-          hiddenLabel
-          size="small"
-          sx={{ width: 1, mt: 2 }}
-          label="New password"
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          error={!!newPasswordError}
-          helperText={newPasswordError}
-        />
-        <TextField
-          hiddenLabel
-          size="small"
-          sx={{ width: 1, mt: 2 }}
-          label="Confirm your new password"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          error={!!confirmPasswordError}
-          helperText={confirmPasswordError}
-        />
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          <TextField
+            hiddenLabel
+            size="small"
+            label="Current password"
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            error={!!currentPasswordError}
+            helperText={currentPasswordError}
+          />
+          <TextField
+            hiddenLabel
+            size="small"
+            label="New password"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            error={!!newPasswordError}
+            helperText={newPasswordError}
+          />
+          <TextField
+            hiddenLabel
+            size="small"
+            label="Confirm your new password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            error={!!confirmPasswordError}
+            helperText={confirmPasswordError}
+          />
+        </Stack>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
