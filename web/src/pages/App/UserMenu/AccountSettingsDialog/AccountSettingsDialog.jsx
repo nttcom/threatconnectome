@@ -13,6 +13,7 @@ import { DeleteAccountDialog } from "../DeleteAccountDialog";
 
 import { ChangeEmailDialog } from "./ChangeEmailDialog";
 import { UpdatePasswordDialog } from "./UpdatePasswordDialog";
+import { CHANGE_EMAIL_DIALOG_STATES, UPDATE_PASSWORD_DIALOG_STATES } from "./dialogStates";
 
 export function AccountSettingsDialog(props) {
   const { accountSettingOpen, setAccountSettingOpen, onSelectYear, userMe } = props;
@@ -26,8 +27,8 @@ export function AccountSettingsDialog(props) {
   // Change Password is not implemented
   const changePasswordDisabled = true;
 
-  const [changeEmailOpen, setChangeEmailOpen] = useState(false);
-  const [updatePasswordOpen, setUpdatePasswordOpen] = useState(false);
+  const [changeEmailOpen, setChangeEmailOpen] = useState(CHANGE_EMAIL_DIALOG_STATES.NONE);
+  const [updatePasswordOpen, setUpdatePasswordOpen] = useState(UPDATE_PASSWORD_DIALOG_STATES.NONE);
 
   return (
     <>
@@ -51,9 +52,9 @@ export function AccountSettingsDialog(props) {
                 variant="contained"
                 size="small"
                 sx={{ mt: 1 }}
-                disabled={changeEmaildisabled}
+                // disabled={changeEmaildisabled}
                 onClick={() => {
-                  setChangeEmailOpen(1);
+                  setChangeEmailOpen(CHANGE_EMAIL_DIALOG_STATES.SEND_VERIFICATION_EMAIL);
                 }}
               >
                 Change Email
@@ -73,9 +74,9 @@ export function AccountSettingsDialog(props) {
               <Button
                 variant="contained"
                 size="small"
-                disabled={changePasswordDisabled}
+                // disabled={changePasswordDisabled}
                 onClick={() => {
-                  setUpdatePasswordOpen(true);
+                  setUpdatePasswordOpen(UPDATE_PASSWORD_DIALOG_STATES.UPDATE_PASSWORD);
                 }}
               >
                 Change Password
