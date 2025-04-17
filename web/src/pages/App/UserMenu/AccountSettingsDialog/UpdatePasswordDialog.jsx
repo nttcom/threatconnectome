@@ -23,32 +23,6 @@ export function UpdatePasswordDialog(props) {
   const [newPasswordError, setNewPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
-  const handleClose = () => {
-    setOpen(UPDATE_PASSWORD_DIALOG_STATES.NONE);
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setCurrentPasswordError("");
-    setNewPasswordError("");
-    setConfirmPasswordError("");
-  };
-
-  const handleUpdatePassword = () => {
-    // validation for each field
-    const isCurrentPasswordValid = validateCurrentPassword();
-    const isNewPasswordValid = validateNewPassword();
-    const isConfirmPasswordValid = validateConfirmPassword();
-
-    // All validations must succeed to proceed
-    if (!isCurrentPasswordValid || !isNewPasswordValid || !isConfirmPasswordValid) {
-      return;
-    }
-
-    // Password update logic goes here
-    console.log("Password updated successfully!");
-    handleClose();
-  };
-
   const validateCurrentPassword = () => {
     if (!currentPassword) {
       setCurrentPasswordError("Current password is required.");
@@ -78,6 +52,32 @@ export function UpdatePasswordDialog(props) {
     }
     setConfirmPasswordError("");
     return true;
+  };
+
+  const handleClose = () => {
+    setOpen(UPDATE_PASSWORD_DIALOG_STATES.NONE);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setCurrentPasswordError("");
+    setNewPasswordError("");
+    setConfirmPasswordError("");
+  };
+
+  const handleUpdatePassword = () => {
+    // validation for each field
+    const isCurrentPasswordValid = validateCurrentPassword();
+    const isNewPasswordValid = validateNewPassword();
+    const isConfirmPasswordValid = validateConfirmPassword();
+
+    // All validations must succeed to proceed
+    if (!isCurrentPasswordValid || !isNewPasswordValid || !isConfirmPasswordValid) {
+      return;
+    }
+
+    // TODO: Add logic for updating the password
+    console.log("Password updated successfully!");
+    handleClose();
   };
 
   return (

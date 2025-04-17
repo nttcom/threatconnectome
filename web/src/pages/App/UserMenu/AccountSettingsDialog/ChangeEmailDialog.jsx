@@ -21,14 +21,7 @@ export function ChangeEmailDialog(props) {
   const [verificationCode, setVerificationCode] = useState("");
   const [errors, setErrors] = useState({});
 
-  const handleClose = () => {
-    // Close the dialog and reset the state
-    setNewEmail("");
-    setCurrentPassword("");
-    setVerificationCode("");
-    setErrors({});
-    setOpen(CHANGE_EMAIL_DIALOG_STATES.NONE);
-  };
+  const userEmail = "sample@example.com"; // Replace with actual email from user data
 
   function validateEmailFormat(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -58,15 +51,24 @@ export function ChangeEmailDialog(props) {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleClose = () => {
+    // Close the dialog and reset the state
+    setNewEmail("");
+    setCurrentPassword("");
+    setVerificationCode("");
+    setErrors({});
+    setOpen(CHANGE_EMAIL_DIALOG_STATES.NONE);
+  };
+
   const handleSendVerificationCode = () => {
-    // Add logic for sending verification code
+    // TODO: Add logic to send a verification code to the user's email address
     console.log("Verification code sent to:", userEmail);
     setOpen(CHANGE_EMAIL_DIALOG_STATES.ENTER_VERIFICATION_CODE);
   };
 
   const handleVerifyCode = () => {
     if (validateVerificationCode()) {
-      // Add logic for verifying the code
+      // TODO: Add logic to verify the entered verification code
       console.log("Verification code verified successfully!");
       setOpen(CHANGE_EMAIL_DIALOG_STATES.CHANGE_EMAIL);
     }
@@ -74,13 +76,11 @@ export function ChangeEmailDialog(props) {
 
   const handleChangeEmail = () => {
     if (validateChangeEmail()) {
-      // Add logic for changing email address
+      // TODO: Add logic to update the user's email address in the system
       console.log("Email changed successfully!");
       handleClose();
     }
   };
-
-  const userEmail = "sample@example.com"; // Replace with actual email from user data
 
   return (
     <>
