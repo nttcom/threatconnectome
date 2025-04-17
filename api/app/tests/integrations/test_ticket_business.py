@@ -204,11 +204,20 @@ class TestFixTicketByThreat:
         )
         persistence.create_threat(testdb, threat)
 
+        ticket = models.Ticket(
+            threat_id=threat.threat_id,
+            dependency_id=dependency1.dependency_id,
+            created_at="2023-10-01T00:00:00Z",
+            threat=threat,
+            dependency=dependency1,
+        )
+        persistence.create_ticket(testdb, ticket)
+
         # When
         ticket_business.fix_ticket_by_threat(testdb, threat)
 
         # Then
-        ticket = testdb.scalars(
+        selected_ticket = testdb.scalars(
             select(models.Ticket).where(models.Ticket.threat_id == threat.threat_id)
         ).one_or_none()
-        assert ticket is None
+        assert selected_ticket is None
