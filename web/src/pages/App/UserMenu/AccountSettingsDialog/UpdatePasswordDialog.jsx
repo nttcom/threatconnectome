@@ -13,13 +13,18 @@ import {
 import PropTypes from "prop-types";
 import React from "react";
 
+import { UPDATE_PASSWORD_DIALOG_STATES } from "./dialogStates";
+
 export function UpdatePasswordDialog(props) {
   const { open, setOpen } = props;
+  const handleClose = () => {
+    setOpen(UPDATE_PASSWORD_DIALOG_STATES.NONE);
+  };
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
       <Box sx={{ position: "relative" }}>
         <DialogTitle sx={{ textAlign: "center" }}>Update your password</DialogTitle>
-        <IconButton sx={{ position: "absolute", right: 8, top: 8 }} onClick={() => setOpen(false)}>
+        <IconButton sx={{ position: "absolute", right: 8, top: 8 }} onClick={handleClose}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -38,13 +43,11 @@ export function UpdatePasswordDialog(props) {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setOpen(false)}>Cancel</Button>
+        <Button onClick={handleClose}>Cancel</Button>
         <Button
           variant="contained"
-          onClick={() => {
-            /* Add password update logic here */
-            setOpen(false);
-          }}
+          /* Add password update logic here */
+          onClick={handleClose}
         >
           Update your password
         </Button>
