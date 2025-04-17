@@ -176,7 +176,7 @@ class TestUpdateVuln:
         vuln = testdb.scalars(
             select(models.Vuln).where(models.Vuln.vuln_id == str(self.vuln1.vuln_id))
         ).one_or_none()
-        print(response.json()["detail"])
+
         assert response.status_code == 200
         assert vuln is not None
         assert self.request1["title"] == vuln.title
@@ -236,10 +236,9 @@ class TestUpdateVuln:
         # When
         response = client.put(f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=request)
 
-        updated_ticket = persistence.get_ticket_by_threat_id_and_dependency_id(
-            testdb, self.threat1.threat_id, self.dependency1.dependency_id
-        )
+        updated_ticket = persistence.get_ticket_by_id(testdb, previous_ticket.ticket_id)
 
+        # Then
         ## previous_ssvc = scheduled,updated_ssvc = immediate
         assert response.status_code == 200
         assert previous_ticket is not None

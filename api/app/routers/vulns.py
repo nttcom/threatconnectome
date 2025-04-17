@@ -52,9 +52,7 @@ def __handle_create_vuln(
         )
 
     # check packages
-    requested_packages = requested_packages = _get_requested_packages(
-        db, request.vulnerable_packages
-    )
+    requested_packages = _get_requested_packages(db, request.vulnerable_packages)
 
     # check cvss_v3_score range
     if request.cvss_v3_score is not None:
@@ -99,10 +97,16 @@ def __handle_create_vuln(
 
     db.commit()
 
-    response = request.model_dump()
-    response["vuln_id"] = str(vuln_id)
-
-    return schemas.VulnReponse(**response)
+    return schemas.VulnReponse(
+        vuln_id=str(vuln_id),
+        title=request.title,
+        cve_id=request.cve_id,
+        detail=request.detail,
+        exploitation=request.exploitation,
+        automatable=request.automatable,
+        cvss_v3_score=request.cvss_v3_score,
+        vulnerable_packages=request.vulnerable_packages,
+    )
 
 
 def __handle_update_vuln(
@@ -123,10 +127,8 @@ def __handle_update_vuln(
     fields_to_check = [
         "title",
         "detail",
-        "cve_id",
         "exploitation",
         "automatable",
-        "cvss_v3_score",
     ]
     for field in fields_to_check:
         if field in update_request.keys() and getattr(request, field) is None:
@@ -135,8 +137,10 @@ def __handle_update_vuln(
                 detail=f"Cannot specify None for {field}",
             )
 
-    if "cvss_v3_score" in update_request.keys() and (
-        request.cvss_v3_score > 10.0 or request.cvss_v3_score < 0
+    if (
+        "cvss_v3_score" in update_request.keys()
+        and request.cvss_v3_score is not None
+        and (request.cvss_v3_score > 10.0 or request.cvss_v3_score < 0)
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -148,7 +152,7 @@ def __handle_update_vuln(
         vuln.title = request.title
     if "detail" in update_request.keys() and request.detail is not None:
         vuln.detail = request.detail
-    if "cve_id" in update_request.keys() and request.cve_id is not None:
+    if "cve_id" in update_request.keys():
         vuln.cve_id = request.cve_id
     if "exploitation" in update_request.keys() and request.exploitation is not None:
         vuln.exploitation = request.exploitation
@@ -183,11 +187,22 @@ def __handle_update_vuln(
 
     vuln.updated_at = datetime.now()
 
+    threat_business.fix_threat_by_vuln_that_removed_affect(db, vuln)
     new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
     for threat in new_threats:
         ticket_business.fix_ticket_by_threat(db, threat)
 
     db.commit()
+
+    vulnerable_packages = [
+        schemas.VulnerablePackage(
+            name=affect.package.name,
+            ecosystem=affect.package.ecosystem,
+            affected_versions=affect.affected_versions,
+            fixed_versions=affect.fixed_versions,
+        )
+        for affect in vuln.affects
+    ]
 
     return schemas.VulnReponse(
         vuln_id=vuln.vuln_id,
@@ -197,7 +212,7 @@ def __handle_update_vuln(
         exploitation=vuln.exploitation,
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
-        vulnerable_packages=request.vulnerable_packages,
+        vulnerable_packages=vulnerable_packages,
     )
 
 
