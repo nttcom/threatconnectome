@@ -1,18 +1,15 @@
-import CloseIcon from "@mui/icons-material/Close";
 import {
-  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
-  IconButton,
   TextField,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import React from "react";
 
+import { DialogHeader } from "./DialogHeader";
 import { CHANGE_EMAIL_DIALOG_STATES } from "./dialogStates";
 
 export function ChangeEmailDialog(props) {
@@ -27,16 +24,7 @@ export function ChangeEmailDialog(props) {
         maxWidth="xs"
         fullWidth
       >
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", px: 2 }}>
-          <DialogTitle sx={{ gridColumn: 2, justifySelf: "center" }}>
-            Verify email address
-          </DialogTitle>
-          <Box sx={{ gridColumn: 3, justifySelf: "end", display: "flex", alignItems: "center" }}>
-            <IconButton onClick={handleClose}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </Box>
+        <DialogHeader title="Verify email address" onClose={handleClose} />
         <DialogContent>
           <DialogContentText>
             {"Your current email address is "}
@@ -60,12 +48,7 @@ export function ChangeEmailDialog(props) {
         maxWidth="xs"
         fullWidth
       >
-        <Box sx={{ position: "relative" }}>
-          <DialogTitle sx={{ textAlign: "center" }}>Enter code</DialogTitle>
-          <IconButton sx={{ position: "absolute", right: 8, top: 8 }} onClick={handleClose}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
+        <DialogHeader title="Enter Verification Code" onClose={handleClose} />
         <DialogContent>
           <DialogContentText>
             {"Your current email address is "}
@@ -95,12 +78,7 @@ export function ChangeEmailDialog(props) {
         maxWidth="xs"
         fullWidth
       >
-        <Box sx={{ position: "relative" }}>
-          <DialogTitle sx={{ textAlign: "center" }}>Change your email address</DialogTitle>
-          <IconButton sx={{ position: "absolute", right: 8, top: 8 }} onClick={handleClose}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
+        <DialogHeader title="Change your email address" onClose={handleClose} />
         <DialogContent>
           <DialogContentText>
             Enter a new email address and your existing password.
