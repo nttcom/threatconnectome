@@ -17,6 +17,8 @@ export function ChangeEmailDialog(props) {
   const handleClose = () => {
     setOpen(CHANGE_EMAIL_DIALOG_STATES.NONE);
   };
+  const userEmail = "sample@example.com"; // Replace with actual email from user data
+
   return (
     <>
       <Dialog
@@ -28,7 +30,7 @@ export function ChangeEmailDialog(props) {
         <DialogContent>
           <DialogContentText>
             {"Your current email address is "}
-            <strong>sample@example.com</strong>.{" "}
+            <strong>{userEmail}</strong>.{" "}
             {"We'll need to verify your old email address in order to change it."}
           </DialogContentText>
         </DialogContent>
@@ -52,7 +54,7 @@ export function ChangeEmailDialog(props) {
         <DialogContent>
           <DialogContentText>
             {"Your current email address is "}
-            <strong>sample@example.com</strong>.{" "}
+            <strong>{userEmail}</strong>.{" "}
             {"We'll need to verify your old email address in order to change it."}
           </DialogContentText>
           <TextField
