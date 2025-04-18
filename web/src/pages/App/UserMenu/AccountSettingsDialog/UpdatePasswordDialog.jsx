@@ -84,10 +84,7 @@ export function UpdatePasswordDialog(props) {
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
       <DialogHeader title="Update your password" onClose={handleClose} />
       <DialogContent>
-        <DialogContentText>
-          Enter your current password and new password. Your new password must be at least 8
-          characters long.
-        </DialogContentText>
+        <DialogContentText>Enter your current password and new password.</DialogContentText>
         <Stack spacing={2} sx={{ mt: 2 }}>
           <TextField
             hiddenLabel
