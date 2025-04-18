@@ -23,10 +23,10 @@ export function ChangeEmailDialog(props) {
 
   const userEmail = "sample@example.com"; // Replace with actual email from user data
 
-  function validateEmailFormat(email) {
+  const validateEmailFormat = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  }
+  };
 
   const validateChangeEmail = () => {
     const newErrors = {};
