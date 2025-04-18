@@ -7,9 +7,13 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
-import React from "react";
+import React, { useState } from "react";
 
-import { DeleteAccountDialog } from "./DeleteAccountDialog";
+import { DeleteAccountDialog } from "../DeleteAccountDialog";
+
+import { ChangeEmailDialog } from "./ChangeEmailDialog/ChangeEmailDialog";
+import { UpdatePasswordDialog } from "./UpdatePasswordDialog";
+import { CHANGE_EMAIL_DIALOG_STATES, UPDATE_PASSWORD_DIALOG_STATES } from "./dialogStates";
 
 export function AccountSettingsDialog(props) {
   const { accountSettingOpen, setAccountSettingOpen, onSelectYear, userMe } = props;
@@ -22,6 +26,13 @@ export function AccountSettingsDialog(props) {
   const changeEmaildisabled = true;
   // Change Password is not implemented
   const changePasswordDisabled = true;
+
+  const [changeEmailDialogOpen, setChangeEmailDialogOpen] = useState(
+    CHANGE_EMAIL_DIALOG_STATES.NONE,
+  );
+  const [updatePasswordDialogOpen, setUpdatePasswordDialogOpen] = useState(
+    UPDATE_PASSWORD_DIALOG_STATES.NONE,
+  );
 
   return (
     <>
@@ -46,9 +57,13 @@ export function AccountSettingsDialog(props) {
                 size="small"
                 sx={{ mt: 1 }}
                 disabled={changeEmaildisabled}
+                onClick={() => {
+                  setChangeEmailDialogOpen(CHANGE_EMAIL_DIALOG_STATES.SEND_VERIFICATION_EMAIL);
+                }}
               >
                 Change Email
               </Button>
+              <ChangeEmailDialog open={changeEmailDialogOpen} setOpen={setChangeEmailDialogOpen} />
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
@@ -60,22 +75,32 @@ export function AccountSettingsDialog(props) {
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 Password
               </Typography>
-              <Button variant="contained" size="small" disabled={changePasswordDisabled}>
+              <Button
+                variant="contained"
+                size="small"
+                disabled={changePasswordDisabled}
+                onClick={() => {
+                  setUpdatePasswordDialogOpen(UPDATE_PASSWORD_DIALOG_STATES.UPDATE_PASSWORD);
+                }}
+              >
                 Change Password
               </Button>
+              <UpdatePasswordDialog
+                open={updatePasswordDialogOpen}
+                setOpen={setUpdatePasswordDialogOpen}
+              />
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 Team
               </Typography>
-              {userMe.pteam_roles.map((pteam_role) => (
-                <>
-                  <DialogContentText>{pteam_role.pteam.pteam_name}</DialogContentText>
-                  <DialogContentText variant="caption">
-                    {pteam_role.pteam.pteam_id}
+              <Stack spacing={1}>
+                {userMe.pteam_roles.map((pteam_role) => (
+                  <DialogContentText key={pteam_role.pteam.pteam_name}>
+                    {pteam_role.pteam.pteam_name}
                   </DialogContentText>
-                </>
-              ))}
+                ))}
+              </Stack>
             </Box>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Box>
