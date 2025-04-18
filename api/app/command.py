@@ -134,6 +134,7 @@ def get_vulns(
     package_name: Optional[list[str]] = None,
     ecosystem: Optional[list[str]] = None,
     package_manager: Optional[str] = None,
+    sort_key: str = "cvss_v3_score_desc",  # set default sort key
 ) -> Sequence[models.Vuln]:
 
     # Base query
@@ -189,8 +190,20 @@ def get_vulns(
     if filters:
         query = query.where(and_(*filters))
 
+    # Sorting logic
+    if sort_key == "cvss_v3_score":
+        query = query.order_by(models.Vuln.cvss_v3_score.asc())
+    elif sort_key == "cvss_v3_score_desc":
+        query = query.order_by(models.Vuln.cvss_v3_score.desc())
+    elif sort_key == "updated_at":
+        query = query.order_by(models.Vuln.updated_at.asc())
+    elif sort_key == "updated_at_desc":
+        query = query.order_by(models.Vuln.updated_at.desc())
+    else:
+        # デフォルトのソート順
+        query = query.order_by(models.Vuln.cvss_v3_score.desc())
+
     # Pageination
-    query = query.order_by(models.Vuln.updated_at.desc())
     query = query.offset(offset).limit(limit)
 
     return db.scalars(query).unique().all()

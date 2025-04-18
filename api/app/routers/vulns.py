@@ -173,6 +173,10 @@ def get_vulns(
     package_name: list[str] | None = Query(None),
     ecosystem: list[str] | None = Query(None),
     package_manager: str | None = Query(None),
+    sort_key: str = Query(
+        "cvss_v3_score_desc",
+        regex="^(cvss_v3_score|cvss_v3_score_desc|updated_at|updated_at_desc)$",
+    ),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -198,6 +202,7 @@ def get_vulns(
         package_name=package_name,
         ecosystem=ecosystem,
         package_manager=package_manager,
+        sort_key=sort_key,
     )
 
     response_vulns = []
