@@ -523,10 +523,10 @@ class Vuln(Base):
     threats = relationship("Threat", back_populates="vuln", cascade="all, delete-orphan")
 
     def _calculate_content_fingerprint(self) -> str:
-        data = self._get_topic_data_for_fingerprint()
+        data = self._get_vuln_data_for_fingerprint()
         return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
 
-    def _get_topic_data_for_fingerprint(self) -> dict:
+    def _get_vuln_data_for_fingerprint(self) -> dict:
         sorted_affects = sorted(
             self.affects, key=lambda affect: (affect.package.name, affect.package.ecosystem)
         )
