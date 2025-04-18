@@ -14,7 +14,7 @@ router = APIRouter(prefix="/vulns", tags=["vulns"])
 NO_SUCH_VULN = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
 
 
-@router.put("/{vuln_id}", response_model=schemas.VulnReponse)
+@router.put("/{vuln_id}", response_model=schemas.VulnResponse)
 def update_vuln(
     vuln_id: UUID,
     request: schemas.VulnUpdate,
@@ -97,14 +97,17 @@ def __handle_create_vuln(
 
     db.commit()
 
-    return schemas.VulnReponse(
+    return schemas.VulnResponse(
         vuln_id=str(vuln_id),
-        title=request.title,
-        cve_id=request.cve_id,
-        detail=request.detail,
-        exploitation=request.exploitation,
-        automatable=request.automatable,
-        cvss_v3_score=request.cvss_v3_score,
+        created_by=vuln.created_by,
+        created_at=vuln.created_at,
+        updated_at=vuln.updated_at,
+        title=vuln.title,
+        cve_id=vuln.cve_id,
+        detail=vuln.detail,
+        exploitation=vuln.exploitation,
+        automatable=vuln.automatable,
+        cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=request.vulnerable_packages,
     )
 
@@ -203,8 +206,11 @@ def __handle_update_vuln(
         for affect in vuln.affects
     ]
 
-    return schemas.VulnReponse(
+    return schemas.VulnResponse(
         vuln_id=vuln.vuln_id,
+        created_by=vuln.created_by,
+        created_at=vuln.created_at,
+        updated_at=vuln.updated_at,
         title=vuln.title,
         cve_id=vuln.cve_id,
         detail=vuln.detail,
@@ -246,7 +252,7 @@ def delete_vuln(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/{vuln_id}", response_model=schemas.VulnReponse)
+@router.get("/{vuln_id}", response_model=schemas.VulnResponse)
 def get_vuln(
     vuln_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -269,8 +275,11 @@ def get_vuln(
         for affect in vuln.affects
     ]
 
-    return schemas.VulnReponse(
+    return schemas.VulnResponse(
         vuln_id=vuln.vuln_id,
+        created_by=vuln.created_by,
+        created_at=vuln.created_at,
+        updated_at=vuln.updated_at,
         title=vuln.title,
         cve_id=vuln.cve_id,
         detail=vuln.detail,
@@ -281,7 +290,7 @@ def get_vuln(
     )
 
 
-@router.get("", response_model=list[schemas.VulnReponse])
+@router.get("", response_model=list[schemas.VulnResponse])
 def get_vulns(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -307,7 +316,7 @@ def get_vulns(
         ]
 
         response_vulns.append(
-            schemas.VulnReponse(
+            schemas.VulnResponse(
                 vuln_id=vuln.vuln_id,
                 title=vuln.title,
                 cve_id=vuln.cve_id,

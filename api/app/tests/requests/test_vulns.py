@@ -6,8 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app import models, persistence
-from app.business import ticket_business
+from app import models
 from app.main import app
 from app.tests.medium.constants import PTEAM1, USER1, USER2
 from app.tests.medium.utils import (
@@ -73,21 +72,6 @@ class TestUpdateVuln:
 
         testdb.add(self.package1)
 
-        self.package_version1 = models.PackageVersion(
-            package_id=self.package1.package_id,
-            version="1.0.0",
-        )
-
-        testdb.add(self.package_version1)
-
-        self.dependency1 = models.Dependency(
-            target="dependency1 target",
-            package_manager="npm",
-            package_version_id=self.package_version1.package_version_id,
-            service=self.service1,
-        )
-        testdb.add(self.dependency1)
-
         self.affect1 = models.Affect(
             vuln_id=self.vuln1.vuln_id,
             package_id=self.package1.package_id,
@@ -97,13 +81,100 @@ class TestUpdateVuln:
 
         testdb.add(self.affect1)
 
-        self.threat1 = models.Threat(
-            package_version_id=self.package_version1.package_version_id, vuln_id=self.vuln1.vuln_id
+        testdb.commit()
+
+    def test_return_VulnResponse_when_create_vuln_successfully(self):
+        # Given
+        new_vuln_id = uuid4()
+
+        # When
+        response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=self.request1)
+
+        # Then
+        assert response.status_code == 200
+        assert response.json()["vuln_id"] == str(new_vuln_id)
+        assert response.json()["title"] == self.request1["title"]
+        assert response.json()["created_by"] == str(self.user1.user_id)
+        assert response.json()["cve_id"] == self.request1["cve_id"]
+        assert response.json()["detail"] == self.request1["detail"]
+        assert response.json()["exploitation"] == self.request1["exploitation"]
+        assert response.json()["automatable"] == self.request1["automatable"]
+        assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
+        assert (
+            response.json()["vulnerable_packages"][0]["name"]
+            == self.request1["vulnerable_packages"][0]["name"]
+        )
+        assert (
+            response.json()["vulnerable_packages"][0]["ecosystem"]
+            == self.request1["vulnerable_packages"][0]["ecosystem"]
+        )
+        assert (
+            response.json()["vulnerable_packages"][0]["affected_versions"]
+            == self.request1["vulnerable_packages"][0]["affected_versions"]
+        )
+        assert (
+            response.json()["vulnerable_packages"][0]["fixed_versions"]
+            == self.request1["vulnerable_packages"][0]["fixed_versions"]
         )
 
-        persistence.create_threat(testdb, self.threat1)
+    def test_return_default_value_when_exploitation_and_automatable_are_missing(self):
+        # Given
+        new_vuln_id = uuid4()
+        request2 = {
+            "title": "Example vuln",
+            "cve_id": "CVE-0000-0001",
+            "detail": "This vuln is example.",
+            "cvss_v3_score": 7.8,
+            "vulnerable_packages": [
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+        # When
+        response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=request2)
+        # Then
+        assert response.status_code == 200
+        assert response.json()["exploitation"] == models.ExploitationEnum.NONE
+        assert response.json()["automatable"] == models.AutomatableEnum.NO
 
-        ticket_business.fix_ticket_by_threat(testdb, self.threat1)
+    def test_return_VulnResponse_when_update_vuln_successfully(self, update_setup):
+        # Given
+
+        # When
+        response = client.put(
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=self.request1
+        )
+
+        # Then
+        assert response.status_code == 200
+        assert response.json()["vuln_id"] == str(self.vuln1.vuln_id)
+        assert response.json()["title"] == self.request1["title"]
+        assert response.json()["created_by"] == str(self.user1.user_id)
+        assert response.json()["cve_id"] == self.request1["cve_id"]
+        assert response.json()["detail"] == self.request1["detail"]
+        assert response.json()["exploitation"] == self.request1["exploitation"]
+        assert response.json()["automatable"] == self.request1["automatable"]
+        assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
+        assert (
+            response.json()["vulnerable_packages"][0]["name"]
+            == self.request1["vulnerable_packages"][0]["name"]
+        )
+        assert (
+            response.json()["vulnerable_packages"][0]["ecosystem"]
+            == self.request1["vulnerable_packages"][0]["ecosystem"]
+        )
+        assert (
+            response.json()["vulnerable_packages"][0]["affected_versions"]
+            == self.request1["vulnerable_packages"][0]["affected_versions"]
+        )
+        assert (
+            response.json()["vulnerable_packages"][0]["fixed_versions"]
+            == self.request1["vulnerable_packages"][0]["fixed_versions"]
+        )
 
     def test_raise_400_if_given_vuln_id_is_default_vuln_id(self):
         # Given
@@ -206,7 +277,7 @@ class TestUpdateVuln:
         assert response.status_code == 400
         assert response.json()["detail"] == "cvss_v3_score is out of range"
 
-    def test_raise_403_if_current_user_is_not_vuln_creator(self, testdb: Session, update_setup):
+    def test_raise_403_if_current_user_is_not_vuln_creator(self, update_setup):
         # Given
         create_user(USER2)
 
@@ -224,13 +295,11 @@ class TestUpdateVuln:
         [
             "title",
             "detail",
-            "cve_id",
             "exploitation",
             "automatable",
-            "cvss_v3_score",
         ],
     )
-    def test_raise_400_if_field_update_with_none(self, testdb: Session, update_setup, field_name):
+    def test_raise_400_if_field_update_with_none(self, update_setup, field_name):
         # Given
         invalid_request: dict[str, Any] = {
             f"{field_name}": None,

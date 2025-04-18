@@ -250,8 +250,11 @@ class VulnBase(BaseModel):
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
-class VulnReponse(VulnBase):
+class VulnResponse(VulnBase):
     vuln_id: str
+    created_at: datetime
+    updated_at: datetime
+    created_by: UUID
 
 
 class VulnUpdate(VulnBase):
