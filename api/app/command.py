@@ -149,7 +149,6 @@ def get_vulns(
             models.Dependency,
             models.PackageVersion.package_version_id == models.Dependency.package_version_id,
         )
-        .options(joinedload(models.Vuln.affects))
     )
 
     filters = []
