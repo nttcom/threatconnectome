@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Optional, Sequence
 from uuid import UUID
@@ -10,7 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session, joinedload
 
-from app import models
+from app import models, persistence, schemas
 
 
 def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
@@ -137,6 +138,40 @@ def get_vulns(
     sort_key: str = "cvss_v3_score_desc",  # set default sort key
 ) -> Sequence[models.Vuln]:
 
+    keyword_for_empty = ""
+
+    # Remove duplicates from lists
+    fixed_creator_ids = set()
+    if creator_ids is not None:
+        for creator_id in creator_ids:
+            if not persistence.get_account_by_id(db, creator_id):
+                continue
+            fixed_creator_ids.add(creator_id)
+
+    fixed_title_words: set[str | None] = set()
+    if title_words is not None:
+        for title_word in title_words:
+            if title_word == keyword_for_empty:
+                fixed_title_words.add(None)
+                continue
+            fixed_title_words.add(title_word)
+
+    fixed_detail_words: set[str | None] = set()
+    if detail_words is not None:
+        for detail_word in detail_words:
+            if detail_word == keyword_for_empty:
+                fixed_detail_words.add(None)
+                continue
+            fixed_detail_words.add(detail_word)
+
+    fixed_cve_ids: set[str | None] = set()
+    if cve_ids is not None:
+        for cve_id in cve_ids:
+            if re.match(schemas.CVE_PATTERN, cve_id):
+                fixed_cve_ids.add(cve_id)
+            else:
+                raise ValueError(f"Invalid CVE ID format: {cve_id}")
+
     # Base query
     query = (
         select(models.Vuln)
@@ -159,12 +194,26 @@ def get_vulns(
         filters.append(models.Vuln.cvss_v3_score <= max_cvss_v3_score)
     if vuln_ids:
         filters.append(models.Vuln.vuln_id.in_(vuln_ids))
-    if title_words:
-        filters.append(or_(*[models.Vuln.title.ilike(f"%{word}%") for word in title_words]))
-    if detail_words:
-        filters.append(or_(*[models.Vuln.detail.ilike(f"%{word}%") for word in detail_words]))
-    if cve_ids:
-        filters.append(models.Vuln.cve_id.in_(cve_ids))
+    if fixed_title_words:
+        filters.append(
+            or_(
+                *[
+                    models.Vuln.title.ilike(f"%{word}%") if word else models.Vuln.title == ""
+                    for word in fixed_title_words
+                ]
+            )
+        )
+    if fixed_detail_words:
+        filters.append(
+            or_(
+                *[
+                    models.Vuln.detail.ilike(f"%{word}%") if word else models.Vuln.detail == ""
+                    for word in fixed_detail_words
+                ]
+            )
+        )
+    if fixed_cve_ids:
+        filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
     if created_after:
         filters.append(models.Vuln.created_at >= created_after)
     if created_before:
@@ -173,8 +222,8 @@ def get_vulns(
         filters.append(models.Vuln.updated_at >= updated_after)
     if updated_before:
         filters.append(models.Vuln.updated_at <= updated_before)
-    if creator_ids:
-        filters.append(models.Vuln.created_by.in_(creator_ids))
+    if fixed_creator_ids:
+        filters.append(models.Vuln.created_by.in_(fixed_creator_ids))
 
     # Affect filters
     if package_name:
