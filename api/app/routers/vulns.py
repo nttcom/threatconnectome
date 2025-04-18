@@ -74,7 +74,6 @@ def update_vuln(
             created_at=now,
             updated_at=now,
             cvss_v3_score=request.cvss_v3_score,
-            content_fingerprint="dummy_fingerprint",
             exploitation=request.exploitation,
             automatable=request.automatable,
         )
@@ -152,6 +151,7 @@ def get_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
+        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -190,6 +190,7 @@ def get_vulns(
                 automatable=vuln.automatable,
                 cvss_v3_score=vuln.cvss_v3_score,
                 vulnerable_packages=vulnerable_packages,
+                content_fingerprint=vuln.content_fingerprint,
             )
         )
 
