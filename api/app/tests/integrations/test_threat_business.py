@@ -11,6 +11,7 @@ from app.tests.medium.utils import (
     create_user,
 )
 
+
 @pytest.fixture(scope="function")
 def package1(testdb: Session) -> models.Package:
     package = models.Package(
@@ -20,6 +21,7 @@ def package1(testdb: Session) -> models.Package:
     )
     persistence.create_package(testdb, package)
     return package
+
 
 @pytest.fixture(scope="function")
 def vuln1(testdb: Session) -> models.Vuln:
@@ -32,14 +34,15 @@ def vuln1(testdb: Session) -> models.Vuln:
         created_by=user1.user_id,
         created_at="2023-10-01T00:00:00Z",
         updated_at="2023-10-01T00:00:00Z",
-        content_fingerprint="dummy_fingerprint",
     )
     persistence.create_vuln(testdb, vuln)
     return vuln
 
+
 class TestFixThreatByVuln:
     def test_it_should_create_threat_when_version_matched(
-            self, testdb: Session, package1: models.Package, vuln1: models.Vuln):
+        self, testdb: Session, package1: models.Package, vuln1: models.Vuln
+    ):
         # Given
         package_version = models.PackageVersion(
             package_version_id="test-package-version-id",
@@ -66,7 +69,8 @@ class TestFixThreatByVuln:
         ).one_or_none()
 
     def test_it_should_delete_threat_when_version_unmatched(
-            self, testdb: Session, package1: models.Package, vuln1: models.Vuln):
+        self, testdb: Session, package1: models.Package, vuln1: models.Vuln
+    ):
         # Given
         package_version = models.PackageVersion(
             package_version_id="test-package-version-id",
@@ -81,8 +85,8 @@ class TestFixThreatByVuln:
             fixed_versions=[],
         )
         threat = models.Threat(
-                 package_version_id=package_version.package_version_id, vuln_id=vuln1.vuln_id
-             )
+            package_version_id=package_version.package_version_id, vuln_id=vuln1.vuln_id
+        )
         persistence.create_package_version(testdb, package_version)
         persistence.create_affect(testdb, affect)
         persistence.create_threat(testdb, threat)
@@ -95,14 +99,16 @@ class TestFixThreatByVuln:
         threat_in_db = testdb.scalars(
             select(models.Threat).where(
                 models.Threat.package_version_id == package_version.package_version_id,
-                models.Threat.vuln_id == vuln1.vuln_id)
+                models.Threat.vuln_id == vuln1.vuln_id,
+            )
         ).all()
         assert len(threat_in_db) == 0
 
 
 class TestFixThreatByPackageVersionId:
     def test_it_should_create_threat_when_version_matched(
-            self, testdb: Session, package1: models.Package, vuln1: models.Vuln):
+        self, testdb: Session, package1: models.Package, vuln1: models.Vuln
+    ):
         # Given
         package_version = models.PackageVersion(
             package_version_id="test-package-version-id",
@@ -131,7 +137,8 @@ class TestFixThreatByPackageVersionId:
         ).one_or_none()
 
     def test_it_should_delete_threat_when_version_unmatched(
-            self, testdb: Session, package1: models.Package, vuln1: models.Vuln):
+        self, testdb: Session, package1: models.Package, vuln1: models.Vuln
+    ):
         # Given
         package_version = models.PackageVersion(
             package_version_id="test-package-version-id",
@@ -160,14 +167,16 @@ class TestFixThreatByPackageVersionId:
         threat_in_db = testdb.scalars(
             select(models.Threat).where(
                 models.Threat.package_version_id == package_version.package_version_id,
-                models.Threat.vuln_id == vuln1.vuln_id)
+                models.Threat.vuln_id == vuln1.vuln_id,
+            )
         ).all()
         assert len(threat_in_db) == 0
 
 
 class TestFixThreatByVulnThatRemovedAffect:
     def test_it_should_delete_threat_when_affect_removed(
-            self, testdb: Session, package1: models.Package, vuln1: models.Vuln):
+        self, testdb: Session, package1: models.Package, vuln1: models.Vuln
+    ):
         # Given
         package_version = models.PackageVersion(
             package_version_id="test-package-version-id",
@@ -186,13 +195,13 @@ class TestFixThreatByVulnThatRemovedAffect:
 
         # Then
         threat_in_db = testdb.scalars(
-            select(models.Threat).where(
-                models.Threat.vuln_id == vuln1.vuln_id)
+            select(models.Threat).where(models.Threat.vuln_id == vuln1.vuln_id)
         ).all()
         assert len(threat_in_db) == 0
 
     def test_it_should_not_delete_threat_when_affect_exists(
-            self, testdb: Session, package1: models.Package, vuln1: models.Vuln):
+        self, testdb: Session, package1: models.Package, vuln1: models.Vuln
+    ):
         # Given
         package_version = models.PackageVersion(
             package_version_id="test-package-version-id",
@@ -217,7 +226,6 @@ class TestFixThreatByVulnThatRemovedAffect:
         threat_business.fix_threat_by_vuln_that_removed_affect(testdb, vuln1)
         # Then
         threat_in_db = testdb.scalars(
-            select(models.Threat).where(
-                models.Threat.vuln_id == vuln1.vuln_id)
+            select(models.Threat).where(models.Threat.vuln_id == vuln1.vuln_id)
         ).all()
         assert len(threat_in_db) == 1
