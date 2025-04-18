@@ -182,6 +182,32 @@ def get_vulns(
 ):
     """
     Get a vuln.
+
+    Search vulnerabilities by the following parameters with sorting and pagination:
+
+    - `min_cvss_v3_score`: Minimum CVSS v3 score (float).
+    - `max_cvss_v3_score`: Maximum CVSS v3 score (float).
+    - `title_words`: List of words to search in the title (case-insensitive).
+    - `detail_words`: List of words to search in the detail (case-insensitive).
+    - `creator_ids`: List of creator IDs to filter by.
+    - `created_after`: Filter vulnerabilities created after this datetime.
+    - `created_before`: Filter vulnerabilities created before this datetime.
+    - `updated_after`: Filter vulnerabilities updated after this datetime.
+    - `updated_before`: Filter vulnerabilities updated before this datetime.
+    - `cve_ids`: List of CVE IDs to filter by.
+    - `package_name`: List of package names to filter by.
+    - `ecosystem`: List of ecosystems to filter by.
+    - `package_manager`: Package manager to filter by.
+
+    Defaults are `None` for all parameters, which means skip filtering.
+    Different parameters are combined with AND conditions.
+    Words search is case-insensitive.
+
+    Examples:
+    - `...?title_words=a&title_words=%20&title_words=B` -> Title includes [a, A, b, B, or space].
+    - `...?title_words=a&title_words=&title_words=B` -> Title includes [a, A, b, B] or is empty.
+    - `...?cve_ids=CVE-2023-1234` -> Filter by the specific CVE ID.
+    - `...?package_name=example` -> Filter by the package name "example".
     """
 
     vulns = command.get_vulns(
