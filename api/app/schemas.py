@@ -79,14 +79,12 @@ class UserUpdateRequest(ORMModel):
 
 
 class ActionResponse(ORMModel):
-    topic_id: UUID
+    vuln_id: UUID
     action_id: UUID
     action: str = Field(..., max_length=1024)
     action_type: ActionType
     recommended: bool
-    created_by: UUID
     created_at: datetime
-    ext: dict  # see ActionCreateRequest
 
 
 class TagRequest(ORMModel):
@@ -198,16 +196,10 @@ class TopicActionsResponse(ORMModel):
 
 
 class ActionCreateRequest(ORMModel):
-    topic_id: UUID | None = None  # can be None if using in create_topic()
-    action_id: UUID | None = None  # can specify action_id by client
+    vuln_id: UUID | None = None  # can be None if using in create_vuln()
     action: str = Field(..., max_length=1024)
     action_type: ActionType
     recommended: bool = False
-    ext: dict = {}
-    # {
-    #   tags: list[str] = [],
-    #   vulnerable_versions: Dict[str, list[dict]] = {},  # see around auto-close for detail.
-    # }
 
 
 class ActionUpdateRequest(ORMModel):
