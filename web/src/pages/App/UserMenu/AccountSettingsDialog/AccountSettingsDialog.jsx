@@ -27,8 +27,12 @@ export function AccountSettingsDialog(props) {
   // Change Password is not implemented
   const changePasswordDisabled = true;
 
-  const [changeEmailOpen, setChangeEmailOpen] = useState(CHANGE_EMAIL_DIALOG_STATES.NONE);
-  const [updatePasswordOpen, setUpdatePasswordOpen] = useState(UPDATE_PASSWORD_DIALOG_STATES.NONE);
+  const [changeEmailDialogOpen, setChangeEmailDialogOpen] = useState(
+    CHANGE_EMAIL_DIALOG_STATES.NONE,
+  );
+  const [updatePasswordDialogOpen, setUpdatePasswordDialogOpen] = useState(
+    UPDATE_PASSWORD_DIALOG_STATES.NONE,
+  );
 
   return (
     <>
@@ -54,12 +58,12 @@ export function AccountSettingsDialog(props) {
                 sx={{ mt: 1 }}
                 disabled={changeEmaildisabled}
                 onClick={() => {
-                  setChangeEmailOpen(CHANGE_EMAIL_DIALOG_STATES.SEND_VERIFICATION_EMAIL);
+                  setChangeEmailDialogOpen(CHANGE_EMAIL_DIALOG_STATES.SEND_VERIFICATION_EMAIL);
                 }}
               >
                 Change Email
               </Button>
-              <ChangeEmailDialog open={changeEmailOpen} setOpen={setChangeEmailOpen} />
+              <ChangeEmailDialog open={changeEmailDialogOpen} setOpen={setChangeEmailDialogOpen} />
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
@@ -76,12 +80,15 @@ export function AccountSettingsDialog(props) {
                 size="small"
                 disabled={changePasswordDisabled}
                 onClick={() => {
-                  setUpdatePasswordOpen(UPDATE_PASSWORD_DIALOG_STATES.UPDATE_PASSWORD);
+                  setUpdatePasswordDialogOpen(UPDATE_PASSWORD_DIALOG_STATES.UPDATE_PASSWORD);
                 }}
               >
                 Change Password
               </Button>
-              <UpdatePasswordDialog open={updatePasswordOpen} setOpen={setUpdatePasswordOpen} />
+              <UpdatePasswordDialog
+                open={updatePasswordDialogOpen}
+                setOpen={setUpdatePasswordDialogOpen}
+              />
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
