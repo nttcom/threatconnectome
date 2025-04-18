@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Sequence
+from typing import Optional, Sequence
 from uuid import UUID
 
 from sqlalchemy import (
@@ -120,12 +120,77 @@ def get_vulns(
     db: Session,
     offset: int,
     limit: int,
+    min_cvss_v3_score: Optional[float] = None,
+    max_cvss_v3_score: Optional[float] = None,
+    vuln_ids: Optional[list[str]] = None,
+    title_words: Optional[list[str]] = None,
+    detail_words: Optional[list[str]] = None,
+    creator_ids: Optional[list[str]] = None,
+    created_after: Optional[datetime] = None,
+    created_before: Optional[datetime] = None,
+    updated_after: Optional[datetime] = None,
+    updated_before: Optional[datetime] = None,
+    cve_ids: Optional[list[str]] = None,
+    package_name: Optional[list[str]] = None,
+    ecosystem: Optional[list[str]] = None,
+    package_manager: Optional[str] = None,
 ) -> Sequence[models.Vuln]:
-    select_stmt = (
+
+    # Base query
+    query = (
         select(models.Vuln)
+        .join(models.Affect)
+        .join(models.Package, models.Affect.package_id == models.Package.package_id)
+        .outerjoin(
+            models.PackageVersion, models.Package.package_id == models.PackageVersion.package_id
+        )
+        .outerjoin(
+            models.Dependency,
+            models.PackageVersion.package_version_id == models.Dependency.package_version_id,
+        )
         .options(joinedload(models.Vuln.affects))
-        .order_by(models.Vuln.updated_at.desc())
-        .offset(offset)
-        .limit(limit)
     )
-    return db.scalars(select_stmt).unique().all()
+
+    filters = []
+
+    if min_cvss_v3_score is not None:
+        filters.append(models.Vuln.cvss_v3_score >= min_cvss_v3_score)
+    if max_cvss_v3_score is not None:
+        filters.append(models.Vuln.cvss_v3_score <= max_cvss_v3_score)
+    if vuln_ids:
+        filters.append(models.Vuln.vuln_id.in_(vuln_ids))
+    if title_words:
+        filters.append(or_(*[models.Vuln.title.ilike(f"%{word}%") for word in title_words]))
+    if detail_words:
+        filters.append(or_(*[models.Vuln.detail.ilike(f"%{word}%") for word in detail_words]))
+    if cve_ids:
+        filters.append(models.Vuln.cve_id.in_(cve_ids))
+    if created_after:
+        filters.append(models.Vuln.created_at >= created_after)
+    if created_before:
+        filters.append(models.Vuln.created_at <= created_before)
+    if updated_after:
+        filters.append(models.Vuln.updated_at >= updated_after)
+    if updated_before:
+        filters.append(models.Vuln.updated_at <= updated_before)
+    if creator_ids:
+        filters.append(models.Vuln.created_by.in_(creator_ids))
+
+    # Affect filters
+    if package_name:
+        filters.append(models.Affect.package.has(models.Package.name.in_(package_name)))
+    if ecosystem:
+        filters.append(models.Affect.package.has(models.Package.ecosystem.in_(ecosystem)))
+
+    # Dependency filters
+    if package_manager:
+        filters.append(models.Dependency.package_manager == package_manager)
+
+    if filters:
+        query = query.where(and_(*filters))
+
+    # Pageination
+    query = query.order_by(models.Vuln.updated_at.desc())
+    query = query.offset(offset).limit(limit)
+
+    return db.scalars(query).unique().all()

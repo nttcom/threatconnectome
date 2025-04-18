@@ -159,6 +159,20 @@ def get_vuln(
 def get_vulns(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    min_cvss_v3_score: float | None = Query(None),
+    max_cvss_v3_score: float | None = Query(None),
+    vuln_ids: list[str] | None = Query(None),
+    title_words: list[str] | None = Query(None),
+    detail_words: list[str] | None = Query(None),
+    creator_ids: list[str] | None = Query(None),
+    created_after: datetime | None = Query(None),
+    created_before: datetime | None = Query(None),
+    updated_after: datetime | None = Query(None),
+    updated_before: datetime | None = Query(None),
+    cve_ids: list[str] | None = Query(None),
+    package_name: list[str] | None = Query(None),
+    ecosystem: list[str] | None = Query(None),
+    package_manager: str | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -166,7 +180,26 @@ def get_vulns(
     Get a vuln.
     """
 
-    vulns = command.get_vulns(db, offset, limit)
+    vulns = command.get_vulns(
+        db=db,
+        offset=offset,
+        limit=limit,
+        min_cvss_v3_score=min_cvss_v3_score,
+        max_cvss_v3_score=max_cvss_v3_score,
+        vuln_ids=vuln_ids,
+        title_words=title_words,
+        detail_words=detail_words,
+        creator_ids=creator_ids,
+        created_after=created_after,
+        created_before=created_before,
+        updated_after=updated_after,
+        updated_before=updated_before,
+        cve_ids=cve_ids,
+        package_name=package_name,
+        ecosystem=ecosystem,
+        package_manager=package_manager,
+    )
+
     response_vulns = []
     for vuln in vulns:
         # Fetch vulnerable packages associated with the vuln
