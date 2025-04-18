@@ -187,7 +187,6 @@ def __handle_update_vuln(
 
     vuln.updated_at = datetime.now()
 
-    threat_business.fix_threat_by_vuln_that_removed_affect(db, vuln)
     new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
     for threat in new_threats:
         ticket_business.fix_ticket_by_threat(db, threat)

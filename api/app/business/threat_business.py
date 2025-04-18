@@ -5,6 +5,8 @@ from app.detector import vulnerability_detector
 
 
 def fix_threat_by_vuln(db: Session, vuln: models.Vuln) -> list[models.Threat]:
+    _delete_threat_by_vuln_when_all_affects_unmatch(db, vuln)
+
     threats: list[models.Threat] = []
     for affect in vuln.affects:
         threats.extend(_fix_threat_by_affect(db, affect))
@@ -26,6 +28,11 @@ def fix_threat_by_package_version_id(db: Session, package_version_id: str) -> li
         return []
 
     affects = persistence.get_affect_by_package_id(db, package_version.package_id)
+    vulns: set[models.Vuln] = set()
+    for affect in affects:
+        vulns.add(affect.vuln)
+    for vuln in vulns:
+        _delete_threat_by_vuln_when_all_affects_unmatch(db, vuln)
 
     threats: list[models.Threat] = []
     for affect in affects:
@@ -47,8 +54,6 @@ def _fix_threat_for_package_version_and_affect(
     ):
         if matched:
             return threat
-        else:
-            persistence.delete_threat(db, threat)
     else:
         if matched:
             threat = models.Threat(
@@ -61,7 +66,7 @@ def _fix_threat_for_package_version_and_affect(
     return None
 
 
-def fix_threat_by_vuln_that_removed_affect(db: Session, vuln: models.Vuln):
+def _delete_threat_by_vuln_when_all_affects_unmatch(db: Session, vuln: models.Vuln):
     for threat in vuln.threats:
         if all(
             not vulnerability_detector.check_matched_package_version_and_affect(
