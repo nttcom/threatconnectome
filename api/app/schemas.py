@@ -463,3 +463,6 @@ class DependencyResponse(ORMModel):
     package_manager: str
     target: str
     dependency_mission_impact: str | None
+    package_name: str
+    package_version: str
+    package_ecosystem: str

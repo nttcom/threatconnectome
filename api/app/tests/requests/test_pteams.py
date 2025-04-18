@@ -1076,6 +1076,9 @@ class TestGetDependencies:
                 "package_manager": "npm",
                 "target": self.test_target,
                 "dependency_mission_impact": None,
+                "package_name": self.package1.name,
+                "package_version": self.package_version1.version,
+                "package_ecosystem": self.package1.ecosystem,
             },
             {
                 "dependency_id": str(self.dependency2.dependency_id),
@@ -1084,6 +1087,9 @@ class TestGetDependencies:
                 "package_manager": "npm",
                 "target": self.test_target,
                 "dependency_mission_impact": None,
+                "package_name": self.package1.name,
+                "package_version": self.package_version1.version,
+                "package_ecosystem": self.package1.ecosystem,
             },
         ]
 
@@ -1105,6 +1111,9 @@ class TestGetDependencies:
             "package_manager": "npm",
             "target": self.test_target,
             "dependency_mission_impact": None,
+            "package_name": self.package1.name,
+            "package_version": self.package_version1.version,
+            "package_ecosystem": self.package1.ecosystem,
         }
 
         # When

@@ -519,7 +519,22 @@ def get_dependencies(
         for service in pteam.services:
             dependencies.extend(service.dependencies)
 
-    return dependencies
+    dependency_responses = []
+    for dependency in dependencies:
+        dependency_response = schemas.DependencyResponse(
+            dependency_id=dependency.dependency_id,
+            service_id=dependency.service.service_id,
+            package_version_id=dependency.package_version_id,
+            package_manager=dependency.package_manager,
+            target=dependency.target,
+            dependency_mission_impact=dependency.dependency_mission_impact,
+            package_name=dependency.package_version.package.name,
+            package_version=dependency.package_version.version,
+            package_ecosystem=dependency.package_version.package.ecosystem,
+        )
+        dependency_responses.append(dependency_response)
+
+    return dependency_responses
 
 
 @router.get(
