@@ -177,14 +177,16 @@ def get_vulns(
         select(models.Vuln)
         .join(models.Affect)
         .join(models.Package, models.Affect.package_id == models.Package.package_id)
-        .outerjoin(
+    )
+
+    # Conditionally join Dependency if package_manager is specified
+    if package_manager:
+        query = query.outerjoin(
             models.PackageVersion, models.Package.package_id == models.PackageVersion.package_id
-        )
-        .outerjoin(
+        ).outerjoin(
             models.Dependency,
             models.PackageVersion.package_version_id == models.Dependency.package_version_id,
         )
-    )
 
     filters = []
 
