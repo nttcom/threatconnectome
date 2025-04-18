@@ -502,7 +502,7 @@ class Vuln(Base):
         if not self.automatable:
             self.automatable = AutomatableEnum.NO
         if not self.content_fingerprint:
-            self.content_fingerprint = self._calculate_topic_content_fingerprint()
+            self.content_fingerprint = self._calculate_content_fingerprint()
 
     vuln_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     cve_id: Mapped[str | None] = mapped_column(nullable=True)
@@ -522,7 +522,7 @@ class Vuln(Base):
     affects = relationship("Affect", back_populates="vuln", cascade="all, delete-orphan")
     threats = relationship("Threat", back_populates="vuln", cascade="all, delete-orphan")
 
-    def _calculate_topic_content_fingerprint(self) -> str:
+    def _calculate_content_fingerprint(self) -> str:
         data = self._get_topic_data_for_fingerprint()
         return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
 
