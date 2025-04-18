@@ -52,7 +52,7 @@ export function AccountSettingsDialog(props) {
                 variant="contained"
                 size="small"
                 sx={{ mt: 1 }}
-                // disabled={changeEmaildisabled}
+                disabled={changeEmaildisabled}
                 onClick={() => {
                   setChangeEmailOpen(CHANGE_EMAIL_DIALOG_STATES.SEND_VERIFICATION_EMAIL);
                 }}
@@ -74,7 +74,7 @@ export function AccountSettingsDialog(props) {
               <Button
                 variant="contained"
                 size="small"
-                // disabled={changePasswordDisabled}
+                disabled={changePasswordDisabled}
                 onClick={() => {
                   setUpdatePasswordOpen(UPDATE_PASSWORD_DIALOG_STATES.UPDATE_PASSWORD);
                 }}
