@@ -175,7 +175,7 @@ def get_vulns(
     package_manager: str | None = Query(None),
     sort_key: str = Query(
         "cvss_v3_score_desc",
-        regex="^(cvss_v3_score|cvss_v3_score_desc|updated_at|updated_at_desc)$",
+        pattern="^(cvss_v3_score|cvss_v3_score_desc|updated_at|updated_at_desc)$",
     ),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
