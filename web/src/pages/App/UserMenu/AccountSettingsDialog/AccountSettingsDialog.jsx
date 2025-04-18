@@ -11,7 +11,7 @@ import React, { useState } from "react";
 
 import { DeleteAccountDialog } from "../DeleteAccountDialog";
 
-import { ChangeEmailDialog } from "./ChangeEmailDialog";
+import { ChangeEmailDialog } from "./ChangeEmailDialog/ChangeEmailDialog";
 import { UpdatePasswordDialog } from "./UpdatePasswordDialog";
 import { CHANGE_EMAIL_DIALOG_STATES, UPDATE_PASSWORD_DIALOG_STATES } from "./dialogStates";
 
