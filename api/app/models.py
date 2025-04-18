@@ -557,7 +557,6 @@ class Affect(Base):
 
     package = relationship("Package")
     vuln = relationship("Vuln", back_populates="affects")
-    package = relationship("Package")
 
 
 class ActionLog(Base):
