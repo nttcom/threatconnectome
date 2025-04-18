@@ -45,25 +45,20 @@ def fix_threat_by_package_version_id(db: Session, package_version_id: str) -> li
 def _fix_threat_for_package_version_and_affect(
     db: Session, package_version: models.PackageVersion, affect: models.Affect
 ) -> models.Threat | None:
-    matched = vulnerability_detector.check_matched_package_version_and_affect(
-        package_version, affect
-    )
+    if not vulnerability_detector.check_matched_package_version_and_affect(package_version, affect):
+        return None
 
-    if threat := persistence.get_threat_by_package_version_id_and_vuln_id(
-        db, package_version.package_version_id, affect.vuln.vuln_id
+    if not (
+        threat := persistence.get_threat_by_package_version_id_and_vuln_id(
+            db, package_version.package_version_id, affect.vuln.vuln_id
+        )
     ):
-        if matched:
-            return threat
-    else:
-        if matched:
-            threat = models.Threat(
-                package_version_id=package_version.package_version_id,
-                vuln_id=affect.vuln.vuln_id,
-            )
-            persistence.create_threat(db, threat)
-            return threat
-
-    return None
+        threat = models.Threat(
+            package_version_id=package_version.package_version_id,
+            vuln_id=affect.vuln.vuln_id,
+        )
+        persistence.create_threat(db, threat)
+    return threat
 
 
 def _delete_threat_by_vuln_when_all_affects_unmatch(db: Session, vuln: models.Vuln):
