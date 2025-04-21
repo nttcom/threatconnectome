@@ -681,9 +681,9 @@ class TestGetVulns:
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
-            if i == 0:  # 最初のレコードのpackage_idを取得
+            if i == 0:  # Get the package_id of the first record
                 response_data = response.json()
-                # データベースからpackage_idを取得
+                # Get the package_id from the database
                 package = testdb.execute(
                     text(
                         """
