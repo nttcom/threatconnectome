@@ -414,8 +414,6 @@ class TestGetVulns:
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
-        print("Vuln IDs:", vuln_ids)
-
         created_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
         updated_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
         for i in range(number_of_vulns):
@@ -589,8 +587,6 @@ class TestGetVulns:
                         """
                     )
                 ).fetchone()
-
-                print("Package Query Result:", package)
 
                 if package:
                     package_id = package._mapping["package_id"]
