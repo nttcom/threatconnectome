@@ -462,7 +462,7 @@ class DependencyResponse(ORMModel):
     package_version_id: UUID
     package_manager: str
     target: str
-    dependency_mission_impact: str | None
+    dependency_mission_impact: str | None = None
     package_name: str
     package_version: str
     package_ecosystem: str
