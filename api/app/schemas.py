@@ -244,6 +244,7 @@ class VulnBase(BaseModel):
 
 class VulnReponse(VulnBase):
     vuln_id: str
+    content_fingerprint: str
 
 
 class VulnUpdate(VulnBase):

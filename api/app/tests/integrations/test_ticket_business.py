@@ -51,7 +51,6 @@ def vuln1(testdb: Session) -> models.Vuln:
         created_by=user2.user_id,
         created_at="2023-10-01T00:00:00Z",
         updated_at="2023-10-01T00:00:00Z",
-        content_fingerprint="dummy_fingerprint",
     )
     persistence.create_vuln(testdb, vuln)
     return vuln
