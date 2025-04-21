@@ -234,6 +234,31 @@ class TestGetVulns:
             ],
         }
 
+    def assert_vuln_response(self, actual_vuln, expected_vuln_id, expected_request):
+        assert actual_vuln["vuln_id"] == str(expected_vuln_id)
+        assert actual_vuln["title"] == expected_request["title"]
+        assert actual_vuln["cve_id"] == expected_request["cve_id"]
+        assert actual_vuln["detail"] == expected_request["detail"]
+        assert actual_vuln["exploitation"] == expected_request["exploitation"]
+        assert actual_vuln["automatable"] == expected_request["automatable"]
+        assert actual_vuln["cvss_v3_score"] == expected_request["cvss_v3_score"]
+        assert (
+            actual_vuln["vulnerable_packages"][0]["name"]
+            == expected_request["vulnerable_packages"][0]["name"]
+        )
+        assert (
+            actual_vuln["vulnerable_packages"][0]["ecosystem"]
+            == expected_request["vulnerable_packages"][0]["ecosystem"]
+        )
+        assert (
+            actual_vuln["vulnerable_packages"][0]["affected_versions"]
+            == expected_request["vulnerable_packages"][0]["affected_versions"]
+        )
+        assert (
+            actual_vuln["vulnerable_packages"][0]["fixed_versions"]
+            == expected_request["vulnerable_packages"][0]["fixed_versions"]
+        )
+
     def test_it_should_return_200_and_vulns_list(self, testdb: Session):
         # Given
         vuln_ids = []
@@ -253,17 +278,7 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data):
-            assert vuln["vuln_id"] == str(vuln_ids[i])
-            assert vuln["title"] == f"Example vuln {i}"
-            assert vuln["cve_id"] == f"CVE-0000-000{i}"
-            assert vuln["detail"] == f"This is example vuln {i}."
-            assert vuln["exploitation"] == "active"
-            assert vuln["automatable"] == "yes"
-            assert vuln["cvss_v3_score"] == 7.5
-            assert vuln["vulnerable_packages"][0]["name"] == f"example-lib-{i}"
-            assert vuln["vulnerable_packages"][0]["ecosystem"] == f"ecosystem-{i}"
-            assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
-            assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
+            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_return_empty_list_when_no_vulns_exist(self):
         # When
@@ -306,17 +321,10 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 4
-        assert response_data[0]["vuln_id"] == str(vuln_ids[1])  # Ensure offset is applied
-        assert response_data[0]["title"] == f"Example vuln {1}"
-        assert response_data[0]["cve_id"] == f"CVE-0000-000{1}"
-        assert response_data[0]["detail"] == f"This is example vuln {1}."
-        assert response_data[0]["exploitation"] == "active"
-        assert response_data[0]["automatable"] == "yes"
-        assert response_data[0]["cvss_v3_score"] == 7.5
-        assert response_data[0]["vulnerable_packages"][0]["name"] == f"example-lib-{1}"
-        assert response_data[0]["vulnerable_packages"][0]["ecosystem"] == f"ecosystem-{1}"
-        assert response_data[0]["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
-        assert response_data[0]["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, vuln_ids[i + 1], self.create_vuln_request(i + 1))
 
     def test_it_should_filter_by_min_cvss_v3_score(self, testdb: Session):
         # Given
@@ -340,8 +348,11 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == count
-        assert response_data[0]["vuln_id"] == str(vuln_ids[1])
-        assert response_data[0]["cvss_v3_score"] == 8.0
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(
+                vuln, vuln_ids[i + 1], self.create_vuln_request(i + 1, scores[i + 1])
+            )
 
     def test_it_should_filter_by_max_cvss_v3_score(self, testdb: Session):
         # Given
@@ -365,8 +376,10 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == count
-        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
-        assert response_data[0]["cvss_v3_score"] == 3.0
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i, scores[i]))
 
     def test_it_should_filter_by_cve_ids(self, testdb: Session):
         # Given
@@ -385,7 +398,10 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_filter_by_created_and_updated_timestamps(self, testdb: Session):
         # Given
@@ -426,8 +442,14 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 2
-        assert response_data[0]["vuln_id"] == str(vuln_ids[1])
-        assert response_data[1]["vuln_id"] == str(vuln_ids[2])
+        # Filter vuln_ids based on the created_after condition
+        filtered_vuln_ids = [
+            vuln_ids[i] for i in range(number_of_vulns) if created_at_list[i] > created_after
+        ]
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, filtered_vuln_ids[i], self.create_vuln_request(i + 1))
 
         created_before = "2023-01-15 00:00:00"
         # When
@@ -437,7 +459,10 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
         updated_after = "2023-01-15 00:00:00"
         # When
@@ -446,8 +471,15 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 2
-        assert response_data[0]["vuln_id"] == str(vuln_ids[1])
-        assert response_data[1]["vuln_id"] == str(vuln_ids[2])
+
+        # Filter vuln_ids based on the created_after condition
+        filtered_vuln_ids = [
+            vuln_ids[i] for i in range(number_of_vulns) if created_at_list[i] > created_after
+        ]
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, filtered_vuln_ids[i], self.create_vuln_request(i + 1))
 
         updated_before = "2023-01-15 00:00:00"
         # When
@@ -456,7 +488,10 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_filter_by_creator_ids(self, testdb: Session):
         # Given
@@ -482,7 +517,10 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_filter_by_package_name(self, testdb: Session):
         # Given
@@ -501,7 +539,10 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_filter_by_ecosystem(self, testdb: Session):
         # Given
@@ -520,7 +561,10 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_filter_by_package_manager(self, testdb: Session):
         # Given
@@ -606,7 +650,10 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
 
 class TestDeleteVuln:
