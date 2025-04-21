@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.main import app
 from app.tests.medium.constants import (
     USER1,
+    USER2,
 )
 from app.tests.medium.utils import (
     create_user,
@@ -211,6 +212,7 @@ class TestGetVulns:
     def common_setup(self, testdb: Session):
         # Given
         self.user1 = create_user(USER1)
+        self.user2 = create_user(USER2)
         self.headers_user = headers(USER1)
 
     def test_it_should_return_200_and_vulns_list(self, testdb: Session):
@@ -455,13 +457,35 @@ class TestGetVulns:
     def test_it_should_filter_by_creator_ids(self, testdb: Session):
         # Given
         creator_id = str(self.user1.user_id)
-        vuln_id = uuid4()
+        vuln_id1 = uuid4()
+        vuln_id2 = uuid4()
         client.put(
-            f"/vulns/{vuln_id}",
+            f"/vulns/{vuln_id1}",
             headers=self.headers_user,
             json={
-                "title": "Vuln with creator",
+                "title": "Vuln with creator1",
                 "cve_id": "CVE-0000-0001",
+                "detail": "This is a test.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": "example-lib-2",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            },
+        )
+
+        client.put(
+            f"/vulns/{vuln_id2}",
+            headers=headers(USER2),
+            json={
+                "title": "Vuln with creator2",
+                "cve_id": "CVE-0000-0002",
                 "detail": "This is a test.",
                 "exploitation": "active",
                 "automatable": "yes",
@@ -484,7 +508,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_id)
+        assert response_data[0]["vuln_id"] == str(vuln_id1)
 
     def test_it_should_filter_by_cve_ids(self, testdb: Session):
         # Given
