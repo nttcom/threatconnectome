@@ -425,6 +425,40 @@ class TestGetVulns:
         assert response_data[0]["vuln_id"] == str(vuln_ids[0])
         assert response_data[0]["cvss_v3_score"] == 3.0
 
+    def test_it_should_filter_by_cve_ids(self, testdb: Session):
+        # Given
+        number_of_vulns = 2
+        vuln_ids = []
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = {
+                "title": f"Example vuln {i}",
+                "cve_id": f"CVE-0000-000{i}",
+                "detail": f"This is example vuln {i}.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": f"example-lib-{i}",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
+
+        # When
+        response = client.get("/vulns?cve_ids=CVE-0000-0000", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
     def test_it_should_filter_by_creator_ids(self, testdb: Session):
         # Given
         creator_id = str(self.user1.user_id)
@@ -459,40 +493,6 @@ class TestGetVulns:
 
         # When
         response = client.get(f"/vulns?creator_ids={creator_id}", headers=self.headers_user)
-
-        # Then
-        assert response.status_code == 200
-        response_data = response.json()
-        assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
-
-    def test_it_should_filter_by_cve_ids(self, testdb: Session):
-        # Given
-        number_of_vulns = 2
-        vuln_ids = []
-        for i in range(number_of_vulns):
-            vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.5,
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
-            vuln_ids.append(vuln_id)
-
-        # When
-        response = client.get("/vulns?cve_ids=CVE-0000-0000", headers=self.headers_user)
 
         # Then
         assert response.status_code == 200
