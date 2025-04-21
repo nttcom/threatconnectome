@@ -521,6 +521,8 @@ def get_dependencies(
         for service in pteam.services:
             dependencies.extend(service.dependencies)
 
+    dependencies.sort(key=lambda x: x.dependency_id)
+
     paginated_dependencies = dependencies[offset : offset + limit]
 
     dependency_responses = []

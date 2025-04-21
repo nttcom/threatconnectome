@@ -1093,6 +1093,9 @@ class TestGetDependencies:
             },
         ]
 
+        # returned dependencies are sorted by dependency_id
+        expected_dependency.sort(key=lambda x: x["dependency_id"])
+
         # When
         response = client.get(
             f"/pteams/{self.pteam1.pteam_id}/dependencies", headers=headers(USER1)
