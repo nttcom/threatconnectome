@@ -459,6 +459,92 @@ class TestGetVulns:
         assert len(response_data) == 1
         assert response_data[0]["vuln_id"] == str(vuln_ids[0])
 
+    def test_it_should_filter_by_created_and_updated_timestamps(self, testdb: Session):
+        # Given
+        number_of_vulns = 3
+        vuln_ids = []
+
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = {
+                "title": f"Example vuln {i}",
+                "cve_id": f"CVE-0000-000{i}",
+                "detail": f"This is example vuln {i}.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": f"example-lib-{i}",
+                        "ecosystem": f"ecosystem-{i}",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
+
+        print("Vuln IDs:", vuln_ids)
+
+        created_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
+        updated_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
+        for i in range(number_of_vulns):
+            testdb.execute(
+                text(
+                    """
+                UPDATE vuln
+                SET created_at = :created_at, updated_at = :updated_at
+                WHERE vuln_id = :vuln_id
+                """
+                ),
+                {
+                    "vuln_id": str(vuln_ids[i]),
+                    "created_at": created_at_list[i],
+                    "updated_at": updated_at_list[i],
+                },
+            )
+
+        created_after = "2023-01-15 00:00:00"
+        # When
+        response = client.get(f"/vulns?created_after={created_after}", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 2
+        assert response_data[0]["vuln_id"] == str(vuln_ids[1])
+        assert response_data[1]["vuln_id"] == str(vuln_ids[2])
+
+        created_before = "2023-01-15 00:00:00"
+        # When
+        response = client.get(f"/vulns?created_before={created_before}", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
+        updated_after = "2023-01-15 00:00:00"
+        # When
+        response = client.get(f"/vulns?updated_after={updated_after}", headers=self.headers_user)
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 2
+        assert response_data[0]["vuln_id"] == str(vuln_ids[1])
+        assert response_data[1]["vuln_id"] == str(vuln_ids[2])
+
+        updated_before = "2023-01-15 00:00:00"
+        # When
+        response = client.get(f"/vulns?updated_before={updated_before}", headers=self.headers_user)
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
     def test_it_should_filter_by_creator_ids(self, testdb: Session):
         # Given
         creator_id = str(self.user1.user_id)
