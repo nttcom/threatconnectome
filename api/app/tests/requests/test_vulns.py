@@ -216,28 +216,31 @@ class TestGetVulns:
         self.user2 = create_user(USER2)
         self.headers_user = headers(USER1)
 
+    def create_vuln_request(self, index: int, cvss_v3_score: float = 7.5) -> dict:
+        return {
+            "title": f"Example vuln {index}",
+            "cve_id": f"CVE-0000-000{index}",
+            "detail": f"This is example vuln {index}.",
+            "exploitation": "active",
+            "automatable": "yes",
+            "cvss_v3_score": cvss_v3_score,
+            "vulnerable_packages": [
+                {
+                    "name": f"example-lib-{index}",
+                    "ecosystem": f"ecosystem-{index}",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+
     def test_it_should_return_200_and_vulns_list(self, testdb: Session):
         # Given
         vuln_ids = []
         number_of_vulns = 10
         for i in range(number_of_vulns):
             vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.5,
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
         # When
@@ -258,7 +261,7 @@ class TestGetVulns:
             assert vuln["automatable"] == "yes"
             assert vuln["cvss_v3_score"] == 7.5
             assert vuln["vulnerable_packages"][0]["name"] == f"example-lib-{i}"
-            assert vuln["vulnerable_packages"][0]["ecosystem"] == "pypi"
+            assert vuln["vulnerable_packages"][0]["ecosystem"] == f"ecosystem-{i}"
             assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
             assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
 
@@ -275,22 +278,7 @@ class TestGetVulns:
         # Given
         number_of_vulns = 5
         for i in range(number_of_vulns):
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.5,
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{uuid4()}", headers=self.headers_user, json=vuln_request)
 
         # When
@@ -307,22 +295,7 @@ class TestGetVulns:
         vuln_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.5,
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
@@ -341,7 +314,7 @@ class TestGetVulns:
         assert response_data[0]["automatable"] == "yes"
         assert response_data[0]["cvss_v3_score"] == 7.5
         assert response_data[0]["vulnerable_packages"][0]["name"] == f"example-lib-{1}"
-        assert response_data[0]["vulnerable_packages"][0]["ecosystem"] == "pypi"
+        assert response_data[0]["vulnerable_packages"][0]["ecosystem"] == f"ecosystem-{1}"
         assert response_data[0]["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
         assert response_data[0]["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
 
@@ -354,22 +327,7 @@ class TestGetVulns:
 
         for i in range(len(scores)):
             vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": scores[i],
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i, scores[i])
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
@@ -394,22 +352,7 @@ class TestGetVulns:
 
         for i in range(len(scores)):
             vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": scores[i],
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i, scores[i])
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
@@ -431,22 +374,7 @@ class TestGetVulns:
         vuln_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.5,
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
@@ -466,22 +394,7 @@ class TestGetVulns:
 
         for i in range(number_of_vulns):
             vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.5,
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": f"ecosystem-{i}",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
@@ -551,22 +464,7 @@ class TestGetVulns:
         vuln_ids = []
         for i in range(2):
             vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.5,
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i)
             if i == 0:
                 client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             else:
@@ -592,22 +490,7 @@ class TestGetVulns:
         vuln_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.5,
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
@@ -626,22 +509,7 @@ class TestGetVulns:
         vuln_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.5,
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": f"ecosystem-{i}",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
@@ -662,22 +530,7 @@ class TestGetVulns:
 
         for i in range(number_of_vulns):
             vuln_id = uuid4()
-            vuln_request = {
-                "title": f"Example vuln {i}",
-                "cve_id": f"CVE-0000-000{i}",
-                "detail": f"This is example vuln {i}.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.5,
-                "vulnerable_packages": [
-                    {
-                        "name": f"example-lib-{i}",
-                        "ecosystem": f"ecosystem-{i}",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
+            vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
