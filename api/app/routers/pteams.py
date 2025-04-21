@@ -499,6 +499,8 @@ def get_pteam_tags_summary(
 )
 def get_dependencies(
     pteam_id: UUID,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
     service_id: UUID | str | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -519,8 +521,10 @@ def get_dependencies(
         for service in pteam.services:
             dependencies.extend(service.dependencies)
 
+    paginated_dependencies = dependencies[offset : offset + limit]
+
     dependency_responses = []
-    for dependency in dependencies:
+    for dependency in paginated_dependencies:
         dependency_response = schemas.DependencyResponse(
             dependency_id=dependency.dependency_id,
             service_id=dependency.service.service_id,

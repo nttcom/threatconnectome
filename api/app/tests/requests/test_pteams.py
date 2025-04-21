@@ -1126,6 +1126,56 @@ class TestGetDependencies:
         assert response.status_code == 200
         assert response.json()[0] == expected_dependency
 
+    def test_it_should_paginate_response_when_dependencies_exceed_limit(self, testdb: Session):
+        # Given
+        # Create additional dependencies
+        number_of_additional_deps = 8
+        limit = 5
+
+        for i in range(number_of_additional_deps):
+            package = models.Package(
+                name=f"test_package_pagination_{i}",
+                ecosystem="test_ecosystem_pagination",
+            )
+            persistence.create_package(testdb, package)
+
+            package_version = models.PackageVersion(
+                package_id=package.package_id,
+                version=f"1.0.{i}",
+            )
+            persistence.create_package_version(testdb, package_version)
+
+            dependency = models.Dependency(
+                target=f"test_target_pagination_{i}",
+                package_manager="npm",
+                package_version_id=package_version.package_version_id,
+                service=self.service1,
+            )
+            testdb.add(dependency)
+        testdb.commit()
+
+        # When - Test with pagination
+        response_first_page = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/dependencies?offset=0&limit={limit}",
+            headers=headers(USER1),
+        )
+
+        response_second_page = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/dependencies?offset={limit}&limit={limit}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        # Check first page response
+        assert response_first_page.status_code == 200
+        first_page_data = response_first_page.json()
+        assert len(first_page_data) == 5
+
+        # Check second page response
+        assert response_second_page.status_code == 200
+        second_page_data = response_second_page.json()
+        assert len(second_page_data) == 5
+
     def test_it_should_return_404_when_service_id_does_not_exist(self):
         # Given
         wrong_service_id = str(uuid4())
