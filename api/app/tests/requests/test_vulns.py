@@ -243,7 +243,6 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        response_data.reverse()
         assert len(response_data) == number_of_vulns  # Ensure all created vulns are returned
 
         # Check the details of each vuln
@@ -331,17 +330,260 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data) == 4  # Ensure 4 vulns are returned
-        assert response_data[0]["vuln_id"] == str(vuln_ids[3])  # Ensure offset is applied
-        assert response_data[0]["title"] == f"Example vuln {3}"
-        assert response_data[0]["cve_id"] == f"CVE-0000-000{3}"
-        assert response_data[0]["detail"] == f"This is example vuln {3}."
+        assert response_data[0]["vuln_id"] == str(vuln_ids[1])  # Ensure offset is applied
+        assert response_data[0]["title"] == f"Example vuln {1}"
+        assert response_data[0]["cve_id"] == f"CVE-0000-000{1}"
+        assert response_data[0]["detail"] == f"This is example vuln {1}."
         assert response_data[0]["exploitation"] == "active"
         assert response_data[0]["automatable"] == "yes"
         assert response_data[0]["cvss_v3_score"] == 7.5
-        assert response_data[0]["vulnerable_packages"][0]["name"] == f"example-lib-{3}"
+        assert response_data[0]["vulnerable_packages"][0]["name"] == f"example-lib-{1}"
         assert response_data[0]["vulnerable_packages"][0]["ecosystem"] == "pypi"
         assert response_data[0]["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
         assert response_data[0]["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
+
+    def test_it_should_filter_by_min_cvss_v3_score(self, testdb: Session):
+        # Given
+        vuln_id1 = uuid4()
+        vuln_id2 = uuid4()
+        client.put(
+            f"/vulns/{vuln_id1}",
+            headers=self.headers_user,
+            json={
+                "title": "Low CVSS vuln",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This is a low CVSS vuln.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 3.0,
+                "vulnerable_packages": [
+                    {
+                        "name": "example-lib-1",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            },
+        )
+        client.put(
+            f"/vulns/{vuln_id2}",
+            headers=self.headers_user,
+            json={
+                "title": "High CVSS vuln",
+                "cve_id": "CVE-0000-0002",
+                "detail": "This is a high CVSS vuln.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 8.0,
+                "vulnerable_packages": [
+                    {
+                        "name": "example-lib-2",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            },
+        )
+
+        # When
+        response = client.get("/vulns?min_cvss_v3_score=5.0", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        assert response_data[0]["vuln_id"] == str(vuln_id2)
+        assert response_data[0]["cvss_v3_score"] == 8.0
+
+    def test_it_should_filter_by_max_cvss_v3_score(self, testdb: Session):
+        # Given
+        vuln_id1 = uuid4()
+        vuln_id2 = uuid4()
+        client.put(
+            f"/vulns/{vuln_id1}",
+            headers=self.headers_user,
+            json={
+                "title": "Low CVSS vuln",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This is a low CVSS vuln.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 3.0,
+                "vulnerable_packages": [
+                    {
+                        "name": "example-lib-1",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            },
+        )
+        client.put(
+            f"/vulns/{vuln_id2}",
+            headers=self.headers_user,
+            json={
+                "title": "High CVSS vuln",
+                "cve_id": "CVE-0000-0002",
+                "detail": "This is a high CVSS vuln.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 8.0,
+                "vulnerable_packages": [
+                    {
+                        "name": "example-lib-2",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            },
+        )
+
+        # When
+        response = client.get("/vulns?max_cvss_v3_score=5.0", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        assert response_data[0]["vuln_id"] == str(vuln_id1)
+        assert response_data[0]["cvss_v3_score"] == 3.0
+
+    def test_it_should_filter_by_creator_ids(self, testdb: Session):
+        # Given
+        creator_id = str(self.user1.user_id)
+        vuln_id = uuid4()
+        client.put(
+            f"/vulns/{vuln_id}",
+            headers=self.headers_user,
+            json={
+                "title": "Vuln with creator",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This is a test.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": "example-lib-2",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            },
+        )
+
+        # When
+        response = client.get(f"/vulns?creator_ids={creator_id}", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        assert response_data[0]["vuln_id"] == str(vuln_id)
+
+    def test_it_should_filter_by_cve_ids(self, testdb: Session):
+        # Given
+        vuln_id = uuid4()
+        client.put(
+            f"/vulns/{vuln_id}",
+            headers=self.headers_user,
+            json={
+                "title": "Vuln with creator",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This is a test.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": "example-lib-2",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            },
+        )
+
+        # When
+        response = client.get("/vulns?cve_ids=CVE-0000-0001", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        assert response_data[0]["vuln_id"] == str(vuln_id)
+
+    def test_it_should_filter_by_package_name(self, testdb: Session):
+        # Given
+        vuln_id = uuid4()
+        client.put(
+            f"/vulns/{vuln_id}",
+            headers=self.headers_user,
+            json={
+                "title": "Vuln with creator",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This is a test.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": "example-lib",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            },
+        )
+
+        # When
+        response = client.get("/vulns?package_name=example-lib", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        assert response_data[0]["vuln_id"] == str(vuln_id)
+
+    def test_it_should_filter_by_ecosystem(self, testdb: Session):
+        # Given
+        vuln_id = uuid4()
+        client.put(
+            f"/vulns/{vuln_id}",
+            headers=self.headers_user,
+            json={
+                "title": "Vuln with creator",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This is a test.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": "example-lib",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            },
+        )
+
+        # When
+        response = client.get("/vulns?ecosystem=pypi", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        assert response_data[0]["vuln_id"] == str(vuln_id)
 
 
 class TestDeleteVuln:
