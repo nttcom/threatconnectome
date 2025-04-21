@@ -513,12 +513,34 @@ class TestGetVulns:
     def test_it_should_filter_by_cve_ids(self, testdb: Session):
         # Given
         vuln_id = uuid4()
+        vuln_id2 = uuid4()
         client.put(
             f"/vulns/{vuln_id}",
             headers=self.headers_user,
             json={
                 "title": "Vuln with creator",
                 "cve_id": "CVE-0000-0001",
+                "detail": "This is a test.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": "example-lib-2",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            },
+        )
+
+        client.put(
+            f"/vulns/{vuln_id2}",
+            headers=self.headers_user,
+            json={
+                "title": "Vuln with creator",
+                "cve_id": "CVE-0000-0002",
                 "detail": "This is a test.",
                 "exploitation": "active",
                 "automatable": "yes",
