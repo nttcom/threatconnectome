@@ -288,6 +288,9 @@ def get_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
+        created_at=vuln.created_at,
+        updated_at=vuln.updated_at,
+        created_by=vuln.created_by,
         content_fingerprint=vuln.content_fingerprint,
     )
 
@@ -330,6 +333,9 @@ def get_vulns(
                 automatable=vuln.automatable,
                 cvss_v3_score=vuln.cvss_v3_score,
                 vulnerable_packages=vulnerable_packages,
+                created_at=vuln.created_at,
+                updated_at=vuln.updated_at,
+                created_by=vuln.created_by,
                 content_fingerprint=vuln.content_fingerprint,
             )
         )
