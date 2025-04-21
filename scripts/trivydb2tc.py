@@ -8,7 +8,6 @@ import re
 import sys
 import uuid
 from functools import partial
-from hashlib import md5
 from pathlib import Path
 from time import sleep
 from typing import Callable
@@ -56,10 +55,10 @@ allow_list = [
     # b"alpine 3.12",
     # b"alpine 3.13",
     # b"alpine 3.14",
-    b"alpine 3.15",
-    b"alpine 3.16",
-    b"alpine 3.17",
-    b"alpine 3.18",
+    # b"alpine 3.15",
+    # b"alpine 3.16",
+    # b"alpine 3.17",
+    # b"alpine 3.18",
     # b"alpine 3.2",
     # b"alpine 3.3",
     # b"alpine 3.4",
@@ -74,27 +73,27 @@ allow_list = [
     # b"amazon linux 2022",
     # b"amazon linux 2023",
     # b"bitnami::Bitnami Vulnerability Database",
-    b"cargo::GitHub Security Advisory Rust",
+    # b"cargo::GitHub Security Advisory Rust",
     # b"chainguard",
     # b"cocoapods::GitHub Security Advisory Swift",
     # b"composer::GitHub Security Advisory Composer",
     # b"composer::PHP Security Advisories Database",
     # b"conan::GitLab Advisory Database Community",
     # b"data-source",
-    b"debian 10",
-    b"debian 11",
-    b"debian 12",
-    b"debian 13",
+    # b"debian 10",
+    # b"debian 11",
+    # b"debian 12",
+    # b"debian 13",
     # b"debian 7",
     # b"debian 8",
     # b"debian 9",
     # b"erlang::GitHub Security Advisory Erlang",
-    b"go::GitHub Security Advisory Go",
+    # b"go::GitHub Security Advisory Go",
     # b"k8s::Official Kubernetes CVE Feed",
-    b"maven::GitHub Security Advisory Maven",
-    b"maven::GitLab Advisory Database Community",
-    b"npm::GitHub Security Advisory npm",
-    b"npm::Node.js Ecosystem Security Working Group",
+    # b"maven::GitHub Security Advisory Maven",
+    # b"maven::GitLab Advisory Database Community",
+    # b"npm::GitHub Security Advisory npm",
+    # b"npm::Node.js Ecosystem Security Working Group",
     # b"nuget::GitHub Security Advisory NuGet",
     # b"openSUSE Leap 15.0",
     # b"openSUSE Leap 15.1",
@@ -109,8 +108,8 @@ allow_list = [
     # b"pub::GitHub Security Advisory Pub",
     # b"rocky 8",
     # b"rocky 9",
-    b"rubygems::GitHub Security Advisory RubyGems",
-    b"rubygems::Ruby Advisory Database",
+    # b"rubygems::GitHub Security Advisory RubyGems",
+    # b"rubygems::Ruby Advisory Database",
     # b"swift::GitHub Security Advisory Swift",
     # b"ubuntu 12.04",
     # b"ubuntu 12.04-ESM",
@@ -127,15 +126,15 @@ allow_list = [
     # b"ubuntu 16.10",
     # b"ubuntu 17.04",
     # b"ubuntu 17.10",
-    b"ubuntu 18.04",
+    # b"ubuntu 18.04",
     # b"ubuntu 18.10",
     # b"ubuntu 19.04",
     # b"ubuntu 19.10",
-    b"ubuntu 20.04",
+    # b"ubuntu 20.04",
     # b"ubuntu 20.10",
     # b"ubuntu 21.04",
     # b"ubuntu 21.10",
-    b"ubuntu 22.04",
+    # b"ubuntu 22.04",
     # b"ubuntu 22.10",
     # b"ubuntu 23.04",
     # b"wolfi",
@@ -264,72 +263,35 @@ class ThreatconnectomeClient:
                 _retry -= 1
             sleep(3)
 
-    def get_topics(self) -> dict:
-        response = self._retry_call(requests.get, f"{self.api_url}/topics")
-        return response.json()
+    def get_vulns(self) -> list:
+        all_vulns = []
+        offset = 0
+        limit = 100
 
-    def get_topic(self, topic_id) -> dict:
-        response = self._retry_call(requests.get, f"{self.api_url}/topics/{topic_id}")
-        return response.json()
-
-    def create_tag(self, tag_name: str) -> None:
-        api_endpoint = f"{self.api_url}/tags"
-        print(f"Post {api_endpoint} to create tag: {tag_name}")
-        response = self._retry_call(requests.post, api_endpoint, json={"tag_name": tag_name})
-        print(f"Http status: {response.status_code} {response.reason}")
-
-    def with_auto_create_tags(
-        self,
-        func: Callable[..., None],
-        *args,
-        **kwargs,
-    ) -> None:
         while True:
-            try:
-                func(*args, **kwargs)
-            except APIError as error:
-                no_tags_error_pref = "ERROR: 400: Bad Request: No such tags: "
-                if (err_msg := str(error)).startswith(no_tags_error_pref):
-                    print(err_msg)
-                    for tag_name in err_msg[len(no_tags_error_pref) :].split(", "):
-                        self.create_tag(tag_name)
-                    continue  # try again
-                raise error
-            return
+            response = self._retry_call(
+                requests.get, f"{self.api_url}/vulns?offset={offset}&limit={limit}"
+            )
+            vulns = response.json()
 
-    def _create_topic(self, topic_id: str, topic: dict) -> None:
-        api_endpoint = f"{self.api_url}/topics/{topic_id}"
-        print(f"Post {api_endpoint}")
-        response = self._retry_call(requests.post, api_endpoint, json=topic)
-        print(f"Http status: {response.status_code} {response.reason}")
+            # Finish when response is empty
+            if not vulns:
+                break
 
-    def create_topic(self, topic_id: str, topic: dict) -> None:
-        self.with_auto_create_tags(self._create_topic, topic_id, topic)
+            all_vulns.extend(vulns)
+            offset += limit
 
-    def _update_topic_and_actions(self, topic_id: str, topic: dict) -> None:
-        api_endpoint = f"{self.api_url}/topics/{topic_id}"
+        return all_vulns
+
+    def get_vuln(self, vuln_id) -> dict:
+        response = self._retry_call(requests.get, f"{self.api_url}/vulns/{vuln_id}")
+        return response.json()
+
+    def create_and_update_vuln(self, vuln_id: str, vuln: dict) -> None:
+        api_endpoint = f"{self.api_url}/vulns/{vuln_id}"
         print(f"Put {api_endpoint}")
-        response = self._retry_call(requests.put, api_endpoint, json=topic)
+        response = self._retry_call(requests.put, api_endpoint, json=vuln)
         print(f"Http status: {response.status_code} {response.reason}")
-        for action in topic.get("actions") or []:
-            try:
-                api_endpoint = f"{self.api_url}/actions"
-                print(f"Post {api_endpoint}")
-                response = self._retry_call(
-                    requests.post, api_endpoint, json={**action, "topic_id": topic_id}
-                )
-                print(f"Http status: {response.status_code} {response.reason}")
-            except APIError as error:
-                if str(error) == "ERROR: 400: Bad Request: Action id already exists":
-                    api_endpoint = f"{self.api_url}/actions/{action['action_id']}"
-                    print(f"Put {api_endpoint}")
-                    self._retry_call(requests.put, api_endpoint, json=action)
-                    print(f"Http status: {response.status_code} {response.reason}")
-                else:
-                    raise error
-
-    def update_topic_and_actions(self, topic_id: str, topic: dict) -> None:
-        self.with_auto_create_tags(self._update_topic_and_actions, topic_id, topic)
 
 
 def create_os_tag_info(os_repos):
@@ -406,29 +368,24 @@ def make_update_action(pkg_name, version_details: dict):
     else:
         action = None
 
-    fixed_versions_str = ",".join(fixed_versions)
-
-    return action, vulnerable_versions, fixed_versions_str
-
-
-def _gen_action_id(topic_id: uuid.UUID | str, tags: list[str], action: str) -> str:
-    random.seed(f"{topic_id}-{','.join(tags)}-{action}")
-    return str(uuid.UUID(int=random.getrandbits(128), version=4))
+    return action, vulnerable_versions, fixed_versions
 
 
 def calculate_topic_content_fingerprint(topic: dict) -> str:
-    tag_names = (
-        [tag["tag_name"] for tag in topic["tags"]]
-        if len(topic["tags"]) > 0 and isinstance(topic["tags"][0], dict)
-        else topic["tags"]
-    )
-    data = {
-        "title": topic["title"],
-        "abstract": topic["abstract"],
-        "cvss_v3_score": topic["cvss_v3_score"],
-        "tag_names": sorted(set(tag_names)),
-    }
-    return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
+    # TODO: Fixed in another task.
+    # tag_names = (
+    #     [tag["tag_name"] for tag in topic["tags"]]
+    #     if len(topic["tags"]) > 0 and isinstance(topic["tags"][0], dict)
+    #     else topic["tags"]
+    # )
+    # data = {
+    #     "title": topic["title"],
+    #     "abstract": topic["abstract"],
+    #     "cvss_v3_score": topic["cvss_v3_score"],
+    #     "tag_names": sorted(set(tag_names)),
+    # }
+    # return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
+    return "dummy_fingerprint"
 
 
 def main() -> None:
@@ -470,102 +427,99 @@ def main() -> None:
             if repos in allow_list:
                 # create tag strings except packagename
                 category = get_package_info(repos)
-                vulns = vuln_info(repos, txs)
-                for vuln in vulns:
+                trivy_vulns = vuln_info(repos, txs)
+                for vuln in trivy_vulns:
                     solution, vuln_vers, fix_vers = solution_from_vuln(vuln)
                     if not solution:
                         continue
-                    vuln_id = vuln["vuln_id"]
-                    vuln_obj = vuln_dict.get(
-                        vuln_id, {"tags": set(), "actions": {}, "fix_vers": {}}
-                    )
-                    tag = f"{vuln['pkg_name']}:{category}"
-                    assert isinstance(vuln_obj["tags"], set)
-                    vuln_obj["tags"].add(tag)
-                    assert isinstance(vuln_obj["actions"], dict)
-                    act_obj = vuln_obj["actions"].get(
+                    trivy_vuln_id = vuln["vuln_id"]
+                    vuln_obj = vuln_dict.get(trivy_vuln_id, {"affects": {}})
+                    package = f"{vuln['pkg_name']}:{category}"
+
+                    # Ensure "affects" is dict
+                    assert isinstance(vuln_obj["affects"], dict)
+                    affect_obj = vuln_obj["affects"].get(
                         solution,
                         {
-                            "action": solution,
-                            "action_type": "elimination",
-                            "recommended": True,
-                            "ext": {
-                                "tags": set(),
-                                "vulnerable_versions": {},  # {tag: versions}
-                            },
+                            "packages": set(),
+                            "affected_versions": set(),
+                            "fixed_versions": set(),
                         },
                     )
-                    act_obj["ext"]["tags"].add(tag)
-                    vers_obj = act_obj["ext"]["vulnerable_versions"].get(tag, set())
-                    vers_obj.update(vuln_vers or [])
-                    act_obj["ext"]["vulnerable_versions"][tag] = vers_obj
-                    vuln_obj["actions"][solution] = act_obj
-                    vuln_obj["fix_vers"] = fix_vers
-                    vuln_dict[vuln_id] = vuln_obj
 
-        topics: dict[str, dict] = {}
+                    # Add the package to the "affects" set
+                    affect_obj["packages"].add(package)
+
+                    # Update "affected_versions"
+                    affect_vers_obj = affect_obj["affected_versions"]
+                    affect_vers_obj.update(vuln_vers or [])
+                    affect_obj["affected_versions"] = affect_vers_obj
+
+                    # Update "fixed_versions"
+                    fixed_vers_obj = affect_obj["fixed_versions"]
+                    fixed_vers_obj.update(fix_vers or [])
+                    affect_obj["fixed_versions"] = fixed_vers_obj
+
+                    # Update the "vuln_dict"
+                    vuln_obj["affects"][solution] = affect_obj
+                    vuln_dict[trivy_vuln_id] = vuln_obj
+
+        tc_vulns: dict[str, dict] = {}
         vuln_bucket = txs.bucket(b"vulnerability")
-        for vuln_id, vuln_content in vuln_dict.items():
-            # Generate a tooic uuid from Vuln ID
-            random.seed(vuln_id)
-            topic_id = str(uuid.UUID(int=random.getrandbits(128), version=4))
+        for trivy_vuln_id, trivy_vuln_content in vuln_dict.items():
+            # Generate a tc vuln uuid from tirvy Vuln ID
+            random.seed(trivy_vuln_id)
+            tc_vuln_id = str(uuid.UUID(int=random.getrandbits(128), version=4))
 
-            bucket_content = vuln_bucket.get(vuln_id.encode())
+            bucket_content = vuln_bucket.get(trivy_vuln_id.encode())
             if bucket_content:
-                vuln_details = json.loads(bucket_content.decode())
-                if "Title" in vuln_details:
-                    title = vuln_details["Title"]
+                trivy_vuln_details = json.loads(bucket_content.decode())
+                if "Title" in trivy_vuln_details:
+                    title = trivy_vuln_details["Title"]
                 else:
-                    title = vuln_id
-                if "Description" in vuln_details:
-                    abstract = vuln_details["Description"]
-                elif "References" in vuln_details:
-                    abstract = "\n".join(vuln_details["References"])
+                    title = trivy_vuln_id
+                if "Description" in trivy_vuln_details:
+                    detail = trivy_vuln_details["Description"]
+                elif "References" in trivy_vuln_details:
+                    detail = "\n".join(trivy_vuln_details["References"])
                 else:
-                    abstract = "There is no description."
+                    detail = "There is no description."
 
                 if (
-                    "CVSS" in vuln_details
-                    and "nvd" in vuln_details["CVSS"]
-                    and "V3Score" in vuln_details["CVSS"]["nvd"]
+                    "CVSS" in trivy_vuln_details
+                    and "nvd" in trivy_vuln_details["CVSS"]
+                    and "V3Score" in trivy_vuln_details["CVSS"]["nvd"]
                 ):
-                    cvss_v3_score = float(vuln_details["CVSS"]["nvd"]["V3Score"])
+                    cvss_v3_score = float(trivy_vuln_details["CVSS"]["nvd"]["V3Score"])
                 else:
                     cvss_v3_score = None
 
             else:
-                title = vuln_id
-                abstract = "This Vuln is not yet published."
+                title = trivy_vuln_id
+                detail = "This Vuln is not yet published."
                 cvss_v3_score = None
-            if vuln_content["tags"]:
-                tags = list(vuln_content["tags"])
-            misp_tags = [vuln_id]
-            assert isinstance(vuln_content["actions"], dict)
-            actions = [
-                {
-                    **x,
-                    "action": x["action"][:1024],
-                    "ext": {
-                        "tags": list(x["ext"]["tags"]),
-                        "vulnerable_versions": {
-                            k: list(v) for k, v in x["ext"]["vulnerable_versions"].items()
-                        },
-                    },
-                    "action_id": _gen_action_id(topic_id, x["ext"]["tags"], x["action"]),
-                }
-                for x in vuln_content["actions"].values()
-            ]
+
+            if trivy_vuln_content["affects"]:
+                assert isinstance(trivy_vuln_content["affects"], dict)
+                vulnerable_packages = []
+                for key, value in trivy_vuln_content["affects"].items():
+                    value_package = value["packages"].pop()
+                    vulnerable_package = {
+                        "name": value_package.split(":")[0],
+                        "ecosystem": value_package.split(":")[1],
+                        "affected_versions": list(value["affected_versions"]),
+                        "fixed_versions": list(value["fixed_versions"]),
+                    }
+                    vulnerable_packages.append(vulnerable_package)
 
             CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"
-            cve_id = vuln_id if re.match(CVE_PATTERN, vuln_id) else None
-            topics[topic_id] = {
+            cve_id = trivy_vuln_id if re.match(CVE_PATTERN, trivy_vuln_id) else None
+            tc_vulns[tc_vuln_id] = {
                 "title": title,
-                "abstract": abstract,
-                "tags": tags,
-                "misp_tags": misp_tags,
-                "actions": actions,
-                "cvss_v3_score": cvss_v3_score,
                 "cve_id": cve_id,
+                "detail": detail,
+                "cvss_v3_score": cvss_v3_score,
+                "vulnerable_packages": vulnerable_packages,
             }
 
     tc_client = ThreatconnectomeClient(
@@ -575,33 +529,31 @@ def main() -> None:
         connect_timeout=60.0,
         read_timeout=60.0,
     )
-    data = tc_client.get_topics()
+    data = tc_client.get_vulns()
     if len(data) > 0 and not args.update:
-        sample_topic = tc_client.get_topic(data[0]["topic_id"])
-        if calculate_topic_content_fingerprint(sample_topic) != sample_topic["content_fingerprint"]:
+        sample_vuln = tc_client.get_vuln(data[0]["vuln_id"])
+        if calculate_topic_content_fingerprint(sample_vuln) != sample_vuln["content_fingerprint"]:
             raise ValueError(
                 "Calculated content_fingerprint does not matche. Check the calculation algorithm."
             )
-    existing_topics = {result["topic_id"]: result for result in data}
+    existing_vulns = {result["vuln_id"]: result for result in data}
 
-    for topic_id, topic in topics.items():
-        if topic_id not in existing_topics:  # new topic
-            tc_client.create_topic(topic_id, topic)
+    for tc_vuln_id, vuln in tc_vulns.items():
+        if tc_vuln_id not in existing_vulns:  # new topic
+            tc_client.create_and_update_vuln(tc_vuln_id, vuln)
             continue
 
-        # existing topic
+        # existing vuln
         if args.update:  # force update mode
-            tc_client.update_topic_and_actions(topic_id, topic)
+            tc_client.create_and_update_vuln(tc_vuln_id, vuln)
             continue
 
-        content_fingerprint = calculate_topic_content_fingerprint(topic)
+        content_fingerprint = calculate_topic_content_fingerprint(vuln)
         if (
-            content_fingerprint != existing_topics[topic_id]["content_fingerprint"]
-        ):  # topic core updated
-            tc_client.update_topic_and_actions(topic_id, topic)
+            content_fingerprint != existing_vulns[tc_vuln_id]["content_fingerprint"]
+        ):  # vuln core updated
+            tc_client.create_and_update_vuln(tc_vuln_id, vuln)
             continue
-
-        # TODO: care for the cases only actions are updated.
 
 
 if __name__ == "__main__":
