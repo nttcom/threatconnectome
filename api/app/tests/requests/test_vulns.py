@@ -249,7 +249,7 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == number_of_vulns  # Ensure all created vulns are returned
+        assert len(response_data) == number_of_vulns
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data):
@@ -272,7 +272,7 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert response_data == []  # Ensure no vulns are returned
+        assert response_data == []
 
     def test_it_should_return_correct_number_of_vulns_with_limit(self, testdb: Session):
         # Given
@@ -287,7 +287,7 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 2  # Ensure only 2 vulns are returned
+        assert len(response_data) == 2
 
     def test_it_should_return_correct_vulns_with_offset(self, testdb: Session):
         # Given
@@ -305,7 +305,7 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 4  # Ensure 4 vulns are returned
+        assert len(response_data) == 4
         assert response_data[0]["vuln_id"] == str(vuln_ids[1])  # Ensure offset is applied
         assert response_data[0]["title"] == f"Example vuln {1}"
         assert response_data[0]["cve_id"] == f"CVE-0000-000{1}"
