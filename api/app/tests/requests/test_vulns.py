@@ -2,6 +2,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.main import app
@@ -560,6 +561,107 @@ class TestGetVulns:
 
         # When
         response = client.get("/vulns?ecosystem=ecosystem-0", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
+
+    def test_it_should_filter_by_package_manager(self, testdb: Session):
+        # Given
+        package_manager = "package-manager-0"
+        number_of_vulns = 2
+        vuln_ids = []
+
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = {
+                "title": f"Example vuln {i}",
+                "cve_id": f"CVE-0000-000{i}",
+                "detail": f"This is example vuln {i}.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": f"example-lib-{i}",
+                        "ecosystem": f"ecosystem-{i}",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
+
+            if i == 0:  # 最初のレコードのpackage_idを取得
+                response_data = response.json()
+                # データベースからpackage_idを取得
+                package = testdb.execute(
+                    text(
+                        """
+                        SELECT package_id FROM package
+                        WHERE name = 'example-lib-0' AND ecosystem = 'ecosystem-0';
+                        """
+                    )
+                ).fetchone()
+
+                print("Package Query Result:", package)
+
+                if package:
+                    package_id = package._mapping["package_id"]
+                else:
+                    raise ValueError("package_id could not be determined.")
+
+        if not package_id:
+            raise ValueError("package_id could not be determined.")
+
+        pteam_id = uuid4()
+        testdb.execute(
+            text(
+                f"""
+                INSERT INTO pteam (pteam_id, pteam_name, contact_info)
+                VALUES ('{pteam_id}', 'example-pteam', 'contact@example.com');
+                """
+            )
+        )
+
+        service_id = uuid4()
+        testdb.execute(
+            text(
+                f"""
+                INSERT INTO service (service_id, pteam_id, service_name)
+                VALUES ('{service_id}', '{pteam_id}', 'example-service');
+                """
+            )
+        )
+
+        # Add a dependency with the specified package_manager
+        package_version_id = uuid4()
+        dependency_id = uuid4()
+
+        testdb.execute(
+            text(
+                f"""
+            INSERT INTO packageversion (package_version_id, package_id, version)
+            VALUES ('{package_version_id}', '{package_id}', '1.0.0');
+            """
+            )
+        )
+        testdb.execute(
+            text(
+                f"""
+            INSERT INTO dependency (dependency_id, service_id, package_version_id, target, package_manager)
+            VALUES ('{dependency_id}', '{service_id}', '{package_version_id}', 'target', '{package_manager}');
+            """
+            )
+        )
+
+        # When
+        response = client.get(
+            f"/vulns?package_manager={package_manager}", headers=self.headers_user
+        )
 
         # Then
         assert response.status_code == 200
