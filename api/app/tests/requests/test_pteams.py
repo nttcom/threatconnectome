@@ -1131,7 +1131,6 @@ class TestGetDependencies:
 
     def test_it_should_paginate_response_when_dependencies_exceed_limit(self, testdb: Session):
         # Given
-        # Create additional dependencies
         number_of_additional_deps = 8
         limit = 5
 
