@@ -346,112 +346,82 @@ class TestGetVulns:
 
     def test_it_should_filter_by_min_cvss_v3_score(self, testdb: Session):
         # Given
-        vuln_id1 = uuid4()
-        vuln_id2 = uuid4()
-        client.put(
-            f"/vulns/{vuln_id1}",
-            headers=self.headers_user,
-            json={
-                "title": "Low CVSS vuln",
-                "cve_id": "CVE-0000-0001",
-                "detail": "This is a low CVSS vuln.",
+        scores = [3.0, 8.0]
+        min_cvss_v3_score = 5.0
+        count = sum(1 for score in scores if score >= min_cvss_v3_score)
+        vuln_ids = []
+
+        for i in range(len(scores)):
+            vuln_id = uuid4()
+            vuln_request = {
+                "title": f"Example vuln {i}",
+                "cve_id": f"CVE-0000-000{i}",
+                "detail": f"This is example vuln {i}.",
                 "exploitation": "active",
                 "automatable": "yes",
-                "cvss_v3_score": 3.0,
+                "cvss_v3_score": scores[i],
                 "vulnerable_packages": [
                     {
-                        "name": "example-lib-1",
+                        "name": f"example-lib-{i}",
                         "ecosystem": "pypi",
                         "affected_versions": ["<2.0.0"],
                         "fixed_versions": ["2.0.0"],
                     }
                 ],
-            },
-        )
-        client.put(
-            f"/vulns/{vuln_id2}",
-            headers=self.headers_user,
-            json={
-                "title": "High CVSS vuln",
-                "cve_id": "CVE-0000-0002",
-                "detail": "This is a high CVSS vuln.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 8.0,
-                "vulnerable_packages": [
-                    {
-                        "name": "example-lib-2",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            },
-        )
+            }
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
 
         # When
-        response = client.get("/vulns?min_cvss_v3_score=5.0", headers=self.headers_user)
+        response = client.get(
+            f"/vulns?min_cvss_v3_score={min_cvss_v3_score}", headers=self.headers_user
+        )
 
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_id2)
+        assert len(response_data) == count
+        assert response_data[0]["vuln_id"] == str(vuln_ids[1])
         assert response_data[0]["cvss_v3_score"] == 8.0
 
     def test_it_should_filter_by_max_cvss_v3_score(self, testdb: Session):
         # Given
-        vuln_id1 = uuid4()
-        vuln_id2 = uuid4()
-        client.put(
-            f"/vulns/{vuln_id1}",
-            headers=self.headers_user,
-            json={
-                "title": "Low CVSS vuln",
-                "cve_id": "CVE-0000-0001",
-                "detail": "This is a low CVSS vuln.",
+        scores = [3.0, 8.0]
+        max_cvss_v3_score = 5.0
+        count = sum(1 for score in scores if score >= max_cvss_v3_score)
+        vuln_ids = []
+
+        for i in range(len(scores)):
+            vuln_id = uuid4()
+            vuln_request = {
+                "title": f"Example vuln {i}",
+                "cve_id": f"CVE-0000-000{i}",
+                "detail": f"This is example vuln {i}.",
                 "exploitation": "active",
                 "automatable": "yes",
-                "cvss_v3_score": 3.0,
+                "cvss_v3_score": scores[i],
                 "vulnerable_packages": [
                     {
-                        "name": "example-lib-1",
+                        "name": f"example-lib-{i}",
                         "ecosystem": "pypi",
                         "affected_versions": ["<2.0.0"],
                         "fixed_versions": ["2.0.0"],
                     }
                 ],
-            },
-        )
-        client.put(
-            f"/vulns/{vuln_id2}",
-            headers=self.headers_user,
-            json={
-                "title": "High CVSS vuln",
-                "cve_id": "CVE-0000-0002",
-                "detail": "This is a high CVSS vuln.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 8.0,
-                "vulnerable_packages": [
-                    {
-                        "name": "example-lib-2",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            },
-        )
+            }
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
 
         # When
-        response = client.get("/vulns?max_cvss_v3_score=5.0", headers=self.headers_user)
+        response = client.get(
+            f"/vulns?max_cvss_v3_score={max_cvss_v3_score}", headers=self.headers_user
+        )
 
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
-        assert response_data[0]["vuln_id"] == str(vuln_id1)
+        assert len(response_data) == count
+        assert response_data[0]["vuln_id"] == str(vuln_ids[0])
         assert response_data[0]["cvss_v3_score"] == 3.0
 
     def test_it_should_filter_by_creator_ids(self, testdb: Session):
