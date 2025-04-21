@@ -244,6 +244,9 @@ class VulnBase(BaseModel):
 
 class VulnReponse(VulnBase):
     vuln_id: str
+    created_at: datetime
+    updated_at: datetime
+    created_by: UUID
     content_fingerprint: str
 
 
