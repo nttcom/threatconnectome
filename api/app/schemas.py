@@ -79,14 +79,12 @@ class UserUpdateRequest(ORMModel):
 
 
 class ActionResponse(ORMModel):
-    topic_id: UUID
+    vuln_id: UUID
     action_id: UUID
     action: str = Field(..., max_length=1024)
     action_type: ActionType
     recommended: bool
-    created_by: UUID
     created_at: datetime
-    ext: dict  # see ActionCreateRequest
 
 
 class TagRequest(ORMModel):
@@ -198,16 +196,10 @@ class TopicActionsResponse(ORMModel):
 
 
 class ActionCreateRequest(ORMModel):
-    topic_id: UUID | None = None  # can be None if using in create_topic()
-    action_id: UUID | None = None  # can specify action_id by client
+    vuln_id: UUID | None = None  # can be None if using in create_vuln()
     action: str = Field(..., max_length=1024)
     action_type: ActionType
     recommended: bool = False
-    ext: dict = {}
-    # {
-    #   tags: list[str] = [],
-    #   vulnerable_versions: Dict[str, list[dict]] = {},  # see around auto-close for detail.
-    # }
 
 
 class ActionUpdateRequest(ORMModel):
@@ -255,6 +247,7 @@ class VulnResponse(VulnBase):
     created_at: datetime
     updated_at: datetime
     created_by: UUID
+    content_fingerprint: str
 
 
 class VulnUpdate(VulnBase):
@@ -375,10 +368,8 @@ class ActionLogRequest(ORMModel):
 
 class ThreatResponse(ORMModel):
     threat_id: UUID
-    dependency_id: UUID
-    topic_id: UUID
-    threat_safety_impact: SafetyImpactEnum | None = None
-    reason_safety_impact: str | None = None
+    package_version_id: UUID
+    vuln_id: UUID
 
 
 class ThreatUpdateRequest(ORMModel):
@@ -409,8 +400,11 @@ class TicketStatusResponse(ORMModel):
 class TicketResponse(ORMModel):
     ticket_id: UUID
     threat_id: UUID
+    dependency_id: UUID
     created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
+    ticket_safety_impact: SafetyImpactEnum | None
+    reason_safety_impact: str | None
     threat: ThreatResponse
     ticket_status: TicketStatusResponse
 
@@ -472,4 +466,7 @@ class DependencyResponse(ORMModel):
     package_version_id: UUID
     package_manager: str
     target: str
-    dependency_mission_impact: str | None
+    dependency_mission_impact: str | None = None
+    package_name: str
+    package_version: str
+    package_ecosystem: str

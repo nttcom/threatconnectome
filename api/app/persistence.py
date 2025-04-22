@@ -203,6 +203,12 @@ def create_pteam_account_role(db: Session, account_role: models.PTeamAccountRole
 
 
 ### Package
+def get_package_by_id(db: Session, package_id: UUID | str) -> models.Package | None:
+    return db.scalars(
+        select(models.Package).where(models.Package.package_id == str(package_id))
+    ).one_or_none()
+
+
 def get_package_by_name_and_ecosystem(
     db: Session, name: str, ecosystem: str
 ) -> models.Package | None:

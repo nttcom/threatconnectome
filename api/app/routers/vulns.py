@@ -65,20 +65,19 @@ def __handle_create_vuln(
     # create vuln
     now = datetime.now()
 
-    ## ToDo add content_fingerprint
-    vuln = models.Vuln(
-        vuln_id=str(vuln_id),
-        title=request.title,
-        detail=request.detail,
-        cve_id=request.cve_id,
-        created_by=current_user.user_id,
-        created_at=now,
-        updated_at=now,
-        cvss_v3_score=request.cvss_v3_score,
-        content_fingerprint="dummy_fingerprint",
-        exploitation=request.exploitation,
-        automatable=request.automatable,
-    )
+        ## ToDo add content_fingerprint
+        vuln = models.Vuln(
+            vuln_id=str(vuln_id),
+            title=request.title,
+            detail=request.detail,
+            cve_id=request.cve_id,
+            created_by=current_user.user_id,
+            created_at=now,
+            updated_at=now,
+            cvss_v3_score=request.cvss_v3_score,
+            exploitation=request.exploitation,
+            automatable=request.automatable,
+        )
 
     persistence.create_vuln(db, vuln)
 
@@ -287,6 +286,7 @@ def get_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
+        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -325,6 +325,7 @@ def get_vulns(
                 automatable=vuln.automatable,
                 cvss_v3_score=vuln.cvss_v3_score,
                 vulnerable_packages=vulnerable_packages,
+                content_fingerprint=vuln.content_fingerprint,
             )
         )
 

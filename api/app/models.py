@@ -1,6 +1,8 @@
 import enum
+import json
 import uuid
 from datetime import datetime
+from hashlib import md5
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
@@ -336,7 +338,7 @@ class Threat(Base):
         ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
     )
 
-    vuln = relationship("Vuln")
+    vuln = relationship("Vuln", back_populates="threats")
     package_version = relationship("PackageVersion")
     tickets = relationship("Ticket", back_populates="threat", cascade="all, delete")
 
@@ -494,11 +496,13 @@ class Vuln(Base):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if not self.vuln_id:
-            self.vulun_id = str(uuid.uuid4())
+            self.vuln_id = str(uuid.uuid4())
         if not self.exploitation:
             self.exploitation = ExploitationEnum.NONE
         if not self.automatable:
             self.automatable = AutomatableEnum.NO
+        if not self.content_fingerprint:
+            self.content_fingerprint = self._calculate_content_fingerprint()
 
     vuln_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     cve_id: Mapped[str | None] = mapped_column(nullable=True)
@@ -516,7 +520,30 @@ class Vuln(Base):
 
     vuln_actions = relationship("VulnAction", cascade="all, delete-orphan")
     affects = relationship("Affect", back_populates="vuln", cascade="all, delete-orphan")
-    threats = relationship("Threat", cascade="all, delete-orphan")
+    threats = relationship("Threat", back_populates="vuln", cascade="all, delete-orphan")
+
+    def _calculate_content_fingerprint(self) -> str:
+        data = self._get_vuln_data_for_fingerprint()
+        return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
+
+    def _get_vuln_data_for_fingerprint(self) -> dict:
+        sorted_affects = sorted(
+            self.affects, key=lambda affect: (affect.package.name, affect.package.ecosystem)
+        )
+        return {
+            "title": self.title,
+            "detail": self.detail,
+            "cvss_v3_score": self.cvss_v3_score,
+            "affects": [self._get_affect_data_for_fingerprint(affect) for affect in sorted_affects],
+        }
+
+    def _get_affect_data_for_fingerprint(self, affect: "Affect") -> dict:
+        return {
+            "package_name": affect.package.name,
+            "ecosystem": affect.package.ecosystem,
+            "affected_versions": sorted(affect.affected_versions),
+            "fixed_versions": sorted(affect.fixed_versions),
+        }
 
 
 class VulnAction(Base):
@@ -570,7 +597,7 @@ class ActionLog(Base):
 
     logging_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     action_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
-    topic_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
+    vuln_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
     action: Mapped[str]  # snapshot: don't update even if VulnAction is modified.
     action_type: Mapped[ActionType]
     recommended: Mapped[bool]  # snapshot: don't update even if VulnAction is modified.
