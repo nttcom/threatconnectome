@@ -1,5 +1,5 @@
 import copy
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
@@ -118,6 +118,8 @@ class TestUpdateVuln:
         testdb.add(new_package)
         testdb.commit()
 
+        current_time = datetime.now()
+
         # When
         response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=self.request1)
 
@@ -144,6 +146,16 @@ class TestUpdateVuln:
             self.request1["vulnerable_packages"][0]["fixed_versions"]
             == vuln.affects[0].fixed_versions
         )
+        assert (
+            current_time - timedelta(seconds=10)
+            <= vuln.created_at
+            <= current_time + timedelta(seconds=10)
+        )
+        assert (
+            current_time - timedelta(seconds=10)
+            <= vuln.updated_at
+            <= current_time + timedelta(seconds=10)
+        )
 
     def test_create_package_if_given_vuln_id_is_new_and_package_does_not_exists(
         self, testdb: Session
@@ -168,6 +180,9 @@ class TestUpdateVuln:
 
     def test_update_vuln_if_given_vuln_id_is_exists(self, testdb: Session, update_setup):
         # Given
+        created_time = self.vuln1.created_at
+        current_time = datetime.now()
+
         # When
         response = client.put(
             f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=self.request1
@@ -195,6 +210,17 @@ class TestUpdateVuln:
         assert (
             self.request1["vulnerable_packages"][0]["fixed_versions"]
             == vuln.affects[0].fixed_versions
+        )
+
+        assert (
+            created_time - timedelta(seconds=10)
+            <= vuln.created_at
+            <= created_time + timedelta(seconds=10)
+        )
+        assert (
+            current_time - timedelta(seconds=10)
+            <= vuln.updated_at
+            <= current_time + timedelta(seconds=10)
         )
 
     def test_delete_unneeded_affect_on_vuln_update(self, testdb: Session, update_setup):

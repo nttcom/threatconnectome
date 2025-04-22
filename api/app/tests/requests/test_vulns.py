@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -85,6 +85,7 @@ class TestUpdateVuln:
     def test_return_VulnResponse_when_create_vuln_successfully(self):
         # Given
         new_vuln_id = uuid4()
+        current_time = datetime.now()
 
         # When
         response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=self.request1)
@@ -119,6 +120,16 @@ class TestUpdateVuln:
             response.json()["vulnerable_packages"][0]["fixed_versions"]
             == self.request1["vulnerable_packages"][0]["fixed_versions"]
         )
+        assert (
+            current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(response.json()["created_at"])
+            <= current_time + timedelta(seconds=10)
+        )
+        assert (
+            current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(response.json()["updated_at"])
+            <= current_time + timedelta(seconds=10)
+        )
 
     def test_return_default_value_when_exploitation_and_automatable_are_missing(self):
         # Given
@@ -146,7 +157,8 @@ class TestUpdateVuln:
 
     def test_return_VulnResponse_when_update_vuln_successfully(self, update_setup):
         # Given
-
+        created_time = self.vuln1.created_at
+        current_time = datetime.now()
         # When
         response = client.put(
             f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=self.request1
@@ -181,6 +193,17 @@ class TestUpdateVuln:
         assert (
             response.json()["vulnerable_packages"][0]["fixed_versions"]
             == self.request1["vulnerable_packages"][0]["fixed_versions"]
+        )
+
+        assert (
+            created_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(response.json()["created_at"])
+            <= created_time + timedelta(seconds=10)
+        )
+        assert (
+            current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(response.json()["updated_at"])
+            <= current_time + timedelta(seconds=10)
         )
 
     def test_raise_400_if_given_vuln_id_is_default_vuln_id(self):
@@ -361,7 +384,11 @@ class TestGetVuln:
             ],
         }
 
-        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.request1)
+        response = client.put(
+            f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.request1
+        )
+        self.created_time = datetime.fromisoformat(response.json()["created_at"])
+        self.updated_time = datetime.fromisoformat(response.json()["updated_at"])
 
     def test_it_should_return_200_when_vuln_id_is_correctly_registered(self):
         # When
@@ -397,6 +424,17 @@ class TestGetVuln:
             == self.request1["vulnerable_packages"][0]["fixed_versions"]
         )
 
+        assert (
+            self.created_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(response.json()["created_at"])
+            <= self.created_time + timedelta(seconds=10)
+        )
+        assert (
+            self.updated_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(response.json()["updated_at"])
+            <= self.updated_time + timedelta(seconds=10)
+        )
+
     def test_it_should_return_400_when_vuln_id_is_not_registered(self):
         # Given
         not_registered_vuln_id = str(uuid4())
@@ -420,6 +458,8 @@ class TestGetVulns:
         # Given
         vuln_ids = []
         number_of_vulns = 10
+        created_times = []
+        updated_times = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = {
@@ -440,6 +480,8 @@ class TestGetVulns:
             }
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            created_times.append(datetime.fromisoformat(response.json()["created_at"]))
+            updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
         # When
         response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
 
@@ -463,6 +505,16 @@ class TestGetVulns:
             assert vuln["vulnerable_packages"][0]["ecosystem"] == "pypi"
             assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
             assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
+            assert (
+                created_times[i] - timedelta(seconds=10)
+                <= datetime.fromisoformat(vuln["created_at"])
+                <= created_times[i] + timedelta(seconds=10)
+            )
+            assert (
+                updated_times[i] - timedelta(seconds=10)
+                <= datetime.fromisoformat(vuln["updated_at"])
+                <= updated_times[i] + timedelta(seconds=10)
+            )
 
     def test_it_should_return_empty_list_when_no_vulns_exist(self):
         # When
@@ -507,6 +559,8 @@ class TestGetVulns:
         # Given
         number_of_vulns = 5
         vuln_ids = []
+        created_times = []
+        updated_times = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = {
@@ -525,8 +579,10 @@ class TestGetVulns:
                     }
                 ],
             }
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            created_times.append(datetime.fromisoformat(response.json()["created_at"]))
+            updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
 
         # When
         response = client.get("/vulns?offset=1&limit=4", headers=self.headers_user)
@@ -547,6 +603,16 @@ class TestGetVulns:
         assert response_data[0]["vulnerable_packages"][0]["ecosystem"] == "pypi"
         assert response_data[0]["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
         assert response_data[0]["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
+        assert (
+            created_times[3] - timedelta(seconds=10)
+            <= datetime.fromisoformat(response_data[0]["created_at"])
+            <= created_times[3] + timedelta(seconds=10)
+        )
+        assert (
+            updated_times[3] - timedelta(seconds=10)
+            <= datetime.fromisoformat(response_data[0]["updated_at"])
+            <= updated_times[3] + timedelta(seconds=10)
+        )
 
 
 class TestDeleteVuln:
