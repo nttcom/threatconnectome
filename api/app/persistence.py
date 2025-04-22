@@ -42,9 +42,9 @@ def get_action_by_id(db: Session, action_id: UUID | str) -> models.VulnAction | 
     ).one_or_none()
 
 
-def get_actions_by_topic_id(db: Session, topic_id: UUID | str) -> Sequence[models.VulnAction]:
+def get_actions_by_vuln_id(db: Session, vuln_id: UUID | str) -> Sequence[models.VulnAction]:
     return db.scalars(
-        select(models.VulnAction).where(models.VulnAction.topic_id == str(topic_id))
+        select(models.VulnAction).where(models.VulnAction.vuln_id == str(vuln_id))
     ).all()
 
 

@@ -189,8 +189,8 @@ class SearchTopicsResponse(ORMModel):
     topics: list[TopicEntry]
 
 
-class TopicActionsResponse(ORMModel):
-    topic_id: UUID
+class VulnActionsResponse(ORMModel):
+    vuln_id: UUID
     pteam_id: UUID
     actions: list[ActionResponse]
 
