@@ -320,6 +320,9 @@ def get_vulns(
         response_vulns.append(
             schemas.VulnResponse(
                 vuln_id=vuln.vuln_id,
+                created_at=vuln.created_at,
+                updated_at=vuln.updated_at,
+                created_by=vuln.created_by,
                 title=vuln.title,
                 cve_id=vuln.cve_id,
                 detail=vuln.detail,

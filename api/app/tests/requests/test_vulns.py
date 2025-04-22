@@ -58,7 +58,6 @@ class TestUpdateVuln:
             created_at=datetime(2025, 4, 15, 12, 0, 0),
             updated_at=datetime(2025, 4, 15, 12, 0, 0),
             cvss_v3_score=8.0,
-            content_fingerprint="dummy_fingerprint",
             exploitation="none",
             automatable="no",
         )
@@ -100,6 +99,10 @@ class TestUpdateVuln:
         assert response.json()["exploitation"] == self.request1["exploitation"]
         assert response.json()["automatable"] == self.request1["automatable"]
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
+        assert (
+            "content_fingerprint" in response.json()
+            and response.json()["content_fingerprint"] is not None
+        )
         assert (
             response.json()["vulnerable_packages"][0]["name"]
             == self.request1["vulnerable_packages"][0]["name"]
@@ -159,6 +162,10 @@ class TestUpdateVuln:
         assert response.json()["exploitation"] == self.request1["exploitation"]
         assert response.json()["automatable"] == self.request1["automatable"]
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
+        assert (
+            "content_fingerprint" in response.json()
+            and response.json()["content_fingerprint"] is not None
+        )
         assert (
             response.json()["vulnerable_packages"][0]["name"]
             == self.request1["vulnerable_packages"][0]["name"]
@@ -370,6 +377,10 @@ class TestGetVuln:
         assert response.json()["automatable"] == self.request1["automatable"]
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
         assert (
+            "content_fingerprint" in response.json()
+            and response.json()["content_fingerprint"] is not None
+        )
+        assert (
             response.json()["vulnerable_packages"][0]["name"]
             == self.request1["vulnerable_packages"][0]["name"]
         )
@@ -447,6 +458,7 @@ class TestGetVulns:
             assert vuln["exploitation"] == "active"
             assert vuln["automatable"] == "yes"
             assert vuln["cvss_v3_score"] == 7.5
+            assert vuln["content_fingerprint"] is not None
             assert vuln["vulnerable_packages"][0]["name"] == f"example-lib-{i}"
             assert vuln["vulnerable_packages"][0]["ecosystem"] == "pypi"
             assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
@@ -530,6 +542,7 @@ class TestGetVulns:
         assert response_data[0]["exploitation"] == "active"
         assert response_data[0]["automatable"] == "yes"
         assert response_data[0]["cvss_v3_score"] == 7.5
+        assert response_data[0]["content_fingerprint"] is not None
         assert response_data[0]["vulnerable_packages"][0]["name"] == f"example-lib-{3}"
         assert response_data[0]["vulnerable_packages"][0]["ecosystem"] == "pypi"
         assert response_data[0]["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
