@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.business import threat_business, ticket_business
+from app.business import threat_business, ticket_business, vuln_business
 from app.database import get_db
 
 router = APIRouter(prefix="/vulns", tags=["vulns"])
@@ -65,22 +65,7 @@ def __handle_create_vuln(
     # create vuln
     now = datetime.now()
 
-    ## ToDo add content_fingerprint
-    vuln = models.Vuln(
-        vuln_id=str(vuln_id),
-        title=request.title,
-        detail=request.detail,
-        cve_id=request.cve_id,
-        created_by=current_user.user_id,
-        created_at=now,
-        updated_at=now,
-        cvss_v3_score=request.cvss_v3_score,
-        exploitation=request.exploitation,
-        automatable=request.automatable,
-    )
-
-    persistence.create_vuln(db, vuln)
-
+    affects: list[models.Affect] = []
     for package_id, vulnerable_package in requested_packages.items():
         affect = models.Affect(
             vuln_id=str(vuln_id),
@@ -89,6 +74,26 @@ def __handle_create_vuln(
             fixed_versions=vulnerable_package.fixed_versions,
         )
         persistence.create_affect(db, affect)
+        affects.append(affect)
+
+    content_fingerprint = vuln_business.calculate_content_fingerprint(
+        request.title, request.detail, request.cvss_v3_score, affects
+    )
+    vuln = models.Vuln(
+        vuln_id=str(vuln_id),
+        title=request.title,
+        detail=request.detail,
+        cve_id=request.cve_id,
+        created_by=current_user.user_id,
+        created_at=now,
+        updated_at=now,
+        content_fingerprint=content_fingerprint,
+        cvss_v3_score=request.cvss_v3_score,
+        exploitation=request.exploitation,
+        automatable=request.automatable,
+    )
+
+    persistence.create_vuln(db, vuln)
 
     new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
     for threat in new_threats:
@@ -189,6 +194,7 @@ def __handle_update_vuln(
                 persistence.create_affect(db, new_affect)
 
     vuln.updated_at = datetime.now()
+    vuln.content_fingerprint = vuln_business.calculate_content_fingerprint_by_vuln(vuln)
 
     new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
     for threat in new_threats:
