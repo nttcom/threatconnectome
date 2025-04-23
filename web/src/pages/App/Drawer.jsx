@@ -6,12 +6,14 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { setDrawerOpen } from "../../slices/system";
 import { LocationReader } from "../../utils/LocationReader";
 import { drawerWidth, drawerParams } from "../../utils/const";
 
@@ -53,6 +55,14 @@ export function Drawer() {
   };
 
   const drawerTitle = "Threatconnectome";
+
+  const downLG = useMediaQuery((theme) => theme.breakpoints.down("lg"));
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(setDrawerOpen(!downLG));
+  }, [downLG, dispatch]);
 
   return (
     <MuiDrawer
