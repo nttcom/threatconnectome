@@ -14,8 +14,11 @@ def fix_ticket_by_threat(db: Session, threat: models.Threat):
         if ticket := persistence.get_ticket_by_threat_id_and_dependency_id(
             db, threat.threat_id, dependency.dependency_id
         ):
-            if not need_ticket:
+            if need_ticket:
+                fix_ticket_ssvc_priority(db, ticket)
+            else:
                 persistence.delete_ticket(db, ticket)
+
         else:
             if need_ticket:
                 create_ticket_internal(db, threat, dependency)
