@@ -301,8 +301,8 @@ def create_os_tag_info(os_repos):
 def get_package_info(repos):
     if b"::" in repos:  # lang-pkgs
         lang_pkg_raw_data = repos.decode().split("::", 1)[0]
-        lang_tag_info = lang_families[lang_pkg_raw_data]
-        return f"{lang_tag_info}:"
+        lang_ecosystem_info = lang_families[lang_pkg_raw_data]
+        return f"{lang_ecosystem_info}"
     # os-pkgs
     os_tag_info = create_os_tag_info(repos)
     return f"{os_tag_info}"
