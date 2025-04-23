@@ -327,22 +327,17 @@ def vuln_info(repos, txs):
     return vulns
 
 
-def solution_from_vuln(vuln) -> tuple[str | None, str | None]:
+def get_versions_from_trivy_vuln(vuln) -> tuple[list[str] | None, list[str] | None]:
     if vuln["version_details"]:
-        vuln_vers, fix_vers = make_update_action(vuln["version_details"])
-    return vuln_vers, fix_vers
+        fixed_versions = []
+        vulnerable_versions = None
 
-
-def make_update_action(version_details: dict):
-    fixed_versions = []
-    vulnerable_versions = None
-
-    if "FixedVersion" in version_details.keys():
-        fixed_versions.append(version_details["FixedVersion"])
-    if "PatchedVersions" in version_details.keys():
-        fixed_versions += version_details["PatchedVersions"]
-    if "VulnerableVersions" in version_details.keys():
-        vulnerable_versions = version_details["VulnerableVersions"]
+        if "FixedVersion" in vuln["version_details"].keys():
+            fixed_versions.append(vuln["version_details"]["FixedVersion"])
+        if "PatchedVersions" in vuln["version_details"].keys():
+            fixed_versions += vuln["version_details"]["PatchedVersions"]
+        if "VulnerableVersions" in vuln["version_details"].keys():
+            vulnerable_versions = vuln["version_details"]["VulnerableVersions"]
 
     return vulnerable_versions, fixed_versions
 
@@ -435,7 +430,7 @@ def main() -> None:
                 category = get_package_info(repos)
                 trivy_vulns = vuln_info(repos, txs)
                 for vuln in trivy_vulns:
-                    vuln_vers, fix_vers = solution_from_vuln(vuln)
+                    vuln_vers, fix_vers = get_versions_from_trivy_vuln(vuln)
                     if vuln_vers is None and fix_vers is None:
                         continue
                     trivy_vuln_id = vuln["vuln_id"]
