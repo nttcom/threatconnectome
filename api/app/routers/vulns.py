@@ -98,7 +98,7 @@ def __handle_create_vuln(
 
     return schemas.VulnResponse(
         vuln_id=str(vuln_id),
-        created_by=vuln.created_by,
+        created_by=UUID(vuln.created_by) if vuln.created_by else None,
         created_at=vuln.created_at,
         updated_at=vuln.updated_at,
         title=vuln.title,
@@ -208,7 +208,7 @@ def __handle_update_vuln(
 
     return schemas.VulnResponse(
         vuln_id=vuln.vuln_id,
-        created_by=vuln.created_by,
+        created_by=UUID(vuln.created_by) if vuln.created_by else None,
         created_at=vuln.created_at,
         updated_at=vuln.updated_at,
         title=vuln.title,
@@ -278,7 +278,7 @@ def get_vuln(
 
     return schemas.VulnResponse(
         vuln_id=vuln.vuln_id,
-        created_by=vuln.created_by,
+        created_by=UUID(vuln.created_by) if vuln.created_by else None,
         created_at=vuln.created_at,
         updated_at=vuln.updated_at,
         title=vuln.title,
@@ -288,9 +288,6 @@ def get_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
-        created_at=vuln.created_at,
-        updated_at=vuln.updated_at,
-        created_by=vuln.created_by,
         content_fingerprint=vuln.content_fingerprint,
     )
 
@@ -325,7 +322,7 @@ def get_vulns(
                 vuln_id=vuln.vuln_id,
                 created_at=vuln.created_at,
                 updated_at=vuln.updated_at,
-                created_by=vuln.created_by,
+                created_by=UUID(vuln.created_by) if vuln.created_by else None,
                 title=vuln.title,
                 cve_id=vuln.cve_id,
                 detail=vuln.detail,
@@ -333,9 +330,6 @@ def get_vulns(
                 automatable=vuln.automatable,
                 cvss_v3_score=vuln.cvss_v3_score,
                 vulnerable_packages=vulnerable_packages,
-                created_at=vuln.created_at,
-                updated_at=vuln.updated_at,
-                created_by=vuln.created_by,
                 content_fingerprint=vuln.content_fingerprint,
             )
         )
