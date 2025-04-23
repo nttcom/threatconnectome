@@ -435,7 +435,7 @@ def main() -> None:
                         continue
                     trivy_vuln_id = vuln["vuln_id"]
                     vuln_obj = vuln_dict.get(trivy_vuln_id, {"affects": {}})
-                    package = f"{vuln['pkg_name']}:{category}"
+                    package = (vuln["pkg_name"], category)
 
                     # Ensure "affects" is dict
                     assert isinstance(vuln_obj["affects"], dict)
@@ -501,8 +501,8 @@ def main() -> None:
                 vulnerable_packages = []
                 for key, value in trivy_vuln_content["affects"].items():
                     vulnerable_package = {
-                        "name": key.split(":")[0],
-                        "ecosystem": key.split(":")[1],
+                        "name": key[0],
+                        "ecosystem": key[1],
                         "affected_versions": sorted(list(value["affected_versions"])),
                         "fixed_versions": sorted(list(value["fixed_versions"])),
                     }
