@@ -328,10 +328,10 @@ def vuln_info(repos, txs):
 
 
 def get_versions_from_trivy_vuln(vuln) -> tuple[list[str] | None, list[str] | None]:
-    if vuln["version_details"]:
-        fixed_versions = []
-        vulnerable_versions = None
+    fixed_versions = []
+    vulnerable_versions = None
 
+    if vuln["version_details"]:
         if "FixedVersion" in vuln["version_details"].keys():
             fixed_versions.append(vuln["version_details"]["FixedVersion"])
         if "PatchedVersions" in vuln["version_details"].keys():
