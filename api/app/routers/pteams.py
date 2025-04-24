@@ -1077,7 +1077,7 @@ def upload_pteam_tags_file(
         db.flush()
 
     try:
-        apply_service_tags(db, service_model, json_lines, auto_create_tags=force_mode)
+        apply_service_packages(db, service_model, json_lines)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
