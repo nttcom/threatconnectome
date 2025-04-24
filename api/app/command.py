@@ -196,34 +196,31 @@ def get_vulns(
         filters.append(models.Vuln.cvss_v3_score <= max_cvss_v3_score)
     if vuln_ids:
         filters.append(models.Vuln.vuln_id.in_(vuln_ids))
-    if fixed_title_words:
-        filters.append(
-            or_(
-                *[
-                    (
-                        models.Vuln.title == ""
-                        if title_word is None
-                        else models.Vuln.title.icontains(title_word, autoescape=True)
-                    )
-                    for title_word in fixed_title_words
-                ]
-            )
+    filters.append(
+        or_(
+            *[
+                (
+                    models.Vuln.title == ""
+                    if title_word is None
+                    else models.Vuln.title.icontains(title_word, autoescape=True)
+                )
+                for title_word in fixed_title_words
+            ]
         )
-    if fixed_detail_words:
-        filters.append(
-            or_(
-                *[
-                    (
-                        models.Vuln.detail == ""
-                        if detail_word is None
-                        else models.Vuln.detail.icontains(detail_word, autoescape=True)
-                    )
-                    for detail_word in fixed_detail_words
-                ]
-            )
+    )
+    filters.append(
+        or_(
+            *[
+                (
+                    models.Vuln.detail == ""
+                    if detail_word is None
+                    else models.Vuln.detail.icontains(detail_word, autoescape=True)
+                )
+                for detail_word in fixed_detail_words
+            ]
         )
-    if fixed_cve_ids:
-        filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
+    )
+    filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
     if created_after:
         filters.append(models.Vuln.created_at >= created_after)
     if created_before:
@@ -232,8 +229,7 @@ def get_vulns(
         filters.append(models.Vuln.updated_at >= updated_after)
     if updated_before:
         filters.append(models.Vuln.updated_at <= updated_before)
-    if fixed_creator_ids:
-        filters.append(models.Vuln.created_by.in_(fixed_creator_ids))
+    filters.append(models.Vuln.created_by.in_(fixed_creator_ids))
 
     # Affect filters
     if package_name:
