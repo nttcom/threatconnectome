@@ -1076,6 +1076,9 @@ class TestGetDependencies:
                 "package_manager": "npm",
                 "target": self.test_target,
                 "dependency_mission_impact": None,
+                "package_name": self.package1.name,
+                "package_version": self.package_version1.version,
+                "package_ecosystem": self.package1.ecosystem,
             },
             {
                 "dependency_id": str(self.dependency2.dependency_id),
@@ -1084,8 +1087,14 @@ class TestGetDependencies:
                 "package_manager": "npm",
                 "target": self.test_target,
                 "dependency_mission_impact": None,
+                "package_name": self.package1.name,
+                "package_version": self.package_version1.version,
+                "package_ecosystem": self.package1.ecosystem,
             },
         ]
+
+        # returned dependencies are sorted by dependency_id
+        expected_dependency.sort(key=lambda x: x["dependency_id"])
 
         # When
         response = client.get(
@@ -1105,6 +1114,9 @@ class TestGetDependencies:
             "package_manager": "npm",
             "target": self.test_target,
             "dependency_mission_impact": None,
+            "package_name": self.package1.name,
+            "package_version": self.package_version1.version,
+            "package_ecosystem": self.package1.ecosystem,
         }
 
         # When
@@ -1116,6 +1128,107 @@ class TestGetDependencies:
         # Then
         assert response.status_code == 200
         assert response.json()[0] == expected_dependency
+
+    def test_it_should_paginate_response_when_dependencies_exceed_limit(self, testdb: Session):
+        # Given
+        number_of_additional_deps = 8
+        limit = 5
+
+        # Add the existing dependencies
+        expected_dependencies = [
+            {
+                "dependency_id": str(self.dependency1.dependency_id),
+                "service_id": str(self.service1.service_id),
+                "package_version_id": str(self.package_version1.package_version_id),
+                "package_manager": self.dependency1.package_manager,
+                "target": self.dependency1.target,
+                "dependency_mission_impact": self.dependency1.dependency_mission_impact,
+                "package_name": self.package1.name,
+                "package_version": self.package_version1.version,
+                "package_ecosystem": self.package1.ecosystem,
+            },
+            {
+                "dependency_id": str(self.dependency2.dependency_id),
+                "service_id": str(self.service2.service_id),
+                "package_version_id": str(self.package_version1.package_version_id),
+                "package_manager": self.dependency2.package_manager,
+                "target": self.dependency2.target,
+                "dependency_mission_impact": self.dependency2.dependency_mission_impact,
+                "package_name": self.package1.name,
+                "package_version": self.package_version1.version,
+                "package_ecosystem": self.package1.ecosystem,
+            },
+        ]
+
+        # Create additional dependencies
+        for i in range(number_of_additional_deps):
+            package = models.Package(
+                name=f"test_package_pagination_{i}",
+                ecosystem="test_ecosystem_pagination",
+            )
+            persistence.create_package(testdb, package)
+
+            package_version = models.PackageVersion(
+                package_id=package.package_id,
+                version=f"1.0.{i}",
+            )
+            persistence.create_package_version(testdb, package_version)
+
+            dependency = models.Dependency(
+                target=f"test_target_pagination_{i}",
+                package_manager="npm",
+                package_version_id=package_version.package_version_id,
+                service=self.service1,
+            )
+            testdb.add(dependency)
+
+            # Add to expected results
+            expected_dependency = {
+                "dependency_id": str(dependency.dependency_id),
+                "service_id": str(dependency.service.service_id),
+                "package_version_id": str(package_version.package_version_id),
+                "package_manager": dependency.package_manager,
+                "target": dependency.target,
+                "dependency_mission_impact": dependency.dependency_mission_impact,
+                "package_name": package.name,
+                "package_version": package_version.version,
+                "package_ecosystem": package.ecosystem,
+            }
+            expected_dependencies.append(expected_dependency)
+
+        testdb.commit()
+
+        # Sort expected dependencies by dependency_id (string comparison)
+        expected_dependencies.sort(key=lambda x: x["dependency_id"])
+
+        # When
+        response_first_page = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/dependencies?offset=0&limit={limit}",
+            headers=headers(USER1),
+        )
+
+        response_second_page = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/dependencies?offset={limit}&limit={limit}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        # Check first page response
+        assert response_first_page.status_code == 200
+        first_page_data = response_first_page.json()
+        assert len(first_page_data) == limit
+
+        for i in range(limit):
+            assert first_page_data[i] == expected_dependencies[i]
+
+        # Check second page response
+        assert response_second_page.status_code == 200
+        second_page_data = response_second_page.json()
+        assert len(second_page_data) == limit
+
+        # Verify both pages match expected data
+        for i in range(limit):
+            assert second_page_data[i] == expected_dependencies[i + limit]
 
     def test_it_should_return_404_when_service_id_does_not_exist(self):
         # Given
@@ -3173,7 +3286,6 @@ class TestGetTickets:
                 created_by=self.user1.user_id,
                 created_at="2023-10-01T00:00:00Z",
                 updated_at="2023-10-01T00:00:00Z",
-                content_fingerprint="dummy_fingerprint",
             )
             persistence.create_vuln(testdb, self.vuln1)
 
@@ -3313,7 +3425,6 @@ class TestGetTickets:
                 created_by=self.user1.user_id,
                 created_at="2023-10-01T00:00:00Z",
                 updated_at="2023-10-01T00:00:00Z",
-                content_fingerprint="dummy_fingerprint",
             )
             persistence.create_vuln(testdb, vuln2)
 

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
 from app.auth.account import get_current_user
+from app.business import ticket_business
 from app.database import get_db
 
 router = APIRouter(prefix="/actions", tags=["actions"])
@@ -17,56 +18,31 @@ NO_SUCH_ACTION = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No
 
 @router.post("", response_model=schemas.ActionResponse)
 def create_action(
-    data: schemas.ActionCreateRequest,
+    request: schemas.ActionCreateRequest,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Create a topic action.
+    Create a vuln action.
     """
-    if not data.topic_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing topic_id")
-    # TODO Provisional Processing
-    # if not (topic := persistence.get_topic_by_id(db, data.topic_id)):
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
-
-    if data.action_id and persistence.get_action_by_id(db, data.action_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Action id already exists",
-        )
-    # TODO Provisional Processing
-    # if not_exist_tags := {
-    #     tag_name
-    #     for tag_name in data.ext.get("tags", [])
-    #     if not persistence.get_tag_by_name(db, tag_name)
-    # }:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail=f"No such tags: {', '.join(sorted(not_exist_tags))}",
-    #     )
-
-    # TODO Provisional Processing
-    # if not check_topic_action_tags_integrity(topic.tags, data.ext.get("tags")):
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail="Action Tag mismatch with Topic Tag",
-    #     )
+    if not request.vuln_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing vuln_id")
+    if not (vuln := persistence.get_vuln_by_id(db, request.vuln_id)):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such vuln")
 
     now = datetime.now()
     action = models.VulnAction(
-        action_id=str(data.action_id) if data.action_id else None,
-        # topic_id will be filled at appending to topic.actions
-        action=data.action,
-        action_type=data.action_type,
-        recommended=data.recommended,
-        ext=data.ext,
-        created_by=current_user.user_id,
+        # vuln_id will be filled at appending to vuln.vuln_actions
+        action=request.action,
+        action_type=request.action_type,
+        recommended=request.recommended,
         created_at=now,
     )
-    # TODO Provisional Processing
-    # topic.actions.append(action)
+    vuln.vuln_actions.append(action)
     db.flush()
+
+    for threat in vuln.threats:
+        ticket_business.fix_ticket_by_threat(db, threat)
 
     db.commit()
 
