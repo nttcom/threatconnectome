@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.business import threat_business, ticket_business
+from app.business import package_business, threat_business, ticket_business
 from app.database import get_db
 
 router = APIRouter(prefix="/vulns", tags=["vulns"])
@@ -169,7 +169,9 @@ def __handle_update_vuln(
         # update affect
         for affect in vuln.affects:
             if affect.package_id not in requested_packages.keys():
+                package = affect.package
                 persistence.delete_affect(db, affect)
+                package_business.fix_package(db, package)
 
         for package_id, vulnerable_package in requested_packages.items():
             if (
@@ -247,8 +249,14 @@ def delete_vuln(
     if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
         raise NO_SUCH_VULN
 
+    packages: list[models.Package] = [affect.package for affect in vuln.affects]
+
     # Delete the vuln and its associated affects
     persistence.delete_vuln(db, vuln)
+
+    for package in packages:
+        package_business.fix_package(db, package)
+
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

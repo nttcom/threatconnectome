@@ -56,7 +56,7 @@ def vuln1(testdb: Session) -> models.Vuln:
     return vuln
 
 
-class TestFixPackageByPackageVersionId:
+class TestFixPackage:
     def test_it_should_delete_package_when_has_no_reference(
         self,
         testdb: Session,
@@ -70,9 +70,7 @@ class TestFixPackageByPackageVersionId:
         testdb.add(package_version)
         testdb.flush()
 
-        package_business.fix_package_by_package_version_id(
-            db=testdb, package_version_id=package_version.package_version_id
-        )
+        package_business.fix_package(db=testdb, package=package1)
 
         assert (
             testdb.execute(
@@ -113,9 +111,7 @@ class TestFixPackageByPackageVersionId:
         testdb.add(dependency1)
         testdb.flush()
 
-        package_business.fix_package_by_package_version_id(
-            db=testdb, package_version_id=package_version.package_version_id
-        )
+        package_business.fix_package(db=testdb, package=package1)
 
         assert (
             testdb.execute(
@@ -155,9 +151,7 @@ class TestFixPackageByPackageVersionId:
         testdb.add(affect)
         testdb.flush()
 
-        package_business.fix_package_by_package_version_id(
-            db=testdb, package_version_id=package_version.package_version_id
-        )
+        package_business.fix_package(db=testdb, package=package1)
 
         assert (
             testdb.execute(

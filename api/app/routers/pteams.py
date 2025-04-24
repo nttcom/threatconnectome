@@ -1144,8 +1144,9 @@ def apply_service_packages(
             continue
         obsoleted_dependencies.append(dependency)
     for obsoleted in obsoleted_dependencies:
+        package = obsoleted.package_version.package
         service.dependencies.remove(obsoleted)
-        package_business.fix_package_by_package_version_id(db, obsoleted.package_version_id)
+        package_business.fix_package(db, package)
     # create new dependencies
     for [package_version_id, target, package_manager] in new_dependencies_set:
         new_dependency = models.Dependency(
