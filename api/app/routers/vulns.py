@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.business import threat_business, ticket_business, vuln_business
+from app.business import package_business, threat_business, ticket_business, vuln_business
 from app.database import get_db
 
 router = APIRouter(prefix="/vulns", tags=["vulns"])
@@ -103,7 +103,7 @@ def __handle_create_vuln(
 
     return schemas.VulnResponse(
         vuln_id=str(vuln_id),
-        created_by=vuln.created_by,
+        created_by=UUID(vuln.created_by) if vuln.created_by else None,
         created_at=vuln.created_at,
         updated_at=vuln.updated_at,
         title=vuln.title,
@@ -174,7 +174,9 @@ def __handle_update_vuln(
         # update affect
         for affect in vuln.affects:
             if affect.package_id not in requested_packages.keys():
+                package = affect.package
                 persistence.delete_affect(db, affect)
+                package_business.fix_package(db, package)
 
         for package_id, vulnerable_package in requested_packages.items():
             if (
@@ -214,7 +216,7 @@ def __handle_update_vuln(
 
     return schemas.VulnResponse(
         vuln_id=vuln.vuln_id,
-        created_by=vuln.created_by,
+        created_by=UUID(vuln.created_by) if vuln.created_by else None,
         created_at=vuln.created_at,
         updated_at=vuln.updated_at,
         title=vuln.title,
@@ -253,8 +255,14 @@ def delete_vuln(
     if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
         raise NO_SUCH_VULN
 
+    packages: list[models.Package] = [affect.package for affect in vuln.affects]
+
     # Delete the vuln and its associated affects
     persistence.delete_vuln(db, vuln)
+
+    for package in packages:
+        package_business.fix_package(db, package)
+
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -284,7 +292,7 @@ def get_vuln(
 
     return schemas.VulnResponse(
         vuln_id=vuln.vuln_id,
-        created_by=vuln.created_by,
+        created_by=UUID(vuln.created_by) if vuln.created_by else None,
         created_at=vuln.created_at,
         updated_at=vuln.updated_at,
         title=vuln.title,
@@ -294,9 +302,6 @@ def get_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
-        created_at=vuln.created_at,
-        updated_at=vuln.updated_at,
-        created_by=vuln.created_by,
         content_fingerprint=vuln.content_fingerprint,
     )
 
@@ -331,7 +336,7 @@ def get_vulns(
                 vuln_id=vuln.vuln_id,
                 created_at=vuln.created_at,
                 updated_at=vuln.updated_at,
-                created_by=vuln.created_by,
+                created_by=UUID(vuln.created_by) if vuln.created_by else None,
                 title=vuln.title,
                 cve_id=vuln.cve_id,
                 detail=vuln.detail,
@@ -339,9 +344,6 @@ def get_vulns(
                 automatable=vuln.automatable,
                 cvss_v3_score=vuln.cvss_v3_score,
                 vulnerable_packages=vulnerable_packages,
-                created_at=vuln.created_at,
-                updated_at=vuln.updated_at,
-                created_by=vuln.created_by,
                 content_fingerprint=vuln.content_fingerprint,
             )
         )
