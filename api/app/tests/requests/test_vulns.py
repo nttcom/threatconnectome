@@ -458,7 +458,7 @@ class TestGetVulns:
 
     def create_vuln_request(self, index: int, cvss_v3_score: float = 7.5) -> dict:
         return {
-            "title": f"Example vuln {index}",
+            "title": f"Example-vuln-{index}",
             "cve_id": f"CVE-0000-000{index}",
             "detail": f"This is example vuln {index}.",
             "exploitation": "active",
@@ -654,6 +654,33 @@ class TestGetVulns:
         assert len(response_data) == 1
 
         # Check the details of the filtered vuln
+        self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
+
+    def test_it_should_filter_by_title_words(self, testdb: Session):
+        # Given
+        number_of_vulns = 3
+        vuln_ids = []
+        put_response_data = []
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = self.create_vuln_request(i)
+            put_response = client.put(
+                f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+            )
+            vuln_ids.append(vuln_id)
+            put_response_data.append(put_response.json())
+
+        # When
+        response = client.get(
+            f"/vulns?title_words={put_response_data[0]['title']}", headers=self.headers_user
+        )
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        print(response_data)
+        assert len(response_data) == 1
+
         self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
 
     def test_it_should_filter_by_cve_ids(self, testdb: Session):

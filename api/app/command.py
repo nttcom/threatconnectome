@@ -197,19 +197,19 @@ def get_vulns(
         filters.append(models.Vuln.cvss_v3_score <= max_cvss_v3_score)
     if vuln_ids:
         filters.append(models.Vuln.vuln_id.in_(vuln_ids))
-    filters.append(
-        or_(
-            true(),
-            *[
-                (
-                    models.Vuln.title == ""
-                    if title_word is None
-                    else models.Vuln.title.icontains(title_word, autoescape=True)
-                )
-                for title_word in fixed_title_words
-            ],
+    if fixed_title_words:
+        filters.append(
+            or_(
+                *[
+                    (
+                        models.Vuln.title == ""
+                        if title_word is None
+                        else models.Vuln.title.icontains(title_word, autoescape=True)
+                    )
+                    for title_word in fixed_title_words
+                ],
+            )
         )
-    )
     filters.append(
         or_(
             true(),
