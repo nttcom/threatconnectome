@@ -224,6 +224,11 @@ def create_package(db: Session, package: models.Package) -> None:
     db.flush()
 
 
+def delete_package(db: Session, package: models.Package) -> None:
+    db.delete(package)
+    db.flush()
+
+
 ### PackageVersion
 def get_package_version_by_id(
     db: Session, package_version_id: UUID | str

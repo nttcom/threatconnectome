@@ -230,6 +230,7 @@ class Package(Base):
     package_versions = relationship(
         "PackageVersion", back_populates="package", cascade="all, delete-orphan"
     )
+    affects = relationship("Affect", back_populates="package")
 
 
 class Dependency(Base):
@@ -582,8 +583,8 @@ class Affect(Base):
     affected_versions: Mapped[list[str]] = mapped_column(default=[])
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
 
-    package = relationship("Package")
     vuln = relationship("Vuln", back_populates="affects")
+    package = relationship("Package", back_populates="affects")
 
 
 class ActionLog(Base):
