@@ -510,7 +510,6 @@ class Vuln(Base):
     )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-    content_fingerprint: Mapped[str]
     exploitation: Mapped[ExploitationEnum] = mapped_column(server_default=ExploitationEnum.NONE)
     automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.NO)
     cvss_v3_score: Mapped[float | None] = mapped_column(server_default=None, nullable=True)
