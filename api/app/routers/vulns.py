@@ -8,7 +8,6 @@ from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
 from app.business import package_business, threat_business, ticket_business
 from app.database import get_db
-from app.routers.validators.account_validator import check_pteam_membership
 
 router = APIRouter(prefix="/vulns", tags=["vulns"])
 
@@ -346,36 +345,18 @@ def get_vulns(
     return response_vulns
 
 
-@router.get(
-    "/{vuln_id}/actions", response_model=schemas.VulnActionsResponse | list[schemas.ActionResponse]
-)
+@router.get("/{vuln_id}/actions", response_model=list[schemas.ActionResponse])
 def get_vuln_actions(
     vuln_id: UUID,
-    pteam_id: UUID | None = None,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Get actions list of the vuln for specified pteam or current user.
+    Get actions list of the vuln for the current user.
     """
     if not persistence.get_vuln_by_id(db, vuln_id):
         raise NO_SUCH_VULN
 
-    if pteam_id:
-        # Fetch actions for a specific pteam
-        if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
-        if not check_pteam_membership(pteam, current_user):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
-
-        actions = persistence.get_actions_by_vuln_id(db, vuln_id)
-        return {
-            "vuln_id": vuln_id,
-            "pteam_id": pteam_id,
-            "actions": actions,
-        }
-
-    else:
-        # Fetch actions for the current user
-        actions = persistence.get_actions_by_vuln_id(db, vuln_id)
-        return actions
+    # Fetch actions for the current user
+    actions = persistence.get_actions_by_vuln_id(db, vuln_id)
+    return actions
