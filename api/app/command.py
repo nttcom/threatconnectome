@@ -136,7 +136,7 @@ def get_vulns(
     package_name: Optional[list[str]] = None,
     ecosystem: Optional[list[str]] = None,
     package_manager: Optional[str] = None,
-    sort_key: str = "cvss_v3_score_desc",  # set default sort key
+    sort_key: schemas.VulnSortKey = schemas.VulnSortKey.CVSS_V3_SCORE_DESC,  # set default sort key
 ) -> Sequence[models.Vuln]:
 
     keyword_for_empty = ""
@@ -249,18 +249,26 @@ def get_vulns(
     if filters:
         query = query.where(and_(*filters))
 
-    # Sorting logic
-    if sort_key == "cvss_v3_score":
-        query = query.order_by(models.Vuln.cvss_v3_score.asc())
-    elif sort_key == "cvss_v3_score_desc":
-        query = query.order_by(models.Vuln.cvss_v3_score.desc())
-    elif sort_key == "updated_at":
-        query = query.order_by(models.Vuln.updated_at.asc())
-    elif sort_key == "updated_at_desc":
-        query = query.order_by(models.Vuln.updated_at.desc())
-    else:
-        # デフォルトのソート順
-        query = query.order_by(models.Vuln.cvss_v3_score.desc())
+    sortkey2orderby: dict[schemas.VulnSortKey, list] = {
+        schemas.VulnSortKey.CVSS_V3_SCORE: [
+            models.Vuln.cvss_v3_score.nulls_first(),
+            models.Vuln.updated_at.desc(),
+        ],
+        schemas.VulnSortKey.CVSS_V3_SCORE_DESC: [
+            models.Vuln.cvss_v3_score.desc().nullslast(),
+            models.Vuln.updated_at.desc(),
+        ],
+        schemas.VulnSortKey.UPDATED_AT: [
+            models.Vuln.updated_at,
+            models.Vuln.cvss_v3_score.desc().nullslast(),
+        ],
+        schemas.VulnSortKey.UPDATED_AT_DESC: [
+            models.Vuln.updated_at.desc(),
+            models.Vuln.cvss_v3_score.desc().nullslast(),
+        ],
+    }
+
+    query = query.order_by(*sortkey2orderby[sort_key])
 
     # Pageination
     query = query.offset(offset).limit(limit)

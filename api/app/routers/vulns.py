@@ -318,10 +318,7 @@ def get_vulns(
     package_name: list[str] | None = Query(None),
     ecosystem: list[str] | None = Query(None),
     package_manager: str | None = Query(None),
-    sort_key: str = Query(
-        "cvss_v3_score_desc",
-        pattern="^(cvss_v3_score|cvss_v3_score_desc|updated_at|updated_at_desc)$",
-    ),
+    sort_key: schemas.VulnSortKey = Query(schemas.VulnSortKey.CVSS_V3_SCORE_DESC),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

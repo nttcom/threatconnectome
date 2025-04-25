@@ -522,7 +522,10 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data):
-            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
+            reversed_index = len(response_data) - 1 - i
+            self.assert_vuln_response(
+                vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+            )
 
     def test_it_should_return_empty_list_when_no_vulns_exist(self):
         # When
@@ -572,7 +575,10 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data):
-            self.assert_vuln_response(vuln, vuln_ids[i + 1], self.create_vuln_request(i + 1))
+            reversed_index = len(response_data) - 1 - i
+            self.assert_vuln_response(
+                vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+            )
 
     def test_it_should_filter_by_min_cvss_v3_score(self, testdb: Session):
         # Given
@@ -692,10 +698,16 @@ class TestGetVulns:
         filtered_vuln_ids = [
             vuln_ids[i] for i in range(number_of_vulns) if created_at_list[i] > created_after
         ]
+        print(response_data)
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data):
-            self.assert_vuln_response(vuln, filtered_vuln_ids[i], self.create_vuln_request(i + 1))
+            reversed_index = len(response_data) - 1 - i
+            self.assert_vuln_response(
+                vuln,
+                filtered_vuln_ids[reversed_index],
+                self.create_vuln_request(reversed_index + 1),
+            )
 
         created_before = "2023-01-15 00:00:00"
         # When
@@ -725,7 +737,12 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data):
-            self.assert_vuln_response(vuln, filtered_vuln_ids[i], self.create_vuln_request(i + 1))
+            reversed_index = len(response_data) - 1 - i
+            self.assert_vuln_response(
+                vuln,
+                filtered_vuln_ids[reversed_index],
+                self.create_vuln_request(reversed_index + 1),
+            )
 
         updated_before = "2023-01-15 00:00:00"
         # When
