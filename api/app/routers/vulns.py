@@ -351,27 +351,32 @@ def get_vulns(
     - `...?cve_ids=CVE-2023-1234` -> Filter by the specific CVE ID.
     - `...?package_name=example` -> Filter by the package name "example".
     """
-
-    vulns = command.get_vulns(
-        db=db,
-        offset=offset,
-        limit=limit,
-        min_cvss_v3_score=min_cvss_v3_score,
-        max_cvss_v3_score=max_cvss_v3_score,
-        vuln_ids=vuln_ids,
-        title_words=title_words,
-        detail_words=detail_words,
-        creator_ids=creator_ids,
-        created_after=created_after,
-        created_before=created_before,
-        updated_after=updated_after,
-        updated_before=updated_before,
-        cve_ids=cve_ids,
-        package_name=package_name,
-        ecosystem=ecosystem,
-        package_manager=package_manager,
-        sort_key=sort_key,
-    )
+    try:
+        vulns = command.get_vulns(
+            db=db,
+            offset=offset,
+            limit=limit,
+            min_cvss_v3_score=min_cvss_v3_score,
+            max_cvss_v3_score=max_cvss_v3_score,
+            vuln_ids=vuln_ids,
+            title_words=title_words,
+            detail_words=detail_words,
+            creator_ids=creator_ids,
+            created_after=created_after,
+            created_before=created_before,
+            updated_after=updated_after,
+            updated_before=updated_before,
+            cve_ids=cve_ids,
+            package_name=package_name,
+            ecosystem=ecosystem,
+            package_manager=package_manager,
+            sort_key=sort_key,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid input: {e}",
+        )
 
     response_vulns = []
     for vuln in vulns:
