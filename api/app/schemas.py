@@ -185,7 +185,7 @@ class SearchTopicsResponse(ORMModel):
     num_topics: int
     offset: int | None = None
     limit: int | None = None
-    sort_key: VulnSortKey
+    sort_key: TopicSortKey
     topics: list[TopicEntry]
 
 
