@@ -992,6 +992,73 @@ class TestGetVulns:
         for i, vuln in enumerate(response_data):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
+    def test_it_should_sort_by_sort_key(self, testdb: Session):
+        # Given
+        number_of_vulns = 3
+        vuln_ids = []
+        created_times = []
+        updated_times = []
+        cvss_scores = [7.5, 8.0, 6.5]
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = self.create_vuln_request(i, cvss_scores[i])
+            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
+            created_times.append(datetime.fromisoformat(response.json()["created_at"]))
+            updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
+
+        # When: Sort by updated_at descending
+        response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == number_of_vulns
+
+        # Check if the vulns are sorted by updated_at in descending order
+        response_updated_times = [
+            datetime.fromisoformat(vuln["updated_at"]) for vuln in response_data
+        ]
+        assert response_updated_times == sorted(response_updated_times, reverse=True)
+
+        # When: Sort by updated_at ascending
+        response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == number_of_vulns
+
+        # Check if the vulns are sorted by updated_at in ascending order
+        response_updated_times = [
+            datetime.fromisoformat(vuln["updated_at"]) for vuln in response_data
+        ]
+        assert response_updated_times == sorted(response_updated_times)
+
+        # When: Sort by cvss_v3_score descending
+        response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == number_of_vulns
+
+        # Check if the vulns are sorted by cvss_v3_score in descending order
+        response_cvss_scores = [vuln["cvss_v3_score"] for vuln in response_data]
+        assert response_cvss_scores == sorted(cvss_scores, reverse=True)
+
+        # When: Sort by cvss_v3_score ascending
+        response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == number_of_vulns
+
+        # Check if the vulns are sorted by cvss_v3_score in ascending order
+        response_cvss_scores = [vuln["cvss_v3_score"] for vuln in response_data]
+        assert response_cvss_scores == sorted(cvss_scores)
+
 
 class TestDeleteVuln:
     @pytest.fixture(scope="function", autouse=True)
