@@ -107,8 +107,23 @@ def get_affect_by_package_id(db: Session, package_id: UUID | str) -> Sequence[mo
     ).all()
 
 
+def get_affect_by_package_id_and_vuln_id(
+    db: Session, package_id: UUID | str, vuln_id: UUID | str
+) -> models.Affect | None:
+    return db.scalars(
+        select(models.Affect).where(
+            models.Affect.package_id == str(package_id), models.Affect.vuln_id == str(vuln_id)
+        )
+    ).one_or_none()
+
+
 def create_affect(db: Session, affect: models.Affect) -> None:
     db.add(affect)
+    db.flush()
+
+
+def delete_affect(db: Session, affect: models.Affect) -> None:
+    db.delete(affect)
     db.flush()
 
 
@@ -206,6 +221,11 @@ def get_package_by_name_and_ecosystem(
 
 def create_package(db: Session, package: models.Package) -> None:
     db.add(package)
+    db.flush()
+
+
+def delete_package(db: Session, package: models.Package) -> None:
+    db.delete(package)
     db.flush()
 
 

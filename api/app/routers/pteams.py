@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.business import threat_business, ticket_business
+from app.business import package_business, threat_business, ticket_business
 from app.business.ssvc_business import get_topic_ids_summary_by_service_id_and_tag_id
 from app.database import get_db, open_db_session
 from app.notification.alert import notify_sbom_upload_ended
@@ -1077,7 +1077,7 @@ def upload_pteam_tags_file(
         db.flush()
 
     try:
-        apply_service_tags(db, service_model, json_lines, auto_create_tags=force_mode)
+        apply_service_packages(db, service_model, json_lines)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
@@ -1144,7 +1144,9 @@ def apply_service_packages(
             continue
         obsoleted_dependencies.append(dependency)
     for obsoleted in obsoleted_dependencies:
+        package = obsoleted.package_version.package
         service.dependencies.remove(obsoleted)
+        package_business.fix_package(db, package)
     # create new dependencies
     for [package_version_id, target, package_manager] in new_dependencies_set:
         new_dependency = models.Dependency(
