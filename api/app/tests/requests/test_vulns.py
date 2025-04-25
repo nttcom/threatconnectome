@@ -678,7 +678,6 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        print(response_data)
         assert len(response_data) == 1
 
         self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
@@ -701,12 +700,10 @@ class TestGetVulns:
         response = client.get(
             f"/vulns?detail_words={put_response_data[0]['detail']}", headers=self.headers_user
         )
-        print(put_response_data[0]["detail"])
 
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        print(response_data)
         assert len(response_data) == 1
 
         self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
@@ -774,7 +771,6 @@ class TestGetVulns:
         filtered_vuln_ids = [
             vuln_ids[i] for i in range(number_of_vulns) if created_at_list[i] > created_after
         ]
-        print(response_data)
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data):
