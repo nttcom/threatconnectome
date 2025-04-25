@@ -65,17 +65,6 @@ def __handle_create_vuln(
     # create vuln
     now = datetime.now()
 
-    affects: list[models.Affect] = []
-    for package_id, vulnerable_package in requested_packages.items():
-        affect = models.Affect(
-            vuln_id=str(vuln_id),
-            package_id=package_id,
-            affected_versions=vulnerable_package.affected_versions,
-            fixed_versions=vulnerable_package.fixed_versions,
-        )
-        persistence.create_affect(db, affect)
-        affects.append(affect)
-
     vuln = models.Vuln(
         vuln_id=str(vuln_id),
         title=request.title,
@@ -90,6 +79,15 @@ def __handle_create_vuln(
     )
 
     persistence.create_vuln(db, vuln)
+
+    for package_id, vulnerable_package in requested_packages.items():
+        affect = models.Affect(
+            vuln_id=str(vuln_id),
+            package_id=package_id,
+            affected_versions=vulnerable_package.affected_versions,
+            fixed_versions=vulnerable_package.fixed_versions,
+        )
+        persistence.create_affect(db, affect)
 
     new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
     for threat in new_threats:
