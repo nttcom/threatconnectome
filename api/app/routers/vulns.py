@@ -329,6 +329,7 @@ def get_vulns(
 
     - `min_cvss_v3_score`: Minimum CVSS v3 score (float).
     - `max_cvss_v3_score`: Maximum CVSS v3 score (float).
+    - `vuln_ids`: List of vuln IDs to filter by.
     - `title_words`: List of words to search in the title (case-insensitive).
     - `detail_words`: List of words to search in the detail (case-insensitive).
     - `creator_ids`: List of creator IDs to filter by.
@@ -340,6 +341,7 @@ def get_vulns(
     - `package_name`: List of package names to filter by.
     - `ecosystem`: List of ecosystems to filter by.
     - `package_manager`: Package manager to filter by.
+    - `sort_key`: Sort key for the results. Default is `CVSS_V3_SCORE_DESC`.
 
     Defaults are `None` for all parameters, which means skip filtering.
     Different parameters are combined with AND conditions.
