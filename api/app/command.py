@@ -5,6 +5,7 @@ from uuid import UUID
 from sqlalchemy import (
     and_,
     delete,
+    func,
     or_,
     select,
 )
@@ -129,3 +130,117 @@ def get_vulns(
         .limit(limit)
     )
     return db.scalars(select_stmt).unique().all()
+
+
+def get_packages_summary(
+    db: Session, pteam_id: UUID | str, service_id: UUID | str | None
+) -> list[dict]:
+    unsolved_subq = (
+        select(
+            models.Ticket.dependency_id,
+            models.Ticket.ssvc_deployer_priority,
+            models.Vuln.updated_at,
+        )
+        .join(
+            models.TicketStatus,
+            and_(
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                models.TicketStatus.topic_status != models.TopicStatusType.completed,
+            ),
+        )
+        .join(models.Threat)
+        .join(models.Vuln)
+        .subquery()
+    )
+    min_unsolved_ssvc_priority = func.min(unsolved_subq.c.ssvc_deployer_priority).label(
+        "min_ssvc_priority"
+    )
+    max_unsolved_updated_at = func.max(unsolved_subq.c.updated_at).label("max_updated_at")
+    service_ids = func.array_agg(models.Service.service_id.distinct()).label("service_ids")
+    summarize_stmt = (
+        select(
+            models.Package.package_id,
+            models.Package.name,
+            models.Package.ecosystem,
+            models.Dependency.package_manager,
+            min_unsolved_ssvc_priority,
+            max_unsolved_updated_at,
+            service_ids,
+        )
+        .join(models.PackageVersion, models.PackageVersion.package_id == models.Package.package_id)
+        .join(
+            models.Dependency,
+            models.Dependency.package_version_id == models.PackageVersion.package_version_id,
+        )
+        .join(
+            models.Service,
+            and_(
+                models.Service.service_id == models.Dependency.service_id,
+                models.Service.pteam_id == str(pteam_id),
+            ),
+        )
+        .outerjoin(
+            unsolved_subq,
+            unsolved_subq.c.dependency_id == models.Dependency.dependency_id,
+        )
+        .group_by(models.Package.package_id)
+        .order_by(
+            min_unsolved_ssvc_priority.nullslast(),
+            max_unsolved_updated_at.desc().nullslast(),
+            models.Package.name,
+            models.Package.ecosystem,
+            models.Dependency.package_manager,
+        )
+    )
+
+    if service_id is not None:
+        summarize_stmt = summarize_stmt.where(models.Dependency.service_id == str(service_id))
+
+    count_status_stmt = (
+        select(
+            models.Package.package_id,
+            models.TicketStatus.topic_status,
+            func.count(models.TicketStatus.topic_status).label("num_status"),
+        )
+        .join(models.PackageVersion)
+        .join(models.Dependency)
+        .join(
+            models.Service,
+            and_(
+                models.Service.service_id == models.Dependency.service_id,
+                models.Service.pteam_id == str(pteam_id),
+            ),
+        )
+        .join(models.Ticket)
+        .join(models.TicketStatus)
+        .group_by(
+            models.Package.package_id,
+            models.TicketStatus.topic_status,
+        )
+    )
+
+    if service_id is not None:
+        count_status_stmt = count_status_stmt.where(models.Dependency.service_id == str(service_id))
+
+    status_count_dict = {
+        (row.package_id, row.topic_status): row.num_status
+        for row in db.execute(count_status_stmt).all()
+    }
+    summary = [
+        {
+            "package_id": row.package_id,
+            "name": row.name,
+            "ecosystem": row.ecosystem,
+            "package_manager": row.package_manager,
+            "ssvc_priority": row.min_ssvc_priority,
+            "updated_at": row.max_updated_at,
+            "service_ids": row.service_ids,
+            "status_count": {
+                status_type.value: status_count_dict.get((row.package_id, status_type.value), 0)
+                for status_type in list(models.TopicStatusType)
+            },
+        }
+        for row in db.execute(summarize_stmt).all()
+    ]
+
+    return summary
