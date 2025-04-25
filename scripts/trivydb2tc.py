@@ -8,7 +8,6 @@ import re
 import sys
 import uuid
 from functools import partial
-from hashlib import md5
 from pathlib import Path
 from time import sleep
 from typing import Callable
@@ -270,10 +269,6 @@ class ThreatconnectomeClient:
         )
         return response.json()
 
-    def get_vuln(self, vuln_id) -> dict:
-        response = self._retry_call(requests.get, f"{self.api_url}/vulns/{vuln_id}")
-        return response.json()
-
     def create_or_update_vuln(self, vuln_id: str, vuln: dict) -> None:
         api_endpoint = f"{self.api_url}/vulns/{vuln_id}"
         print(f"Put {api_endpoint}")
@@ -342,39 +337,7 @@ def get_versions_from_trivy_vuln(vuln) -> tuple[list[str] | None, list[str] | No
     return vulnerable_versions, fixed_versions
 
 
-def calculate_content_fingerprint(vuln: dict) -> str:
-    data = get_vuln_data_for_fingerprint(vuln)
-    return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
-
-
-def get_vuln_data_for_fingerprint(vuln: dict) -> dict:
-    sorted_affects = sorted(
-        vuln["vulnerable_packages"],
-        key=lambda vulnerable_package: (
-            vulnerable_package["name"],
-            vulnerable_package["ecosystem"],
-        ),
-    )
-
-    return {
-        "title": vuln["title"],
-        "detail": vuln["detail"],
-        "cvss_v3_score": vuln["cvss_v3_score"],
-        "affects": [get_affect_data_for_fingerprint(affect) for affect in sorted_affects],
-    }
-
-
-def get_affect_data_for_fingerprint(affect: dict) -> dict:
-    return {
-        "package_name": affect["name"],
-        "ecosystem": affect["ecosystem"],
-        "affected_versions": sorted(affect["affected_versions"]),
-        "fixed_versions": sorted(affect["fixed_versions"]),
-    }
-
-
-def get_vulns_and_fingerprints(tc_client: ThreatconnectomeClient, offset, limit):
-    # get vuln from the API and return the vuln_id and content_fingerprint
+def get_vulns_data(tc_client: ThreatconnectomeClient, offset, limit):
     result = {}
 
     while True:
@@ -384,10 +347,37 @@ def get_vulns_and_fingerprints(tc_client: ThreatconnectomeClient, offset, limit)
         if not vulns_response:
             break
 
-        result.update({vuln["vuln_id"]: vuln["content_fingerprint"] for vuln in vulns_response})
+        result.update(
+            {vuln["vuln_id"]: convert_vuln_to_checkable_data(vuln) for vuln in vulns_response}
+        )
         offset += limit
 
     return result
+
+
+def convert_vuln_to_checkable_data(vuln: dict) -> dict:
+    sorted_vulnerable_packages = sorted(
+        vuln["vulnerable_packages"],
+        key=lambda vulnerable_package: (
+            vulnerable_package["name"],
+            vulnerable_package["ecosystem"],
+        ),
+    )
+    return {
+        "title": vuln["title"],
+        "cve_id": vuln["cve_id"],
+        "detail": vuln["detail"],
+        "cvss_v3_score": vuln["cvss_v3_score"],
+        "vulnerable_packages": [
+            {
+                "name": vulnerable_package["name"],
+                "ecosystem": vulnerable_package["ecosystem"],
+                "affected_versions": sorted(vulnerable_package["affected_versions"]),
+                "fixed_versions": sorted(vulnerable_package["fixed_versions"]),
+            }
+            for vulnerable_package in sorted_vulnerable_packages
+        ],
+    }
 
 
 def main() -> None:
@@ -429,13 +419,13 @@ def main() -> None:
             if repos in allow_list:
                 category = get_package_info(repos)
                 trivy_vulns = vuln_info(repos, txs)
-                for vuln in trivy_vulns:
-                    vuln_vers, fix_vers = get_versions_from_trivy_vuln(vuln)
+                for trivy_vuln in trivy_vulns:
+                    vuln_vers, fix_vers = get_versions_from_trivy_vuln(trivy_vuln)
                     if vuln_vers is None and fix_vers is None:
                         continue
-                    trivy_vuln_id = vuln["vuln_id"]
+                    trivy_vuln_id = trivy_vuln["vuln_id"]
                     vuln_obj = vuln_dict.get(trivy_vuln_id, {"affects": {}})
-                    package = (vuln["pkg_name"], category)
+                    package = (trivy_vuln["pkg_name"], category)
 
                     # Ensure "affects" is dict
                     assert isinstance(vuln_obj["affects"], dict)
@@ -461,7 +451,7 @@ def main() -> None:
                     vuln_obj["affects"][package] = affect_obj
                     vuln_dict[trivy_vuln_id] = vuln_obj
 
-        tc_vulns: dict[str, dict] = {}
+        trivy_vulns: dict[str, dict] = {}
         vuln_bucket = txs.bucket(b"vulnerability")
         for trivy_vuln_id, trivy_vuln_content in vuln_dict.items():
             # Generate a tc vuln uuid from tirvy Vuln ID
@@ -518,7 +508,7 @@ def main() -> None:
 
             CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"
             cve_id = trivy_vuln_id if re.match(CVE_PATTERN, trivy_vuln_id) else None
-            tc_vulns[tc_vuln_id] = {
+            trivy_vulns[tc_vuln_id] = {
                 "title": title,
                 "cve_id": cve_id,
                 "detail": detail,
@@ -534,27 +524,20 @@ def main() -> None:
         read_timeout=60.0,
     )
 
-    existing_vulns = get_vulns_and_fingerprints(tc_client, 0, 100)
-    if len(existing_vulns) > 0 and not args.update:
-        sample_vuln = tc_client.get_vuln(next(iter(existing_vulns.keys())))
-        if calculate_content_fingerprint(sample_vuln) != sample_vuln["content_fingerprint"]:
-            raise ValueError(
-                "Calculated content_fingerprint does not matche. Check the calculation algorithm."
-            )
+    existing_vulns = get_vulns_data(tc_client, 0, 100)
 
-    for tc_vuln_id, vuln in tc_vulns.items():
+    for tc_vuln_id, trivy_vuln in trivy_vulns.items():
         if tc_vuln_id not in existing_vulns:  # new tc vuln
-            tc_client.create_or_update_vuln(tc_vuln_id, vuln)
+            tc_client.create_or_update_vuln(tc_vuln_id, trivy_vuln)
             continue
 
         # existing vuln
         if args.update:  # force update mode
-            tc_client.create_or_update_vuln(tc_vuln_id, vuln)
+            tc_client.create_or_update_vuln(tc_vuln_id, trivy_vuln)
             continue
 
-        content_fingerprint = calculate_content_fingerprint(vuln)
-        if content_fingerprint != existing_vulns[tc_vuln_id]:  # vuln core updated
-            tc_client.create_or_update_vuln(tc_vuln_id, vuln)
+        if existing_vulns[tc_vuln_id] != trivy_vuln:  # vuln updated
+            tc_client.create_or_update_vuln(tc_vuln_id, trivy_vuln)
             continue
 
 
