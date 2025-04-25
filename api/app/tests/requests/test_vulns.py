@@ -683,6 +683,34 @@ class TestGetVulns:
 
         self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
 
+    def test_it_should_filter_by_detail_words(self, testdb: Session):
+        # Given
+        number_of_vulns = 3
+        vuln_ids = []
+        put_response_data = []
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = self.create_vuln_request(i)
+            put_response = client.put(
+                f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+            )
+            vuln_ids.append(vuln_id)
+            put_response_data.append(put_response.json())
+
+        # When
+        response = client.get(
+            f"/vulns?detail_words={put_response_data[0]['detail']}", headers=self.headers_user
+        )
+        print(put_response_data[0]["detail"])
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        print(response_data)
+        assert len(response_data) == 1
+
+        self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
+
     def test_it_should_filter_by_cve_ids(self, testdb: Session):
         # Given
         number_of_vulns = 2

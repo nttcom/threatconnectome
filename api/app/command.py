@@ -6,9 +6,9 @@ from uuid import UUID
 from sqlalchemy import (
     and_,
     delete,
+    false,
     or_,
     select,
-    true,
 )
 from sqlalchemy.orm import Session, joinedload
 
@@ -210,19 +210,20 @@ def get_vulns(
                 ],
             )
         )
-    filters.append(
-        or_(
-            true(),
-            *[
-                (
-                    models.Vuln.detail == ""
-                    if detail_word is None
-                    else models.Vuln.detail.icontains(detail_word, autoescape=True)
-                )
-                for detail_word in fixed_detail_words
-            ],
+    if len(fixed_detail_words) > 0:
+        filters.append(
+            or_(
+                false(),
+                *[
+                    (
+                        models.Vuln.detail == ""
+                        if detail_word is None
+                        else models.Vuln.detail.icontains(detail_word, autoescape=True)
+                    )
+                    for detail_word in fixed_detail_words
+                ],
+            )
         )
-    )
     if fixed_cve_ids:
         filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
     if created_after:
