@@ -8,6 +8,7 @@ from sqlalchemy import (
     delete,
     or_,
     select,
+    true,
 )
 from sqlalchemy.orm import Session, joinedload
 
@@ -198,6 +199,7 @@ def get_vulns(
         filters.append(models.Vuln.vuln_id.in_(vuln_ids))
     filters.append(
         or_(
+            true(),
             *[
                 (
                     models.Vuln.title == ""
@@ -205,11 +207,12 @@ def get_vulns(
                     else models.Vuln.title.icontains(title_word, autoescape=True)
                 )
                 for title_word in fixed_title_words
-            ]
+            ],
         )
     )
     filters.append(
         or_(
+            true(),
             *[
                 (
                     models.Vuln.detail == ""
@@ -217,7 +220,7 @@ def get_vulns(
                     else models.Vuln.detail.icontains(detail_word, autoescape=True)
                 )
                 for detail_word in fixed_detail_words
-            ]
+            ],
         )
     )
     if fixed_cve_ids:
