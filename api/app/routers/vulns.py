@@ -354,9 +354,8 @@ def get_vuln_actions(
     """
     Get actions list of the vuln for the current user.
     """
-    if not persistence.get_vuln_by_id(db, vuln_id):
+    if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
         raise NO_SUCH_VULN
 
-    # Fetch actions for the current user
-    actions = persistence.get_actions_by_vuln_id(db, vuln_id)
-    return actions
+    # Use the new relationship to fetch actions
+    return vuln.vuln_actions
