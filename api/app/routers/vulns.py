@@ -352,7 +352,7 @@ def get_vuln_actions(
     db: Session = Depends(get_db),
 ):
     """
-    Get actions list of the vuln for the current user.
+    Get the list of actions associated with the specified vulnerability.
     """
     if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
         raise NO_SUCH_VULN
