@@ -635,6 +635,27 @@ class TestGetVulns:
         for i, vuln in enumerate(response_data):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i, scores[i]))
 
+    def test_it_should_filter_by_vuln_ids(self, testdb: Session):
+        # Given
+        number_of_vulns = 3
+        vuln_ids = []
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = self.create_vuln_request(i)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
+
+        # When
+        response = client.get(f"/vulns?vuln_ids={vuln_ids[0]}", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+
+        # Check the details of the filtered vuln
+        self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
+
     def test_it_should_filter_by_cve_ids(self, testdb: Session):
         # Given
         number_of_vulns = 2
