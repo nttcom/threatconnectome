@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.business import package_business, threat_business, ticket_business, vuln_business
+from app.business import package_business, threat_business, ticket_business
 from app.database import get_db
 
 router = APIRouter(prefix="/vulns", tags=["vulns"])
@@ -76,9 +76,6 @@ def __handle_create_vuln(
         persistence.create_affect(db, affect)
         affects.append(affect)
 
-    content_fingerprint = vuln_business.calculate_content_fingerprint(
-        request.title, request.detail, request.cvss_v3_score, affects
-    )
     vuln = models.Vuln(
         vuln_id=str(vuln_id),
         title=request.title,
@@ -87,7 +84,6 @@ def __handle_create_vuln(
         created_by=current_user.user_id,
         created_at=now,
         updated_at=now,
-        content_fingerprint=content_fingerprint,
         cvss_v3_score=request.cvss_v3_score,
         exploitation=request.exploitation,
         automatable=request.automatable,
@@ -113,7 +109,6 @@ def __handle_create_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=request.vulnerable_packages,
-        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -196,7 +191,6 @@ def __handle_update_vuln(
                 persistence.create_affect(db, new_affect)
 
     vuln.updated_at = datetime.now()
-    vuln.content_fingerprint = vuln_business.calculate_content_fingerprint_by_vuln(vuln)
 
     new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
     for threat in new_threats:
@@ -226,7 +220,6 @@ def __handle_update_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
-        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -302,7 +295,6 @@ def get_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
-        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -344,7 +336,6 @@ def get_vulns(
                 automatable=vuln.automatable,
                 cvss_v3_score=vuln.cvss_v3_score,
                 vulnerable_packages=vulnerable_packages,
-                content_fingerprint=vuln.content_fingerprint,
             )
         )
 
