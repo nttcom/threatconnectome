@@ -323,10 +323,11 @@ def get_vulns(
     db: Session = Depends(get_db),
 ):
     """
-    Get a vuln.
+    Get vulns.
 
-    Search vulnerabilities by the following parameters with sorting and pagination:
+    Get a list of vulnerabilities with optional filtering, sorting, and pagination.
 
+    ### Filtering:
     - `min_cvss_v3_score`: Minimum CVSS v3 score (float).
     - `max_cvss_v3_score`: Maximum CVSS v3 score (float).
     - `vuln_ids`: List of vuln IDs to filter by.
@@ -341,9 +342,20 @@ def get_vulns(
     - `package_name`: List of package names to filter by.
     - `ecosystem`: List of ecosystems to filter by.
     - `package_manager`: Package manager to filter by.
-    - `sort_key`: Sort key for the results. Default is `CVSS_V3_SCORE_DESC`.
 
-    Defaults are `None` for all parameters, which means skip filtering.
+    ### Sorting:
+    - `sort_key`: Sort key for the results. Default is `CVSS_V3_SCORE_DESC`.
+      Supported values:
+        - `CVSS_V3_SCORE`: Sort by CVSS v3 score (ascending).
+        - `CVSS_V3_SCORE_DESC`: Sort by CVSS v3 score (descending).
+        - `UPDATED_AT`: Sort by updated_at (ascending).
+        - `UPDATED_AT_DESC`: Sort by updated_at (descending).
+
+    ### Pagination:
+    - `offset`: Number of items to skip before starting to collect the result set.
+    - `limit`: Maximum number of items to return.
+
+    Defaults are `None` for all filtering parameters, which means skip filtering.
     Different parameters are combined with AND conditions.
     Words search is case-insensitive.
 
