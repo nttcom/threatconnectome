@@ -1015,71 +1015,210 @@ class TestGetVulns:
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_sort_by_sort_key(self, testdb: Session):
-        # Given
-        number_of_vulns = 3
-        vuln_ids = []
-        created_times = []
-        updated_times = []
-        cvss_scores = [7.5, 8.0, 6.5]
-        for i in range(number_of_vulns):
-            vuln_id = uuid4()
-            vuln_request = self.create_vuln_request(i, cvss_scores[i])
-            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
-            vuln_ids.append(vuln_id)
-            created_times.append(datetime.fromisoformat(response.json()["created_at"]))
-            updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
 
-        # When: Sort by updated_at descending
-        response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
+        def setup_vulns(vulns_data):
+            testdb.execute(text("DELETE FROM vuln"))
+            testdb.commit()
 
-        # Then
-        assert response.status_code == 200
-        response_data = response.json()
-        assert len(response_data) == number_of_vulns
+            for data in vulns_data:
+                vuln_id = uuid4()
+                vuln_request = self.create_vuln_request(len(vulns_data), data["cvss_v3_score"])
+                client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+                testdb.execute(
+                    text(
+                        """
+                        UPDATE vuln
+                        SET updated_at = :updated_at
+                        WHERE vuln_id = :vuln_id
+                        """
+                    ),
+                    {"vuln_id": str(vuln_id), "updated_at": data["updated_at"]},
+                )
 
-        # Check if the vulns are sorted by updated_at in descending order
-        response_updated_times = [
-            datetime.fromisoformat(vuln["updated_at"]) for vuln in response_data
+        # A: CVSS_V3_SCORE
+        # A1: Verify ascending order of scores
+        vulns_data_a1 = [
+            {"cvss_v3_score": 3.0, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
+            {"cvss_v3_score": 8.2, "updated_at": "2025-01-03T00:00:00"},
         ]
-        assert response_updated_times == sorted(response_updated_times, reverse=True)
-
-        # When: Sort by updated_at ascending
-        response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
-
-        # Then
-        assert response.status_code == 200
-        response_data = response.json()
-        assert len(response_data) == number_of_vulns
-
-        # Check if the vulns are sorted by updated_at in ascending order
-        response_updated_times = [
-            datetime.fromisoformat(vuln["updated_at"]) for vuln in response_data
-        ]
-        assert response_updated_times == sorted(response_updated_times)
-
-        # When: Sort by cvss_v3_score descending
-        response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
-
-        # Then
-        assert response.status_code == 200
-        response_data = response.json()
-        assert len(response_data) == number_of_vulns
-
-        # Check if the vulns are sorted by cvss_v3_score in descending order
-        response_cvss_scores = [vuln["cvss_v3_score"] for vuln in response_data]
-        assert response_cvss_scores == sorted(cvss_scores, reverse=True)
-
-        # When: Sort by cvss_v3_score ascending
+        setup_vulns(vulns_data_a1)
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
-
-        # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == number_of_vulns
+        assert [vuln["cvss_v3_score"] for vuln in response_data] == [3.0, 5.0, 8.2]
 
-        # Check if the vulns are sorted by cvss_v3_score in ascending order
-        response_cvss_scores = [vuln["cvss_v3_score"] for vuln in response_data]
-        assert response_cvss_scores == sorted(cvss_scores)
+        # A2: Verify NULL values come first
+        vulns_data_a2 = [
+            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 3.0, "updated_at": "2025-01-02T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00"},
+        ]
+        setup_vulns(vulns_data_a2)
+        response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["cvss_v3_score"] for vuln in response_data] == [None, 3.0, 8.0]
+
+        # A3:  Verify descending order of updated_at for the same cvss_v3_score
+        vulns_data_a3 = [
+            {"cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
+        ]
+        setup_vulns(vulns_data_a3)
+        response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["updated_at"] for vuln in response_data] == [
+            "2024-01-01T00:00:00",
+            "2023-01-01T00:00:00",
+        ]
+
+        # A4: Verify NULL + same cvss_v3_score
+        vulns_data_a4 = [
+            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 9.0, "updated_at": "2025-01-03T00:00:00"},
+        ]
+        setup_vulns(vulns_data_a4)
+        response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["cvss_v3_score"] for vuln in response_data] == [None, 5.0, 5.0, 9.0]
+
+        # B: CVSS_V3_SCORE_DESC
+        # B1: Verify descending order of scores
+        vulns_data_b1 = [
+            {"cvss_v3_score": 9.8, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
+            {"cvss_v3_score": 2.0, "updated_at": "2025-01-03T00:00:00"},
+        ]
+        setup_vulns(vulns_data_b1)
+        response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["cvss_v3_score"] for vuln in response_data] == [9.8, 5.0, 2.0]
+
+        # B2: Verify NULL values come last
+        vulns_data_b2 = [
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
+            {"cvss_v3_score": None, "updated_at": "2025-01-03T00:00:00"},
+        ]
+        setup_vulns(vulns_data_b2)
+        response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["cvss_v3_score"] for vuln in response_data] == [8.0, 5.0, None]
+
+        # B3: Verify descending order of updated_at for the same cvss_v3_score
+        vulns_data_b3 = [
+            {"cvss_v3_score": 7.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 7.0, "updated_at": "2022-01-01T00:00:00"},
+        ]
+        setup_vulns(vulns_data_b3)
+        response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["updated_at"] for vuln in response_data] == [
+            "2023-01-01T00:00:00",
+            "2022-01-01T00:00:00",
+        ]
+
+        # B4: Verify NULL + same cvss_v3_score
+        vulns_data_b4 = [
+            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 7.0, "updated_at": "2025-01-02T00:00:00"},
+            {"cvss_v3_score": 7.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 9.0, "updated_at": "2025-01-03T00:00:00"},
+        ]
+        setup_vulns(vulns_data_b4)
+        response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["cvss_v3_score"] for vuln in response_data] == [9.0, 7.0, 7.0, None]
+
+        # C： UPDATED_AT
+        # C1: Verify ascending order of updated_at
+        vulns_data_c1 = [
+            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 7.0, "updated_at": "2024-01-01T00:00:00"},
+            {"cvss_v3_score": 6.0, "updated_at": "2025-01-01T00:00:00"},
+        ]
+        setup_vulns(vulns_data_c1)
+        response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["updated_at"] for vuln in response_data] == [
+            "2023-01-01T00:00:00",
+            "2024-01-01T00:00:00",
+            "2025-01-01T00:00:00",
+        ]
+
+        # C2: Verify descending order of cvss_v3_score for the same updated_at
+        vulns_data_c2 = [
+            {"cvss_v3_score": 9.0, "updated_at": "2024-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00"},
+            {"cvss_v3_score": 2.0, "updated_at": "2024-01-01T00:00:00"},
+        ]
+        setup_vulns(vulns_data_c2)
+        response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["cvss_v3_score"] for vuln in response_data] == [9.0, 5.0, 2.0]
+
+        # C3: Verify updated_at + cvss_v3_score
+        vulns_data_c3 = [
+            {"cvss_v3_score": 5.0, "updated_at": "2022-01-01T00:00:00"},
+            {"cvss_v3_score": 7.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 6.0, "updated_at": "2023-01-01T00:00:00"},
+        ]
+        setup_vulns(vulns_data_c3)
+        response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["cvss_v3_score"] for vuln in response_data] == [5.0, 7.0, 6.0]
+
+        # D: UPDATED_AT_DESC
+        # D1: Verify descending order of updated_at
+        vulns_data_d1 = [
+            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 7.0, "updated_at": "2022-01-01T00:00:00"},
+            {"cvss_v3_score": 6.0, "updated_at": "2021-01-01T00:00:00"},
+        ]
+        setup_vulns(vulns_data_d1)
+        response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["updated_at"] for vuln in response_data] == [
+            "2023-01-01T00:00:00",
+            "2022-01-01T00:00:00",
+            "2021-01-01T00:00:00",
+        ]
+
+        # D2: Verify descending order of cvss_v3_score for the same updated_at
+        vulns_data_d2 = [
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 4.0, "updated_at": "2025-01-01T00:00:00"},
+        ]
+        setup_vulns(vulns_data_d2)
+        response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["cvss_v3_score"] for vuln in response_data] == [8.0, 4.0]
+
+        # D3: Verify date + cvss_v3_score
+        vulns_data_d3 = [
+            {"cvss_v3_score": 4.0, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 9.0, "updated_at": "2024-01-01T00:00:00"},
+            {"cvss_v3_score": 3.0, "updated_at": "2024-01-01T00:00:00"},
+        ]
+        setup_vulns(vulns_data_d3)
+        response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["cvss_v3_score"] for vuln in response_data] == [4.0, 9.0, 3.0]
 
 
 class TestDeleteVuln:
