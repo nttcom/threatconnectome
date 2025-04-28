@@ -919,6 +919,31 @@ class TestGetVulns:
         for i, vuln in enumerate(response_data):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
+    def test_it_should_return_all_vulns_when_creator_ids_is_empty(self, testdb: Session):
+        # Given
+        number_of_vulns = 3
+        vuln_ids = []
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = self.create_vuln_request(i)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
+
+        # When
+        response = client.get("/vulns?creator_ids=", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == number_of_vulns
+
+        # Check the details of each vuln
+        for i, vuln in enumerate(response_data):
+            reversed_index = len(response_data) - 1 - i
+            self.assert_vuln_response(
+                vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+            )
+
     def test_it_should_filter_by_package_name(self, testdb: Session):
         # Given
         number_of_vulns = 2
