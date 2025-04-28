@@ -712,14 +712,20 @@ class TestGetVulns:
         # Given
         number_of_vulns = 2
         vuln_ids = []
+        put_response_data = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            put_response = client.put(
+                f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+            )
             vuln_ids.append(vuln_id)
+            put_response_data.append(put_response.json())
 
         # When
-        response = client.get("/vulns?cve_ids=CVE-0000-0000", headers=self.headers_user)
+        response = client.get(
+            f"/vulns?cve_ids={put_response_data[0]['cve_id']}", headers=self.headers_user
+        )
 
         # Then
         assert response.status_code == 200
@@ -830,23 +836,29 @@ class TestGetVulns:
 
     def test_it_should_filter_by_creator_ids(self, testdb: Session):
         # Given
-        creator_id = str(self.user1.user_id)
         vuln_ids = []
+        put_response_data = []
         for i in range(2):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             if i == 0:
-                client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+                put_response = client.put(
+                    f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+                )
             else:
-                client.put(
+                put_response = client.put(
                     f"/vulns/{vuln_id}",
                     headers=headers(USER2),
                     json=vuln_request,
                 )
             vuln_ids.append(vuln_id)
+            put_response_data.append(put_response.json())
 
         # When
-        response = client.get(f"/vulns?creator_ids={creator_id}", headers=self.headers_user)
+        response = client.get(
+            f"/vulns?creator_ids={put_response_data[0]['created_by']}",
+            headers=self.headers_user,
+        )
 
         # Then
         assert response.status_code == 200
@@ -861,14 +873,21 @@ class TestGetVulns:
         # Given
         number_of_vulns = 2
         vuln_ids = []
+        put_response_data = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            put_response = client.put(
+                f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+            )
             vuln_ids.append(vuln_id)
+            put_response_data.append(put_response.json())
 
         # When
-        response = client.get("/vulns?package_name=example-lib-0", headers=self.headers_user)
+        response = client.get(
+            f"/vulns?package_name={put_response_data[0]['vulnerable_packages'][0]['name']}",
+            headers=self.headers_user,
+        )
 
         # Then
         assert response.status_code == 200
@@ -883,14 +902,21 @@ class TestGetVulns:
         # Given
         number_of_vulns = 2
         vuln_ids = []
+        put_response_data = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            put_response = client.put(
+                f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+            )
             vuln_ids.append(vuln_id)
+            put_response_data.append(put_response.json())
 
         # When
-        response = client.get("/vulns?ecosystem=ecosystem-0", headers=self.headers_user)
+        response = client.get(
+            f"/vulns?ecosystem={put_response_data[0]['vulnerable_packages'][0]['ecosystem']}",
+            headers=self.headers_user,
+        )
 
         # Then
         assert response.status_code == 200
