@@ -225,7 +225,7 @@ def get_vulns(
                 ],
             )
         )
-    if fixed_cve_ids:
+    if len(fixed_cve_ids) > 0:
         filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
     if created_after:
         filters.append(models.Vuln.created_at >= created_after)
@@ -235,7 +235,7 @@ def get_vulns(
         filters.append(models.Vuln.updated_at >= updated_after)
     if updated_before:
         filters.append(models.Vuln.updated_at <= updated_before)
-    if fixed_creator_ids:
+    if len(fixed_creator_ids) > 0:
         filters.append(models.Vuln.created_by.in_(fixed_creator_ids))
 
     # Affect filters
