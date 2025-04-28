@@ -786,6 +786,22 @@ class TestGetVulns:
         for i, vuln in enumerate(response_data):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
+    def test_it_should_return_400_when_cve_ids_is_empty(self, testdb: Session):
+        # Given
+        number_of_vulns = 3
+        vuln_ids = []
+        for i in range(number_of_vulns):
+            vuln_id = uuid4()
+            vuln_request = self.create_vuln_request(i)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            vuln_ids.append(vuln_id)
+
+        # When
+        response = client.get("/vulns?cve_ids=", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 400
+
     def test_it_should_filter_by_created_and_updated_timestamps(self, testdb: Session):
         # Given
         number_of_vulns = 3
