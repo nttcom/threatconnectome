@@ -143,7 +143,7 @@ class Base(DeclarativeBase):
     )
 
 
-# secondary tables #
+# primary tables #
 
 
 class PTeamAccountRole(Base):
@@ -163,9 +163,6 @@ class PTeamAccountRole(Base):
 
     pteam = relationship("PTeam", back_populates="pteam_roles", uselist=False)
     account = relationship("Account", back_populates="pteam_roles", uselist=False)
-
-
-# primary tables #
 
 
 class Account(Base):

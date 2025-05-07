@@ -19,10 +19,6 @@ def get_account_by_id(db: Session, user_id: UUID | str) -> models.Account | None
     ).one_or_none()
 
 
-def get_account_by_email(db: Session, email: str) -> models.Account | None:
-    return db.scalars(select(models.Account).where(models.Account.email == email)).first()
-
-
 def create_account(db: Session, account: models.Account) -> None:
     db.add(account)
     db.flush()
@@ -40,12 +36,6 @@ def get_action_by_id(db: Session, action_id: UUID | str) -> models.VulnAction | 
     return db.scalars(
         select(models.VulnAction).where(models.VulnAction.action_id == str(action_id))
     ).one_or_none()
-
-
-def get_actions_by_topic_id(db: Session, topic_id: UUID | str) -> Sequence[models.VulnAction]:
-    return db.scalars(
-        select(models.VulnAction).where(models.VulnAction.topic_id == str(topic_id))
-    ).all()
 
 
 def delete_action(db: Session, action: models.VulnAction) -> None:
@@ -351,30 +341,6 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
     return db.scalars(
         select(models.Service).where(models.Service.service_id == str(service_id))
     ).one_or_none()
-
-
-### Dependency
-
-
-def get_dependencies_from_package_version_id(
-    db: Session, package_version_id: UUID | str
-) -> Sequence[models.Dependency]:
-    return db.scalars(
-        select(models.Dependency).where(
-            models.Dependency.package_version_id == str(package_version_id),
-        )
-    ).all()
-
-
-def get_dependency_from_service_id_and_tag_id(
-    db: Session, service_id: UUID | str, tag_id: UUID | str
-) -> models.Dependency | None:
-    return db.scalars(
-        select(models.Dependency).where(
-            models.Dependency.service_id == str(service_id),
-            models.Dependency.tag_id == str(tag_id),
-        )
-    ).first()  # FIXME: WORKAROUND to avoid getting multiple row
 
 
 ### Alert
