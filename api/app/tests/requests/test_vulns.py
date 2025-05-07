@@ -1132,9 +1132,9 @@ class TestGetVulns:
     # A1
     def test_it_should_sort_by_cvss_v3_score_ascending(self, testdb: Session):
         vulns_data = [
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00"},
             {"cvss_v3_score": 3.0, "updated_at": "2025-01-01T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
@@ -1145,9 +1145,9 @@ class TestGetVulns:
     # A2
     def test_it_should_sort_by_cvss_v3_score_with_null(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
             {"cvss_v3_score": 3.0, "updated_at": "2025-01-02T00:00:00"},
             {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00"},
+            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
@@ -1160,8 +1160,8 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
@@ -1177,10 +1177,10 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
             {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
@@ -1196,9 +1196,9 @@ class TestGetVulns:
     # B1
     def test_it_should_sort_by_cvss_v3_score_descending(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
             {"cvss_v3_score": 3.0, "updated_at": "2025-01-03T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
@@ -1209,9 +1209,9 @@ class TestGetVulns:
     # B2
     def test_it_should_sort_by_cvss_v3_score_descending_with_null(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
             {"cvss_v3_score": None, "updated_at": "2025-01-03T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
@@ -1224,8 +1224,8 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2023-01-01T00:00:00"},
             {"cvss_v3_score": 8.0, "updated_at": "2022-01-01T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2023-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
@@ -1241,10 +1241,10 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
             {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00"},
+            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
@@ -1260,9 +1260,9 @@ class TestGetVulns:
     # C1
     def test_it_should_sort_by_updated_at_ascending(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": 3.0, "updated_at": "2023-01-01T00:00:00"},
             {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 3.0, "updated_at": "2023-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
@@ -1279,9 +1279,9 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00"},
             {"cvss_v3_score": 3.0, "updated_at": "2024-01-01T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
@@ -1294,8 +1294,8 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 3.0, "updated_at": "2022-01-01T00:00:00"},
             {"cvss_v3_score": 8.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 3.0, "updated_at": "2022-01-01T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
@@ -1308,8 +1308,8 @@ class TestGetVulns:
     # D1
     def test_it_should_sort_by_updated_at_descending(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": 3.0, "updated_at": "2023-01-01T00:00:00"},
             {"cvss_v3_score": 8.0, "updated_at": "2022-01-01T00:00:00"},
+            {"cvss_v3_score": 3.0, "updated_at": "2023-01-01T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2021-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
@@ -1327,9 +1327,9 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
             {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00"},
             {"cvss_v3_score": 3.0, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
@@ -1342,9 +1342,9 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00"},
             {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00"},
             {"cvss_v3_score": 3.0, "updated_at": "2024-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
