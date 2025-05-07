@@ -687,7 +687,8 @@ class TestGetVulnActions:
             "recommended": True,
         }
         # Add an action to the vulnerability
-        client.post("/actions", headers=self.headers_user, json=action_request)
+        response = client.post("/actions", headers=self.headers_user, json=action_request)
+        action_id = response.json()["action_id"]
 
         # When
         response = client.get(f"/vulns/{self.vuln_id}/actions", headers=self.headers_user)
@@ -696,9 +697,16 @@ class TestGetVulnActions:
         assert response.status_code == 200
         actions = response.json()
         assert len(actions) == 1
+        assert actions[0]["vuln_id"] == str(self.vuln_id)
+        assert actions[0]["action_id"] == action_id
         assert actions[0]["action"] == action_request["action"]
         assert actions[0]["action_type"] == action_request["action_type"]
         assert actions[0]["recommended"] == action_request["recommended"]
+
+        now = datetime.now()
+        created_at = datetime.fromisoformat(actions[0]["created_at"])
+        assert created_at > now - timedelta(seconds=30)
+        assert created_at < now
 
     def test_it_should_return_empty_list_when_no_vuln_actions_exist(self):
         # When
