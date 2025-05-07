@@ -129,11 +129,6 @@ def upload_pteam_tags(
     return [schemas.ExtTagResponse(**item) for item in data]
 
 
-def get_pteam_tags(user: dict, pteam_id: str) -> list[schemas.ExtTagResponse]:
-    data = assert_200(client.get(f"/pteams/{pteam_id}/tags", headers=headers(user)))
-    return [schemas.ExtTagResponse(**item) for item in data]
-
-
 def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceResponse]:
     data = assert_200(client.get(f"/pteams/{pteam_id}/services", headers=headers(user)))
     return [schemas.PTeamServiceResponse(**item) for item in data]
