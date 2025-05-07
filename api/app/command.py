@@ -139,7 +139,7 @@ def get_vulns(
     sort_key: schemas.VulnSortKey = schemas.VulnSortKey.CVSS_V3_SCORE_DESC,  # set default sort key
 ) -> Sequence[models.Vuln]:
 
-    keyword_for_empty = [""]
+    keyword_for_empty = ""
 
     # Remove duplicates from lists
     fixed_creator_ids = set()
@@ -153,7 +153,7 @@ def get_vulns(
     if title_words is not None:
         for title_word in title_words:
             if title_word == keyword_for_empty:
-                fixed_title_words.add(None)
+                fixed_title_words.add("")
                 continue
             fixed_title_words.add(title_word)
 
@@ -161,7 +161,7 @@ def get_vulns(
     if detail_words is not None:
         for detail_word in detail_words:
             if detail_word == keyword_for_empty:
-                fixed_detail_words.add(None)
+                fixed_detail_words.add("")
                 continue
             fixed_detail_words.add(detail_word)
 

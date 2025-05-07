@@ -696,7 +696,7 @@ class TestGetVulns:
             vuln_ids.append(vuln_id)
 
         # When
-        response = client.get("/vulns?title_words=", headers=self.headers_user)
+        response = client.get("/vulns?title_words=&title_words=test2", headers=self.headers_user)
 
         # Then
         assert response.status_code == 200
@@ -747,7 +747,7 @@ class TestGetVulns:
             vuln_ids.append(vuln_id)
 
         # When
-        response = client.get("/vulns?detail_words=", headers=self.headers_user)
+        response = client.get("/vulns?detail_words=&detail_words=test2", headers=self.headers_user)
 
         # Then
         assert response.status_code == 200
