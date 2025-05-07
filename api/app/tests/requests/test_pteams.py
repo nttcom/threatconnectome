@@ -38,8 +38,6 @@ from app.tests.medium.utils import (
     calc_file_sha256,
     compare_references,
     create_pteam,
-    create_tag,
-    create_topic,
     create_user,
     file_upload_headers,
     get_pteam_services,
