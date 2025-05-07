@@ -444,7 +444,7 @@ def get_pteam_packages_summary(
     db: Session = Depends(get_db),
 ):
     """
-    Get tags summary of the pteam service.
+    Get packages summary of the pteam service.
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
