@@ -189,12 +189,6 @@ class SearchTopicsResponse(ORMModel):
     topics: list[TopicEntry]
 
 
-class TopicActionsResponse(ORMModel):
-    topic_id: UUID
-    pteam_id: UUID
-    actions: list[ActionResponse]
-
-
 class ActionCreateRequest(ORMModel):
     vuln_id: UUID | None = None  # can be None if using in create_vuln()
     action: str = Field(..., max_length=1024)
