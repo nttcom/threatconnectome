@@ -247,7 +247,6 @@ class VulnResponse(VulnBase):
     created_at: datetime
     updated_at: datetime
     created_by: UUID | None = None
-    content_fingerprint: str
 
 
 class VulnUpdate(VulnBase):

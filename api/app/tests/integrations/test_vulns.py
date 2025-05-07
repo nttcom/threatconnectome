@@ -137,7 +137,6 @@ class TestUpdateVuln:
         assert self.request1["automatable"] == vuln.automatable
         assert self.request1["cvss_v3_score"] == vuln.cvss_v3_score
         assert str(self.user1.user_id) == vuln.created_by
-        assert vuln.content_fingerprint is not None
         assert (
             self.request1["vulnerable_packages"][0]["affected_versions"]
             == vuln.affects[0].affected_versions
@@ -202,7 +201,6 @@ class TestUpdateVuln:
         assert self.request1["automatable"] == vuln.automatable
         assert self.request1["cvss_v3_score"] == vuln.cvss_v3_score
         assert str(self.user1.user_id) == vuln.created_by
-        assert vuln.content_fingerprint is not None
         assert (
             self.request1["vulnerable_packages"][0]["affected_versions"]
             == vuln.affects[0].affected_versions
