@@ -513,6 +513,7 @@ class TestGetVulns:
             reversed_index = len(response_data) - 1 - i
             self.assert_vuln_response(
                 vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+            )
             assert (
                 created_times[i] - timedelta(seconds=10)
                 <= datetime.fromisoformat(vuln["created_at"])
@@ -576,6 +577,11 @@ class TestGetVulns:
             self.assert_vuln_response(
                 vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
             )
+        assert (
+            created_times[3] - timedelta(seconds=10)
+            <= datetime.fromisoformat(response_data[0]["created_at"])
+            <= created_times[3] + timedelta(seconds=10)
+        )
 
     def test_it_should_filter_by_min_cvss_v3_score(self, testdb: Session):
         # Given
@@ -592,7 +598,8 @@ class TestGetVulns:
 
         # When
         response = client.get(
-            f"/vulns?min_cvss_v3_score={min_cvss_v3_score}", headers=self.headers_user)
+            f"/vulns?min_cvss_v3_score={min_cvss_v3_score}", headers=self.headers_user
+        )
 
         # Then
         assert response.status_code == 200
@@ -603,11 +610,6 @@ class TestGetVulns:
             self.assert_vuln_response(
                 vuln, vuln_ids[i + 1], self.create_vuln_request(i + 1, scores[i + 1])
             )
-        assert (
-            created_times[3] - timedelta(seconds=10)
-            <= datetime.fromisoformat(response_data[0]["created_at"])
-            <= created_times[3] + timedelta(seconds=10)
-        )
 
     def test_it_should_filter_by_max_cvss_v3_score(self, testdb: Session):
         # Given
