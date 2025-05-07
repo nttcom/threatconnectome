@@ -183,7 +183,7 @@ def get_packages_summary(
             unsolved_subq,
             unsolved_subq.c.dependency_id == models.Dependency.dependency_id,
         )
-        .group_by(models.Package.package_id)
+        .group_by(models.Package.package_id, models.Dependency.package_manager)
         .order_by(
             min_unsolved_ssvc_priority.nullslast(),
             max_unsolved_updated_at.desc().nullslast(),
