@@ -102,10 +102,6 @@ class TestUpdateVuln:
         assert response.json()["automatable"] == self.request1["automatable"]
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
         assert (
-            "content_fingerprint" in response.json()
-            and response.json()["content_fingerprint"] is not None
-        )
-        assert (
             response.json()["vulnerable_packages"][0]["name"]
             == self.request1["vulnerable_packages"][0]["name"]
         )
@@ -175,10 +171,6 @@ class TestUpdateVuln:
         assert response.json()["exploitation"] == self.request1["exploitation"]
         assert response.json()["automatable"] == self.request1["automatable"]
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
-        assert (
-            "content_fingerprint" in response.json()
-            and response.json()["content_fingerprint"] is not None
-        )
         assert (
             response.json()["vulnerable_packages"][0]["name"]
             == self.request1["vulnerable_packages"][0]["name"]
@@ -405,10 +397,6 @@ class TestGetVuln:
         assert response.json()["automatable"] == self.request1["automatable"]
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
         assert (
-            "content_fingerprint" in response.json()
-            and response.json()["content_fingerprint"] is not None
-        )
-        assert (
             response.json()["vulnerable_packages"][0]["name"]
             == self.request1["vulnerable_packages"][0]["name"]
         )
@@ -525,6 +513,15 @@ class TestGetVulns:
             reversed_index = len(response_data) - 1 - i
             self.assert_vuln_response(
                 vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+            assert (
+                created_times[i] - timedelta(seconds=10)
+                <= datetime.fromisoformat(vuln["created_at"])
+                <= created_times[i] + timedelta(seconds=10)
+            )
+            assert (
+                updated_times[i] - timedelta(seconds=10)
+                <= datetime.fromisoformat(vuln["updated_at"])
+                <= updated_times[i] + timedelta(seconds=10)
             )
 
     def test_it_should_return_empty_list_when_no_vulns_exist(self):
@@ -595,8 +592,7 @@ class TestGetVulns:
 
         # When
         response = client.get(
-            f"/vulns?min_cvss_v3_score={min_cvss_v3_score}", headers=self.headers_user
-        )
+            f"/vulns?min_cvss_v3_score={min_cvss_v3_score}", headers=self.headers_user)
 
         # Then
         assert response.status_code == 200
@@ -607,6 +603,11 @@ class TestGetVulns:
             self.assert_vuln_response(
                 vuln, vuln_ids[i + 1], self.create_vuln_request(i + 1, scores[i + 1])
             )
+        assert (
+            created_times[3] - timedelta(seconds=10)
+            <= datetime.fromisoformat(response_data[0]["created_at"])
+            <= created_times[3] + timedelta(seconds=10)
+        )
 
     def test_it_should_filter_by_max_cvss_v3_score(self, testdb: Session):
         # Given
@@ -1363,6 +1364,85 @@ class TestDeleteVuln:
 
         # When
         response = client.delete(f"/vulns/{non_existent_vuln_id}", headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such vuln"
+
+
+class TestGetVulnActions:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, testdb: Session):
+        # Given
+        self.user1 = create_user(USER1)
+        self.headers_user = headers(USER1)
+        self.vuln_id = uuid4()
+        self.vuln_request = {
+            "title": "Example vuln",
+            "cve_id": "CVE-0000-0001",
+            "detail": "This vuln is example.",
+            "exploitation": "active",
+            "automatable": "yes",
+            "cvss_v3_score": 7.5,
+            "vulnerable_packages": [
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+        # Create a vulnerability
+        response = client.put(
+            f"/vulns/{self.vuln_id}", headers=self.headers_user, json=self.vuln_request
+        )
+        assert response.status_code == 200
+
+    def test_it_should_return_200_and_vuln_actions_list(self, testdb: Session):
+        # Given
+        action_request = {
+            "vuln_id": str(self.vuln_id),
+            "action": "Mitigate vulnerability",
+            "action_type": "mitigation",
+            "recommended": True,
+        }
+        # Add an action to the vulnerability
+        response = client.post("/actions", headers=self.headers_user, json=action_request)
+        action_id = response.json()["action_id"]
+
+        # When
+        response = client.get(f"/vulns/{self.vuln_id}/actions", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        actions = response.json()
+        assert len(actions) == 1
+        assert actions[0]["vuln_id"] == str(self.vuln_id)
+        assert actions[0]["action_id"] == action_id
+        assert actions[0]["action"] == action_request["action"]
+        assert actions[0]["action_type"] == action_request["action_type"]
+        assert actions[0]["recommended"] == action_request["recommended"]
+
+        now = datetime.now()
+        created_at = datetime.fromisoformat(actions[0]["created_at"])
+        assert created_at > now - timedelta(seconds=30)
+        assert created_at < now
+
+    def test_it_should_return_empty_list_when_no_vuln_actions_exist(self):
+        # When
+        response = client.get(f"/vulns/{self.vuln_id}/actions", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        assert response.json() == []  # No actions yet
+
+    def test_it_should_return_404_when_vuln_id_does_not_exist(self):
+        # Given
+        non_existent_vuln_id = uuid4()
+
+        # When
+        response = client.get(f"/vulns/{non_existent_vuln_id}/actions", headers=self.headers_user)
 
         # Then
         assert response.status_code == 404

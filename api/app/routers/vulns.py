@@ -65,7 +65,6 @@ def __handle_create_vuln(
     # create vuln
     now = datetime.now()
 
-    ## ToDo add content_fingerprint
     vuln = models.Vuln(
         vuln_id=str(vuln_id),
         title=request.title,
@@ -108,7 +107,6 @@ def __handle_create_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=request.vulnerable_packages,
-        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -220,7 +218,6 @@ def __handle_update_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
-        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -296,7 +293,6 @@ def get_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
-        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -418,8 +414,23 @@ def get_vulns(
                 automatable=vuln.automatable,
                 cvss_v3_score=vuln.cvss_v3_score,
                 vulnerable_packages=vulnerable_packages,
-                content_fingerprint=vuln.content_fingerprint,
             )
         )
 
     return response_vulns
+
+
+@router.get("/{vuln_id}/actions", response_model=list[schemas.ActionResponse])
+def get_vuln_actions(
+    vuln_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get the list of actions associated with the specified vulnerability.
+    """
+    if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
+        raise NO_SUCH_VULN
+
+    # Use the new relationship to fetch actions
+    return vuln.vuln_actions
