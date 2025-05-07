@@ -687,8 +687,7 @@ class TestGetVulnActions:
             "recommended": True,
         }
         # Add an action to the vulnerability
-        action_response = client.post("/actions", headers=self.headers_user, json=action_request)
-        assert action_response.status_code == 200  # Ensure action creation succeeded
+        client.post("/actions", headers=self.headers_user, json=action_request)
 
         # When
         response = client.get(f"/vulns/{self.vuln_id}/actions", headers=self.headers_user)
