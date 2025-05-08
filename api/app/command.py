@@ -128,7 +128,6 @@ def get_vulns(
     title_words: Optional[list[str]] = None,
     detail_words: Optional[list[str]] = None,
     creator_ids: Optional[list[str]] = None,
-    threat_ids: Optional[list[str]] = None,
     created_after: Optional[datetime] = None,
     created_before: Optional[datetime] = None,
     updated_after: Optional[datetime] = None,
@@ -190,9 +189,6 @@ def get_vulns(
             models.PackageVersion.package_version_id == models.Dependency.package_version_id,
         )
 
-    if threat_ids:
-        query = query.join(models.Threat, models.Vuln.vuln_id == models.Threat.vuln_id)
-
     filters = []
 
     if min_cvss_v3_score is not None:
@@ -231,8 +227,6 @@ def get_vulns(
         )
     if len(fixed_cve_ids) > 0:
         filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
-    if threat_ids:
-        filters.append(models.Threat.threat_id.in_(threat_ids))
     if created_after:
         filters.append(models.Vuln.created_at >= created_after)
     if created_before:
