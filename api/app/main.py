@@ -13,7 +13,6 @@ from app.routers import (
     auth,
     external,
     pteams,
-    threat,
     users,
     vulns,
 )
@@ -49,7 +48,6 @@ def create_app():
     app.include_router(external.router)
     app.include_router(pteams.router)
     app.include_router(users.router)
-    app.include_router(threat.router)
     app.include_router(vulns.router)
 
     # setup auth

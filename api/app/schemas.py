@@ -281,17 +281,6 @@ class ActionLogRequest(ORMModel):
     executed_at: datetime | None = None
 
 
-class ThreatResponse(ORMModel):
-    threat_id: UUID
-    package_version_id: UUID
-    vuln_id: UUID
-
-
-class ThreatUpdateRequest(ORMModel):
-    threat_safety_impact: SafetyImpactEnum | None = None
-    reason_safety_impact: str | None = None
-
-
 class TicketStatusRequest(ORMModel):
     topic_status: TopicStatusType | None = None
     logging_ids: list[UUID] | None = None
