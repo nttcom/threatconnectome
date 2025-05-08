@@ -315,7 +315,7 @@ class TicketResponse(ORMModel):
 class PTeamPackagesSummary(ORMModel):
     class PTeamPackageSummary(ORMModel):
         package_id: UUID
-        name: str
+        package_name: str
         ecosystem: str
         package_manager: str
         service_ids: list[UUID]

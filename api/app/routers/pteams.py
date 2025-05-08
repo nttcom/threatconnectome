@@ -425,13 +425,13 @@ def remove_service_thumbnail(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _count_ssvc_priority_from_summary(tags_summary: list[dict]):
+def _count_ssvc_priority_from_summary(packages_summary: list[dict]):
     ssvc_priority_count: dict[models.SSVCDeployerPriorityEnum, int] = {
         priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
     }
-    for tag_summary in tags_summary:
+    for package_summary in packages_summary:
         ssvc_priority_count[
-            tag_summary["ssvc_priority"] or models.SSVCDeployerPriorityEnum.DEFER
+            package_summary["ssvc_priority"] or models.SSVCDeployerPriorityEnum.DEFER
         ] += 1
     return ssvc_priority_count
 
@@ -455,13 +455,13 @@ def get_pteam_packages_summary(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    tags_summary = command.get_packages_summary(db, pteam_id, service_id)
+    packages_summary = command.get_packages_summary(db, pteam_id, service_id)
 
-    ssvc_priority_count = _count_ssvc_priority_from_summary(tags_summary)
+    ssvc_priority_count = _count_ssvc_priority_from_summary(packages_summary)
 
     return {
         "ssvc_priority_count": ssvc_priority_count,
-        "packages": tags_summary,
+        "packages": packages_summary,
     }
 
 

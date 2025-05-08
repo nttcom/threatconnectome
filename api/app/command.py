@@ -307,10 +307,7 @@ def get_packages_summary(
             service_ids,
         )
         .join(models.PackageVersion, models.PackageVersion.package_id == models.Package.package_id)
-        .join(
-            models.Dependency,
-            models.Dependency.package_version_id == models.PackageVersion.package_version_id,
-        )
+        .join(models.Dependency)
         .join(
             models.Service,
             and_(
@@ -368,7 +365,7 @@ def get_packages_summary(
     summary = [
         {
             "package_id": row.package_id,
-            "name": row.name,
+            "package_name": row.name,
             "ecosystem": row.ecosystem,
             "package_manager": row.package_manager,
             "ssvc_priority": row.min_ssvc_priority,
