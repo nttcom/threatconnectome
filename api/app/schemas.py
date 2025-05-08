@@ -314,13 +314,12 @@ class TicketStatusResponse(ORMModel):
 
 class TicketResponse(ORMModel):
     ticket_id: UUID
-    threat_id: UUID
+    vuln_id: UUID
     dependency_id: UUID
     created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     ticket_safety_impact: SafetyImpactEnum | None
     reason_safety_impact: str | None
-    threat: ThreatResponse
     ticket_status: TicketStatusResponse
 
 
