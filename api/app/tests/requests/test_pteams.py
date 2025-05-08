@@ -2622,18 +2622,6 @@ class TestTicketStatus:
             service = next(filter(lambda x: x["service_name"] == service_name, data))
             return service["service_id"]
 
-        @staticmethod
-        def _gen_action(tag_names: list[str]) -> dict:
-            return {
-                "action": f"sample action for {str(tag_names)}",
-                "action_type": models.ActionType.elimination,
-                "recommended": True,
-                "ext": {
-                    "tags": tag_names,
-                    "vulnerable_versions": {tag_name: ["<999.99.9"] for tag_name in tag_names},
-                },
-            }
-
         def _get_tickets(self, pteam_id: str, service_id: str, vuln_id: str) -> dict:
             url = f"/pteams/{pteam_id}/tickets?service_id={service_id}&vuln_id={vuln_id}"
             user1_access_token = self._get_access_token(USER1)
@@ -2657,10 +2645,7 @@ class TestTicketStatus:
     class TestGet(Common):
 
         def test_returns_initial_status_if_no_status_created(self, actionable_topic1):
-            url = (
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-                f"/ticketstatus/{self.ticket_id1}"
-            )
+            url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -2700,10 +2685,7 @@ class TestTicketStatus:
             )
 
             # get ticket status
-            url = (
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-                f"/ticketstatus/{self.ticket_id1}"
-            )
+            url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
