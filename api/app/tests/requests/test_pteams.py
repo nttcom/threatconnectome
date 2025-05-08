@@ -21,13 +21,10 @@ from app.main import app
 from app.ssvc.ssvc_calculator import calculate_ssvc_priority_by_ticket
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
-    ACTION1,
-    ACTION2,
     PTEAM1,
     PTEAM2,
     SAMPLE_SLACK_WEBHOOK_URL,
     TAG1,
-    TAG2,
     TOPIC1,
     TOPIC2,
     USER1,
@@ -40,14 +37,10 @@ from app.tests.medium.utils import (
     assert_200,
     calc_file_sha256,
     compare_references,
-    compare_tags,
     create_pteam,
-    create_tag,
-    create_topic,
     create_user,
     file_upload_headers,
     get_pteam_services,
-    get_pteam_tags,
     get_service_by_service_name,
     headers,
     invite_to_pteam,
@@ -413,66 +406,6 @@ def test_get_pteam_services_verify_if_all_responses_are_filled(service_request, 
     assert data[0]["system_exposure"] == expected["system_exposure"]
     assert data[0]["service_mission_impact"] == expected["service_mission_impact"]
     assert data[0]["service_safety_impact"] == expected["service_safety_impact"]
-
-
-def test_get_pteam_tags():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    tag1 = create_tag(USER1, TAG1)
-    tag2 = create_tag(USER1, TAG2)
-
-    # no tags at created pteam
-    etags0 = get_pteam_tags(USER1, pteam1.pteam_id)
-    assert etags0 == []
-
-    # add tag1 to pteam1
-    service_x = "service_x"
-    refs1 = {tag1.tag_name: [("fake target", "fake version")]}
-    expected_ref1 = [
-        {"service": service_x, "target": "fake target", "version": "fake version"},
-    ]
-    etags1a = upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs1)
-
-    assert len(etags1a) == 1
-    assert compare_tags(etags1a, [tag1])
-    assert compare_references(etags1a[0].references, expected_ref1)
-
-    etags1b = get_pteam_tags(USER1, pteam1.pteam_id)
-    assert len(etags1b) == 1
-    assert compare_tags(etags1b, [tag1])
-    assert compare_references(etags1b[0].references, expected_ref1)
-
-    # add tag2 to pteam1
-    service_y = "service_y"
-    refs2 = {tag2.tag_name: [("fake target 2", "fake version 2")]}
-    expected_ref2 = [
-        {"service": service_y, "target": "fake target 2", "version": "fake version 2"},
-    ]
-    etags2a = upload_pteam_tags(USER1, pteam1.pteam_id, service_y, refs2)
-
-    assert len(etags2a) == 2
-    assert compare_tags(etags2a, sorted([tag1, tag2], key=lambda x: x.tag_name))
-    if compare_tags([etags2a[0]], [tag1]):
-        assert compare_references(etags2a[0].references, expected_ref1)
-        assert compare_references(etags2a[1].references, expected_ref2)
-    else:
-        assert compare_references(etags2a[1].references, expected_ref1)
-        assert compare_references(etags2a[0].references, expected_ref2)
-
-    # only members get tags
-    with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
-        get_pteam_tags(USER2, pteam1.pteam_id)
-
-
-def test_get_pteam_tags__by_not_member():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/tags", headers=headers(USER2))
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
 
 
 def test_create_invitation():
@@ -1610,60 +1543,6 @@ def test_it_should_return_400_when_try_to_remove_last_admin():
     assert response.status_code == 400
     assert response.reason_phrase == "Bad Request"
     assert response.json()["detail"] == "Removing last ADMIN is not allowed"
-
-
-def test_get_pteam_topics():
-    user1 = create_user(USER1)
-    create_user(USER2)
-    create_tag(USER1, TAG1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    # add tag1 to pteam1
-    service_x = "service_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER2))
-    assert response.status_code == 200
-    assert response.json() == []
-
-    now = datetime.now()
-    create_topic(USER1, TOPIC1, actions=[ACTION2, ACTION1])  # TAG1
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER2))
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 1
-    assert data[0]["topic_id"] == str(TOPIC1["topic_id"])
-    assert data[0]["title"] == TOPIC1["title"]
-    assert data[0]["abstract"] == TOPIC1["abstract"]
-    assert data[0]["cvss_v3_score"] == TOPIC1["cvss_v3_score"]
-    assert data[0]["cve_id"] == TOPIC1["cve_id"]
-    assert data[0]["created_by"] == str(user1.user_id)
-    data0_created_at = datetime.fromisoformat(data[0]["created_at"])
-    assert data0_created_at > now
-    assert data0_created_at < now + timedelta(seconds=30)
-    assert data[0]["created_at"] == data[0]["updated_at"]
-    assert {x["tag_name"] for x in data[0]["tags"]} == set(TOPIC1["tags"])
-    assert {x["tag_name"] for x in data[0]["misp_tags"]} == set(TOPIC1["misp_tags"])
-
-
-def test_get_pteam_topics__by_not_member():
-    create_user(USER1)
-    create_user(USER2)
-    create_tag(USER1, TAG1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    # add tag1 to pteam1
-    service_x = "service_x"
-    refs0 = {TAG1: [("fake target 1", "fake version 1")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/topics", headers=headers(USER2))
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
 
 
 def test_upload_pteam_tags_file():
@@ -3313,7 +3192,7 @@ class TestGetTickets:
             db_status1 = testdb.scalars(select(models.TicketStatus)).one()
             self.expected_ticket_response1 = {
                 "ticket_id": str(db_ticket1.ticket_id),
-                "threat_id": str(self.threat1.threat_id),
+                "vuln_id": str(self.vuln1.vuln_id),
                 "dependency_id": str(self.dependency1.dependency_id),
                 "created_at": datetime.isoformat(db_ticket1.created_at),
                 "ssvc_deployer_priority": (
@@ -3327,11 +3206,6 @@ class TestGetTickets:
                     else db_ticket1.ticket_safety_impact.value
                 ),
                 "reason_safety_impact": None,
-                "threat": {
-                    "threat_id": str(self.threat1.threat_id),
-                    "package_version_id": str(self.package_version1.package_version_id),
-                    "vuln_id": str(self.vuln1.vuln_id),
-                },
                 "ticket_status": {
                     "status_id": db_status1.status_id,  # do not check
                     "ticket_id": str(db_ticket1.ticket_id),

@@ -1,8 +1,6 @@
 import enum
-import json
 import uuid
 from datetime import datetime
-from hashlib import md5
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
@@ -145,7 +143,7 @@ class Base(DeclarativeBase):
     )
 
 
-# secondary tables #
+# primary tables #
 
 
 class PTeamAccountRole(Base):
@@ -165,9 +163,6 @@ class PTeamAccountRole(Base):
 
     pteam = relationship("PTeam", back_populates="pteam_roles", uselist=False)
     account = relationship("Account", back_populates="pteam_roles", uselist=False)
-
-
-# primary tables #
 
 
 class Account(Base):
@@ -502,8 +497,6 @@ class Vuln(Base):
             self.exploitation = ExploitationEnum.NONE
         if not self.automatable:
             self.automatable = AutomatableEnum.NO
-        if not self.content_fingerprint:
-            self.content_fingerprint = self._calculate_content_fingerprint()
 
     vuln_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     cve_id: Mapped[str | None] = mapped_column(nullable=True)
@@ -514,7 +507,6 @@ class Vuln(Base):
     )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-    content_fingerprint: Mapped[str]
     exploitation: Mapped[ExploitationEnum] = mapped_column(server_default=ExploitationEnum.NONE)
     automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.NO)
     cvss_v3_score: Mapped[float | None] = mapped_column(server_default=None, nullable=True)
@@ -522,29 +514,6 @@ class Vuln(Base):
     vuln_actions = relationship("VulnAction", cascade="all, delete-orphan")
     affects = relationship("Affect", back_populates="vuln", cascade="all, delete-orphan")
     threats = relationship("Threat", back_populates="vuln", cascade="all, delete-orphan")
-
-    def _calculate_content_fingerprint(self) -> str:
-        data = self._get_vuln_data_for_fingerprint()
-        return md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
-
-    def _get_vuln_data_for_fingerprint(self) -> dict:
-        sorted_affects = sorted(
-            self.affects, key=lambda affect: (affect.package.name, affect.package.ecosystem)
-        )
-        return {
-            "title": self.title,
-            "detail": self.detail,
-            "cvss_v3_score": self.cvss_v3_score,
-            "affects": [self._get_affect_data_for_fingerprint(affect) for affect in sorted_affects],
-        }
-
-    def _get_affect_data_for_fingerprint(self, affect: "Affect") -> dict:
-        return {
-            "package_name": affect.package.name,
-            "ecosystem": affect.package.ecosystem,
-            "affected_versions": sorted(affect.affected_versions),
-            "fixed_versions": sorted(affect.fixed_versions),
-        }
 
 
 class VulnAction(Base):
@@ -583,7 +552,6 @@ class Affect(Base):
     affected_versions: Mapped[list[str]] = mapped_column(default=[])
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
 
-    package = relationship("Package")
     vuln = relationship("Vuln", back_populates="affects")
     package = relationship("Package", back_populates="affects")
 

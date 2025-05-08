@@ -65,7 +65,6 @@ def __handle_create_vuln(
     # create vuln
     now = datetime.now()
 
-    ## ToDo add content_fingerprint
     vuln = models.Vuln(
         vuln_id=str(vuln_id),
         title=request.title,
@@ -108,7 +107,6 @@ def __handle_create_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=request.vulnerable_packages,
-        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -220,7 +218,6 @@ def __handle_update_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
-        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -296,7 +293,6 @@ def get_vuln(
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
-        content_fingerprint=vuln.content_fingerprint,
     )
 
 
@@ -304,14 +300,94 @@ def get_vuln(
 def get_vulns(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    min_cvss_v3_score: float | None = Query(None),
+    max_cvss_v3_score: float | None = Query(None),
+    vuln_ids: list[str] | None = Query(None),
+    title_words: list[str] | None = Query(None),
+    detail_words: list[str] | None = Query(None),
+    creator_ids: list[str] | None = Query(None),
+    created_after: datetime | None = Query(None),
+    created_before: datetime | None = Query(None),
+    updated_after: datetime | None = Query(None),
+    updated_before: datetime | None = Query(None),
+    cve_ids: list[str] | None = Query(None),
+    package_name: list[str] | None = Query(None),
+    ecosystem: list[str] | None = Query(None),
+    package_manager: str | None = Query(None),
+    sort_key: schemas.VulnSortKey = Query(schemas.VulnSortKey.CVSS_V3_SCORE_DESC),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Get a vuln.
-    """
+    Get vulns.
 
-    vulns = command.get_vulns(db, offset, limit)
+    Get a list of vulnerabilities with optional filtering, sorting, and pagination.
+
+    ### Filtering:
+    - `min_cvss_v3_score`: Minimum CVSS v3 score (float).
+    - `max_cvss_v3_score`: Maximum CVSS v3 score (float).
+    - `vuln_ids`: List of vuln IDs to filter by.
+    - `title_words`: List of words to search in the title (case-insensitive).
+    - `detail_words`: List of words to search in the detail (case-insensitive).
+    - `creator_ids`: List of creator IDs to filter by.
+    - `created_after`: Filter vulnerabilities created after this datetime.
+    - `created_before`: Filter vulnerabilities created before this datetime.
+    - `updated_after`: Filter vulnerabilities updated after this datetime.
+    - `updated_before`: Filter vulnerabilities updated before this datetime.
+    - `cve_ids`: List of CVE IDs to filter by.
+    - `package_name`: List of package names to filter by.
+    - `ecosystem`: List of ecosystems to filter by.
+    - `package_manager`: Package manager to filter by.
+
+    ### Sorting:
+    - `sort_key`: Sort key for the results. Default is `CVSS_V3_SCORE_DESC`.
+      Supported values:
+        - `CVSS_V3_SCORE`: Sort by CVSS v3 score (ascending).
+        - `CVSS_V3_SCORE_DESC`: Sort by CVSS v3 score (descending).
+        - `UPDATED_AT`: Sort by updated_at (ascending).
+        - `UPDATED_AT_DESC`: Sort by updated_at (descending).
+
+    ### Pagination:
+    - `offset`: Number of items to skip before starting to collect the result set.
+    - `limit`: Maximum number of items to return.
+
+    Defaults are `None` for all filtering parameters, which means skip filtering.
+    Different parameters are combined with AND conditions.
+    Words search is case-insensitive.
+
+    Examples:
+    - `...?title_words=a&title_words=%20&title_words=B` -> Title includes [a, A, b, B, or space].
+    - `...?title_words=a&title_words=&title_words=B` -> Title includes [a, A, b, B] or is empty.
+    - `...?cve_ids=CVE-2023-1234` -> Filter by the specific CVE ID.
+    - `...?package_name=example` -> Filter by the package name "example".
+    """
+    try:
+        vulns = command.get_vulns(
+            db=db,
+            offset=offset,
+            limit=limit,
+            min_cvss_v3_score=min_cvss_v3_score,
+            max_cvss_v3_score=max_cvss_v3_score,
+            vuln_ids=vuln_ids,
+            title_words=title_words,
+            detail_words=detail_words,
+            creator_ids=creator_ids,
+            created_after=created_after,
+            created_before=created_before,
+            updated_after=updated_after,
+            updated_before=updated_before,
+            cve_ids=cve_ids,
+            package_name=package_name,
+            ecosystem=ecosystem,
+            package_manager=package_manager,
+            sort_key=sort_key,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid input: {e}",
+        )
+
     response_vulns = []
     for vuln in vulns:
         # Fetch vulnerable packages associated with the vuln
@@ -338,8 +414,23 @@ def get_vulns(
                 automatable=vuln.automatable,
                 cvss_v3_score=vuln.cvss_v3_score,
                 vulnerable_packages=vulnerable_packages,
-                content_fingerprint=vuln.content_fingerprint,
             )
         )
 
     return response_vulns
+
+
+@router.get("/{vuln_id}/actions", response_model=list[schemas.ActionResponse])
+def get_vuln_actions(
+    vuln_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get the list of actions associated with the specified vulnerability.
+    """
+    if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
+        raise NO_SUCH_VULN
+
+    # Use the new relationship to fetch actions
+    return vuln.vuln_actions

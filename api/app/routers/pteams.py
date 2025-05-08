@@ -544,25 +544,6 @@ def get_dependency(
     return dependency
 
 
-@router.get("/{pteam_id}/tags", response_model=list[schemas.ExtTagResponse])
-def get_pteam_tags(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get tags of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    # TODO Provisional Processing
-    # return get_pteam_ext_tags(pteam)
-    return []
-
-
 @router.get(
     "/{pteam_id}/services/{service_id}/tags/{tag_id}/topic_ids",
     response_model=schemas.ServiceTaggedTopicsSolvedUnsolved,
@@ -585,8 +566,8 @@ def get_service_tagged_topic_ids(
     # TODO Provisional Processing
     # if not persistence.get_tag_by_id(db, tag_id):
     # raise NO_SUCH_TAG
-    if not persistence.get_dependency_from_service_id_and_tag_id(db, service_id, tag_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service tag")
+    # if not persistence.get_dependency_from_service_id_and_tag_id(db, service_id, tag_id):
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service tag")
 
     ## sovled
     topic_ids_summary = get_topic_ids_summary_by_service_id_and_tag_id(service, tag_id)
@@ -813,37 +794,18 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
 
     ret = [
         {
-            **ticket.__dict__,
-            "threat": ticket.threat.__dict__,
+            "ticket_id": ticket.ticket_id,
+            "vuln_id": ticket.threat.vuln_id,
+            "dependency_id": ticket.dependency_id,
+            "created_at": ticket.created_at,
+            "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
+            "ticket_safety_impact": ticket.ticket_safety_impact,
+            "reason_safety_impact": ticket.reason_safety_impact,
             "ticket_status": ticket.ticket_status.__dict__,
         }
         for ticket in tickets
     ]
     return ret
-
-
-@router.get("/{pteam_id}/topics", response_model=list[schemas.TopicResponse])
-def get_pteam_topics(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get topics of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    if not pteam.tags:
-        return []
-    # TODO Provisional Processing
-    # topic_tag_ids = get_tag_ids_with_parent_ids(pteam.tags)
-
-    # TODO Provisional Processing
-    # return get_sorted_topics(persistence.get_topics_by_tag_ids(db, topic_tag_ids))
-    return []
 
 
 @router.post("", response_model=schemas.PTeamInfo)
@@ -854,8 +816,6 @@ def create_pteam(
 ):
     """
     Create a pteam.
-
-    `tags` is optional, the default is an empty list.
     """
 
     if data.alert_slack and data.alert_slack.webhook_url:
