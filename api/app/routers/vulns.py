@@ -311,6 +311,7 @@ def get_vulns(
     updated_after: datetime | None = Query(None),
     updated_before: datetime | None = Query(None),
     cve_ids: list[str] | None = Query(None),
+    threat_ids: list[str] | None = Query(None),
     package_name: list[str] | None = Query(None),
     ecosystem: list[str] | None = Query(None),
     package_manager: str | None = Query(None),
@@ -335,6 +336,7 @@ def get_vulns(
     - `updated_after`: Filter vulnerabilities updated after this datetime.
     - `updated_before`: Filter vulnerabilities updated before this datetime.
     - `cve_ids`: List of CVE IDs to filter by.
+    - `threat_ids`: List of threat IDs to filter by.
     - `package_name`: List of package names to filter by.
     - `ecosystem`: List of ecosystems to filter by.
     - `package_manager`: Package manager to filter by.
@@ -377,6 +379,7 @@ def get_vulns(
             updated_after=updated_after,
             updated_before=updated_before,
             cve_ids=cve_ids,
+            threat_ids=threat_ids,
             package_name=package_name,
             ecosystem=ecosystem,
             package_manager=package_manager,
