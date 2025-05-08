@@ -5,11 +5,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence
+from app import models
 from app.main import app
 from app.tests.medium.utils import (
     create_pteam,
-    create_topic_with_versioned_actions,
     create_user,
     file_upload_headers,
 )
@@ -40,9 +39,10 @@ def create_ticket(testdb: Session, user: dict, pteam: dict, topic: dict):
     # Create topic and topicaction table
     tag_name_of_upload_sbom_file = data[0]["tag_name"]
 
-    responsed_topic = create_topic_with_versioned_actions(
-        user, topic, [[tag_name_of_upload_sbom_file]]
-    )
+    # TODO Provisional Processing
+    # responsed_topic = create_topic_with_versioned_actions(
+    #     user, topic, [[tag_name_of_upload_sbom_file]]
+    # )
 
     # Saerch threat table
     service_id = testdb.scalars(
@@ -52,23 +52,28 @@ def create_ticket(testdb: Session, user: dict, pteam: dict, topic: dict):
         )
     ).one_or_none()
 
-    dependency = persistence.get_dependency_from_service_id_and_tag_id(
-        testdb, str(service_id), str(tag_id)
-    )
+    # TODO Provisional Processing
+    # dependency = persistence.get_dependency_from_service_id_and_tag_id(
+    #     testdb, str(service_id), str(tag_id)
+    # )
 
-    if dependency:
-        threats = command.search_threats(
-            testdb, None, str(dependency.dependency_id), str(responsed_topic.topic_id)
-        )
+    # if dependency:
+    #     threats = command.search_threats(
+    #         testdb, None, str(dependency.dependency_id), str(responsed_topic.topic_id)
+    #     )
 
-        assert threats
+    #     assert threats
 
     return {
         "pteam_id": str(pteam1.pteam_id),
         "service_id": str(service_id),
         "tag_id": str(tag_id),
         "tag_name": data[0]["tag_name"],
-        "topic_id": str(responsed_topic.topic_id),
-        "threat_id": str(threats[0].threat_id),
-        "ticket_id": str(threats[0].ticket.ticket_id),
+        # TODO Provisional Processing
+        # "topic_id": str(responsed_topic.topic_id),
+        # "threat_id": str(threats[0].threat_id),
+        # "ticket_id": str(threats[0].ticket.ticket_id),
+        "topic_id": "",
+        "threat_id": "",
+        "ticket_id": "",
     }

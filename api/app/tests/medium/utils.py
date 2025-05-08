@@ -11,7 +11,7 @@ from uuid import UUID
 
 from fastapi.testclient import TestClient
 
-from app import models, schemas
+from app import schemas
 from app.main import app
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.routers.test_auth import get_access_token_headers, get_file_upload_headers
@@ -129,11 +129,6 @@ def upload_pteam_tags(
     return [schemas.ExtTagResponse(**item) for item in data]
 
 
-def get_pteam_tags(user: dict, pteam_id: str) -> list[schemas.ExtTagResponse]:
-    data = assert_200(client.get(f"/pteams/{pteam_id}/tags", headers=headers(user)))
-    return [schemas.ExtTagResponse(**item) for item in data]
-
-
 def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceResponse]:
     data = assert_200(client.get(f"/pteams/{pteam_id}/services", headers=headers(user)))
     return [schemas.PTeamServiceResponse(**item) for item in data]
@@ -142,96 +137,6 @@ def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceRe
 def get_service_by_service_name(user: dict, pteam_id: UUID | str, service_name: str):
     data = assert_200(client.get(f"/pteams/{pteam_id}", headers=headers(user)))
     return next(filter(lambda x: x["service_name"] == service_name, data["services"]), None)
-
-
-def create_tag(user: dict, tag_name: str) -> schemas.TagResponse:
-    request = {
-        "tag_name": tag_name,
-    }
-    response = client.post("/tags", headers=headers(user), json=request)
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.TagResponse(**response.json())
-
-
-def create_misp_tag(user: dict, tag_name: str) -> schemas.MispTagResponse:
-    request = {
-        "tag_name": tag_name,
-    }
-    response = client.post("/misp_tags", headers=headers(user), json=request)
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.MispTagResponse(**response.json())
-
-
-def create_topic(
-    user: dict,
-    topic: dict,
-    actions: list[dict] | None = None,
-    auto_create_tags: bool = True,
-) -> schemas.TopicCreateResponse:
-    request = {**topic}
-    if actions is not None:
-        request.update({"actions": actions})
-    del request["topic_id"]
-
-    response = client.post(f'/topics/{topic["topic_id"]}', headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        no_tag_msg = "No such tags: "
-        if (
-            auto_create_tags
-            and response.status_code == 400
-            and (detail := response.json().get("detail", "")).startswith(no_tag_msg)
-        ):
-            for tag_name in detail[len(no_tag_msg) :].split(", "):  # split tag_names CSV
-                create_tag(user, tag_name)
-            return create_topic(user, topic, actions, auto_create_tags=False)
-        raise HTTPError(response)
-    return schemas.TopicCreateResponse(**response.json())
-
-
-def create_topic_with_versioned_actions(
-    user: dict,
-    topic: dict,
-    actions_tagnames: list[list[str]],
-) -> schemas.TopicCreateResponse:
-    def _gen_action(tag_names: list[str]) -> dict:
-        return {
-            "action": f"action for {','.join(tag_names)}",
-            "action_type": models.ActionType.elimination,
-            "recommended": True,
-            "ext": {
-                "tags": tag_names,
-                "vulnerable_versions": {tag_name: ["< 99.9.9"] for tag_name in tag_names},
-            },
-        }
-
-    return create_topic(
-        user,
-        {
-            **topic,
-            "tags": actions_tagnames[0],
-            "actions": [_gen_action(tag_names) for tag_names in actions_tagnames],
-        },
-    )
-
-
-def update_topic(
-    user: dict,
-    topic: schemas.TopicEntry,
-    params: dict,
-) -> schemas.TopicResponse:
-    data = assert_200(client.put(f"/topics/{topic.topic_id}", headers=headers(user), json=params))
-    return schemas.TopicResponse(**data)
-
-
-def search_topics(
-    user: dict,
-    params: dict,
-) -> schemas.SearchTopicsResponse:
-    data = assert_200(client.get("/topics/search", headers=headers(user), params=params))
-    return schemas.SearchTopicsResponse(**data)
 
 
 def create_actionlog(

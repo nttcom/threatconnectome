@@ -87,10 +87,6 @@ class ActionResponse(ORMModel):
     created_at: datetime
 
 
-class TagRequest(ORMModel):
-    tag_name: str
-
-
 class TagResponse(ORMModel):
     tag_id: UUID
     tag_name: str
@@ -131,15 +127,6 @@ class PTeamServiceUpdateResponse(ORMModel):
     service_safety_impact: SafetyImpactEnum | None
 
 
-class MispTagRequest(ORMModel):
-    tag_name: str
-
-
-class MispTagResponse(ORMModel):
-    tag_id: UUID
-    tag_name: str
-
-
 CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"
 
 
@@ -149,44 +136,6 @@ def validate_cve_id(value):
     if not re.match(CVE_PATTERN, value):
         raise ValueError(f"Invalid CVE ID format: {value}")
     return value
-
-
-class TopicEntry(ORMModel):
-    topic_id: UUID
-    title: str
-    content_fingerprint: str
-    updated_at: datetime
-
-
-class Topic(TopicEntry):
-    topic_id: UUID
-    title: str
-    abstract: str
-    created_by: UUID
-    created_at: datetime
-    exploitation: ExploitationEnum | None
-    automatable: AutomatableEnum | None
-    cvss_v3_score: float | None
-    cve_id: str | None
-
-    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
-
-
-class TopicResponse(Topic):
-    tags: list[TagResponse]
-    misp_tags: list[MispTagResponse]
-
-
-class TopicCreateResponse(TopicResponse):
-    actions: list[ActionResponse]
-
-
-class SearchTopicsResponse(ORMModel):
-    num_topics: int
-    offset: int | None = None
-    limit: int | None = None
-    sort_key: TopicSortKey
-    topics: list[TopicEntry]
 
 
 class ActionCreateRequest(ORMModel):
@@ -201,20 +150,6 @@ class ActionUpdateRequest(ORMModel):
     action_type: ActionType | None = None
     recommended: bool | None = None
     ext: dict | None = None
-
-
-class TopicCreateRequest(ORMModel):
-    title: str
-    abstract: str
-    tags: list[str] = []
-    misp_tags: list[str] = []
-    actions: list[ActionCreateRequest] = []
-    exploitation: ExploitationEnum | None = None
-    automatable: AutomatableEnum | None = None
-    cvss_v3_score: float | None = None
-    cve_id: str | None = None
-
-    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class VulnerablePackage(BaseModel):
@@ -245,19 +180,6 @@ class VulnResponse(VulnBase):
 
 class VulnUpdate(VulnBase):
     pass
-
-
-class TopicUpdateRequest(ORMModel):
-    title: str | None = None
-    abstract: str | None = None
-    tags: list[str] | None = None
-    misp_tags: list[str] | None = None
-    exploitation: ExploitationEnum | None = None
-    automatable: AutomatableEnum | None = None
-    cvss_v3_score: float | None = None
-    cve_id: str | None = None
-
-    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
 class PTeamInfo(PTeamEntry):
