@@ -196,7 +196,7 @@ def get_vulns(
                 *[
                     (
                         models.Vuln.title == ""
-                        if title_word is None
+                        if title_word == ""
                         else models.Vuln.title.icontains(title_word, autoescape=True)
                     )
                     for title_word in fixed_title_words
@@ -210,7 +210,7 @@ def get_vulns(
                 *[
                     (
                         models.Vuln.detail == ""
-                        if detail_word is None
+                        if detail_word == ""
                         else models.Vuln.detail.icontains(detail_word, autoescape=True)
                     )
                     for detail_word in fixed_detail_words

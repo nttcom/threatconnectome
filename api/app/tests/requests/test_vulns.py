@@ -685,18 +685,54 @@ class TestGetVulns:
 
         self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
 
-    def test_it_should_return_all_vulns_when_title_words_is_empty(self, testdb: Session):
+    def test_it_should_return_vulns_when_title_words_include_empty(self, testdb: Session):
         # Given
         number_of_vulns = 3
         vuln_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
-            vuln_request = self.create_vuln_request(i)
+            if i == 0:
+                vuln_request = {
+                    "title": "",
+                    "cve_id": f"CVE-0000-000{i}",
+                    "detail": f"This is example vuln {i}.",
+                    "exploitation": "active",
+                    "automatable": "yes",
+                    "cvss_v3_score": 7.5,
+                    "vulnerable_packages": [
+                        {
+                            "name": f"example-lib-{i}",
+                            "ecosystem": f"ecosystem-{i}",
+                            "affected_versions": ["<2.0.0"],
+                            "fixed_versions": ["2.0.0"],
+                        }
+                    ],
+                }
+            else:
+                vuln_request = {
+                    "title": f"Example-vuln-{i}",
+                    "cve_id": f"CVE-0000-000{i}",
+                    "detail": f"This is example vuln {i}.",
+                    "exploitation": "active",
+                    "automatable": "yes",
+                    "cvss_v3_score": 7.5,
+                    "vulnerable_packages": [
+                        {
+                            "name": f"example-lib-{i}",
+                            "ecosystem": f"ecosystem-{i}",
+                            "affected_versions": ["<2.0.0"],
+                            "fixed_versions": ["2.0.0"],
+                        }
+                    ],
+                }
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
         # When
-        response = client.get("/vulns?title_words=&title_words=test2", headers=self.headers_user)
+        response = client.get(
+            "/vulns?title_words=&title_words=Example-vuln-1&title_words=Example-vuln-2",
+            headers=self.headers_user,
+        )
 
         # Then
         assert response.status_code == 200
@@ -705,10 +741,22 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data):
-            reversed_index = len(response_data) - 1 - i
-            self.assert_vuln_response(
-                vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
-            )
+            if i == 2:
+                assert vuln["title"] == ""
+                assert vuln["cve_id"] == "CVE-0000-0000"
+                assert vuln["detail"] == "This is example vuln 0."
+                assert vuln["exploitation"] == "active"
+                assert vuln["automatable"] == "yes"
+                assert vuln["cvss_v3_score"] == 7.5
+                assert vuln["vulnerable_packages"][0]["name"] == "example-lib-0"
+                assert vuln["vulnerable_packages"][0]["ecosystem"] == "ecosystem-0"
+                assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
+                assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
+            else:
+                reversed_index = len(response_data) - 1 - i
+                self.assert_vuln_response(
+                    vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+                )
 
     def test_it_should_filter_by_detail_words(self, testdb: Session):
         # Given
@@ -736,18 +784,54 @@ class TestGetVulns:
 
         self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
 
-    def test_it_should_return_all_vulns_when_detail_words_is_empty(self, testdb: Session):
+    def test_it_should_return_all_vulns_when_detail_words_include_empty(self, testdb: Session):
         # Given
         number_of_vulns = 3
         vuln_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
-            vuln_request = self.create_vuln_request(i)
+            if i == 0:
+                vuln_request = {
+                    "title": f"Example-vuln-{i}",
+                    "cve_id": f"CVE-0000-000{i}",
+                    "detail": "",
+                    "exploitation": "active",
+                    "automatable": "yes",
+                    "cvss_v3_score": 7.5,
+                    "vulnerable_packages": [
+                        {
+                            "name": f"example-lib-{i}",
+                            "ecosystem": f"ecosystem-{i}",
+                            "affected_versions": ["<2.0.0"],
+                            "fixed_versions": ["2.0.0"],
+                        }
+                    ],
+                }
+            else:
+                vuln_request = {
+                    "title": f"Example-vuln-{i}",
+                    "cve_id": f"CVE-0000-000{i}",
+                    "detail": f"This is example vuln {i}.",
+                    "exploitation": "active",
+                    "automatable": "yes",
+                    "cvss_v3_score": 7.5,
+                    "vulnerable_packages": [
+                        {
+                            "name": f"example-lib-{i}",
+                            "ecosystem": f"ecosystem-{i}",
+                            "affected_versions": ["<2.0.0"],
+                            "fixed_versions": ["2.0.0"],
+                        }
+                    ],
+                }
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
 
         # When
-        response = client.get("/vulns?detail_words=&detail_words=test2", headers=self.headers_user)
+        response = client.get(
+            "/vulns?detail_words=&detail_words=This is example vuln 1&detail_words=This is example vuln 2",
+            headers=self.headers_user,
+        )
 
         # Then
         assert response.status_code == 200
@@ -756,10 +840,22 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data):
-            reversed_index = len(response_data) - 1 - i
-            self.assert_vuln_response(
-                vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
-            )
+            if i == 2:
+                assert vuln["title"] == "Example-vuln-0"
+                assert vuln["cve_id"] == "CVE-0000-0000"
+                assert vuln["detail"] == ""
+                assert vuln["exploitation"] == "active"
+                assert vuln["automatable"] == "yes"
+                assert vuln["cvss_v3_score"] == 7.5
+                assert vuln["vulnerable_packages"][0]["name"] == "example-lib-0"
+                assert vuln["vulnerable_packages"][0]["ecosystem"] == "ecosystem-0"
+                assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
+                assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
+            else:
+                reversed_index = len(response_data) - 1 - i
+                self.assert_vuln_response(
+                    vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+                )
 
     def test_it_should_filter_by_cve_ids(self, testdb: Session):
         # Given
