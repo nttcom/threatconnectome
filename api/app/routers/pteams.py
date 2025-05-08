@@ -612,12 +612,11 @@ def get_service_tagged_topic_ids(
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
+    "/{pteam_id}/tickets/{ticket_id}/ticketstatuses",
     response_model=schemas.TicketStatusResponse,
 )
 def get_ticket_status(
     pteam_id: UUID,
-    service_id: UUID,
     ticket_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -629,25 +628,18 @@ def get_ticket_status(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
     if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
-        raise NO_SUCH_TICKET
-    if ticket.threat.dependency.service_id != str(service_id):
         raise NO_SUCH_TICKET
 
     return ticket.ticket_status
 
 
 @router.put(
-    "/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
+    "/{pteam_id}/tickets/{ticket_id}/ticketstatuses",
     response_model=schemas.TicketStatusResponse,
 )
 def set_ticket_status(
     pteam_id: UUID,
-    service_id: UUID,
     ticket_id: UUID,
     data: schemas.TicketStatusRequest,
     current_user: models.Account = Depends(get_current_user),
@@ -663,13 +655,7 @@ def set_ticket_status(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
     if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
-        raise NO_SUCH_TICKET
-    if ticket.threat.dependency.service_id != str(service_id):
         raise NO_SUCH_TICKET
 
     update_data = data.model_dump(exclude_unset=True)

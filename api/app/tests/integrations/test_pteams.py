@@ -82,11 +82,10 @@ def test_it_should_return_ssvc_priority_count_num_based_on_tickte_status(
     def _set_ticket_status(
         user: dict,
         pteam_id: str,
-        service_id: str,
         ticket_id: str,
         topic_status: models.TopicStatusType,
     ) -> None:
-        post_topicstatus_url = f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}"
+        post_topicstatus_url = f"/pteams/{pteam_id}/tickets/{ticket_id}/ticketstatuses"
         status_request = {
             "topic_status": topic_status,
             "assignees": [],
@@ -117,14 +116,12 @@ def test_it_should_return_ssvc_priority_count_num_based_on_tickte_status(
     _set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
-        ticket_response["service_id"],
         tickets[0]["ticket_id"],
         topic_status1,
     )
     _set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
-        ticket_response["service_id"],
         tickets[1]["ticket_id"],
         topic_status2,
     )
