@@ -22,7 +22,7 @@ class ORMModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class TopicSortKey(str, Enum):
+class VulnSortKey(str, Enum):
     CVSS_V3_SCORE = "cvss_v3_score"
     CVSS_V3_SCORE_DESC = "cvss_v3_score_desc"
     UPDATED_AT = "updated_at"

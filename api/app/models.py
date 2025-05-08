@@ -552,7 +552,6 @@ class Affect(Base):
     affected_versions: Mapped[list[str]] = mapped_column(default=[])
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
 
-    package = relationship("Package")
     vuln = relationship("Vuln", back_populates="affects")
     package = relationship("Package", back_populates="affects")
 
