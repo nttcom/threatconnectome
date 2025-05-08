@@ -190,6 +190,9 @@ def get_vulns(
             models.PackageVersion.package_version_id == models.Dependency.package_version_id,
         )
 
+    if threat_ids:
+        query = query.join(models.Threat, models.Vuln.vuln_id == models.Threat.vuln_id)
+
     filters = []
 
     if min_cvss_v3_score is not None:
@@ -230,7 +233,6 @@ def get_vulns(
         filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
     if threat_ids:
         filters.append(models.Threat.threat_id.in_(threat_ids))
-        query = query.join(models.Threat, models.Vuln.vuln_id == models.Threat.vuln_id)
     if created_after:
         filters.append(models.Vuln.created_at >= created_after)
     if created_before:
