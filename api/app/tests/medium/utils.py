@@ -109,6 +109,11 @@ def upload_pteam_tags(
     service: str,
     ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
 ) -> list[schemas.ExtTagResponse]:
+    """
+    The input data format has changed due to a change in the API specifications,
+      but this function receives data in the format before the change,
+      converts it to the format after the change, and executes the API.
+    """
     params = {"service": service}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
         for tag_name, etags in ext_tags.items():
