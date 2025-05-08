@@ -1837,7 +1837,6 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_id(testdb):
     set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
-        ticket_response["service_id"],
         ticket_response["ticket_id"],
         json_data,
     )
@@ -1865,7 +1864,6 @@ def test_service_tagged_ticket_ids_with_wrong_pteam_member(testdb):
     set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
-        ticket_response["service_id"],
         ticket_response["ticket_id"],
         json_data,
     )
@@ -1893,7 +1891,6 @@ def test_service_tagged_ticket_ids_with_wrong_service_id(testdb):
     set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
-        ticket_response["service_id"],
         ticket_response["ticket_id"],
         json_data,
     )
@@ -1922,7 +1919,6 @@ def test_service_tagged_ticket_ids_with_service_not_in_pteam(testdb):
     set_ticket_status(
         USER1,
         ticket_response1["pteam_id"],
-        ticket_response1["service_id"],
         ticket_response1["ticket_id"],
         json_data,
     )
@@ -1949,7 +1945,6 @@ def test_service_tagged_tikcet_ids_with_wrong_tag_id(testdb):
     set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
-        ticket_response["service_id"],
         ticket_response["ticket_id"],
         json_data,
     )
@@ -1977,7 +1972,6 @@ def test_service_tagged_ticket_ids_with_valid_but_not_service_tag(testdb):
     set_ticket_status(
         USER1,
         ticket_response1["pteam_id"],
-        ticket_response1["service_id"],
         ticket_response1["ticket_id"],
         json_data,
     )
@@ -2566,34 +2560,44 @@ class TestTicketStatus:
             invitation1 = invite_to_pteam(USER1, self.pteam1.pteam_id)
             accept_pteam_invitation(USER2, invitation1.invitation_id)
 
-            self.tag1 = create_tag(USER1, TAG1)
             # add test_service to pteam1
             test_service = "test_service"
             test_target = "test target"
             test_version = "1.2.3"
-            refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
+            refs0 = {TAG1: [(test_target, test_version)]}
             upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
             self.service_id1 = self._get_service_id_by_service_name(
                 USER1, self.pteam1.pteam_id, test_service
             )
 
-        @pytest.fixture(scope="function", autouse=False)
-        def actionable_topic1(self):
-            action1 = self._gen_action([self.tag1.tag_name])
-            self.topic1 = create_topic(
-                USER1, {**TOPIC1, "tags": [self.tag1.tag_name], "actions": [action1]}
-            )
-            tickets = self._get_tickets(
-                self.pteam1.pteam_id, self.service_id1, self.topic1.topic_id, self.tag1.tag_id
-            )
-            self.ticket_id1 = tickets[0]["ticket_id"]
+        def create_vuln(self, user: dict) -> str:
+            request: dict = {
+                "title": "Example vuln",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This vuln is example.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.8,
+                "vulnerable_packages": [
+                    {
+                        "name": "alpha",
+                        "ecosystem": "alpha2",
+                        "affected_versions": ["<999.99.9"],
+                        "fixed_versions": ["999.99.9"],
+                    }
+                ],
+            }
+            vuln_id: str = str(uuid4())
+            response = client.put(f"/vulns/{vuln_id}", headers=headers(user), json=request)
+            if response.status_code != 200:
+                raise HTTPError(response)
+            return vuln_id
 
         @pytest.fixture(scope="function", autouse=False)
-        def not_actionable_topic1(self):
-            self.topic1 = create_topic(
-                USER1, {**TOPIC1, "tags": [self.tag1.tag_name], "actions": []}
-            )
-            self.ticket_id1 = None
+        def actionable_topic1(self):
+            vuln_id1 = self.create_vuln(USER1)
+            tickets = self._get_tickets(self.pteam1.pteam_id, self.service_id1, vuln_id1)
+            self.ticket_id1 = tickets[0]["ticket_id"]
 
         @staticmethod
         def _get_access_token(user: dict) -> str:
@@ -2630,11 +2634,8 @@ class TestTicketStatus:
                 },
             }
 
-        def _get_tickets(self, pteam_id: str, service_id: str, topic_id: str, tag_id: str) -> dict:
-            url = (
-                f"/pteams/{pteam_id}/services/{service_id}"
-                f"/topics/{topic_id}/tags/{tag_id}/tickets"
-            )
+        def _get_tickets(self, pteam_id: str, service_id: str, vuln_id: str) -> dict:
+            url = f"/pteams/{pteam_id}/tickets?service_id={service_id}&vuln_id={vuln_id}"
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -2643,10 +2644,8 @@ class TestTicketStatus:
             }
             return client.get(url, headers=_headers).json()
 
-        def _set_ticket_status(
-            self, pteam_id: str, service_id: str, ticket_id: str, request: dict
-        ) -> dict:
-            url = f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}"
+        def _set_ticket_status(self, pteam_id: str, ticket_id: str, request: dict) -> dict:
+            url = f"/pteams/{pteam_id}/tickets/{ticket_id}/ticketstatuses"
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -2697,7 +2696,7 @@ class TestTicketStatus:
                 "scheduled_at": "2345-06-07T08:09:10",
             }
             set_response = self._set_ticket_status(
-                self.pteam1.pteam_id, self.service_id1, self.ticket_id1, status_request
+                self.pteam1.pteam_id, self.ticket_id1, status_request
             )
 
             # get ticket status
@@ -2735,10 +2734,7 @@ class TestTicketStatus:
                 status_request["topic_status"] = topic_status
             if need_scheduled_at:
                 status_request["scheduled_at"] = scheduled_at
-            url = (
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-                f"/ticketstatus/{self.ticket_id1}"
-            )
+            url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -2755,10 +2751,7 @@ class TestTicketStatus:
                 "note": "assign user2 and schedule at 2345/6/7",
                 "scheduled_at": "2345-06-07T08:09:10",
             }
-            url = (
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-                f"/ticketstatus/{self.ticket_id1}"
-            )
+            url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -2796,10 +2789,7 @@ class TestTicketStatus:
             expected_response_detail,
         ):
             status_request = {field_name: None}
-            url = (
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-                f"/ticketstatus/{self.ticket_id1}"
-            )
+            url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -3099,10 +3089,7 @@ class TestTicketStatus:
                 "topic_status": models.TopicStatusType.completed.value,
                 "note": "assign None",
             }
-            url = (
-                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}"
-                f"/ticketstatus/{self.ticket_id1}"
-            )
+            url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
             user1_access_token = self._get_access_token(USER1)
             _headers = {
                 "Authorization": f"Bearer {user1_access_token}",
@@ -4192,7 +4179,7 @@ class TestUpdatePTeamService:
             data = response_ticket.json()
             request_ticket_status = {"topic_status": models.TopicStatusType.completed.value}
             response_ticket_status = client.put(
-                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}/ticketstatus/{data[0]['ticket_id']}",
+                f"/pteams/{self.pteam0.pteam_id}/tickets/{data[0]['ticket_id']}/ticketstatuses",
                 headers=_headers,
                 json=request_ticket_status,
             )

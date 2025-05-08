@@ -108,14 +108,28 @@ def upload_pteam_tags(
     pteam_id: UUID | str,
     service: str,
     ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
-    force_mode: bool = True,
 ) -> list[schemas.ExtTagResponse]:
-    params = {"service": service, "force_mode": str(force_mode)}
+    params = {"service": service}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
         for tag_name, etags in ext_tags.items():
             assert all(len(etag) == 2 and None not in etag for etag in etags)  # check test code
+            splited_tag_name = tag_name.split(":", 2)
+            tag_name_len = len(splited_tag_name)
+            package_name = splited_tag_name[0] if tag_name_len > 0 else None
+            ecosystem = splited_tag_name[1] if tag_name_len > 1 else None
+            package_manager = splited_tag_name[2] if tag_name_len > 2 else None
             refs = [{"target": etag[0], "version": etag[1]} for etag in etags]
-            tfile.writelines(json.dumps({"tag_name": tag_name, "references": refs}) + "\n")
+            tfile.writelines(
+                json.dumps(
+                    {
+                        "package_name": package_name,
+                        "ecosystem": ecosystem,
+                        "package_manager": package_manager,
+                        "references": refs,
+                    }
+                )
+                + "\n"
+            )
         tfile.flush()
         with open(tfile.name, "rb") as bfile:
             data = assert_200(
@@ -210,11 +224,9 @@ def get_tickets_related_to_topic_tag(
     return response.json()
 
 
-def set_ticket_status(
-    user: dict, pteam_id: UUID | str, service_id: UUID | str, ticket_id: UUID | str, json: dict
-) -> dict:
+def set_ticket_status(user: dict, pteam_id: UUID | str, ticket_id: UUID | str, json: dict) -> dict:
     response = client.put(
-        f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
+        f"/pteams/{pteam_id}/tickets/{ticket_id}/ticketstatuses",
         headers=headers(user),
         json=json,
     )
