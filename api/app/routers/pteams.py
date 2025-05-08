@@ -135,8 +135,10 @@ def force_calculate_ssvc_priority(
         raise NOT_HAVE_AUTH
 
     now = datetime.now()
-    for ticket in [ticket for service in pteam.services for ticket in service.tickets]:
-        ticket_business.fix_ticket_ssvc_priority(db, ticket, now=now)
+    for service in pteam.services:
+        for dependency in service.dependencies:
+            for ticket in dependency.tickets:
+                ticket_business.fix_ticket_ssvc_priority(db, ticket, now=now)
 
     db.commit()
     return "OK"
@@ -295,8 +297,9 @@ def update_pteam_service(
 
     if need_fix_tickets:
         db.flush()
-        for ticket in service.tickets:
-            fix_ticket_ssvc_priority(db, ticket, now=datetime.now())
+        for dependency in service.dependencies:
+            for ticket in dependency.tickets:
+                ticket_business.fix_ticket_ssvc_priority(db, ticket, now=datetime.now())
 
     db.commit()
 
