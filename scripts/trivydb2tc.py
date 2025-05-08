@@ -418,8 +418,8 @@ def main() -> None:
         for repos, _ in txs.bucket():
             if repos in allow_list:
                 category = get_package_info(repos)
-                trivy_vulns = vuln_info(repos, txs)
-                for trivy_vuln in trivy_vulns:
+                vulns = vuln_info(repos, txs)
+                for trivy_vuln in vulns:
                     vuln_vers, fix_vers = get_versions_from_trivy_vuln(trivy_vuln)
                     if vuln_vers is None and fix_vers is None:
                         continue
