@@ -22,7 +22,7 @@ class ORMModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class TopicSortKey(str, Enum):
+class VulnSortKey(str, Enum):
     CVSS_V3_SCORE = "cvss_v3_score"
     CVSS_V3_SCORE_DESC = "cvss_v3_score_desc"
     UPDATED_AT = "updated_at"
@@ -281,17 +281,6 @@ class ActionLogRequest(ORMModel):
     executed_at: datetime | None = None
 
 
-class ThreatResponse(ORMModel):
-    threat_id: UUID
-    package_version_id: UUID
-    vuln_id: UUID
-
-
-class ThreatUpdateRequest(ORMModel):
-    threat_safety_impact: SafetyImpactEnum | None = None
-    reason_safety_impact: str | None = None
-
-
 class TicketStatusRequest(ORMModel):
     topic_status: TopicStatusType | None = None
     logging_ids: list[UUID] | None = None
@@ -314,13 +303,12 @@ class TicketStatusResponse(ORMModel):
 
 class TicketResponse(ORMModel):
     ticket_id: UUID
-    threat_id: UUID
+    vuln_id: UUID
     dependency_id: UUID
     created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     ticket_safety_impact: SafetyImpactEnum | None
     reason_safety_impact: str | None
-    threat: ThreatResponse
     ticket_status: TicketStatusResponse
 
 

@@ -259,6 +259,7 @@ class Dependency(Base):
 
     service = relationship("Service", back_populates="dependencies")
     package_version = relationship("PackageVersion", uselist=False, back_populates="dependencies")
+    tickets = relationship("Ticket", back_populates="dependency")
 
 
 class Service(Base):
@@ -362,7 +363,7 @@ class Ticket(Base):
     reason_safety_impact: Mapped[str | None] = mapped_column(nullable=True)
     ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
 
-    dependency = relationship("Dependency")
+    dependency = relationship("Dependency", back_populates="tickets")
     threat = relationship("Threat", uselist=False, back_populates="tickets")
     alerts = relationship("Alert", back_populates="ticket")
     ticket_status = relationship("TicketStatus", uselist=False, cascade="all, delete-orphan")
@@ -552,7 +553,6 @@ class Affect(Base):
     affected_versions: Mapped[list[str]] = mapped_column(default=[])
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
 
-    package = relationship("Package")
     vuln = relationship("Vuln", back_populates="affects")
     package = relationship("Package", back_populates="affects")
 

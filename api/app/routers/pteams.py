@@ -135,8 +135,10 @@ def force_calculate_ssvc_priority(
         raise NOT_HAVE_AUTH
 
     now = datetime.now()
-    for ticket in [ticket for service in pteam.services for ticket in service.tickets]:
-        ticket_business.fix_ticket_ssvc_priority(db, ticket, now=now)
+    for service in pteam.services:
+        for dependency in service.dependencies:
+            for ticket in dependency.tickets:
+                ticket_business.fix_ticket_ssvc_priority(db, ticket, now=now)
 
     db.commit()
     return "OK"
@@ -295,8 +297,9 @@ def update_pteam_service(
 
     if need_fix_tickets:
         db.flush()
-        for ticket in service.tickets:
-            fix_ticket_ssvc_priority(db, ticket, now=datetime.now())
+        for dependency in service.dependencies:
+            for ticket in dependency.tickets:
+                ticket_business.fix_ticket_ssvc_priority(db, ticket, now=datetime.now())
 
     db.commit()
 
@@ -815,8 +818,13 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
 
     ret = [
         {
-            **ticket.__dict__,
-            "threat": ticket.threat.__dict__,
+            "ticket_id": ticket.ticket_id,
+            "vuln_id": ticket.threat.vuln_id,
+            "dependency_id": ticket.dependency_id,
+            "created_at": ticket.created_at,
+            "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
+            "ticket_safety_impact": ticket.ticket_safety_impact,
+            "reason_safety_impact": ticket.reason_safety_impact,
             "ticket_status": ticket.ticket_status.__dict__,
         }
         for ticket in tickets

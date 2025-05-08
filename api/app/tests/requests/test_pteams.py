@@ -3179,7 +3179,7 @@ class TestGetTickets:
             db_status1 = testdb.scalars(select(models.TicketStatus)).one()
             self.expected_ticket_response1 = {
                 "ticket_id": str(db_ticket1.ticket_id),
-                "threat_id": str(self.threat1.threat_id),
+                "vuln_id": str(self.vuln1.vuln_id),
                 "dependency_id": str(self.dependency1.dependency_id),
                 "created_at": datetime.isoformat(db_ticket1.created_at),
                 "ssvc_deployer_priority": (
@@ -3193,11 +3193,6 @@ class TestGetTickets:
                     else db_ticket1.ticket_safety_impact.value
                 ),
                 "reason_safety_impact": None,
-                "threat": {
-                    "threat_id": str(self.threat1.threat_id),
-                    "package_version_id": str(self.package_version1.package_version_id),
-                    "vuln_id": str(self.vuln1.vuln_id),
-                },
                 "ticket_status": {
                     "status_id": db_status1.status_id,  # do not check
                     "ticket_id": str(db_ticket1.ticket_id),
