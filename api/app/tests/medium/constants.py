@@ -117,5 +117,26 @@ ACTION3 = {
     "recommended": False,
     "ext": {},
 }
+PACKAGE1 = {
+    "package_name": "test_package1",
+    "ecosystem": "test_ecosystem1",
+    "package_manager": "test_package_manager1",
+}
+VULNPACKAGE1 = {
+    "name": PACKAGE1["package_name"],
+    "ecosystem": PACKAGE1["ecosystem"],
+    "affected_versions": ["<2.0"],
+    "fixed_versions": ["2.0"],
+}
+VULN1 = {
+    "vuln_id": str(uuid4()),
+    "cve_id": "CVE-0000-0001",
+    "title": "Test Vulnerability1",
+    "detail": "This is a test vulnerability.",
+    "exploitation": "active",
+    "automatable": "yes",
+    "cvss_v3_score": 2.0,
+    "vulnerable_packages": [VULNPACKAGE1],
+}
 
 SAMPLE_SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/T00000000/B00000000/XXXX"

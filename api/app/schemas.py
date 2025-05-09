@@ -22,7 +22,7 @@ class ORMModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class TopicSortKey(str, Enum):
+class VulnSortKey(str, Enum):
     CVSS_V3_SCORE = "cvss_v3_score"
     CVSS_V3_SCORE_DESC = "cvss_v3_score_desc"
     UPDATED_AT = "updated_at"
@@ -79,18 +79,12 @@ class UserUpdateRequest(ORMModel):
 
 
 class ActionResponse(ORMModel):
-    topic_id: UUID
+    vuln_id: UUID
     action_id: UUID
     action: str = Field(..., max_length=1024)
     action_type: ActionType
     recommended: bool
-    created_by: UUID
     created_at: datetime
-    ext: dict  # see ActionCreateRequest
-
-
-class TagRequest(ORMModel):
-    tag_name: str
 
 
 class TagResponse(ORMModel):
@@ -133,15 +127,6 @@ class PTeamServiceUpdateResponse(ORMModel):
     service_safety_impact: SafetyImpactEnum | None
 
 
-class MispTagRequest(ORMModel):
-    tag_name: str
-
-
-class MispTagResponse(ORMModel):
-    tag_id: UUID
-    tag_name: str
-
-
 CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"
 
 
@@ -153,61 +138,11 @@ def validate_cve_id(value):
     return value
 
 
-class TopicEntry(ORMModel):
-    topic_id: UUID
-    title: str
-    content_fingerprint: str
-    updated_at: datetime
-
-
-class Topic(TopicEntry):
-    topic_id: UUID
-    title: str
-    abstract: str
-    created_by: UUID
-    created_at: datetime
-    exploitation: ExploitationEnum | None
-    automatable: AutomatableEnum | None
-    cvss_v3_score: float | None
-    cve_id: str | None
-
-    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
-
-
-class TopicResponse(Topic):
-    tags: list[TagResponse]
-    misp_tags: list[MispTagResponse]
-
-
-class TopicCreateResponse(TopicResponse):
-    actions: list[ActionResponse]
-
-
-class SearchTopicsResponse(ORMModel):
-    num_topics: int
-    offset: int | None = None
-    limit: int | None = None
-    sort_key: TopicSortKey
-    topics: list[TopicEntry]
-
-
-class TopicActionsResponse(ORMModel):
-    topic_id: UUID
-    pteam_id: UUID
-    actions: list[ActionResponse]
-
-
 class ActionCreateRequest(ORMModel):
-    topic_id: UUID | None = None  # can be None if using in create_topic()
-    action_id: UUID | None = None  # can specify action_id by client
+    vuln_id: UUID | None = None  # can be None if using in create_vuln()
     action: str = Field(..., max_length=1024)
     action_type: ActionType
     recommended: bool = False
-    ext: dict = {}
-    # {
-    #   tags: list[str] = [],
-    #   vulnerable_versions: Dict[str, list[dict]] = {},  # see around auto-close for detail.
-    # }
 
 
 class ActionUpdateRequest(ORMModel):
@@ -217,31 +152,34 @@ class ActionUpdateRequest(ORMModel):
     ext: dict | None = None
 
 
-class TopicCreateRequest(ORMModel):
-    title: str
-    abstract: str
-    tags: list[str] = []
-    misp_tags: list[str] = []
-    actions: list[ActionCreateRequest] = []
-    exploitation: ExploitationEnum | None = None
-    automatable: AutomatableEnum | None = None
-    cvss_v3_score: float | None = None
-    cve_id: str | None = None
-
-    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
+class VulnerablePackage(BaseModel):
+    name: str
+    ecosystem: str
+    affected_versions: list[str]
+    fixed_versions: list[str]
 
 
-class TopicUpdateRequest(ORMModel):
+class VulnBase(BaseModel):
     title: str | None = None
-    abstract: str | None = None
-    tags: list[str] | None = None
-    misp_tags: list[str] | None = None
+    cve_id: str | None = None
+    detail: str | None = None
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
-    cve_id: str | None = None
+    vulnerable_packages: list[VulnerablePackage] = []
 
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
+
+
+class VulnResponse(VulnBase):
+    vuln_id: str
+    created_at: datetime
+    updated_at: datetime
+    created_by: UUID | None = None
+
+
+class VulnUpdate(VulnBase):
+    pass
 
 
 class PTeamInfo(PTeamEntry):
@@ -343,19 +281,6 @@ class ActionLogRequest(ORMModel):
     executed_at: datetime | None = None
 
 
-class ThreatResponse(ORMModel):
-    threat_id: UUID
-    dependency_id: UUID
-    topic_id: UUID
-    threat_safety_impact: SafetyImpactEnum | None = None
-    reason_safety_impact: str | None = None
-
-
-class ThreatUpdateRequest(ORMModel):
-    threat_safety_impact: SafetyImpactEnum | None = None
-    reason_safety_impact: str | None = None
-
-
 class TicketStatusRequest(ORMModel):
     topic_status: TopicStatusType | None = None
     logging_ids: list[UUID] | None = None
@@ -378,41 +303,28 @@ class TicketStatusResponse(ORMModel):
 
 class TicketResponse(ORMModel):
     ticket_id: UUID
-    threat_id: UUID
+    vuln_id: UUID
+    dependency_id: UUID
     created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
-    threat: ThreatResponse
+    ticket_safety_impact: SafetyImpactEnum | None
+    reason_safety_impact: str | None
     ticket_status: TicketStatusResponse
 
 
-class PTeamTagSummary(ORMModel):
-    tag_id: UUID
-    tag_name: str
-    parent_id: UUID | None
-    parent_name: str | None
-    service_ids: list[UUID]
-    ssvc_priority: SSVCDeployerPriorityEnum | None
-    updated_at: datetime | None
-    status_count: dict[str, int]
-
-
-class PTeamTagsSummary(ORMModel):
-    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # ssvc_priority: tags count
-    tags: list[PTeamTagSummary]
-
-
-class PTeamServiceTagsSummary(ORMModel):
-    class PTeamServiceTagSummary(ORMModel):
-        tag_id: UUID
-        tag_name: str
-        parent_id: UUID | None
-        parent_name: str | None
+class PTeamPackagesSummary(ORMModel):
+    class PTeamPackageSummary(ORMModel):
+        package_id: UUID
+        package_name: str
+        ecosystem: str
+        package_manager: str
+        service_ids: list[UUID]
         ssvc_priority: SSVCDeployerPriorityEnum | None
         updated_at: datetime | None
         status_count: dict[str, int]  # TopicStatusType.value: tickets count
 
-    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # priority: tags count
-    tags: list[PTeamServiceTagSummary]
+    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # priority: packages count
+    packages: list[PTeamPackageSummary]
 
 
 class SlackCheckRequest(ORMModel):
@@ -439,6 +351,10 @@ class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
 class DependencyResponse(ORMModel):
     dependency_id: UUID
     service_id: UUID
-    tag_id: UUID
-    version: str
+    package_version_id: UUID
+    package_manager: str
     target: str
+    dependency_mission_impact: str | None = None
+    package_name: str
+    package_version: str
+    package_ecosystem: str

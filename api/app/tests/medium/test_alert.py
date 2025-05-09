@@ -86,7 +86,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(testdb, 
     send_email = mocker.patch("app.notification.alert.send_email")  # reset
     topic1 = create_topic(USER1, _gen_topic_params([parent_tag1]))
     threats1 = command.search_threats(testdb, None, None, topic1.topic_id)
-    ssvc_priority1 = ssvc_calculator.calculate_ssvc_priority_by_threat(threats1[0])
+    ssvc_priority1 = ssvc_calculator.calculate_ssvc_priority_by_ticket(threats1[0])
     assert ssvc_priority1
     exp_to_email = pteam0.alert_mail.address
     exp_from_email = SYSTEM_EMAIL
@@ -116,7 +116,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(testdb, 
     send_email = mocker.patch("app.notification.alert.send_email")  # reset
     topic3 = create_topic(USER1, _gen_topic_params([parent_tag1]))
     threats2 = command.search_threats(testdb, None, None, topic3.topic_id)
-    ssvc_priority2 = ssvc_calculator.calculate_ssvc_priority_by_threat(threats2[0])
+    ssvc_priority2 = ssvc_calculator.calculate_ssvc_priority_by_ticket(threats2[0])
     assert ssvc_priority2
     exp_to_email = pteam0.alert_mail.address
     exp_from_email = SYSTEM_EMAIL

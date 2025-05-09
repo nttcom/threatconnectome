@@ -29,75 +29,12 @@ from app.tests.medium.constants import (
 )
 from app.tests.medium.utils import (
     create_pteam,
-    create_tag,
-    create_topic,
-    create_topic_with_versioned_actions,
     create_user,
-    get_service_by_service_name,
-    get_tickets_related_to_topic_tag,
     headers,
-    set_ticket_status,
     upload_pteam_tags,
 )
 
 client = TestClient(app)
-
-
-@pytest.mark.parametrize(
-    "topic_status, scheduled_at, solved_num, unsolved_num",
-    [
-        (models.TopicStatusType.acknowledged, None, 0, 1),
-        (models.TopicStatusType.scheduled, "2345-06-07T08:09:10", 0, 1),
-        (models.TopicStatusType.completed, None, 1, 0),
-    ],
-)
-def test_it_should_return_solved_or_unsolved_number_based_on_ticket_status(
-    testdb, topic_status, scheduled_at, solved_num, unsolved_num
-):
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    tag1 = create_tag(USER1, TAG1)
-    topic1 = create_topic_with_versioned_actions(USER1, TOPIC1, [[TAG1]])
-    test_service = "test service"
-    refs0 = {TAG1: [("test target", "1.2.3")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service)
-    tickets = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic1.topic_id, tag1.tag_id
-    )
-    ticket1 = tickets[0]
-
-    # set status
-    json_data = {
-        "topic_status": topic_status,
-        "note": "string",
-        "assignees": [],
-        "scheduled_at": scheduled_at,
-    }
-    set_ticket_status(
-        USER1, pteam1.pteam_id, service1["service_id"], ticket1["ticket_id"], json_data
-    )
-
-    # get summary
-    response = client.get(
-        f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    response = response.json()
-
-    # common
-    assert response["pteam_id"] == str(pteam1.pteam_id)
-    assert response["service_id"] == service1["service_id"]
-    assert response["tag_id"] == str(tag1.tag_id)
-    # solved
-    assert len(response["solved"]["topic_ids"]) == solved_num
-    if solved_num > 0:
-        all(topic_id == str(topic1.topic_id) for topic_id in response["solved"]["topic_ids"])
-    # unsolved
-    assert len(response["unsolved"]["topic_ids"]) == unsolved_num
-    if unsolved_num > 0:
-        all(topic_id == str(topic1.topic_id) for topic_id in response["unsolved"]["topic_ids"])
 
 
 @pytest.mark.parametrize(
@@ -145,11 +82,10 @@ def test_it_should_return_ssvc_priority_count_num_based_on_tickte_status(
     def _set_ticket_status(
         user: dict,
         pteam_id: str,
-        service_id: str,
         ticket_id: str,
         topic_status: models.TopicStatusType,
     ) -> None:
-        post_topicstatus_url = f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}"
+        post_topicstatus_url = f"/pteams/{pteam_id}/tickets/{ticket_id}/ticketstatuses"
         status_request = {
             "topic_status": topic_status,
             "assignees": [],
@@ -180,14 +116,12 @@ def test_it_should_return_ssvc_priority_count_num_based_on_tickte_status(
     _set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
-        ticket_response["service_id"],
         tickets[0]["ticket_id"],
         topic_status1,
     )
     _set_ticket_status(
         USER1,
         ticket_response["pteam_id"],
-        ticket_response["service_id"],
         tickets[1]["ticket_id"],
         topic_status2,
     )
@@ -209,259 +143,6 @@ def test_it_should_return_ssvc_priority_count_num_based_on_tickte_status(
     assert response["solved"]["ssvc_priority_count"] == expected_solved_count
     # unsolved
     assert response["unsolved"]["ssvc_priority_count"] == expected_unsolved_count
-
-
-@pytest.mark.parametrize(
-    "_topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority",
-    [
-        (
-            {"exploitation": "active", "automatable": "no", "title": "topic one"},
-            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
-            {"exploitation": "none", "automatable": "no", "title": "topic three"},
-            ["topic one", "topic two", "topic three"],
-        ),
-        (
-            {"exploitation": "none", "automatable": "no", "title": "topic one"},
-            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
-            {"exploitation": "active", "automatable": "no", "title": "topic three"},
-            ["topic three", "topic two", "topic one"],
-        ),
-        (
-            {"exploitation": "none", "automatable": "no", "title": "topic one"},
-            {"exploitation": "none", "automatable": "no", "title": "topic two"},
-            {"exploitation": "none", "automatable": "no", "title": "topic three"},
-            ["topic three", "topic two", "topic one"],
-        ),
-    ],
-)
-def test_it_shoud_return_solved_sorted_title_based_on_ssvc_priority(
-    _topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority
-):
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    tag1 = create_tag(USER1, TAG1)
-
-    test_service1 = "test service"
-    refs0 = {TAG1: [("test target", "1.2.3")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, test_service1, refs0)
-    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service1)
-
-    topic1 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "title": _topic1["title"],
-            "exploitation": _topic1["exploitation"],
-            "automatable": _topic1["automatable"],
-        },
-        [[TAG1]],
-    )
-    topic2 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "title": _topic2["title"],
-            "exploitation": _topic2["exploitation"],
-            "automatable": _topic2["automatable"],
-        },
-        [[TAG1]],
-    )
-    topic3 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "title": _topic3["title"],
-            "exploitation": _topic3["exploitation"],
-            "automatable": _topic3["automatable"],
-        },
-        [[TAG1]],
-    )
-    ticket1 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic1.topic_id, tag1.tag_id
-    )[0]
-    ticket2 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic2.topic_id, tag1.tag_id
-    )[0]
-    ticket3 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic3.topic_id, tag1.tag_id
-    )[0]
-
-    json_data = {
-        "topic_status": models.TopicStatusType.completed,
-        "note": "string",
-        "assignees": [],
-        "scheduled_at": None,
-    }
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket1["ticket_id"],
-        json_data,
-    )
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket2["ticket_id"],
-        json_data,
-    )
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket3["ticket_id"],
-        json_data,
-    )
-
-    response = client.get(
-        f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    response_json = response.json()
-
-    # common
-    assert response_json["pteam_id"] == str(pteam1.pteam_id)
-    assert response_json["service_id"] == service1["service_id"]
-    assert response_json["tag_id"] == str(tag1.tag_id)
-    # solved
-    topic_title_list = []
-    for topic_id in response_json["solved"]["topic_ids"]:
-        response_topic = client.get(f"/topics/{topic_id}", headers=headers(USER1))
-        topic = response_topic.json()
-        topic_title_list.append(topic["title"])
-    assert topic_title_list == titles_sorted_by_ssvc_priority
-    # unsolved
-    assert len(response_json["unsolved"]["topic_ids"]) == 0
-
-
-@pytest.mark.parametrize(
-    "_topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority",
-    [
-        (
-            {"exploitation": "active", "automatable": "no", "title": "topic one"},
-            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
-            {"exploitation": "none", "automatable": "no", "title": "topic three"},
-            ["topic one", "topic two", "topic three"],
-        ),
-        (
-            {"exploitation": "none", "automatable": "no", "title": "topic one"},
-            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
-            {"exploitation": "active", "automatable": "no", "title": "topic three"},
-            ["topic three", "topic two", "topic one"],
-        ),
-        (
-            {"exploitation": "none", "automatable": "no", "title": "topic one"},
-            {"exploitation": "none", "automatable": "no", "title": "topic two"},
-            {"exploitation": "none", "automatable": "no", "title": "topic three"},
-            ["topic three", "topic two", "topic one"],
-        ),
-    ],
-)
-def test_it_shoud_return_unsolved_sorted_title_based_on_ssvc_priority(
-    _topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority
-):
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    tag1 = create_tag(USER1, TAG1)
-    test_service = "test service"
-    refs0 = {TAG1: [("test target", "1.2.3")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service)
-
-    topic1 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "title": _topic1["title"],
-            "exploitation": _topic1["exploitation"],
-            "automatable": _topic1["automatable"],
-        },
-        [[TAG1]],
-    )
-    topic2 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "title": _topic2["title"],
-            "exploitation": _topic2["exploitation"],
-            "automatable": _topic2["automatable"],
-        },
-        [[TAG1]],
-    )
-    topic3 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "title": _topic3["title"],
-            "exploitation": _topic3["exploitation"],
-            "automatable": _topic3["automatable"],
-        },
-        [[TAG1]],
-    )
-    ticket1 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic1.topic_id, tag1.tag_id
-    )[0]
-    ticket2 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic2.topic_id, tag1.tag_id
-    )[0]
-    ticket3 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic3.topic_id, tag1.tag_id
-    )[0]
-
-    json_data = {
-        "topic_status": models.TopicStatusType.acknowledged,
-        "note": "string",
-        "assignees": [],
-        "scheduled_at": None,
-    }
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket1["ticket_id"],
-        json_data,
-    )
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket2["ticket_id"],
-        json_data,
-    )
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket3["ticket_id"],
-        json_data,
-    )
-
-    response = client.get(
-        f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    response_json = response.json()
-
-    # common
-    assert response_json["pteam_id"] == str(pteam1.pteam_id)
-    assert response_json["service_id"] == service1["service_id"]
-    assert response_json["tag_id"] == str(tag1.tag_id)
-    # solved
-    assert len(response_json["solved"]["topic_ids"]) == 0
-    # unsolved
-    topic_title_list = []
-    for topic_id in response_json["unsolved"]["topic_ids"]:
-        response_topic = client.get(f"/topics/{topic_id}", headers=headers(USER1))
-        topic = response_topic.json()
-        topic_title_list.append(topic["title"])
-    assert topic_title_list == titles_sorted_by_ssvc_priority
 
 
 def test_sbom_uploaded_at_with_called_upload_tags_file():
@@ -611,9 +292,14 @@ class TestPostUploadSBOMFileCycloneDX:
             )
             return response.json()
 
-        def get_tag(self, tag_id: UUID | str) -> dict:
-            response = client.get(f"/tags/{tag_id}", headers=headers(USER1))
-            return response.json()
+        def get_package(
+            self, testdb, package_version_id: UUID | str
+        ) -> models.PackageVersion | None:
+            return testdb.scalars(
+                select(models.PackageVersion, models.Package)
+                .join(models.Package)
+                .where(models.PackageVersion.package_version_id == str(package_version_id))
+            ).one_or_none()
 
         def enable_slack(self, webhook_url: str) -> dict:
             request = {"alert_slack": {"enable": True, "webhook_url": webhook_url}}
@@ -677,12 +363,16 @@ class TestPostUploadSBOMFileCycloneDX:
                     ],
                     [  # expected
                         {
-                            "tag_name": "cryptography:pypi:pipenv",
+                            "package_name": "cryptography",
+                            "ecosystem": "pypi",
+                            "package_manager": "pipenv",
                             "target": "threatconnectome/api/Pipfile.lock",
                             "version": "39.0.2",
                         },
                         {
-                            "tag_name": "cryptography:pypi:pipenv",
+                            "package_name": "cryptography",
+                            "ecosystem": "pypi",
+                            "package_manager": "pipenv",
                             "target": "sample target1",  # scan root
                             "version": "39.0.2",
                         },
@@ -714,12 +404,16 @@ class TestPostUploadSBOMFileCycloneDX:
                     ],
                     [  # expected
                         {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
+                            "package_name": "libcrypt1",
+                            "ecosystem": "ubuntu-20.04",
+                            "package_manager": "",
                             "target": "ubuntu",
                             "version": "1:4.4.10-10ubuntu4",
                         },
                         {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
+                            "package_name": "libcrypt1",
+                            "ecosystem": "ubuntu-20.04",
+                            "package_manager": "",
                             "target": "sample target1",  # scan root
                             "version": "1:4.4.10-10ubuntu4",
                         },
@@ -748,12 +442,16 @@ class TestPostUploadSBOMFileCycloneDX:
                     ],
                     [  # expected
                         {
-                            "tag_name": "@nextui-org/button:npm:npm",
+                            "package_name": "@nextui-org/button",
+                            "ecosystem": "npm",
+                            "package_manager": "npm",
                             "target": "web/package-lock.json",
                             "version": "2.0.26",
                         },
                         {
-                            "tag_name": "@nextui-org/button:npm:npm",
+                            "package_name": "@nextui-org/button",
+                            "ecosystem": "npm",
+                            "package_manager": "npm",
                             "target": "sample target1",  # scan root
                             "version": "2.0.26",
                         },
@@ -782,12 +480,16 @@ class TestPostUploadSBOMFileCycloneDX:
                     ],
                     [  # expected
                         {
-                            "tag_name": "@nextui-org/button:npm:npm",
+                            "package_name": "@nextui-org/button",
+                            "ecosystem": "npm",
+                            "package_manager": "npm",
                             "target": "web/package-lock.json",
                             "version": "2.0.26",
                         },
                         {
-                            "tag_name": "@nextui-org/button:npm:npm",
+                            "package_name": "@nextui-org/button",
+                            "ecosystem": "npm",
+                            "package_manager": "npm",
                             "target": "sample target1",  # scan root
                             "version": "2.0.26",
                         },
@@ -795,8 +497,8 @@ class TestPostUploadSBOMFileCycloneDX:
                 ),
             ],
         )
-        def test_create_dependencies_based_on_sbom(
-            self, service_name, component_params, expected_dependency_params
+        def test_dependencies_should_ralated_to_expected_package(
+            self, testdb, service_name, component_params, expected_dependency_params
         ) -> None:
             target_name = "sample target1"
             components_dict = {
@@ -807,7 +509,7 @@ class TestPostUploadSBOMFileCycloneDX:
             }
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
 
-            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, True, None)
+            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, None)
 
             services = self.get_services()
             service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
@@ -821,259 +523,267 @@ class TestPostUploadSBOMFileCycloneDX:
 
             @dataclass(frozen=True, kw_only=True)
             class DependencyParamsToCheck:
-                tag_name: str
+                package_name: str
+                ecosystem: str
+                package_manager: str
                 target: str
                 version: str
 
-            created_dependencies = {
-                DependencyParamsToCheck(
-                    tag_name=self.get_tag(dependency["tag_id"])["tag_name"],
-                    target=dependency["target"],
-                    version=dependency["version"],
-                )
-                for dependency in self.get_service_dependencies(service1["service_id"])
-            }
+            created_dependencies = set()
+            for dependency in self.get_service_dependencies(service1["service_id"]):
+                if package_version := self.get_package(testdb, dependency["package_version_id"]):
+                    created_dependencies.add(
+                        DependencyParamsToCheck(
+                            package_name=package_version.package.name,
+                            ecosystem=package_version.package.ecosystem,
+                            package_manager=dependency["package_manager"],
+                            target=dependency["target"],
+                            version=package_version.version,
+                        )
+                    )
+
             expected_dependencies = {
                 DependencyParamsToCheck(**expected_dependency_param)
                 for expected_dependency_param in expected_dependency_params
             }
             assert created_dependencies == expected_dependencies
 
-        @pytest.mark.parametrize(
-            "service_name, component_params, vulnerable_versions, expected_threat_params",
-            # Note: components_params: list[tuple[ApplicationParam, list[LibraryParam]]]
-            #       vulnerable_versions: {str: list[str]} -- {tag_name: ["< 2.0", ...]}
-            [
-                # test case 1: lang-pkgs
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "threatconnectome/api/Pipfile.lock",
-                                "type": "application",
-                                "trivy_type": "pipenv",
-                                "trivy_class": "lang-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": "pkg:pypi/cryptography@39.0.2",
-                                    "name": "cryptography",
-                                    "group": None,
-                                    "version": "39.0.2",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "cryptography:pypi:pipenv": ["<40.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "cryptography:pypi:pipenv",
-                            "target": "threatconnectome/api/Pipfile.lock",
-                            "version": "39.0.2",
-                        },
-                        {
-                            "tag_name": "cryptography:pypi:pipenv",
-                            "target": "sample target1",  # scan root
-                            "version": "39.0.2",
-                        },
-                    ],
-                ),
-                # test case 1b: lang-pkgs with not vulnerable version
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "threatconnectome/api/Pipfile.lock",
-                                "type": "application",
-                                "trivy_type": "pipenv",
-                                "trivy_class": "lang-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": "pkg:pypi/cryptography@39.0.2",
-                                    "name": "cryptography",
-                                    "group": None,
-                                    "version": "39.0.2",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "cryptography:pypi:pipenv": ["<30.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "cryptography:pypi:pipenv",
-                            "target": "threatconnectome/api/Pipfile.lock",
-                            "version": "39.0.2",
-                        },
-                        {
-                            "tag_name": "cryptography:pypi:pipenv",
-                            "target": "sample target1",  # scan root
-                            "version": "39.0.2",
-                        },
-                    ],
-                ),
-                # test case 2: os-pkgs
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "ubuntu",
-                                "type": "operating-system",
-                                "trivy_type": "ubuntu",
-                                "trivy_class": "os-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": (
-                                        "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4"
-                                        "?distro=ubuntu-20.04"
-                                    ),
-                                    "name": "libcrypt1",
-                                    "group": None,
-                                    "version": "1:4.4.10-10ubuntu4",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "libcrypt1:ubuntu-20.04:": ["<4.5.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
-                            "target": "ubuntu",
-                            "version": "1:4.4.10-10ubuntu4",
-                        },
-                        {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
-                            "target": "sample target1",  # scan root
-                            "version": "1:4.4.10-10ubuntu4",
-                        },
-                    ],
-                ),
-                # test case 2b: os-pkgs with not vulnerable version
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "ubuntu",
-                                "type": "operating-system",
-                                "trivy_type": "ubuntu",
-                                "trivy_class": "os-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": (
-                                        "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4"
-                                        "?distro=ubuntu-20.04"
-                                    ),
-                                    "name": "libcrypt1",
-                                    "group": None,
-                                    "version": "1:4.4.10-10ubuntu4",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "libcrypt1:ubuntu-20.04:": ["<4.3.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
-                            "target": "ubuntu",
-                            "version": "1:4.4.10-10ubuntu4",
-                        },
-                        {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
-                            "target": "sample target1",  # scan root
-                            "version": "1:4.4.10-10ubuntu4",
-                        },
-                    ],
-                ),
-                # test case 3: lang-pkgs with group
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "web/package-lock.json",
-                                "type": "application",
-                                "trivy_type": "npm",
-                                "trivy_class": "lang-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": "pkg:npm/%40nextui-org/button@2.0.26",
-                                    "name": "button",
-                                    "group": "@nextui-org",
-                                    "version": "2.0.26",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "@nextui-org/button:npm:npm": ["< 2.1.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "@nextui-org/button:npm:npm",
-                            "target": "web/package-lock.json",
-                            "version": "2.0.26",
-                        },
-                        {
-                            "tag_name": "@nextui-org/button:npm:npm",
-                            "target": "sample target1",  # scan root
-                            "version": "2.0.26",
-                        },
-                    ],
-                ),
-                # test case 4: (legacy) lang-pkgs without group
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "web/package-lock.json",
-                                "type": "application",
-                                "trivy_type": "npm",
-                                "trivy_class": "lang-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": "pkg:npm/%40nextui-org/button@2.0.26",
-                                    "name": "@nextui-org/button",
-                                    "group": None,
-                                    "version": "2.0.26",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "@nextui-org/button:npm:npm": ["< 2.1.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "@nextui-org/button:npm:npm",
-                            "target": "web/package-lock.json",
-                            "version": "2.0.26",
-                        },
-                        {
-                            "tag_name": "@nextui-org/button:npm:npm",
-                            "target": "sample target1",  # scan root
-                            "version": "2.0.26",
-                        },
-                    ],
-                ),
-            ],
-        )
+        @pytest.mark.skip(reason="it is not able to make threat at the time of sbom upload.")
+        # @pytest.mark.parametrize(
+        #     "service_name, component_params, vulnerable_versions, expected_threat_params",
+        #     # Note: components_params: list[tuple[ApplicationParam, list[LibraryParam]]]
+        #     #       vulnerable_versions: {str: list[str]} -- {tag_name: ["< 2.0", ...]}
+        #     [
+        #         # test case 1: lang-pkgs
+        #         (
+        #             "sample service1",
+        #             [  # input
+        #                 (
+        #                     {  # application
+        #                         "name": "threatconnectome/api/Pipfile.lock",
+        #                         "type": "application",
+        #                         "trivy_type": "pipenv",
+        #                         "trivy_class": "lang-pkgs",
+        #                     },
+        #                     [  # libraries
+        #                         {
+        #                             "purl": "pkg:pypi/cryptography@39.0.2",
+        #                             "name": "cryptography",
+        #                             "group": None,
+        #                             "version": "39.0.2",
+        #                         },
+        #                     ],
+        #                 ),
+        #             ],
+        #             {  # vulnerable_versions
+        #                 "cryptography:pypi:pipenv": ["<40.0"],
+        #             },
+        #             [  # expected
+        #                 {
+        #                     "tag_name": "cryptography:pypi:pipenv",
+        #                     "target": "threatconnectome/api/Pipfile.lock",
+        #                     "version": "39.0.2",
+        #                 },
+        #                 {
+        #                     "tag_name": "cryptography:pypi:pipenv",
+        #                     "target": "sample target1",  # scan root
+        #                     "version": "39.0.2",
+        #                 },
+        #             ],
+        #         ),
+        #         # test case 1b: lang-pkgs with not vulnerable version
+        #         (
+        #             "sample service1",
+        #             [  # input
+        #                 (
+        #                     {  # application
+        #                         "name": "threatconnectome/api/Pipfile.lock",
+        #                         "type": "application",
+        #                         "trivy_type": "pipenv",
+        #                         "trivy_class": "lang-pkgs",
+        #                     },
+        #                     [  # libraries
+        #                         {
+        #                             "purl": "pkg:pypi/cryptography@39.0.2",
+        #                             "name": "cryptography",
+        #                             "group": None,
+        #                             "version": "39.0.2",
+        #                         },
+        #                     ],
+        #                 ),
+        #             ],
+        #             {  # vulnerable_versions
+        #                 "cryptography:pypi:pipenv": ["<30.0"],
+        #             },
+        #             [  # expected
+        #                 {
+        #                     "tag_name": "cryptography:pypi:pipenv",
+        #                     "target": "threatconnectome/api/Pipfile.lock",
+        #                     "version": "39.0.2",
+        #                 },
+        #                 {
+        #                     "tag_name": "cryptography:pypi:pipenv",
+        #                     "target": "sample target1",  # scan root
+        #                     "version": "39.0.2",
+        #                 },
+        #             ],
+        #         ),
+        #         # test case 2: os-pkgs
+        #         (
+        #             "sample service1",
+        #             [  # input
+        #                 (
+        #                     {  # application
+        #                         "name": "ubuntu",
+        #                         "type": "operating-system",
+        #                         "trivy_type": "ubuntu",
+        #                         "trivy_class": "os-pkgs",
+        #                     },
+        #                     [  # libraries
+        #                         {
+        #                             "purl": (
+        #                                 "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4"
+        #                                 "?distro=ubuntu-20.04"
+        #                             ),
+        #                             "name": "libcrypt1",
+        #                             "group": None,
+        #                             "version": "1:4.4.10-10ubuntu4",
+        #                         },
+        #                     ],
+        #                 ),
+        #             ],
+        #             {  # vulnerable_versions
+        #                 "libcrypt1:ubuntu-20.04:": ["<4.5.0"],
+        #             },
+        #             [  # expected
+        #                 {
+        #                     "tag_name": "libcrypt1:ubuntu-20.04:",
+        #                     "target": "ubuntu",
+        #                     "version": "1:4.4.10-10ubuntu4",
+        #                 },
+        #                 {
+        #                     "tag_name": "libcrypt1:ubuntu-20.04:",
+        #                     "target": "sample target1",  # scan root
+        #                     "version": "1:4.4.10-10ubuntu4",
+        #                 },
+        #             ],
+        #         ),
+        #         # test case 2b: os-pkgs with not vulnerable version
+        #         (
+        #             "sample service1",
+        #             [  # input
+        #                 (
+        #                     {  # application
+        #                         "name": "ubuntu",
+        #                         "type": "operating-system",
+        #                         "trivy_type": "ubuntu",
+        #                         "trivy_class": "os-pkgs",
+        #                     },
+        #                     [  # libraries
+        #                         {
+        #                             "purl": (
+        #                                 "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4"
+        #                                 "?distro=ubuntu-20.04"
+        #                             ),
+        #                             "name": "libcrypt1",
+        #                             "group": None,
+        #                             "version": "1:4.4.10-10ubuntu4",
+        #                         },
+        #                     ],
+        #                 ),
+        #             ],
+        #             {  # vulnerable_versions
+        #                 "libcrypt1:ubuntu-20.04:": ["<4.3.0"],
+        #             },
+        #             [  # expected
+        #                 {
+        #                     "tag_name": "libcrypt1:ubuntu-20.04:",
+        #                     "target": "ubuntu",
+        #                     "version": "1:4.4.10-10ubuntu4",
+        #                 },
+        #                 {
+        #                     "tag_name": "libcrypt1:ubuntu-20.04:",
+        #                     "target": "sample target1",  # scan root
+        #                     "version": "1:4.4.10-10ubuntu4",
+        #                 },
+        #             ],
+        #         ),
+        #         # test case 3: lang-pkgs with group
+        #         (
+        #             "sample service1",
+        #             [  # input
+        #                 (
+        #                     {  # application
+        #                         "name": "web/package-lock.json",
+        #                         "type": "application",
+        #                         "trivy_type": "npm",
+        #                         "trivy_class": "lang-pkgs",
+        #                     },
+        #                     [  # libraries
+        #                         {
+        #                             "purl": "pkg:npm/%40nextui-org/button@2.0.26",
+        #                             "name": "button",
+        #                             "group": "@nextui-org",
+        #                             "version": "2.0.26",
+        #                         },
+        #                     ],
+        #                 ),
+        #             ],
+        #             {  # vulnerable_versions
+        #                 "@nextui-org/button:npm:npm": ["< 2.1.0"],
+        #             },
+        #             [  # expected
+        #                 {
+        #                     "tag_name": "@nextui-org/button:npm:npm",
+        #                     "target": "web/package-lock.json",
+        #                     "version": "2.0.26",
+        #                 },
+        #                 {
+        #                     "tag_name": "@nextui-org/button:npm:npm",
+        #                     "target": "sample target1",  # scan root
+        #                     "version": "2.0.26",
+        #                 },
+        #             ],
+        #         ),
+        #         # test case 4: (legacy) lang-pkgs without group
+        #         (
+        #             "sample service1",
+        #             [  # input
+        #                 (
+        #                     {  # application
+        #                         "name": "web/package-lock.json",
+        #                         "type": "application",
+        #                         "trivy_type": "npm",
+        #                         "trivy_class": "lang-pkgs",
+        #                     },
+        #                     [  # libraries
+        #                         {
+        #                             "purl": "pkg:npm/%40nextui-org/button@2.0.26",
+        #                             "name": "@nextui-org/button",
+        #                             "group": None,
+        #                             "version": "2.0.26",
+        #                         },
+        #                     ],
+        #                 ),
+        #             ],
+        #             {  # vulnerable_versions
+        #                 "@nextui-org/button:npm:npm": ["< 2.1.0"],
+        #             },
+        #             [  # expected
+        #                 {
+        #                     "tag_name": "@nextui-org/button:npm:npm",
+        #                     "target": "web/package-lock.json",
+        #                     "version": "2.0.26",
+        #                 },
+        #                 {
+        #                     "tag_name": "@nextui-org/button:npm:npm",
+        #                     "target": "sample target1",  # scan root
+        #                     "version": "2.0.26",
+        #                 },
+        #             ],
+        #         ),
+        #     ],
+        # )
         def test_create_threats_based_on_sbom(
             self,
             service_name,
@@ -1105,7 +815,7 @@ class TestPostUploadSBOMFileCycloneDX:
             }
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
 
-            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, True, None)
+            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, None)
 
             services = self.get_services()
             service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
@@ -1178,7 +888,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), {})
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1226,7 +936,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_broken_sbom_json(self.gen_base_json(target_name))
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1270,7 +980,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), {})
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1322,7 +1032,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_broken_sbom_json(self.gen_base_json(target_name))
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1350,7 +1060,7 @@ class TestPostUploadSBOMFileCycloneDX:
 
             caplog.set_level(INFO)
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
             assert [
                 ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),
@@ -1367,7 +1077,7 @@ class TestPostUploadSBOMFileCycloneDX:
 
             caplog.set_level(INFO)
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
             assert [
                 ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),

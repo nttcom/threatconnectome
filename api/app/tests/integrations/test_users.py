@@ -269,7 +269,6 @@ class TestDeleteUserSideEffects:
         set_ticket_status(
             USER1,
             self.pteam1.pteam_id,
-            self.service1["service_id"],
             self.ticket1["ticket_id"],
             status_request1,
         )
@@ -282,7 +281,6 @@ class TestDeleteUserSideEffects:
         set_ticket_status(
             USER2,
             self.pteam2.pteam_id,
-            self.service2["service_id"],
             self.ticket2["ticket_id"],
             status_request2,
         )
@@ -445,7 +443,6 @@ class TestDeleteUserSideEffects:
         set_ticket_status(
             USER2,
             self.pteam1.pteam_id,
-            self.service1["service_id"],
             self.ticket1["ticket_id"],
             status_request,
         )
@@ -471,7 +468,6 @@ class TestDeleteUserSideEffects:
         set_ticket_status(
             USER2,
             self.pteam1.pteam_id,
-            self.service1["service_id"],
             self.ticket1["ticket_id"],
             status_request,
         )
