@@ -519,7 +519,7 @@ def get_dependencies(
 
 
 @router.get(
-    "/{pteam_id}/services/dependencies/{dependency_id}",
+    "/{pteam_id}/dependencies/{dependency_id}",
     response_model=schemas.DependencyResponse,
 )
 def get_dependency(
