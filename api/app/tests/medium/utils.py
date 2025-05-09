@@ -158,6 +158,18 @@ def get_service_by_service_name(user: dict, pteam_id: UUID | str, service_name: 
     return next(filter(lambda x: x["service_name"] == service_name, data["services"]), None)
 
 
+def create_vuln(
+    user: dict,
+    vuln: dict,
+) -> schemas.VulnResponse:
+
+    response = client.put(f'/vulns/{vuln["vuln_id"]}', headers=headers(user), json=vuln)
+
+    if response.status_code != 200:
+        raise HTTPError(response)
+    return schemas.VulnResponse(**response.json())
+
+
 def create_actionlog(
     user: dict,
     action_id: UUID | str,

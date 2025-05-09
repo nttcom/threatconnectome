@@ -312,34 +312,19 @@ class TicketResponse(ORMModel):
     ticket_status: TicketStatusResponse
 
 
-class PTeamTagSummary(ORMModel):
-    tag_id: UUID
-    tag_name: str
-    parent_id: UUID | None
-    parent_name: str | None
-    service_ids: list[UUID]
-    ssvc_priority: SSVCDeployerPriorityEnum | None
-    updated_at: datetime | None
-    status_count: dict[str, int]
-
-
-class PTeamTagsSummary(ORMModel):
-    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # ssvc_priority: tags count
-    tags: list[PTeamTagSummary]
-
-
-class PTeamServiceTagsSummary(ORMModel):
-    class PTeamServiceTagSummary(ORMModel):
-        tag_id: UUID
-        tag_name: str
-        parent_id: UUID | None
-        parent_name: str | None
+class PTeamPackagesSummary(ORMModel):
+    class PTeamPackageSummary(ORMModel):
+        package_id: UUID
+        package_name: str
+        ecosystem: str
+        package_manager: str
+        service_ids: list[UUID]
         ssvc_priority: SSVCDeployerPriorityEnum | None
         updated_at: datetime | None
         status_count: dict[str, int]  # TopicStatusType.value: tickets count
 
-    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # priority: tags count
-    tags: list[PTeamServiceTagSummary]
+    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # priority: packages count
+    packages: list[PTeamPackageSummary]
 
 
 class SlackCheckRequest(ORMModel):
