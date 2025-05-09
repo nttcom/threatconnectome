@@ -871,16 +871,13 @@ def test_delete_service_thumbnail():
 def test_get_dependency(testdb):
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
     pteam_id = ticket_response["pteam_id"]
-    service_id = ticket_response["service_id"]
 
-    dependencies_response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/dependencies", headers=headers(USER1)
-    )
+    dependencies_response = client.get(f"/pteams/{pteam_id}/dependencies", headers=headers(USER1))
     dependency1 = dependencies_response.json()[0]
     dependency_id = dependency1["dependency_id"]
 
     dependency_response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/dependencies/{dependency_id}",
+        f"/pteams/{pteam_id}/dependencies/{dependency_id}",
         headers=headers(USER1),
     )
     assert dependency_response.status_code == 200
@@ -895,50 +892,26 @@ def test_get_dependency(testdb):
 def test_get_dependency_with_wrong_pteam_id(testdb):
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
     pteam_id = ticket_response["pteam_id"]
-    service_id = ticket_response["service_id"]
 
-    dependencies_response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/dependencies", headers=headers(USER1)
-    )
+    dependencies_response = client.get(f"/pteams/{pteam_id}/dependencies", headers=headers(USER1))
     dependency1 = dependencies_response.json()[0]
     dependency_id = dependency1["dependency_id"]
 
     wrong_pteam_id = str(uuid4())
     dependency_response = client.get(
-        f"/pteams/{wrong_pteam_id}/services/{service_id}/dependencies/{dependency_id}",
+        f"/pteams/{wrong_pteam_id}/dependencies/{dependency_id}",
         headers=headers(USER1),
     )
     assert dependency_response.status_code == 404
     assert dependency_response.json() == {"detail": "No such pteam"}
 
 
-def test_get_dependency_with_wrong_service_id(testdb):
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
-    pteam_id = ticket_response["pteam_id"]
-    service_id = ticket_response["service_id"]
-
-    dependencies_response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/dependencies", headers=headers(USER1)
-    )
-    dependency1 = dependencies_response.json()[0]
-    dependency_id = dependency1["dependency_id"]
-
-    wrong_service_id = str(uuid4())
-    dependency_response = client.get(
-        f"/pteams/{pteam_id}/services/{wrong_service_id}/dependencies/{dependency_id}",
-        headers=headers(USER1),
-    )
-    assert dependency_response.status_code == 404
-    assert dependency_response.json() == {"detail": "No such service"}
-
-
 def test_get_dependency_with_wrong_dependency_id(testdb):
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
     pteam_id = ticket_response["pteam_id"]
-    service_id = ticket_response["service_id"]
     wrong_dependency_id = str(uuid4())
     dependency_response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/dependencies/{wrong_dependency_id}",
+        f"/pteams/{pteam_id}/dependencies/{wrong_dependency_id}",
         headers=headers(USER1),
     )
     assert dependency_response.status_code == 404
