@@ -871,11 +871,8 @@ def test_delete_service_thumbnail():
 def test_get_dependency(testdb):
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
     pteam_id = ticket_response["pteam_id"]
-    service_id = ticket_response["service_id"]
 
-    dependencies_response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/dependencies", headers=headers(USER1)
-    )
+    dependencies_response = client.get(f"/pteams/{pteam_id}/dependencies", headers=headers(USER1))
     dependency1 = dependencies_response.json()[0]
     dependency_id = dependency1["dependency_id"]
 
@@ -895,11 +892,8 @@ def test_get_dependency(testdb):
 def test_get_dependency_with_wrong_pteam_id(testdb):
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
     pteam_id = ticket_response["pteam_id"]
-    service_id = ticket_response["service_id"]
 
-    dependencies_response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/dependencies", headers=headers(USER1)
-    )
+    dependencies_response = client.get(f"/pteams/{pteam_id}/dependencies", headers=headers(USER1))
     dependency1 = dependencies_response.json()[0]
     dependency_id = dependency1["dependency_id"]
 
