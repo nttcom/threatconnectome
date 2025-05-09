@@ -915,10 +915,9 @@ def test_get_dependency_with_wrong_pteam_id(testdb):
 def test_get_dependency_with_wrong_dependency_id(testdb):
     ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
     pteam_id = ticket_response["pteam_id"]
-    service_id = ticket_response["service_id"]
     wrong_dependency_id = str(uuid4())
     dependency_response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/dependencies/{wrong_dependency_id}",
+        f"/pteams/{pteam_id}/dependencies/{wrong_dependency_id}",
         headers=headers(USER1),
     )
     assert dependency_response.status_code == 404
