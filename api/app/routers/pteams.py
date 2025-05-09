@@ -524,8 +524,8 @@ def get_dependencies(
 )
 def get_dependency(
     pteam_id: UUID,
-    service_id: UUID,
     dependency_id: UUID,
+    service_id: UUID = Query(..., description="Service ID to filter dependencies"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
