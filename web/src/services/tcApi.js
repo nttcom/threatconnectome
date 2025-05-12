@@ -290,6 +290,21 @@ export const tcApi = createApi({
       ],
     }),
 
+    /* PTeam packages Summary */
+    getPTeamPackagesSummary: builder.query({
+      query: ({ pteamId, serviceId }) => ({
+        url: `pteams/${pteamId}/packages/summary`,
+        method: "GET",
+        params: { service_id: serviceId },
+      }),
+      providesTags: (result, error, arg) => [
+        { type: "Ticket", id: "ALL" },
+        { type: "Threat", id: "ALL" },
+        { type: "TicketStatus", id: "ALL" },
+        { type: "Service", id: "ALL" },
+      ],
+    }),
+
     /* SBOM */
     uploadSBOMFile: builder.mutation({
       query: ({ pteamId, serviceName, sbomFile, forceMode = true }) => {
@@ -517,6 +532,7 @@ export const {
   useUpdatePTeamServiceThumbnailMutation,
   useDeletePTeamServiceThumbnailMutation,
   useGetPTeamTagsSummaryQuery,
+  useGetPTeamPackagesSummaryQuery,
   useUploadSBOMFileMutation,
   useGetTagsQuery,
   useGetTagQuery,
