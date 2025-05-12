@@ -229,20 +229,6 @@ export const tcApi = createApi({
       ],
     }),
 
-    /* PTeam Service Tags Summary */
-    getPTeamServiceTagsSummary: builder.query({
-      query: ({ pteamId, serviceId }) => ({
-        url: `pteams/${pteamId}/services/${serviceId}/tags/summary`,
-        method: "GET",
-      }),
-      providesTags: (result, error, arg) => [
-        { type: "Ticket", id: "ALL" },
-        { type: "Threat", id: "ALL" },
-        { type: "TicketStatus", id: "ALL" },
-        { type: "Service", id: "ALL" },
-      ],
-    }),
-
     /* PTeam Service Thumbnail */
     getPTeamServiceThumbnail: builder.query({
       query: ({ pteamId, serviceId }) => ({
@@ -274,20 +260,6 @@ export const tcApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: (result, error, arg) => [{ type: "Service.thumbnail", id: arg.serviceId }],
-    }),
-
-    /* PTeam Tags Summary */
-    getPTeamTagsSummary: builder.query({
-      query: (pteamId) => ({
-        url: `pteams/${pteamId}/tags/summary`,
-        method: "GET",
-      }),
-      providesTags: (result, error, arg) => [
-        { type: "Ticket", id: "ALL" },
-        { type: "Threat", id: "ALL" },
-        { type: "TicketStatus", id: "ALL" },
-        { type: "Service", id: "ALL" },
-      ],
     }),
 
     /* PTeam packages Summary */
@@ -527,11 +499,9 @@ export const {
   useUpdatePTeamServiceMutation,
   useDeletePTeamServiceMutation,
   useGetPTeamServiceTaggedTopicIdsQuery,
-  useGetPTeamServiceTagsSummaryQuery,
   useGetPTeamServiceThumbnailQuery,
   useUpdatePTeamServiceThumbnailMutation,
   useDeletePTeamServiceThumbnailMutation,
-  useGetPTeamTagsSummaryQuery,
   useGetPTeamPackagesSummaryQuery,
   useUploadSBOMFileMutation,
   useGetTagsQuery,
