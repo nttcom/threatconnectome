@@ -205,9 +205,13 @@ export function Status() {
 
   if (
     (!pteamAllServicesPackagesSummary && isActiveAllServicesMode) ||
-    (!pteamServicePackagesSummary && !isActiveAllServicesMode) ||
-    pteamAllServicesPackagesSummaryIsFetching ||
-    pteamServicePackagesSummaryIsFetching
+    (!pteamServicePackagesSummary &&
+      !isActiveAllServicesMode &&
+      (serviceId || pteam.services.length > 0)) ||
+    (pteamAllServicesPackagesSummaryIsFetching && isActiveAllServicesMode) ||
+    (pteamServicePackagesSummaryIsFetching &&
+      !isActiveAllServicesMode &&
+      (serviceId || pteam.services.length > 0))
   )
     return <>Now loading PTeamPackagesSummary...</>;
 

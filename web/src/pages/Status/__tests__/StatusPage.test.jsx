@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
-import { useGetPTeamQuery, useGetPTeamServiceTagsSummaryQuery } from "../../../services/tcApi";
+import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../../services/tcApi";
 import store from "../../../store";
 import { Status } from "../StatusPage";
 
@@ -38,7 +38,7 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
       isLoading: false,
     }),
     useGetPTeamQuery: vi.fn(),
-    useGetPTeamServiceTagsSummaryQuery: vi.fn(),
+    useGetPTeamPackagesSummaryQuery: vi.fn(),
   };
 });
 
@@ -87,19 +87,13 @@ const testPTeamData = {
   ],
 };
 
-const testTagsData = {
-  ssvc_priority_count: {
-    immediate: 0,
-    out_of_cycle: 2,
-    scheduled: 0,
-    defer: 0,
-  },
-  tags: [
+const testPackagesData = {
+  packages: [
     {
-      tag_id: "685335c5-c6aa-47ed-87d9-ce1d3eeaf48d",
-      tag_name: "sqlparse:pypi:",
-      parent_id: "685335c5-c6aa-47ed-87d9-ce1d3eeaf48d",
-      parent_name: "sqlparse:pypi:",
+      package_id: "685335c5-c6aa-47ed-87d9-ce1d3eeaf48d",
+      package_name: "sqlparse:pypi:",
+      package_manager: "",
+      ecosystem: "pypi",
       ssvc_priority: "out_of_cycle",
       updated_at: "2024-12-09T03:58:14.332885",
       status_count: {
@@ -108,12 +102,13 @@ const testTagsData = {
         scheduled: 4,
         completed: 1,
       },
+      service_ids: ["50604348-fd06-4152-afd1-2f3e73c4eb9f"],
     },
     {
-      tag_id: "56cfb764-e0ae-4acd-ad14-72312a30e17a",
-      tag_name: "setuptools:pypi:",
-      parent_id: "56cfb764-e0ae-4acd-ad14-72312a30e17a",
-      parent_name: "setuptools:pypi:",
+      package_id: "56cfb764-e0ae-4acd-ad14-72312a30e17a",
+      package_name: "setuptools:pypi:",
+      package_manager: "",
+      ecosystem: "pypi",
       ssvc_priority: "out_of_cycle",
       updated_at: "2024-12-03T09:18:46.131242",
       status_count: {
@@ -122,8 +117,15 @@ const testTagsData = {
         scheduled: 0,
         completed: 0,
       },
+      service_ids: ["50604348-fd06-4152-afd1-2f3e73c4eb9f"],
     },
   ],
+  ssvc_priority_count: {
+    immediate: 0,
+    out_of_cycle: 2,
+    scheduled: 0,
+    defer: 0,
+  },
 };
 
 describe("StatusPage", () => {
@@ -147,12 +149,13 @@ describe("StatusPage", () => {
 
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
-      const serviceTagsSummary = {
+      // パッケージサマリーデータを適切な構造で提供
+      const PackagesSummary = {
         currentData: null,
         error: false,
         isFetching: false,
       };
-      useGetPTeamServiceTagsSummaryQuery.mockReturnValue(serviceTagsSummary);
+      useGetPTeamPackagesSummaryQuery.mockReturnValue(PackagesSummary);
 
       renderStatusPage();
       expect(screen.getByText("Drop SBOM file here")).toBeInTheDocument();
@@ -176,12 +179,12 @@ describe("StatusPage", () => {
 
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
-      const testServiceTagsSummary = {
-        currentData: testTagsData,
+      const testPackagesSummary = {
+        currentData: testPackagesData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamServiceTagsSummaryQuery.mockReturnValue(testServiceTagsSummary);
+      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
 
       renderStatusPage();
       expect(screen.queryByText("Drop SBOM file here")).toBeNull();
@@ -205,12 +208,12 @@ describe("StatusPage", () => {
 
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
-      const serviceTagsSummary = {
-        currentData: testTagsData,
+      const testPackagesSummary = {
+        currentData: testPackagesData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamServiceTagsSummaryQuery.mockReturnValue(serviceTagsSummary);
+      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
       renderStatusPage();
