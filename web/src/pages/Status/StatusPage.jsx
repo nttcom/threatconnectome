@@ -6,8 +6,14 @@ import {
 } from "@mui/icons-material";
 import {
   Box,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardMedia,
   Chip,
   FormControlLabel,
+  Grid,
   IconButton,
   InputAdornment,
   ListItemIcon,
@@ -434,105 +440,133 @@ export function Status() {
   );
 
   return (
-    <>
-      <Box display="flex" flexDirection="row">
-        <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
-        <Box flexGrow={1} />
-      </Box>
-      <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-        <DeleteServiceIcon pteamId={pteamId} />
-        <FormControlLabel
-          control={
-            <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />
-          }
-          label="All Services"
-        />
-      </Box>
-      {!isActiveAllServicesMode && (
-        <PTeamServiceTabs
-          services={pteam.services}
-          currentServiceId={serviceId}
-          onChangeService={handleChangeService}
-          setIsActiveUploadMode={setIsActiveUploadMode}
-        />
-      )}
-      <CustomTabPanel value={isActiveUploadMode} index={0}>
-        {service && (
-          <PTeamServiceDetails
-            pteamId={pteamId}
-            service={service}
-            expandService={expandService}
-            onSwitchExpandService={handleSwitchExpandService}
-            highestSsvcPriority={serviceTagsSummary.tags[0]?.ssvc_priority ?? "defer"}
+    <Grid container>
+      <Grid item xs={12}>
+        <Box display="flex" flexDirection="row">
+          <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
+          <Box flexGrow={1} />
+        </Box>
+        <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+          <DeleteServiceIcon pteamId={pteamId} />
+          <FormControlLabel
+            control={
+              <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />
+            }
+            label="All Services"
+          />
+        </Box>
+        {!isActiveAllServicesMode && (
+          <PTeamServiceTabs
+            services={pteam.services}
+            currentServiceId={serviceId}
+            onChangeService={handleChangeService}
+            setIsActiveUploadMode={setIsActiveUploadMode}
           />
         )}
-        <Box display="flex" mt={2}>
-          {filterRow}
-          <Box flexGrow={1} />
-          <Box mb={0.5}>
-            <SearchField word={searchWord} onApply={handleSearchWord} />
-            <IconButton
-              id="basic-button"
-              aria-controls={searchMenuOpen ? "basic-menu" : undefined}
-              aria-haspopup="true"
-              aria-expanded={searchMenuOpen ? "true" : undefined}
-              onClick={handleClick}
-              size="small"
-              sx={{ mt: 1.5 }}
-            >
-              {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
-            </IconButton>
-            {SSVCPriorityMenu}
+        <CustomTabPanel value={isActiveUploadMode} index={0}>
+          {service && (
+            <Box sx={{ display: { xs: "flex", md: "block" }, justifyContent: "center" }}>
+              <Box sx={{ display: { xs: "none", md: "block" } }}>
+                <PTeamServiceDetails
+                  pteamId={pteamId}
+                  service={service}
+                  expandService={expandService}
+                  onSwitchExpandService={handleSwitchExpandService}
+                  highestSsvcPriority={serviceTagsSummary.tags[0]?.ssvc_priority ?? "defer"}
+                />
+              </Box>
+              <Card sx={{ maxWidth: 345, display: { xs: "block", md: "none" } }}>
+                <CardMedia
+                  sx={{ aspectRatio: "3 / 2" }}
+                  image="/images/720x480.png"
+                  title="green iguana"
+                />
+                <CardContent>
+                  <Typography gutterBottom variant="h5" component="div">
+                    Lizard
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    Lizards are a widespread group of squamate reptiles, with over 6,000 species,
+                    ranging across all continents except Antarctica
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button size="small">Share</Button>
+                  <Button size="small">Learn More</Button>
+                </CardActions>
+              </Card>
+            </Box>
+          )}
+          <Box
+            mt={2}
+            sx={{ justifyContent: "space-between", display: { xs: "block", md: "flex" } }}
+          >
+            <Box sx={{ display: { xs: "none", md: "block" } }}>{filterRow}</Box>
+            <Box mb={0.5}>
+              <SearchField word={searchWord} onApply={handleSearchWord} />
+              <IconButton
+                id="basic-button"
+                aria-controls={searchMenuOpen ? "basic-menu" : undefined}
+                aria-haspopup="true"
+                aria-expanded={searchMenuOpen ? "true" : undefined}
+                onClick={handleClick}
+                size="small"
+                sx={{ mt: 1.5 }}
+              >
+                {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
+              </IconButton>
+              {SSVCPriorityMenu}
+            </Box>
           </Box>
-        </Box>
-        <TableContainer component={Paper} sx={{ mt: 0.5 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableBody>
-              {isActiveAllServicesMode ? (
-                <>
-                  {targetTags.map((tag) => (
-                    <ErrorBoundary key={tag.tag_id} FallbackComponent={PTeamStatusCardFallback}>
-                      <PTeamStatusCard
-                        key={tag.tag_id}
-                        onHandleClick={() =>
-                          handleNavigateServiceList(tag.tag_id, tag.tag_name, tag.service_ids)
-                        }
-                        pteam={pteam}
-                        tag={tag}
-                        serviceIds={tag.service_ids}
-                      />
-                    </ErrorBoundary>
-                  ))}
-                </>
-              ) : (
-                <>
-                  {targetTags.map((tag) => (
-                    <ErrorBoundary key={tag.tag_id} FallbackComponent={PTeamStatusCardFallback}>
-                      <PTeamStatusCard
-                        key={tag.tag_id}
-                        onHandleClick={() => handleNavigateTag(tag.tag_id)}
-                        pteam={pteam}
-                        tag={tag}
-                      />
-                    </ErrorBoundary>
-                  ))}
-                </>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        {targetTags.length > 3 && filterRow}
-      </CustomTabPanel>
-      <CustomTabPanel value={isActiveUploadMode} index={1}>
-        <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
-      </CustomTabPanel>
-      <PTeamServicesListModal
-        onSetShow={setPTeamServicesListModalOpen}
-        show={pTeamServicesListModalOpen}
-        tagId={selectedTagInfo.tagId}
-        tagName={selectedTagInfo.tagName}
-        serviceIds={selectedTagInfo.serviceIds}
-      />
-    </>
+          <TableContainer component={Paper} sx={{ mt: 0.5 }}>
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+              <TableBody>
+                {isActiveAllServicesMode ? (
+                  <>
+                    {targetTags.map((tag) => (
+                      <ErrorBoundary key={tag.tag_id} FallbackComponent={PTeamStatusCardFallback}>
+                        <PTeamStatusCard
+                          key={tag.tag_id}
+                          onHandleClick={() =>
+                            handleNavigateServiceList(tag.tag_id, tag.tag_name, tag.service_ids)
+                          }
+                          pteam={pteam}
+                          tag={tag}
+                          serviceIds={tag.service_ids}
+                        />
+                      </ErrorBoundary>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {targetTags.map((tag) => (
+                      <ErrorBoundary key={tag.tag_id} FallbackComponent={PTeamStatusCardFallback}>
+                        <PTeamStatusCard
+                          key={tag.tag_id}
+                          onHandleClick={() => handleNavigateTag(tag.tag_id)}
+                          pteam={pteam}
+                          tag={tag}
+                        />
+                      </ErrorBoundary>
+                    ))}
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          {targetTags.length > 3 && filterRow}
+        </CustomTabPanel>
+        <CustomTabPanel value={isActiveUploadMode} index={1}>
+          <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+        </CustomTabPanel>
+        <PTeamServicesListModal
+          onSetShow={setPTeamServicesListModalOpen}
+          show={pTeamServicesListModalOpen}
+          tagId={selectedTagInfo.tagId}
+          tagName={selectedTagInfo.tagName}
+          serviceIds={selectedTagInfo.serviceIds}
+        />
+      </Grid>
+    </Grid>
   );
 }

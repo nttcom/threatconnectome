@@ -47,13 +47,9 @@ export function App() {
       </Box>
       <Drawer />
       <Main open={system.drawerOpen}>
-        <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" m={1}>
-          <Box display="flex" flexDirection="column" flexGrow={1} maxWidth={mainMaxWidth}>
-            <ErrorBoundary FallbackComponent={AppFallback}>
-              <OutletWithCheckedParams />
-            </ErrorBoundary>
-          </Box>
-        </Box>
+        <ErrorBoundary FallbackComponent={AppFallback}>
+          <OutletWithCheckedParams />
+        </ErrorBoundary>
       </Main>
     </>
   );
