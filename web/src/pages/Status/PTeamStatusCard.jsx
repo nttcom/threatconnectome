@@ -192,6 +192,8 @@ PTeamStatusCard.propTypes = {
     ssvc_priority: PropTypes.string,
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
+    ecosystem: PropTypes.string,
+    package_manager: PropTypes.string,
   }).isRequired,
   serviceIds: PropTypes.array,
 };

@@ -45,8 +45,6 @@ import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
 import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
 import { SBOMDropArea } from "./SBOMDropArea";
-import { is } from "date-fns/locale";
-import { PTeamServiceDetailsSettingsView } from "./ServiceDetailsSettings/PTeamServiceDetailsSettingsView";
 
 const ssvcPriorityCountMax = 99999;
 
