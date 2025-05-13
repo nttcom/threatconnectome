@@ -107,7 +107,7 @@ export function Drawer() {
           <StyledListItemIcon>
             <TopicIcon />
           </StyledListItemIcon>
-          <ListItemText>Topics</ListItemText>
+          <ListItemText>Vulns</ListItemText>
         </StyledListItemButton>
         {/* Vulnerabilities -- not listed on drawer, currently */}
       </List>
