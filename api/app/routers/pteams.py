@@ -549,7 +549,7 @@ def get_vuln_ids_tied_to_service_packages(
     pteam_id: UUID,
     service_id: UUID | None = Query(None),
     package_id: UUID | None = Query(None),
-    related_ticket_status: str | None = Query(None),
+    related_ticket_status: schemas.RelatedTicketStatus | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -573,15 +573,6 @@ def get_vuln_ids_tied_to_service_packages(
         )
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
-    if (
-        related_ticket_status
-        and related_ticket_status != "solved"
-        and related_ticket_status != "unsolved"
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid string. Please specify solved or unsolved",
-        )
 
     vuln_ids_summary = get_vuln_ids_summary_by_service_id_and_package_id(
         pteam, service, package_id, related_ticket_status

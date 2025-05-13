@@ -50,32 +50,28 @@ def _update_vuln_ids_from_dependencies(
         if package_id and dependency.package_version.package_id != str(package_id):
             continue
         for ticket in dependency.tickets:
-            if not ticket:
-                continue
-
             ssvc_priority = ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
 
             if (
                 related_ticket_status == "solved"
-                and ticket.ticket_status.topic_status == _completed
-            ):
-                _update_vuln_ids_dict(vuln_ids_dict, ticket, ssvc_priority)
-            elif (
-                related_ticket_status == "unsolved"
                 and ticket.ticket_status.topic_status != _completed
             ):
-                _update_vuln_ids_dict(vuln_ids_dict, ticket, ssvc_priority)
-            elif related_ticket_status is None:
-                _update_vuln_ids_dict(vuln_ids_dict, ticket, ssvc_priority)
+                continue
+            elif (
+                related_ticket_status == "unsolved"
+                and ticket.ticket_status.topic_status == _completed
+            ):
+                continue
+
+            _update_vuln_ids_dict(vuln_ids_dict, ticket, ssvc_priority)
 
 
 def _update_vuln_ids_dict(
     vuln_ids_dict: dict, ticket: models.Ticket, ssvc_priority: models.SSVCDeployerPriorityEnum
 ):
-    if (tmp_vuln_ids_dict := vuln_ids_dict.get(ticket.threat.vuln_id)) is None:
-        tmp_vuln_ids_dict = {
+    if ticket.threat.vuln_id not in vuln_ids_dict:
+        vuln_ids_dict[ticket.threat.vuln_id] = {
             "vuln_id": ticket.threat.vuln_id,
             "highest_ssvc_priority": ssvc_priority,
             "vuln_updated_at": ticket.threat.vuln.updated_at,
         }
-        vuln_ids_dict[ticket.threat.vuln_id] = tmp_vuln_ids_dict

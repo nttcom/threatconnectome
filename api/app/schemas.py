@@ -29,6 +29,11 @@ class VulnSortKey(str, Enum):
     UPDATED_AT_DESC = "updated_at_desc"
 
 
+class RelatedTicketStatus(str, Enum):
+    SOLVED = "solved"
+    UNSOLVED = "unsolved"
+
+
 class Token(ORMModel):
     access_token: str
     token_type: str
