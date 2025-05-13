@@ -3,21 +3,6 @@ from uuid import UUID
 from app import models
 
 
-def _sum_ssvc_priority_count(topic_ids: list[str], topic_ids_dict: dict, count_key: str) -> dict:
-    immediate = models.SSVCDeployerPriorityEnum.IMMEDIATE.value
-    out_of_cycle = models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE.value
-    scheduled = models.SSVCDeployerPriorityEnum.SCHEDULED.value
-    defer = models.SSVCDeployerPriorityEnum.DEFER.value
-    sum_ssvc_priority_count = {immediate: 0, out_of_cycle: 0, scheduled: 0, defer: 0}
-    for topic_id in topic_ids:
-        current_count = topic_ids_dict[topic_id][count_key]
-        sum_ssvc_priority_count[immediate] += current_count[immediate]
-        sum_ssvc_priority_count[out_of_cycle] += current_count[out_of_cycle]
-        sum_ssvc_priority_count[scheduled] += current_count[scheduled]
-        sum_ssvc_priority_count[defer] += current_count[defer]
-    return sum_ssvc_priority_count
-
-
 def get_vuln_ids_summary_by_service_id_and_package_id(
     pteam: models.PTeam,
     service: models.Service | None,
