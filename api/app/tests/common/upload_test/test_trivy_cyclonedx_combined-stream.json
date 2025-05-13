@@ -1,0 +1,78 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:4e1812f5-5148-4208-9981-9ce455aa6cdb",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2024-01-30T08:12:38+00:00",
+    "tools": [
+      {
+        "vendor": "aquasecurity",
+        "name": "trivy",
+        "version": "0.48.3"
+      }
+    ],
+    "component": {
+      "bom-ref": "d2f1f1cc-5fa1-4bba-b5af-fd19dfbe4718",
+      "type": "application",
+      "name": ".",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:SchemaVersion",
+          "value": "2"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "8c90136c-e90f-4db3-9c25-264e6f54452e",
+      "type": "application",
+      "name": "package-lock.json",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:Class",
+          "value": "lang-pkgs"
+        },
+        {
+          "name": "aquasecurity:trivy:Type",
+          "value": "npm"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/combined-stream@1.0.8",
+      "type": "library",
+      "name": "combined-stream",
+      "version": "1.0.8",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/combined-stream@1.0.8",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "combined-stream@1.0.8"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "npm"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:npm/combined-stream@1.0.8",
+      "dependsOn": [
+        "pkg:npm/delayed-stream@1.0.0"
+      ]
+    }
+  ],
+  "vulnerabilities": []
+}

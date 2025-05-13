@@ -29,6 +29,11 @@ class VulnSortKey(str, Enum):
     UPDATED_AT_DESC = "updated_at_desc"
 
 
+class RelatedTicketStatus(str, Enum):
+    SOLVED = "solved"
+    UNSOLVED = "unsolved"
+
+
 class Token(ORMModel):
     access_token: str
     token_type: str
@@ -335,17 +340,12 @@ class EmailCheckRequest(ORMModel):
     email: str
 
 
-class ServiceTaggedTopics(ORMModel):
-    ssvc_priority_count: dict[str, int]
-    topic_ids: list[UUID]
-
-
-class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
+class ServicePackageVulnsSolvedUnsolved(ORMModel):
     pteam_id: UUID
-    service_id: UUID
-    tag_id: UUID
-    solved: ServiceTaggedTopics
-    unsolved: ServiceTaggedTopics
+    service_id: UUID | None
+    package_id: UUID | None
+    related_ticket_status: str | None
+    vuln_ids: list[UUID]
 
 
 class DependencyResponse(ORMModel):

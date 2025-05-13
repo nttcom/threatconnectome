@@ -343,6 +343,22 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
     ).one_or_none()
 
 
+### Dependency
+
+
+def get_dependency_from_service_id_and_package_id(
+    db: Session, service_id: UUID | str, package_id: UUID | str
+) -> models.Dependency | None:
+    return db.scalars(
+        select(models.Dependency)
+        .join(models.PackageVersion)
+        .where(
+            models.Dependency.service_id == str(service_id),
+            models.PackageVersion.package_id == str(package_id),
+        )
+    ).first()
+
+
 ### Alert
 
 
