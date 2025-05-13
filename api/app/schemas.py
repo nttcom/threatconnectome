@@ -335,19 +335,6 @@ class EmailCheckRequest(ORMModel):
     email: str
 
 
-class ServiceTaggedTopics(ORMModel):
-    ssvc_priority_count: dict[str, int]
-    topic_ids: list[UUID]
-
-
-class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
-    pteam_id: UUID
-    service_id: UUID
-    tag_id: UUID
-    solved: ServiceTaggedTopics
-    unsolved: ServiceTaggedTopics
-
-
 class ServicePackageVulnsSolvedUnsolved(ORMModel):
     pteam_id: UUID
     service_id: UUID | None
