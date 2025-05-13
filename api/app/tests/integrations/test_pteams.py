@@ -1,6 +1,8 @@
+import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from logging import ERROR, INFO
+from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
@@ -26,11 +28,15 @@ from app.tests.medium.constants import (
     TAG1,
     TOPIC1,
     USER1,
+    VULN1,
+    VULN2,
 )
 from app.tests.medium.utils import (
     create_pteam,
     create_user,
+    create_vuln,
     headers,
+    set_ticket_status,
     upload_pteam_tags,
 )
 
@@ -161,6 +167,186 @@ def test_sbom_uploaded_at_with_called_upload_tags_file():
         seconds=30
     )
     assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
+
+
+class TestGetVulnIdsTiedToServicePackages:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, testdb):
+        # Given
+        # Create 1st ticket
+        service_name1 = "test_service1"
+        upload_file_name = "test_trivy_cyclonedx_axios.json"
+        self.ticket_response1 = ticket_utils.create_ticket(
+            testdb, USER1, PTEAM1, service_name1, upload_file_name, VULN1
+        )
+        json_data = {
+            "topic_status": "acknowledged",
+            "note": "string",
+            "assignees": [],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
+        # Create 2st ticket
+        service_name2 = "test_service2"
+        upload_file_name = "test_trivy_cyclonedx_asynckit.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        bg_create_tags_from_sbom_json(
+            sbom_json, self.ticket_response1["pteam_id"], service_name2, upload_file_name
+        )
+        self.vuln2 = create_vuln(USER1, VULN2)
+
+    def test_it_able_to_filter_when_service_id_is_specified_as_query_parameter(self):
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids?service_id={self.ticket_response1['service_id']}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert len(response1.json()["vuln_ids"]) == 2
+        assert set(response1.json()["vuln_ids"]) == {
+            self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] == self.ticket_response1["service_id"]
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] is None
+        assert len(response2.json()["vuln_ids"]) == 1
+        assert set(response2.json()["vuln_ids"]) == {self.ticket_response1["vuln_id"]}
+
+    def test_it_able_to_filter_when_package_id_is_specified_as_query_parameter(self):
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids?package_id={self.ticket_response1['package_id']}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert len(response1.json()["vuln_ids"]) == 2
+        assert set(response1.json()["vuln_ids"]) == {
+            self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] == self.ticket_response1["package_id"]
+        assert response2.json()["related_ticket_status"] is None
+        assert len(response2.json()["vuln_ids"]) == 1
+        assert set(response2.json()["vuln_ids"]) == {self.ticket_response1["vuln_id"]}
+
+    def test_it_able_to_filter_when_solved_is_specified_as_query_parameter(self):
+        # Given
+        # Change status of ticket1
+        json_data = {
+            "topic_status": "completed",
+            "note": "string",
+            "assignees": [self.ticket_response1["user_id"]],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids?related_ticket_status=solved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert len(response1.json()["vuln_ids"]) == 2
+        assert set(response1.json()["vuln_ids"]) == {
+            self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] == "solved"
+        assert len(response2.json()["vuln_ids"]) == 1
+        assert set(response2.json()["vuln_ids"]) == {self.ticket_response1["vuln_id"]}
+
+    def test_it_able_to_filter_when_unsolved_is_specified_as_query_parameter(self):
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids?related_ticket_status=unsolved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert len(response1.json()["vuln_ids"]) == 2
+        assert set(response1.json()["vuln_ids"]) == {
+            self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] == "unsolved"
+        assert len(response2.json()["vuln_ids"]) == 2
+        assert set(response1.json()["vuln_ids"]) == {
+            self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
+        }
 
 
 class TestPostUploadSBOMFileCycloneDX:
