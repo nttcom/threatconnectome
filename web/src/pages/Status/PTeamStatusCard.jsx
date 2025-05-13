@@ -104,18 +104,18 @@ StatusRatioGraph.propTypes = {
 };
 
 export function PTeamStatusCard(props) {
-  const { onHandleClick, pteam, tag, serviceIds } = props;
+  const { onHandleClick, pteam, packageInfo, serviceIds } = props;
 
   let displaySSVCPriority = "";
-  if (!tag.ssvc_priority && tag.status_count["completed"] > 0) {
+  if (!packageInfo.ssvc_priority && packageInfo.status_count["completed"] > 0) {
     displaySSVCPriority = "safe"; // solved all and at least 1 tickets
   } else if (
-    !tag.ssvc_priority &&
-    sortedTopicStatus.every((topicStatus) => tag.status_count[topicStatus] === 0)
+    !packageInfo.ssvc_priority &&
+    sortedTopicStatus.every((topicStatus) => packageInfo.status_count[topicStatus] === 0)
   ) {
     displaySSVCPriority = "empty";
   } else {
-    displaySSVCPriority = tag.ssvc_priority ?? "defer";
+    displaySSVCPriority = packageInfo.ssvc_priority ?? "defer";
   }
 
   // Change the background color and border based on the Alert Threshold value set by the team.
@@ -143,7 +143,11 @@ export function PTeamStatusCard(props) {
       </TableCell>
       <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
-          {tag.tag_name}
+          {packageInfo.package_name}
+          {":"}
+          {packageInfo.ecosystem}
+          {":"}
+          {packageInfo.package_manager}
         </Typography>
         {serviceIds &&
           pteam.services
@@ -163,10 +167,13 @@ export function PTeamStatusCard(props) {
                     : "visible",
               }}
             >
-              Updated {calcTimestampDiff(tag.updated_at)}
+              Updated {calcTimestampDiff(packageInfo.updated_at)}
             </Typography>
           </Box>
-          <StatusRatioGraph counts={tag.status_count} displaySSVCPriority={tag.ssvc_priority} />
+          <StatusRatioGraph
+            counts={packageInfo.status_count}
+            displaySSVCPriority={packageInfo.ssvc_priority}
+          />
         </Box>
       </TableCell>
     </TableRow>
@@ -176,14 +183,16 @@ export function PTeamStatusCard(props) {
 PTeamStatusCard.propTypes = {
   onHandleClick: PropTypes.func.isRequired,
   pteam: PropTypes.object.isRequired,
-  tag: PropTypes.shape({
-    tag_name: PropTypes.string,
-    tag_id: PropTypes.string,
+  packageInfo: PropTypes.shape({
+    package_name: PropTypes.string,
+    package_id: PropTypes.string,
     references: PropTypes.arrayOf(PropTypes.object),
     text: PropTypes.string,
     ssvc_priority: PropTypes.string,
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
+    ecosystem: PropTypes.string,
+    package_manager: PropTypes.string,
   }).isRequired,
   serviceIds: PropTypes.array,
 };
