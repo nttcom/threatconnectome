@@ -348,6 +348,14 @@ class ServiceTaggedTopicsSolvedUnsolved(ORMModel):
     unsolved: ServiceTaggedTopics
 
 
+class ServicePackageVulnsSolvedUnsolved(ORMModel):
+    pteam_id: UUID
+    service_id: UUID | None
+    package_id: UUID | None
+    related_ticket_status: str | None
+    vuln_ids: list[UUID]
+
+
 class DependencyResponse(ORMModel):
     dependency_id: UUID
     service_id: UUID

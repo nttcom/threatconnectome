@@ -343,6 +343,31 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
     ).one_or_none()
 
 
+### Dependency
+
+
+def get_dependency_from_service_id_and_package_id(
+    db: Session, service_id: UUID | str, package_id: UUID | str
+) -> models.Dependency | None:
+    package_versions = db.scalars(
+        select(models.PackageVersion).where(models.PackageVersion.package_id == str(package_id))
+    ).all()
+
+    dependency = None
+    for package_version in package_versions:
+        dependency = db.scalars(
+            select(models.Dependency).where(
+                models.Dependency.service_id == str(service_id),
+                models.Dependency.package_version_id == str(package_version.package_version_id),
+            )
+        ).first()  # FIXME: WORKAROUND to avoid getting multiple row
+
+        if dependency:
+            continue
+
+    return dependency
+
+
 ### Alert
 
 

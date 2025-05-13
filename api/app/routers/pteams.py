@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
 from app.business import package_business, threat_business, ticket_business
-from app.business.ssvc_business import get_topic_ids_summary_by_service_id_and_tag_id
+from app.business.ssvc_business import get_vuln_ids_summary_by_service_id_and_package_id
 from app.database import get_db, open_db_session
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
@@ -539,6 +539,61 @@ def get_dependency(
                 return dependency
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such dependency")
+
+
+@router.get(
+    "/{pteam_id}/vuln_ids",
+    response_model=schemas.ServicePackageVulnsSolvedUnsolved,
+)
+def get_vuln_ids_tied_to_service_packages(
+    pteam_id: UUID,
+    service_id: UUID | None = Query(None),
+    package_id: UUID | None = Query(None),
+    related_ticket_status: str | None = Query(None),
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    service = None
+    if service_id:
+        if not (service := persistence.get_service_by_id(db, service_id)):
+            raise NO_SUCH_SERVICE
+        if service.pteam_id != str(pteam_id):
+            raise NO_SUCH_SERVICE
+    if package_id and not persistence.get_package_by_id(db, package_id):
+        raise NO_SUCH_PACKAGE
+    if (
+        service_id
+        and package_id
+        and not persistence.get_dependency_from_service_id_and_package_id(
+            db, service_id, package_id
+        )
+    ):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
+    if (
+        related_ticket_status
+        and related_ticket_status != "solved"
+        and related_ticket_status != "unsolved"
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid string. Please specify solved or unsolved",
+        )
+
+    vuln_ids_summary = get_vuln_ids_summary_by_service_id_and_package_id(
+        pteam, service, package_id, related_ticket_status
+    )
+
+    return {
+        "pteam_id": pteam_id,
+        "service_id": service_id,
+        "package_id": package_id,
+        "related_ticket_status": related_ticket_status,
+        **vuln_ids_summary,
+    }
 
 
 @router.get(
