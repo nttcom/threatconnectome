@@ -30,6 +30,7 @@ from app.tests.medium.constants import (
     USER1,
     VULN1,
     VULN2,
+    VULN3,
 )
 from app.tests.medium.utils import (
     create_pteam,
@@ -206,6 +207,21 @@ class TestGetVulnIdsTiedToServicePackages:
         assert set(response2.json()["vuln_ids"]) == {self.ticket_response1["vuln_id"]}
 
     def test_it_able_to_filter_when_unsolved_is_specified_as_query_parameter(self):
+        # Given
+        # Change status of ticket1
+        json_data = {
+            "topic_status": "completed",
+            "note": "string",
+            "assignees": [self.ticket_response1["user_id"]],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
         # When
         response1 = client.get(
             f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
@@ -233,11 +249,50 @@ class TestGetVulnIdsTiedToServicePackages:
         assert response2.json()["service_id"] is None
         assert response2.json()["package_id"] is None
         assert response2.json()["related_ticket_status"] == "unsolved"
-        assert len(response2.json()["vuln_ids"]) == 2
-        assert set(response1.json()["vuln_ids"]) == {
-            self.ticket_response1["vuln_id"],
+        assert len(response2.json()["vuln_ids"]) == 1
+        assert set(response2.json()["vuln_ids"]) == {str(self.vuln2.vuln_id)}
+
+    def test_vuln_ids_are_sorted_correctly(self):
+        """
+        Memo
+        ticket1 ssvc_deployer_priority is IMMEDIATE
+        ticket2 ssvc_deployer_priority is IMMEDIATE
+        ticket3 ssvc_deployer_priority is SCHEDULED
+        """
+        # Given
+        # Create 3st ticket
+        service_name2 = "test_service3"
+        upload_file_name = "test_trivy_cyclonedx_combined-stream.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        bg_create_tags_from_sbom_json(
+            sbom_json, self.ticket_response1["pteam_id"], service_name2, upload_file_name
+        )
+        vuln3 = create_vuln(USER1, VULN3)
+
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert len(response1.json()["vuln_ids"]) == 3
+        vuln_ids_sorted = [
             str(self.vuln2.vuln_id),
-        }
+            self.ticket_response1["vuln_id"],
+            str(vuln3.vuln_id),
+        ]
+        assert response1.json()["vuln_ids"] == vuln_ids_sorted
 
 
 class TestPostUploadSBOMFileCycloneDX:

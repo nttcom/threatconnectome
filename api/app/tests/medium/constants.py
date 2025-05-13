@@ -127,6 +127,11 @@ PACKAGE2 = {
     "ecosystem": "npm",
     "package_manager": "npm",
 }
+PACKAGE3 = {
+    "package_name": "combined-stream",
+    "ecosystem": "npm",
+    "package_manager": "npm",
+}
 VULNPACKAGE1 = {
     "name": PACKAGE1["package_name"],
     "ecosystem": PACKAGE1["ecosystem"],
@@ -136,6 +141,12 @@ VULNPACKAGE1 = {
 VULNPACKAGE2 = {
     "name": PACKAGE2["package_name"],
     "ecosystem": PACKAGE2["ecosystem"],
+    "affected_versions": ["<2.0"],
+    "fixed_versions": ["2.0"],
+}
+VULNPACKAGE3 = {
+    "name": PACKAGE3["package_name"],
+    "ecosystem": PACKAGE3["ecosystem"],
     "affected_versions": ["<2.0"],
     "fixed_versions": ["2.0"],
 }
@@ -158,6 +169,16 @@ VULN2 = {
     "automatable": "yes",
     "cvss_v3_score": 2.0,
     "vulnerable_packages": [VULNPACKAGE2],
+}
+VULN3 = {
+    "vuln_id": str(uuid4()),
+    "cve_id": "CVE-0000-0002",
+    "title": "Test Vulnerability2",
+    "detail": "This is a test vulnerability.",
+    "exploitation": "none",
+    "automatable": "no",
+    "cvss_v3_score": 2.0,
+    "vulnerable_packages": [VULNPACKAGE3],
 }
 
 SAMPLE_SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/T00000000/B00000000/XXXX"

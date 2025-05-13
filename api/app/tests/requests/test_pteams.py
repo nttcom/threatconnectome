@@ -1957,8 +1957,8 @@ class TestGetVulnIdsTiedToServicePackages:
         )
 
         # Then
-        assert response.status_code == 400
-        assert response.json() == {"detail": "Invalid string. Please specify solved or unsolved"}
+        assert response.status_code == 422
+        assert response.json()["detail"][0]["msg"] == "Input should be 'solved' or 'unsolved'"
 
 
 class TestPostUploadPTeamSbomFile:
