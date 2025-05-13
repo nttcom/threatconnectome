@@ -2,7 +2,7 @@ import { UploadFile } from "@mui/icons-material";
 import { Tabs, Tab, Tooltip } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 export function PTeamServiceTabs(props) {
   const { services, currentServiceId, onChangeService, setIsActiveUploadMode } = props;

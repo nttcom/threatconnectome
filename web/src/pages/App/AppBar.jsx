@@ -1,7 +1,6 @@
 import { Menu as MenuIcon } from "@mui/icons-material";
 import { AppBar as MuiAppBar, Box, Divider, IconButton, Toolbar } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
 

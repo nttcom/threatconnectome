@@ -12,7 +12,6 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { experienceColors } from "../../utils/const";

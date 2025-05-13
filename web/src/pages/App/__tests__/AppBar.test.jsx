@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
-import React from "react";
 import { Provider, useDispatch } from "react-redux";
 
 import { useAuth } from "../../../hooks/auth";

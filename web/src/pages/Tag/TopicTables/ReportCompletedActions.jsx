@@ -13,7 +13,7 @@ import {
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { ActionTypeIcon } from "../../../components/ActionTypeIcon";
 import { UUIDTypography } from "../../../components/UUIDTypography";

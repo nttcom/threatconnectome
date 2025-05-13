@@ -21,7 +21,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { isBefore } from "date-fns";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import dialogStyle from "../../../cssModule/dialog.module.css";
 import { useUpdateTicketStatusMutation } from "../../../services/tcApi";

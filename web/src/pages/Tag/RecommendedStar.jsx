@@ -1,7 +1,6 @@
 import { Star as StarIcon } from "@mui/icons-material";
 import { Box, Tooltip } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 export function RecommendedStar(props) {
   const { disabled, sx } = props;

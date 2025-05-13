@@ -1,7 +1,7 @@
 import { Add as AddIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from "@mui/icons-material";
 import { Box, Button, Menu, MenuItem } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";

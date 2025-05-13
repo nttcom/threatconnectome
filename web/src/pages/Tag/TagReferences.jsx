@@ -14,7 +14,6 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React from "react";
 
 export function TagReferences(props) {
   const { references, serviceDict } = props;

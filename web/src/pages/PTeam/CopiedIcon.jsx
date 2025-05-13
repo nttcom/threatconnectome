@@ -1,7 +1,7 @@
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { IconButton, Tooltip } from "@mui/material";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 export function CopiedIcon(props) {
   const { invitationLink } = props;

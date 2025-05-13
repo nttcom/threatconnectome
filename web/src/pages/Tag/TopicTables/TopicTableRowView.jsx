@@ -3,7 +3,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import { Button, Collapse, IconButton, TableCell, TableRow } from "@mui/material";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { ssvcPriorityProps } from "../../../utils/const.js";
 import { searchWorstSSVC } from "../../../utils/func.js";

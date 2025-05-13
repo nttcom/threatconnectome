@@ -1,7 +1,7 @@
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Box, IconButton, Paper, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 export function CodeBlock(props) {
   const { visible = true } = props;

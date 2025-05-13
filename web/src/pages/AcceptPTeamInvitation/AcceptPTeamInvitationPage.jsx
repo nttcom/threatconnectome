@@ -1,6 +1,5 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
-import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";

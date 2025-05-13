@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";

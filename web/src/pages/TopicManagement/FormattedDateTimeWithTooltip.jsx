@@ -1,7 +1,6 @@
 import { Tooltip, Typography } from "@mui/material";
 import { format } from "date-fns";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { utcStringToLocalDate } from "../../utils/func";
 

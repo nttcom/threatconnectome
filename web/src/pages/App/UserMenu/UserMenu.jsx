@@ -5,7 +5,7 @@ import { Divider, ListItemIcon, ListItemText } from "@mui/material";
 import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDispatch } from "react-redux";
 
 import { useAuth, useSkipUntilAuthUserIsReady } from "../../../hooks/auth";

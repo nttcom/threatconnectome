@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import React from "react";
 import { Provider, useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 

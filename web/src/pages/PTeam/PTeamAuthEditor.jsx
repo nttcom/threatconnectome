@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { useUpdatePTeamMemberMutation } from "../../services/tcApi";
