@@ -146,9 +146,9 @@ export function PTeamStatusCard(props) {
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
           {packageInfo.package_name}
           {":"}
-          {packageInfo.ecosystem || ""}
+          {packageInfo.ecosystem}
           {":"}
-          {packageInfo.package_manager || ""}
+          {packageInfo.package_manager}
         </Typography>
         {serviceIds &&
           pteam.services

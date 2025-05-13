@@ -148,7 +148,7 @@ export function PTeamServicesListModal(props) {
     <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography variant="h6">Selected Artifact</Typography>
+          <Typography variant="h6">Selected Package</Typography>
           <KeyboardDoubleArrowRightIcon sx={{ ml: 0.5, mr: 0.5 }} />
           <Typography variant="h5" flexGrow={1}>
             {packageName}

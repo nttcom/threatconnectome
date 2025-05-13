@@ -252,7 +252,10 @@ export function Status() {
         : priorityFilters.includes(
             ssvcPriorityProps[packageInfo.ssvc_priority || "defer"].displayName,
           )) &&
-      (!searchWord?.length > 0 || packageInfo.package_name.toLowerCase().includes(searchWord)),
+      (!searchWord?.length > 0 ||
+        (packageInfo.package_name + ":" + packageInfo.ecosystem + ":" + packageInfo.package_manager)
+          .toLowerCase()
+          .includes(searchWord)),
   );
 
   let tmp;
@@ -316,7 +319,7 @@ export function Status() {
     navigate(location.pathname + "?" + params.toString());
   };
 
-  function navigateArtifactPage(packageId) {
+  function navigatePackagePage(packageId) {
     for (let key of ["priorityFilter", "word", "perPage", "page", "allservices"]) {
       params.delete(key);
     }
@@ -326,7 +329,7 @@ export function Status() {
   const handleNavigateServiceList = (packageId, packageName, serviceIds) => {
     if (serviceIds.length === 1) {
       params.set("serviceId", serviceIds[0]);
-      navigateArtifactPage(packageId);
+      navigatePackagePage(packageId);
     } else {
       setSelectedPackageInfo({
         packageId: packageId,
@@ -337,7 +340,7 @@ export function Status() {
     }
   };
 
-  const handleNavigatePackage = (packageId) => navigateArtifactPage(packageId);
+  const handleNavigatePackage = (packageId) => navigatePackagePage(packageId);
 
   const handleAllServices = () => {
     setIsActiveUploadMode(0);

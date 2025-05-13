@@ -91,7 +91,7 @@ const testPackagesData = {
   packages: [
     {
       package_id: "685335c5-c6aa-47ed-87d9-ce1d3eeaf48d",
-      package_name: "sqlparse:pypi:",
+      package_name: "sqlparse",
       package_manager: "",
       ecosystem: "pypi",
       ssvc_priority: "out_of_cycle",
@@ -106,7 +106,7 @@ const testPackagesData = {
     },
     {
       package_id: "56cfb764-e0ae-4acd-ad14-72312a30e17a",
-      package_name: "setuptools:pypi:",
+      package_name: "setuptools",
       package_manager: "",
       ecosystem: "pypi",
       ssvc_priority: "out_of_cycle",
@@ -149,13 +149,12 @@ describe("StatusPage", () => {
 
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
-      // パッケージサマリーデータを適切な構造で提供
-      const PackagesSummary = {
+      const packagesSummary = {
         currentData: null,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackagesSummaryQuery.mockReturnValue(PackagesSummary);
+      useGetPTeamPackagesSummaryQuery.mockReturnValue(packagesSummary);
 
       renderStatusPage();
       expect(screen.getByText("Drop SBOM file here")).toBeInTheDocument();
