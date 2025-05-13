@@ -17,14 +17,13 @@ from app.tests.medium.utils import (
 client = TestClient(app)
 
 
-def create_ticket(
-    testdb: Session, user: dict, pteam: dict, service_name: str, upload_file_name: str, vuln: dict
-):
+def create_ticket(testdb: Session, user: dict, pteam: dict, service_name: str, vuln: dict):
     user1 = create_user(user)
     pteam1 = create_pteam(user, pteam)
 
     # Uploaded sbom file.
     # Create package, package_version, service and dependency table
+    upload_file_name = "test_trivy_cyclonedx_axios.json"
     sbom_file = Path(__file__).resolve().parent / "upload_test" / upload_file_name
     with open(sbom_file, "r") as sbom:
         sbom_json = json.load(sbom)

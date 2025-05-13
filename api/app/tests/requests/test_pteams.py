@@ -1834,9 +1834,8 @@ class TestGetVulnIdsTiedToServicePackages:
     def common_setup(self, testdb):
         # Given
         service_name = "test_service1"
-        upload_file_name = "test_trivy_cyclonedx_axios.json"
         self.ticket_response = ticket_utils.create_ticket(
-            testdb, USER1, PTEAM1, service_name, upload_file_name, VULN1
+            testdb, USER1, PTEAM1, service_name, VULN1
         )
 
         json_data = {

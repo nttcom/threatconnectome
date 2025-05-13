@@ -67,9 +67,8 @@ class TestGetVulnIdsTiedToServicePackages:
         # Given
         # Create 1st ticket
         service_name1 = "test_service1"
-        upload_file_name = "test_trivy_cyclonedx_axios.json"
         self.ticket_response1 = ticket_utils.create_ticket(
-            testdb, USER1, PTEAM1, service_name1, upload_file_name, VULN1
+            testdb, USER1, PTEAM1, service_name1, VULN1
         )
         json_data = {
             "topic_status": "acknowledged",
