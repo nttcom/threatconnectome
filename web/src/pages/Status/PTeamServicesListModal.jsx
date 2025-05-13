@@ -73,7 +73,7 @@ ServiceCard.propTypes = {
 };
 
 export function PTeamServicesListModal(props) {
-  const { onSetShow, show, tagId, tagName, serviceIds } = props;
+  const { onSetShow, show, packageId, packageName, serviceIds } = props;
   const handleClose = () => onSetShow(false);
 
   const [page, setPage] = useState(1);
@@ -103,7 +103,7 @@ export function PTeamServicesListModal(props) {
     .sort((a, b) => a.service_name.localeCompare(b.service_name));
   const pageServices = targetServices.slice(perPage * (page - 1), perPage * page);
 
-  if (tagId === "") {
+  if (packageId === "") {
     return;
   }
 
@@ -136,22 +136,22 @@ export function PTeamServicesListModal(props) {
     </Box>
   );
 
-  const handleNavigateTag = (serviceId) => {
-    for (let key of ["tagId", "impactFilter", "word", "perPage", "page", "allservices"]) {
+  const handleNavigatePackage = (serviceId) => {
+    for (let key of ["packageId", "impactFilter", "word", "perPage", "page", "allservices"]) {
       params.delete(key);
     }
     params.set("serviceId", serviceId);
-    navigate(`/tags/${tagId}?${params.toString()}`);
+    navigate(`/packages/${packageId}?${params.toString()}`);
   };
 
   return (
     <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography variant="h6">Selected Artifact</Typography>
+          <Typography variant="h6">Selected Package</Typography>
           <KeyboardDoubleArrowRightIcon sx={{ ml: 0.5, mr: 0.5 }} />
           <Typography variant="h5" flexGrow={1}>
-            {tagName}
+            {packageName}
           </Typography>
           <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
             <CloseIcon />
@@ -166,7 +166,7 @@ export function PTeamServicesListModal(props) {
               key={service.service_id}
               pteamId={pteamId}
               service={service}
-              onClickService={handleNavigateTag}
+              onClickService={handleNavigatePackage}
             />
           ))}
         </Box>
@@ -177,7 +177,7 @@ export function PTeamServicesListModal(props) {
 PTeamServicesListModal.propTypes = {
   onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
-  tagId: PropTypes.string.isRequired,
-  tagName: PropTypes.string.isRequired,
+  packageId: PropTypes.string.isRequired,
+  packageName: PropTypes.string.isRequired,
   serviceIds: PropTypes.arrayOf(PropTypes.string),
 };
