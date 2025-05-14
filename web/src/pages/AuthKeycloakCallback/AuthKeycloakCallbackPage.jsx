@@ -1,10 +1,9 @@
 import { Link, Typography } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
-import { setAuthUserIsReady } from "../../slices/auth";
 import Supabase from "../../utils/Supabase";
 import { rootPrefix } from "../../utils/const";
 import { errorToString } from "../../utils/func";

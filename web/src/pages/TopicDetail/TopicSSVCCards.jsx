@@ -9,7 +9,6 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 function TopicSSVCElement(props) {
   const { title, titleDescription, values, value } = props;

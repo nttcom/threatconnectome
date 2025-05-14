@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import dialogStyle from "../../cssModule/dialog.module.css";

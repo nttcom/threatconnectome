@@ -7,7 +7,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { TopicTableRow } from "./TopicTableRow";
 

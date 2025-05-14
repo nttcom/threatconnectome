@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SAMLAuthProvider } from "firebase/auth";
-import React from "react";
 import { Provider } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 

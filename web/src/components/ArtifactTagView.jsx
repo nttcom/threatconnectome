@@ -2,7 +2,6 @@ import { Recommend as RecommendIcon, Warning as WarningIcon } from "@mui/icons-m
 import { Box, Card, Typography, Tooltip } from "@mui/material";
 import { green, yellow } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { pickAffectedVersions } from "../utils/topicUtils";
 

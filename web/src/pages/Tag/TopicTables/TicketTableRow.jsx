@@ -1,9 +1,7 @@
 import { Box, TableCell, TableRow, Tooltip } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip.jsx";
-import { ssvcPriorityProps } from "../../../utils/const";
 import { WarningTooltip } from "../WarningTooltip.jsx";
 
 import { AssigneesSelector } from "./AssigneesSelector";

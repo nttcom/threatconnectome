@@ -26,7 +26,7 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useLocation, useNavigate } from "react-router-dom";
 

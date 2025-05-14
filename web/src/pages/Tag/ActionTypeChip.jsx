@@ -1,6 +1,5 @@
 import { Chip } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { actionTypeChipColors, actionTypeChipWidth } from "../../utils/const";
 

@@ -1,6 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 export function TicketTable(props) {
   const { children } = props;

@@ -26,7 +26,7 @@ import {
 import { grey } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import styles from "../../cssModule/button.module.css";

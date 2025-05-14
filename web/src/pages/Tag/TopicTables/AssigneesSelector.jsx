@@ -1,7 +1,7 @@
 import { Checkbox, ListItemText, MenuItem, Input, Select, FormControl } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { useUpdateTicketStatusMutation } from "../../../services/tcApi";
 import { errorToString, setEquals } from "../../../utils/func";

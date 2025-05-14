@@ -4,7 +4,7 @@ import {
 } from "@mui/icons-material";
 import { Avatar, Badge, Box, Button, Card, Chip, MenuItem, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";

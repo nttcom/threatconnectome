@@ -1,7 +1,6 @@
 import { Paper, Tooltip } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { ssvcPriorityProps } from "../utils/const";
 

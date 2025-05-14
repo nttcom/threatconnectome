@@ -18,7 +18,7 @@ import {
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import dialogStyle from "../../../cssModule/dialog.module.css";
 import {

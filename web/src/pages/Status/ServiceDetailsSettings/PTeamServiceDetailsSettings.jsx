@@ -1,6 +1,5 @@
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React from "react";
 
 import {
   useUpdatePTeamServiceMutation,

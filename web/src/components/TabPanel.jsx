@@ -1,6 +1,5 @@
 import { Box } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 export function TabPanel(props) {
   const { children, value, index, ...other } = props;

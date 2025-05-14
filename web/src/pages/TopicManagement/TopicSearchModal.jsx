@@ -22,7 +22,7 @@ import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { addDays } from "date-fns";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import dialogStyle from "../../cssModule/dialog.module.css";

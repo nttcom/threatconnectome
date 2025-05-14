@@ -1,7 +1,7 @@
 import { Settings as SettingsIcon } from "@mui/icons-material";
 import { Box, IconButton, Typography } from "@mui/material";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useGetUserMeQuery } from "../services/tcApi";

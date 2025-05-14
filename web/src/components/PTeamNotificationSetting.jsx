@@ -21,7 +21,7 @@ import {
 import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import {
   useCheckMailMutation,

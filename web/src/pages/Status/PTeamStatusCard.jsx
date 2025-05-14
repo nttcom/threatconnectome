@@ -2,7 +2,6 @@ import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui
 import { grey, yellow, amber } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
 import { topicStatusProps, sortedTopicStatus } from "../../utils/const";

@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";

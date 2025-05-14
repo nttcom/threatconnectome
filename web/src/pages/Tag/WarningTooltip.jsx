@@ -1,7 +1,6 @@
 import { ErrorOutline as ErrorOutlineIcon } from "@mui/icons-material";
 import { IconButton, Tooltip } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 export function WarningTooltip(props) {
   const { message } = props;
