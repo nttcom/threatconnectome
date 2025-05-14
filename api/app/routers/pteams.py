@@ -823,7 +823,19 @@ def get_ticket(
     if str(service.pteam_id) != str(pteam_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
 
-    return ticket
+    # vuln_idはthreatから取得
+    vuln_id = ticket.threat.vuln_id if ticket.threat else None
+
+    return {
+        "ticket_id": ticket.ticket_id,
+        "vuln_id": vuln_id,
+        "dependency_id": ticket.dependency_id,
+        "created_at": ticket.created_at,
+        "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
+        "ticket_safety_impact": ticket.ticket_safety_impact,
+        "reason_safety_impact": ticket.reason_safety_impact,
+        "ticket_status": ticket.ticket_status,
+    }
 
 
 @router.post("", response_model=schemas.PTeamInfo)

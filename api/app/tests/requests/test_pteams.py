@@ -4070,6 +4070,141 @@ class TestUpdatePTeamService:
             send_alert_to_pteam.assert_not_called()
 
 
+class TestGetTicket:
+    @pytest.fixture(scope="function", autouse=True)
+    def setup(self, testdb):
+        self.user1 = create_user(USER1)
+        self.pteam1 = create_pteam(USER1, PTEAM1)
+        self.service1 = models.Service(
+            service_name="test_service",
+            pteam_id=str(self.pteam1.pteam_id),
+        )
+        testdb.add(self.service1)
+        testdb.flush()
+        self.package1 = models.Package(
+            name="test_package",
+            ecosystem="test_ecosystem",
+        )
+        persistence.create_package(testdb, self.package1)
+        self.package_version1 = models.PackageVersion(
+            package_id=self.package1.package_id,
+            version="1.0.0",
+        )
+        persistence.create_package_version(testdb, self.package_version1)
+        self.dependency1 = models.Dependency(
+            target="test_target",
+            package_manager="npm",
+            package_version_id=self.package_version1.package_version_id,
+            service=self.service1,
+        )
+        testdb.add(self.dependency1)
+        testdb.flush()
+        self.vuln1 = models.Vuln(
+            title="Test Vulnerability",
+            detail="This is a test vulnerability.",
+            cvss_v3_score=7.5,
+            created_by=self.user1.user_id,
+            created_at="2023-10-01T00:00:00Z",
+            updated_at="2023-10-01T00:00:00Z",
+        )
+        persistence.create_vuln(testdb, self.vuln1)
+        affect1 = models.Affect(
+            vuln_id=self.vuln1.vuln_id,
+            package_id=self.package1.package_id,
+            affected_versions=["<=1.0.0"],
+            fixed_versions=["2.0.0"],
+        )
+        persistence.create_affect(testdb, affect1)
+        self.threat1 = models.Threat(
+            package_version_id=self.package_version1.package_version_id,
+            vuln_id=self.vuln1.vuln_id,
+        )
+        persistence.create_threat(testdb, self.threat1)
+        ticket_business.fix_ticket_by_threat(testdb, self.threat1)
+        self.ticket1 = testdb.scalars(select(models.Ticket)).one()
+        self.ticket_status1 = testdb.scalars(select(models.TicketStatus)).one()
+
+    @staticmethod
+    def _get_access_token(user: dict) -> str:
+        body = {
+            "username": user["email"],
+            "password": user["pass"],
+        }
+        response = client.post("/auth/token", data=body)
+        if response.status_code != 200:
+            raise Exception(f"Failed to get access token: {response.text}")
+        data = response.json()
+        return data["access_token"]
+
+    def test_it_should_return_200_and_ticket_detail(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        response = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["ticket_id"] == str(self.ticket1.ticket_id)
+        assert data["vuln_id"] == str(self.vuln1.vuln_id)
+        assert data["dependency_id"] == str(self.dependency1.dependency_id)
+        assert data["ssvc_deployer_priority"] == (
+            None
+            if self.ticket1.ssvc_deployer_priority is None
+            else self.ticket1.ssvc_deployer_priority.value
+        )
+        assert data["ticket_status"]["status_id"] == self.ticket_status1.status_id
+
+    def test_it_should_return_404_when_ticket_not_found(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        wrong_ticket_id = str(uuid4())
+        response = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{wrong_ticket_id}",
+            headers=_headers,
+        )
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such ticket"
+
+    def test_it_should_return_404_when_pteam_not_found(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        wrong_pteam_id = str(uuid4())
+        response = client.get(
+            f"/pteams/{wrong_pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+        )
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such pteam"
+
+    def test_it_should_return_403_when_not_pteam_member(self):
+        create_user(USER2)
+        user2_access_token = self._get_access_token(USER2)
+        _headers = {
+            "Authorization": f"Bearer {user2_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        response = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+        )
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Not a pteam member"
+
+
 class TestDeletePteam:
     @pytest.fixture(scope="function")
     def pteam_setup(self, testdb: Session):
