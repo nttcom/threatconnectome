@@ -806,7 +806,8 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
     "/{pteam_id}/tickets/{ticket_id}",
     response_model=schemas.TicketResponse,
 )
-def update_threat_safety_impact(
+def update_ticket_safety_impact(
+    pteam_id: UUID,
     ticket_id: UUID,
     data: schemas.TicketUpdateRequest,
     current_user: models.Account = Depends(get_current_user),
@@ -817,13 +818,12 @@ def update_threat_safety_impact(
     """
     max_reason_safety_impact_length_in_half = 500
 
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
     if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
-
-    service = ticket.dependency.service
-
-    if not check_pteam_membership(service.pteam, current_user):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
+        raise NO_SUCH_TICKET
 
     need_fix_ssvc_priority = False
     updated_keys = data.model_dump(exclude_unset=True).keys()
