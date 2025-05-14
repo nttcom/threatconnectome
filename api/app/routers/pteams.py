@@ -811,15 +811,15 @@ def get_ticket(
     """
     Get a ticket.
     """
-    if not (threat := persistence.get_ticket_by_id(db, ticket_id)):
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 
-    pteam = threat.dependency.service.pteam
+    pteam = ticket.dependency.service.pteam
     if str(pteam.pteam_id) != str(pteam_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
 
     if check_pteam_membership(pteam, current_user):
-        return threat
+        return ticket
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
 
