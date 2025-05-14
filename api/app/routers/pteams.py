@@ -15,6 +15,7 @@ from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
 from app.business import package_business, threat_business, ticket_business
 from app.business.ssvc_business import get_vuln_ids_summary_by_service_id_and_package_id
+from app.business.ticket_business import fix_ticket_ssvc_priority
 from app.database import get_db, open_db_session
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
@@ -799,6 +800,63 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
         for ticket in tickets
     ]
     return ret
+
+
+@router.put(
+    "/{pteam_id}/tickets/{ticket_id}",
+    response_model=schemas.TicketResponse,
+)
+def update_threat_safety_impact(
+    ticket_id: UUID,
+    data: schemas.TicketUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Update safety_impact.
+    """
+    max_reason_safety_impact_length_in_half = 500
+
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
+
+    service = ticket.dependency.service
+
+    if not check_pteam_membership(service.pteam, current_user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
+
+    need_fix_ssvc_priority = False
+    updated_keys = data.model_dump(exclude_unset=True).keys()
+    if "ticket_safety_impact" in updated_keys:
+        need_fix_ssvc_priority = ticket.ticket_safety_impact != data.ticket_safety_impact
+        ticket.ticket_safety_impact = data.ticket_safety_impact
+    if "reason_safety_impact" in updated_keys:
+        if data.reason_safety_impact and (
+            reason_safety_impact := data.reason_safety_impact.strip()
+        ):
+            if (
+                count_full_width_and_half_width_characters(reason_safety_impact)
+                > max_reason_safety_impact_length_in_half
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Too long reason_safety_impact. "
+                        f"Max length is {max_reason_safety_impact_length_in_half} in half-width "
+                        f"or {int(max_reason_safety_impact_length_in_half / 2)} in full-width"
+                    ),
+                )
+            ticket.reason_safety_impact = reason_safety_impact
+        else:
+            ticket.reason_safety_impact = None
+
+    if ticket and need_fix_ssvc_priority:
+        db.flush()
+        fix_ticket_ssvc_priority(db, ticket)
+
+    db.commit()
+
+    return ticket
 
 
 @router.post("", response_model=schemas.PTeamInfo)

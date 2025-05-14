@@ -317,6 +317,11 @@ class TicketResponse(ORMModel):
     ticket_status: TicketStatusResponse
 
 
+class TicketUpdateRequest(ORMModel):
+    ticket_safety_impact: SafetyImpactEnum | None = None
+    reason_safety_impact: str | None = None
+
+
 class PTeamPackagesSummary(ORMModel):
     class PTeamPackageSummary(ORMModel):
         package_id: UUID
