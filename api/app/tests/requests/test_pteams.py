@@ -4136,7 +4136,7 @@ class TestGetTicket:
         data = response.json()
         return data["access_token"]
 
-    def test_it_should_return_200_and_ticket_detail(self):
+    def test_it_should_return_correct_ticket_detail(self):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
