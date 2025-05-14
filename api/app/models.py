@@ -337,7 +337,7 @@ class Threat(Base):
 
     vuln = relationship("Vuln", back_populates="threats")
     package_version = relationship("PackageVersion")
-    tickets = relationship("Ticket", back_populates="threat", cascade="all, delete")
+    tickets = relationship("Ticket", back_populates="threat", cascade="all, delete-orphan")
 
 
 class Ticket(Base):
