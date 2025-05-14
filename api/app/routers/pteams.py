@@ -821,7 +821,7 @@ def get_ticket(
 
     service = ticket.dependency.service
     if str(service.pteam_id) != str(pteam_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 
     # vuln_idはthreatから取得
     vuln_id = ticket.threat.vuln_id if ticket.threat else None
