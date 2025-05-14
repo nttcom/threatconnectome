@@ -811,17 +811,19 @@ def get_ticket(
     """
     Get a ticket.
     """
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
     if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
+        raise NO_SUCH_TICKET
 
     service = ticket.dependency.service
     if str(service.pteam_id) != str(pteam_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
 
-    if check_pteam_membership(service, current_user):
-        return ticket
-    else:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
+    return ticket
 
 
 @router.post("", response_model=schemas.PTeamInfo)
