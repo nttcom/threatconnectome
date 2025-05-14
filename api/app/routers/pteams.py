@@ -802,21 +802,21 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
 
 
 @router.get("/{pteam_id}/tickets/{ticket_id}", response_model=schemas.TicketResponse)
-def get_threat(
+def get_ticket(
     pteam_id: UUID,
     ticket_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Get a threat.
+    Get a ticket.
     """
     if not (threat := persistence.get_ticket_by_id(db, ticket_id)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 
     pteam = threat.dependency.service.pteam
     if str(pteam.pteam_id) != str(pteam_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such threat")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
 
     if check_pteam_membership(pteam, current_user):
         return threat
