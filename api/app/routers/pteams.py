@@ -863,7 +863,7 @@ def update_ticket_safety_impact(
     db: Session = Depends(get_db),
 ):
     """
-    Update safety_impact.
+    Update ticket_safety_impact.
     """
     max_reason_safety_impact_length_in_half = 500
 
