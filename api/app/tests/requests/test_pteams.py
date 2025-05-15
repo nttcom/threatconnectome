@@ -4451,6 +4451,17 @@ class TestPutTicket:
             "Content-Type": "application/json",
             "accept": "application/json",
         }
+
+        # Add a value to reason_safety_impact in advance
+        set_request = {
+            "reason_safety_impact": "sample",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=set_request,
+        )
+
         # In case of an empty string
         request = {
             "reason_safety_impact": "",
@@ -4463,6 +4474,16 @@ class TestPutTicket:
         assert response.status_code == 200
         data = response.json()
         assert data["reason_safety_impact"] is None
+
+        # Add a value to reason_safety_impact in advance
+        set_request = {
+            "reason_safety_impact": "sample",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=set_request,
+        )
 
         # In case of whitespace characters
         request = {
