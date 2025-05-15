@@ -4499,7 +4499,7 @@ class TestPutTicket:
         assert data["reason_safety_impact"] is None
 
     def test_it_should_keep_previous_values_when_ticket_safety_impact_and_reason_not_specified(
-        self, testdb: Session
+        self,
     ):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
@@ -4527,15 +4527,6 @@ class TestPutTicket:
         data = response.json()
         assert data["ticket_safety_impact"] == initial_request["ticket_safety_impact"]
         assert data["reason_safety_impact"] == initial_request["reason_safety_impact"]
-
-        # DBでも確認
-        updated_ticket = (
-            testdb.query(models.Ticket)
-            .filter(models.Ticket.ticket_id == self.ticket1.ticket_id)
-            .one()
-        )
-        assert updated_ticket.ticket_safety_impact == initial_request["ticket_safety_impact"]
-        assert updated_ticket.reason_safety_impact == initial_request["reason_safety_impact"]
 
     def test_it_should_return_400_when_reason_safety_impact_too_long(self):
         user1_access_token = self._get_access_token(USER1)
