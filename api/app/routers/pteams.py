@@ -851,6 +851,42 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
     return ret
 
 
+@router.get("/{pteam_id}/tickets/{ticket_id}", response_model=schemas.TicketResponse)
+def get_ticket(
+    pteam_id: UUID,
+    ticket_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get a ticket.
+    """
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+
+    service = ticket.dependency.service
+    if str(service.pteam_id) != str(pteam_id):
+        raise NO_SUCH_TICKET
+
+    vuln_id = ticket.threat.vuln_id if ticket.threat else None
+
+    return {
+        "ticket_id": ticket.ticket_id,
+        "vuln_id": vuln_id,
+        "dependency_id": ticket.dependency_id,
+        "created_at": ticket.created_at,
+        "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
+        "ticket_safety_impact": ticket.ticket_safety_impact,
+        "reason_safety_impact": ticket.reason_safety_impact,
+        "ticket_status": ticket.ticket_status,
+    }
+
+
 @router.put(
     "/{pteam_id}/tickets/{ticket_id}",
     response_model=schemas.TicketResponse,
