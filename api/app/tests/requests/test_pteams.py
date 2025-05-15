@@ -4692,6 +4692,37 @@ class TestPutTicket:
 
         assert updated_ticket.ssvc_deployer_priority == initial_priority
 
+    def test_it_should_fix_ssvc_priority_when_ticket_safety_impact_changed(self, testdb: Session):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+
+        self.ticket1.ssvc_deployer_priority = models.SSVCDeployerPriorityEnum.IMMEDIATE.value
+        testdb.commit()
+        initial_priority = self.ticket1.ssvc_deployer_priority
+
+        request = {
+            "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
+            "reason_safety_impact": "update for test",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 200
+
+        updated_ticket = (
+            testdb.query(models.Ticket)
+            .filter(models.Ticket.ticket_id == self.ticket1.ticket_id)
+            .one()
+        )
+        assert updated_ticket.ssvc_deployer_priority != initial_priority
+        assert updated_ticket.ssvc_deployer_priority == models.TopicStatusType.scheduled
+
     def test_it_should_return_422_when_invalid_ticket_safety_impact(self):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
