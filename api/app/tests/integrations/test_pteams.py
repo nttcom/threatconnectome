@@ -62,7 +62,7 @@ def test_sbom_uploaded_at_with_called_upload_tags_file():
     assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
 
 
-class TestGetVulnIdsTiedToServicePackages:
+class TestGetVulnIdsTiedToServicePackage:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self, testdb):
         # Given
@@ -293,6 +293,282 @@ class TestGetVulnIdsTiedToServicePackages:
             str(vuln3.vuln_id),
         ]
         assert response1.json()["vuln_ids"] == vuln_ids_sorted
+
+
+class TestGetTicketCountsTiedToServicePackage:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, testdb):
+        # Given
+        # Create 1st ticket
+        service_name1 = "test_service1"
+        self.ticket_response1 = ticket_utils.create_ticket(
+            testdb, USER1, PTEAM1, service_name1, VULN1
+        )
+        json_data = {
+            "topic_status": "acknowledged",
+            "note": "string",
+            "assignees": [],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
+        # Create 2st ticket
+        service_name2 = "test_service2"
+        upload_file_name = "test_trivy_cyclonedx_asynckit.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        bg_create_tags_from_sbom_json(
+            sbom_json, self.ticket_response1["pteam_id"], service_name2, upload_file_name
+        )
+        self.vuln2 = create_vuln(USER1, VULN2)
+
+    def test_it_able_to_filter_when_service_id_is_specified_as_query_parameter(self):
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?service_id={self.ticket_response1['service_id']}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert response1.json()["ssvc_priority_count"] == {
+            "immediate": 2,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] == self.ticket_response1["service_id"]
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] is None
+        assert response2.json()["ssvc_priority_count"] == {
+            "immediate": 1,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+    def test_it_able_to_filter_when_package_id_is_specified_as_query_parameter(self):
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?package_id={self.ticket_response1['package_id']}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert response1.json()["ssvc_priority_count"] == {
+            "immediate": 2,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] == self.ticket_response1["package_id"]
+        assert response2.json()["related_ticket_status"] is None
+        assert response2.json()["ssvc_priority_count"] == {
+            "immediate": 1,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+    def test_it_able_to_filter_when_solved_is_specified_as_query_parameter(self):
+        # Given
+        # Change status of ticket1
+        json_data = {
+            "topic_status": "completed",
+            "note": "string",
+            "assignees": [self.ticket_response1["user_id"]],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?related_ticket_status=solved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert response1.json()["ssvc_priority_count"] == {
+            "immediate": 2,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] == "solved"
+        assert response2.json()["ssvc_priority_count"] == {
+            "immediate": 1,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+    def test_it_able_to_filter_when_unsolved_is_specified_as_query_parameter(self):
+        # Given
+        # Change status of ticket1
+        json_data = {
+            "topic_status": "completed",
+            "note": "string",
+            "assignees": [self.ticket_response1["user_id"]],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?related_ticket_status=unsolved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert response1.json()["ssvc_priority_count"] == {
+            "immediate": 2,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] == "unsolved"
+        assert response2.json()["ssvc_priority_count"] == {
+            "immediate": 1,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+    @pytest.mark.parametrize(
+        "exploitation, automatable, service_mission_impact, expected_ssvc_priority_count",
+        [
+            (
+                "active",
+                "yes",
+                "mission_failure",
+                {"immediate": 1, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
+            ),
+            (
+                "public_poc",
+                "yes",
+                "mission_failure",
+                {"immediate": 0, "out_of_cycle": 1, "scheduled": 0, "defer": 0},
+            ),
+            (
+                "none",
+                "no",
+                "mission_failure",
+                {"immediate": 0, "out_of_cycle": 0, "scheduled": 1, "defer": 0},
+            ),
+            (
+                "none",
+                "no",
+                "degraded",
+                {"immediate": 0, "out_of_cycle": 0, "scheduled": 0, "defer": 1},
+            ),
+        ],
+    )
+    def test_it_should_return_correct_ssvc_priority_count_when_ssvc_is_changed(
+        self,
+        exploitation,
+        automatable,
+        service_mission_impact,
+        expected_ssvc_priority_count,
+    ):
+        # Given
+        vuln = {
+            **VULN1,
+            "exploitation": exploitation,
+            "automatable": automatable,
+        }
+        data_service = {"service_mission_impact": service_mission_impact}
+
+        create_vuln(USER1, vuln)
+
+        client.put(
+            f"/pteams/{self.ticket_response1['pteam_id']}/services/{self.ticket_response1['service_id']}",
+            headers=headers(USER1),
+            json=data_service,
+        )
+
+        # When
+        response = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?service_id={self.ticket_response1['service_id']}&package_id={self.ticket_response1['package_id']}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 200
+        assert response.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response.json()["service_id"] == self.ticket_response1["service_id"]
+        assert response.json()["package_id"] == self.ticket_response1["package_id"]
+        assert response.json()["ssvc_priority_count"] == expected_ssvc_priority_count
 
 
 class TestPostUploadSBOMFileCycloneDX:
