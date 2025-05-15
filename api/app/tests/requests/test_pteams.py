@@ -4422,8 +4422,8 @@ class TestPutTicket:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["ticket_safety_impact"] == models.SafetyImpactEnum.CRITICAL.value
-        assert data["reason_safety_impact"] == "Test reason for safety impact"
+        assert data["ticket_safety_impact"] == request["ticket_safety_impact"]
+        assert data["reason_safety_impact"] == request["reason_safety_impact"]
 
     def test_it_should_update_reason_safety_impact(self):
         user1_access_token = self._get_access_token(USER1)
