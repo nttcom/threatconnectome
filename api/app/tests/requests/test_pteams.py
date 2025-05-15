@@ -4495,7 +4495,10 @@ class TestPutTicket:
             json=request,
         )
         assert response.status_code == 400
-        assert "Too long reason_safety_impact" in response.json()["detail"]
+        assert (
+            "Too long reason_safety_impact. Max length is 500 in half-width or 250 in full-width"
+            in response.json()["detail"]
+        )
 
     def test_it_should_return_404_when_ticket_not_found(self):
         user1_access_token = self._get_access_token(USER1)
