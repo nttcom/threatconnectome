@@ -4290,6 +4290,7 @@ class TestGetTicket:
             else self.ticket1.ssvc_deployer_priority.value
         )
         assert data["ticket_status"]["status_id"] == self.ticket_status1.status_id
+        assert data["created_at"] == self.ticket1.created_at.isoformat()
 
     def test_it_should_return_404_when_ticket_not_found(self):
         user1_access_token = self._get_access_token(USER1)
