@@ -133,6 +133,7 @@ def get_vulns(
     created_before: Optional[datetime] = None,
     updated_after: Optional[datetime] = None,
     updated_before: Optional[datetime] = None,
+    pteam_id: Optional[UUID | str] = None,
     cve_ids: Optional[list[str]] = None,
     package_name: Optional[list[str]] = None,
     ecosystem: Optional[list[str]] = None,
@@ -236,6 +237,31 @@ def get_vulns(
         filters.append(models.Affect.package.has(models.Package.name.in_(package_name)))
     if ecosystem:
         filters.append(models.Affect.package.has(models.Package.ecosystem.in_(ecosystem)))
+
+    # PTeam filter
+    if pteam_id:
+        subq_team_affected_package = (
+            select(models.Package.package_id)
+            .join(models.Affect, models.Affect.package_id == models.Package.package_id)
+            .join(
+                models.PackageVersion, models.PackageVersion.package_id == models.Package.package_id
+            )
+            .join(
+                models.Dependency,
+                models.Dependency.package_version_id == models.PackageVersion.package_version_id,
+            )
+            .join(
+                models.Service,
+                and_(
+                    models.Service.service_id == models.Dependency.service_id,
+                    models.Service.pteam_id == str(pteam_id),
+                ),
+            )
+            .subquery()
+        )
+        filters.append(
+            models.Affect.package_id.in_(select(subq_team_affected_package.c.package_id))
+        )
 
     # Dependency filters
     if package_manager:
