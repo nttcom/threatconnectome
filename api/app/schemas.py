@@ -353,6 +353,14 @@ class ServicePackageVulnsSolvedUnsolved(ORMModel):
     vuln_ids: list[UUID]
 
 
+class ServicePackageTicketCountsSolvedUnsolved(ORMModel):
+    pteam_id: UUID
+    service_id: UUID | None
+    package_id: UUID | None
+    related_ticket_status: str | None
+    ssvc_priority_count: dict[str, int]
+
+
 class DependencyResponse(ORMModel):
     dependency_id: UUID
     service_id: UUID
