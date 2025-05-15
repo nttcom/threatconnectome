@@ -4444,6 +4444,39 @@ class TestPutTicket:
         data = response.json()
         assert data["reason_safety_impact"] == "Updated reason for safety impact"
 
+    def test_it_should_set_reason_safety_impact_none_when_blank(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        # In case of an empty string
+        request = {
+            "reason_safety_impact": "",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["reason_safety_impact"] is None
+
+        # In case of whitespace characters
+        request = {
+            "reason_safety_impact": "   ",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["reason_safety_impact"] is None
+
     def test_it_should_return_400_when_reason_safety_impact_too_long(self):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
@@ -4523,39 +4556,6 @@ class TestPutTicket:
         )
         assert response.status_code == 403
         assert response.json()["detail"] == "Not a pteam member"
-
-    def test_it_should_set_reason_safety_impact_none_when_blank(self):
-        user1_access_token = self._get_access_token(USER1)
-        _headers = {
-            "Authorization": f"Bearer {user1_access_token}",
-            "Content-Type": "application/json",
-            "accept": "application/json",
-        }
-        # In case of an empty string
-        request = {
-            "reason_safety_impact": "",
-        }
-        response = client.put(
-            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
-            headers=_headers,
-            json=request,
-        )
-        assert response.status_code == 200
-        data = response.json()
-        assert data["reason_safety_impact"] is None
-
-        # In case of whitespace characters
-        request = {
-            "reason_safety_impact": "   ",
-        }
-        response = client.put(
-            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
-            headers=_headers,
-            json=request,
-        )
-        assert response.status_code == 200
-        data = response.json()
-        assert data["reason_safety_impact"] is None
 
     def test_it_should_not_fix_ssvc_priority_when_not_changed(self, mocker):
         user1_access_token = self._get_access_token(USER1)
