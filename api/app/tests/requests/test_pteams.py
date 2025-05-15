@@ -1829,7 +1829,7 @@ def test_remove_pteam_by_service_id(testdb):
     assert response.status_code == 204
 
 
-class TestGetVulnIdsTiedToServicePackages:
+class TestGetVulnIdsTiedToServicePackage:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self, testdb):
         # Given
@@ -1961,7 +1961,7 @@ class TestGetVulnIdsTiedToServicePackages:
         assert response.json()["detail"][0]["msg"] == "Input should be 'solved' or 'unsolved'"
 
 
-class TestGetTicketCountsTiedToServicePackages:
+class TestGetTicketCountsTiedToServicePackage:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self, testdb):
         # Given

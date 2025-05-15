@@ -62,7 +62,7 @@ def test_sbom_uploaded_at_with_called_upload_tags_file():
     assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
 
 
-class TestGetVulnIdsTiedToServicePackages:
+class TestGetVulnIdsTiedToServicePackage:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self, testdb):
         # Given
@@ -295,7 +295,7 @@ class TestGetVulnIdsTiedToServicePackages:
         assert response1.json()["vuln_ids"] == vuln_ids_sorted
 
 
-class TestGetTicketCountsTiedToServicePackages:
+class TestGetTicketCountsTiedToServicePackage:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self, testdb):
         # Given
@@ -538,8 +538,8 @@ class TestGetTicketCountsTiedToServicePackages:
         self,
         exploitation,
         automatable,
-        expected_ssvc_priority_count,
         service_mission_impact,
+        expected_ssvc_priority_count,
     ):
         # Given
         vuln = {

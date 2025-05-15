@@ -548,7 +548,7 @@ def get_dependency(
     "/{pteam_id}/vuln_ids",
     response_model=schemas.ServicePackageVulnsSolvedUnsolved,
 )
-def get_vuln_ids_tied_to_service_packages(
+def get_vuln_ids_tied_to_service_package(
     pteam_id: UUID,
     service_id: UUID | None = Query(None),
     package_id: UUID | None = Query(None),
@@ -594,7 +594,7 @@ def get_vuln_ids_tied_to_service_packages(
     "/{pteam_id}/ticket_counts",
     response_model=schemas.ServicePackageTicketCountsSolvedUnsolved,
 )
-def get_ticket_counts_tied_to_service_packages(
+def get_ticket_counts_tied_to_service_package(
     pteam_id: UUID,
     service_id: UUID | None = Query(None),
     package_id: UUID | None = Query(None),
