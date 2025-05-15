@@ -4422,8 +4422,21 @@ class TestPutTicket:
         )
         assert response.status_code == 200
         data = response.json()
+        assert data["ticket_id"] == str(self.ticket1.ticket_id)
+        assert data["vuln_id"] == str(self.vuln1.vuln_id)
+        assert data["dependency_id"] == str(self.dependency1.dependency_id)
+        assert data["ssvc_deployer_priority"] == models.TopicStatusType.scheduled.value
         assert data["ticket_safety_impact"] == request["ticket_safety_impact"]
         assert data["reason_safety_impact"] == request["reason_safety_impact"]
+        assert data["ticket_status"]["status_id"] == self.ticket_status1.status_id
+        assert data["ticket_status"]["ticket_id"] == str(self.ticket1.ticket_id)
+        assert data["ticket_status"]["topic_status"] == models.TopicStatusType.alerted.value
+        assert data["ticket_status"]["user_id"] is None
+        assert data["ticket_status"]["created_at"] == self.ticket_status1.created_at.isoformat()
+        assert data["ticket_status"]["assignees"] == []
+        assert data["ticket_status"]["note"] is None
+        assert data["ticket_status"]["scheduled_at"] is None
+        assert data["ticket_status"]["action_logs"] == []
 
     def test_it_should_update_reason_safety_impact(self):
         user1_access_token = self._get_access_token(USER1)
