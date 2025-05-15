@@ -4528,6 +4528,39 @@ class TestPutTicket:
         assert data["ticket_safety_impact"] == initial_request["ticket_safety_impact"]
         assert data["reason_safety_impact"] == initial_request["reason_safety_impact"]
 
+    def test_it_should_update_ticket_safety_impact_and_reason_to_none(self, testdb: Session):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+
+        initial_request = {
+            "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
+            "reason_safety_impact": "some reason",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=initial_request,
+        )
+        assert response.status_code == 200
+
+        request = {
+            "ticket_safety_impact": None,
+            "reason_safety_impact": None,
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["ticket_safety_impact"] is None
+        assert data["reason_safety_impact"] is None
+
     def test_it_should_return_400_when_reason_safety_impact_too_long(self):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
