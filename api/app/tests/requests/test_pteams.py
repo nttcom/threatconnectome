@@ -4534,7 +4534,7 @@ class TestPutTicket:
             .filter(models.Ticket.ticket_id == self.ticket1.ticket_id)
             .one()
         )
-        assert updated_ticket.ticket_safety_impact.value == initial_request["ticket_safety_impact"]
+        assert updated_ticket.ticket_safety_impact == initial_request["ticket_safety_impact"]
         assert updated_ticket.reason_safety_impact == initial_request["reason_safety_impact"]
 
     def test_it_should_return_400_when_reason_safety_impact_too_long(self):
