@@ -4581,31 +4581,40 @@ class TestPutTicket:
         assert response.status_code == 403
         assert response.json()["detail"] == "Not a pteam member"
 
-    def test_it_should_not_fix_ssvc_priority_when_not_changed(self, mocker):
+    def test_it_should_not_fix_ssvc_priority_when_not_changed(self, testdb: Session):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
             "Content-Type": "application/json",
             "accept": "application/json",
         }
-        # Send the same value as the existing one
+
+        initial_priority = self.ticket1.ssvc_deployer_priority
+
         request = {
             "ticket_safety_impact": (
                 self.ticket1.ticket_safety_impact.value
                 if self.ticket1.ticket_safety_impact
-                else models.SafetyImpactEnum.NEGLIGIBLE.value
+                else None
             ),
-            "reason_safety_impact": "No change",
+            "reason_safety_impact": self.ticket1.reason_safety_impact,
         }
-        # Mock fix_ticket_ssvc_priority
-        mock_fix = mocker.patch("app.business.ticket_business.fix_ticket_ssvc_priority")
+
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
             headers=_headers,
             json=request,
         )
+
         assert response.status_code == 200
-        mock_fix.assert_not_called()
+
+        updated_ticket = (
+            testdb.query(models.Ticket)
+            .filter(models.Ticket.ticket_id == self.ticket1.ticket_id)
+            .one()
+        )
+
+        assert updated_ticket.ssvc_deployer_priority == initial_priority
 
     def test_it_should_return_422_when_invalid_ticket_safety_impact(self):
         user1_access_token = self._get_access_token(USER1)
