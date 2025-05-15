@@ -4338,6 +4338,274 @@ class TestGetTicket:
         assert response.json()["detail"] == "Not a pteam member"
 
 
+class TestPutTicket:
+    @pytest.fixture(scope="function", autouse=True)
+    def setup(self, testdb):
+        self.user1 = create_user(USER1)
+        self.pteam1 = create_pteam(USER1, PTEAM1)
+        self.service1 = models.Service(
+            service_name="test_service",
+            pteam_id=str(self.pteam1.pteam_id),
+        )
+        testdb.add(self.service1)
+        testdb.flush()
+        self.package1 = models.Package(
+            name="test_package",
+            ecosystem="test_ecosystem",
+        )
+        persistence.create_package(testdb, self.package1)
+        self.package_version1 = models.PackageVersion(
+            package_id=self.package1.package_id,
+            version="1.0.0",
+        )
+        persistence.create_package_version(testdb, self.package_version1)
+        self.dependency1 = models.Dependency(
+            target="test_target",
+            package_manager="npm",
+            package_version_id=self.package_version1.package_version_id,
+            service=self.service1,
+        )
+        testdb.add(self.dependency1)
+        testdb.flush()
+        self.vuln1 = models.Vuln(
+            title="Test Vulnerability",
+            detail="This is a test vulnerability.",
+            cvss_v3_score=7.5,
+            created_by=self.user1.user_id,
+            created_at="2023-10-01T00:00:00Z",
+            updated_at="2023-10-01T00:00:00Z",
+        )
+        persistence.create_vuln(testdb, self.vuln1)
+        affect1 = models.Affect(
+            vuln_id=self.vuln1.vuln_id,
+            package_id=self.package1.package_id,
+            affected_versions=["<=1.0.0"],
+            fixed_versions=["2.0.0"],
+        )
+        persistence.create_affect(testdb, affect1)
+        self.threat1 = models.Threat(
+            package_version_id=self.package_version1.package_version_id,
+            vuln_id=self.vuln1.vuln_id,
+        )
+        persistence.create_threat(testdb, self.threat1)
+        ticket_business.fix_ticket_by_threat(testdb, self.threat1)
+        self.ticket1 = testdb.scalars(select(models.Ticket)).one()
+        self.ticket_status1 = testdb.scalars(select(models.TicketStatus)).one()
+
+    @staticmethod
+    def _get_access_token(user: dict) -> str:
+        body = {
+            "username": user["email"],
+            "password": user["pass"],
+        }
+        response = client.post("/auth/token", data=body)
+        if response.status_code != 200:
+            raise Exception(f"Failed to get access token: {response.text}")
+        data = response.json()
+        return data["access_token"]
+
+    def test_it_should_update_ticket_safety_impact(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        request = {
+            "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
+            "reason_safety_impact": "Test reason for safety impact",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["ticket_safety_impact"] == models.SafetyImpactEnum.CRITICAL.value
+        assert data["reason_safety_impact"] == "Test reason for safety impact"
+
+    def test_it_should_update_reason_safety_impact(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        request = {
+            "reason_safety_impact": "Updated reason for safety impact",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["reason_safety_impact"] == "Updated reason for safety impact"
+
+    def test_it_should_return_400_when_reason_safety_impact_too_long(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        # 501 half-width characters（max is 500）
+        too_long_reason = "a" * 501
+        request = {
+            "reason_safety_impact": too_long_reason,
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 400
+        assert "Too long reason_safety_impact" in response.json()["detail"]
+
+    def test_it_should_return_404_when_ticket_not_found(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        wrong_ticket_id = str(uuid4())
+        request = {
+            "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
+            "reason_safety_impact": "Test reason",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{wrong_ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such ticket"
+
+    def test_it_should_return_404_when_pteam_not_found(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        wrong_pteam_id = str(uuid4())
+        request = {
+            "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
+            "reason_safety_impact": "Test reason",
+        }
+        response = client.put(
+            f"/pteams/{wrong_pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such pteam"
+
+    def test_it_should_return_403_when_not_pteam_member(self):
+        create_user(USER2)
+        user2_access_token = self._get_access_token(USER2)
+        _headers = {
+            "Authorization": f"Bearer {user2_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        request = {
+            "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
+            "reason_safety_impact": "Test reason",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Not a pteam member"
+
+    def test_it_should_set_reason_safety_impact_none_when_blank(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        # In case of an empty string
+        request = {
+            "reason_safety_impact": "",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["reason_safety_impact"] is None
+
+        # In case of whitespace characters
+        request = {
+            "reason_safety_impact": "   ",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["reason_safety_impact"] is None
+
+    def test_it_should_not_fix_ssvc_priority_when_not_changed(self, mocker):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        # Send the same value as the existing one
+        request = {
+            "ticket_safety_impact": (
+                self.ticket1.ticket_safety_impact.value
+                if self.ticket1.ticket_safety_impact
+                else models.SafetyImpactEnum.NEGLIGIBLE.value
+            ),
+            "reason_safety_impact": "No change",
+        }
+        # Mock fix_ticket_ssvc_priority
+        mock_fix = mocker.patch("app.business.ticket_business.fix_ticket_ssvc_priority")
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 200
+        mock_fix.assert_not_called()
+
+    def test_it_should_return_422_when_invalid_ticket_safety_impact(self):
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+
+        request = {
+            "ticket_safety_impact": "invalid_value",
+            "reason_safety_impact": "Test reason",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
+            headers=_headers,
+            json=request,
+        )
+        assert response.status_code == 422
+        assert any(
+            "ticket_safety_impact" in err["loc"] for err in response.json().get("detail", [])
+        )
+
+
 class TestDeletePteam:
     @pytest.fixture(scope="function")
     def pteam_setup(self, testdb: Session):
