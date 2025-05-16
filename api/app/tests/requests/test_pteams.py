@@ -4422,9 +4422,11 @@ class TestPutTicket:
         )
         assert response.status_code == 200
         data = response.json()
+        print(data)
         assert data["ticket_id"] == str(self.ticket1.ticket_id)
         assert data["vuln_id"] == str(self.vuln1.vuln_id)
         assert data["dependency_id"] == str(self.dependency1.dependency_id)
+        assert data["created_at"] == self.ticket1.created_at.isoformat()
         assert data["ssvc_deployer_priority"] == models.TopicStatusType.scheduled.value
         assert data["ticket_safety_impact"] == request["ticket_safety_impact"]
         assert data["reason_safety_impact"] == request["reason_safety_impact"]
