@@ -261,9 +261,11 @@ def get_vulns(
                 )
                 .join(
                     models.Service,
-                    models.Service.service_id == models.Dependency.service_id,
+                    and_(
+                        models.Service.service_id == models.Dependency.service_id,
+                        models.Service.pteam_id == str(pteam_id),
+                    ),
                 )
-                .where(models.Service.pteam_id == str(pteam_id))
             )
 
     # Dependency filters
