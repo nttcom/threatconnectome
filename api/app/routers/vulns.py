@@ -310,6 +310,7 @@ def get_vulns(
     created_before: datetime | None = Query(None),
     updated_after: datetime | None = Query(None),
     updated_before: datetime | None = Query(None),
+    pteam_id: UUID | None = Query(None),
     cve_ids: list[str] | None = Query(None),
     package_name: list[str] | None = Query(None),
     ecosystem: list[str] | None = Query(None),
@@ -334,6 +335,7 @@ def get_vulns(
     - `created_before`: Filter vulnerabilities created before this datetime.
     - `updated_after`: Filter vulnerabilities updated after this datetime.
     - `updated_before`: Filter vulnerabilities updated before this datetime.
+    - `pteam_id`: Filter vulnerabilities associated with this PTeam ID.
     - `cve_ids`: List of CVE IDs to filter by.
     - `package_name`: List of package names to filter by.
     - `ecosystem`: List of ecosystems to filter by.
@@ -376,6 +378,7 @@ def get_vulns(
             created_before=created_before,
             updated_after=updated_after,
             updated_before=updated_before,
+            pteam_id=pteam_id,
             cve_ids=cve_ids,
             package_name=package_name,
             ecosystem=ecosystem,

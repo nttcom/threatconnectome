@@ -1,4 +1,6 @@
+import json
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -9,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.main import app
+from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import PTEAM1, USER1, USER2
 from app.tests.medium.utils import (
     create_pteam,
@@ -856,6 +859,77 @@ class TestGetVulns:
                 self.assert_vuln_response(
                     vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
                 )
+
+    def test_it_should_filter_by_pteam_id(self, testdb: Session):
+        # Given
+        pteam1 = create_pteam(USER1, PTEAM1)
+        service_name = "test-service"
+        upload_file_name = "test_trivy_cyclonedx_axios.json"
+        sbom_file = Path(__file__).resolve().parent / "upload_test" / upload_file_name
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+        bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name, upload_file_name)
+
+        # Get the package name and ecosystem included in the SBOM
+        component = sbom_json["components"][1]
+        package_name = component["name"]
+
+        ecosystem = None
+        for prop in component.get("properties", []):
+            if prop.get("name") == "aquasecurity:trivy:PkgType":
+                ecosystem = prop.get("value")
+                break
+
+        # Create two vulnerabilities (one for the SBOM package, and one for an unrelated package)
+        vuln_ids = []
+        vuln_request_sbom = {
+            "title": "SBOM-related vulnerability",
+            "cve_id": "CVE-2025-0001",
+            "detail": "A vulnerability associated with a package created from the SBOM",
+            "exploitation": "active",
+            "automatable": "yes",
+            "cvss_v3_score": 7.5,
+            "vulnerable_packages": [
+                {
+                    "name": package_name,
+                    "ecosystem": ecosystem,
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+        vuln_id_sbom = uuid4()
+        client.put(f"/vulns/{vuln_id_sbom}", headers=self.headers_user, json=vuln_request_sbom)
+        vuln_ids.append(vuln_id_sbom)
+
+        vuln_request_other = {
+            "title": "Unrelated vulnerability",
+            "cve_id": "CVE-2025-0002",
+            "detail": "A vulnerability associated with a package unrelated to the SBOM",
+            "exploitation": "active",
+            "automatable": "yes",
+            "cvss_v3_score": 5.0,
+            "vulnerable_packages": [
+                {
+                    "name": "other-lib",
+                    "ecosystem": "other-eco",
+                    "affected_versions": ["<1.0.0"],
+                    "fixed_versions": ["1.0.0"],
+                }
+            ],
+        }
+        vuln_id_other = uuid4()
+        client.put(f"/vulns/{vuln_id_other}", headers=self.headers_user, json=vuln_request_other)
+        vuln_ids.append(vuln_id_other)
+
+        # When: filter pteam_id
+        response = client.get(f"/vulns?pteam_id={pteam1.pteam_id}", headers=self.headers_user)
+
+        # Then:
+        assert response.status_code == 200
+        response_data = response.json()
+        assert len(response_data) == 1
+        self.assert_vuln_response(response_data[0], vuln_id_sbom, vuln_request_sbom)
 
     def test_it_should_filter_by_cve_ids(self, testdb: Session):
         # Given
