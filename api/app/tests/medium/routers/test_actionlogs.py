@@ -237,7 +237,12 @@ class TestActionLog:
 
         def test_it_should_return_400_when_create_log_with_action_not_belong_specified_vuln(self):
             vuln2 = create_vuln(USER1, VULN2)
-            action2 = vuln2.actions[0]
+            action_data = {
+                "action": "Do something else",
+                "action_type": "elimination",
+                "recommended": True,
+            }
+            action2 = self.create_action_for_vuln(USER1, vuln2.vuln_id, action_data)
             with pytest.raises(HTTPError, match="400: Bad Request"):
                 create_actionlog(
                     USER1,
