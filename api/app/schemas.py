@@ -278,7 +278,7 @@ class ActionLogResponse(ORMModel):
 
 class ActionLogRequest(ORMModel):
     action_id: UUID
-    topic_id: UUID
+    vuln_id: UUID
     user_id: UUID
     pteam_id: UUID
     service_id: UUID

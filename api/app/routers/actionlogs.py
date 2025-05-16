@@ -37,7 +37,7 @@ def create_log(
     db: Session = Depends(get_db),
 ):
     """
-    Add an action log to the topic.
+    Add an action log to the vuln.
 
     `executed_at` is optional, the default is the current time in the server.
 
@@ -52,7 +52,7 @@ def create_log(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a pteam member")
     if not (
         ticket := persistence.get_ticket_by_id(db, data.ticket_id)
-    ) or ticket.threat.dependency.service_id != str(data.service_id):
+    ) or ticket.dependency.service_id != str(data.service_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
     if not (user := persistence.get_account_by_id(db, data.user_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
@@ -60,21 +60,21 @@ def create_log(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam member")
 
     # TODO Provisional Processing
-    # if not (persistence.get_topic_by_id(db, data.topic_id)):
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such topic")
+    # if not (persistence.get_vuln_by_id(db, data.vuln_id)):
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such vuln")
 
     if not (
-        topic_action := persistence.get_action_by_id(db, data.action_id)
-    ) or topic_action.topic_id != str(data.topic_id):
+        vuln_action := persistence.get_action_by_id(db, data.action_id)
+    ) or vuln_action.vuln_id != str(data.vuln_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
 
     now = datetime.now()
     log = models.ActionLog(
         action_id=data.action_id,
-        topic_id=data.topic_id,
-        action=topic_action.action,
-        action_type=topic_action.action_type,
-        recommended=topic_action.recommended,
+        vuln_id=data.vuln_id,
+        action=vuln_action.action,
+        action_type=vuln_action.action_type,
+        recommended=vuln_action.recommended,
         user_id=data.user_id,
         pteam_id=data.pteam_id,
         service_id=data.service_id,
