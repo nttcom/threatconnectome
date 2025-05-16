@@ -243,8 +243,11 @@ def get_vulns(
         if package_manager:
             query = query.join(
                 models.Service,
-                models.Service.service_id == models.Dependency.service_id,
-            ).where(models.Service.pteam_id == str(pteam_id))
+                and_(
+                    models.Service.service_id == models.Dependency.service_id,
+                    models.Service.pteam_id == str(pteam_id),
+                ),
+            )
         else:
             query = (
                 query.outerjoin(
