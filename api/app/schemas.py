@@ -263,7 +263,7 @@ class ApplyInvitationRequest(ORMModel):
 class ActionLogResponse(ORMModel):
     logging_id: UUID
     action_id: UUID
-    topic_id: UUID
+    vuln_id: UUID
     action: str
     action_type: ActionType
     recommended: bool
