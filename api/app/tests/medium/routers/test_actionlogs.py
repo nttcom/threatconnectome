@@ -1,11 +1,16 @@
+import json
 from datetime import datetime, timedelta
-from uuid import uuid4
+from pathlib import Path
+from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from app import models, schemas
 from app.constants import ZERO_FILLED_UUID
 from app.main import app
+from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import (
     PTEAM1,
     PTEAM2,
@@ -39,23 +44,88 @@ class TestActionLog:
 
     class Common:
 
+        def get_service_dependencies(self, service_id: UUID | str) -> dict:
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/services/{service_id}/dependencies",
+                headers=headers(USER1),
+            )
+            return response.json()
+
+        def create_action_for_vuln(
+            self, user: dict, vuln_id: str | UUID, action: dict
+        ) -> schemas.ActionResponse:
+            action_with_vuln = {**action, "vuln_id": str(vuln_id)}
+            response = client.post(
+                "/actions",
+                headers=headers(user),
+                json=action_with_vuln,
+            )
+            if response.status_code != 200:
+                raise HTTPError(response)
+            return schemas.ActionResponse(**response.json())
+
+        def get_actions_by_vuln_id(
+            self, vuln_id: str | UUID, user: dict
+        ) -> list[schemas.ActionResponse]:
+            response = client.get(f"/vulns/{vuln_id}/actions", headers=headers(user))
+            if response.status_code != 200:
+                raise HTTPError(response)
+            data = response.json()
+            return [schemas.ActionResponse(**a) for a in data]
+
         @pytest.fixture(scope="function", autouse=True)
-        def common_setup(self):
+        def common_setup(self, testdb):
             self.user1 = create_user(USER1)
             self.user2 = create_user(USER2)
             self.pteam1 = create_pteam(USER1, PTEAM1)
+
+            # Upload the SBOM file and create dependency information
+            upload_file_name = "test_trivy_cyclonedx_axios.json"
+            sbom_file = (
+                Path(__file__).resolve().parent.parent.parent
+                / "requests"
+                / "upload_test"
+                / upload_file_name
+            )
+            with open(sbom_file, "r") as sbom:
+                sbom_json = json.load(sbom)
+            bg_create_tags_from_sbom_json(
+                sbom_json, self.pteam1.pteam_id, SERVICE1, upload_file_name
+            )
+
+            # Get service ID, package version, and package ID from the database
+            service_id = testdb.scalars(
+                select(models.Service.service_id).where(
+                    models.Service.pteam_id == str(self.pteam1.pteam_id),
+                    models.Service.service_name == SERVICE1,
+                )
+            ).one()
+            self.service1 = {
+                "service_id": str(service_id),
+                "service_name": SERVICE1,
+                "pteam_id": self.pteam1.pteam_id,
+            }
+
+            # Get dependency information (PackageVersion) from the database
+            package_version = testdb.scalars(select(models.PackageVersion)).one()
+            self.package_version = package_version
+            self.package_id = package_version.package_id
+
+            # Create vulnerability and action
             self.vuln1 = create_vuln(USER1, VULN1)
-            self.action1 = self.vuln1.actions[0]
-            refs0 = {TAG1: [("Pipfile.lock", "1.0.0")]}
-            upload_pteam_tags(USER1, self.pteam1.pteam_id, SERVICE1, refs0, True)
-            self.service1 = get_service_by_service_name(USER1, self.pteam1.pteam_id, SERVICE1)
-            self.packageversion1 = self.service1.dependency.packageversion
+            action_data = {
+                "action": "Do something",
+                "action_type": "elimination",
+                "recommended": True,
+            }
+            self.action1 = self.create_action_for_vuln(USER1, self.vuln1.vuln_id, action_data)
+
             self.ticket1 = get_tickets_related_to_vuln_package(
                 USER1,
                 self.pteam1.pteam_id,
                 self.service1["service_id"],
                 self.vuln1.vuln_id,
-                self.packageversion1.package_id,
+                self.package_id,
             )[0]
 
     class TestCreate(Common):
@@ -75,10 +145,10 @@ class TestActionLog:
 
             assert actionlog1.logging_id != ZERO_FILLED_UUID
             assert actionlog1.action_id == self.action1.action_id
-            assert actionlog1.vuln_id == self.vuln1.vuln_id
-            assert actionlog1.action == self.vuln1.actions[0].action
-            assert actionlog1.action_type == self.vuln1.actions[0].action_type
-            assert actionlog1.recommended == self.vuln1.actions[0].recommended
+            assert str(actionlog1.vuln_id) == str(self.vuln1.vuln_id)
+            assert actionlog1.action == self.action1.action
+            assert actionlog1.action_type == self.action1.action_type
+            assert actionlog1.recommended == self.action1.recommended
             assert actionlog1.user_id == self.user1.user_id
             assert actionlog1.pteam_id == self.pteam1.pteam_id
             assert str(actionlog1.service_id) == self.service1["service_id"]
