@@ -233,7 +233,7 @@ def get_tickets_related_to_vuln_package(
     package_id: UUID | str,
 ) -> list[dict]:
     response = client.get(
-        f"/pteams//{pteam_id}/tickets?service_id={service_id}&vuln_id={vuln_id}&package_id={package_id}",
+        f"/pteams/{pteam_id}/tickets?service_id={service_id}&vuln_id={vuln_id}&package_id={package_id}",
         headers=headers(user),
     )
     if response.status_code != 200:
