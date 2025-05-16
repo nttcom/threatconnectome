@@ -18,6 +18,7 @@ from app.business.ssvc_business import (
     get_ticket_counts_summary_by_service_id_and_package_id,
     get_vuln_ids_summary_by_service_id_and_package_id,
 )
+from app.business.ticket_business import fix_ticket_ssvc_priority
 from app.database import get_db, open_db_session
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
@@ -871,6 +872,74 @@ def get_ticket(
     service = ticket.dependency.service
     if str(service.pteam_id) != str(pteam_id):
         raise NO_SUCH_TICKET
+
+    vuln_id = ticket.threat.vuln_id if ticket.threat else None
+
+    return {
+        "ticket_id": ticket.ticket_id,
+        "vuln_id": vuln_id,
+        "dependency_id": ticket.dependency_id,
+        "created_at": ticket.created_at,
+        "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
+        "ticket_safety_impact": ticket.ticket_safety_impact,
+        "reason_safety_impact": ticket.reason_safety_impact,
+        "ticket_status": ticket.ticket_status,
+    }
+
+
+@router.put(
+    "/{pteam_id}/tickets/{ticket_id}",
+    response_model=schemas.TicketResponse,
+)
+def update_ticket_safety_impact(
+    pteam_id: UUID,
+    ticket_id: UUID,
+    data: schemas.TicketUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Update ticket_safety_impact.
+    """
+    max_reason_safety_impact_length_in_half = 500
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+
+    need_fix_ssvc_priority = False
+    updated_keys = data.model_dump(exclude_unset=True).keys()
+    if "ticket_safety_impact" in updated_keys:
+        need_fix_ssvc_priority = ticket.ticket_safety_impact != data.ticket_safety_impact
+        ticket.ticket_safety_impact = data.ticket_safety_impact
+    if "reason_safety_impact" in updated_keys:
+        if data.reason_safety_impact and (
+            reason_safety_impact := data.reason_safety_impact.strip()
+        ):
+            if (
+                count_full_width_and_half_width_characters(reason_safety_impact)
+                > max_reason_safety_impact_length_in_half
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Too long reason_safety_impact. "
+                        f"Max length is {max_reason_safety_impact_length_in_half} in half-width "
+                        f"or {int(max_reason_safety_impact_length_in_half / 2)} in full-width"
+                    ),
+                )
+            ticket.reason_safety_impact = reason_safety_impact
+        else:
+            ticket.reason_safety_impact = None
+
+    if ticket and need_fix_ssvc_priority:
+        db.flush()
+        fix_ticket_ssvc_priority(db, ticket)
+
+    db.commit()
 
     vuln_id = ticket.threat.vuln_id if ticket.threat else None
 
