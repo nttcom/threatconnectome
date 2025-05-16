@@ -58,10 +58,8 @@ def create_log(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user id")
     if not check_pteam_membership(pteam, user):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not a pteam member")
-
-    # TODO Provisional Processing
-    # if not (persistence.get_vuln_by_id(db, data.vuln_id)):
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such vuln")
+    if not (persistence.get_vuln_by_id(db, data.vuln_id)):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such vuln")
 
     if not (
         vuln_action := persistence.get_action_by_id(db, data.action_id)
