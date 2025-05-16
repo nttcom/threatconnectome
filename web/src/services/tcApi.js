@@ -363,13 +363,6 @@ export const tcApi = createApi({
       query: (topicId) => `/topics/${topicId}`,
       providesTags: (result, error, topicId) => [{ type: "Topic", id: `${topicId}` }],
     }),
-    searchTopics: builder.query({
-      query: (params) => ({
-        url: "topics/search",
-        params: params,
-      }),
-      /* No tags to provide */
-    }),
     createTopic: builder.mutation({
       query: ({ topicId, data }) => ({
         url: `topics/${topicId}`,
@@ -463,6 +456,27 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [{ type: "Account", id: arg.userId }],
     }),
 
+    /* Vuln */
+    getVulnActions: builder.query({
+      query: (vulnId) => ({
+        url: `vulns/${vulnId}/actions`,
+      }),
+      providesTags: (result, error, arg) => [
+        ...(result?.reduce(
+          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
+          [],
+        ) ?? []),
+        { type: "VulnAction", id: "ALL" },
+      ],
+    }),
+    getVulns: builder.query({
+      query: (params) => ({
+        url: "vulns",
+        params: params,
+      }),
+      /* No tags to provide */
+    }),
+
     /* External */
     checkMail: builder.mutation({
       query: (data) => ({
@@ -511,13 +525,14 @@ export const {
   useGetTicketsQuery,
   useUpdateTicketStatusMutation,
   useGetTopicQuery,
-  useSearchTopicsQuery,
   useCreateTopicMutation,
   useUpdateTopicMutation,
   useDeleteTopicMutation,
   useGetPTeamTopicActionsQuery,
   useGetTopicActionsQuery,
   useGetUserMeQuery,
+  useGetVulnActionsQuery,
+  useGetVulnsQuery,
   useTryLoginMutation,
   useCreateUserMutation,
   useUpdateUserMutation,
