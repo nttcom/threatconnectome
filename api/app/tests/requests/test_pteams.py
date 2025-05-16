@@ -4668,11 +4668,7 @@ class TestPutTicket:
         initial_priority = self.ticket1.ssvc_deployer_priority
 
         request = {
-            "ticket_safety_impact": (
-                self.ticket1.ticket_safety_impact.value
-                if self.ticket1.ticket_safety_impact
-                else None
-            ),
+            "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
             "reason_safety_impact": self.ticket1.reason_safety_impact,
         }
 
