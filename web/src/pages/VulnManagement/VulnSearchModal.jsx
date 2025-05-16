@@ -29,13 +29,13 @@ import dialogStyle from "../../cssModule/dialog.module.css";
 import { cvssRatings } from "../../utils/const";
 import { cvssConvertToScore } from "../../utils/func";
 
-export function TopicSearchModal(props) {
+export function VulnSearchModal(props) {
   const { show, onSearch, onCancel } = props;
 
   const [titleWords, setTitleWords] = useState("");
-  const [mispTags, setMispTags] = useState("");
+  const [cveIds, setCveIds] = useState("");
   const [creatorIds, setCreatorIds] = useState("");
-  const [topicIds, setTopicIds] = useState("");
+  const [vulnIds, setVulnIds] = useState("");
   const [updatedAfter, setUpdatedAfter] = useState(null); // Date object
   const [updatedBefore, setUpdatedBefore] = useState(null); // Date object
   const [adModeChange, setAdModeChange] = useState(false);
@@ -60,8 +60,8 @@ export function TopicSearchModal(props) {
   const handleSearch = () => {
     const params = {
       titleWords: titleWords,
-      mispTags: mispTags,
-      topicIds: topicIds,
+      cveIds: cveIds,
+      vulnIds: vulnIds,
       creatorIds: creatorIds,
       updatedAfter: updatedAfter?.toISOString(),
       updatedBefore: updatedBefore?.toISOString(),
@@ -74,7 +74,7 @@ export function TopicSearchModal(props) {
 
   const clearAdvancedParams = () => {
     setCreatorIds("");
-    setTopicIds("");
+    setVulnIds("");
     setUpdatedAfter(null);
     setUpdatedBefore(null);
     setDateFormList("");
@@ -85,7 +85,7 @@ export function TopicSearchModal(props) {
 
   const clearAllParams = () => {
     setTitleWords("");
-    setMispTags("");
+    setCveIds("");
     clearAdvancedParams();
   };
 
@@ -151,15 +151,15 @@ export function TopicSearchModal(props) {
     </Grid>
   );
 
-  const mispForm = (
+  const cveIdForm = (
     <Grid container sx={{ margin: 1.5 }}>
       <Grid item xs={2} md={2}>
-        <Typography sx={{ marginTop: "10px" }}>Topic Tags</Typography>
+        <Typography sx={{ marginTop: "10px" }}>CVE ID</Typography>
       </Grid>
       <Grid item xs={10} md={10}>
         <TextField
-          value={mispTags}
-          onChange={(event) => setMispTags(event.target.value)}
+          value={cveIds}
+          onChange={(event) => setCveIds(event.target.value)}
           variant="outlined"
           size="small"
           sx={{ width: "95%" }}
@@ -293,12 +293,12 @@ export function TopicSearchModal(props) {
   const uuidForm = (
     <Grid container sx={{ margin: 1.5 }}>
       <Grid item xs={2} md={2}>
-        <Typography sx={{ marginTop: "10px" }}>Topic ID</Typography>
+        <Typography sx={{ marginTop: "10px" }}>Vuln ID</Typography>
       </Grid>
       <Grid item xs={10} md={10}>
         <TextField
-          value={topicIds}
-          onChange={(event) => setTopicIds(event.target.value)}
+          value={vulnIds}
+          onChange={(event) => setVulnIds(event.target.value)}
           variant="outlined"
           size="small"
           sx={{ width: "95%" }}
@@ -313,7 +313,7 @@ export function TopicSearchModal(props) {
         <DialogTitle>
           <Box alignItems="center" display="flex" flexDirection="row" sx={{ mb: -3 }}>
             <Typography flexGrow={1} className={dialogStyle.dialog_title}>
-              Topic Search
+              Vuln Search
             </Typography>
             <IconButton onClick={handleCancel}>
               <CloseIcon />
@@ -329,7 +329,7 @@ export function TopicSearchModal(props) {
               />
             </Box>
             {titleForm}
-            {mispForm}
+            {cveIdForm}
             {adModeChange && (
               <Box>
                 {cvssForm}
@@ -355,7 +355,7 @@ export function TopicSearchModal(props) {
     </>
   );
 }
-TopicSearchModal.propTypes = {
+VulnSearchModal.propTypes = {
   show: PropTypes.bool.isRequired,
   onSearch: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,

@@ -19,8 +19,8 @@ export class LocationReader {
     return this.location.pathname === "/pteam/join";
   }
 
-  isTopicsPage() {
-    return this.location.pathname.includes("/topics");
+  isVulnsPage() {
+    return this.location.pathname.includes("/vulns");
   }
 
   isVulnerabilitiesPage() {

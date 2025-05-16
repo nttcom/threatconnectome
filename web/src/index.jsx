@@ -22,7 +22,7 @@ import {
   SignUp,
   Tag,
   TopicDetail,
-  TopicManagement,
+  VulnManagement,
   PTeam,
   Vulnerability,
 } from "./pages";
@@ -71,8 +71,8 @@ root.render(
                     <Route path=":tagId" element={<Tag />} />
                   </Route>
                   <Route path="*" element={<Navigate to="/" />} />
-                  <Route path="topics">
-                    <Route index element={<TopicManagement />} />
+                  <Route path="vulns">
+                    <Route index element={<VulnManagement />} />
                     <Route path=":topicId" element={<TopicDetail />} />
                   </Route>
                   <Route path="vulnerabilities">
