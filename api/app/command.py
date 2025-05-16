@@ -240,28 +240,28 @@ def get_vulns(
 
     # PTeam filter
     if pteam_id:
-        subq_team_affected_package = (
-            select(models.Package.package_id)
-            .join(models.Affect, models.Affect.package_id == models.Package.package_id)
-            .join(
-                models.PackageVersion, models.PackageVersion.package_id == models.Package.package_id
-            )
-            .join(
-                models.Dependency,
-                models.Dependency.package_version_id == models.PackageVersion.package_version_id,
-            )
-            .join(
+        if package_manager:
+            query = query.join(
                 models.Service,
-                and_(
+                models.Service.service_id == models.Dependency.service_id,
+            ).where(models.Service.pteam_id == str(pteam_id))
+        else:
+            query = (
+                query.join(
+                    models.PackageVersion,
+                    models.Package.package_id == models.PackageVersion.package_id,
+                )
+                .join(
+                    models.Dependency,
+                    models.PackageVersion.package_version_id
+                    == models.Dependency.package_version_id,
+                )
+                .join(
+                    models.Service,
                     models.Service.service_id == models.Dependency.service_id,
-                    models.Service.pteam_id == str(pteam_id),
-                ),
+                )
+                .where(models.Service.pteam_id == str(pteam_id))
             )
-            .subquery()
-        )
-        filters.append(
-            models.Affect.package_id.in_(select(subq_team_affected_package.c.package_id))
-        )
 
     # Dependency filters
     if package_manager:
