@@ -247,7 +247,7 @@ def get_vulns(
             ).where(models.Service.pteam_id == str(pteam_id))
         else:
             query = (
-                query.join(
+                query.outerjoin(
                     models.PackageVersion,
                     models.Package.package_id == models.PackageVersion.package_id,
                 )
