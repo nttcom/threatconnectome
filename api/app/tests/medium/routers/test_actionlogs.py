@@ -65,12 +65,7 @@ class TestActionLog:
 
             # Upload the SBOM file and create dependency information
             upload_file_name = "test_trivy_cyclonedx_axios.json"
-            sbom_file = (
-                Path(__file__).resolve().parent.parent.parent
-                / "requests"
-                / "upload_test"
-                / upload_file_name
-            )
+            sbom_file = Path(__file__).resolve().parent / "upload_test" / upload_file_name
             with open(sbom_file, "r") as sbom:
                 sbom_json = json.load(sbom)
             bg_create_tags_from_sbom_json(
