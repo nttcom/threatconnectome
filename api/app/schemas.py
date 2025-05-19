@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 from enum import Enum
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -262,7 +263,7 @@ class ApplyInvitationRequest(ORMModel):
 
 class ActionLogResponse(ORMModel):
     logging_id: UUID
-    action_id: UUID
+    action_id: Optional[UUID] = None
     vuln_id: UUID
     action: str
     action_type: ActionType
@@ -277,7 +278,7 @@ class ActionLogResponse(ORMModel):
 
 
 class ActionLogRequest(ORMModel):
-    action_id: UUID
+    action_id: Optional[UUID] = None
     vuln_id: UUID
     user_id: UUID
     pteam_id: UUID

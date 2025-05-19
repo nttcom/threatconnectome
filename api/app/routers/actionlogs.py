@@ -61,18 +61,19 @@ def create_log(
     if not (persistence.get_vuln_by_id(db, data.vuln_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such vuln")
 
-    if not (
-        vuln_action := persistence.get_action_by_id(db, data.action_id)
-    ) or vuln_action.vuln_id != str(data.vuln_id):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
+    vuln_action = None
+    if data.action_id:
+        vuln_action = persistence.get_action_by_id(db, data.action_id)
+        if not vuln_action or vuln_action.vuln_id != str(data.vuln_id):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
 
     now = datetime.now()
     log = models.ActionLog(
         action_id=data.action_id,
         vuln_id=data.vuln_id,
-        action=vuln_action.action,
-        action_type=vuln_action.action_type,
-        recommended=vuln_action.recommended,
+        action=vuln_action.action if vuln_action else None,
+        action_type=vuln_action.action_type if vuln_action else None,
+        recommended=vuln_action.recommended if vuln_action else None,
         user_id=data.user_id,
         pteam_id=data.pteam_id,
         service_id=data.service_id,
