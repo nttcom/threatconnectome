@@ -7,9 +7,9 @@ import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 import { TopicTable } from "./TopicTables/TopicTable";
 
 export function PTeamTaggedTopics(props) {
-  const { pteamId, service, tagId, references, taggedTopics } = props;
+  const { pteamId, service, packageId, references, vulnIds, ticketCounts } = props;
 
-  if (taggedTopics === undefined) {
+  if (vulnIds === undefined || ticketCounts === undefined) {
     return <>Loading...</>;
   }
 
@@ -20,7 +20,7 @@ export function PTeamTaggedTopics(props) {
           <SSVCPriorityCountChip
             key={ssvcPriority}
             ssvcPriority={ssvcPriority}
-            count={taggedTopics.ssvc_priority_count[ssvcPriority]}
+            count={ticketCounts[ssvcPriority]}
             outerSx={{ mr: "10px" }}
           />
         ))}
@@ -32,8 +32,8 @@ export function PTeamTaggedTopics(props) {
         <TopicTable
           pteamId={pteamId}
           serviceId={service.service_id}
-          tagId={tagId}
-          topicIds={taggedTopics.topic_ids}
+          packageId={packageId}
+          vulnIds={vulnIds}
           references={references}
         />
       </Box>
@@ -43,7 +43,8 @@ export function PTeamTaggedTopics(props) {
 PTeamTaggedTopics.propTypes = {
   pteamId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
-  tagId: PropTypes.string.isRequired,
+  packageId: PropTypes.string.isRequired,
   references: PropTypes.array.isRequired,
-  taggedTopics: PropTypes.object.isRequired,
+  vulnIds: PropTypes.array.isRequired,
+  ticketCounts: PropTypes.object.isRequired,
 };

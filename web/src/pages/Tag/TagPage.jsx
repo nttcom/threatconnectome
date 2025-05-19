@@ -8,8 +8,8 @@ import { UUIDTypography } from "../../components/UUIDTypography";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
-  useGetPTeamServiceTaggedTopicIdsQuery,
-  useGetTagsQuery,
+  useGetPTeamVulnIdsTiedToServicePackageQuery,
+  useGetPTeamTicketCountsTiedToServicePackageQuery,
   useGetDependenciesQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError.js";
@@ -24,70 +24,104 @@ export function Tag() {
   const [tabValue, setTabValue] = useState(0);
 
   const skipByAuth = useSkipUntilAuthUserIsReady();
-  const {
-    data: allTags,
-    error: allTagsError,
-    isLoading: allTagsIsLoading,
-  } = useGetTagsQuery(undefined, { skipByAuth });
 
-  const { tagId } = useParams();
+  const { packageId } = useParams();
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
   const getDependenciesReady = !skipByAuth && pteamId && serviceId;
   const getPTeamReady = !skipByAuth && pteamId;
-  const getTopicIdsReady = getPTeamReady && serviceId && tagId;
+  const getVulnIdsReady = getPTeamReady && serviceId && packageId;
 
+  const offset = 0;
+  const limit = 10000;
   const {
     data: serviceDependencies,
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
-  } = useGetDependenciesQuery({ pteamId, serviceId }, { skip: !getDependenciesReady });
+  } = useGetDependenciesQuery(
+    { pteamId, serviceId, offset, limit },
+    { skip: !getDependenciesReady },
+  );
   const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
   } = useGetPTeamQuery(pteamId, { skip: !getPTeamReady });
   const {
-    data: taggedTopics,
-    error: taggedTopicsError,
-    isLoading: taggedTopicsIsLoading,
-  } = useGetPTeamServiceTaggedTopicIdsQuery(
-    { pteamId, serviceId, tagId },
-    { skip: !getTopicIdsReady },
+    data: vulnIdsSolved,
+    error: vulnIdsSolvedError,
+    isLoading: vulnIdsSolvedIsLoading,
+  } = useGetPTeamVulnIdsTiedToServicePackageQuery(
+    { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
+    { skip: !getVulnIdsReady },
   );
-
-  const currentTagDependencies = (serviceDependencies ?? []).filter(
-    (dependency) => dependency.tag_id === tagId,
+  const {
+    data: vulnIdsUnSolved,
+    error: vulnIdsUnSolvedError,
+    isLoading: vulnIdsUnSolvedIsLoading,
+  } = useGetPTeamVulnIdsTiedToServicePackageQuery(
+    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
+    { skip: !getVulnIdsReady },
+  );
+  const {
+    data: ticketCountsSolved,
+    error: ticketCountsSolvedError,
+    isLoading: ticketCountsSolvedIsLoading,
+  } = useGetPTeamTicketCountsTiedToServicePackageQuery(
+    { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
+    { skip: !getVulnIdsReady },
+  );
+  const {
+    data: ticketCountsUnSolved,
+    error: ticketCountsUnSolvedError,
+    isLoading: ticketCountsUnSolvedIsLoading,
+  } = useGetPTeamTicketCountsTiedToServicePackageQuery(
+    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
+    { skip: !getVulnIdsReady },
   );
 
   if (!pteamId) return <>{noPTeamMessage}</>;
-  if (!getTopicIdsReady) return <></>;
-  if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getTags" });
-  if (allTagsIsLoading) return <>Now loading allTags...</>;
+  if (!getVulnIdsReady) return <></>;
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>Now loading Team...</>;
   if (serviceDependenciesError)
     throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
-  if (taggedTopicsError)
-    throw new APIError(errorToString(taggedTopicsError), { api: "getPTeamServiceTaggedTopicIds" });
-  if (taggedTopicsIsLoading) return <>Now loading TaggedTopics...</>;
+  if (vulnIdsSolvedError)
+    throw new APIError(errorToString(vulnIdsSolvedError), {
+      api: "getPTeamVulnIdsTiedToServicePackage",
+    });
+  if (vulnIdsSolvedIsLoading) return <>Now loading vulnIdsSolved...</>;
+  if (vulnIdsUnSolvedError)
+    throw new APIError(errorToString(vulnIdsUnSolvedError), {
+      api: "getPTeamVulnIdsTiedToServicePackage",
+    });
+  if (vulnIdsUnSolvedIsLoading) return <>Now loading vulnIdsUnSolved...</>;
+  if (ticketCountsSolvedError)
+    throw new APIError(errorToString(ticketCountsSolvedError), {
+      api: "getPTeamVulnIdsTiedToServicePackage",
+    });
+  if (ticketCountsSolvedIsLoading) return <>Now loading ticketCountsSolved...</>;
+  if (ticketCountsUnSolvedError)
+    throw new APIError(errorToString(ticketCountsUnSolvedError), {
+      api: "getPTeamVulnIdsTiedToServicePackage",
+    });
+  if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
 
-  const numSolved = taggedTopics.solved?.topic_ids?.length ?? 0;
-  const numUnsolved = taggedTopics.unsolved?.topic_ids?.length ?? 0;
-
-  const tagDict = allTags.find((tag) => tag.tag_id === tagId);
+  const currentPackageDependencies = (serviceDependencies ?? []).filter(
+    (dependency) => dependency.package_id === packageId,
+  );
   const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
-  const references = currentTagDependencies.map((dependency) => ({
+  const references = currentPackageDependencies.map((dependency) => ({
     dependencyId: dependency.dependency_id,
     target: dependency.target,
-    version: dependency.version,
+    version: dependency.package_version,
     service: serviceDict.service_name,
   }));
 
-  const taggedTopicsUnsolved = taggedTopics?.["unsolved"];
-  const taggedTopicsSolved = taggedTopics?.["solved"];
+  const numSolved = vulnIdsSolved.vuln_ids?.length ?? 0;
+  const numUnsolved = vulnIdsUnSolved.vuln_ids?.length ?? 0;
 
   const handleTabChange = (event, value) => setTabValue(value);
 
@@ -113,11 +147,13 @@ export function Tag() {
           </Box>
           <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              {tagDict.tag_name}
+              {currentPackageDependencies[0].package_name +
+                ":" +
+                currentPackageDependencies[0].package_ecosystem}
             </Typography>
           </Box>
           <Typography mr={1} mb={1} variant="caption">
-            <UUIDTypography sx={{ mr: 2 }}>{tagId}</UUIDTypography>
+            <UUIDTypography sx={{ mr: 2 }}>{packageId}</UUIDTypography>
           </Typography>
           <TagReferences references={references} serviceDict={serviceDict} />
         </Box>
@@ -126,27 +162,29 @@ export function Tag() {
       <Divider />
       <Box sx={{ width: "100%" }}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="pteam_tagged_topic_tabs">
-            <Tab label={`UNSOLVED TOPICS (${numUnsolved})`} {...a11yProps(0)} />
-            <Tab label={`SOLVED TOPICS (${numSolved})`} {...a11yProps(1)} />
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="pteam_tagged_vuln_tabs">
+            <Tab label={`UNSOLVED VULNS (${numUnsolved})`} {...a11yProps(0)} />
+            <Tab label={`SOLVED VULNS (${numSolved})`} {...a11yProps(1)} />
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>
           <PTeamTaggedTopics
             pteamId={pteamId}
             service={serviceDict}
-            tagId={tagId}
+            packageId={packageId}
             references={references}
-            taggedTopics={taggedTopicsUnsolved}
+            vulnIds={vulnIdsUnSolved.vuln_ids}
+            ticketCounts={ticketCountsUnSolved.ssvc_priority_count}
           />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
           <PTeamTaggedTopics
             pteamId={pteamId}
             service={serviceDict}
-            tagId={tagId}
+            packageId={packageId}
             references={references}
-            taggedTopics={taggedTopicsSolved}
+            vulnIds={vulnIdsSolved.vuln_ids}
+            ticketCounts={ticketCountsSolved.ssvc_priority_count}
           />
         </TabPanel>
       </Box>
