@@ -76,9 +76,9 @@ def create_log(
     log = models.ActionLog(
         action_id=data.action_id,
         vuln_id=data.vuln_id,
-        action=vuln_action.action if vuln_action else None,
-        action_type=vuln_action.action_type if vuln_action else None,
-        recommended=vuln_action.recommended if vuln_action else None,
+        action=data.action,
+        action_type=data.action_type,
+        recommended=data.recommended,
         user_id=data.user_id,
         pteam_id=data.pteam_id,
         service_id=data.service_id,
