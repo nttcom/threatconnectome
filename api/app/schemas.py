@@ -262,7 +262,7 @@ class ApplyInvitationRequest(ORMModel):
 
 class ActionLogResponse(ORMModel):
     logging_id: UUID
-    action_id: UUID
+    action_id: UUID | None = None
     vuln_id: UUID
     action: str
     action_type: ActionType
@@ -277,7 +277,10 @@ class ActionLogResponse(ORMModel):
 
 
 class ActionLogRequest(ORMModel):
-    action_id: UUID
+    action_id: UUID | None = None
+    action: str
+    action_type: ActionType
+    recommended: bool
     vuln_id: UUID
     user_id: UUID
     pteam_id: UUID

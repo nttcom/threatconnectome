@@ -91,12 +91,12 @@ class TestActionLog:
 
             # Create vulnerability and action
             self.vuln1 = create_vuln(USER1, VULN1)
-            action_data = {
+            self.action_data = {
                 "action": "Do something",
                 "action_type": "elimination",
                 "recommended": True,
             }
-            self.action1 = self.create_action(USER1, self.vuln1.vuln_id, action_data)
+            self.action1 = self.create_action(USER1, self.vuln1.vuln_id, self.action_data)
 
             self.ticket1 = get_tickets_related_to_vuln_package(
                 USER1,
@@ -113,6 +113,9 @@ class TestActionLog:
             actionlog1 = create_actionlog(
                 USER1,
                 self.action1.action_id,
+                self.action_data["action"],
+                self.action_data["action_type"],
+                self.action_data["recommended"],
                 self.vuln1.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
@@ -135,11 +138,43 @@ class TestActionLog:
             assert actionlog1.executed_at == now
             assert actionlog1.created_at > now
 
+        def test_create_log_without_action_id(self):
+            now = datetime.now()
+            actionlog = create_actionlog(
+                USER1,
+                None,  # action_id = None
+                self.action_data["action"],
+                self.action_data["action_type"],
+                self.action_data["recommended"],
+                self.vuln1.vuln_id,
+                self.user1.user_id,
+                self.pteam1.pteam_id,
+                self.service1["service_id"],
+                self.ticket1["ticket_id"],
+                now,
+            )
+            assert actionlog.logging_id != ZERO_FILLED_UUID
+            assert actionlog.action_id is None
+            assert actionlog.action == self.action1.action
+            assert actionlog.action_type == self.action1.action_type
+            assert actionlog.recommended == self.action1.recommended
+            assert str(actionlog.vuln_id) == str(self.vuln1.vuln_id)
+            assert actionlog.user_id == self.user1.user_id
+            assert actionlog.pteam_id == self.pteam1.pteam_id
+            assert str(actionlog.service_id) == self.service1["service_id"]
+            assert str(actionlog.ticket_id) == self.ticket1["ticket_id"]
+            assert actionlog.email == USER1["email"]
+            assert actionlog.executed_at == now
+            assert actionlog.created_at > now
+
         def test_create_log_with_wrong_action(self):
             with pytest.raises(HTTPError, match="400: Bad Request"):
                 create_actionlog(
                     USER1,
                     uuid4(),  # wrong action_id
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user1.user_id,
                     self.pteam1.pteam_id,
@@ -153,6 +188,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action1.action_id,
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     uuid4(),  # wrong vuln_id
                     self.user1.user_id,
                     self.pteam1.pteam_id,
@@ -166,6 +204,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action1.action_id,
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     uuid4(),  # wrong user_id
                     self.pteam1.pteam_id,
@@ -179,6 +220,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action1.action_id,
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user1.user_id,
                     uuid4(),  # wrong pteam_id
@@ -192,6 +236,9 @@ class TestActionLog:
                 create_actionlog(
                     USER2,  # call by USER2
                     self.action1.action_id,
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user1.user_id,
                     self.pteam1.pteam_id,
@@ -205,6 +252,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action1.action_id,
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user2.user_id,  # USER2
                     self.pteam1.pteam_id,
@@ -225,6 +275,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     action2.action_id,  # action2
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user1.user_id,
                     self.pteam1.pteam_id,
