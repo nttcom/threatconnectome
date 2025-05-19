@@ -109,3 +109,137 @@ class TestCreateAction:
         # Then
         assert response.status_code == 400
         assert response.json() == {"detail": "Missing vuln_id"}
+
+
+class TestUpdateAction:
+
+    @pytest.fixture(autouse=True)
+    def common_setup(self, testdb: Session):
+        # Create a user
+        self.user = create_user(USER1)
+
+        # Create a vuln
+        self.new_vuln_id = uuid4()
+        vuln_request1 = {
+            "title": "Example vuln",
+            "cve_id": "CVE-0000-0001",
+            "detail": "This vuln is example.",
+            "exploitation": "active",
+            "automatable": "yes",
+            "cvss_v3_score": 7.8,
+            "vulnerable_packages": [
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+
+        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=vuln_request1)
+
+        # Create an action
+        action_create_request = {
+            "vuln_id": str(self.new_vuln_id),
+            "action": "example action",
+            "action_type": "elimination",
+            "recommended": True,
+        }
+
+        action_response = client.post(
+            "/actions",
+            headers=headers(USER1),
+            json=action_create_request,
+        )
+        self.action_id = action_response.json()["action_id"]
+
+    def test_response_200_if_update_action_successfully(self, testdb: Session):
+        # Given
+        action_update_request = {
+            "action": "updated action",
+            "action_type": "mitigation",
+            "recommended": False,
+        }
+
+        # When
+        response = client.put(
+            f"/actions/{self.action_id}",
+            headers=headers(USER1),
+            json=action_update_request,
+        )
+
+        # Then
+        assert response.status_code == 200
+        assert response.json()["action"] == "updated action"
+        assert response.json()["action_type"] == "mitigation"
+        assert response.json()["recommended"] is False
+
+    def test_raise_404_if_action_id_does_not_exist(self):
+        # Given
+        non_existent_action_id = uuid4()
+        action_update_request = {
+            "action": "updated action",
+        }
+
+        # When
+        response = client.put(
+            f"/actions/{non_existent_action_id}",
+            headers=headers(USER1),
+            json=action_update_request,
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json() == {"detail": "No such vuln action"}
+
+    def test_raise_400_if_action_is_none(self):
+        # Given
+        action_update_request = {
+            "action": None,
+        }
+
+        # When
+        response = client.put(
+            f"/actions/{self.action_id}",
+            headers=headers(USER1),
+            json=action_update_request,
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert response.json() == {"detail": "Cannot specify None for action"}
+
+    def test_raise_400_if_action_type_is_none(self):
+        # Given
+        action_update_request = {
+            "action_type": None,
+        }
+
+        # When
+        response = client.put(
+            f"/actions/{self.action_id}",
+            headers=headers(USER1),
+            json=action_update_request,
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert response.json() == {"detail": "Cannot specify None for action_type"}
+
+    def test_raise_400_if_recommended_is_none(self):
+        # Given
+        action_update_request = {
+            "recommended": None,
+        }
+
+        # When
+        response = client.put(
+            f"/actions/{self.action_id}",
+            headers=headers(USER1),
+            json=action_update_request,
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert response.json() == {"detail": "Cannot specify None for recommended"}

@@ -13,7 +13,7 @@ from app.database import get_db
 router = APIRouter(prefix="/actions", tags=["actions"])
 
 
-NO_SUCH_ACTION = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic action")
+NO_SUCH_ACTION = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln action")
 
 
 @router.post("", response_model=schemas.ActionResponse)
