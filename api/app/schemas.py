@@ -157,7 +157,14 @@ class ActionUpdateRequest(ORMModel):
     ext: dict | None = None
 
 
-class VulnerablePackage(BaseModel):
+class VulnerablePackageRequest(BaseModel):
+    name: str
+    ecosystem: str
+    affected_versions: list[str]
+    fixed_versions: list[str]
+
+
+class VulnerablePackageResponse(BaseModel):
     package_id: UUID
     name: str
     ecosystem: str
@@ -165,26 +172,38 @@ class VulnerablePackage(BaseModel):
     fixed_versions: list[str]
 
 
-class VulnBase(BaseModel):
+class VulnBaseRequest(BaseModel):
     title: str | None = None
     cve_id: str | None = None
     detail: str | None = None
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
-    vulnerable_packages: list[VulnerablePackage] = []
+    vulnerable_packages: list[VulnerablePackageRequest] = []
 
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
-class VulnResponse(VulnBase):
+class VulnBaseResponse(BaseModel):
+    title: str | None = None
+    cve_id: str | None = None
+    detail: str | None = None
+    exploitation: ExploitationEnum | None = None
+    automatable: AutomatableEnum | None = None
+    cvss_v3_score: float | None = None
+    vulnerable_packages: list[VulnerablePackageResponse] = []
+
+    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
+
+
+class VulnResponse(VulnBaseResponse):
     vuln_id: str
     created_at: datetime
     updated_at: datetime
     created_by: UUID | None = None
 
 
-class VulnUpdate(VulnBase):
+class VulnUpdate(VulnBaseRequest):
     pass
 
 

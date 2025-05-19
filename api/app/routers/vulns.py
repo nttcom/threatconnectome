@@ -95,6 +95,19 @@ def __handle_create_vuln(
 
     db.commit()
 
+    # create vulnerable_packages_response
+    vulnerable_packages_response = []
+    for package_id, vulnerable_package in requested_packages.items():
+        vulnerable_packages_response.append(
+            schemas.VulnerablePackageResponse(
+                package_id=package_id,
+                name=vulnerable_package.name,
+                ecosystem=vulnerable_package.ecosystem,
+                affected_versions=vulnerable_package.affected_versions,
+                fixed_versions=vulnerable_package.fixed_versions,
+            )
+        )
+
     return schemas.VulnResponse(
         vuln_id=str(vuln_id),
         created_by=UUID(vuln.created_by) if vuln.created_by else None,
@@ -106,7 +119,7 @@ def __handle_create_vuln(
         exploitation=vuln.exploitation,
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
-        vulnerable_packages=request.vulnerable_packages,
+        vulnerable_packages=vulnerable_packages_response,
     )
 
 
@@ -197,7 +210,7 @@ def __handle_update_vuln(
     db.commit()
 
     vulnerable_packages = [
-        schemas.VulnerablePackage(
+        schemas.VulnerablePackageResponse(
             package_id=affect.package_id,
             name=affect.package.name,
             ecosystem=affect.package.ecosystem,
@@ -273,7 +286,7 @@ def get_vuln(
 
     # Fetch vulnerable packages associated with the vuln
     vulnerable_packages = [
-        schemas.VulnerablePackage(
+        schemas.VulnerablePackageResponse(
             package_id=affect.package_id,
             name=affect.package.name,
             ecosystem=affect.package.ecosystem,
@@ -397,7 +410,7 @@ def get_vulns(
     for vuln in vulns:
         # Fetch vulnerable packages associated with the vuln
         vulnerable_packages = [
-            schemas.VulnerablePackage(
+            schemas.VulnerablePackageResponse(
                 package_id=affect.package_id,
                 name=affect.package.name,
                 ecosystem=affect.package.ecosystem,
