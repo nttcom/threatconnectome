@@ -92,8 +92,7 @@ class TestActionLog:
 
             # Get dependency information (PackageVersion) from the database
             package_version = testdb.scalars(select(models.PackageVersion)).one()
-            self.package_version = package_version
-            self.package_id = package_version.package_id
+            self.package_version1 = package_version
 
             # Create vulnerability and action
             self.vuln1 = create_vuln(USER1, VULN1)
@@ -109,7 +108,7 @@ class TestActionLog:
                 self.pteam1.pteam_id,
                 self.service1["service_id"],
                 self.vuln1.vuln_id,
-                self.package_id,
+                self.package_version1.package_id,
             )[0]
 
     class TestCreate(Common):
