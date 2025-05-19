@@ -4,14 +4,12 @@ import PropTypes from "prop-types";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
   useGetPTeamMembersQuery,
-  useGetPTeamTopicActionsQuery,
-  useGetTagsQuery,
+  useGetVulnActionsQuery,
   useGetTicketsQuery,
-  useGetTopicQuery,
+  useGetVulnQuery,
 } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
-import { isRelatedAction } from "../../../utils/topicUtils.js";
 
 import { TopicTableRowView } from "./TopicTableRowView.jsx";
 
@@ -24,20 +22,14 @@ function SimpleCell(value = "") {
 }
 
 export function TopicTableRow(props) {
-  const { pteamId, serviceId, tagId, topicId, references } = props;
+  const { pteamId, serviceId, packageId, vulnId, references } = props;
 
   const skipByAuth = useSkipUntilAuthUserIsReady();
 
   const skipByPTeamId = pteamId === undefined;
   const skipByServiceId = serviceId === undefined;
-  const skipByTopicId = topicId === undefined;
-  const skipBytagId = tagId === undefined;
-
-  const {
-    data: allTags,
-    error: allTagsError,
-    isLoading: allTagsIsLoading,
-  } = useGetTagsQuery(undefined, { skipByAuth });
+  const skipByVulnId = vulnId === undefined;
+  const skipBypackageId = packageId === undefined;
 
   const {
     data: members,
@@ -46,64 +38,51 @@ export function TopicTableRow(props) {
   } = useGetPTeamMembersQuery(pteamId, { skip: skipByAuth || skipByPTeamId });
 
   const {
-    data: topic,
-    error: topicError,
-    isLoading: topicIsLoading,
-  } = useGetTopicQuery(topicId, { skip: skipByAuth || skipByTopicId });
+    data: vuln,
+    error: vulnError,
+    isLoading: vulnIsLoading,
+  } = useGetVulnQuery(vulnId, { skip: skipByAuth || skipByVulnId });
 
   const {
-    data: pteamTopicActionsData,
-    error: pteamTopicActionsError,
-    isLoading: pteamTopicActionsIsLoading,
-  } = useGetPTeamTopicActionsQuery(
-    { topicId, pteamId },
-    { skip: skipByAuth || skipByPTeamId || skipByTopicId },
-  );
+    data: vulnActions,
+    error: vulnActionsError,
+    isLoading: vulnActionsIsLoading,
+  } = useGetVulnActionsQuery(vulnId, { skip: skipByAuth || skipByPTeamId || skipByVulnId });
 
   const {
     data: tickets,
-    error: ticketsRelatedToServiceTopicTagError,
-    isLoading: ticketsRelatedToServiceTopicTagIsLoading,
+    error: ticketsRelatedToServiceVulnPackageError,
+    isLoading: ticketsRelatedToServiceVulnPackageIsLoading,
   } = useGetTicketsQuery(
-    { pteamId, serviceId, topicId, tagId },
-    { skip: skipByAuth || skipByPTeamId || skipByServiceId || skipByTopicId || skipBytagId },
+    { pteamId, serviceId, vulnId, packageId },
+    { skip: skipByAuth || skipByPTeamId || skipByServiceId || skipByVulnId || skipBypackageId },
   );
 
-  if (skipByAuth || skipByPTeamId || skipByServiceId || skipByTopicId || skipBytagId)
+  if (skipByAuth || skipByPTeamId || skipByServiceId || skipByVulnId || skipBypackageId)
     return SimpleCell("");
-  if (allTagsError) throw new APIError(errorToString(allTagsError), { api: "getAllTags" });
-  if (allTagsIsLoading) return SimpleCell("Now loading allTags...");
   if (membersError) throw new APIError(errorToString(membersError), { api: "getPTeamMembers" });
   if (membersIsLoading) return SimpleCell("Now loading PTeamMembers...");
-  if (topicError) throw new APIError(errorToString(topicError), { api: "getTopic" });
-  if (topicIsLoading) return SimpleCell("Now loading Topic...");
-  if (pteamTopicActionsError)
-    throw new APIError(errorToString(pteamTopicActionsError), { api: "getPTeamTopicActions" });
-  if (pteamTopicActionsIsLoading) return SimpleCell("Now loading topicActions...");
-  if (ticketsRelatedToServiceTopicTagError)
-    throw new APIError(errorToString(ticketsRelatedToServiceTopicTagError), {
+  if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
+  if (vulnIsLoading) return SimpleCell("Now loading Topic...");
+  if (vulnActionsError)
+    throw new APIError(errorToString(vulnActionsError), { api: "getPTeamTopicActions" });
+  if (vulnActionsIsLoading) return SimpleCell("Now loading topicActions...");
+  if (ticketsRelatedToServiceVulnPackageError)
+    throw new APIError(errorToString(ticketsRelatedToServiceVulnPackageError), {
       api: "getTicketsRelatedToServiceTopicTag",
     });
-  if (ticketsRelatedToServiceTopicTagIsLoading) return SimpleCell("Now loading tickets...");
-
-  const currentTagDict = allTags.find((tag) => tag.tag_id === tagId);
-  const topicActions = pteamTopicActionsData.actions?.filter(
-    (action) =>
-      isRelatedAction(action, references, currentTagDict.tag_name) ||
-      isRelatedAction(action, references, currentTagDict.parent_name),
-  );
+  if (ticketsRelatedToServiceVulnPackageIsLoading) return SimpleCell("Now loading tickets...");
 
   return (
     <TopicTableRowView
       pteamId={pteamId}
       serviceId={serviceId}
-      tagId={tagId}
-      topicId={topicId}
-      allTags={allTags}
+      packageId={packageId}
+      vulnId={vulnId}
       members={members}
       references={references}
-      topic={topic}
-      topicActions={topicActions}
+      vuln={vuln}
+      vulnActions={vulnActions}
       tickets={tickets}
     />
   );
@@ -111,7 +90,7 @@ export function TopicTableRow(props) {
 TopicTableRow.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
-  tagId: PropTypes.string.isRequired,
-  topicId: PropTypes.string.isRequired,
+  packageId: PropTypes.string.isRequired,
+  vulnId: PropTypes.string.isRequired,
   references: PropTypes.array.isRequired,
 };

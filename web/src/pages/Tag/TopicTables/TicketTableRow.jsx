@@ -9,10 +9,20 @@ import { SafetyImpactSelector } from "./SafetyImpactSelector.jsx";
 import { TopicStatusSelector } from "./TopicStatusSelector.jsx";
 
 export function TicketTableRow(props) {
-  const { pteamId, serviceId, tagId, topicId, members, references, topicActions, ticket } = props;
+  const {
+    pteamId,
+    serviceId,
+    packageId,
+    vulnId,
+    members,
+    references,
+    actionText,
+    vulnActions,
+    ticket,
+  } = props;
 
   const target = references.filter(
-    (reference) => reference.dependencyId === ticket.threat.dependency_id,
+    (reference) => reference.dependencyId === ticket.dependency_id,
   )[0].target;
 
   return (
@@ -30,18 +40,19 @@ export function TicketTableRow(props) {
         </TableCell>
       </Tooltip>
       <TableCell>
-        <SafetyImpactSelector threatId={ticket.threat.threat_id} />
+        <SafetyImpactSelector pteamId={pteamId} ticket={ticket} />
       </TableCell>
       <TableCell>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <TopicStatusSelector
             pteamId={pteamId}
             serviceId={serviceId}
-            topicId={topicId}
-            tagId={tagId}
+            vulnId={vulnId}
+            packageId={packageId}
             ticketId={ticket.ticket_id}
             currentStatus={ticket.ticket_status}
-            topicActions={topicActions}
+            actionText={actionText}
+            vulnActions={vulnActions}
           />
           {(ticket.ticket_status.topic_status ?? "alerted") === "alerted" && (
             <WarningTooltip message="No one has acknowledged this topic" />
@@ -54,8 +65,8 @@ export function TicketTableRow(props) {
           key={ticket.ticket_status.assignees.join("")}
           pteamId={pteamId}
           serviceId={serviceId}
-          topicId={topicId}
-          tagId={tagId}
+          vulnId={vulnId}
+          packageId={packageId}
           ticketId={ticket.ticket_id}
           currentAssigneeIds={ticket.ticket_status.assignees}
           members={members}
@@ -73,10 +84,11 @@ export function TicketTableRow(props) {
 TicketTableRow.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
-  tagId: PropTypes.string.isRequired,
-  topicId: PropTypes.string.isRequired,
+  packageId: PropTypes.string.isRequired,
+  vulnId: PropTypes.string.isRequired,
   members: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
-  topicActions: PropTypes.array.isRequired,
+  actionText: PropTypes.string.isRequired,
+  vulnActions: PropTypes.string.isRequired,
   ticket: PropTypes.object.isRequired,
 };

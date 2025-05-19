@@ -29,7 +29,7 @@ import {
 import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 
 export function SafetyImpactSelectorView(props) {
-  const { fixedThreatSafetyImpact, fixedReasonSafetyImpact, onRevertedToDefault, onSave } = props;
+  const { fixedTicketSafetyImpact, fixedReasonSafetyImpact, onRevertedToDefault, onSave } = props;
 
   const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
@@ -93,7 +93,7 @@ export function SafetyImpactSelectorView(props) {
     <Box sx={{ display: "flex", alignItems: "center" }}>
       <FormControl sx={{ width: 130 }} size="small" variant="standard">
         <Select
-          value={fixedThreatSafetyImpact ? fixedThreatSafetyImpact : defaultSafetyImpactItem}
+          value={fixedTicketSafetyImpact ? fixedTicketSafetyImpact : defaultSafetyImpactItem}
           onChange={(e) => {
             handleSelectSafetyImpact(e);
           }}
@@ -133,8 +133,8 @@ export function SafetyImpactSelectorView(props) {
           <Box sx={{ pb: 2 }}>
             <DialogContentText>
               Current:{" "}
-              {fixedThreatSafetyImpact
-                ? safetyImpactProps[fixedThreatSafetyImpact].displayName
+              {fixedTicketSafetyImpact
+                ? safetyImpactProps[fixedTicketSafetyImpact].displayName
                 : defaultSafetyImpactItem}
             </DialogContentText>
             <DialogContentText>
@@ -167,7 +167,7 @@ export function SafetyImpactSelectorView(props) {
   );
 }
 SafetyImpactSelectorView.propTypes = {
-  fixedThreatSafetyImpact: PropTypes.string,
+  fixedTicketSafetyImpact: PropTypes.string,
   fixedReasonSafetyImpact: PropTypes.string,
   onRevertedToDefault: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
