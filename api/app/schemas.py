@@ -1,7 +1,6 @@
 import re
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -278,10 +277,10 @@ class ActionLogResponse(ORMModel):
 
 
 class ActionLogRequest(ORMModel):
-    action_id: Optional[UUID] = None
-    action: str | None
-    action_type: ActionType | None
-    recommended: bool | None
+    action_id: UUID | None = None
+    action: str
+    action_type: ActionType
+    recommended: bool
     vuln_id: UUID
     user_id: UUID
     pteam_id: UUID
