@@ -181,7 +181,6 @@ def create_actionlog(
     executed_at: datetime | None,
 ) -> schemas.ActionLogResponse:
     request = {
-        "action_id": str(action_id),
         "vuln_id": str(vuln_id),
         "user_id": str(user_id),
         "pteam_id": str(pteam_id),
@@ -189,6 +188,8 @@ def create_actionlog(
         "ticket_id": str(ticket_id),
         "executed_at": str(executed_at) if executed_at else None,
     }
+    if action_id is not None:
+        request["action_id"] = str(action_id)
 
     response = client.post("/actionlogs", headers=headers(user), json=request)
 
