@@ -316,7 +316,6 @@ def get_vulns(
 
     # Pageination
     query = query.offset(offset).limit(limit)
-    query = query.offset(offset).limit(limit)
     vulns = db.scalars(query).unique().all()
 
     result = {
