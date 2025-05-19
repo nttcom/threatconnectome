@@ -22,4 +22,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.get_bind().exec_driver_sql("DELETE FROM actionlog WHERE action_id IS NULL")
     op.alter_column("actionlog", "action_id", existing_type=sa.Text(), nullable=False)
