@@ -1286,7 +1286,6 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        print(response_data)
         assert len(response_data["vulns"]) == 1
 
         # Check the details of each vuln
