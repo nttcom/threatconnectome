@@ -66,11 +66,6 @@ def create_log(
         vuln_action = persistence.get_action_by_id(db, data.action_id)
         if not vuln_action or vuln_action.vuln_id != str(data.vuln_id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
-    if data.action is None or data.action_type is None or data.recommended is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="action, action_type, recommended are required when action_id is not specified",
-        )
 
     now = datetime.now()
     log = models.ActionLog(
