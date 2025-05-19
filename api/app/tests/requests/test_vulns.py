@@ -509,11 +509,12 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == number_of_vulns
+        assert response_data["num_vulns"] == number_of_vulns
+        assert len(response_data["vulns"]) == number_of_vulns
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
-            reversed_index = len(response_data) - 1 - i
+        for i, vuln in enumerate(response_data["vulns"]):
+            reversed_index = len(response_data["vulns"]) - 1 - i
             self.assert_vuln_response(
                 vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
             )
@@ -535,7 +536,8 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert response_data == []
+        assert response_data["num_vulns"] == 0
+        assert response_data["vulns"] == []
 
     def test_it_should_return_correct_number_of_vulns_with_limit(self, testdb: Session):
         # Given
@@ -550,7 +552,8 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 2
+        assert response_data["num_vulns"] == number_of_vulns
+        assert len(response_data["vulns"]) == 2
 
     def test_it_should_return_correct_vulns_with_offset(self, testdb: Session):
         # Given
@@ -572,17 +575,18 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 4
+        assert response_data["num_vulns"] == number_of_vulns
+        assert len(response_data["vulns"]) == 4
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
-            reversed_index = len(response_data) - 1 - i
+        for i, vuln in enumerate(response_data["vulns"]):
+            reversed_index = len(response_data["vulns"]) - 1 - i
             self.assert_vuln_response(
                 vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
             )
         assert (
             created_times[3] - timedelta(seconds=10)
-            <= datetime.fromisoformat(response_data[0]["created_at"])
+            <= datetime.fromisoformat(response_data["vulns"][0]["created_at"])
             <= created_times[3] + timedelta(seconds=10)
         )
 
@@ -607,9 +611,10 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == count
+        assert response_data["num_vulns"] == count
+        assert len(response_data["vulns"]) == count
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             self.assert_vuln_response(
                 vuln, vuln_ids[i + 1], self.create_vuln_request(i + 1, scores[i + 1])
             )
@@ -635,10 +640,11 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == count
+        assert response_data["num_vulns"] == count
+        assert len(response_data["vulns"]) == count
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i, scores[i]))
 
     def test_it_should_filter_by_vuln_ids(self, testdb: Session):
@@ -657,10 +663,13 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
+        assert response_data["num_vulns"] == 1
+        assert len(response_data["vulns"]) == 1
 
         # Check the details of the filtered vuln
-        self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
+        self.assert_vuln_response(
+            response_data["vulns"][0], vuln_ids[0], self.create_vuln_request(0)
+        )
 
     def test_it_should_filter_by_title_words(self, testdb: Session):
         # Given
@@ -684,9 +693,12 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
+        assert len(response_data["vulns"]) == 1
+        assert response_data["num_vulns"] == 1
 
-        self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
+        self.assert_vuln_response(
+            response_data["vulns"][0], vuln_ids[0], self.create_vuln_request(0)
+        )
 
     def test_it_should_return_vulns_when_title_words_include_empty(self, testdb: Session):
         # Given
@@ -740,10 +752,10 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == number_of_vulns
+        assert len(response_data["vulns"]) == number_of_vulns
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             if i == 2:
                 assert vuln["title"] == ""
                 assert vuln["cve_id"] == "CVE-0000-0000"
@@ -756,7 +768,7 @@ class TestGetVulns:
                 assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
                 assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
             else:
-                reversed_index = len(response_data) - 1 - i
+                reversed_index = len(response_data["vulns"]) - 1 - i
                 self.assert_vuln_response(
                     vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
                 )
@@ -783,9 +795,11 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
+        assert len(response_data["vulns"]) == 1
 
-        self.assert_vuln_response(response_data[0], vuln_ids[0], self.create_vuln_request(0))
+        self.assert_vuln_response(
+            response_data["vulns"][0], vuln_ids[0], self.create_vuln_request(0)
+        )
 
     def test_it_should_return_all_vulns_when_detail_words_include_empty(self, testdb: Session):
         # Given
@@ -839,10 +853,10 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == number_of_vulns
+        assert len(response_data["vulns"]) == number_of_vulns
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             if i == 2:
                 assert vuln["title"] == "Example-vuln-0"
                 assert vuln["cve_id"] == "CVE-0000-0000"
@@ -855,7 +869,7 @@ class TestGetVulns:
                 assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
                 assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
             else:
-                reversed_index = len(response_data) - 1 - i
+                reversed_index = len(response_data["vulns"]) - 1 - i
                 self.assert_vuln_response(
                     vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
                 )
@@ -928,8 +942,8 @@ class TestGetVulns:
         # Then:
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
-        self.assert_vuln_response(response_data[0], vuln_id_sbom, vuln_request_sbom)
+        assert len(response_data["vulns"]) == 1
+        self.assert_vuln_response(response_data["vulns"][0], vuln_id_sbom, vuln_request_sbom)
 
     def test_it_should_filter_by_cve_ids(self, testdb: Session):
         # Given
@@ -953,10 +967,10 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
+        assert len(response_data["vulns"]) == 1
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_return_400_when_cve_ids_is_empty(self, testdb: Session):
@@ -1011,15 +1025,15 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 2
+        assert len(response_data["vulns"]) == 2
         # Filter vuln_ids based on the created_after condition
         filtered_vuln_ids = [
             vuln_ids[i] for i in range(number_of_vulns) if created_at_list[i] > created_after
         ]
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
-            reversed_index = len(response_data) - 1 - i
+        for i, vuln in enumerate(response_data["vulns"]):
+            reversed_index = len(response_data["vulns"]) - 1 - i
             self.assert_vuln_response(
                 vuln,
                 filtered_vuln_ids[reversed_index],
@@ -1033,10 +1047,10 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
+        assert len(response_data["vulns"]) == 1
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
         updated_after = "2023-01-15 00:00:00"
@@ -1045,7 +1059,7 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 2
+        assert len(response_data["vulns"]) == 2
 
         # Filter vuln_ids based on the created_after condition
         filtered_vuln_ids = [
@@ -1053,8 +1067,8 @@ class TestGetVulns:
         ]
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
-            reversed_index = len(response_data) - 1 - i
+        for i, vuln in enumerate(response_data["vulns"]):
+            reversed_index = len(response_data["vulns"]) - 1 - i
             self.assert_vuln_response(
                 vuln,
                 filtered_vuln_ids[reversed_index],
@@ -1067,10 +1081,10 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
+        assert len(response_data["vulns"]) == 1
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_filter_by_creator_ids(self, testdb: Session):
@@ -1102,10 +1116,10 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
+        assert len(response_data["vulns"]) == 1
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_return_all_vulns_when_creator_ids_is_empty(self, testdb: Session):
@@ -1124,11 +1138,11 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == number_of_vulns
+        assert len(response_data["vulns"]) == number_of_vulns
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
-            reversed_index = len(response_data) - 1 - i
+        for i, vuln in enumerate(response_data["vulns"]):
+            reversed_index = len(response_data["vulns"]) - 1 - i
             self.assert_vuln_response(
                 vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
             )
@@ -1156,10 +1170,10 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
+        assert len(response_data["vulns"]) == 1
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_filter_by_ecosystem(self, testdb: Session):
@@ -1185,10 +1199,10 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
+        assert len(response_data["vulns"]) == 1
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     def test_it_should_filter_by_package_manager(self, testdb: Session):
@@ -1272,10 +1286,11 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data) == 1
+        print(response_data)
+        assert len(response_data["vulns"]) == 1
 
         # Check the details of each vuln
-        for i, vuln in enumerate(response_data):
+        for i, vuln in enumerate(response_data["vulns"]):
             self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
 
     # Test sort_key
@@ -1310,7 +1325,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data] == [3.0, 5.0, 8.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [3.0, 5.0, 8.0]
 
     # A2
     def test_it_should_sort_by_cvss_v3_score_with_null(self, testdb: Session):
@@ -1323,7 +1338,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data] == [None, 3.0, 8.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [None, 3.0, 8.0]
 
     # A3
     def test_it_should_sort_by_descending_updated_at_when_cvss_v3_scores_are_equal(
@@ -1337,7 +1352,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["updated_at"] for vuln in response_data] == [
+        assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
             "2024-01-01T00:00:00",
             "2023-01-01T00:00:00",
         ]
@@ -1356,8 +1371,10 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data] == [None, 5.0, 5.0, 8.0]
-        assert [vuln["updated_at"] for vuln in response_data if vuln["cvss_v3_score"] == 5.0] == [
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [None, 5.0, 5.0, 8.0]
+        assert [
+            vuln["updated_at"] for vuln in response_data["vulns"] if vuln["cvss_v3_score"] == 5.0
+        ] == [
             "2025-01-02T00:00:00",
             "2023-01-01T00:00:00",
         ]
@@ -1374,7 +1391,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data] == [8.0, 5.0, 3.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [8.0, 5.0, 3.0]
 
     # B2
     def test_it_should_sort_by_cvss_v3_score_descending_with_null(self, testdb: Session):
@@ -1387,7 +1404,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data] == [8.0, 5.0, None]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [8.0, 5.0, None]
 
     # B3
     def test_sort_by_cvss_v3_score_descending_updated_at_when_cvss_v3_scores_are_equal(
@@ -1401,7 +1418,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["updated_at"] for vuln in response_data] == [
+        assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
             "2023-01-01T00:00:00",
             "2022-01-01T00:00:00",
         ]
@@ -1420,8 +1437,10 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data] == [8.0, 5.0, 5.0, None]
-        assert [vuln["updated_at"] for vuln in response_data if vuln["cvss_v3_score"] == 5.0] == [
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [8.0, 5.0, 5.0, None]
+        assert [
+            vuln["updated_at"] for vuln in response_data["vulns"] if vuln["cvss_v3_score"] == 5.0
+        ] == [
             "2025-01-02T00:00:00",
             "2023-01-01T00:00:00",
         ]
@@ -1438,7 +1457,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["updated_at"] for vuln in response_data] == [
+        assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
             "2023-01-01T00:00:00",
             "2024-01-01T00:00:00",
             "2025-01-01T00:00:00",
@@ -1457,7 +1476,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data] == [8.0, 5.0, 3.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [8.0, 5.0, 3.0]
 
     # C3
     def test_it_should_sort_by_ascending_updated_at_and_by_descending_cvss_v3_score(
@@ -1472,7 +1491,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data] == [3.0, 8.0, 5.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [3.0, 8.0, 5.0]
 
     # D: sortkey is UPDATED_AT_DESC
     # D1
@@ -1486,7 +1505,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["updated_at"] for vuln in response_data] == [
+        assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
             "2023-01-01T00:00:00",
             "2022-01-01T00:00:00",
             "2021-01-01T00:00:00",
@@ -1505,7 +1524,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data] == [8.0, 5.0, 3.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [8.0, 5.0, 3.0]
 
     # D3
     def test_it_should_sort_by_descending_updated_at_and_by_descending_cvss_v3_score(
@@ -1520,7 +1539,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data] == [5.0, 8.0, 3.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [5.0, 8.0, 3.0]
 
 
 class TestDeleteVuln:

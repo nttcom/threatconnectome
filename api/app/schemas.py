@@ -183,6 +183,11 @@ class VulnResponse(VulnBase):
     created_by: UUID | None = None
 
 
+class VulnsListResponse(BaseModel):
+    num_vulns: int
+    vulns: list[VulnResponse]
+
+
 class VulnUpdate(VulnBase):
     pass
 

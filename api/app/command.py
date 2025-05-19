@@ -139,7 +139,7 @@ def get_vulns(
     ecosystem: Optional[list[str]] = None,
     package_manager: Optional[str] = None,
     sort_key: schemas.VulnSortKey = schemas.VulnSortKey.CVSS_V3_SCORE_DESC,  # set default sort key
-) -> Sequence[models.Vuln]:
+) -> dict:
 
     # Remove duplicates from lists
     fixed_creator_ids = set()
@@ -272,6 +272,24 @@ def get_vulns(
     if package_manager:
         filters.append(models.Dependency.package_manager == package_manager)
 
+    count_query = select(func.count(models.Vuln.vuln_id.distinct()))
+    count_query = count_query.join(
+        models.Affect, models.Vuln.vuln_id == models.Affect.vuln_id
+    ).join(models.Package, models.Affect.package_id == models.Package.package_id)
+
+    # Add a JOIN if referencing Dependency
+    if package_manager:
+        count_query = count_query.outerjoin(
+            models.PackageVersion, models.Package.package_id == models.PackageVersion.package_id
+        ).outerjoin(
+            models.Dependency,
+            models.PackageVersion.package_version_id == models.Dependency.package_version_id,
+        )
+
+    if filters:
+        count_query = count_query.where(and_(*filters))
+    num_vulns = db.scalar(count_query)
+
     if filters:
         query = query.where(and_(*filters))
 
@@ -298,8 +316,18 @@ def get_vulns(
 
     # Pageination
     query = query.offset(offset).limit(limit)
+    query = query.offset(offset).limit(limit)
+    vulns = db.scalars(query).unique().all()
 
-    return db.scalars(query).unique().all()
+    result = {
+        "num_vulns": num_vulns,
+        "sort_key": sort_key,
+        "offset": offset,
+        "limit": limit,
+        "vulns": vulns,
+    }
+
+    return result
 
 
 def get_packages_summary(
