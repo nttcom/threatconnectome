@@ -153,6 +153,8 @@ class TestUpdateAction:
             json=action_create_request,
         )
         self.action_id = action_response.json()["action_id"]
+        self.vuln_id = action_response.json()["vuln_id"]
+        self.created_at = action_response.json()["created_at"]
 
     def test_response_200_if_update_action_successfully(self, testdb: Session):
         # Given
@@ -171,9 +173,12 @@ class TestUpdateAction:
 
         # Then
         assert response.status_code == 200
-        assert response.json()["action"] == "updated action"
-        assert response.json()["action_type"] == "mitigation"
-        assert response.json()["recommended"] is False
+        assert response.json()["action"] == action_update_request["action"]
+        assert response.json()["action_type"] == action_update_request["action_type"]
+        assert response.json()["recommended"] == action_update_request["recommended"]
+        assert response.json()["vuln_id"] == str(self.vuln_id)
+        assert response.json()["action_id"] == str(self.action_id)
+        assert response.json()["created_at"] == self.created_at
 
     def test_raise_404_if_action_id_does_not_exist(self):
         # Given
