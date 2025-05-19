@@ -102,7 +102,7 @@ class TestActionLog:
                 "action_type": "elimination",
                 "recommended": True,
             }
-            self.action1 = self.create_action_for_vuln(USER1, self.vuln1.vuln_id, action_data)
+            self.action1 = self.create_action(USER1, self.vuln1.vuln_id, action_data)
 
             self.ticket1 = get_tickets_related_to_vuln_package(
                 USER1,
@@ -226,7 +226,7 @@ class TestActionLog:
                 "action_type": "elimination",
                 "recommended": True,
             }
-            action2 = self.create_action_for_vuln(USER1, vuln2.vuln_id, action_data)
+            action2 = self.create_action(USER1, vuln2.vuln_id, action_data)
             with pytest.raises(HTTPError, match="400: Bad Request"):
                 create_actionlog(
                     USER1,
