@@ -135,6 +135,29 @@ class TestActionLog:
             assert actionlog1.executed_at == now
             assert actionlog1.created_at > now
 
+        def test_create_log_without_action_id(self):
+            now = datetime.now()
+            actionlog = create_actionlog(
+                USER1,
+                None,  # action_id = None
+                self.vuln1.vuln_id,
+                self.user1.user_id,
+                self.pteam1.pteam_id,
+                self.service1["service_id"],
+                self.ticket1["ticket_id"],
+                now,
+            )
+            assert actionlog.logging_id != ZERO_FILLED_UUID
+            assert actionlog.action_id is None
+            assert str(actionlog.vuln_id) == str(self.vuln1.vuln_id)
+            assert actionlog.user_id == self.user1.user_id
+            assert actionlog.pteam_id == self.pteam1.pteam_id
+            assert str(actionlog.service_id) == self.service1["service_id"]
+            assert str(actionlog.ticket_id) == self.ticket1["ticket_id"]
+            assert actionlog.email == USER1["email"]
+            assert actionlog.executed_at == now
+            assert actionlog.created_at > now
+
         def test_create_log_with_wrong_action(self):
             with pytest.raises(HTTPError, match="400: Bad Request"):
                 create_actionlog(
