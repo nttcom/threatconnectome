@@ -198,6 +198,7 @@ def __handle_update_vuln(
 
     vulnerable_packages = [
         schemas.VulnerablePackage(
+            package_id=affect.package_id,
             name=affect.package.name,
             ecosystem=affect.package.ecosystem,
             affected_versions=affect.affected_versions,
@@ -273,6 +274,7 @@ def get_vuln(
     # Fetch vulnerable packages associated with the vuln
     vulnerable_packages = [
         schemas.VulnerablePackage(
+            package_id=affect.package_id,
             name=affect.package.name,
             ecosystem=affect.package.ecosystem,
             affected_versions=affect.affected_versions,
@@ -396,6 +398,7 @@ def get_vulns(
         # Fetch vulnerable packages associated with the vuln
         vulnerable_packages = [
             schemas.VulnerablePackage(
+                package_id=affect.package_id,
                 name=affect.package.name,
                 ecosystem=affect.package.ecosystem,
                 affected_versions=affect.affected_versions,

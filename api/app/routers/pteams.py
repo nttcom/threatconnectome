@@ -510,6 +510,7 @@ def get_dependencies(
             dependency_id=dependency.dependency_id,
             service_id=dependency.service.service_id,
             package_version_id=dependency.package_version_id,
+            package_id=dependency.package_version.package_id,
             package_manager=dependency.package_manager,
             target=dependency.target,
             dependency_mission_impact=dependency.dependency_mission_impact,

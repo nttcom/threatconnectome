@@ -158,6 +158,7 @@ class ActionUpdateRequest(ORMModel):
 
 
 class VulnerablePackage(BaseModel):
+    package_id: UUID
     name: str
     ecosystem: str
     affected_versions: list[str]
@@ -365,6 +366,7 @@ class DependencyResponse(ORMModel):
     dependency_id: UUID
     service_id: UUID
     package_version_id: UUID
+    package_id: UUID
     package_manager: str
     target: str
     dependency_mission_impact: str | None = None
