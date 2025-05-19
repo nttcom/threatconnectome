@@ -44,7 +44,7 @@ class TestActionLog:
 
     class Common:
 
-        def create_action_for_vuln(
+        def create_action(
             self, user: dict, vuln_id: str | UUID, action: dict
         ) -> schemas.ActionResponse:
             action_with_vuln = {**action, "vuln_id": str(vuln_id)}
