@@ -91,12 +91,12 @@ class TestActionLog:
 
             # Create vulnerability and action
             self.vuln1 = create_vuln(USER1, VULN1)
-            action_data = {
+            self.action_data = {
                 "action": "Do something",
                 "action_type": "elimination",
                 "recommended": True,
             }
-            self.action1 = self.create_action(USER1, self.vuln1.vuln_id, action_data)
+            self.action1 = self.create_action(USER1, self.vuln1.vuln_id, self.action_data)
 
             self.ticket1 = get_tickets_related_to_vuln_package(
                 USER1,
@@ -113,6 +113,9 @@ class TestActionLog:
             actionlog1 = create_actionlog(
                 USER1,
                 self.action1.action_id,
+                self.action_data["action"],
+                self.action_data["action_type"],
+                self.action_data["recommended"],
                 self.vuln1.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
@@ -140,6 +143,9 @@ class TestActionLog:
             actionlog = create_actionlog(
                 USER1,
                 None,  # action_id = None
+                self.action_data["action"],
+                self.action_data["action_type"],
+                self.action_data["recommended"],
                 self.vuln1.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
@@ -149,6 +155,9 @@ class TestActionLog:
             )
             assert actionlog.logging_id != ZERO_FILLED_UUID
             assert actionlog.action_id is None
+            assert actionlog.action == self.action1.action
+            assert actionlog.action_type == self.action1.action_type
+            assert actionlog.recommended == self.action1.recommended
             assert str(actionlog.vuln_id) == str(self.vuln1.vuln_id)
             assert actionlog.user_id == self.user1.user_id
             assert actionlog.pteam_id == self.pteam1.pteam_id
@@ -163,6 +172,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     uuid4(),  # wrong action_id
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user1.user_id,
                     self.pteam1.pteam_id,
@@ -176,6 +188,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action1.action_id,
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     uuid4(),  # wrong vuln_id
                     self.user1.user_id,
                     self.pteam1.pteam_id,
@@ -189,6 +204,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action1.action_id,
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     uuid4(),  # wrong user_id
                     self.pteam1.pteam_id,
@@ -202,6 +220,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action1.action_id,
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user1.user_id,
                     uuid4(),  # wrong pteam_id
@@ -215,6 +236,9 @@ class TestActionLog:
                 create_actionlog(
                     USER2,  # call by USER2
                     self.action1.action_id,
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user1.user_id,
                     self.pteam1.pteam_id,
@@ -228,6 +252,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action1.action_id,
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user2.user_id,  # USER2
                     self.pteam1.pteam_id,
@@ -248,6 +275,9 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     action2.action_id,  # action2
+                    self.action_data["action"],
+                    self.action_data["action_type"],
+                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user1.user_id,
                     self.pteam1.pteam_id,
