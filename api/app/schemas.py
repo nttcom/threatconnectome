@@ -279,6 +279,9 @@ class ActionLogResponse(ORMModel):
 
 class ActionLogRequest(ORMModel):
     action_id: Optional[UUID] = None
+    action: str | None
+    action_type: ActionType | None
+    recommended: bool | None
     vuln_id: UUID
     user_id: UUID
     pteam_id: UUID
