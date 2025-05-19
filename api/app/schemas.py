@@ -154,7 +154,6 @@ class ActionUpdateRequest(ORMModel):
     action: str | None = None
     action_type: ActionType | None = None
     recommended: bool | None = None
-    ext: dict | None = None
 
 
 class VulnerablePackage(BaseModel):

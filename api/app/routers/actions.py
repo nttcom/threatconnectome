@@ -72,10 +72,11 @@ def update_action(
     db: Session = Depends(get_db),
 ):
     """
-    Update a topic action.
+    Update a vuln action.
     """
     if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
+
     update_data = data.model_dump(exclude_unset=True)
     if "action" in update_data.keys() and data.action is None:
         raise HTTPException(
@@ -92,30 +93,6 @@ def update_action(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot specify None for recommended",
         )
-    if "ext" in update_data.keys() and data.ext is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot specify None for ext",
-        )
-    if data.ext:
-        # TODO Provisional Processing
-        # if not_exist_tags := {
-        #     tag_name
-        #     for tag_name in data.ext.get("tags", [])
-        #     if not persistence.get_tag_by_name(db, tag_name)
-        # }:
-        #     raise HTTPException(
-        #         status_code=status.HTTP_400_BAD_REQUEST,
-        #         detail=f"No such tags: {', '.join(sorted(not_exist_tags))}",
-        #     )
-
-        # TODO Provisional Processing
-        # if not check_topic_action_tags_integrity(action.topic.tags, data.ext.get("tags")):
-        #     raise HTTPException(
-        #         status_code=status.HTTP_400_BAD_REQUEST,
-        #         detail="Action Tag mismatch with Topic Tag",
-        #     )
-        pass
 
     for key, value in data:
         if value is None:
