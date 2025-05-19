@@ -44,13 +44,6 @@ class TestActionLog:
 
     class Common:
 
-        def get_service_dependencies(self, service_id: UUID | str) -> dict:
-            response = client.get(
-                f"/pteams/{self.pteam1.pteam_id}/services/{service_id}/dependencies",
-                headers=headers(USER1),
-            )
-            return response.json()
-
         def create_action_for_vuln(
             self, user: dict, vuln_id: str | UUID, action: dict
         ) -> schemas.ActionResponse:
@@ -63,15 +56,6 @@ class TestActionLog:
             if response.status_code != 200:
                 raise HTTPError(response)
             return schemas.ActionResponse(**response.json())
-
-        def get_actions_by_vuln_id(
-            self, vuln_id: str | UUID, user: dict
-        ) -> list[schemas.ActionResponse]:
-            response = client.get(f"/vulns/{vuln_id}/actions", headers=headers(user))
-            if response.status_code != 200:
-                raise HTTPError(response)
-            data = response.json()
-            return [schemas.ActionResponse(**a) for a in data]
 
         @pytest.fixture(scope="function", autouse=True)
         def common_setup(self, testdb):
