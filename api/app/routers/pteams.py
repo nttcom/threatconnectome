@@ -541,7 +541,18 @@ def get_dependency(
     for service in pteam.services:
         for dependency in service.dependencies:
             if dependency.dependency_id == str(dependency_id):
-                return dependency
+                return schemas.DependencyResponse(
+                    dependency_id=dependency.dependency_id,
+                    service_id=dependency.service.service_id,
+                    package_version_id=dependency.package_version_id,
+                    package_id=dependency.package_version.package_id,
+                    package_manager=dependency.package_manager,
+                    target=dependency.target,
+                    dependency_mission_impact=dependency.dependency_mission_impact,
+                    package_name=dependency.package_version.package.name,
+                    package_version=dependency.package_version.version,
+                    package_ecosystem=dependency.package_version.package.ecosystem,
+                )
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such dependency")
 
