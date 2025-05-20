@@ -157,54 +157,38 @@ class ActionUpdateRequest(ORMModel):
     ext: dict | None = None
 
 
-class VulnerablePackageRequest(BaseModel):
+class VulnerablePackageBase(BaseModel):
     name: str
     ecosystem: str
     affected_versions: list[str]
     fixed_versions: list[str]
 
 
-class VulnerablePackageResponse(BaseModel):
+class VulnerablePackageResponse(VulnerablePackageBase):
     package_id: UUID
-    name: str
-    ecosystem: str
-    affected_versions: list[str]
-    fixed_versions: list[str]
 
 
-class VulnBaseRequest(BaseModel):
+class VulnBase(BaseModel):
     title: str | None = None
     cve_id: str | None = None
     detail: str | None = None
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
-    vulnerable_packages: list[VulnerablePackageRequest] = []
 
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
-class VulnBaseResponse(BaseModel):
-    title: str | None = None
-    cve_id: str | None = None
-    detail: str | None = None
-    exploitation: ExploitationEnum | None = None
-    automatable: AutomatableEnum | None = None
-    cvss_v3_score: float | None = None
-    vulnerable_packages: list[VulnerablePackageResponse] = []
-
-    _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
-
-
-class VulnResponse(VulnBaseResponse):
+class VulnResponse(VulnBase):
     vuln_id: str
     created_at: datetime
     updated_at: datetime
     created_by: UUID | None = None
+    vulnerable_packages: list[VulnerablePackageResponse] = []
 
 
-class VulnUpdate(VulnBaseRequest):
-    pass
+class VulnUpdate(VulnBase):
+    vulnerable_packages: list[VulnerablePackageBase] = []
 
 
 class PTeamInfo(PTeamEntry):
