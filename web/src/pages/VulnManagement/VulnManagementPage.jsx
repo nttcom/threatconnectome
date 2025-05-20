@@ -46,7 +46,7 @@ export function VulnManagement() {
     ...searchConditions,
   };
   const {
-    data: vulns,
+    data: vulnsList,
     error: vulnsError,
     isLoading: vulnsIsLoading,
   } = useGetVulnsQuery(getVulnsParams, { skip, refetchOnMountOrArgChange: true });
@@ -58,7 +58,7 @@ export function VulnManagement() {
     });
   if (vulnsIsLoading) return <>Now loading Vulns...</>;
 
-  const pageMax = Math.ceil((vulns?.length ?? 0) / perPage);
+  const pageMax = Math.ceil((vulnsList?.num_vulns ?? 0) / perPage);
 
   const paramsToSearchQuery = (params) => {
     const delimiter = "|";
@@ -153,7 +153,7 @@ export function VulnManagement() {
           "&:before": { display: "none" },
         }}
       >
-        <VulnManagementTable vulns={vulns} />
+        <VulnManagementTable vulns={vulnsList.vulns} />
       </TableContainer>
       {filterRow}
       <VulnSearchModal show={searchMenuOpen} onSearch={handleSearch} onCancel={handleCancel} />
