@@ -1540,6 +1540,23 @@ class TestGetVulns:
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [5.0, 8.0, 3.0]
 
+    def test_num_vulns_and_len_vulns_differ_when_limit_is_less_than_total(self, testdb: Session):
+        # Given
+        number_of_vulns = 5
+        for i in range(number_of_vulns):
+            vuln_request = self.create_vuln_request(i)
+            client.put(f"/vulns/{uuid4()}", headers=self.headers_user, json=vuln_request)
+
+        # When: Get with limit=2
+        response = client.get("/vulns?offset=0&limit=2", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert response_data["num_vulns"] == number_of_vulns
+        assert len(response_data["vulns"]) == 2
+        assert response_data["num_vulns"] > len(response_data["vulns"])
+
 
 class TestDeleteVuln:
     @pytest.fixture(scope="function", autouse=True)
