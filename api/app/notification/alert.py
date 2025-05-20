@@ -31,7 +31,7 @@ def _ready_alert_by_email() -> bool:
     return True
 
 
-def _pteam_tag_page_link(
+def _package_page_link(
     pteam_id: UUID | str, package_id: UUID | str, service_id: UUID | str
 ) -> str:
     return urljoin(
@@ -79,7 +79,7 @@ def create_mail_alert_for_new_topic(
             f"Artifact: {package_name}",
             "",
             (
-                f"<a href={_pteam_tag_page_link(pteam_id, package_id, service_id)}>Link to"
+                f"<a href={_package_page_link(pteam_id, package_id, service_id)}>Link to"
                 " Artifact page</a>"
             ),
         ]
