@@ -144,3 +144,20 @@ export const countFullWidthAndHalfWidthCharacters = (string) => {
 
   return count;
 };
+
+export const createActionText = (affectedVersion, fixedVersion, packageName) => {
+  const action = {
+    action_type: "elimination",
+    recommended: true,
+  };
+
+  if (affectedVersion && fixedVersion) {
+    action.action = `Update ${packageName} from ${affectedVersion} to ${fixedVersion}`;
+    return action;
+  } else if (fixedVersion) {
+    action.action = `Update ${packageName} to version ${fixedVersion}`;
+    return action;
+  }
+
+  return null;
+};
