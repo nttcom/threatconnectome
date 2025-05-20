@@ -1,9 +1,7 @@
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 
-import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useUpdateTicketSafetyImpactMutation } from "../../../services/tcApi";
-import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
 
 import { SafetyImpactSelectorView } from "./SafetyImpactSelectorView";
@@ -11,13 +9,9 @@ import { SafetyImpactSelectorView } from "./SafetyImpactSelectorView";
 export function SafetyImpactSelector(props) {
   const { pteamId, ticket } = props;
 
-  const skip = useSkipUntilAuthUserIsReady();
-
   const [updateTicketSafetyImpact] = useUpdateTicketSafetyImpactMutation();
 
   const { enqueueSnackbar } = useSnackbar();
-
-  if (skip) return <></>;
 
   const updateTicketFunction = async (requestData) => {
     await updateTicketSafetyImpact({

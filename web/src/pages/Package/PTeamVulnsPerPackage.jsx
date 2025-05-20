@@ -6,7 +6,7 @@ import { sortedSSVCPriorities } from "../../utils/const";
 import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 import { TopicTable } from "./TopicTables/TopicTable";
 
-export function PTeamTaggedTopics(props) {
+export function PTeamVulnsPerPackage(props) {
   const { pteamId, service, packageId, references, vulnIds, ticketCounts } = props;
 
   if (vulnIds === undefined || ticketCounts === undefined) {
@@ -40,7 +40,7 @@ export function PTeamTaggedTopics(props) {
     </>
   );
 }
-PTeamTaggedTopics.propTypes = {
+PTeamVulnsPerPackage.propTypes = {
   pteamId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
   packageId: PropTypes.string.isRequired,

@@ -7,8 +7,8 @@ export class LocationReader {
     return this.location.pathname === "/";
   }
 
-  isTagPage() {
-    return /\/tags\//.test(this.location.pathname);
+  isPackagePage() {
+    return /\/packages\//.test(this.location.pathname);
   }
 
   isPTeamPage() {

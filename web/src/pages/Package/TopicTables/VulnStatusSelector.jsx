@@ -30,7 +30,7 @@ import { errorToString } from "../../../utils/func";
 
 import { ReportCompletedActions } from "./ReportCompletedActions";
 
-export function TopicStatusSelector(props) {
+export function VulnStatusSelector(props) {
   const {
     pteamId,
     serviceId,
@@ -231,7 +231,7 @@ export function TopicStatusSelector(props) {
   );
 }
 
-TopicStatusSelector.propTypes = {
+VulnStatusSelector.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
   vulnId: PropTypes.string.isRequired,

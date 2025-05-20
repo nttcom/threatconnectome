@@ -7,7 +7,7 @@ import { useState } from "react";
 
 import { ssvcPriorityProps } from "../../../utils/const.js";
 import { createActionText, searchWorstSSVC } from "../../../utils/func.js";
-import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer";
+import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 
 import { TicketTable } from "./TicketTable.jsx";
 import { TicketTableRow } from "./TicketTableRow.jsx";
@@ -21,9 +21,13 @@ export function TopicTableRowView(props) {
   const vulnerable_package = vuln.vulnerable_packages.find(
     (vulnerable_package) => vulnerable_package.package_id === packageId,
   );
-  const affectedVersions = vulnerable_package.affected_versions.join();
-  const patchedVersion = vulnerable_package.fixed_versions.join();
-  const actionText = createActionText(affectedVersions, patchedVersion, vulnerable_package.name);
+  const affectedVersions = vulnerable_package.affected_versions;
+  const patchedVersions = vulnerable_package.fixed_versions;
+  const actionText = createActionText(
+    affectedVersions.join(),
+    patchedVersions.join(),
+    vulnerable_package.name,
+  );
 
   return (
     <>
@@ -46,10 +50,28 @@ export function TopicTableRowView(props) {
           {vuln.updated_at}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {affectedVersions}
+          {affectedVersions.map((affectedVersion, index) =>
+            index + 1 === affectedVersions.length ? (
+              affectedVersion
+            ) : (
+              <>
+                {affectedVersion}
+                <br />
+              </>
+            ),
+          )}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {patchedVersion}
+          {patchedVersions.map((patchedVersion, index) =>
+            index + 1 === patchedVersions.length ? (
+              patchedVersion
+            ) : (
+              <>
+                {patchedVersion}
+                <br />
+              </>
+            ),
+          )}
         </TableCell>
         <TableCell align="right" sx={{ bgcolor: "grey.50" }}>
           <Button

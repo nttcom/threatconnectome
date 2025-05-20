@@ -20,7 +20,7 @@ import {
   ResetPassword,
   Status,
   SignUp,
-  Tag,
+  Package,
   TopicDetail,
   TopicManagement,
   PTeam,
@@ -68,7 +68,7 @@ root.render(
                   </Route>
                   <Route path="packages">
                     <Route index element={<Navigate to="/" />} />
-                    <Route path=":packageId" element={<Tag />} />
+                    <Route path=":packageId" element={<Package />} />
                   </Route>
                   <Route path="*" element={<Navigate to="/" />} />
                   <Route path="topics">

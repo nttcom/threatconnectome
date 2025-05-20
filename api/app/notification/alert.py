@@ -36,7 +36,7 @@ def _pteam_tag_page_link(
 ) -> str:
     return urljoin(
         os.getenv("WEBUI_URL", "http://localhost"),
-        f"/tags/{str(package_id)}?pteamId={str(pteam_id)}&serviceId={str(service_id)}",
+        f"/packages/{str(package_id)}?pteamId={str(pteam_id)}&serviceId={str(service_id)}",
     )
 
 

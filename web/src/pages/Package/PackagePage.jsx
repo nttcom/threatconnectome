@@ -3,24 +3,24 @@ import { grey } from "@mui/material/colors";
 import { useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 
-import { TabPanel } from "../../components/TabPanel";
-import { UUIDTypography } from "../../components/UUIDTypography";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import { TabPanel } from "../../components/TabPanel.jsx";
+import { UUIDTypography } from "../../components/UUIDTypography.jsx";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
 import {
   useGetPTeamQuery,
   useGetPTeamVulnIdsTiedToServicePackageQuery,
   useGetPTeamTicketCountsTiedToServicePackageQuery,
   useGetDependenciesQuery,
-} from "../../services/tcApi";
+} from "../../services/tcApi.js";
 import { APIError } from "../../utils/APIError.js";
-import { noPTeamMessage } from "../../utils/const";
+import { noPTeamMessage } from "../../utils/const.js";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
 import { CodeBlock } from "./CodeBlock.jsx";
-import { PTeamTaggedTopics } from "./PTeamTaggedTopics.jsx";
+import { PTeamVulnsPerPackage } from "./PTeamVulnsPerPackage.jsx";
 import { TagReferences } from "./TagReferences.jsx";
 
-export function Tag() {
+export function Package() {
   const [tabValue, setTabValue] = useState(0);
 
   const skipByAuth = useSkipUntilAuthUserIsReady();
@@ -168,7 +168,7 @@ export function Tag() {
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>
-          <PTeamTaggedTopics
+          <PTeamVulnsPerPackage
             pteamId={pteamId}
             service={serviceDict}
             packageId={packageId}
@@ -178,7 +178,7 @@ export function Tag() {
           />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
-          <PTeamTaggedTopics
+          <PTeamVulnsPerPackage
             pteamId={pteamId}
             service={serviceDict}
             packageId={packageId}

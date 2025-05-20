@@ -4,9 +4,9 @@ import PropTypes from "prop-types";
 import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip.jsx";
 import { WarningTooltip } from "../WarningTooltip.jsx";
 
-import { AssigneesSelector } from "./AssigneesSelector";
+import { AssigneesSelector } from "./AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "./SafetyImpactSelector.jsx";
-import { TopicStatusSelector } from "./TopicStatusSelector.jsx";
+import { VulnStatusSelector } from "./VulnStatusSelector.jsx";
 
 export function TicketTableRow(props) {
   const {
@@ -44,7 +44,7 @@ export function TicketTableRow(props) {
       </TableCell>
       <TableCell>
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <TopicStatusSelector
+          <VulnStatusSelector
             pteamId={pteamId}
             serviceId={serviceId}
             vulnId={vulnId}
@@ -55,7 +55,7 @@ export function TicketTableRow(props) {
             vulnActions={vulnActions}
           />
           {(ticket.ticket_status.topic_status ?? "alerted") === "alerted" && (
-            <WarningTooltip message="No one has acknowledged this topic" />
+            <WarningTooltip message="No one has acknowledged this vuln" />
           )}
         </Box>
       </TableCell>
