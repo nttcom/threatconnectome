@@ -387,23 +387,9 @@ export const tcApi = createApi({
       ],
     }),
 
-    /* Topic Action */
-    getPTeamVulnActions: builder.query({
-      query: ({ topicId, pteamId }) => ({
-        url: `topics/${topicId}/actions/pteam/${pteamId}`,
-        method: "GET",
-      }),
-      providesTags: (result, error, arg) => [
-        ...(result?.actions.reduce(
-          (ret, action) => [...ret, { type: "TopicAction", id: action.action_id }],
-          [],
-        ) ?? []),
-        { type: "TopicAction", id: "ALL" },
-      ],
-    }),
     getVulnActions: builder.query({
       query: (vulnId) => ({
-        url: `vulns/${vulnId}/actions/user/me`,
+        url: `vulns/${vulnId}/actions`,
         method: "GET",
       }),
       providesTags: (result, error, arg) => [
@@ -526,7 +512,6 @@ export const {
   useCreateTopicMutation,
   useUpdateTopicMutation,
   useDeleteTopicMutation,
-  useGetPTeamVulnActionsQuery,
   useGetVulnActionsQuery,
   useGetUserMeQuery,
   useGetVulnsQuery,
