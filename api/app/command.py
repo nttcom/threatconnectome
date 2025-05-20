@@ -320,9 +320,6 @@ def get_vulns(
 
     result = {
         "num_vulns": num_vulns,
-        "sort_key": sort_key,
-        "offset": offset,
-        "limit": limit,
         "vulns": vulns,
     }
 
