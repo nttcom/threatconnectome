@@ -66,9 +66,9 @@ root.render(
                     <Route index element={<PTeam />} />
                     <Route path="join" element={<AcceptPTeamInvitation />} />
                   </Route>
-                  <Route path="tags">
+                  <Route path="packages">
                     <Route index element={<Navigate to="/" />} />
-                    <Route path=":tagId" element={<Tag />} />
+                    <Route path=":packageId" element={<Tag />} />
                   </Route>
                   <Route path="*" element={<Navigate to="/" />} />
                   <Route path="topics">
