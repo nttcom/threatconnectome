@@ -6,31 +6,28 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 
 import { ssvcPriorityProps } from "../../../utils/const.js";
-import { searchWorstSSVC } from "../../../utils/func.js";
-import { pickAffectedVersions } from "../../../utils/topicUtils.js";
-import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer";
+import { createActionText, searchWorstSSVC } from "../../../utils/func.js";
+import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 
 import { TicketTable } from "./TicketTable.jsx";
 import { TicketTableRow } from "./TicketTableRow.jsx";
 
 export function TopicTableRowView(props) {
-  const {
-    pteamId,
-    serviceId,
-    tagId,
-    topicId,
-    allTags,
-    members,
-    references,
-    topic,
-    topicActions,
-    tickets,
-  } = props;
+  const { pteamId, serviceId, packageId, vulnId, members, references, vuln, vulnActions, tickets } =
+    props;
   const [ticketOpen, setTicketOpen] = useState(true);
-  const [topicDrawerOpen, setTopicDrawerOpen] = useState(false);
-  const currentTagDict = allTags.find((tag) => tag.tag_id === tagId);
+  const [vulnDrawerOpen, setVulnDrawerOpen] = useState(false);
 
-  const affectedVersions = pickAffectedVersions(topicActions, currentTagDict.tag_name);
+  const vulnerable_package = vuln.vulnerable_packages.find(
+    (vulnerable_package) => vulnerable_package.package_id === packageId,
+  );
+  const affectedVersions = vulnerable_package.affected_versions;
+  const patchedVersions = vulnerable_package.fixed_versions;
+  const actionText = createActionText(
+    affectedVersions.join(),
+    patchedVersions.join(),
+    vulnerable_package.name,
+  );
 
   return (
     <>
@@ -45,12 +42,12 @@ export function TopicTableRowView(props) {
             {ticketOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell sx={{ maxWidth: 300, bgcolor: "grey.50" }}>{topic.title}</TableCell>
+        <TableCell sx={{ maxWidth: 300, bgcolor: "grey.50" }}>{vuln.title}</TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
           {tickets.length}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {topic.updated_at}
+          {vuln.updated_at}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
           {affectedVersions.map((affectedVersion, index) =>
@@ -65,14 +62,23 @@ export function TopicTableRowView(props) {
           )}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {"-" /* not yet supported */}
+          {patchedVersions.map((patchedVersion, index) =>
+            index + 1 === patchedVersions.length ? (
+              patchedVersion
+            ) : (
+              <>
+                {patchedVersion}
+                <br />
+              </>
+            ),
+          )}
         </TableCell>
         <TableCell align="right" sx={{ bgcolor: "grey.50" }}>
           <Button
             variant="outlined"
             startIcon={<KeyboardDoubleArrowLeftIcon />}
             size="small"
-            onClick={() => setTopicDrawerOpen(true)}
+            onClick={() => setVulnDrawerOpen(true)}
           >
             Details
           </Button>
@@ -93,11 +99,12 @@ export function TopicTableRowView(props) {
                   key={ticket.ticket_id}
                   pteamId={pteamId}
                   serviceId={serviceId}
-                  tagId={tagId}
-                  topicId={topicId}
+                  packageId={packageId}
+                  vulnId={vulnId}
                   members={members}
                   references={references}
-                  topicActions={topicActions}
+                  actionText={actionText}
+                  vulnActions={vulnActions}
                   ticket={ticket}
                 />
               ))}
@@ -105,26 +112,25 @@ export function TopicTableRowView(props) {
           </Collapse>
         </TableCell>
       </TableRow>
-      <VulnerabilityDrawer
-        open={topicDrawerOpen}
-        setOpen={setTopicDrawerOpen}
+      {/* <VulnerabilityDrawer
+        open={vulnDrawerOpen}
+        setOpen={setVulnDrawerOpen}
         pteamId={pteamId}
         serviceId={serviceId}
-        serviceTagId={tagId}
-        topicId={topicId}
-      />
+        servicePackageId={packageId}
+        vulnId={vulnId}
+      /> */}
     </>
   );
 }
 TopicTableRowView.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
-  tagId: PropTypes.string.isRequired,
-  topicId: PropTypes.string.isRequired,
-  allTags: PropTypes.array.isRequired,
+  packageId: PropTypes.string.isRequired,
+  vulnId: PropTypes.string.isRequired,
   members: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
-  topic: PropTypes.object.isRequired,
-  topicActions: PropTypes.array.isRequired,
+  vuln: PropTypes.object.isRequired,
+  vulnActions: PropTypes.array.isRequired,
   tickets: PropTypes.array.isRequired,
 };
