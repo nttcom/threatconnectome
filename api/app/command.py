@@ -388,12 +388,16 @@ def get_packages_summary(
     )
     max_unsolved_updated_at = func.max(unsolved_subq.c.updated_at).label("max_updated_at")
     service_ids = func.array_agg(models.Service.service_id.distinct()).label("service_ids")
+    package_managers = func.array_agg(models.Dependency.package_manager.distinct()).label(
+        "package_managers"
+    )
+
     summarize_stmt = (
         select(
             models.Package.package_id,
             models.Package.name,
             models.Package.ecosystem,
-            models.Dependency.package_manager,
+            package_managers,
             min_unsolved_ssvc_priority,
             max_unsolved_updated_at,
             service_ids,
@@ -411,13 +415,12 @@ def get_packages_summary(
             unsolved_subq,
             unsolved_subq.c.dependency_id == models.Dependency.dependency_id,
         )
-        .group_by(models.Package.package_id, models.Dependency.package_manager)
+        .group_by(models.Package.package_id)
         .order_by(
             min_unsolved_ssvc_priority.nullslast(),
             max_unsolved_updated_at.desc().nullslast(),
             models.Package.name,
             models.Package.ecosystem,
-            models.Dependency.package_manager,
         )
     )
 
@@ -459,7 +462,7 @@ def get_packages_summary(
             "package_id": row.package_id,
             "package_name": row.name,
             "ecosystem": row.ecosystem,
-            "package_manager": row.package_manager,
+            "package_managers": row.package_managers,
             "ssvc_priority": row.min_ssvc_priority,
             "updated_at": row.max_updated_at,
             "service_ids": row.service_ids,
