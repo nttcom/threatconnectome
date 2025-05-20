@@ -65,7 +65,7 @@ export function TopicTableRow(props) {
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
   if (vulnIsLoading) return SimpleCell("Now loading Vuln...");
   if (vulnActionsError)
-    throw new APIError(errorToString(vulnActionsError), { api: "getPTeamVulnActions" });
+    throw new APIError(errorToString(vulnActionsError), { api: "getVulnActions" });
   if (vulnActionsIsLoading) return SimpleCell("Now loading vulnActions...");
   if (ticketsRelatedToServiceVulnPackageError)
     throw new APIError(errorToString(ticketsRelatedToServiceVulnPackageError), {
