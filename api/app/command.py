@@ -119,6 +119,55 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
     return db.scalars(select_stmt).unique().all()
 
 
+def get_vulns_count(
+    db: Session, filters, package_manager: Optional[str], pteam_id: Optional[UUID | str]
+) -> int:
+    count_query = select(func.count(models.Vuln.vuln_id.distinct()))
+    count_query = count_query.join(
+        models.Affect,
+    ).join(models.Package, models.Affect.package_id == models.Package.package_id)
+
+    # Add a JOIN if referencing Dependency
+    if package_manager:
+        count_query = count_query.outerjoin(
+            models.PackageVersion, models.Package.package_id == models.PackageVersion.package_id
+        ).outerjoin(
+            models.Dependency,
+            models.PackageVersion.package_version_id == models.Dependency.package_version_id,
+        )
+        if pteam_id:
+            count_query = count_query.join(
+                models.Service,
+                and_(
+                    models.Service.service_id == models.Dependency.service_id,
+                    models.Service.pteam_id == str(pteam_id),
+                ),
+            )
+    elif pteam_id:
+        count_query = (
+            count_query.outerjoin(
+                models.PackageVersion,
+                models.Package.package_id == models.PackageVersion.package_id,
+            )
+            .join(
+                models.Dependency,
+                models.PackageVersion.package_version_id == models.Dependency.package_version_id,
+            )
+            .join(
+                models.Service,
+                and_(
+                    models.Service.service_id == models.Dependency.service_id,
+                    models.Service.pteam_id == str(pteam_id),
+                ),
+            )
+        )
+
+    if filters:
+        count_query = count_query.where(and_(*filters))
+    result = db.scalar(count_query)
+    return result if result is not None else 0
+
+
 def get_vulns(
     db: Session,
     offset: int,
@@ -272,23 +321,8 @@ def get_vulns(
     if package_manager:
         filters.append(models.Dependency.package_manager == package_manager)
 
-    count_query = select(func.count(models.Vuln.vuln_id.distinct()))
-    count_query = count_query.join(
-        models.Affect,
-    ).join(models.Package, models.Affect.package_id == models.Package.package_id)
-
-    # Add a JOIN if referencing Dependency
-    if package_manager:
-        count_query = count_query.outerjoin(
-            models.PackageVersion, models.Package.package_id == models.PackageVersion.package_id
-        ).outerjoin(
-            models.Dependency,
-            models.PackageVersion.package_version_id == models.Dependency.package_version_id,
-        )
-
-    if filters:
-        count_query = count_query.where(and_(*filters))
-    num_vulns = db.scalar(count_query)
+    # Count total number of vulnerabilities matching the filters
+    num_vulns = get_vulns_count(db, filters, package_manager, pteam_id)
 
     if filters:
         query = query.where(and_(*filters))
