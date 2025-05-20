@@ -89,10 +89,22 @@ export const tcApi = createApi({
     }),
 
     /* Dependency */
-    getDependencies: builder.query({
-      query: ({ pteamId, serviceId }) => ({
-        url: `pteams/${pteamId}/services/${serviceId}/dependencies`,
+    getDependency: builder.query({
+      query: ({ pteamId, dependencyId }) => ({
+        url: `pteams/${pteamId}/dependencies/${dependencyId}`,
         method: "GET",
+      }),
+      providesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
+    }),
+    getDependencies: builder.query({
+      query: ({ pteamId, serviceId, offset, limit }) => ({
+        url: `pteams/${pteamId}/dependencies`,
+        method: "GET",
+        params: {
+          service_id: serviceId,
+          offset: offset,
+          limit: limit,
+        },
       }),
       providesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
@@ -215,16 +227,39 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
 
-    /* PTeam Service Tagged TopicId */
-    getPTeamServiceTaggedTopicIds: builder.query({
-      query: ({ pteamId, serviceId, tagId }) => ({
-        url: `pteams/${pteamId}/services/${serviceId}/tags/${tagId}/topic_ids`,
+    /* PTeam  */
+    getPTeamVulnIdsTiedToServicePackage: builder.query({
+      query: ({ pteamId, serviceId, packageId, relatedTicketStatus }) => ({
+        url: `pteams/${pteamId}/vuln_ids`,
         method: "GET",
+        params: {
+          service_id: serviceId,
+          package_id: packageId,
+          related_ticket_status: relatedTicketStatus,
+        },
       }),
       providesTags: (result, error, arg) => [
         { type: "Ticket", id: "ALL" },
-        { type: "Threat", id: "ALL" },
         { type: "TicketStatus", id: "ALL" },
+        { type: "Threat", id: "ALL" },
+        { type: "Service", id: "ALL" },
+      ],
+    }),
+
+    getPTeamTicketCountsTiedToServicePackage: builder.query({
+      query: ({ pteamId, serviceId, packageId, relatedTicketStatus }) => ({
+        url: `pteams/${pteamId}/ticket_counts`,
+        method: "GET",
+        params: {
+          service_id: serviceId,
+          package_id: packageId,
+          related_ticket_status: relatedTicketStatus,
+        },
+      }),
+      providesTags: (result, error, arg) => [
+        { type: "Ticket", id: "ALL" },
+        { type: "TicketStatus", id: "ALL" },
+        { type: "Threat", id: "ALL" },
         { type: "Service", id: "ALL" },
       ],
     }),
@@ -327,9 +362,14 @@ export const tcApi = createApi({
 
     /* Ticket */
     getTickets: builder.query({
-      query: ({ pteamId, serviceId, topicId, tagId }) => ({
-        url: `pteams/${pteamId}/services/${serviceId}/topics/${topicId}/tags/${tagId}/tickets`,
+      query: ({ pteamId, serviceId, vulnId, packageId }) => ({
+        url: `pteams/${pteamId}/tickets`,
         method: "GET",
+        params: {
+          service_id: serviceId,
+          vuln_id: vulnId,
+          package_id: packageId,
+        },
       }),
       providesTags: (result, error, arg) => [
         ...(result ? result.map((ticket) => ({ type: "TicketStatus", id: ticket.ticket_id })) : []),
@@ -339,10 +379,22 @@ export const tcApi = createApi({
       ],
     }),
 
+    updateTicketSafetyImpact: builder.mutation({
+      query: ({ pteamId, ticketId, data }) => ({
+        url: `pteams/${pteamId}/tickets/${ticketId}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "Ticket", id: "ALL" },
+        { type: "Ticket", id: arg.ticketId },
+      ],
+    }),
+
     /* Ticket Status */
     updateTicketStatus: builder.mutation({
-      query: ({ pteamId, serviceId, ticketId, data }) => ({
-        url: `pteams/${pteamId}/services/${serviceId}/ticketstatus/${ticketId}`,
+      query: ({ pteamId, ticketId, data }) => ({
+        url: `pteams/${pteamId}/tickets/${ticketId}/ticketstatuses`,
         method: "PUT",
         body: data,
       }),
@@ -387,9 +439,23 @@ export const tcApi = createApi({
       ],
     }),
 
+    /* Vuln Action */
     getVulnActions: builder.query({
       query: (vulnId) => ({
         url: `vulns/${vulnId}/actions`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        ...(result?.reduce(
+          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
+          [],
+        ) ?? []),
+        { type: "VulnAction", id: "ALL" },
+      ],
+    }),
+    getTopicActions: builder.query({
+      query: (topicId) => ({
+        url: `topics/${topicId}/actions/user/me`,
         method: "GET",
       }),
       providesTags: (result, error, arg) => [
@@ -437,18 +503,6 @@ export const tcApi = createApi({
     }),
 
     /* Vuln */
-    getVulnActions: builder.query({
-      query: (vulnId) => ({
-        url: `vulns/${vulnId}/actions`,
-      }),
-      providesTags: (result, error, arg) => [
-        ...(result?.reduce(
-          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
-          [],
-        ) ?? []),
-        { type: "VulnAction", id: "ALL" },
-      ],
-    }),
     getVulns: builder.query({
       query: (params) => ({
         url: "vulns",
@@ -485,6 +539,7 @@ export const {
   useUpdateActionMutation,
   useDeleteActionMutation,
   useCreateActionLogMutation,
+  useGetDependencyQuery,
   useGetDependenciesQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
@@ -497,7 +552,8 @@ export const {
   useUpdatePTeamMemberMutation,
   useUpdatePTeamServiceMutation,
   useDeletePTeamServiceMutation,
-  useGetPTeamServiceTaggedTopicIdsQuery,
+  useGetPTeamVulnIdsTiedToServicePackageQuery,
+  useGetPTeamTicketCountsTiedToServicePackageQuery,
   useGetPTeamServiceThumbnailQuery,
   useUpdatePTeamServiceThumbnailMutation,
   useDeletePTeamServiceThumbnailMutation,
@@ -507,6 +563,7 @@ export const {
   useGetThreatQuery,
   useUpdateThreatMutation,
   useGetTicketsQuery,
+  useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
   useGetVulnQuery,
   useCreateTopicMutation,

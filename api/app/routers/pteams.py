@@ -479,7 +479,7 @@ def get_pteam_packages_summary(
 def get_dependencies(
     pteam_id: UUID,
     offset: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
+    limit: int = Query(100, ge=1, le=10000),
     service_id: UUID | str | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
