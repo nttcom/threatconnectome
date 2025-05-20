@@ -2502,7 +2502,7 @@ class TestGetPTeamPackagesSummary:
             }
         ]
 
-    def test_returns_summary_even_if_multiple_packages_are_registrered(self, testdb):
+    def test_returns_summary_merges_multiple_package_managers_for_same_package(self, testdb):
         # Given
         # add test_service to pteam1
         test_service = "test_service"
