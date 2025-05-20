@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Optional, Sequence
+from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import (
@@ -120,7 +120,10 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
 
 
 def get_vulns_count(
-    db: Session, filters, package_manager: Optional[str], pteam_id: Optional[UUID | str]
+    db: Session,
+    filters,
+    package_manager: str | None,
+    pteam_id: UUID | str | None,
 ) -> int:
     count_query = select(func.count(models.Vuln.vuln_id.distinct()))
     count_query = count_query.join(
@@ -172,21 +175,21 @@ def get_vulns(
     db: Session,
     offset: int,
     limit: int,
-    min_cvss_v3_score: Optional[float] = None,
-    max_cvss_v3_score: Optional[float] = None,
-    vuln_ids: Optional[list[str]] = None,
-    title_words: Optional[list[str]] = None,
-    detail_words: Optional[list[str]] = None,
-    creator_ids: Optional[list[str]] = None,
-    created_after: Optional[datetime] = None,
-    created_before: Optional[datetime] = None,
-    updated_after: Optional[datetime] = None,
-    updated_before: Optional[datetime] = None,
-    pteam_id: Optional[UUID | str] = None,
-    cve_ids: Optional[list[str]] = None,
-    package_name: Optional[list[str]] = None,
-    ecosystem: Optional[list[str]] = None,
-    package_manager: Optional[str] = None,
+    min_cvss_v3_score: float | None = None,
+    max_cvss_v3_score: float | None = None,
+    vuln_ids: list[str] | None = None,
+    title_words: list[str] | None = None,
+    detail_words: list[str] | None = None,
+    creator_ids: list[str] | None = None,
+    created_after: datetime | None = None,
+    created_before: datetime | None = None,
+    updated_after: datetime | None = None,
+    updated_before: datetime | None = None,
+    pteam_id: UUID | str | None = None,
+    cve_ids: list[str] | None = None,
+    package_name: list[str] | None = None,
+    ecosystem: list[str] | None = None,
+    package_manager: str | None = None,
     sort_key: schemas.VulnSortKey = schemas.VulnSortKey.CVSS_V3_SCORE_DESC,  # set default sort key
 ) -> dict:
 
