@@ -456,19 +456,19 @@ export const tcApi = createApi({
       ],
     }),
 
-    /* Topic Action */
+    /* Vuln Action */
     getVulnActions: builder.query({
       query: (vulnId) => ({
         url: `vulns/${vulnId}/actions`,
         method: "GET",
       }),
-      // providesTags: (result, error, arg) => [
-      //   ...(result?.actions.reduce(
-      //     (ret, action) => [...ret, { type: "TopicAction", id: action.action_id }],
-      //     [],
-      //   ) ?? []),
-      //   { type: "TopicAction", id: "ALL" },
-      // ],
+      providesTags: (result, error, arg) => [
+        ...(result?.reduce(
+          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
+          [],
+        ) ?? []),
+        { type: "VulnAction", id: "ALL" },
+      ],
     }),
     getTopicActions: builder.query({
       query: (topicId) => ({
