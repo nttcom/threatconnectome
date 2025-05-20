@@ -89,7 +89,7 @@ export function ReportCompletedActions(props) {
       })
     )
       .then(
-        async (actionLogs) => 
+        async (actionLogs) =>
           await updateTicketStatus({
             pteamId,
             ticketId,
