@@ -296,7 +296,7 @@ def get_vuln(
     )
 
 
-@router.get("", response_model=list[schemas.VulnResponse])
+@router.get("", response_model=schemas.VulnsListResponse)
 def get_vulns(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -364,7 +364,7 @@ def get_vulns(
     - `...?package_name=example` -> Filter by the package name "example".
     """
     try:
-        vulns = command.get_vulns(
+        result = command.get_vulns(
             db=db,
             offset=offset,
             limit=limit,
@@ -392,8 +392,7 @@ def get_vulns(
         )
 
     response_vulns = []
-    for vuln in vulns:
-        # Fetch vulnerable packages associated with the vuln
+    for vuln in result["vulns"]:
         vulnerable_packages = [
             schemas.VulnerablePackage(
                 name=affect.package.name,
@@ -403,7 +402,6 @@ def get_vulns(
             )
             for affect in vuln.affects
         ]
-
         response_vulns.append(
             schemas.VulnResponse(
                 vuln_id=vuln.vuln_id,
@@ -420,7 +418,7 @@ def get_vulns(
             )
         )
 
-    return response_vulns
+    return schemas.VulnsListResponse(num_vulns=result["num_vulns"], vulns=response_vulns)
 
 
 @router.get("/{vuln_id}/actions", response_model=list[schemas.ActionResponse])
