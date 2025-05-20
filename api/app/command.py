@@ -274,7 +274,7 @@ def get_vulns(
 
     count_query = select(func.count(models.Vuln.vuln_id.distinct()))
     count_query = count_query.join(
-        models.Affect, models.Vuln.vuln_id == models.Affect.vuln_id
+        models.Affect,
     ).join(models.Package, models.Affect.package_id == models.Package.package_id)
 
     # Add a JOIN if referencing Dependency
