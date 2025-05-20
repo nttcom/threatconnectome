@@ -147,6 +147,9 @@ export const countFullWidthAndHalfWidthCharacters = (string) => {
 
 export const createActionText = (affectedVersion, fixedVersion, packageName) => {
   const action = {
+    // Create action_id to make it common processing with manual registration action
+    // This action_id is only used on the UI
+    action_id: self.crypto.randomUUID(),
     action_type: "elimination",
     recommended: true,
   };

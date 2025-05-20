@@ -115,7 +115,7 @@ export function ReportCompletedActions(props) {
   const handleSelectAction = async (action) => {
     if (!action) {
       if (selectedAction.length) setSelectedAction([]);
-      else setSelectedAction(vulnActions.map((action) => action.action));
+      else setSelectedAction(vulnActions.map((action) => action.action_id));
     } else {
       if (selectedAction.includes(action)) selectedAction.splice(selectedAction.indexOf(action), 1);
       else selectedAction.push(action);
@@ -171,9 +171,9 @@ export function ReportCompletedActions(props) {
               <>
                 {actions.map((action) => (
                   <MenuItem
-                    key={action.action}
-                    onClick={() => handleSelectAction(action.action)}
-                    selected={selectedAction.includes(action.action)}
+                    key={action.action_id}
+                    onClick={() => handleSelectAction(action.action_id)}
+                    selected={selectedAction.includes(action.action_id)}
                     sx={{
                       alignItems: "center",
                       display: "flex",
@@ -198,13 +198,13 @@ export function ReportCompletedActions(props) {
         {activeStep === 1 && (
           <>
             {actions
-              .filter((action) => selectedAction.includes(action.action))
+              .filter((action) => selectedAction.includes(action.action_id))
               .map((action) => (
                 <Box
                   alignItems="center"
                   display="flex"
                   flexDirection="row"
-                  key={action.action}
+                  key={action.action_id}
                   mb={1}
                 >
                   <ActionTypeChip actionType={action.action_type} />
@@ -267,8 +267,8 @@ ReportCompletedActions.propTypes = {
   ticketId: PropTypes.string.isRequired,
   vulnId: PropTypes.string.isRequired,
   packageId: PropTypes.string.isRequired,
-  actionText: PropTypes.string.isRequired,
-  vulnActions: PropTypes.string.isRequired,
+  actionText: PropTypes.object.isRequired,
+  vulnActions: PropTypes.array.isRequired,
   onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
 };
