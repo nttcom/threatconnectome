@@ -573,7 +573,6 @@ export const {
   useGetThreatQuery,
   useUpdateThreatMutation,
   useGetTicketsQuery,
-  useGetTicketQuery,
   useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
   useGetVulnQuery,
