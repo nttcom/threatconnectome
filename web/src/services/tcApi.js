@@ -474,7 +474,12 @@ export const tcApi = createApi({
         url: "vulns",
         params: params,
       }),
-      /* No tags to provide */
+      providesTags: (result, error, arg) => [
+        ...(result?.vulns.reduce((ret, vuln) => [...ret, { type: "Vuln", id: vuln.vuln_id }], []) ??
+          []),
+        { type: "Vuln", id: "ALL" },
+        { type: "Service", id: "ALL" },
+      ],
     }),
 
     /* External */
