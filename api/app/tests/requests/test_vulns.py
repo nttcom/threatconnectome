@@ -753,6 +753,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == number_of_vulns
+        assert response_data["num_vulns"] == number_of_vulns
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
@@ -796,6 +797,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 1
+        assert response_data["num_vulns"] == 1
 
         self.assert_vuln_response(
             response_data["vulns"][0], vuln_ids[0], self.create_vuln_request(0)
@@ -854,6 +856,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == number_of_vulns
+        assert response_data["num_vulns"] == number_of_vulns
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
@@ -943,6 +946,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 1
+        assert response_data["num_vulns"] == 1
         self.assert_vuln_response(response_data["vulns"][0], vuln_id_sbom, vuln_request_sbom)
 
     def test_it_should_filter_by_cve_ids(self, testdb: Session):
@@ -968,6 +972,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 1
+        assert response_data["num_vulns"] == 1
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
@@ -1026,6 +1031,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 2
+        assert response_data["num_vulns"] == 2
         # Filter vuln_ids based on the created_after condition
         filtered_vuln_ids = [
             vuln_ids[i] for i in range(number_of_vulns) if created_at_list[i] > created_after
@@ -1048,6 +1054,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 1
+        assert response_data["num_vulns"] == 1
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
@@ -1060,6 +1067,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 2
+        assert response_data["num_vulns"] == 2
 
         # Filter vuln_ids based on the created_after condition
         filtered_vuln_ids = [
@@ -1082,6 +1090,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 1
+        assert response_data["num_vulns"] == 1
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
@@ -1117,6 +1126,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 1
+        assert response_data["num_vulns"] == 1
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
@@ -1139,6 +1149,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == number_of_vulns
+        assert response_data["num_vulns"] == number_of_vulns
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
@@ -1171,6 +1182,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 1
+        assert response_data["num_vulns"] == 1
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
@@ -1200,6 +1212,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 1
+        assert response_data["num_vulns"] == 1
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
@@ -1287,6 +1300,7 @@ class TestGetVulns:
         assert response.status_code == 200
         response_data = response.json()
         assert len(response_data["vulns"]) == 1
+        assert response_data["num_vulns"] == 1
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
@@ -1553,8 +1567,8 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert response_data["num_vulns"] == number_of_vulns
         assert len(response_data["vulns"]) == 2
+        assert response_data["num_vulns"] == number_of_vulns
         assert response_data["num_vulns"] > len(response_data["vulns"])
 
 
