@@ -25,7 +25,7 @@ def get_vuln_ids_summary_by_service_id_and_package_id(
     vuln_ids_sorted = sorted(
         vuln_ids_dict.values(),
         key=lambda x: (
-            x["highest_ssvc_priority"],
+            x["highest_ssvc_priority"].value,
             -(_dt.timestamp() if (_dt := x["vuln_updated_at"]) else 0),
         ),
     )
