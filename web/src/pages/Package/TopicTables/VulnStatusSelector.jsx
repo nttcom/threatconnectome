@@ -238,6 +238,6 @@ VulnStatusSelector.propTypes = {
   packageId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentStatus: PropTypes.object.isRequired,
-  actionText: PropTypes.string.isRequired,
-  vulnActions: PropTypes.string.isRequired,
+  actionText: PropTypes.object.isRequired,
+  vulnActions: PropTypes.array.isRequired,
 };

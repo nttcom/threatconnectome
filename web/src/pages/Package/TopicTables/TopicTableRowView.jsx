@@ -131,6 +131,6 @@ TopicTableRowView.propTypes = {
   members: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
   vuln: PropTypes.object.isRequired,
-  vulnActions: PropTypes.string.isRequired,
+  vulnActions: PropTypes.array.isRequired,
   tickets: PropTypes.array.isRequired,
 };
