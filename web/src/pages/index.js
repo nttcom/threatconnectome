@@ -4,10 +4,10 @@ import { AuthKeycloakCallback } from "./AuthKeycloakCallback/AuthKeycloakCallbac
 import { EmailVerification } from "./EmailVerification/EmailVerificationPage";
 import { Login } from "./Login/LoginPage";
 import { PTeam } from "./PTeam/PTeamPage";
+import { Package } from "./Package/PackagePage";
 import { ResetPassword } from "./ResetPassword/ResetPasswordPage";
 import { SignUp } from "./SignUp/SignUpPage";
 import { Status } from "./Status/StatusPage";
-import { Package } from "./Package/PackagePage";
 import { TopicDetail } from "./TopicDetail/TopicDetailPage";
 import { VulnManagement } from "./VulnManagement/VulnManagementPage";
 import { Vulnerability } from "./Vulnerability/VulnerabilityPage";
