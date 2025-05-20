@@ -301,12 +301,6 @@ export const tcApi = createApi({
       providesTags: (result, error) => [{ type: "Tag", id: "ALL" }],
     }),
 
-    getTag: builder.query({
-      query: (tagId) => ({
-        url: `tags/${tagId}`,
-      }),
-    }),
-
     /* Threat */
     getThreat: builder.query({
       query: (threatId) => ({
@@ -358,10 +352,10 @@ export const tcApi = createApi({
       ],
     }),
 
-    /* Topic */
-    getTopic: builder.query({
-      query: (topicId) => `/topics/${topicId}`,
-      providesTags: (result, error, topicId) => [{ type: "Topic", id: `${topicId}` }],
+    /* Vuln */
+    getVuln: builder.query({
+      query: (vulnId) => `/vulns/${vulnId}`,
+      providesTags: (result, error, vulnId) => [{ type: "Vuln", id: `${vulnId}` }],
     }),
     searchTopics: builder.query({
       query: (params) => ({
@@ -401,7 +395,7 @@ export const tcApi = createApi({
     }),
 
     /* Topic Action */
-    getPTeamTopicActions: builder.query({
+    getPTeamVulnActions: builder.query({
       query: ({ topicId, pteamId }) => ({
         url: `topics/${topicId}/actions/pteam/${pteamId}`,
         method: "GET",
@@ -414,17 +408,17 @@ export const tcApi = createApi({
         { type: "TopicAction", id: "ALL" },
       ],
     }),
-    getTopicActions: builder.query({
-      query: (topicId) => ({
-        url: `topics/${topicId}/actions/user/me`,
+    getVulnActions: builder.query({
+      query: (vulnId) => ({
+        url: `vulns/${vulnId}/actions/user/me`,
         method: "GET",
       }),
       providesTags: (result, error, arg) => [
         ...(result?.reduce(
-          (ret, action) => [...ret, { type: "TopicAction", id: action.action_id }],
+          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
           [],
         ) ?? []),
-        { type: "TopicAction", id: "ALL" },
+        { type: "VulnAction", id: "ALL" },
       ],
     }),
 
@@ -505,18 +499,17 @@ export const {
   useGetPTeamPackagesSummaryQuery,
   useUploadSBOMFileMutation,
   useGetTagsQuery,
-  useGetTagQuery,
   useGetThreatQuery,
   useUpdateThreatMutation,
   useGetTicketsQuery,
   useUpdateTicketStatusMutation,
-  useGetTopicQuery,
+  useGetVulnQuery,
   useSearchTopicsQuery,
   useCreateTopicMutation,
   useUpdateTopicMutation,
   useDeleteTopicMutation,
-  useGetPTeamTopicActionsQuery,
-  useGetTopicActionsQuery,
+  useGetPTeamVulnActionsQuery,
+  useGetVulnActionsQuery,
   useGetUserMeQuery,
   useTryLoginMutation,
   useCreateUserMutation,

@@ -5,13 +5,13 @@ import PropTypes from "prop-types";
 
 import { pickAffectedVersions } from "../utils/topicUtils";
 
-export function ArtifactTagView(props) {
-  const { artifactTag, topicActions } = props;
+export function PackageView(props) {
+  const { packageInfo, topicActions } = props;
 
   return (
-    <Card key={artifactTag.tag_id} variant="outlined" display="flex" sx={{ m: 1, p: 2 }}>
-      {/* Title -- tag name */}
-      <Typography variant="h5">{artifactTag.tag_name}</Typography>
+    <Card key={packageInfo.package_id} variant="outlined" display="flex" sx={{ m: 1, p: 2 }}>
+      {/* Title -- package name */}
+      <Typography variant="h5">{packageInfo.package_name}</Typography>
       <Box display="flex" flexDirection="row" justifyContent="center">
         {/* left half -- affected versions */}
         <Box
@@ -20,7 +20,7 @@ export function ArtifactTagView(props) {
           flexDirection="column"
           sx={{ width: "50%", minWidth: "50%" }}
         >
-          {pickAffectedVersions(topicActions, artifactTag.tag_name).map((affectedVersion) => (
+          {pickAffectedVersions(topicActions, packageInfo.package_name).map((affectedVersion) => (
             <Box
               key={affectedVersion}
               alignItems="center"
@@ -48,7 +48,7 @@ export function ArtifactTagView(props) {
     </Card>
   );
 }
-ArtifactTagView.propTypes = {
-  artifactTag: PropTypes.object.isRequired,
+PackageView.propTypes = {
+  package: PropTypes.object.isRequired,
   topicActions: PropTypes.array.isRequired,
 };
