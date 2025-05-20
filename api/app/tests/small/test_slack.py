@@ -1,7 +1,7 @@
 from app import models
 from app.notification.slack import (
     SSVC_PRIORITY_LABEL,
-    TAG_URL,
+    PACKAGE_URL,
     create_slack_pteam_alert_blocks_for_new_vuln,
 )
 
@@ -22,7 +22,7 @@ def test_create_blocks_for_pteam():
     blocks = create_slack_pteam_alert_blocks_for_new_vuln(**notification_data)
     assert notification_data["pteam_name"] in blocks[0]["text"]["text"]
     tag_page_url = (
-        f"{TAG_URL}{notification_data['tag_id']}?pteamId={notification_data['pteam_id']}&"
+        f"{PACKAGE_URL}{notification_data['tag_id']}?pteamId={notification_data['pteam_id']}&"
         f"serviceId={notification_data['service_id']}"
     )
     assert tag_page_url in blocks[2]["text"]["text"]
