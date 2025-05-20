@@ -15,7 +15,7 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 
-export function TagReferences(props) {
+export function PackageReferences(props) {
   const { references, serviceDict } = props;
 
   return (
@@ -66,7 +66,7 @@ export function TagReferences(props) {
   );
 }
 
-TagReferences.propTypes = {
+PackageReferences.propTypes = {
   references: PropTypes.arrayOf(PropTypes.object).isRequired,
   serviceDict: PropTypes.object.isRequired,
 };

@@ -18,7 +18,7 @@ import { a11yProps, errorToString } from "../../utils/func.js";
 
 import { CodeBlock } from "./CodeBlock.jsx";
 import { PTeamVulnsPerPackage } from "./PTeamVulnsPerPackage.jsx";
-import { TagReferences } from "./TagReferences.jsx";
+import { PackageReferences } from "./PackageReferences.jsx";
 
 export function Package() {
   const [tabValue, setTabValue] = useState(0);
@@ -100,12 +100,12 @@ export function Package() {
   if (vulnIdsUnSolvedIsLoading) return <>Now loading vulnIdsUnSolved...</>;
   if (ticketCountsSolvedError)
     throw new APIError(errorToString(ticketCountsSolvedError), {
-      api: "getPTeamVulnIdsTiedToServicePackage",
+      api: "getPTeamTicketCountsTiedToServicePackage",
     });
   if (ticketCountsSolvedIsLoading) return <>Now loading ticketCountsSolved...</>;
   if (ticketCountsUnSolvedError)
     throw new APIError(errorToString(ticketCountsUnSolvedError), {
-      api: "getPTeamVulnIdsTiedToServicePackage",
+      api: "getPTeamTicketCountsTiedToServicePackage",
     });
   if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
 
@@ -155,7 +155,7 @@ export function Package() {
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{packageId}</UUIDTypography>
           </Typography>
-          <TagReferences references={references} serviceDict={serviceDict} />
+          <PackageReferences references={references} serviceDict={serviceDict} />
         </Box>
       </Box>
       <CodeBlock visible={visibleCodeBlock} />
