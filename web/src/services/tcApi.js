@@ -453,19 +453,6 @@ export const tcApi = createApi({
         { type: "VulnAction", id: "ALL" },
       ],
     }),
-    getTopicActions: builder.query({
-      query: (topicId) => ({
-        url: `topics/${topicId}/actions/user/me`,
-        method: "GET",
-      }),
-      providesTags: (result, error, arg) => [
-        ...(result?.reduce(
-          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
-          [],
-        ) ?? []),
-        { type: "VulnAction", id: "ALL" },
-      ],
-    }),
 
     /* User */
     getUserMe: builder.query({
