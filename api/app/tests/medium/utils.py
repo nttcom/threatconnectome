@@ -172,8 +172,11 @@ def create_vuln(
 
 def create_actionlog(
     user: dict,
-    action_id: UUID | str,
-    topic_id: UUID | str,
+    action_id: UUID | str | None,
+    action: str,
+    action_type: str,
+    recommended: bool,
+    vuln_id: UUID | str,
     user_id: UUID | str,
     pteam_id: UUID | str,
     service_id: UUID | str,
@@ -181,14 +184,18 @@ def create_actionlog(
     executed_at: datetime | None,
 ) -> schemas.ActionLogResponse:
     request = {
-        "action_id": str(action_id),
-        "topic_id": str(topic_id),
+        "action": action,
+        "action_type": action_type,
+        "recommended": recommended,
+        "vuln_id": str(vuln_id),
         "user_id": str(user_id),
         "pteam_id": str(pteam_id),
         "service_id": str(service_id),
         "ticket_id": str(ticket_id),
         "executed_at": str(executed_at) if executed_at else None,
     }
+    if action_id is not None:
+        request["action_id"] = str(action_id)
 
     response = client.post("/actionlogs", headers=headers(user), json=request)
 
@@ -225,15 +232,15 @@ def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     return _to_tuple_set(refs1) == _to_tuple_set(refs2)
 
 
-def get_tickets_related_to_topic_tag(
+def get_tickets_related_to_vuln_package(
     user: dict,
     pteam_id: UUID | str,
     service_id: UUID | str,
-    topic_id: UUID | str,
-    tag_id: UUID | str,
+    vuln_id: UUID | str,
+    package_id: UUID | str,
 ) -> list[dict]:
     response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/topics/{topic_id}/tags/{tag_id}/tickets",
+        f"/pteams/{pteam_id}/tickets?service_id={service_id}&vuln_id={vuln_id}&package_id={package_id}",
         headers=headers(user),
     )
     if response.status_code != 200:

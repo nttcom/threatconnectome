@@ -95,6 +95,19 @@ def __handle_create_vuln(
 
     db.commit()
 
+    # create vulnerable_packages_response
+    vulnerable_packages_response = []
+    for package_id, vulnerable_package in requested_packages.items():
+        vulnerable_packages_response.append(
+            schemas.VulnerablePackageResponse(
+                package_id=package_id,
+                name=vulnerable_package.name,
+                ecosystem=vulnerable_package.ecosystem,
+                affected_versions=vulnerable_package.affected_versions,
+                fixed_versions=vulnerable_package.fixed_versions,
+            )
+        )
+
     return schemas.VulnResponse(
         vuln_id=str(vuln_id),
         created_by=UUID(vuln.created_by) if vuln.created_by else None,
@@ -106,7 +119,7 @@ def __handle_create_vuln(
         exploitation=vuln.exploitation,
         automatable=vuln.automatable,
         cvss_v3_score=vuln.cvss_v3_score,
-        vulnerable_packages=request.vulnerable_packages,
+        vulnerable_packages=vulnerable_packages_response,
     )
 
 
@@ -197,7 +210,8 @@ def __handle_update_vuln(
     db.commit()
 
     vulnerable_packages = [
-        schemas.VulnerablePackage(
+        schemas.VulnerablePackageResponse(
+            package_id=affect.package_id,
             name=affect.package.name,
             ecosystem=affect.package.ecosystem,
             affected_versions=affect.affected_versions,
@@ -272,7 +286,8 @@ def get_vuln(
 
     # Fetch vulnerable packages associated with the vuln
     vulnerable_packages = [
-        schemas.VulnerablePackage(
+        schemas.VulnerablePackageResponse(
+            package_id=affect.package_id,
             name=affect.package.name,
             ecosystem=affect.package.ecosystem,
             affected_versions=affect.affected_versions,
@@ -296,7 +311,7 @@ def get_vuln(
     )
 
 
-@router.get("", response_model=list[schemas.VulnResponse])
+@router.get("", response_model=schemas.VulnsListResponse)
 def get_vulns(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -364,7 +379,7 @@ def get_vulns(
     - `...?package_name=example` -> Filter by the package name "example".
     """
     try:
-        vulns = command.get_vulns(
+        result = command.get_vulns(
             db=db,
             offset=offset,
             limit=limit,
@@ -392,10 +407,10 @@ def get_vulns(
         )
 
     response_vulns = []
-    for vuln in vulns:
-        # Fetch vulnerable packages associated with the vuln
+    for vuln in result["vulns"]:
         vulnerable_packages = [
-            schemas.VulnerablePackage(
+            schemas.VulnerablePackageResponse(
+                package_id=affect.package_id,
                 name=affect.package.name,
                 ecosystem=affect.package.ecosystem,
                 affected_versions=affect.affected_versions,
@@ -403,7 +418,6 @@ def get_vulns(
             )
             for affect in vuln.affects
         ]
-
         response_vulns.append(
             schemas.VulnResponse(
                 vuln_id=vuln.vuln_id,
@@ -420,7 +434,7 @@ def get_vulns(
             )
         )
 
-    return response_vulns
+    return schemas.VulnsListResponse(num_vulns=result["num_vulns"], vulns=response_vulns)
 
 
 @router.get("/{vuln_id}/actions", response_model=list[schemas.ActionResponse])

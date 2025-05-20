@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Optional, Sequence
+from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import (
@@ -119,27 +119,79 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
     return db.scalars(select_stmt).unique().all()
 
 
+def get_vulns_count(
+    db: Session,
+    filters,
+    package_manager: str | None,
+    pteam_id: UUID | str | None,
+) -> int:
+    count_query = select(func.count(models.Vuln.vuln_id.distinct()))
+    count_query = count_query.join(
+        models.Affect,
+    ).join(models.Package, models.Affect.package_id == models.Package.package_id)
+
+    # Add a JOIN if referencing Dependency
+    if package_manager:
+        count_query = count_query.outerjoin(
+            models.PackageVersion, models.Package.package_id == models.PackageVersion.package_id
+        ).outerjoin(
+            models.Dependency,
+            models.PackageVersion.package_version_id == models.Dependency.package_version_id,
+        )
+        if pteam_id:
+            count_query = count_query.join(
+                models.Service,
+                and_(
+                    models.Service.service_id == models.Dependency.service_id,
+                    models.Service.pteam_id == str(pteam_id),
+                ),
+            )
+    elif pteam_id:
+        count_query = (
+            count_query.outerjoin(
+                models.PackageVersion,
+                models.Package.package_id == models.PackageVersion.package_id,
+            )
+            .join(
+                models.Dependency,
+                models.PackageVersion.package_version_id == models.Dependency.package_version_id,
+            )
+            .join(
+                models.Service,
+                and_(
+                    models.Service.service_id == models.Dependency.service_id,
+                    models.Service.pteam_id == str(pteam_id),
+                ),
+            )
+        )
+
+    if filters:
+        count_query = count_query.where(and_(*filters))
+    result = db.scalar(count_query)
+    return result if result is not None else 0
+
+
 def get_vulns(
     db: Session,
     offset: int,
     limit: int,
-    min_cvss_v3_score: Optional[float] = None,
-    max_cvss_v3_score: Optional[float] = None,
-    vuln_ids: Optional[list[str]] = None,
-    title_words: Optional[list[str]] = None,
-    detail_words: Optional[list[str]] = None,
-    creator_ids: Optional[list[str]] = None,
-    created_after: Optional[datetime] = None,
-    created_before: Optional[datetime] = None,
-    updated_after: Optional[datetime] = None,
-    updated_before: Optional[datetime] = None,
-    pteam_id: Optional[UUID | str] = None,
-    cve_ids: Optional[list[str]] = None,
-    package_name: Optional[list[str]] = None,
-    ecosystem: Optional[list[str]] = None,
-    package_manager: Optional[str] = None,
+    min_cvss_v3_score: float | None = None,
+    max_cvss_v3_score: float | None = None,
+    vuln_ids: list[str] | None = None,
+    title_words: list[str] | None = None,
+    detail_words: list[str] | None = None,
+    creator_ids: list[str] | None = None,
+    created_after: datetime | None = None,
+    created_before: datetime | None = None,
+    updated_after: datetime | None = None,
+    updated_before: datetime | None = None,
+    pteam_id: UUID | str | None = None,
+    cve_ids: list[str] | None = None,
+    package_name: list[str] | None = None,
+    ecosystem: list[str] | None = None,
+    package_manager: str | None = None,
     sort_key: schemas.VulnSortKey = schemas.VulnSortKey.CVSS_V3_SCORE_DESC,  # set default sort key
-) -> Sequence[models.Vuln]:
+) -> dict:
 
     # Remove duplicates from lists
     fixed_creator_ids = set()
@@ -272,6 +324,9 @@ def get_vulns(
     if package_manager:
         filters.append(models.Dependency.package_manager == package_manager)
 
+    # Count total number of vulnerabilities matching the filters
+    num_vulns = get_vulns_count(db, filters, package_manager, pteam_id)
+
     if filters:
         query = query.where(and_(*filters))
 
@@ -298,8 +353,14 @@ def get_vulns(
 
     # Pageination
     query = query.offset(offset).limit(limit)
+    vulns = db.scalars(query).unique().all()
 
-    return db.scalars(query).unique().all()
+    result = {
+        "num_vulns": num_vulns,
+        "vulns": vulns,
+    }
+
+    return result
 
 
 def get_packages_summary(
