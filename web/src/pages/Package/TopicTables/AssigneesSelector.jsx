@@ -25,7 +25,7 @@ export function AssigneesSelector(props) {
       .map((member) => member.user_id);
     if (setEquals(new Set(newAssigneeIds), new Set(currentAssigneeIds))) return; // not modified
 
-    await updateTicketStatus({ pteamId, serviceId, ticketId, data: { assignees: newAssigneeIds } })
+    await updateTicketStatus({ pteamId, ticketId, data: { assignees: newAssigneeIds } })
       .unwrap()
       .then(() => {
         enqueueSnackbar("Change assignees succeeded", { variant: "success" });
