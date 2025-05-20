@@ -253,7 +253,7 @@ export function Status() {
             ssvcPriorityProps[packageInfo.ssvc_priority || "defer"].displayName,
           )) &&
       (!searchWord?.length > 0 ||
-        (packageInfo.package_name + ":" + packageInfo.ecosystem + ":" + packageInfo.package_manager)
+        (packageInfo.package_name + ":" + packageInfo.ecosystem)
           .toLowerCase()
           .includes(searchWord)),
   );
