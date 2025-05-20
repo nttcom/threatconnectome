@@ -98,10 +98,10 @@ export function Drawer() {
             <ListItemText>Team</ListItemText>
           </StyledListItemButton>
         </>
-        {/* Topics */}
+        {/* Vulns */}
         <StyledListItemButton
-          onClick={() => navigate("/topics?" + queryParams)}
-          selected={locationReader.isTopicsPage()}
+          onClick={() => navigate("/vulns?" + queryParams)}
+          selected={locationReader.isVulnsPage()}
         >
           <StyledListItemIcon>
             <TopicIcon />
