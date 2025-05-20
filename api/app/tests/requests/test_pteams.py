@@ -2539,7 +2539,7 @@ class TestGetPTeamPackagesSummary:
             **self.ssvc_priority_count_zero,
             models.SSVCDeployerPriorityEnum.DEFER.value: 1,
         }
-        print(summary["packages"])
+
         assert summary["packages"] == [
             {
                 "package_id": str(self.package1.package_id),
