@@ -344,11 +344,14 @@ def get_vulns_data(tc_client: ThreatconnectomeClient, offset, limit):
         vulns_response = tc_client.get_vulns(offset, limit)
 
         # Finish when response is empty
-        if not vulns_response:
+        if not vulns_response or not vulns_response.get("vulns"):
             break
 
         result.update(
-            {vuln["vuln_id"]: convert_vuln_to_checkable_data(vuln) for vuln in vulns_response}
+            {
+                vuln["vuln_id"]: convert_vuln_to_checkable_data(vuln)
+                for vuln in vulns_response["vulns"]
+            }
         )
         offset += limit
 
