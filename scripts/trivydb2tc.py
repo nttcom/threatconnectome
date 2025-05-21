@@ -73,27 +73,27 @@ allow_list = [
     # b"amazon linux 2022",
     # b"amazon linux 2023",
     # b"bitnami::Bitnami Vulnerability Database",
-    b"cargo::GitHub Security Advisory Rust",
+    # b"cargo::GitHub Security Advisory Rust",
     # b"chainguard",
     # b"cocoapods::GitHub Security Advisory Swift",
     # b"composer::GitHub Security Advisory Composer",
     # b"composer::PHP Security Advisories Database",
     # b"conan::GitLab Advisory Database Community",
     # b"data-source",
-    b"debian 10",
-    b"debian 11",
-    b"debian 12",
-    b"debian 13",
+    # b"debian 10",
+    # b"debian 11",
+    # b"debian 12",
+    # b"debian 13",
     # b"debian 7",
     # b"debian 8",
     # b"debian 9",
     # b"erlang::GitHub Security Advisory Erlang",
-    b"go::GitHub Security Advisory Go",
+    # b"go::GitHub Security Advisory Go",
     # b"k8s::Official Kubernetes CVE Feed",
-    b"maven::GitHub Security Advisory Maven",
-    b"maven::GitLab Advisory Database Community",
-    b"npm::GitHub Security Advisory npm",
-    b"npm::Node.js Ecosystem Security Working Group",
+    # b"maven::GitHub Security Advisory Maven",
+    # b"maven::GitLab Advisory Database Community",
+    # b"npm::GitHub Security Advisory npm",
+    # b"npm::Node.js Ecosystem Security Working Group",
     # b"nuget::GitHub Security Advisory NuGet",
     # b"openSUSE Leap 15.0",
     # b"openSUSE Leap 15.1",
@@ -108,8 +108,8 @@ allow_list = [
     # b"pub::GitHub Security Advisory Pub",
     # b"rocky 8",
     # b"rocky 9",
-    b"rubygems::GitHub Security Advisory RubyGems",
-    b"rubygems::Ruby Advisory Database",
+    # b"rubygems::GitHub Security Advisory RubyGems",
+    # b"rubygems::Ruby Advisory Database",
     # b"swift::GitHub Security Advisory Swift",
     # b"ubuntu 12.04",
     # b"ubuntu 12.04-ESM",
@@ -126,15 +126,15 @@ allow_list = [
     # b"ubuntu 16.10",
     # b"ubuntu 17.04",
     # b"ubuntu 17.10",
-    b"ubuntu 18.04",
+    # b"ubuntu 18.04",
     # b"ubuntu 18.10",
     # b"ubuntu 19.04",
     # b"ubuntu 19.10",
-    b"ubuntu 20.04",
+    # b"ubuntu 20.04",
     # b"ubuntu 20.10",
     # b"ubuntu 21.04",
     # b"ubuntu 21.10",
-    b"ubuntu 22.04",
+    # b"ubuntu 22.04",
     # b"ubuntu 22.10",
     # b"ubuntu 23.04",
     # b"wolfi",
@@ -344,11 +344,14 @@ def get_vulns_data(tc_client: ThreatconnectomeClient, offset, limit):
         vulns_response = tc_client.get_vulns(offset, limit)
 
         # Finish when response is empty
-        if not vulns_response:
+        if not vulns_response or not vulns_response.get("vulns"):
             break
 
         result.update(
-            {vuln["vuln_id"]: convert_vuln_to_checkable_data(vuln) for vuln in vulns_response}
+            {
+                vuln["vuln_id"]: convert_vuln_to_checkable_data(vuln)
+                for vuln in vulns_response["vulns"]
+            }
         )
         offset += limit
 
