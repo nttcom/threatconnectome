@@ -68,6 +68,11 @@ export function ReportCompletedActions(props) {
     await Promise.all(
       selectedAction.map(async (actionId) => {
           const action = actions.find((action) => action.action_id === actionId);
+          if (!action) {
+            console.error(`Action with ID ${actionId} not found in actions array.`);
+            return;
+          }
+
           const isInActionText = actionText.action_id === actionId;
           
           return await createActionLog({
