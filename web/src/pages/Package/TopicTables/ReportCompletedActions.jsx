@@ -66,10 +66,20 @@ export function ReportCompletedActions(props) {
 
   const handleAction = async () =>
     await Promise.all(
-      selectedAction.map(
-        async (actionId) =>
-          await createActionLog({
-            action_id: actionId,
+      selectedAction.map(async (actionId) => {
+          const action = actions.find((action) => action.action_id === actionId);
+          if (!action) {
+            console.error(`Action with ID ${actionId} not found in actions array.`);
+            return;
+          }
+
+          const isInActionText = actionText.action_id === actionId;
+          
+          return await createActionLog({
+            action_id: isInActionText ? null : action.action_id,
+            action: action.action,
+            action_type: action.action_type,
+            recommended: action.recommended,
             pteam_id: pteamId,
             service_id: serviceId,
             ticket_id: ticketId,
@@ -80,14 +90,13 @@ export function ReportCompletedActions(props) {
             .then((data) => {
               enqueueSnackbar("Action succeeded", { variant: "success" });
               return data;
-            }),
-      ),
+            })
+      })
     )
       .then(
         async (actionLogs) =>
           await updateTicketStatus({
             pteamId,
-            serviceId,
             ticketId,
             data: {
               topic_status: "completed",
@@ -112,13 +121,13 @@ export function ReportCompletedActions(props) {
     onSetShow(false);
   };
 
-  const handleSelectAction = async (action) => {
-    if (!action) {
+  const handleSelectAction = async (actionId) => {
+    if (!actionId) {
       if (selectedAction.length) setSelectedAction([]);
       else setSelectedAction(vulnActions.map((action) => action.action_id));
     } else {
-      if (selectedAction.includes(action)) selectedAction.splice(selectedAction.indexOf(action), 1);
-      else selectedAction.push(action);
+      if (selectedAction.includes(actionId)) selectedAction.splice(selectedAction.indexOf(actionId), 1);
+      else selectedAction.push(actionId);
       setSelectedAction([...selectedAction]);
     }
   };

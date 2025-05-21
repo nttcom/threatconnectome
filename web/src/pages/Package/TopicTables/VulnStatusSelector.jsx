@@ -75,7 +75,7 @@ export function VulnStatusSelector(props) {
     } else if (selectedStatus === "acknowledged") {
       requestParams["scheduled_at"] = null;
     }
-    await updateTicketStatus({ pteamId, serviceId, ticketId, data: requestParams })
+    await updateTicketStatus({ pteamId, ticketId, data: requestParams })
       .unwrap()
       .then(() => {
         enqueueSnackbar("Change ticket status succeeded", { variant: "success" });
