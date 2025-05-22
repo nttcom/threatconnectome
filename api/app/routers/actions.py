@@ -115,16 +115,17 @@ def delete_action(
     db: Session = Depends(get_db),
 ):
     """
-    Delete a topic action.
+    Delete a vuln action.
     """
     if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
 
-    topic = action.topic
+    vuln = persistence.get_vuln_by_id(db, action.vuln_id)
     persistence.delete_action(db, action)
 
-    # TODO Provisional Processing
-    # fix_threats_for_topic(db, topic)
+    if vuln is not None:
+        for threat in vuln.threats:
+            ticket_business.fix_ticket_by_threat(db, threat)
 
     db.commit()
 
