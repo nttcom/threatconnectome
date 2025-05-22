@@ -6,11 +6,14 @@ import PropTypes from "prop-types";
 import { pickAffectedVersions } from "../utils/topicUtils";
 
 export function PackageView(props) {
-  const { packageInfo, vulnActions } = props;
+  const { packageInfo, affect } = props;
   const nameWithEcosystem = `${packageInfo.name}:${packageInfo.ecosystem}`;
+  const affectedVersions = affect?.affected_versions ?? [];
+  const fixedVersions = affect?.fixed_versions ?? [];
+
   return (
     <Card
-      key={(packageInfo.package_id ?? packageInfo, name)}
+      key={packageInfo.package_id ?? `${packageInfo.ecosystem}:${packageInfo.name}`}
       variant="outlined"
       display="flex"
       sx={{ m: 1, p: 2 }}
@@ -25,22 +28,20 @@ export function PackageView(props) {
           flexDirection="column"
           sx={{ width: "50%", minWidth: "50%" }}
         >
-          {pickAffectedVersions(vulnActions, nameWithEcosystem).map((affectedVersion) => (
-            <Box
-              key={affectedVersion}
-              alignItems="center"
-              display="flex"
-              flexDirection="row"
-              sx={{ ml: 2 }}
-            >
-              <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
-              <Tooltip title={affectedVersion} placement="right">
-                <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
-                  {affectedVersion}
-                </Typography>
-              </Tooltip>
-            </Box>
-          ))}
+          {affectedVersions.length === 0 ? (
+            <Typography sx={{ fontSize: 20, color: yellow[900], ml: 2 }}>-</Typography>
+          ) : (
+            affectedVersions.map((ver, idx) => (
+              <Box key={ver} alignItems="center" display="flex" flexDirection="row" sx={{ ml: 2 }}>
+                <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
+                <Tooltip title={ver} placement="right">
+                  <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
+                    {ver}
+                  </Typography>
+                </Tooltip>
+              </Box>
+            ))
+          )}
         </Box>
         {/* right half -- patched versions */}
         <Box alignItems="center" display="flex" flexDirection="row" sx={{ width: "50%", ml: 2 }}>
