@@ -30,8 +30,9 @@ export const utcStringToLocalDate = (utcString) => {
   }
 };
 
-export const pickParentTagName = (tagName) => {
-  const tokens = tagName.split(":");
+export const pickParentTagName = (packageName) => {
+  console.log("packagename : " + packageName);
+  const tokens = packageName.split(":");
   if (tokens.length < 3) return null;
   return tokens.slice(0, -1).join(":") + ":"; // trim the right most token
 };

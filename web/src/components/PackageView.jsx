@@ -6,12 +6,17 @@ import PropTypes from "prop-types";
 import { pickAffectedVersions } from "../utils/topicUtils";
 
 export function PackageView(props) {
-  const { packageInfo, topicActions } = props;
-
+  const { packageInfo, vulnActions } = props;
+  const nameWithEcosystem = `${packageInfo.name}:${packageInfo.ecosystem}`;
   return (
-    <Card key={packageInfo.package_id} variant="outlined" display="flex" sx={{ m: 1, p: 2 }}>
+    <Card
+      key={(packageInfo.package_id ?? packageInfo, name)}
+      variant="outlined"
+      display="flex"
+      sx={{ m: 1, p: 2 }}
+    >
       {/* Title -- package name */}
-      <Typography variant="h5">{packageInfo.package_name}</Typography>
+      <Typography variant="h5">{nameWithEcosystem}</Typography>
       <Box display="flex" flexDirection="row" justifyContent="center">
         {/* left half -- affected versions */}
         <Box
@@ -20,7 +25,7 @@ export function PackageView(props) {
           flexDirection="column"
           sx={{ width: "50%", minWidth: "50%" }}
         >
-          {pickAffectedVersions(topicActions, packageInfo.package_name).map((affectedVersion) => (
+          {pickAffectedVersions(vulnActions, nameWithEcosystem).map((affectedVersion) => (
             <Box
               key={affectedVersion}
               alignItems="center"
@@ -49,6 +54,6 @@ export function PackageView(props) {
   );
 }
 PackageView.propTypes = {
-  package: PropTypes.object.isRequired,
-  topicActions: PropTypes.array.isRequired,
+  packageInfo: PropTypes.object.isRequired,
+  vulnActions: PropTypes.array.isRequired,
 };
