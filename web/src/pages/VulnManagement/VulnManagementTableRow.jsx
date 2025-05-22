@@ -12,6 +12,7 @@ import { useGetVulnActionsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
 import { errorToString, cvssConvertToName } from "../../utils/func";
+import { getActions } from "../../utils/vulnUtils";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 
@@ -43,6 +44,8 @@ export function VulnManagementTableRow(props) {
       </TableRow>
     );
 
+  const actions = getActions(vuln, vulnActions);
+
   const cvssScore =
     vuln.cvss_v3_score === undefined || vuln.cvss_v3_score === null ? "N/A" : vuln.cvss_v3_score;
 
@@ -64,7 +67,7 @@ export function VulnManagementTableRow(props) {
         <FormattedDateTimeWithTooltip utcString={vuln.updated_at} />
       </TableCell>
       <TableCell align="center">
-        {vulnActions?.length > 0 ? (
+        {actions?.length > 0 ? (
           <CheckCircleOutlineIcon color="success" />
         ) : (
           <HorizontalRuleIcon sx={{ color: grey[500] }} />

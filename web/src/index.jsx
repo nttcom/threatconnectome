@@ -21,7 +21,7 @@ import {
   Status,
   SignUp,
   Package,
-  TopicDetail,
+  VulnDetail,
   VulnManagement,
   PTeam,
   Vulnerability,
@@ -73,7 +73,7 @@ root.render(
                   <Route path="*" element={<Navigate to="/" />} />
                   <Route path="vulns">
                     <Route index element={<VulnManagement />} />
-                    <Route path=":topicId" element={<TopicDetail />} />
+                    <Route path=":vulnId" element={<VulnDetail />} />
                   </Route>
                   <Route path="vulnerabilities">
                     <Route index element={<Vulnerability />} />
