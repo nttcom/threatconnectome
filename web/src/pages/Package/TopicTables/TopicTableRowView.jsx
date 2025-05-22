@@ -6,7 +6,8 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 
 import { ssvcPriorityProps } from "../../../utils/const.js";
-import { createActionText, searchWorstSSVC } from "../../../utils/func.js";
+import { searchWorstSSVC } from "../../../utils/func.js";
+import { createActionText } from "../../../utils/vulnUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 
 import { TicketTable } from "./TicketTable.jsx";

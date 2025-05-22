@@ -1,59 +1,9 @@
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import {
-  Box,
-  Card,
-  Grid,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Grid } from "@mui/material";
 import PropTypes from "prop-types";
 
-function TopicSSVCElement(props) {
-  const { title, titleDescription, values, value } = props;
+import { VulnSSVCElement } from "./VulnSSVCElement";
 
-  return (
-    <Grid key={title} item xs={6}>
-      <Card variant="outlined" sx={{ p: 3, height: "100%" }}>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            mb: 1,
-          }}
-        >
-          <Typography sx={{ fontWeight: "bold", pr: 0.5 }}>{title}</Typography>
-          <Tooltip title={titleDescription}>
-            <HelpOutlineOutlinedIcon color="action" fontSize="small" />
-          </Tooltip>
-        </Box>
-        <ToggleButtonGroup
-          color="primary"
-          value={values.filter((item) => value === item.key)[0].key}
-          sx={{ mb: 1 }}
-        >
-          {values.map((value) => (
-            <ToggleButton key={value.key} value={value.key} disabled>
-              {value.name}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-        <Typography variant="body2" color="textSecondary">
-          {values.filter((item) => value === item.key)[0].valueDescription}
-        </Typography>
-      </Card>
-    </Grid>
-  );
-}
-TopicSSVCElement.propTypes = {
-  title: PropTypes.string.isRequired,
-  titleDescription: PropTypes.string.isRequired,
-  values: PropTypes.array.isRequired,
-  value: PropTypes.string.isRequired,
-};
-
-export function TopicSSVCCards(props) {
+export function VulnSSVCCards(props) {
   const { exploitation, automatable } = props;
 
   const automatableDescription = {
@@ -103,13 +53,13 @@ export function TopicSSVCCards(props) {
   return (
     <Box sx={{ m: 1 }}>
       <Grid container spacing={1}>
-        <TopicSSVCElement
+        <VulnSSVCElement
           title={automatableDescription.title}
           titleDescription={automatableDescription.titleDescription}
           values={automatableDescription.values}
           value={automatable}
         />
-        <TopicSSVCElement
+        <VulnSSVCElement
           title={exploitationDescription.title}
           titleDescription={exploitationDescription.titleDescription}
           values={exploitationDescription.values}
@@ -119,7 +69,7 @@ export function TopicSSVCCards(props) {
     </Box>
   );
 }
-TopicSSVCCards.propTypes = {
+VulnSSVCCards.propTypes = {
   exploitation: PropTypes.string.isRequired,
   automatable: PropTypes.string.isRequired,
 };
