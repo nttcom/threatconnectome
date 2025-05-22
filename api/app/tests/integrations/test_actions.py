@@ -8,13 +8,11 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence
 from app.main import app
-from app.tests.medium.constants import (
-    PTEAM1,
-    USER1,
-)
+from app.tests.medium.constants import PTEAM1, USER1, VULN1
 from app.tests.medium.utils import (
     create_pteam,
     create_user,
+    create_vuln,
     headers,
 )
 
@@ -26,27 +24,10 @@ class TestCreateAction:
     def test_action_is_created_when_request_is_successful(self, testdb: Session):
         # Given
         create_user(USER1)
-
-        new_vuln_id = uuid4()
-        vuln_request1 = {
-            "title": "Example vuln",
-            "cve_id": "CVE-0000-0001",
-            "detail": "This vuln is example.",
-            "exploitation": "active",
-            "automatable": "yes",
-            "cvss_v3_score": 7.8,
-            "vulnerable_packages": [
-                {
-                    "name": "example-lib",
-                    "ecosystem": "pypi",
-                    "affected_versions": ["<2.0.0"],
-                    "fixed_versions": ["2.0.0"],
-                }
-            ],
-        }
-        client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=vuln_request1)
+        # Create a vuln
+        create_vuln(USER1, VULN1)
         action_create_request = {
-            "vuln_id": str(new_vuln_id),
+            "vuln_id": str(VULN1["vuln_id"]),
             "action": "example action",
             "action_type": "elimination",
             "recommended": True,
@@ -61,7 +42,7 @@ class TestCreateAction:
 
         # Then
         action = testdb.scalars(
-            select(models.VulnAction).where(models.VulnAction.vuln_id == str(new_vuln_id))
+            select(models.VulnAction).where(models.VulnAction.vuln_id == VULN1["vuln_id"])
         ).one_or_none()
 
         assert action is not None
@@ -170,24 +151,8 @@ class TestUpdateAction:
         self.user = create_user(USER1)
 
         # Create a vuln
-        self.vuln_id = uuid4()
-        vuln_request = {
-            "title": "Example vuln",
-            "cve_id": "CVE-0000-0001",
-            "detail": "This vuln is example.",
-            "exploitation": "active",
-            "automatable": "yes",
-            "cvss_v3_score": 7.8,
-            "vulnerable_packages": [
-                {
-                    "name": "example-lib",
-                    "ecosystem": "pypi",
-                    "affected_versions": ["<2.0.0"],
-                    "fixed_versions": ["2.0.0"],
-                }
-            ],
-        }
-        client.put(f"/vulns/{self.vuln_id}", headers=headers(USER1), json=vuln_request)
+        self.vuln_id = VULN1["vuln_id"]
+        create_vuln(USER1, VULN1)
 
         # Create an action
         action_create_request = {
