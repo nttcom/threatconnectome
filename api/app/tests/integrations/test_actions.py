@@ -1,6 +1,7 @@
 from typing import Any
 from uuid import uuid4
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -159,3 +160,95 @@ class TestCreateAction:
         )
 
         assert ticket is not None
+
+
+class TestUpdateAction:
+
+    @pytest.fixture(autouse=True)
+    def common_setup(self, testdb: Session):
+        # Create a user
+        self.user = create_user(USER1)
+
+        # Create a vuln
+        self.vuln_id = uuid4()
+        vuln_request = {
+            "title": "Example vuln",
+            "cve_id": "CVE-0000-0001",
+            "detail": "This vuln is example.",
+            "exploitation": "active",
+            "automatable": "yes",
+            "cvss_v3_score": 7.8,
+            "vulnerable_packages": [
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+        client.put(f"/vulns/{self.vuln_id}", headers=headers(USER1), json=vuln_request)
+
+        # Create an action
+        action_create_request = {
+            "vuln_id": str(self.vuln_id),
+            "action": "example action",
+            "action_type": "elimination",
+            "recommended": True,
+        }
+
+        response = client.post(
+            "/actions",
+            headers=headers(USER1),
+            json=action_create_request,
+        )
+
+        self.action_id = response.json()["action_id"]
+
+    def test_action_is_updated_when_request_is_successful(self, testdb: Session):
+        # Given
+        action_update_request = {
+            "action": "updated action",
+            "action_type": "mitigation",
+            "recommended": False,
+        }
+
+        # When
+        client.put(
+            f"/actions/{self.action_id}",
+            headers=headers(USER1),
+            json=action_update_request,
+        )
+
+        # Then
+        action = testdb.scalars(
+            select(models.VulnAction).where(models.VulnAction.action_id == self.action_id)
+        ).one_or_none()
+
+        assert action is not None
+        assert action.action == action_update_request["action"]
+        assert action.action_type == action_update_request["action_type"]
+        assert action.recommended == action_update_request["recommended"]
+
+    def test_update_with_partial_fields(self, testdb: Session):
+        # Given
+        action_update_request = {
+            "action": "only action updated",
+        }
+
+        # When
+        client.put(
+            f"/actions/{self.action_id}",
+            headers=headers(USER1),
+            json=action_update_request,
+        )
+
+        # Then
+        action = testdb.scalars(
+            select(models.VulnAction).where(models.VulnAction.action_id == self.action_id)
+        ).one_or_none()
+
+        assert action is not None
+        assert action.action == "only action updated"
+        assert action.action_type == "elimination"
+        assert action.recommended is True

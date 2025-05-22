@@ -12,7 +12,7 @@ import { useState } from "react";
 import { TopicTableRow } from "./TopicTableRow";
 
 export function TopicTable(props) {
-  const { pteamId, serviceId, tagId, topicIds, references } = props;
+  const { pteamId, serviceId, packageId, vulnIds, references } = props;
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [page, setPage] = useState(0);
 
@@ -24,7 +24,7 @@ export function TopicTable(props) {
     setPage(0);
   };
 
-  const visibleTopicIds = topicIds.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const visibleVulnIds = vulnIds.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Paper elevation={3}>
@@ -50,13 +50,13 @@ export function TopicTable(props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleTopicIds.map((topicId) => (
+            {visibleVulnIds.map((vulnId) => (
               <TopicTableRow
-                key={topicId}
+                key={vulnId}
                 pteamId={pteamId}
                 serviceId={serviceId}
-                tagId={tagId}
-                topicId={topicId}
+                packageId={packageId}
+                vulnId={vulnId}
                 references={references}
               />
             ))}
@@ -66,7 +66,7 @@ export function TopicTable(props) {
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={topicIds.length}
+        count={vulnIds.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
@@ -78,7 +78,7 @@ export function TopicTable(props) {
 TopicTable.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
-  tagId: PropTypes.string.isRequired,
-  topicIds: PropTypes.array.isRequired,
+  packageId: PropTypes.string.isRequired,
+  vulnIds: PropTypes.array.isRequired,
   references: PropTypes.array.isRequired,
 };

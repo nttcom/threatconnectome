@@ -20,9 +20,9 @@ import {
   ResetPassword,
   Status,
   SignUp,
-  Tag,
+  Package,
   TopicDetail,
-  TopicManagement,
+  VulnManagement,
   PTeam,
   Vulnerability,
 } from "./pages";
@@ -66,13 +66,13 @@ root.render(
                     <Route index element={<PTeam />} />
                     <Route path="join" element={<AcceptPTeamInvitation />} />
                   </Route>
-                  <Route path="tags">
+                  <Route path="packages">
                     <Route index element={<Navigate to="/" />} />
-                    <Route path=":tagId" element={<Tag />} />
+                    <Route path=":packageId" element={<Package />} />
                   </Route>
                   <Route path="*" element={<Navigate to="/" />} />
-                  <Route path="topics">
-                    <Route index element={<TopicManagement />} />
+                  <Route path="vulns">
+                    <Route index element={<VulnManagement />} />
                     <Route path=":topicId" element={<TopicDetail />} />
                   </Route>
                   <Route path="vulnerabilities">

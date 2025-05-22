@@ -30,8 +30,17 @@ import { errorToString } from "../../../utils/func";
 
 import { ReportCompletedActions } from "./ReportCompletedActions";
 
-export function TopicStatusSelector(props) {
-  const { pteamId, serviceId, topicId, tagId, ticketId, currentStatus, topicActions = [] } = props;
+export function VulnStatusSelector(props) {
+  const {
+    pteamId,
+    serviceId,
+    vulnId,
+    packageId,
+    ticketId,
+    currentStatus,
+    actionText,
+    vulnActions,
+  } = props;
 
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
@@ -66,7 +75,7 @@ export function TopicStatusSelector(props) {
     } else if (selectedStatus === "acknowledged") {
       requestParams["scheduled_at"] = null;
     }
-    await updateTicketStatus({ pteamId, serviceId, ticketId, data: requestParams })
+    await updateTicketStatus({ pteamId, ticketId, data: requestParams })
       .unwrap()
       .then(() => {
         enqueueSnackbar("Change ticket status succeeded", { variant: "success" });
@@ -101,7 +110,7 @@ export function TopicStatusSelector(props) {
     setOpen(false);
   };
 
-  if (!pteamId || !serviceId || !topicId || !tagId || !currentStatus) return <></>;
+  if (!pteamId || !serviceId || !vulnId || !packageId || !currentStatus) return <></>;
 
   const handleHideDatepicker = () => {
     setDatepickerOpen(false);
@@ -114,9 +123,10 @@ export function TopicStatusSelector(props) {
         pteamId={pteamId}
         serviceId={serviceId}
         ticketId={ticketId}
-        topicId={topicId}
-        tagId={tagId}
-        topicActions={topicActions}
+        vulnId={vulnId}
+        packageId={packageId}
+        actionText={actionText}
+        vulnActions={vulnActions}
         onSetShow={setActionModalOpen}
         show={actionModalOpen}
       />
@@ -221,12 +231,13 @@ export function TopicStatusSelector(props) {
   );
 }
 
-TopicStatusSelector.propTypes = {
+VulnStatusSelector.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
-  topicId: PropTypes.string.isRequired,
-  tagId: PropTypes.string.isRequired,
+  vulnId: PropTypes.string.isRequired,
+  packageId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentStatus: PropTypes.object.isRequired,
-  topicActions: PropTypes.array.isRequired,
+  actionText: PropTypes.object.isRequired,
+  vulnActions: PropTypes.array.isRequired,
 };

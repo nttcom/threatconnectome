@@ -154,14 +154,17 @@ class ActionUpdateRequest(ORMModel):
     action: str | None = None
     action_type: ActionType | None = None
     recommended: bool | None = None
-    ext: dict | None = None
 
 
-class VulnerablePackage(BaseModel):
+class VulnerablePackageBase(BaseModel):
     name: str
     ecosystem: str
     affected_versions: list[str]
     fixed_versions: list[str]
+
+
+class VulnerablePackageResponse(VulnerablePackageBase):
+    package_id: UUID
 
 
 class VulnBase(BaseModel):
@@ -171,7 +174,6 @@ class VulnBase(BaseModel):
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
-    vulnerable_packages: list[VulnerablePackage] = []
 
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
@@ -181,10 +183,16 @@ class VulnResponse(VulnBase):
     created_at: datetime
     updated_at: datetime
     created_by: UUID | None = None
+    vulnerable_packages: list[VulnerablePackageResponse] = []
+
+
+class VulnsListResponse(BaseModel):
+    num_vulns: int
+    vulns: list[VulnResponse]
 
 
 class VulnUpdate(VulnBase):
-    pass
+    vulnerable_packages: list[VulnerablePackageBase] = []
 
 
 class PTeamInfo(PTeamEntry):
@@ -262,7 +270,7 @@ class ApplyInvitationRequest(ORMModel):
 
 class ActionLogResponse(ORMModel):
     logging_id: UUID
-    action_id: UUID
+    action_id: UUID | None = None
     vuln_id: UUID
     action: str
     action_type: ActionType
@@ -277,7 +285,10 @@ class ActionLogResponse(ORMModel):
 
 
 class ActionLogRequest(ORMModel):
-    action_id: UUID
+    action_id: UUID | None = None
+    action: str
+    action_type: ActionType
+    recommended: bool
     vuln_id: UUID
     user_id: UUID
     pteam_id: UUID
@@ -365,6 +376,7 @@ class DependencyResponse(ORMModel):
     dependency_id: UUID
     service_id: UUID
     package_version_id: UUID
+    package_id: UUID
     package_manager: str
     target: str
     dependency_mission_impact: str | None = None

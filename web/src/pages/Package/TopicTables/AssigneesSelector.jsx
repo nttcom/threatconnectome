@@ -7,7 +7,7 @@ import { useUpdateTicketStatusMutation } from "../../../services/tcApi";
 import { errorToString, setEquals } from "../../../utils/func";
 
 export function AssigneesSelector(props) {
-  const { pteamId, serviceId, topicId, tagId, ticketId, currentAssigneeIds, members } = props;
+  const { pteamId, serviceId, vulnId, packageId, ticketId, currentAssigneeIds, members } = props;
 
   const [assigneeUserIds, setAssigneeUserIds] = useState(
     Object.values(members)
@@ -25,7 +25,7 @@ export function AssigneesSelector(props) {
       .map((member) => member.user_id);
     if (setEquals(new Set(newAssigneeIds), new Set(currentAssigneeIds))) return; // not modified
 
-    await updateTicketStatus({ pteamId, serviceId, ticketId, data: { assignees: newAssigneeIds } })
+    await updateTicketStatus({ pteamId, ticketId, data: { assignees: newAssigneeIds } })
       .unwrap()
       .then(() => {
         enqueueSnackbar("Change assignees succeeded", { variant: "success" });
@@ -42,7 +42,7 @@ export function AssigneesSelector(props) {
     setAssigneeUserIds((typeof value === "string" ? value.split(",") : value).sort());
   };
 
-  if (!pteamId || !serviceId || !topicId || !tagId || !ticketId || !members) return <></>;
+  if (!pteamId || !serviceId || !vulnId || !packageId || !ticketId || !members) return <></>;
 
   return (
     <FormControl sx={{ width: 200 }} size="small">
@@ -90,8 +90,8 @@ export function AssigneesSelector(props) {
 AssigneesSelector.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
-  topicId: PropTypes.string.isRequired,
-  tagId: PropTypes.string.isRequired,
+  vulnId: PropTypes.string.isRequired,
+  packageId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentAssigneeIds: PropTypes.array.isRequired,
   members: PropTypes.object.isRequired,

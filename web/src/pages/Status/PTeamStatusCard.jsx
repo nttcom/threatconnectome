@@ -146,8 +146,6 @@ export function PTeamStatusCard(props) {
           {packageInfo.package_name}
           {":"}
           {packageInfo.ecosystem}
-          {":"}
-          {packageInfo.package_manager}
         </Typography>
         {serviceIds &&
           pteam.services
@@ -192,7 +190,6 @@ PTeamStatusCard.propTypes = {
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
     ecosystem: PropTypes.string,
-    package_manager: PropTypes.string,
   }).isRequired,
   serviceIds: PropTypes.array,
 };

@@ -30,7 +30,17 @@ import { ActionTypeChip } from "../ActionTypeChip";
 import { RecommendedStar } from "../RecommendedStar";
 
 export function ReportCompletedActions(props) {
-  const { pteamId, serviceId, ticketId, topicId, tagId, topicActions, onSetShow, show } = props;
+  const {
+    pteamId,
+    serviceId,
+    ticketId,
+    vulnId,
+    packageId,
+    actionText,
+    vulnActions,
+    onSetShow,
+    show,
+  } = props;
 
   const [note, setNote] = useState("");
   const [selectedAction, setSelectedAction] = useState([]);
@@ -52,30 +62,41 @@ export function ReportCompletedActions(props) {
   if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
+  const actions = [actionText, ...vulnActions];
+
   const handleAction = async () =>
     await Promise.all(
-      selectedAction.map(
-        async (actionId) =>
-          await createActionLog({
-            action_id: actionId,
+      selectedAction.map(async (actionId) => {
+          const action = actions.find((action) => action.action_id === actionId);
+          if (!action) {
+            console.error(`Action with ID ${actionId} not found in actions array.`);
+            return;
+          }
+
+          const isInActionText = actionText.action_id === actionId;
+          
+          return await createActionLog({
+            action_id: isInActionText ? null : action.action_id,
+            action: action.action,
+            action_type: action.action_type,
+            recommended: action.recommended,
             pteam_id: pteamId,
             service_id: serviceId,
             ticket_id: ticketId,
-            topic_id: topicId,
+            vuln_id: vulnId,
             user_id: userMe.user_id,
           })
             .unwrap()
             .then((data) => {
               enqueueSnackbar("Action succeeded", { variant: "success" });
               return data;
-            }),
-      ),
+            })
+      })
     )
       .then(
         async (actionLogs) =>
           await updateTicketStatus({
             pteamId,
-            serviceId,
             ticketId,
             data: {
               topic_status: "completed",
@@ -94,7 +115,7 @@ export function ReportCompletedActions(props) {
         enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
       );
 
-  if (!pteamId || !serviceId || !ticketId || !topicId || !tagId || !topicActions) return <></>;
+  if (!pteamId || !serviceId || !ticketId || !vulnId || !packageId || !vulnActions) return <></>;
 
   const handleClose = () => {
     onSetShow(false);
@@ -103,10 +124,9 @@ export function ReportCompletedActions(props) {
   const handleSelectAction = async (actionId) => {
     if (!actionId) {
       if (selectedAction.length) setSelectedAction([]);
-      else setSelectedAction(topicActions.map((action) => action.action_id));
+      else setSelectedAction(vulnActions.map((action) => action.action_id));
     } else {
-      if (selectedAction.includes(actionId))
-        selectedAction.splice(selectedAction.indexOf(actionId), 1);
+      if (selectedAction.includes(actionId)) selectedAction.splice(selectedAction.indexOf(actionId), 1);
       else selectedAction.push(actionId);
       setSelectedAction([...selectedAction]);
     }
@@ -152,13 +172,13 @@ export function ReportCompletedActions(props) {
       <DialogContent>
         {activeStep === 0 && (
           <>
-            {topicActions.length === 0 ? (
+            {actions.length === 0 ? (
               <Box display="flex" flexDirection="row" alignItems="center" sx={{ color: grey[500] }}>
                 <Typography variant="body2">No action</Typography>
               </Box>
             ) : (
               <>
-                {topicActions.map((action) => (
+                {actions.map((action) => (
                   <MenuItem
                     key={action.action_id}
                     onClick={() => handleSelectAction(action.action_id)}
@@ -177,7 +197,6 @@ export function ReportCompletedActions(props) {
                       <Typography noWrap variant="body" width={400}>
                         {action.action}
                       </Typography>
-                      <UUIDTypography>{action.action_id}</UUIDTypography>
                     </Box>
                   </MenuItem>
                 ))}
@@ -187,7 +206,7 @@ export function ReportCompletedActions(props) {
         )}
         {activeStep === 1 && (
           <>
-            {topicActions
+            {actions
               .filter((action) => selectedAction.includes(action.action_id))
               .map((action) => (
                 <Box
@@ -201,7 +220,6 @@ export function ReportCompletedActions(props) {
                   <RecommendedStar disabled={!action.recommended} />
                   <Box display="flex" flexDirection="column">
                     <Typography>{action.action}</Typography>
-                    <UUIDTypography>{action.action_id}</UUIDTypography>
                   </Box>
                 </Box>
               ))}
@@ -256,9 +274,10 @@ ReportCompletedActions.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
-  topicId: PropTypes.string.isRequired,
-  tagId: PropTypes.string.isRequired,
-  topicActions: PropTypes.array.isRequired,
+  vulnId: PropTypes.string.isRequired,
+  packageId: PropTypes.string.isRequired,
+  actionText: PropTypes.object.isRequired,
+  vulnActions: PropTypes.array.isRequired,
   onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
 };
