@@ -338,7 +338,7 @@ class PTeamPackagesSummary(ORMModel):
         package_id: UUID
         package_name: str
         ecosystem: str
-        package_manager: str
+        package_managers: list[str]
         service_ids: list[UUID]
         ssvc_priority: SSVCDeployerPriorityEnum | None
         updated_at: datetime | None
