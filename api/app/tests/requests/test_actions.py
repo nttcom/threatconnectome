@@ -5,11 +5,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.main import app
-from app.tests.medium.constants import (
-    USER1,
-)
+from app.tests.medium.constants import USER1, VULN1
 from app.tests.medium.utils import (
     create_user,
+    create_vuln,
     headers,
 )
 
@@ -24,30 +23,14 @@ class TestCreateAction:
         self.user = create_user(USER1)
 
         # Create a vuln
-        self.new_vuln_id = uuid4()
-        vuln_request1 = {
-            "title": "Example vuln",
-            "cve_id": "CVE-0000-0001",
-            "detail": "This vuln is example.",
-            "exploitation": "active",
-            "automatable": "yes",
-            "cvss_v3_score": 7.8,
-            "vulnerable_packages": [
-                {
-                    "name": "example-lib",
-                    "ecosystem": "pypi",
-                    "affected_versions": ["<2.0.0"],
-                    "fixed_versions": ["2.0.0"],
-                }
-            ],
-        }
-
-        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=vuln_request1)
+        self.vuln_id = VULN1["vuln_id"]
+        # Create a vuln
+        create_vuln(USER1, VULN1)
 
     def test_response_200_if_create_action_successfully(self, testdb: Session):
         # Given
         action_create_request = {
-            "vuln_id": str(self.new_vuln_id),
+            "vuln_id": str(self.vuln_id),
             "action": "example action",
             "action_type": "elimination",
             "recommended": True,
@@ -119,29 +102,11 @@ class TestUpdateAction:
         self.user = create_user(USER1)
 
         # Create a vuln
-        self.new_vuln_id = uuid4()
-        vuln_request1 = {
-            "title": "Example vuln",
-            "cve_id": "CVE-0000-0001",
-            "detail": "This vuln is example.",
-            "exploitation": "active",
-            "automatable": "yes",
-            "cvss_v3_score": 7.8,
-            "vulnerable_packages": [
-                {
-                    "name": "example-lib",
-                    "ecosystem": "pypi",
-                    "affected_versions": ["<2.0.0"],
-                    "fixed_versions": ["2.0.0"],
-                }
-            ],
-        }
-
-        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=vuln_request1)
+        create_vuln(USER1, VULN1)
 
         # Create an action
         action_create_request = {
-            "vuln_id": str(self.new_vuln_id),
+            "vuln_id": VULN1["vuln_id"],
             "action": "example action",
             "action_type": "elimination",
             "recommended": True,
@@ -258,29 +223,11 @@ class TestGetAction:
         self.user = create_user(USER1)
 
         # Create a vuln
-        self.new_vuln_id = uuid4()
-        vuln_request1 = {
-            "title": "Example vuln",
-            "cve_id": "CVE-0000-0001",
-            "detail": "This vuln is example.",
-            "exploitation": "active",
-            "automatable": "yes",
-            "cvss_v3_score": 7.8,
-            "vulnerable_packages": [
-                {
-                    "name": "example-lib",
-                    "ecosystem": "pypi",
-                    "affected_versions": ["<2.0.0"],
-                    "fixed_versions": ["2.0.0"],
-                }
-            ],
-        }
-
-        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=vuln_request1)
+        create_vuln(USER1, VULN1)
 
         # Create an action
         action_create_request = {
-            "vuln_id": str(self.new_vuln_id),
+            "vuln_id": VULN1["vuln_id"],
             "action": "example action",
             "action_type": "elimination",
             "recommended": True,
