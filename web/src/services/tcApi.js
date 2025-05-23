@@ -56,7 +56,7 @@ export const tcApi = createApi({
         body: data,
       }),
       invalidatesTags: (result, error, arg) => [
-        { type: "VulnAction", id: "ALL" },
+        { type: "TopicAction", id: "ALL" },
         { type: "Ticket", id: "ALL" },
       ],
     }),
