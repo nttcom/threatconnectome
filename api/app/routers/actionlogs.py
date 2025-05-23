@@ -89,19 +89,18 @@ def create_log(
     return log
 
 
-@router.get("/topics/{topic_id}", response_model=list[schemas.ActionLogResponse])
+@router.get("/vulns/{vuln_id}", response_model=list[schemas.ActionLogResponse])
 def get_topic_logs(
-    topic_id: UUID,
+    vuln_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Get actionlogs associated with the specified topic.
+    Get actionlogs associated with the specified vuln.
     """
-    # TODO Provisional Processing
-    # topic = persistence.get_topic_by_id(db, topic_id)
-    # if topic is None:
-    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
-    # assert topic
-    rows = persistence.get_topic_logs_by_user_id(db, topic_id, current_user.user_id)
+    vuln = persistence.get_vuln_by_id(db, vuln_id)
+    if vuln is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
+    assert vuln
+    rows = persistence.get_vuln_logs_by_user_id(db, vuln_id, current_user.user_id)
     return sorted(rows, key=lambda x: x.executed_at, reverse=True)
