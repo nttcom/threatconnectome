@@ -71,14 +71,14 @@ def create_action_log(db: Session, action_log: models.ActionLog) -> None:
     db.flush()
 
 
-def get_topic_logs_by_user_id(
+def get_vuln_logs_by_user_id(
     db: Session,
-    topic_id: UUID | str,
+    vuln_id: UUID | str,
     user_id: UUID | str,
 ) -> Sequence[models.ActionLog]:
     return db.scalars(
         select(models.ActionLog).where(
-            models.ActionLog.topic_id == str(topic_id),
+            models.ActionLog.vuln_id == str(vuln_id),
             models.ActionLog.pteam_id.in_(
                 db.scalars(
                     select(models.PTeamAccountRole.pteam_id).where(
