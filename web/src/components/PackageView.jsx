@@ -9,7 +9,6 @@ export function PackageView(props) {
   const { packageInfo, affect } = props;
   const nameWithEcosystem = `${packageInfo.name}:${packageInfo.ecosystem}`;
   const affectedVersions = affect?.affected_versions ?? [];
-  const fixedVersions = affect?.fixed_versions ?? [];
 
   return (
     <Card
@@ -56,5 +55,5 @@ export function PackageView(props) {
 }
 PackageView.propTypes = {
   packageInfo: PropTypes.object.isRequired,
-  vulnActions: PropTypes.array.isRequired,
+  affect: PropTypes.object.isRequired,
 };
