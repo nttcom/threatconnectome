@@ -48,37 +48,6 @@ export const tcApi = createApi({
         .join("&"),
   }),
   endpoints: (builder) => ({
-    /* Action */
-    createAction: builder.mutation({
-      query: (data) => ({
-        url: "actions",
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "TopicAction", id: "ALL" },
-        { type: "Ticket", id: "ALL" },
-      ],
-    }),
-    updateAction: builder.mutation({
-      query: ({ actionId, data }) => ({
-        url: `actions/${actionId}`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [{ type: "TopicAction", id: arg.actionId }],
-    }),
-    deleteAction: builder.mutation({
-      query: (actionId) => ({
-        url: `actions/${actionId}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "TopicAction", id: arg.actionId },
-        { type: "Ticket", id: "ALL" },
-      ],
-    }),
-
     /* Action Log */
     createActionLog: builder.mutation({
       query: (data) => ({
@@ -325,7 +294,7 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
-      invalidatesTags: (result, error, arg) => [{ type: "Tag", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
 
     /* Tag */
@@ -340,30 +309,6 @@ export const tcApi = createApi({
       query: (tagId) => ({
         url: `tags/${tagId}`,
       }),
-    }),
-
-    /* Threat */
-    getThreat: builder.query({
-      query: (threatId) => ({
-        url: `threats/${threatId}`,
-        method: "GET",
-      }),
-      providesTags: (result, error, threatId) => [
-        { type: "Threat", id: "ALL" },
-        { type: "Threat", id: threatId },
-        { type: "Service", id: "ALL" },
-      ],
-    }),
-    updateThreat: builder.mutation({
-      query: ({ threatId, data }) => ({
-        url: `threats/${threatId}`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "Threat", id: arg.threatId },
-        { type: "Ticket", id: "ALL" },
-      ],
     }),
 
     /* Ticket */
@@ -418,35 +363,6 @@ export const tcApi = createApi({
     getTopic: builder.query({
       query: (topicId) => `/topics/${topicId}`,
       providesTags: (result, error, topicId) => [{ type: "Topic", id: `${topicId}` }],
-    }),
-    createTopic: builder.mutation({
-      query: ({ topicId, data }) => ({
-        url: `topics/${topicId}`,
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [{ type: "Threat", id: "ALL" }],
-    }),
-    updateTopic: builder.mutation({
-      query: ({ topicId, data }) => ({
-        url: `topics/${topicId}`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "Threat", id: "ALL" },
-        { type: "Topic", id: `${arg.topicId}` },
-      ],
-    }),
-    deleteTopic: builder.mutation({
-      query: (topicId) => ({
-        url: `topics/${topicId}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: (result, error, topicId) => [
-        { type: "Threat", id: "ALL" },
-        { type: "Topic", id: `${topicId}` },
-      ],
     }),
 
     /* Vuln Action */
@@ -544,9 +460,6 @@ export const tcApi = createApi({
 });
 
 export const {
-  useCreateActionMutation,
-  useUpdateActionMutation,
-  useDeleteActionMutation,
   useCreateActionLogMutation,
   useGetDependencyQuery,
   useGetDependenciesQuery,
@@ -570,16 +483,11 @@ export const {
   useUploadSBOMFileMutation,
   useGetTagsQuery,
   useGetTagQuery,
-  useGetThreatQuery,
-  useUpdateThreatMutation,
   useGetTicketsQuery,
   useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
   useGetVulnQuery,
   useGetTopicQuery,
-  useCreateTopicMutation,
-  useUpdateTopicMutation,
-  useDeleteTopicMutation,
   useGetVulnActionsQuery,
   useGetTopicActionsQuery,
   useGetUserMeQuery,
