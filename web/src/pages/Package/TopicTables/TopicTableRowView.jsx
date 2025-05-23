@@ -112,14 +112,14 @@ export function TopicTableRowView(props) {
           </Collapse>
         </TableCell>
       </TableRow>
-      {/* <VulnerabilityDrawer
+      <VulnerabilityDrawer
         open={vulnDrawerOpen}
         setOpen={setVulnDrawerOpen}
         pteamId={pteamId}
         serviceId={serviceId}
         servicePackageId={packageId}
         vulnId={vulnId}
-      /> */}
+      />
     </>
   );
 }

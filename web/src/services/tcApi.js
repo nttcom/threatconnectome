@@ -336,12 +336,6 @@ export const tcApi = createApi({
       providesTags: (result, error) => [{ type: "Tag", id: "ALL" }],
     }),
 
-    getTag: builder.query({
-      query: (tagId) => ({
-        url: `tags/${tagId}`,
-      }),
-    }),
-
     /* Threat */
     getThreat: builder.query({
       query: (threatId) => ({
@@ -415,10 +409,6 @@ export const tcApi = createApi({
       query: (vulnId) => `/vulns/${vulnId}`,
       providesTags: (result, error, vulnId) => [{ type: "Vuln", id: `${vulnId}` }],
     }),
-    getTopic: builder.query({
-      query: (topicId) => `/topics/${topicId}`,
-      providesTags: (result, error, topicId) => [{ type: "Topic", id: `${topicId}` }],
-    }),
     createTopic: builder.mutation({
       query: ({ topicId, data }) => ({
         url: `topics/${topicId}`,
@@ -450,17 +440,17 @@ export const tcApi = createApi({
     }),
 
     /* Vuln Action */
-    getTopicActions: builder.query({
-      query: (topicId) => ({
-        url: `topics/${topicId}/actions/user/me`,
+    getVulnActions: builder.query({
+      query: (vulnId) => ({
+        url: `vulns/${vulnId}/actions`,
         method: "GET",
       }),
       providesTags: (result, error, arg) => [
         ...(result?.reduce(
-          (ret, action) => [...ret, { type: "TopicAction", id: action.action_id }],
+          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
           [],
         ) ?? []),
-        { type: "TopicAction", id: "ALL" },
+        { type: "VulnAction", id: "ALL" },
       ],
     }),
 
@@ -500,18 +490,6 @@ export const tcApi = createApi({
     }),
 
     /* Vuln */
-    getVulnActions: builder.query({
-      query: (vulnId) => ({
-        url: `vulns/${vulnId}/actions`,
-      }),
-      providesTags: (result, error, arg) => [
-        ...(result?.reduce(
-          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
-          [],
-        ) ?? []),
-        { type: "VulnAction", id: "ALL" },
-      ],
-    }),
     getVulns: builder.query({
       query: (params) => ({
         url: "vulns",
@@ -569,19 +547,16 @@ export const {
   useGetPTeamPackagesSummaryQuery,
   useUploadSBOMFileMutation,
   useGetTagsQuery,
-  useGetTagQuery,
   useGetThreatQuery,
   useUpdateThreatMutation,
   useGetTicketsQuery,
   useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
   useGetVulnQuery,
-  useGetTopicQuery,
   useCreateTopicMutation,
   useUpdateTopicMutation,
   useDeleteTopicMutation,
   useGetVulnActionsQuery,
-  useGetTopicActionsQuery,
   useGetUserMeQuery,
   useGetVulnsQuery,
   useTryLoginMutation,

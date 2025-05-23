@@ -8,9 +8,9 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
-import { ArtifactTagView } from "../../components/ArtifactTagView";
+import { PackageView } from "../../components/PackageView";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
-import { useGetTopicActionsQuery, useGetTopicQuery } from "../../services/tcApi";
+import { useGetVulnActionsQuery, useGetVulnQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
 import { errorToString, cvssConvertToName } from "../../utils/func";
