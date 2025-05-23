@@ -21,12 +21,12 @@ export function TopicTableRowView(props) {
   const vulnerable_package = vuln.vulnerable_packages.find(
     (vulnerable_package) => vulnerable_package.package_id === packageId,
   );
-  const affectedVersions = vulnerable_package.affected_versions ?? [];
-  const patchedVersions = vulnerable_package.fixed_versions ?? [];
+  const affectedVersions = vulnerable_package.affected_versions;
+  const patchedVersions = vulnerable_package.fixed_versions;
   const actionText = createActionText(
     affectedVersions.join(),
     patchedVersions.join(),
-    vulnerable_package.name ?? "",
+    vulnerable_package.name,
   );
 
   return (
