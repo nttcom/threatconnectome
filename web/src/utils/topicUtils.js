@@ -1,4 +1,3 @@
-import { pickParentTagName } from "./func";
 import { parseVulnerableVersions, versionMatch } from "./versions";
 
 function pickAffectedVersionsInner(vulnActions, packageName) {
