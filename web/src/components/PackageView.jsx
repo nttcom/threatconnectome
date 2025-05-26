@@ -4,12 +4,13 @@ import { green, yellow } from "@mui/material/colors";
 import PropTypes from "prop-types";
 
 export function PackageView(props) {
-  const { packageInfo, affect } = props;
-  const nameWithEcosystem = `${packageInfo.name}:${packageInfo.ecosystem}`;
-  const affectedVersions = affect?.affected_versions ?? [];
+  const { matchedVulnPackage } = props;
+  console.log("matchedVulnPackage :" + JSON.stringify(matchedVulnPackage));
+  const nameWithEcosystem = `${matchedVulnPackage.name}:${matchedVulnPackage.ecosystem}`;
+  const affectedVersions = matchedVulnPackage?.affected_versions ?? [];
 
   return (
-    <Card key={packageInfo.package_id} variant="outlined" display="flex" sx={{ m: 1, p: 2 }}>
+    <Card key={matchedVulnPackage.package_id} variant="outlined" display="flex" sx={{ m: 1, p: 2 }}>
       {/* Title -- package name */}
       <Typography variant="h5">{nameWithEcosystem}</Typography>
       <Box display="flex" flexDirection="row" justifyContent="center">
@@ -47,6 +48,5 @@ export function PackageView(props) {
   );
 }
 PackageView.propTypes = {
-  packageInfo: PropTypes.object.isRequired,
-  affect: PropTypes.object.isRequired,
+  matchedVulnPackage: PropTypes.object.isRequired,
 };
