@@ -11,12 +11,7 @@ export function PackageView(props) {
   const affectedVersions = affect?.affected_versions ?? [];
 
   return (
-    <Card
-      key={packageInfo.package_id ?? `${packageInfo.ecosystem}:${packageInfo.name}`}
-      variant="outlined"
-      display="flex"
-      sx={{ m: 1, p: 2 }}
-    >
+    <Card key={packageInfo.package_id} variant="outlined" display="flex" sx={{ m: 1, p: 2 }}>
       {/* Title -- package name */}
       <Typography variant="h5">{nameWithEcosystem}</Typography>
       <Box display="flex" flexDirection="row" justifyContent="center">
