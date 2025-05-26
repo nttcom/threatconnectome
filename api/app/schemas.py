@@ -103,6 +103,21 @@ class ExtTagResponse(TagResponse):
     references: list[dict] = []
 
 
+class PackageResponse(ORMModel):
+    package_id: UUID
+    package_name: str
+    ecosystem: str
+
+
+class ExtPackageResponse(PackageResponse):
+    class Reference(ORMModel):
+        service: str
+        target: str
+        package_manager: str
+        version: str
+
+    references: list[Reference] = []
+
 class PTeamServiceResponse(ORMModel):
     service_name: str
     service_id: UUID
