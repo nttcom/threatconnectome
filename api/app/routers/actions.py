@@ -56,7 +56,7 @@ def get_action(
     db: Session = Depends(get_db),
 ):
     """
-    Get a topic action.
+    Get a vuln action.
     """
     if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
