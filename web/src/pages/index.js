@@ -8,7 +8,7 @@ import { Package } from "./Package/PackagePage";
 import { ResetPassword } from "./ResetPassword/ResetPasswordPage";
 import { SignUp } from "./SignUp/SignUpPage";
 import { Status } from "./Status/StatusPage";
-import { TopicDetail } from "./TopicDetail/TopicDetailPage";
+import { VulnDetail } from "./VulnDetail/VulnDetailPage";
 import { VulnManagement } from "./VulnManagement/VulnManagementPage";
 import { Vulnerability } from "./Vulnerability/VulnerabilityPage";
 
@@ -23,7 +23,7 @@ export {
   SignUp,
   Status,
   Package,
-  TopicDetail,
+  VulnDetail,
   VulnManagement,
   Vulnerability,
 };
