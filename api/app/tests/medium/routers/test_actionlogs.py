@@ -30,11 +30,9 @@ from app.tests.medium.utils import (
     create_pteam,
     create_user,
     create_vuln,
-    get_service_by_service_name,
     get_tickets_related_to_vuln_package,
     headers,
     invite_to_pteam,
-    upload_pteam_tags,
 )
 
 client = TestClient(app)
@@ -290,15 +288,25 @@ class TestActionLog:
 
         def test_get_logs(self):
             # create topic2 with 2 actions
-            topic2 = create_topic_with_versioned_actions(USER1, TOPIC2, [[TAG1], [TAG1]])
-            action2a = topic2.actions[0]
-            action2b = topic2.actions[1]
-            ticket2 = get_tickets_related_to_topic_tag(
+            vuln2 = create_vuln(USER1, VULN2)
+            action_data1 = {
+                "action": "action1",
+                "action_type": "elimination",
+                "recommended": True,
+            }
+            action_data2 = {
+                "action": "action2",
+                "action_type": "elimination",
+                "recommended": True,
+            }
+            action2a = self.create_action(USER1, vuln2.vuln_id, action_data1)
+            action2b = self.create_action(USER1, vuln2.vuln_id, action_data2)
+            ticket2 = get_tickets_related_to_vuln_package(
                 USER1,
                 self.pteam1.pteam_id,
                 self.service1["service_id"],
-                self.topic1.topic_id,
-                self.tag1.tag_id,
+                self.vuln1.vuln_id,
+                self.package_version1.package_id,
             )[0]
             now = datetime.now()
             yesterday = now - timedelta(days=1)
@@ -306,7 +314,10 @@ class TestActionLog:
             actionlog1 = create_actionlog(
                 USER1,
                 action2a.action_id,
-                topic2.topic_id,
+                action2a.action,
+                action2a.action_type,
+                action2a.recommended,
+                vuln2.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
                 self.service1["service_id"],
@@ -316,7 +327,10 @@ class TestActionLog:
             actionlog2 = create_actionlog(
                 USER1,
                 action2b.action_id,
-                topic2.topic_id,
+                action2b.action,
+                action2b.action_type,
+                action2b.recommended,
+                vuln2.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
                 self.service1["service_id"],
@@ -335,77 +349,102 @@ class TestActionLog:
             assert data[1]["service_id"] == self.service1["service_id"]
             assert data[1]["ticket_id"] == ticket2["ticket_id"]
 
-        def test_get_logs__members_only(self):
+        def test_get_logs_members_only(self, testdb):
+            now = datetime.now()
+            before = now - timedelta(days=1)
+
             actionlog1 = create_actionlog(
                 USER1,
                 self.action1.action_id,
-                self.topic1.topic_id,
+                self.action1.action,
+                self.action1.action_type,
+                self.action1.recommended,
+                self.vuln1.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
                 self.service1["service_id"],
                 self.ticket1["ticket_id"],
-                None,
+                before,  # executed_at
             )
 
-            user2 = create_user(USER2)
             pteam2 = create_pteam(USER2, PTEAM2)
-            refs0 = {TAG1: [("Pipfile.lock", "1.0.0")]}
-            upload_pteam_tags(USER2, pteam2.pteam_id, SERVICE2, refs0, True)
-            service2 = get_service_by_service_name(USER2, pteam2.pteam_id, SERVICE2)
-            ticket2 = get_tickets_related_to_topic_tag(
+
+            upload_file_name = "test_syft_cyclonedx.json"
+            sbom_file = Path(__file__).resolve().parent / "upload_test" / upload_file_name
+            with open(sbom_file, "r") as sbom:
+                sbom_json = json.load(sbom)
+            bg_create_tags_from_sbom_json(sbom_json, pteam2.pteam_id, SERVICE2, upload_file_name)
+
+            service_id2 = testdb.scalars(
+                select(models.Service.service_id).where(
+                    models.Service.pteam_id == str(pteam2.pteam_id),
+                    models.Service.service_name == SERVICE2,
+                )
+            ).one()
+
+            service2 = {
+                "service_id": str(service_id2),
+                "service_name": SERVICE2,
+                "pteam_id": pteam2.pteam_id,
+            }
+
+            ticket2 = get_tickets_related_to_vuln_package(
                 USER2,
                 pteam2.pteam_id,
                 service2["service_id"],
-                self.topic1.topic_id,
-                self.tag1.tag_id,
+                self.vuln1.vuln_id,
+                self.package_version1.package_id,
             )[0]
+
             actionlog2 = create_actionlog(
                 USER2,
                 self.action1.action_id,
-                self.topic1.topic_id,
-                user2.user_id,
+                self.action1.action,
+                self.action1.action_type,
+                self.action1.recommended,
+                self.vuln1.vuln_id,
+                self.user2.user_id,
                 pteam2.pteam_id,
                 service2["service_id"],
                 ticket2["ticket_id"],
-                None,
+                now,
             )
 
             response = client.get("/actionlogs", headers=headers(USER1))
             assert response.status_code == 200
             data = response.json()
             assert len(data) == 1
-            assert data[0]["logging_id"] == str(actionlog1.logging_id)  # pteam1 only
+            assert data[0]["logging_id"] == str(actionlog1.logging_id)
 
             response = client.get("/actionlogs", headers=headers(USER2))
             assert response.status_code == 200
             data = response.json()
             assert len(data) == 1
-            assert data[0]["logging_id"] == str(actionlog2.logging_id)  # pteam2 only
+            assert data[0]["logging_id"] == str(actionlog2.logging_id)
 
             create_user(USER3)
-
             response = client.get("/actionlogs", headers=headers(USER3))
             assert response.status_code == 200
             data = response.json()
-            assert len(data) == 0  # nothing for pteamless
+            assert len(data) == 0
 
-            invitation = invite_to_pteam(USER1, self.pteam1.pteam_id)
-            accept_pteam_invitation(USER3, invitation.invitation_id)
+            invitation1 = invite_to_pteam(USER1, self.pteam1.pteam_id)
+            accept_pteam_invitation(USER3, invitation1.invitation_id)
 
             response = client.get("/actionlogs", headers=headers(USER3))
             assert response.status_code == 200
             data = response.json()
             assert len(data) == 1
-            assert data[0]["logging_id"] == str(actionlog1.logging_id)  # pteam1 only
+            assert data[0]["logging_id"] == str(actionlog1.logging_id)
 
-            invitation = invite_to_pteam(USER2, pteam2.pteam_id)
-            accept_pteam_invitation(USER3, invitation.invitation_id)
+            invitation2 = invite_to_pteam(USER2, pteam2.pteam_id)
+            accept_pteam_invitation(USER3, invitation2.invitation_id)
 
             response = client.get("/actionlogs", headers=headers(USER3))
             assert response.status_code == 200
             data = response.json()
-            assert len(data) == 2  # both of pteam1 & pteam2
-            assert data[0]["logging_id"] == str(actionlog2.logging_id)  # sorted by created_st
+            assert len(data) == 2
+            assert data[0]["logging_id"] == str(actionlog2.logging_id)
             assert data[1]["logging_id"] == str(actionlog1.logging_id)
 
         def test_get_topic_logs(self):
