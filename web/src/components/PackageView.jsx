@@ -3,8 +3,6 @@ import { Box, Card, Typography, Tooltip } from "@mui/material";
 import { green, yellow } from "@mui/material/colors";
 import PropTypes from "prop-types";
 
-import { pickAffectedVersions } from "../utils/topicUtils";
-
 export function PackageView(props) {
   const { packageInfo, affect } = props;
   const nameWithEcosystem = `${packageInfo.name}:${packageInfo.ecosystem}`;
