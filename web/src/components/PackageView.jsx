@@ -24,7 +24,7 @@ export function PackageView(props) {
           {affectedVersions.length === 0 ? (
             <Typography sx={{ fontSize: 20, color: yellow[900], ml: 2 }}>-</Typography>
           ) : (
-            affectedVersions.map((ver, idx) => (
+            affectedVersions.map((ver) => (
               <Box key={ver} alignItems="center" display="flex" flexDirection="row" sx={{ ml: 2 }}>
                 <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
                 <Tooltip title={ver} placement="right">
