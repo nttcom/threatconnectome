@@ -103,7 +103,7 @@ def accept_pteam_invitation(user: dict, invitation_id: UUID) -> schemas.PTeamInf
     return schemas.PTeamInfo(**response.json())
 
 
-def upload_pteam_tags(
+def upload_pteam_packages(
     user: dict,
     pteam_id: UUID | str,
     service: str,
@@ -223,7 +223,7 @@ def compare_tags(
 
 def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     def _to_tuple_set(refs):
-        return {(ref.get("service"), ref.get("target"), ref.get("version")) for ref in refs}
+        return {(ref.get("service"), ref.get("target"), ref.get("version"), ref.get("package_manager")) for ref in refs}
 
     if not isinstance(refs1, list) or not isinstance(refs2, list):
         return False
