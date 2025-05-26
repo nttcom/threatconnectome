@@ -72,7 +72,7 @@ class TestGetVulnIdsTiedToServicePackage:
             testdb, USER1, PTEAM1, service_name1, VULN1
         )
         json_data = {
-            "topic_status": "acknowledged",
+            "vuln_status": "acknowledged",
             "note": "string",
             "assignees": [],
             "scheduled_at": None,
@@ -164,7 +164,7 @@ class TestGetVulnIdsTiedToServicePackage:
         # Given
         # Change status of ticket1
         json_data = {
-            "topic_status": "completed",
+            "vuln_status": "completed",
             "note": "string",
             "assignees": [self.ticket_response1["user_id"]],
             "scheduled_at": None,
@@ -210,7 +210,7 @@ class TestGetVulnIdsTiedToServicePackage:
         # Given
         # Change status of ticket1
         json_data = {
-            "topic_status": "completed",
+            "vuln_status": "completed",
             "note": "string",
             "assignees": [self.ticket_response1["user_id"]],
             "scheduled_at": None,
@@ -305,7 +305,7 @@ class TestGetTicketCountsTiedToServicePackage:
             testdb, USER1, PTEAM1, service_name1, VULN1
         )
         json_data = {
-            "topic_status": "acknowledged",
+            "vuln_status": "acknowledged",
             "note": "string",
             "assignees": [],
             "scheduled_at": None,
@@ -407,7 +407,7 @@ class TestGetTicketCountsTiedToServicePackage:
         # Given
         # Change status of ticket1
         json_data = {
-            "topic_status": "completed",
+            "vuln_status": "completed",
             "note": "string",
             "assignees": [self.ticket_response1["user_id"]],
             "scheduled_at": None,
@@ -458,7 +458,7 @@ class TestGetTicketCountsTiedToServicePackage:
         # Given
         # Change status of ticket1
         json_data = {
-            "topic_status": "completed",
+            "vuln_status": "completed",
             "note": "string",
             "assignees": [self.ticket_response1["user_id"]],
             "scheduled_at": None,

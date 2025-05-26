@@ -67,31 +67,31 @@ export function ReportCompletedActions(props) {
   const handleAction = async () =>
     await Promise.all(
       selectedAction.map(async (actionId) => {
-          const action = actions.find((action) => action.action_id === actionId);
-          if (!action) {
-            console.error(`Action with ID ${actionId} not found in actions array.`);
-            return;
-          }
+        const action = actions.find((action) => action.action_id === actionId);
+        if (!action) {
+          console.error(`Action with ID ${actionId} not found in actions array.`);
+          return;
+        }
 
-          const isInActionText = actionText.action_id === actionId;
-          
-          return await createActionLog({
-            action_id: isInActionText ? null : action.action_id,
-            action: action.action,
-            action_type: action.action_type,
-            recommended: action.recommended,
-            pteam_id: pteamId,
-            service_id: serviceId,
-            ticket_id: ticketId,
-            vuln_id: vulnId,
-            user_id: userMe.user_id,
-          })
-            .unwrap()
-            .then((data) => {
-              enqueueSnackbar("Action succeeded", { variant: "success" });
-              return data;
-            })
-      })
+        const isInActionText = actionText.action_id === actionId;
+
+        return await createActionLog({
+          action_id: isInActionText ? null : action.action_id,
+          action: action.action,
+          action_type: action.action_type,
+          recommended: action.recommended,
+          pteam_id: pteamId,
+          service_id: serviceId,
+          ticket_id: ticketId,
+          vuln_id: vulnId,
+          user_id: userMe.user_id,
+        })
+          .unwrap()
+          .then((data) => {
+            enqueueSnackbar("Action succeeded", { variant: "success" });
+            return data;
+          });
+      }),
     )
       .then(
         async (actionLogs) =>
@@ -99,7 +99,7 @@ export function ReportCompletedActions(props) {
             pteamId,
             ticketId,
             data: {
-              topic_status: "completed",
+              vuln_status: "completed",
               logging_ids: actionLogs.map((log) => log.logging_id),
               note: note.trim() || null,
               scheduled_at: null, // clear scheduled date
@@ -126,7 +126,8 @@ export function ReportCompletedActions(props) {
       if (selectedAction.length) setSelectedAction([]);
       else setSelectedAction(vulnActions.map((action) => action.action_id));
     } else {
-      if (selectedAction.includes(actionId)) selectedAction.splice(selectedAction.indexOf(actionId), 1);
+      if (selectedAction.includes(actionId))
+        selectedAction.splice(selectedAction.indexOf(actionId), 1);
       else selectedAction.push(actionId);
       setSelectedAction([...selectedAction]);
     }
