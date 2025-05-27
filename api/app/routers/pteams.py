@@ -1141,7 +1141,7 @@ def upload_pteam_packages_file(
     db: Session = Depends(get_db),
 ):
     """
-    Update pteam packaegs by uploading a .jsonl file.
+    Update pteam packages by uploading a .jsonl file.
 
     Format of file content must be JSON Lines.
     """
