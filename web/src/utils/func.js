@@ -30,12 +30,6 @@ export const utcStringToLocalDate = (utcString) => {
   }
 };
 
-export const pickParentTagName = (tagName) => {
-  const tokens = tagName.split(":");
-  if (tokens.length < 3) return null;
-  return tokens.slice(0, -1).join(":") + ":"; // trim the right most token
-};
-
 export const errorToString = (error) => {
   if (typeof error === "string") return error;
   if (error.status && error.data?.detail) {
