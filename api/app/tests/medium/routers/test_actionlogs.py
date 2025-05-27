@@ -408,64 +408,123 @@ class TestActionLog:
             assert data[0]["logging_id"] == str(actionlog2.logging_id)  # sorted by created_st
             assert data[1]["logging_id"] == str(actionlog1.logging_id)
 
-        def test_get_vuln_logs(self):
-            action_data1 = {
-                "action": "action1",
-                "action_type": "elimination",
-                "recommended": True,
-            }
-            action_data2 = {
-                "action": "action2",
-                "action_type": "elimination",
-                "recommended": True,
-            }
-            action2a = self.create_action(USER1, self.vuln1.vuln_id, action_data1)
-            action2b = self.create_action(USER1, self.vuln1.vuln_id, action_data2)
 
-            # 3. すでにcommon_setupでSBOMアップロード済み（省略）
+class TestGetVulnLogs:
 
-            # 4. チケット取得（self.ticket1を使う）
-            ticket = self.ticket1
+    def create_action(
+        self, user: dict, vuln_id: str | UUID, action: dict
+    ) -> schemas.ActionResponse:
+        action_with_vuln = {**action, "vuln_id": str(vuln_id)}
+        response = client.post(
+            "/actions",
+            headers=headers(user),
+            json=action_with_vuln,
+        )
+        if response.status_code != 200:
+            raise HTTPError(response)
+        return schemas.ActionResponse(**response.json())
 
-            # 5. アクションログを2件作成
-            now = datetime.now()
-            yesterday = now - timedelta(days=1)
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, testdb):
+        self.user1 = create_user(USER1)
+        self.user2 = create_user(USER2)
+        self.pteam1 = create_pteam(USER1, PTEAM1)
 
-            actionlog1 = create_actionlog(
-                USER1,
-                action2a.action_id,
-                action2a.action,
-                action2a.action_type,
-                action2a.recommended,
-                self.vuln1.vuln_id,
-                self.user1.user_id,
-                self.pteam1.pteam_id,
-                self.service1["service_id"],
-                ticket["ticket_id"],
-                yesterday,
+        # Upload the SBOM file and create dependency information
+        upload_file_name = "test_trivy_cyclonedx_axios.json"
+        sbom_file = Path(__file__).resolve().parent / "upload_test" / upload_file_name
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+        bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, SERVICE1, upload_file_name)
+
+        # Get service ID, package version, and package ID from the database
+        service_id = testdb.scalars(
+            select(models.Service.service_id).where(
+                models.Service.pteam_id == str(self.pteam1.pteam_id),
+                models.Service.service_name == SERVICE1,
             )
-            actionlog2 = create_actionlog(
-                USER1,
-                action2b.action_id,
-                action2b.action,
-                action2b.action_type,
-                action2b.recommended,
-                self.vuln1.vuln_id,
-                self.user1.user_id,
-                self.pteam1.pteam_id,
-                self.service1["service_id"],
-                ticket["ticket_id"],
-                now,
-            )
+        ).one()
+        self.service1 = {
+            "service_id": str(service_id),
+            "service_name": SERVICE1,
+            "pteam_id": self.pteam1.pteam_id,
+        }
 
-            # 6. /actionlogs/vulns/<vuln_id> からログ取得して検証
-            response = client.get(f"/actionlogs/vulns/{self.vuln1.vuln_id}", headers=headers(USER1))
-            assert response.status_code == 200
-            data = response.json()
-            assert len(data) == 2
-            assert data[0]["logging_id"] == str(actionlog2.logging_id)
-            assert data[0]["service_id"] == self.service1["service_id"]
-            assert data[0]["ticket_id"] == ticket["ticket_id"]
-            assert data[1]["logging_id"] == str(actionlog1.logging_id)
-            assert data[1]["service_id"] == self.service1["service_id"]
-            assert data[1]["ticket_id"] == ticket["ticket_id"]
+        # Get dependency information (PackageVersion) from the database
+        package_version = testdb.scalars(select(models.PackageVersion)).one()
+        self.package_version1 = package_version
+
+        # Create vulnerability and action
+        self.vuln1 = create_vuln(USER1, VULN1)
+        self.action_data = {
+            "action": "Do something",
+            "action_type": "elimination",
+            "recommended": True,
+        }
+        self.action1 = self.create_action(USER1, self.vuln1.vuln_id, self.action_data)
+
+        self.ticket1 = get_tickets_related_to_vuln_package(
+            USER1,
+            self.pteam1.pteam_id,
+            self.service1["service_id"],
+            self.vuln1.vuln_id,
+            self.package_version1.package_id,
+        )[0]
+
+    def test_get_vuln_logs(self):
+        action_data1 = {
+            "action": "action1",
+            "action_type": "elimination",
+            "recommended": True,
+        }
+        action_data2 = {
+            "action": "action2",
+            "action_type": "elimination",
+            "recommended": True,
+        }
+        action2a = self.create_action(USER1, self.vuln1.vuln_id, action_data1)
+        action2b = self.create_action(USER1, self.vuln1.vuln_id, action_data2)
+
+        ticket = self.ticket1
+
+        # create two action logs
+        now = datetime.now()
+        yesterday = now - timedelta(days=1)
+
+        actionlog1 = create_actionlog(
+            USER1,
+            action2a.action_id,
+            action2a.action,
+            action2a.action_type,
+            action2a.recommended,
+            self.vuln1.vuln_id,
+            self.user1.user_id,
+            self.pteam1.pteam_id,
+            self.service1["service_id"],
+            ticket["ticket_id"],
+            yesterday,
+        )
+        actionlog2 = create_actionlog(
+            USER1,
+            action2b.action_id,
+            action2b.action,
+            action2b.action_type,
+            action2b.recommended,
+            self.vuln1.vuln_id,
+            self.user1.user_id,
+            self.pteam1.pteam_id,
+            self.service1["service_id"],
+            ticket["ticket_id"],
+            now,
+        )
+
+        response = client.get(f"/actionlogs/vulns/{self.vuln1.vuln_id}", headers=headers(USER1))
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        assert data[0]["logging_id"] == str(actionlog2.logging_id)
+        assert data[0]["service_id"] == self.service1["service_id"]
+        assert data[0]["ticket_id"] == ticket["ticket_id"]
+        assert data[1]["logging_id"] == str(actionlog1.logging_id)
+        assert data[1]["service_id"] == self.service1["service_id"]
+        assert data[1]["ticket_id"] == ticket["ticket_id"]
