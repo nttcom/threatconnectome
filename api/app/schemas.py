@@ -92,19 +92,16 @@ class ActionResponse(ORMModel):
     created_at: datetime
 
 
-class PackageResponse(ORMModel):
-    package_id: UUID
-    package_name: str
-    ecosystem: str
-
-
-class ExtPackageResponse(PackageResponse):
+class ExtPackageResponse(ORMModel):
     class Reference(ORMModel):
         service: str
         target: str
         package_manager: str
         version: str
 
+    package_id: UUID
+    package_name: str
+    ecosystem: str
     references: list[Reference] = []
 
 class PTeamServiceResponse(ORMModel):
