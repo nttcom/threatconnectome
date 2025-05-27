@@ -90,7 +90,7 @@ def create_log(
 
 
 @router.get("/vulns/{vuln_id}", response_model=list[schemas.ActionLogResponse])
-def get_topic_logs(
+def get_vuln_logs(
     vuln_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
