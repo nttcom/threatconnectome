@@ -68,10 +68,5 @@ export function PackageView(props) {
 }
 
 PackageView.propTypes = {
-  matchedVulnPackage: PropTypes.shape({
-    package_id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    ecosystem: PropTypes.string.isRequired,
-    affected_versions: PropTypes.arrayOf(PropTypes.string),
-  }).isRequired,
+  matchedVulnPackage: PropTypes.object.isRequired,
 };
