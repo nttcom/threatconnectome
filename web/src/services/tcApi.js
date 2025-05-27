@@ -327,6 +327,7 @@ export const tcApi = createApi({
         { type: "Threat", id: arg.threatId },
         { type: "Ticket", id: "ALL" },
       ],
+    }),
 
     /* Ticket */
     getTickets: builder.query({
@@ -405,6 +406,7 @@ export const tcApi = createApi({
         { type: "Threat", id: "ALL" },
         { type: "Topic", id: `${topicId}` },
       ],
+    }),
 
     /* Vuln Action */
     getVulnActions: builder.query({
