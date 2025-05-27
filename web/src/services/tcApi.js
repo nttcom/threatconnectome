@@ -48,37 +48,6 @@ export const tcApi = createApi({
         .join("&"),
   }),
   endpoints: (builder) => ({
-    /* Action */
-    createAction: builder.mutation({
-      query: (data) => ({
-        url: "actions",
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "TopicAction", id: "ALL" },
-        { type: "Ticket", id: "ALL" },
-      ],
-    }),
-    updateAction: builder.mutation({
-      query: ({ actionId, data }) => ({
-        url: `actions/${actionId}`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [{ type: "TopicAction", id: arg.actionId }],
-    }),
-    deleteAction: builder.mutation({
-      query: (actionId) => ({
-        url: `actions/${actionId}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "TopicAction", id: arg.actionId },
-        { type: "Ticket", id: "ALL" },
-      ],
-    }),
-
     /* Action Log */
     createActionLog: builder.mutation({
       query: (data) => ({
@@ -325,7 +294,7 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
-      invalidatesTags: (result, error, arg) => [{ type: "Tag", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
 
     /* Tag */
@@ -358,7 +327,6 @@ export const tcApi = createApi({
         { type: "Threat", id: arg.threatId },
         { type: "Ticket", id: "ALL" },
       ],
-    }),
 
     /* Ticket */
     getTickets: builder.query({
@@ -437,7 +405,6 @@ export const tcApi = createApi({
         { type: "Threat", id: "ALL" },
         { type: "Topic", id: `${topicId}` },
       ],
-    }),
 
     /* Vuln Action */
     getVulnActions: builder.query({
@@ -522,9 +489,6 @@ export const tcApi = createApi({
 });
 
 export const {
-  useCreateActionMutation,
-  useUpdateActionMutation,
-  useDeleteActionMutation,
   useCreateActionLogMutation,
   useGetDependencyQuery,
   useGetDependenciesQuery,

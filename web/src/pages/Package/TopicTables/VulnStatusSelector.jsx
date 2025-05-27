@@ -25,7 +25,7 @@ import { useRef, useState } from "react";
 
 import dialogStyle from "../../../cssModule/dialog.module.css";
 import { useUpdateTicketStatusMutation } from "../../../services/tcApi";
-import { topicStatusProps } from "../../../utils/const";
+import { vulnStatusProps } from "../../../utils/const";
 import { errorToString } from "../../../utils/func";
 
 import { ReportCompletedActions } from "./ReportCompletedActions";
@@ -57,18 +57,18 @@ export function VulnStatusSelector(props) {
     {
       display: "Acknowledge",
       rawStatus: "acknowledged",
-      disabled: currentStatus.topic_status === "acknowledged",
+      disabled: currentStatus.vuln_status === "acknowledged",
     },
     { display: "Schedule", rawStatus: "scheduled", disabled: false },
     {
       display: "Complete",
       rawStatus: "completed",
-      disabled: currentStatus.topic_status === "completed",
+      disabled: currentStatus.vuln_status === "completed",
     },
   ];
 
   const modifyTicketStatus = async (selectedStatus) => {
-    let requestParams = { topic_status: selectedStatus };
+    let requestParams = { vuln_status: selectedStatus };
     if (selectedStatus === "scheduled") {
       if (!schedule) return;
       requestParams["scheduled_at"] = schedule.toISOString();
@@ -133,7 +133,7 @@ export function VulnStatusSelector(props) {
       <Button
         endIcon={<ArrowDropDownIcon />}
         sx={{
-          ...topicStatusProps[currentStatus.topic_status].buttonStyle,
+          ...vulnStatusProps[currentStatus.vuln_status].buttonStyle,
           fontSize: 14,
           padding: "1px 3px",
           minHeight: "25px",
@@ -151,7 +151,7 @@ export function VulnStatusSelector(props) {
         onClick={() => setOpen(!open)}
         ref={anchorRef}
       >
-        {topicStatusProps[currentStatus.topic_status].chipLabelCapitalized}
+        {vulnStatusProps[currentStatus.vuln_status].chipLabelCapitalized}
       </Button>
       <Popper
         open={open}
@@ -174,7 +174,7 @@ export function VulnStatusSelector(props) {
                   {selectableItems.map((item) => (
                     <MenuItem
                       key={item.rawStatus}
-                      selected={currentStatus.topic_status === item.rawStatus}
+                      selected={currentStatus.vuln_status === item.rawStatus}
                       disabled={item.disabled}
                       onClick={(event) => handleUpdateStatus(event, item)}
                       dense={true}

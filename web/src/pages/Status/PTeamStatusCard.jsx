@@ -4,12 +4,12 @@ import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
-import { topicStatusProps, sortedTopicStatus } from "../../utils/const";
+import { vulnStatusProps, sortedVulnStatus } from "../../utils/const";
 import { calcTimestampDiff, compareSSVCPriority } from "../../utils/func";
 
 function LineWithTooltip(props) {
-  const { topicStatus, ratio, num } = props;
-  const constProp = topicStatusProps[topicStatus];
+  const { vulnStatus, ratio, num } = props;
+  const constProp = vulnStatusProps[vulnStatus];
 
   const tipAreaHeight = 15;
   const lineHeight = 5;
@@ -49,7 +49,7 @@ function LineWithTooltip(props) {
 }
 
 LineWithTooltip.propTypes = {
-  topicStatus: PropTypes.string,
+  vulnStatus: PropTypes.string,
   ratio: PropTypes.number,
   num: PropTypes.number,
 };
@@ -89,7 +89,7 @@ function StatusRatioGraph(props) {
       {keys.map((key) => (
         <LineWithTooltip
           key={key}
-          topicStatus={key}
+          vulnStatus={key}
           ratio={ratios[key] ?? 0}
           num={counts[key] ?? 0}
         />
@@ -111,7 +111,7 @@ export function PTeamStatusCard(props) {
     displaySSVCPriority = "safe"; // solved all and at least 1 tickets
   } else if (
     !packageInfo.ssvc_priority &&
-    sortedTopicStatus.every((topicStatus) => packageInfo.status_count[topicStatus] === 0)
+    sortedVulnStatus.every((vulnStatus) => packageInfo.status_count[vulnStatus] === 0)
   ) {
     displaySSVCPriority = "empty";
   } else {
