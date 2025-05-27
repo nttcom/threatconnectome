@@ -1529,7 +1529,7 @@ class TestPostUploadSBOMFileCycloneDX:
             }
 
 
-class TestTestPostUploadPackagesFile:
+class TestPostUploadPackagesFile:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self):
         # Given
@@ -1573,7 +1573,7 @@ class TestTestPostUploadPackagesFile:
         _keys = {"package_name", "ecosystem"}
         if any(_package1.get(_key) != _package2.get(_key) for _key in _keys):
             return False
-        return compare_references(_package1["references"], _package1["references"])
+        return compare_references(_package1["references"], _package2["references"])
 
     def _compare_responsed_packages(self, _packages1: list[dict], _packages2: list[dict]) -> bool:
         if not isinstance(_packages1, list) or not isinstance(_packages2, list):
@@ -1585,7 +1585,7 @@ class TestTestPostUploadPackagesFile:
             for _idx in range(len(_packages1))
         )
 
-    def test_it_should_return_200_when_upload_1_line_file(self):
+    def test_upload_single_package_file_(self):
         # Given
         params = {"service": "threatconnectome"}
         # upload a line
@@ -1617,7 +1617,7 @@ class TestTestPostUploadPackagesFile:
             ],
         )
 
-    def test_it_should_return_200_when_upload_2_lines_file(self):
+    def test_upload_two_packages_file(self):
         # Given
         params = {"service": "threatconnectome"}
         # upload 2 lines
@@ -1679,7 +1679,7 @@ class TestTestPostUploadPackagesFile:
             ],
         )
 
-    def test_it_should_return_200_when_upload_duplicated_lines_file(self):
+    def test_upload_duplicated_packages_file(self):
         # Given
         params = {"service": "threatconnectome"}
         # upload duplicated lines

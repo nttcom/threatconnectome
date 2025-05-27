@@ -2001,16 +2001,18 @@ class TestPostUploadPackagesFile:
 
 
     def test_it_should_return_400_without_package_name(self):
-        # When
+        # Given
         params = {"service": "threatconnectome"}
-        package_file = Path(__file__).resolve().parent / "upload_test" / "no_package_key.jsonl"
-        with open(package_file, "rb") as packages:
-            response = client.post(
-                f"/pteams/{self.pteam1.pteam_id}/upload_packages_file",
-                headers=file_upload_headers(USER1),
-                files={"file": packages},
-                params=params,
-            )
+
+        lines = [
+            '{"p":"test_package_name",'
+            '"ecosystem":"test_ecosystem",'
+            '"package_manager": "test_package_manager",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"}]}'
+        ]
+
+        # When
+        response = self._eval_upload_packages_file_with_string(lines, params)
 
         # Then
         assert response.status_code == 400
@@ -2019,16 +2021,16 @@ class TestPostUploadPackagesFile:
 
 
     def test_it_should_return_400_with_wrong_content_format(self):
-        # When
+        # Given
         params = {"service": "threatconnectome"}
-        package_file = Path(__file__).resolve().parent / "upload_test" / "package_with_wrong_format.jsonl"
-        with open(package_file, "rb") as packages:
-            response = client.post(
-                f"/pteams/{self.pteam1.pteam_id}/upload_packages_file",
-                headers=file_upload_headers(USER1),
-                files={"file": packages},
-                params=params,
-            )
+
+        lines = [
+            '{"test":"wrong file"},'
+        ]
+
+        # When
+        response = self._eval_upload_packages_file_with_string(lines, params)
+
 
         # Then
         assert response.status_code == 400
