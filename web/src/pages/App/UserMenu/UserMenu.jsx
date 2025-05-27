@@ -1,7 +1,15 @@
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { Divider, ListItemIcon, ListItemText } from "@mui/material";
+import {
+  Divider,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -21,6 +29,8 @@ export function UserMenu() {
   const { signOut } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [accountSettingOpen, setAccountSettingOpen] = useState(false);
+  const theme = useTheme();
+  const matches = useMediaQuery(theme.breakpoints.up("sm"));
 
   const skip = useSkipUntilAuthUserIsReady();
   const {
@@ -56,9 +66,25 @@ export function UserMenu() {
 
   return (
     <>
-      <Button aria-label="user menu" onClick={handleClick} startIcon={<AccountCircleIcon />}>
-        {userMe.email}
-      </Button>
+      {matches ? (
+        <Button
+          aria-label="user menu"
+          onClick={handleClick}
+          startIcon={<AccountCircleIcon />}
+          sx={{ maxWidth: 400 }}
+        >
+          <Typography
+            variant="button"
+            sx={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}
+          >
+            {userMe.email}
+          </Typography>
+        </Button>
+      ) : (
+        <IconButton onClick={handleClick} color="primary" size="large">
+          <AccountCircleIcon />
+        </IconButton>
+      )}
       <Menu
         anchorEl={anchorEl}
         open={openUserMenu}
