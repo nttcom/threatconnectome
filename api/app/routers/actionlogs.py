@@ -101,6 +101,5 @@ def get_vuln_logs(
     vuln = persistence.get_vuln_by_id(db, vuln_id)
     if vuln is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
-    assert vuln
     rows = persistence.get_vuln_logs_by_user_id(db, vuln_id, current_user.user_id)
     return sorted(rows, key=lambda x: x.executed_at, reverse=True)
