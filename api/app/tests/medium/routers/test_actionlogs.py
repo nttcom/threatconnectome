@@ -528,3 +528,56 @@ class TestGetVulnLogs:
         assert data[1]["logging_id"] == str(actionlog1.logging_id)
         assert data[1]["service_id"] == self.service1["service_id"]
         assert data[1]["ticket_id"] == ticket["ticket_id"]
+
+    def test_get_vuln_logs_excludes_other_vuln(self):
+        vuln2 = create_vuln(USER1, VULN2)
+
+        action_data1 = {
+            "action": "action1",
+            "action_type": "elimination",
+            "recommended": True,
+        }
+        action1 = self.create_action(USER1, self.vuln1.vuln_id, action_data1)
+
+        create_actionlog(
+            USER1,
+            action1.action_id,
+            action1.action,
+            action1.action_type,
+            action1.recommended,
+            self.vuln1.vuln_id,
+            self.user1.user_id,
+            self.pteam1.pteam_id,
+            self.service1["service_id"],
+            self.ticket1["ticket_id"],
+            datetime.now(),
+        )
+
+        other_action_data = {
+            "action": "unrelated_action",
+            "action_type": "mitigation",
+            "recommended": True,
+        }
+        other_action = self.create_action(USER1, vuln2.vuln_id, other_action_data)
+
+        other_actionlog = create_actionlog(
+            USER1,
+            other_action.action_id,
+            other_action.action,
+            other_action.action_type,
+            other_action.recommended,
+            vuln2.vuln_id,
+            self.user1.user_id,
+            self.pteam1.pteam_id,
+            self.service1["service_id"],
+            self.ticket1["ticket_id"],
+            datetime.now(),
+        )
+
+        response = client.get(f"/actionlogs/vulns/{self.vuln1.vuln_id}", headers=headers(USER1))
+        assert response.status_code == 200
+        data = response.json()
+
+        assert len(data) == 1
+        assert data[0]["vuln_id"] == self.vuln1.vuln_id
+        assert data[0]["logging_id"] != str(other_actionlog.logging_id)
