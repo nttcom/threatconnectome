@@ -21,23 +21,33 @@ export function PackageView(props) {
           flexDirection="column"
           sx={{ width: "50%", minWidth: "50%" }}
         >
-          {affectedVersions.map((affectedVersion) => (
-            <Box
-              key={affectedVersion}
-              alignItems="center"
-              display="flex"
-              flexDirection="row"
-              sx={{ ml: 2 }}
-            >
+          {affectedVersions.length > 0 ? (
+            affectedVersions.map((affectedVersion) => (
+              <Box
+                key={affectedVersion}
+                alignItems="center"
+                display="flex"
+                flexDirection="row"
+                sx={{ ml: 2 }}
+              >
+                <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
+                <Tooltip title={affectedVersion} placement="right">
+                  <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
+                    {affectedVersion}
+                  </Typography>
+                </Tooltip>
+              </Box>
+            ))
+          ) : (
+            <Box alignItems="center" display="flex" flexDirection="row" sx={{ ml: 2 }}>
               <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
-              <Tooltip title={affectedVersion} placement="right">
-                <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
-                  {affectedVersion}
-                </Typography>
-              </Tooltip>
+              <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
+                -
+              </Typography>
             </Box>
-          ))}
+          )}
         </Box>
+
         {/* right half -- patched versions */}
         <Box
           alignItems="flexStart"
@@ -45,22 +55,31 @@ export function PackageView(props) {
           flexDirection="column"
           sx={{ width: "50%", minWidth: "50%" }}
         >
-          {fixedVersions.map((fixedVersion) => (
-            <Box
-              key={fixedVersion}
-              alignItems="center"
-              display="flex"
-              flexDirection="row"
-              sx={{ ml: 2 }}
-            >
+          {fixedVersions.length > 0 ? (
+            fixedVersions.map((fixedVersion) => (
+              <Box
+                key={fixedVersion}
+                alignItems="center"
+                display="flex"
+                flexDirection="row"
+                sx={{ ml: 2 }}
+              >
+                <RecommendIcon sx={{ fontSize: 32, color: green[500] }} />
+                <Tooltip title={fixedVersion} placement="right">
+                  <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
+                    {fixedVersion}
+                  </Typography>
+                </Tooltip>
+              </Box>
+            ))
+          ) : (
+            <Box alignItems="center" display="flex" flexDirection="row" sx={{ ml: 2 }}>
               <RecommendIcon sx={{ fontSize: 32, color: green[500] }} />
-              <Tooltip title={fixedVersion} placement="right">
-                <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
-                  {fixedVersion}
-                </Typography>
-              </Tooltip>
+              <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
+                -
+              </Typography>
             </Box>
-          ))}
+          )}
         </Box>
       </Box>
     </Card>
