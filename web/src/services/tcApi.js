@@ -378,35 +378,6 @@ export const tcApi = createApi({
       query: (vulnId) => `/vulns/${vulnId}`,
       providesTags: (result, error, vulnId) => [{ type: "Vuln", id: `${vulnId}` }],
     }),
-    createTopic: builder.mutation({
-      query: ({ topicId, data }) => ({
-        url: `topics/${topicId}`,
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [{ type: "Threat", id: "ALL" }],
-    }),
-    updateTopic: builder.mutation({
-      query: ({ topicId, data }) => ({
-        url: `topics/${topicId}`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "Threat", id: "ALL" },
-        { type: "Topic", id: `${arg.topicId}` },
-      ],
-    }),
-    deleteTopic: builder.mutation({
-      query: (topicId) => ({
-        url: `topics/${topicId}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: (result, error, topicId) => [
-        { type: "Threat", id: "ALL" },
-        { type: "Topic", id: `${topicId}` },
-      ],
-    }),
 
     /* Vuln Action */
     getVulnActions: builder.query({
@@ -519,9 +490,6 @@ export const {
   useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
   useGetVulnQuery,
-  useCreateTopicMutation,
-  useUpdateTopicMutation,
-  useDeleteTopicMutation,
   useGetVulnActionsQuery,
   useGetUserMeQuery,
   useGetVulnsQuery,
