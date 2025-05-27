@@ -26,6 +26,13 @@ class TestUpdateVuln:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self, testdb: Session):
         self.user1 = create_user(USER1)
+        package = models.Package(
+            name="example-lib",
+            ecosystem="pypi",
+        )
+        testdb.add(package)
+        testdb.flush()
+        self.expected_package_id = str(package.package_id)
         self.request1 = {
             "title": "Example vuln",
             "cve_id": "CVE-0000-0001",
@@ -42,6 +49,7 @@ class TestUpdateVuln:
                 }
             ],
         }
+        testdb.commit()
 
     @pytest.fixture(scope="function", autouse=False)
     def update_setup(self, testdb: Session):
@@ -104,22 +112,14 @@ class TestUpdateVuln:
         assert response.json()["exploitation"] == self.request1["exploitation"]
         assert response.json()["automatable"] == self.request1["automatable"]
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
-        assert (
-            response.json()["vulnerable_packages"][0]["name"]
-            == self.request1["vulnerable_packages"][0]["name"]
-        )
-        assert (
-            response.json()["vulnerable_packages"][0]["ecosystem"]
-            == self.request1["vulnerable_packages"][0]["ecosystem"]
-        )
-        assert (
-            response.json()["vulnerable_packages"][0]["affected_versions"]
-            == self.request1["vulnerable_packages"][0]["affected_versions"]
-        )
-        assert (
-            response.json()["vulnerable_packages"][0]["fixed_versions"]
-            == self.request1["vulnerable_packages"][0]["fixed_versions"]
-        )
+        pkg_resp = response.json()["vulnerable_packages"][0]
+        req_pkg = self.request1["vulnerable_packages"][0]
+        assert pkg_resp["name"] == req_pkg["name"]
+        assert pkg_resp["ecosystem"] == req_pkg["ecosystem"]
+        assert pkg_resp["affected_versions"] == req_pkg["affected_versions"]
+        assert pkg_resp["fixed_versions"] == req_pkg["fixed_versions"]
+        assert pkg_resp["package_id"] == self.expected_package_id
+
         assert (
             current_time - timedelta(seconds=10)
             <= datetime.fromisoformat(response.json()["created_at"])
@@ -174,22 +174,13 @@ class TestUpdateVuln:
         assert response.json()["exploitation"] == self.request1["exploitation"]
         assert response.json()["automatable"] == self.request1["automatable"]
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
-        assert (
-            response.json()["vulnerable_packages"][0]["name"]
-            == self.request1["vulnerable_packages"][0]["name"]
-        )
-        assert (
-            response.json()["vulnerable_packages"][0]["ecosystem"]
-            == self.request1["vulnerable_packages"][0]["ecosystem"]
-        )
-        assert (
-            response.json()["vulnerable_packages"][0]["affected_versions"]
-            == self.request1["vulnerable_packages"][0]["affected_versions"]
-        )
-        assert (
-            response.json()["vulnerable_packages"][0]["fixed_versions"]
-            == self.request1["vulnerable_packages"][0]["fixed_versions"]
-        )
+        pkg_resp = response.json()["vulnerable_packages"][0]
+        req_pkg = self.request1["vulnerable_packages"][0]
+        assert pkg_resp["name"] == req_pkg["name"]
+        assert pkg_resp["ecosystem"] == req_pkg["ecosystem"]
+        assert pkg_resp["affected_versions"] == req_pkg["affected_versions"]
+        assert pkg_resp["fixed_versions"] == req_pkg["fixed_versions"]
+        assert pkg_resp["package_id"] == self.expected_package_id
 
         assert (
             created_time - timedelta(seconds=10)
@@ -359,10 +350,17 @@ class TestUpdateVuln:
 
 class TestGetVuln:
     @pytest.fixture(scope="function", autouse=True)
-    def common_setup(self):
+    def common_setup(self, testdb: Session):
         # Given
         self.user1 = create_user(USER1)
         self.new_vuln_id = uuid4()
+        package = models.Package(
+            name="example-lib",
+            ecosystem="pypi",
+        )
+        testdb.add(package)
+        testdb.flush()
+        self.expected_package_id = str(package.package_id)
         self.request1 = {
             "title": "Example vuln",
             "cve_id": "CVE-0000-0001",
@@ -399,22 +397,13 @@ class TestGetVuln:
         assert response.json()["exploitation"] == self.request1["exploitation"]
         assert response.json()["automatable"] == self.request1["automatable"]
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
-        assert (
-            response.json()["vulnerable_packages"][0]["name"]
-            == self.request1["vulnerable_packages"][0]["name"]
-        )
-        assert (
-            response.json()["vulnerable_packages"][0]["ecosystem"]
-            == self.request1["vulnerable_packages"][0]["ecosystem"]
-        )
-        assert (
-            response.json()["vulnerable_packages"][0]["affected_versions"]
-            == self.request1["vulnerable_packages"][0]["affected_versions"]
-        )
-        assert (
-            response.json()["vulnerable_packages"][0]["fixed_versions"]
-            == self.request1["vulnerable_packages"][0]["fixed_versions"]
-        )
+        pkg_resp = response.json()["vulnerable_packages"][0]
+        req_pkg = self.request1["vulnerable_packages"][0]
+        assert pkg_resp["name"] == req_pkg["name"]
+        assert pkg_resp["ecosystem"] == req_pkg["ecosystem"]
+        assert pkg_resp["affected_versions"] == req_pkg["affected_versions"]
+        assert pkg_resp["fixed_versions"] == req_pkg["fixed_versions"]
+        assert pkg_resp["package_id"] == self.expected_package_id
 
         assert (
             self.created_time - timedelta(seconds=10)
@@ -465,7 +454,9 @@ class TestGetVulns:
             ],
         }
 
-    def assert_vuln_response(self, actual_vuln, expected_vuln_id, expected_request):
+    def assert_vuln_response(
+        self, actual_vuln, expected_vuln_id, expected_request, expected_package_id=None
+    ):
         assert actual_vuln["vuln_id"] == str(expected_vuln_id)
         assert actual_vuln["title"] == expected_request["title"]
         assert actual_vuln["cve_id"] == expected_request["cve_id"]
@@ -473,26 +464,18 @@ class TestGetVulns:
         assert actual_vuln["exploitation"] == expected_request["exploitation"]
         assert actual_vuln["automatable"] == expected_request["automatable"]
         assert actual_vuln["cvss_v3_score"] == expected_request["cvss_v3_score"]
-        assert (
-            actual_vuln["vulnerable_packages"][0]["name"]
-            == expected_request["vulnerable_packages"][0]["name"]
-        )
-        assert (
-            actual_vuln["vulnerable_packages"][0]["ecosystem"]
-            == expected_request["vulnerable_packages"][0]["ecosystem"]
-        )
-        assert (
-            actual_vuln["vulnerable_packages"][0]["affected_versions"]
-            == expected_request["vulnerable_packages"][0]["affected_versions"]
-        )
-        assert (
-            actual_vuln["vulnerable_packages"][0]["fixed_versions"]
-            == expected_request["vulnerable_packages"][0]["fixed_versions"]
-        )
+        pkg_resp = actual_vuln["vulnerable_packages"][0]
+        req_pkg = expected_request["vulnerable_packages"][0]
+        assert pkg_resp["name"] == req_pkg["name"]
+        assert pkg_resp["ecosystem"] == req_pkg["ecosystem"]
+        assert pkg_resp["affected_versions"] == req_pkg["affected_versions"]
+        assert pkg_resp["fixed_versions"] == req_pkg["fixed_versions"]
+        assert pkg_resp["package_id"] == expected_package_id
 
     def test_it_should_return_200_and_vulns_list(self, testdb: Session):
         # Given
         vuln_ids = []
+        package_ids = []
         number_of_vulns = 10
         created_times = []
         updated_times = []
@@ -503,6 +486,17 @@ class TestGetVulns:
             vuln_ids.append(vuln_id)
             created_times.append(datetime.fromisoformat(response.json()["created_at"]))
             updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
+            # package_idをDBから取得
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
         # When
         response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
 
@@ -516,7 +510,10 @@ class TestGetVulns:
         for i, vuln in enumerate(response_data["vulns"]):
             reversed_index = len(response_data["vulns"]) - 1 - i
             self.assert_vuln_response(
-                vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+                vuln,
+                vuln_ids[reversed_index],
+                self.create_vuln_request(reversed_index),
+                expected_package_id=package_ids[reversed_index],
             )
             assert (
                 created_times[i] - timedelta(seconds=10)
@@ -559,6 +556,7 @@ class TestGetVulns:
         # Given
         number_of_vulns = 5
         vuln_ids = []
+        package_ids = []
         created_times = []
         updated_times = []
         for i in range(number_of_vulns):
@@ -566,6 +564,16 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
             created_times.append(datetime.fromisoformat(response.json()["created_at"]))
             updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
 
@@ -582,7 +590,10 @@ class TestGetVulns:
         for i, vuln in enumerate(response_data["vulns"]):
             reversed_index = len(response_data["vulns"]) - 1 - i
             self.assert_vuln_response(
-                vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+                vuln,
+                vuln_ids[reversed_index],
+                self.create_vuln_request(reversed_index),
+                expected_package_id=package_ids[reversed_index],
             )
         assert (
             created_times[3] - timedelta(seconds=10)
@@ -596,12 +607,23 @@ class TestGetVulns:
         min_cvss_v3_score = 5.0
         count = sum(1 for score in scores if score >= min_cvss_v3_score)
         vuln_ids = []
+        package_ids = []
 
         for i in range(len(scores)):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i, scores[i])
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
 
         # When
         response = client.get(
@@ -616,7 +638,10 @@ class TestGetVulns:
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
             self.assert_vuln_response(
-                vuln, vuln_ids[i + 1], self.create_vuln_request(i + 1, scores[i + 1])
+                vuln,
+                vuln_ids[i + 1],
+                self.create_vuln_request(i + 1, scores[i + 1]),
+                expected_package_id=package_ids[i + 1],
             )
 
     def test_it_should_filter_by_max_cvss_v3_score(self, testdb: Session):
@@ -625,12 +650,23 @@ class TestGetVulns:
         max_cvss_v3_score = 5.0
         count = sum(1 for score in scores if score >= max_cvss_v3_score)
         vuln_ids = []
+        package_ids = []
 
         for i in range(len(scores)):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i, scores[i])
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
 
         # When
         response = client.get(
@@ -645,17 +681,33 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
-            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i, scores[i]))
+            self.assert_vuln_response(
+                vuln,
+                vuln_ids[i],
+                self.create_vuln_request(i, scores[i]),
+                expected_package_id=package_ids[i],
+            )
 
     def test_it_should_filter_by_vuln_ids(self, testdb: Session):
         # Given
         number_of_vulns = 3
         vuln_ids = []
+        package_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
 
         # When
         response = client.get(f"/vulns?vuln_ids={vuln_ids[0]}", headers=self.headers_user)
@@ -668,13 +720,17 @@ class TestGetVulns:
 
         # Check the details of the filtered vuln
         self.assert_vuln_response(
-            response_data["vulns"][0], vuln_ids[0], self.create_vuln_request(0)
+            response_data["vulns"][0],
+            vuln_ids[0],
+            self.create_vuln_request(0),
+            expected_package_id=package_ids[0],
         )
 
     def test_it_should_filter_by_title_words(self, testdb: Session):
         # Given
         number_of_vulns = 3
         vuln_ids = []
+        package_ids = []
         put_response_data = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
@@ -683,6 +739,16 @@ class TestGetVulns:
                 f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
             )
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
         # When
@@ -697,13 +763,17 @@ class TestGetVulns:
         assert response_data["num_vulns"] == 1
 
         self.assert_vuln_response(
-            response_data["vulns"][0], vuln_ids[0], self.create_vuln_request(0)
+            response_data["vulns"][0],
+            vuln_ids[0],
+            self.create_vuln_request(0),
+            expected_package_id=package_ids[0],
         )
 
     def test_it_should_return_vulns_when_title_words_include_empty(self, testdb: Session):
         # Given
         number_of_vulns = 3
         vuln_ids = []
+        package_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             if i == 0:
@@ -742,6 +812,18 @@ class TestGetVulns:
                 }
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            print(type(vuln_request["vulnerable_packages"]))
+            print(vuln_request["vulnerable_packages"])
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
 
         # When
         response = client.get(
@@ -771,13 +853,17 @@ class TestGetVulns:
             else:
                 reversed_index = len(response_data["vulns"]) - 1 - i
                 self.assert_vuln_response(
-                    vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+                    vuln,
+                    vuln_ids[reversed_index],
+                    self.create_vuln_request(reversed_index),
+                    expected_package_id=package_ids[reversed_index],
                 )
 
     def test_it_should_filter_by_detail_words(self, testdb: Session):
         # Given
         number_of_vulns = 3
         vuln_ids = []
+        package_ids = []
         put_response_data = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
@@ -786,6 +872,16 @@ class TestGetVulns:
                 f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
             )
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
         # When
@@ -800,13 +896,17 @@ class TestGetVulns:
         assert response_data["num_vulns"] == 1
 
         self.assert_vuln_response(
-            response_data["vulns"][0], vuln_ids[0], self.create_vuln_request(0)
+            response_data["vulns"][0],
+            vuln_ids[0],
+            self.create_vuln_request(0),
+            expected_package_id=package_ids[0],
         )
 
     def test_it_should_return_all_vulns_when_detail_words_include_empty(self, testdb: Session):
         # Given
         number_of_vulns = 3
         vuln_ids = []
+        package_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             if i == 0:
@@ -845,6 +945,16 @@ class TestGetVulns:
                 }
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
 
         # When
         response = client.get(
@@ -874,7 +984,10 @@ class TestGetVulns:
             else:
                 reversed_index = len(response_data["vulns"]) - 1 - i
                 self.assert_vuln_response(
-                    vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+                    vuln,
+                    vuln_ids[reversed_index],
+                    self.create_vuln_request(reversed_index),
+                    package_ids[reversed_index],
                 )
 
     def test_it_should_filter_by_pteam_id(self, testdb: Session):
@@ -899,6 +1012,7 @@ class TestGetVulns:
 
         # Create two vulnerabilities (one for the SBOM package, and one for an unrelated package)
         vuln_ids = []
+        package_ids = []
         vuln_request_sbom = {
             "title": "SBOM-related vulnerability",
             "cve_id": "CVE-2025-0001",
@@ -918,6 +1032,14 @@ class TestGetVulns:
         vuln_id_sbom = uuid4()
         client.put(f"/vulns/{vuln_id_sbom}", headers=self.headers_user, json=vuln_request_sbom)
         vuln_ids.append(vuln_id_sbom)
+        package = testdb.execute(
+            text("SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"),
+            {
+                "name": vuln_request_sbom["vulnerable_packages"][0]["name"],
+                "ecosystem": vuln_request_sbom["vulnerable_packages"][0]["ecosystem"],
+            },
+        ).fetchone()
+        package_ids.append(str(package._mapping["package_id"]))
 
         vuln_request_other = {
             "title": "Unrelated vulnerability",
@@ -938,6 +1060,14 @@ class TestGetVulns:
         vuln_id_other = uuid4()
         client.put(f"/vulns/{vuln_id_other}", headers=self.headers_user, json=vuln_request_other)
         vuln_ids.append(vuln_id_other)
+        package = testdb.execute(
+            text("SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"),
+            {
+                "name": vuln_request_other["vulnerable_packages"][0]["name"],
+                "ecosystem": vuln_request_other["vulnerable_packages"][0]["ecosystem"],
+            },
+        ).fetchone()
+        package_ids.append(str(package._mapping["package_id"]))
 
         # When: filter pteam_id
         response = client.get(f"/vulns?pteam_id={pteam1.pteam_id}", headers=self.headers_user)
@@ -947,12 +1077,18 @@ class TestGetVulns:
         response_data = response.json()
         assert len(response_data["vulns"]) == 1
         assert response_data["num_vulns"] == 1
-        self.assert_vuln_response(response_data["vulns"][0], vuln_id_sbom, vuln_request_sbom)
+        self.assert_vuln_response(
+            response_data["vulns"][0],
+            vuln_id_sbom,
+            vuln_request_sbom,
+            expected_package_id=package_ids[0],
+        )
 
     def test_it_should_filter_by_cve_ids(self, testdb: Session):
         # Given
         number_of_vulns = 2
         vuln_ids = []
+        package_ids = []
         put_response_data = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
@@ -961,6 +1097,16 @@ class TestGetVulns:
                 f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
             )
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
         # When
@@ -976,7 +1122,12 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
-            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
+            self.assert_vuln_response(
+                vuln,
+                vuln_ids[i],
+                self.create_vuln_request(i),
+                expected_package_id=package_ids[i],
+            )
 
     def test_it_should_return_400_when_cve_ids_is_empty(self, testdb: Session):
         # Given
@@ -998,12 +1149,23 @@ class TestGetVulns:
         # Given
         number_of_vulns = 3
         vuln_ids = []
+        package_ids = []
 
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
 
         created_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
         updated_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
@@ -1044,6 +1206,7 @@ class TestGetVulns:
                 vuln,
                 filtered_vuln_ids[reversed_index],
                 self.create_vuln_request(reversed_index + 1),
+                expected_package_id=package_ids[reversed_index + 1],
             )
 
         created_before = "2023-01-15 00:00:00"
@@ -1058,7 +1221,12 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
-            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
+            self.assert_vuln_response(
+                vuln,
+                vuln_ids[i],
+                self.create_vuln_request(i),
+                expected_package_id=package_ids[i],
+            )
 
         updated_after = "2023-01-15 00:00:00"
         # When
@@ -1081,6 +1249,7 @@ class TestGetVulns:
                 vuln,
                 filtered_vuln_ids[reversed_index],
                 self.create_vuln_request(reversed_index + 1),
+                expected_package_id=package_ids[reversed_index + 1],
             )
 
         updated_before = "2023-01-15 00:00:00"
@@ -1094,11 +1263,17 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
-            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
+            self.assert_vuln_response(
+                vuln,
+                vuln_ids[i],
+                self.create_vuln_request(i),
+                expected_package_id=package_ids[i],
+            )
 
     def test_it_should_filter_by_creator_ids(self, testdb: Session):
         # Given
         vuln_ids = []
+        package_ids = []
         put_response_data = []
         for i in range(2):
             vuln_id = uuid4()
@@ -1114,6 +1289,16 @@ class TestGetVulns:
                     json=vuln_request,
                 )
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
         # When
@@ -1130,17 +1315,33 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
-            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
+            self.assert_vuln_response(
+                vuln,
+                vuln_ids[i],
+                self.create_vuln_request(i),
+                expected_package_id=package_ids[i],
+            )
 
     def test_it_should_return_all_vulns_when_creator_ids_is_empty(self, testdb: Session):
         # Given
         number_of_vulns = 3
         vuln_ids = []
+        package_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
 
         # When
         response = client.get("/vulns?creator_ids=", headers=self.headers_user)
@@ -1155,13 +1356,17 @@ class TestGetVulns:
         for i, vuln in enumerate(response_data["vulns"]):
             reversed_index = len(response_data["vulns"]) - 1 - i
             self.assert_vuln_response(
-                vuln, vuln_ids[reversed_index], self.create_vuln_request(reversed_index)
+                vuln,
+                vuln_ids[reversed_index],
+                self.create_vuln_request(reversed_index),
+                expected_package_id=package_ids[reversed_index],
             )
 
     def test_it_should_filter_by_package_name(self, testdb: Session):
         # Given
         number_of_vulns = 2
         vuln_ids = []
+        package_ids = []
         put_response_data = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
@@ -1170,6 +1375,16 @@ class TestGetVulns:
                 f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
             )
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
         # When
@@ -1186,12 +1401,15 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
-            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
+            self.assert_vuln_response(
+                vuln, vuln_ids[i], self.create_vuln_request(i), expected_package_id=package_ids[i]
+            )
 
     def test_it_should_filter_by_ecosystem(self, testdb: Session):
         # Given
         number_of_vulns = 2
         vuln_ids = []
+        package_ids = []
         put_response_data = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
@@ -1200,6 +1418,16 @@ class TestGetVulns:
                 f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
             )
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
         # When
@@ -1216,19 +1444,32 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
-            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
+            self.assert_vuln_response(
+                vuln, vuln_ids[i], self.create_vuln_request(i), expected_package_id=package_ids[i]
+            )
 
     def test_it_should_filter_by_package_manager(self, testdb: Session):
         # Given
         package_manager = "package-manager-0"
         number_of_vulns = 2
         vuln_ids = []
+        package_ids = []
 
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
+            package = testdb.execute(
+                text(
+                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
+                ),
+                {
+                    "name": vuln_request["vulnerable_packages"][0]["name"],
+                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
+                },
+            ).fetchone()
+            package_ids.append(str(package._mapping["package_id"]))
 
             if i == 0:  # Get the package_id of the first record
                 response_data = response.json()
@@ -1304,7 +1545,9 @@ class TestGetVulns:
 
         # Check the details of each vuln
         for i, vuln in enumerate(response_data["vulns"]):
-            self.assert_vuln_response(vuln, vuln_ids[i], self.create_vuln_request(i))
+            self.assert_vuln_response(
+                vuln, vuln_ids[i], self.create_vuln_request(i), expected_package_id=package_ids[i]
+            )
 
     # Test sort_key
     def setup_vulns(self, testdb: Session, vulns_data):
