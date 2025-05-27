@@ -408,49 +408,64 @@ class TestActionLog:
             assert data[0]["logging_id"] == str(actionlog2.logging_id)  # sorted by created_st
             assert data[1]["logging_id"] == str(actionlog1.logging_id)
 
-        def test_get_topic_logs(self):
-            # create topic2 with 2 actions
-            topic2 = create_topic_with_versioned_actions(USER1, TOPIC2, [[TAG1], [TAG1]])
-            action2a = topic2.actions[0]
-            action2b = topic2.actions[1]
-            ticket2 = get_tickets_related_to_topic_tag(
-                USER1,
-                self.pteam1.pteam_id,
-                self.service1["service_id"],
-                topic2.topic_id,
-                self.tag1.tag_id,
-            )[0]
+        def test_get_vuln_logs(self):
+            action_data1 = {
+                "action": "action1",
+                "action_type": "elimination",
+                "recommended": True,
+            }
+            action_data2 = {
+                "action": "action2",
+                "action_type": "elimination",
+                "recommended": True,
+            }
+            action2a = self.create_action(USER1, self.vuln1.vuln_id, action_data1)
+            action2b = self.create_action(USER1, self.vuln1.vuln_id, action_data2)
+
+            # 3. すでにcommon_setupでSBOMアップロード済み（省略）
+
+            # 4. チケット取得（self.ticket1を使う）
+            ticket = self.ticket1
+
+            # 5. アクションログを2件作成
             now = datetime.now()
             yesterday = now - timedelta(days=1)
 
             actionlog1 = create_actionlog(
                 USER1,
                 action2a.action_id,
-                topic2.topic_id,
+                action2a.action,
+                action2a.action_type,
+                action2a.recommended,
+                self.vuln1.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
                 self.service1["service_id"],
-                ticket2["ticket_id"],
+                ticket["ticket_id"],
                 yesterday,
             )
             actionlog2 = create_actionlog(
                 USER1,
                 action2b.action_id,
-                topic2.topic_id,
+                action2b.action,
+                action2b.action_type,
+                action2b.recommended,
+                self.vuln1.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
                 self.service1["service_id"],
-                ticket2["ticket_id"],
+                ticket["ticket_id"],
                 now,
             )
 
-            response = client.get(f"/actionlogs/topics/{topic2.topic_id}", headers=headers(USER1))
+            # 6. /actionlogs/vulns/<vuln_id> からログ取得して検証
+            response = client.get(f"/actionlogs/vulns/{self.vuln1.vuln_id}", headers=headers(USER1))
             assert response.status_code == 200
             data = response.json()
             assert len(data) == 2
-            assert data[0]["logging_id"] == str(actionlog2.logging_id)  # sorted by excuted_at
+            assert data[0]["logging_id"] == str(actionlog2.logging_id)
             assert data[0]["service_id"] == self.service1["service_id"]
-            assert data[0]["ticket_id"] == ticket2["ticket_id"]
+            assert data[0]["ticket_id"] == ticket["ticket_id"]
             assert data[1]["logging_id"] == str(actionlog1.logging_id)
             assert data[1]["service_id"] == self.service1["service_id"]
-            assert data[1]["ticket_id"] == ticket2["ticket_id"]
+            assert data[1]["ticket_id"] == ticket["ticket_id"]
