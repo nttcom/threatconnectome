@@ -1,4 +1,5 @@
 import { Groups as GroupsIcon, Home as HomeIcon, Topic as TopicIcon } from "@mui/icons-material";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import {
   Drawer as MuiDrawer,
   List,
@@ -110,6 +111,16 @@ export function Drawer() {
           <ListItemText>Topics</ListItemText>
         </StyledListItemButton>
         {/* Vulnerabilities -- not listed on drawer, currently */}
+        {/* ToDo */}
+        <StyledListItemButton
+          onClick={() => navigate("/todo")}
+          selected={locationReader.isToDoPage()}
+        >
+          <StyledListItemIcon>
+            <FormatListBulletedIcon />
+          </StyledListItemIcon>
+          <ListItemText>ToDo</ListItemText>
+        </StyledListItemButton>
       </List>
     </MuiDrawer>
   );
