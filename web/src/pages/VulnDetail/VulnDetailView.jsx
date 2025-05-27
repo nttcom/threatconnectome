@@ -32,8 +32,8 @@ export function VulnDetailView(props) {
             <Typography sx={{ fontWeight: "bold" }}>Package</Typography>
             {vuln.vulnerable_packages
               .filter((_, index) => (showAllPackages ? true : index === 0))
-              .map((vulnerable_package) => (
-                <PackageView key={vulnerable_package.package_id} vulnPackage={vulnerable_package} />
+              .map((vulnPackage) => (
+                <PackageView key={vulnPackage.package_id} vulnPackage={vulnPackage} />
               ))}
             {/* hide or more button if needed */}
             {vuln.vulnerable_packages.length > 1 && (
