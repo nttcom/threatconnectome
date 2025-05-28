@@ -7,6 +7,7 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
+import { PackageView } from "../../components/PackageView";
 
 import { VulnCVSSCard } from "./VulnCVSSCard";
 import { VulnSSVCCards } from "./VulnSSVCCards";
@@ -29,15 +30,11 @@ export function VulnDetailView(props) {
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Typography sx={{ fontWeight: "bold" }}>Package</Typography>
-            {/*vuln.vulnerable_packages
-              .filter((_, index) => (showAllArtifacts ? true : index === 0))
-              .map((vulnerable_package) => (
-                <ArtifactTagView
-                  key={vulnerable_package.package_id}
-                  artifactTag={vulnerable_package}
-                  vulnActions={vulnActions}
-                />
-              ))*/}
+            {vuln.vulnerable_packages
+              .filter((_, index) => (showAllPackages ? true : index === 0))
+              .map((vulnPackage) => (
+                <PackageView key={vulnPackage.package_id} vulnPackage={vulnPackage} />
+              ))}
             {/* hide or more button if needed */}
             {vuln.vulnerable_packages.length > 1 && (
               <Box display="flex" justifyContent="center" sx={{ mr: 3 }}>
