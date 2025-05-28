@@ -47,6 +47,7 @@ from app.tests.medium.utils import (
     headers,
     invite_to_pteam,
     set_ticket_status,
+    upload_pteam_packages,
 )
 
 client = TestClient(app)
@@ -310,7 +311,7 @@ def test_get_pteam_services_register_multiple_services():
 
     # add service x to pteam1
     service_x = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, refs0)
 
     services1a = get_pteam_services(USER1, pteam1.pteam_id)
     services2a = get_pteam_services(USER1, pteam2.pteam_id)
@@ -319,7 +320,7 @@ def test_get_pteam_services_register_multiple_services():
 
     # add grserviceoup y to pteam2
     service_y = "service_y"
-    upload_pteam_tags(USER1, pteam2.pteam_id, service_y, refs0)
+    upload_pteam_packages(USER1, pteam2.pteam_id, service_y, refs0)
 
     services1b = get_pteam_services(USER1, pteam1.pteam_id)
     services2b = get_pteam_services(USER1, pteam2.pteam_id)
@@ -327,7 +328,7 @@ def test_get_pteam_services_register_multiple_services():
     assert services2b[0].service_name == service_y
 
     # add service y to pteam1
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_y, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_y, refs0)
 
     services1c = get_pteam_services(USER1, pteam1.pteam_id)
     services2c = get_pteam_services(USER1, pteam2.pteam_id)
@@ -382,7 +383,7 @@ def test_get_pteam_services_verify_if_all_responses_are_filled(service_request, 
 
     refs0 = {TAG1: [("fake target", "fake version")]}
     service_name = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_name, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_name, refs0)
 
     service_id1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name)["service_id"]
 
@@ -769,7 +770,7 @@ def test_success_upload_service_thumbnail():
     create_tag(USER1, TAG1)
     refs0 = {TAG1: [("fake target", "fake version")]}
     service_x = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, refs0)
     service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
 
     image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
@@ -790,7 +791,7 @@ def test_failed_upload_service_thumbnail_when_wrong_image_size():
     create_tag(USER1, TAG1)
     refs0 = {TAG1: [("fake target", "fake version")]}
     service_x = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, refs0)
     service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
 
     image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "error_image.png"
@@ -812,7 +813,7 @@ def test_get_service_thumbnail():
     create_tag(USER1, TAG1)
     refs0 = {TAG1: [("fake target", "fake version")]}
     service_x = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, refs0)
     service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
 
     image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
@@ -841,7 +842,7 @@ def test_delete_service_thumbnail():
     create_tag(USER1, TAG1)
     refs0 = {TAG1: [("fake target", "fake version")]}
     service_x = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, refs0)
     service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
 
     image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
@@ -1531,8 +1532,8 @@ def test_remove_pteam_by_service_id(testdb):
     service2 = "flashsense"
 
     refs0 = {TAG1: [("fake target", "fake version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, service1, refs0)
-    response2 = upload_pteam_tags(USER1, pteam1.pteam_id, service2, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service1, refs0)
+    response2 = upload_pteam_packages(USER1, pteam1.pteam_id, service2, refs0)
 
     for tag in response2:
         for reference in tag.references:
@@ -2678,7 +2679,7 @@ class TestTicketStatus:
             test_target = "test target"
             test_version = "1.2.3"
             refs0 = {TAG1: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
+            upload_pteam_packages(USER1, self.pteam1.pteam_id, test_service, refs0)
             self.service_id1 = self._get_service_id_by_service_name(
                 USER1, self.pteam1.pteam_id, test_service
             )
@@ -3496,7 +3497,7 @@ class TestUpdatePTeamService:
             test_target = "test target"
             test_version = "1.2.3"
             refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
+            upload_pteam_packages(USER1, self.pteam1.pteam_id, test_service, refs0)
             self.service_id1 = get_service_by_service_name(
                 USER1, self.pteam1.pteam_id, test_service
             )["service_id"]
@@ -3634,7 +3635,7 @@ class TestUpdatePTeamService:
             test_target = "test target"
             test_version = "1.2.3"
             refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
+            upload_pteam_packages(USER1, self.pteam1.pteam_id, test_service, refs0)
 
             request = {"service_name": test_service}
             response = client.put(
@@ -4163,7 +4164,7 @@ class TestUpdatePTeamService:
             test_target = "test target"
             test_version = "1.2.3"
             refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, self.pteam0.pteam_id, test_service0, refs0)
+            upload_pteam_packages(USER1, self.pteam0.pteam_id, test_service0, refs0)
             self.service_id0 = get_service_by_service_name(
                 USER1, self.pteam0.pteam_id, test_service0
             )["service_id"]

@@ -34,7 +34,7 @@ from app.tests.medium.utils import (
     get_tickets_related_to_vuln_package,
     headers,
     invite_to_pteam,
-    upload_pteam_tags,
+    upload_pteam_packages,
 )
 
 client = TestClient(app)
@@ -350,7 +350,7 @@ class TestActionLog:
             user2 = create_user(USER2)
             pteam2 = create_pteam(USER2, PTEAM2)
             refs0 = {TAG1: [("Pipfile.lock", "1.0.0")]}
-            upload_pteam_tags(USER2, pteam2.pteam_id, SERVICE2, refs0, True)
+            upload_pteam_packages(USER2, pteam2.pteam_id, SERVICE2, refs0, True)
             service2 = get_service_by_service_name(USER2, pteam2.pteam_id, SERVICE2)
             ticket2 = get_tickets_related_to_topic_tag(
                 USER2,

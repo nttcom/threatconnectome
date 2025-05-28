@@ -19,7 +19,7 @@ from app.tests.medium.utils import (
     create_topic,
     create_user,
     headers,
-    upload_pteam_tags,
+    upload_pteam_packages,
 )
 
 client = TestClient(app)
@@ -70,7 +70,7 @@ def test_alert_by_mail_if_vulnerabilities_are_found_when_creating_topic(testdb, 
 
     pteam0 = create_pteam(USER1, _gen_pteam_params(0))
     ext_tags = {child_tag11.tag_name: [("api/Pipfile.lock", "1.0.0")]}
-    upload_pteam_tags(USER1, pteam0.pteam_id, SERVICE1, ext_tags)
+    upload_pteam_packages(USER1, pteam0.pteam_id, SERVICE1, ext_tags)
     response = client.get(f"/pteams/{pteam0.pteam_id}/services", headers=headers(USER1))
     assert response.status_code == 200
     data = response.json()
