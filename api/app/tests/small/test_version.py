@@ -257,12 +257,12 @@ class TestComparableVersion:
             [
                 # might be tested in univers.
                 # for details, see https://semver.org/#semantic-versioning-specification-semver
-                ("", " is not a valid "),
-                ("a", " is not a valid "),
-                ("a.1", " is not a valid "),
-                (".", " is not a valid "),
-                (".2", " is not a valid "),
-                ("-1.2", " is not a valid "),
+                ("", "Invalid version string"),
+                ("a", "Invalid version string"),
+                ("a.1", "Invalid version string"),
+                (".", "Invalid version string"),
+                (".2", "Invalid version string"),
+                ("-1.2", "Invalid version string"),
                 ("1", (1, 0, 0, ())),
                 ("1.", (1, 0, 0, ())),
                 ("1.2", (1, 2, 0, ())),
