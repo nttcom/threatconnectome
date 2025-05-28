@@ -46,9 +46,8 @@ from app.tests.medium.utils import (
     get_service_by_service_name,
     headers,
     invite_to_pteam,
-    schema_to_dict,
     set_ticket_status,
-    upload_pteam_tags,
+    upload_pteam_packages,
 )
 
 client = TestClient(app)
@@ -312,7 +311,7 @@ def test_get_pteam_services_register_multiple_services():
 
     # add service x to pteam1
     service_x = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, refs0)
 
     services1a = get_pteam_services(USER1, pteam1.pteam_id)
     services2a = get_pteam_services(USER1, pteam2.pteam_id)
@@ -321,7 +320,7 @@ def test_get_pteam_services_register_multiple_services():
 
     # add grserviceoup y to pteam2
     service_y = "service_y"
-    upload_pteam_tags(USER1, pteam2.pteam_id, service_y, refs0)
+    upload_pteam_packages(USER1, pteam2.pteam_id, service_y, refs0)
 
     services1b = get_pteam_services(USER1, pteam1.pteam_id)
     services2b = get_pteam_services(USER1, pteam2.pteam_id)
@@ -329,7 +328,7 @@ def test_get_pteam_services_register_multiple_services():
     assert services2b[0].service_name == service_y
 
     # add service y to pteam1
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_y, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_y, refs0)
 
     services1c = get_pteam_services(USER1, pteam1.pteam_id)
     services2c = get_pteam_services(USER1, pteam2.pteam_id)
@@ -384,7 +383,7 @@ def test_get_pteam_services_verify_if_all_responses_are_filled(service_request, 
 
     refs0 = {TAG1: [("fake target", "fake version")]}
     service_name = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_name, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_name, refs0)
 
     service_id1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name)["service_id"]
 
@@ -771,7 +770,7 @@ def test_success_upload_service_thumbnail():
     create_tag(USER1, TAG1)
     refs0 = {TAG1: [("fake target", "fake version")]}
     service_x = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, refs0)
     service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
 
     image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
@@ -792,7 +791,7 @@ def test_failed_upload_service_thumbnail_when_wrong_image_size():
     create_tag(USER1, TAG1)
     refs0 = {TAG1: [("fake target", "fake version")]}
     service_x = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, refs0)
     service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
 
     image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "error_image.png"
@@ -814,7 +813,7 @@ def test_get_service_thumbnail():
     create_tag(USER1, TAG1)
     refs0 = {TAG1: [("fake target", "fake version")]}
     service_x = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, refs0)
     service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
 
     image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
@@ -843,7 +842,7 @@ def test_delete_service_thumbnail():
     create_tag(USER1, TAG1)
     refs0 = {TAG1: [("fake target", "fake version")]}
     service_x = "service_x"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_x, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, refs0)
     service1 = get_pteam_services(USER1, pteam1.pteam_id)[0]
 
     image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
@@ -1526,285 +1525,6 @@ def test_it_should_return_400_when_try_to_remove_last_admin():
     assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
 
-def test_upload_pteam_tags_file():
-    create_user(USER1)
-    tag1 = create_tag(USER1, "alpha:alpha2:alpha3")
-    pteam1 = create_pteam(USER1, PTEAM1)
-    # To test multiple rows error, pteam2 is created for test
-    create_pteam(USER1, PTEAM2)
-
-    def _eval_upload_tags_file(blines_, params_) -> dict:
-        with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
-            for bline in blines_:
-                tfile.writelines(bline + "\n")
-            tfile.flush()
-            tfile.seek(0)
-            with open(tfile.name, "rb") as bfile:
-                return assert_200(
-                    client.post(
-                        f"/pteams/{pteam1.pteam_id}/upload_tags_file",
-                        headers=file_upload_headers(USER1),
-                        files={"file": bfile},
-                        params=params_,
-                    )
-                )
-
-    params = {"service": "threatconnectome", "force_mode": True}
-
-    # upload a line
-    lines = [
-        '{"tag_name":"teststring",' '"references":[{"target":"api/Pipfile.lock","version":"1.0"}]}'
-    ]
-    data = _eval_upload_tags_file(lines, params)
-    tags = {tag["tag_name"]: tag for tag in data}
-    assert len(tags) == 1
-    assert "teststring" in tags
-    assert compare_references(
-        tags["teststring"]["references"],
-        [{"service": params["service"], "target": "api/Pipfile.lock", "version": "1.0"}],
-    )
-
-    # upload 2 lines
-    lines += [
-        '{"tag_name":"test1",'
-        '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
-        '{"target":"api3/Pipfile.lock","version":"0.1"}]}'
-    ]
-    data = _eval_upload_tags_file(lines, params)
-    tags = {tag["tag_name"]: tag for tag in data}
-    assert len(tags) == 2
-    assert "teststring" in tags
-    assert "test1" in tags
-    assert compare_references(
-        tags["teststring"]["references"],
-        [{"service": params["service"], "target": "api/Pipfile.lock", "version": "1.0"}],
-    )
-    assert compare_references(
-        tags["test1"]["references"],
-        [
-            {"service": params["service"], "target": "api/Pipfile.lock", "version": "1.0"},
-            {"service": params["service"], "target": "api3/Pipfile.lock", "version": "0.1"},
-        ],
-    )
-
-    # upload duplicated lines
-    lines += [
-        '{"tag_name":"test1",'
-        '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
-        '{"target":"api3/Pipfile.lock","version":"0.1"}]}'
-    ]
-    data = _eval_upload_tags_file(lines, params)
-    tags = {tag["tag_name"]: tag for tag in data}
-    assert len(tags) == 2
-    assert "teststring" in tags
-    assert "test1" in tags
-    assert compare_references(
-        tags["teststring"]["references"],
-        [{"service": params["service"], "target": "api/Pipfile.lock", "version": "1.0"}],
-    )
-    assert compare_references(
-        tags["test1"]["references"],
-        [
-            {"service": params["service"], "target": "api/Pipfile.lock", "version": "1.0"},
-            {"service": params["service"], "target": "api3/Pipfile.lock", "version": "0.1"},
-        ],
-    )
-
-    # upload another lines
-    lines = ['{"tag_name":"alpha:alpha2:alpha3", "references": [{"target": "", "version": ""}]}']
-    data = _eval_upload_tags_file(lines, params)
-    tags = {tag["tag_name"]: tag for tag in data}
-    assert len(tags) == 1
-    assert "alpha:alpha2:alpha3" in tags
-    assert compare_references(
-        tags["alpha:alpha2:alpha3"]["references"],
-        [{"service": params["service"], "target": "", "version": ""}],
-    )
-    assert tags["alpha:alpha2:alpha3"]["tag_id"] == str(tag1.tag_id)  # already existed tag
-
-
-def test_upload_pteam_tags_file__complex():
-    create_user(USER1)
-    tag_aaa = create_tag(USER1, "a:a:a")
-    tag_bbb = create_tag(USER1, "b:b:b")
-    pteam1 = create_pteam(USER1, {**PTEAM1, "tags": []})
-
-    service_a = {"service": "service-a", "force_mode": True}
-    service_b = {"service": "service-b", "force_mode": True}
-
-    def _eval_upload_tags_file(lines_, params_) -> dict:
-        with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
-            for line in lines_:
-                tfile.writelines(json.dumps(line) + "\n")
-            tfile.flush()
-            tfile.seek(0)
-            with open(tfile.name, "rb") as bfile:
-                return assert_200(
-                    client.post(
-                        f"/pteams/{pteam1.pteam_id}/upload_tags_file",
-                        headers=file_upload_headers(USER1),
-                        files={"file": bfile},
-                        params=params_,
-                    )
-                )
-
-    def _compare_ext_tags(_tag1: dict, _tag2: dict) -> bool:
-        if not isinstance(_tag1, dict) or not isinstance(_tag2, dict):
-            return False
-        _keys = {"tag_name", "tag_id", "parent_name", "parent_id"}
-        if any(_tag1.get(_key) != _tag2.get(_key) for _key in _keys):
-            return False
-        return compare_references(_tag1["references"], _tag1["references"])
-
-    def _compare_responsed_tags(_tags1: list[dict], _tags2: list[dict]) -> bool:
-        if not isinstance(_tags1, list) or not isinstance(_tags2, list):
-            return False
-        if len(_tags1) != len(_tags2):
-            return False
-        return all(_compare_ext_tags(_tags1[_idx], _tags2[_idx]) for _idx in range(len(_tags1)))
-
-    # add a:a:a as service-a
-    lines = [
-        {
-            "tag_name": tag_aaa.tag_name,
-            "references": [{"target": "target1", "version": "1.0"}],
-        },
-    ]
-    data = _eval_upload_tags_file(lines, service_a)
-    exp1 = {
-        **schema_to_dict(tag_aaa),
-        "references": [
-            {"target": "target1", "version": "1.0", "service": "service-a"},
-        ],
-    }
-    assert _compare_responsed_tags(data, [exp1])
-
-    # add b:b:b as service-b
-    lines = [
-        {
-            "tag_name": tag_bbb.tag_name,
-            "references": [
-                {"target": "target2", "version": "1.0"},
-                {"target": "target2", "version": "1.1"},  # multiple version in one target
-            ],
-        }
-    ]
-    data = _eval_upload_tags_file(lines, service_b)
-    exp2 = {
-        **schema_to_dict(tag_bbb),
-        "references": [
-            {"target": "target2", "version": "1.0", "service": "service-b"},
-            {"target": "target2", "version": "1.1", "service": "service-b"},
-        ],
-    }
-    assert _compare_responsed_tags(data, [exp1, exp2])
-
-    # update service-a with b:b:b, without a:a:a
-    lines = [
-        {
-            "tag_name": tag_bbb.tag_name,
-            "references": [
-                {"target": "target1", "version": "1.2"},
-            ],
-        }
-    ]
-    data = _eval_upload_tags_file(lines, service_a)
-    exp3 = {
-        **schema_to_dict(tag_bbb),
-        "references": [
-            *exp2["references"],
-            {"target": "target1", "version": "1.2", "service": "service-a"},
-        ],
-    }
-    assert _compare_responsed_tags(data, [exp3])
-
-
-def test_upload_pteam_tags_file_with_empty_file():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM1)
-
-    params = {"service": "threatconnectome", "force_mode": True}
-    tag_file = Path(__file__).resolve().parent / "upload_test" / "empty.jsonl"
-    with open(tag_file, "rb") as tags:
-        response = client.post(
-            f"/pteams/{pteam.pteam_id}/upload_tags_file",
-            headers=file_upload_headers(USER1),
-            files={"file": tags},
-            params=params,
-        )
-    assert response.status_code == 400
-    data = response.json()
-    assert data["detail"] == "Upload file is empty"
-
-
-def test_upload_pteam_tags_file_with_wrong_filename():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM1)
-
-    params = {"service": "threatconnectome", "force_mode": True}
-    tag_file = Path(__file__).resolve().parent / "upload_test" / "tag.txt"
-    with open(tag_file, "rb") as tags:
-        response = client.post(
-            f"/pteams/{pteam.pteam_id}/upload_tags_file",
-            headers=file_upload_headers(USER1),
-            files={"file": tags},
-            params=params,
-        )
-    assert response.status_code == 400
-    data = response.json()
-    assert data["detail"] == "Please upload a file with .jsonl as extension"
-
-
-def test_upload_pteam_tags_file_without_tag_name():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM1)
-
-    params = {"service": "threatconnectome", "force_mode": True}
-    tag_file = Path(__file__).resolve().parent / "upload_test" / "no_tag_key.jsonl"
-    with open(tag_file, "rb") as tags:
-        response = client.post(
-            f"/pteams/{pteam.pteam_id}/upload_tags_file",
-            headers=file_upload_headers(USER1),
-            files={"file": tags},
-            params=params,
-        )
-    assert response.status_code == 400
-    data = response.json()
-    assert data["detail"] == "Missing tag_name"
-
-
-def test_upload_pteam_tags_file_with_wrong_content_format():
-    create_user(USER1)
-    pteam = create_pteam(USER1, PTEAM1)
-
-    params = {"service": "threatconnectome", "force_mode": True}
-    tag_file = Path(__file__).resolve().parent / "upload_test" / "tag_with_wrong_format.jsonl"
-    with open(tag_file, "rb") as tags:
-        with pytest.raises(HTTPError, match=r"400: Bad Request: Wrong file content"):
-            assert_200(
-                client.post(
-                    f"/pteams/{pteam.pteam_id}/upload_tags_file",
-                    headers=file_upload_headers(USER1),
-                    files={"file": tags},
-                    params=params,
-                )
-            )
-
-
-def test_upload_pteam_tags_file_with_unexist_tagnames():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    not_exist_tag_names = ["teststring", "test1", "test2", "test3"]
-    refs = {tag_name: [("fake target", "fake version")] for tag_name in not_exist_tag_names}
-
-    with pytest.raises(
-        HTTPError,
-        match=rf"400: Bad Request: No such tags: {', '.join(sorted(not_exist_tag_names))}",
-    ):
-        upload_pteam_tags(USER1, pteam1.pteam_id, "threatconnectome", refs, force_mode=False)
-
-
 def test_remove_pteam_by_service_id(testdb):
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -1812,8 +1532,8 @@ def test_remove_pteam_by_service_id(testdb):
     service2 = "flashsense"
 
     refs0 = {TAG1: [("fake target", "fake version")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, service1, refs0)
-    response2 = upload_pteam_tags(USER1, pteam1.pteam_id, service2, refs0)
+    upload_pteam_packages(USER1, pteam1.pteam_id, service1, refs0)
+    response2 = upload_pteam_packages(USER1, pteam1.pteam_id, service2, refs0)
 
     for tag in response2:
         for reference in tag.references:
@@ -2162,7 +1882,7 @@ class TestPostUploadPTeamSbomFile:
 
     def test_upload_pteam_sbom_file_with_wrong_filename(self):
         params = {"service": "threatconnectome"}
-        sbom_file = Path(__file__).resolve().parent / "upload_test" / "tag.txt"
+        sbom_file = Path(__file__).resolve().parent / "upload_test" / "package.txt"
         with open(sbom_file, "rb") as tags:
             response = client.post(
                 f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
@@ -2207,6 +1927,393 @@ class TestPostUploadPTeamSbomFile:
                         files={"file": tags},
                     )
                 )
+
+
+class TestPostUploadPackagesFile:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self):
+        # Given
+        create_user(USER1)
+        self.pteam1 = create_pteam(USER1, PTEAM1)
+
+    def _eval_upload_packages_file_with_string(self, blines_, params_):
+        with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
+            for bline in blines_:
+                tfile.writelines(bline + "\n")
+            tfile.flush()
+            tfile.seek(0)
+            with open(tfile.name, "rb") as bfile:
+                response = client.post(
+                    f"/pteams/{self.pteam1.pteam_id}/upload_packages_file",
+                    headers=file_upload_headers(USER1),
+                    files={"file": bfile},
+                    params=params_,
+                )
+                return response
+
+
+    def _eval_upload_packages_file_with_dict(self, lines_, params_):
+        with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
+            for line in lines_:
+                tfile.writelines(json.dumps(line) + "\n")
+            tfile.flush()
+            tfile.seek(0)
+            with open(tfile.name, "rb") as bfile:
+                response = client.post(
+                    f"/pteams/{self.pteam1.pteam_id}/upload_packages_file",
+                    headers=file_upload_headers(USER1),
+                    files={"file": bfile},
+                    params=params_,
+                )
+                return response
+
+
+    @staticmethod
+    def _compare_ext_packages(_package1: dict, _package2: dict) -> bool:
+        if not isinstance(_package1, dict) or not isinstance(_package2, dict):
+            return False
+        _keys = {"package_name", "ecosystem"}
+        if any(_package1.get(_key) != _package2.get(_key) for _key in _keys):
+            return False
+        return compare_references(_package1["references"], _package2["references"])
+
+
+    def _compare_responsed_packages(self, _packages1: list[dict], _packages2: list[dict]) -> bool:
+        if not isinstance(_packages1, list) or not isinstance(_packages2, list):
+            return False
+        if len(_packages1) != len(_packages2):
+            return False
+        return all(
+            self._compare_ext_packages(_packages1[_idx], _packages2[_idx])
+            for _idx in range(len(_packages1))
+        )
+
+
+    def test_it_should_return_200_when_upload_1_line_file(self):
+        # Given
+        params = {"service": "threatconnectome"}
+        # upload a line
+        lines = [
+            '{"package_name":"test_package_name",'
+            '"ecosystem":"test_ecosystem",'
+            '"package_manager": "test_package_manager",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"}]}'
+        ]
+
+        # When
+        response = self._eval_upload_packages_file_with_string(lines, params)
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["package_name"] == "test_package_name"
+        assert data[0]["ecosystem"] == "test_ecosystem"
+        assert compare_references(
+            data[0]["references"],
+            [
+                {
+                    "service": params["service"],
+                    "target": "api/Pipfile.lock",
+                    "version": "1.0",
+                    "package_manager": "test_package_manager",
+                }
+            ],
+        )
+
+
+    def test_it_should_return_200_when_upload_2_lines_file(self):
+        # Given
+        params = {"service": "threatconnectome"}
+        # upload 2 lines
+        lines = [
+            '{"package_name":"test_package_name1",'
+            '"ecosystem":"test_ecosystem1",'
+            '"package_manager": "test_package_manager1",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"}]}',
+            '{"package_name":"test_package_name2",'
+            '"ecosystem":"test_ecosystem2",'
+            '"package_manager": "test_package_manager2",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
+            '{"target":"api3/Pipfile.lock","version":"0.1"}]}',
+        ]
+
+        # When
+        response = self._eval_upload_packages_file_with_string(lines, params)
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+
+        assert len(data) == 2
+
+        package_names = {d["package_name"] for d in data}
+        ecosystems = {d["ecosystem"] for d in data}
+        assert "test_package_name1" in package_names
+        assert "test_package_name2" in package_names
+        assert "test_ecosystem1" in ecosystems
+        assert "test_ecosystem2" in ecosystems
+
+        data_by_name = {d["package_name"]: d for d in data}
+        assert compare_references(
+            data_by_name["test_package_name1"]["references"],
+            [
+                {
+                    "service": params["service"],
+                    "target": "api/Pipfile.lock",
+                    "version": "1.0",
+                    "package_manager": "test_package_manager1",
+                }
+            ],
+        )
+        assert compare_references(
+            data_by_name["test_package_name2"]["references"],
+            [
+                {
+                    "service": params["service"],
+                    "target": "api/Pipfile.lock",
+                    "version": "1.0",
+                    "package_manager": "test_package_manager2",
+                },
+                {
+                    "service": params["service"],
+                    "target": "api3/Pipfile.lock",
+                    "version": "0.1",
+                    "package_manager": "test_package_manager2",
+                },
+            ],
+        )
+
+
+    def test_it_should_return_200_when_upload_duplicated_lines_file(self):
+        # Given
+        params = {"service": "threatconnectome"}
+        # upload duplicated lines
+        lines = [
+            '{"package_name":"test_package_name1",'
+            '"ecosystem":"test_ecosystem1",'
+            '"package_manager": "test_package_manager1",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"}]}',
+            '{"package_name":"test_package_name2",'
+            '"ecosystem":"test_ecosystem2",'
+            '"package_manager": "test_package_manager2",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
+            '{"target":"api3/Pipfile.lock","version":"0.1"}]}',
+            '{"package_name":"test_package_name2",'
+            '"ecosystem":"test_ecosystem2",'
+            '"package_manager": "test_package_manager2",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
+            '{"target":"api3/Pipfile.lock","version":"0.1"}]}',
+        ]
+
+        # When
+        response = self._eval_upload_packages_file_with_string(lines, params)
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+
+        assert len(data) == 2
+
+        package_names = {d["package_name"] for d in data}
+        ecosystems = {d["ecosystem"] for d in data}
+        assert "test_package_name1" in package_names
+        assert "test_package_name2" in package_names
+        assert "test_ecosystem1" in ecosystems
+        assert "test_ecosystem2" in ecosystems
+
+        data_by_name = {d["package_name"]: d for d in data}
+        assert compare_references(
+            data_by_name["test_package_name1"]["references"],
+            [
+                {
+                    "service": params["service"],
+                    "target": "api/Pipfile.lock",
+                    "version": "1.0",
+                    "package_manager": "test_package_manager1",
+                }
+            ],
+        )
+        assert compare_references(
+            data_by_name["test_package_name2"]["references"],
+            [
+                {
+                    "service": params["service"],
+                    "target": "api/Pipfile.lock",
+                    "version": "1.0",
+                    "package_manager": "test_package_manager2",
+                },
+                {
+                    "service": params["service"],
+                    "target": "api3/Pipfile.lock",
+                    "version": "0.1",
+                    "package_manager": "test_package_manager2",
+                },
+            ],
+        )
+
+
+    def test_it_should_be_able_to_take_pteam_data_together(self):
+        # Given
+        service_a = {"service": "service-a"}
+        service_b = {"service": "service-b"}
+
+        lines_a = [
+            {
+                "package_name": "test_package_name1",
+                "ecosystem": "test_ecosystem1",
+                "package_manager": "test_package_manager1",
+                "references": [{"target": "target1", "version": "1.0"}],
+            },
+        ]
+        lines_b = [
+            {
+                "package_name": "test_package_name2",
+                "ecosystem": "test_ecosystem2",
+                "package_manager": "test_package_manager2",
+                "references": [
+                    {"target": "target2", "version": "1.0"},
+                    {"target": "target2", "version": "1.1"},  # multiple version in one target
+                ],
+            }
+        ]
+
+        # When
+        self._eval_upload_packages_file_with_dict(lines_a, service_a)
+        response = self._eval_upload_packages_file_with_dict(lines_b, service_b)
+
+        # Then
+        exp_a = {
+            "package_name": "test_package_name1",
+            "ecosystem": "test_ecosystem1",
+            "references": [
+                {
+                    "target": "target1",
+                    "version": "1.0",
+                    "service": "service-a",
+                    "package_manager": "test_package_manager1",
+                },
+            ],
+        }
+        exp_b = {
+            "package_name": "test_package_name2",
+            "ecosystem": "test_ecosystem2",
+            "references": [
+                {
+                    "target": "target2",
+                    "version": "1.0",
+                    "service": "service-b",
+                    "package_manager": "test_package_manager2",
+                },
+                {
+                    "target": "target2",
+                    "version": "1.1",
+                    "service": "service-b",
+                    "package_manager": "test_package_manager2",
+                },
+            ],
+        }
+        assert self._compare_responsed_packages(response.json(), [exp_a, exp_b])
+
+
+    def test_it_should_update_when_the_same_service_name(self):
+        # Given
+        service_a = {"service": "service-a"}
+        lines_a = [
+            {
+                "package_name": "test_package_name1",
+                "ecosystem": "test_ecosystem1",
+                "package_manager": "test_package_manager1",
+                "references": [
+                    {"target": "target1", "version": "1.2"},
+                ],
+            }
+        ]
+        lines_b = [
+            {
+                "package_name": "test_package_name2",
+                "ecosystem": "test_ecosystem2",
+                "package_manager": "test_package_manager2",
+                "references": [
+                    {"target": "target2", "version": "1.5"},
+                ],
+            }
+        ]
+        self._eval_upload_packages_file_with_dict(lines_a, service_a)
+
+        # When
+        data = self._eval_upload_packages_file_with_dict(lines_b, service_a)
+
+        # Then
+        exp = {
+            "package_name": "test_package_name2",
+            "ecosystem": "test_ecosystem2",
+            "references": [
+                {
+                    "target": "target2",
+                    "version": "1.5",
+                    "service": "service-a",
+                    "package_manager": "test_package_manager2",
+                },
+            ],
+        }
+        assert self._compare_responsed_packages(data.json(), [exp])
+
+
+    def test_it_should_return_400_with_wrong_filename(self):
+        # When
+        params = {"service": "threatconnectome"}
+        package_file = Path(__file__).resolve().parent / "upload_test" / "package.txt"
+        with open(package_file, "rb") as packages:
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/upload_packages_file",
+                headers=file_upload_headers(USER1),
+                files={"file": packages},
+                params=params,
+            )
+
+        # Then
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"] == "Please upload a file with .jsonl as extension"
+
+
+    def test_it_should_return_400_without_package_name(self):
+        # Given
+        params = {"service": "threatconnectome"}
+
+        lines = [
+            '{"p":"test_package_name",'
+            '"ecosystem":"test_ecosystem",'
+            '"package_manager": "test_package_manager",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"}]}'
+        ]
+
+        # When
+        response = self._eval_upload_packages_file_with_string(lines, params)
+
+        # Then
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"] == "Missing package name"
+
+
+    def test_it_should_return_400_with_wrong_content_format(self):
+        # Given
+        params = {"service": "threatconnectome"}
+
+        lines = [
+            '{"test":"wrong file"},'
+        ]
+
+        # When
+        response = self._eval_upload_packages_file_with_string(lines, params)
+
+
+        # Then
+        assert response.status_code == 400
+        data = response.json()
+        assert "Wrong file content" in data["detail"]
 
 
 class TestGetPTeamPackagesSummary:
@@ -2572,7 +2679,7 @@ class TestTicketStatus:
             test_target = "test target"
             test_version = "1.2.3"
             refs0 = {TAG1: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
+            upload_pteam_packages(USER1, self.pteam1.pteam_id, test_service, refs0)
             self.service_id1 = self._get_service_id_by_service_name(
                 USER1, self.pteam1.pteam_id, test_service
             )
@@ -3390,7 +3497,7 @@ class TestUpdatePTeamService:
             test_target = "test target"
             test_version = "1.2.3"
             refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
+            upload_pteam_packages(USER1, self.pteam1.pteam_id, test_service, refs0)
             self.service_id1 = get_service_by_service_name(
                 USER1, self.pteam1.pteam_id, test_service
             )["service_id"]
@@ -3528,7 +3635,7 @@ class TestUpdatePTeamService:
             test_target = "test target"
             test_version = "1.2.3"
             refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, self.pteam1.pteam_id, test_service, refs0)
+            upload_pteam_packages(USER1, self.pteam1.pteam_id, test_service, refs0)
 
             request = {"service_name": test_service}
             response = client.put(
@@ -4057,7 +4164,7 @@ class TestUpdatePTeamService:
             test_target = "test target"
             test_version = "1.2.3"
             refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
-            upload_pteam_tags(USER1, self.pteam0.pteam_id, test_service0, refs0)
+            upload_pteam_packages(USER1, self.pteam0.pteam_id, test_service0, refs0)
             self.service_id0 = get_service_by_service_name(
                 USER1, self.pteam0.pteam_id, test_service0
             )["service_id"]

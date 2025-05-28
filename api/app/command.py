@@ -352,8 +352,8 @@ def get_vulns(
     query = query.order_by(*sortkey2orderby[sort_key])
 
     # Pageination
-    query = query.offset(offset).limit(limit)
-    vulns = db.scalars(query).unique().all()
+    query = query.distinct().offset(offset).limit(limit)
+    vulns = db.scalars(query).all()
 
     result = {
         "num_vulns": num_vulns,

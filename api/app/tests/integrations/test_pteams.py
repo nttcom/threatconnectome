@@ -38,7 +38,7 @@ from app.tests.medium.utils import (
     create_vuln,
     headers,
     set_ticket_status,
-    upload_pteam_tags,
+    upload_pteam_packages,
 )
 
 client = TestClient(app)
@@ -48,7 +48,7 @@ def test_sbom_uploaded_at_with_called_upload_tags_file():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     service_name = "test service 1"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_name, {TAG1: [("Pipfile.lock", "1.0.0")]})
+    upload_pteam_packages(USER1, pteam1.pteam_id, service_name, {TAG1: [("Pipfile.lock", "1.0.0")]})
 
     response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1))
     services = response.json().get("services", {})
