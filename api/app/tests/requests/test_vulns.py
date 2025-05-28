@@ -496,6 +496,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
         # When
         response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
@@ -573,6 +575,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
             created_times.append(datetime.fromisoformat(response.json()["created_at"]))
             updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
@@ -623,6 +627,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
 
         # When
@@ -666,6 +672,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
 
         # When
@@ -707,6 +715,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
 
         # When
@@ -748,6 +758,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
@@ -823,6 +835,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
 
         # When
@@ -881,6 +895,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
@@ -954,6 +970,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
 
         # When
@@ -1039,6 +1057,8 @@ class TestGetVulns:
                 "ecosystem": vuln_request_sbom["vulnerable_packages"][0]["ecosystem"],
             },
         ).fetchone()
+        if package is None:
+            raise Exception("package is None")
         package_ids.append(str(package._mapping["package_id"]))
 
         vuln_request_other = {
@@ -1067,6 +1087,8 @@ class TestGetVulns:
                 "ecosystem": vuln_request_other["vulnerable_packages"][0]["ecosystem"],
             },
         ).fetchone()
+        if package is None:
+            raise Exception("package is None")
         package_ids.append(str(package._mapping["package_id"]))
 
         # When: filter pteam_id
@@ -1106,6 +1128,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
@@ -1165,6 +1189,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
 
         created_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
@@ -1298,6 +1324,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
@@ -1341,6 +1369,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
 
         # When
@@ -1384,6 +1414,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
@@ -1427,6 +1459,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
             put_response_data.append(put_response.json())
 
@@ -1469,6 +1503,8 @@ class TestGetVulns:
                     "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
                 },
             ).fetchone()
+            if package is None:
+                raise Exception("package is None")
             package_ids.append(str(package._mapping["package_id"]))
 
             if i == 0:  # Get the package_id of the first record
