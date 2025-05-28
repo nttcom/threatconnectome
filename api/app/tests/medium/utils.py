@@ -106,46 +106,30 @@ def accept_pteam_invitation(user: dict, invitation_id: UUID) -> schemas.PTeamInf
 def upload_pteam_packages(
     user: dict,
     pteam_id: UUID | str,
-    service: str,
-    ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
-) -> list[schemas.ExtTagResponse]:
+    service_name: str,
+    ext_packages: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
+) -> list[schemas.ExtPackageResponse]:
     """
     The input data format has changed due to a change in the API specifications,
       but this function receives data in the format before the change,
       converts it to the format after the change, and executes the API.
     """
-    params = {"service": service}
+    params = {"service": service_name}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
-        for tag_name, etags in ext_tags.items():
-            assert all(len(etag) == 2 and None not in etag for etag in etags)  # check test code
-            splited_tag_name = tag_name.split(":", 2)
-            tag_name_len = len(splited_tag_name)
-            package_name = splited_tag_name[0] if tag_name_len > 0 else None
-            ecosystem = splited_tag_name[1] if tag_name_len > 1 else None
-            package_manager = splited_tag_name[2] if tag_name_len > 2 else None
-            refs = [{"target": etag[0], "version": etag[1]} for etag in etags]
-            tfile.writelines(
-                json.dumps(
-                    {
-                        "package_name": package_name,
-                        "ecosystem": ecosystem,
-                        "package_manager": package_manager,
-                        "references": refs,
-                    }
-                )
-                + "\n"
-            )
+        for ext_package in ext_packages:
+                tfile.writelines(json.dumps(ext_package) + "\n")
         tfile.flush()
+        tfile.seek(0)
         with open(tfile.name, "rb") as bfile:
             data = assert_200(
                 client.post(
-                    f"/pteams/{pteam_id}/upload_tags_file",
+                    f"/pteams/{pteam_id}/upload_packages_file",
                     headers=file_upload_headers(user),
                     params=params,
                     files={"file": bfile},
                 )
             )
-    return [schemas.ExtTagResponse(**item) for item in data]
+    return [schemas.ExtPackageResponse(**item) for item in data]
 
 
 def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceResponse]:
