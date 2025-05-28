@@ -239,13 +239,13 @@ The available options are as follow:
 - -s / --skip_rules: Skip rules. Multiple skip rules can be specified.
 - -H / --hostname: Specify target hostname. If not specified, auto-detection will be attempted under specific conditions.
 
-# :bulb: Colletct threats data
+# :bulb: Colletct tickets data
 
-Run the following commands to colletct threats data
+Run the following commands to colletct tickets data
 
 ```bash
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
 # For local development environment
-python3 collect_threats_data.py -p <pteam_id> -s <service_id> "http://localhost/api"
+python3 collect_tickets_data.py -p <pteam_id> -s <service_id> "http://localhost/api"
 
 ```
