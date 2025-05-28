@@ -1951,7 +1951,44 @@ class TestPostUploadPackagesFile:
                 return response
 
 
-    def test_it_should_return_200_when_correct_file(self):
+    def _eval_upload_packages_file_with_dict(self, lines_, params_):
+        with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
+            for line in lines_:
+                tfile.writelines(json.dumps(line) + "\n")
+            tfile.flush()
+            tfile.seek(0)
+            with open(tfile.name, "rb") as bfile:
+                response = client.post(
+                    f"/pteams/{self.pteam1.pteam_id}/upload_packages_file",
+                    headers=file_upload_headers(USER1),
+                    files={"file": bfile},
+                    params=params_,
+                )
+                return response
+
+
+    @staticmethod
+    def _compare_ext_packages(_package1: dict, _package2: dict) -> bool:
+        if not isinstance(_package1, dict) or not isinstance(_package2, dict):
+            return False
+        _keys = {"package_name", "ecosystem"}
+        if any(_package1.get(_key) != _package2.get(_key) for _key in _keys):
+            return False
+        return compare_references(_package1["references"], _package2["references"])
+
+
+    def _compare_responsed_packages(self, _packages1: list[dict], _packages2: list[dict]) -> bool:
+        if not isinstance(_packages1, list) or not isinstance(_packages2, list):
+            return False
+        if len(_packages1) != len(_packages2):
+            return False
+        return all(
+            self._compare_ext_packages(_packages1[_idx], _packages2[_idx])
+            for _idx in range(len(_packages1))
+        )
+
+
+    def test_it_should_return_200_when_upload_1_line_file(self):
         # Given
         params = {"service": "threatconnectome"}
         # upload a line
@@ -1973,13 +2010,253 @@ class TestPostUploadPackagesFile:
         assert data[0]["ecosystem"] == "test_ecosystem"
         assert compare_references(
             data[0]["references"],
-            [{
-               "service": params["service"],
-               "target": "api/Pipfile.lock",
-               "version": "1.0",
-               "package_manager":"test_package_manager"
-            }],
+            [
+                {
+                    "service": params["service"],
+                    "target": "api/Pipfile.lock",
+                    "version": "1.0",
+                    "package_manager": "test_package_manager",
+                }
+            ],
         )
+
+
+    def test_it_should_return_200_when_upload_2_lines_file(self):
+        # Given
+        params = {"service": "threatconnectome"}
+        # upload 2 lines
+        lines = [
+            '{"package_name":"test_package_name1",'
+            '"ecosystem":"test_ecosystem1",'
+            '"package_manager": "test_package_manager1",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"}]}',
+            '{"package_name":"test_package_name2",'
+            '"ecosystem":"test_ecosystem2",'
+            '"package_manager": "test_package_manager2",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
+            '{"target":"api3/Pipfile.lock","version":"0.1"}]}',
+        ]
+
+        # When
+        response = self._eval_upload_packages_file_with_string(lines, params)
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+
+        assert len(data) == 2
+
+        package_names = {d["package_name"] for d in data}
+        ecosystems = {d["ecosystem"] for d in data}
+        assert "test_package_name1" in package_names
+        assert "test_package_name2" in package_names
+        assert "test_ecosystem1" in ecosystems
+        assert "test_ecosystem2" in ecosystems
+
+        data_by_name = {d["package_name"]: d for d in data}
+        assert compare_references(
+            data_by_name["test_package_name1"]["references"],
+            [
+                {
+                    "service": params["service"],
+                    "target": "api/Pipfile.lock",
+                    "version": "1.0",
+                    "package_manager": "test_package_manager1",
+                }
+            ],
+        )
+        assert compare_references(
+            data_by_name["test_package_name2"]["references"],
+            [
+                {
+                    "service": params["service"],
+                    "target": "api/Pipfile.lock",
+                    "version": "1.0",
+                    "package_manager": "test_package_manager2",
+                },
+                {
+                    "service": params["service"],
+                    "target": "api3/Pipfile.lock",
+                    "version": "0.1",
+                    "package_manager": "test_package_manager2",
+                },
+            ],
+        )
+
+
+    def test_it_should_return_200_when_upload_duplicated_lines_file(self):
+        # Given
+        params = {"service": "threatconnectome"}
+        # upload duplicated lines
+        lines = [
+            '{"package_name":"test_package_name1",'
+            '"ecosystem":"test_ecosystem1",'
+            '"package_manager": "test_package_manager1",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"}]}',
+            '{"package_name":"test_package_name2",'
+            '"ecosystem":"test_ecosystem2",'
+            '"package_manager": "test_package_manager2",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
+            '{"target":"api3/Pipfile.lock","version":"0.1"}]}',
+            '{"package_name":"test_package_name2",'
+            '"ecosystem":"test_ecosystem2",'
+            '"package_manager": "test_package_manager2",'
+            '"references":[{"target":"api/Pipfile.lock","version":"1.0"},'
+            '{"target":"api3/Pipfile.lock","version":"0.1"}]}',
+        ]
+
+        # When
+        response = self._eval_upload_packages_file_with_string(lines, params)
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+
+        assert len(data) == 2
+
+        package_names = {d["package_name"] for d in data}
+        ecosystems = {d["ecosystem"] for d in data}
+        assert "test_package_name1" in package_names
+        assert "test_package_name2" in package_names
+        assert "test_ecosystem1" in ecosystems
+        assert "test_ecosystem2" in ecosystems
+
+        data_by_name = {d["package_name"]: d for d in data}
+        assert compare_references(
+            data_by_name["test_package_name1"]["references"],
+            [
+                {
+                    "service": params["service"],
+                    "target": "api/Pipfile.lock",
+                    "version": "1.0",
+                    "package_manager": "test_package_manager1",
+                }
+            ],
+        )
+        assert compare_references(
+            data_by_name["test_package_name2"]["references"],
+            [
+                {
+                    "service": params["service"],
+                    "target": "api/Pipfile.lock",
+                    "version": "1.0",
+                    "package_manager": "test_package_manager2",
+                },
+                {
+                    "service": params["service"],
+                    "target": "api3/Pipfile.lock",
+                    "version": "0.1",
+                    "package_manager": "test_package_manager2",
+                },
+            ],
+        )
+
+
+    def test_it_should_be_able_to_take_pteam_data_together(self):
+        # Given
+        service_a = {"service": "service-a"}
+        service_b = {"service": "service-b"}
+
+        lines_a = [
+            {
+                "package_name": "test_package_name1",
+                "ecosystem": "test_ecosystem1",
+                "package_manager": "test_package_manager1",
+                "references": [{"target": "target1", "version": "1.0"}],
+            },
+        ]
+        lines_b = [
+            {
+                "package_name": "test_package_name2",
+                "ecosystem": "test_ecosystem2",
+                "package_manager": "test_package_manager2",
+                "references": [
+                    {"target": "target2", "version": "1.0"},
+                    {"target": "target2", "version": "1.1"},  # multiple version in one target
+                ],
+            }
+        ]
+
+        # When
+        self._eval_upload_packages_file_with_dict(lines_a, service_a)
+        response = self._eval_upload_packages_file_with_dict(lines_b, service_b)
+
+        # Then
+        exp_a = {
+            "package_name": "test_package_name1",
+            "ecosystem": "test_ecosystem1",
+            "references": [
+                {
+                    "target": "target1",
+                    "version": "1.0",
+                    "service": "service-a",
+                    "package_manager": "test_package_manager1",
+                },
+            ],
+        }
+        exp_b = {
+            "package_name": "test_package_name2",
+            "ecosystem": "test_ecosystem2",
+            "references": [
+                {
+                    "target": "target2",
+                    "version": "1.0",
+                    "service": "service-b",
+                    "package_manager": "test_package_manager2",
+                },
+                {
+                    "target": "target2",
+                    "version": "1.1",
+                    "service": "service-b",
+                    "package_manager": "test_package_manager2",
+                },
+            ],
+        }
+        assert self._compare_responsed_packages(response.json(), [exp_a, exp_b])
+
+
+    def test_it_should_update_when_the_same_service_name(self):
+        # Given
+        service_a = {"service": "service-a"}
+        lines_a = [
+            {
+                "package_name": "test_package_name1",
+                "ecosystem": "test_ecosystem1",
+                "package_manager": "test_package_manager1",
+                "references": [
+                    {"target": "target1", "version": "1.2"},
+                ],
+            }
+        ]
+        lines_b = [
+            {
+                "package_name": "test_package_name2",
+                "ecosystem": "test_ecosystem2",
+                "package_manager": "test_package_manager2",
+                "references": [
+                    {"target": "target2", "version": "1.5"},
+                ],
+            }
+        ]
+        self._eval_upload_packages_file_with_dict(lines_a, service_a)
+
+        # When
+        data = self._eval_upload_packages_file_with_dict(lines_b, service_a)
+
+        # Then
+        exp = {
+            "package_name": "test_package_name2",
+            "ecosystem": "test_ecosystem2",
+            "references": [
+                {
+                    "target": "target2",
+                    "version": "1.5",
+                    "service": "service-a",
+                    "package_manager": "test_package_manager2",
+                },
+            ],
+        }
+        assert self._compare_responsed_packages(data.json(), [exp])
 
 
     def test_it_should_return_400_with_wrong_filename(self):
