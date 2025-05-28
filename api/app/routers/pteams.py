@@ -1132,17 +1132,16 @@ async def upload_pteam_sbom_file(
     return ret
 
 
-@router.post("/{pteam_id}/upload_tags_file", response_model=list[schemas.ExtTagResponse])
-def upload_pteam_tags_file(
+@router.post("/{pteam_id}/upload_packages_file", response_model=list[schemas.ExtPackageResponse])
+def upload_pteam_packages_file(
     pteam_id: UUID,
     file: UploadFile,
     service: str = Query("", description="name of service(repository or product)"),
-    force_mode: bool = Query(False, description="if true, create unexist tags"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Update pteam tags by uploading a .jsonl file.
+    Update pteam packages by uploading a .jsonl file.
 
     Format of file content must be JSON Lines.
     """
@@ -1177,9 +1176,7 @@ def upload_pteam_tags_file(
 
     db.commit()
 
-    # TODO Provisional Processing
-    # return get_pteam_ext_tags(pteam)
-    return []
+    return package_business.get_pteam_ext_packages(pteam)
 
 
 def apply_service_packages(
@@ -1191,10 +1188,12 @@ def apply_service_packages(
         set()
     )  # (package_version_id, target, package_manager)
     for line in json_lines:
-        if not (package_name := str(line.get("package_name"))):
-            raise ValueError("Missing  package name")
-        if not (ecosystem := str(line.get("ecosystem"))):
+        if not (package_name_raw := line.get("package_name")):
+            raise ValueError("Missing package name")
+        package_name = str(package_name_raw)
+        if not (ecosystem_raw := line.get("ecosystem")):
             raise ValueError("Missing ecosystem")
+        ecosystem = str(ecosystem_raw)
         if not (_refs := line.get("references")):
             raise ValueError("Missing references")
         if any(None in {_ref.get("target"), _ref.get("version")} for _ref in _refs):
