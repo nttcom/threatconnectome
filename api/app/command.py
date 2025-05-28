@@ -376,7 +376,7 @@ def get_packages_summary(
             models.TicketStatus,
             and_(
                 models.TicketStatus.ticket_id == models.Ticket.ticket_id,
-                models.TicketStatus.topic_status != models.TopicStatusType.completed,
+                models.TicketStatus.vuln_status != models.VulnStatusType.completed,
             ),
         )
         .join(models.Threat)
@@ -430,8 +430,8 @@ def get_packages_summary(
     count_status_stmt = (
         select(
             models.Package.package_id,
-            models.TicketStatus.topic_status,
-            func.count(models.TicketStatus.topic_status).label("num_status"),
+            models.TicketStatus.vuln_status,
+            func.count(models.TicketStatus.vuln_status).label("num_status"),
         )
         .join(models.PackageVersion)
         .join(models.Dependency)
@@ -446,7 +446,7 @@ def get_packages_summary(
         .join(models.TicketStatus)
         .group_by(
             models.Package.package_id,
-            models.TicketStatus.topic_status,
+            models.TicketStatus.vuln_status,
         )
     )
 
@@ -454,7 +454,7 @@ def get_packages_summary(
         count_status_stmt = count_status_stmt.where(models.Dependency.service_id == str(service_id))
 
     status_count_dict = {
-        (row.package_id, row.topic_status): row.num_status
+        (row.package_id, row.vuln_status): row.num_status
         for row in db.execute(count_status_stmt).all()
     }
     summary = [
@@ -468,7 +468,7 @@ def get_packages_summary(
             "service_ids": row.service_ids,
             "status_count": {
                 status_type.value: status_count_dict.get((row.package_id, status_type.value), 0)
-                for status_type in list(models.TopicStatusType)
+                for status_type in list(models.VulnStatusType)
             },
         }
         for row in db.execute(summarize_stmt).all()

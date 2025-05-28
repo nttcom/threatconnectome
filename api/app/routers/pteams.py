@@ -687,7 +687,7 @@ def set_ticket_status(
     Set status of the ticket.
     Current value should be inherited if not specified.
 
-    scheduled_at is necessary to make topic_status "scheduled".
+    scheduled_at is necessary to make vuln_status "scheduled".
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
@@ -698,10 +698,10 @@ def set_ticket_status(
 
     update_data = data.model_dump(exclude_unset=True)
 
-    if "topic_status" in update_data.keys() and data.topic_status is None:
+    if "vuln_status" in update_data.keys() and data.vuln_status is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot specify None for topic_status",
+            detail="Cannot specify None for vuln_status",
         )
     if "logging_ids" in update_data.keys() and data.logging_ids is None:
         raise HTTPException(
@@ -714,7 +714,7 @@ def set_ticket_status(
             detail="Cannot specify None for assignees",
         )
 
-    if data.topic_status == models.TopicStatusType.alerted:
+    if data.vuln_status == models.VulnStatusType.alerted:
         # user cannot set alerted
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
 
@@ -722,12 +722,12 @@ def set_ticket_status(
     if data.scheduled_at:
         data_scheduled_at = data.scheduled_at.replace(tzinfo=None)
 
-    if data.topic_status == models.TopicStatusType.scheduled or (
-        "topic_status" not in update_data.keys()
-        and ticket.ticket_status.topic_status == models.TopicStatusType.scheduled
+    if data.vuln_status == models.VulnStatusType.scheduled or (
+        "vuln_status" not in update_data.keys()
+        and ticket.ticket_status.vuln_status == models.VulnStatusType.scheduled
     ):
         if "scheduled_at" not in update_data.keys():
-            if ticket.ticket_status.topic_status != models.TopicStatusType.scheduled:
+            if ticket.ticket_status.vuln_status != models.VulnStatusType.scheduled:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="If status is scheduled, specify schduled_at",
@@ -745,7 +745,7 @@ def set_ticket_status(
                 )
     else:
         if "scheduled_at" not in update_data.keys():
-            if ticket.ticket_status.topic_status == models.TopicStatusType.scheduled:
+            if ticket.ticket_status.vuln_status == models.VulnStatusType.scheduled:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=(
@@ -788,11 +788,11 @@ def set_ticket_status(
         ticket.ticket_status.assignees = list(map(str, data.assignees))
     elif ticket.ticket_status.assignees == []:
         ticket.ticket_status.assignees = [UUID(current_user.user_id)]
-    if "topic_status" in update_data.keys():
-        ticket.ticket_status.topic_status = data.topic_status
-    elif ticket.ticket_status.topic_status == models.TopicStatusType.alerted:
+    if "vuln_status" in update_data.keys():
+        ticket.ticket_status.vuln_status = data.vuln_status
+    elif ticket.ticket_status.vuln_status == models.VulnStatusType.alerted:
         # this is the first update
-        ticket.ticket_status.topic_status = models.TopicStatusType.acknowledged
+        ticket.ticket_status.vuln_status = models.VulnStatusType.acknowledged
     if "logging_ids" in update_data.keys() and data.logging_ids is not None:
         ticket.ticket_status.logging_ids = list(map(str, data.logging_ids))
     if "note" in update_data.keys():
@@ -802,7 +802,7 @@ def set_ticket_status(
             ticket.ticket_status.scheduled_at = None
         elif (
             data_scheduled_at > now
-            and ticket.ticket_status.topic_status == models.TopicStatusType.scheduled
+            and ticket.ticket_status.vuln_status == models.VulnStatusType.scheduled
         ):
             ticket.ticket_status.scheduled_at = data.scheduled_at
 

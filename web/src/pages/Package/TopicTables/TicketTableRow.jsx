@@ -54,7 +54,7 @@ export function TicketTableRow(props) {
             actionText={actionText}
             vulnActions={vulnActions}
           />
-          {(ticket.ticket_status.topic_status ?? "alerted") === "alerted" && (
+          {(ticket.ticket_status.vuln_status ?? "alerted") === "alerted" && (
             <WarningTooltip message="No one has acknowledged this vuln" />
           )}
         </Box>

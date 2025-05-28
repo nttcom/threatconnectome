@@ -48,37 +48,6 @@ export const tcApi = createApi({
         .join("&"),
   }),
   endpoints: (builder) => ({
-    /* Action */
-    createAction: builder.mutation({
-      query: (data) => ({
-        url: "actions",
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "TopicAction", id: "ALL" },
-        { type: "Ticket", id: "ALL" },
-      ],
-    }),
-    updateAction: builder.mutation({
-      query: ({ actionId, data }) => ({
-        url: `actions/${actionId}`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [{ type: "TopicAction", id: arg.actionId }],
-    }),
-    deleteAction: builder.mutation({
-      query: (actionId) => ({
-        url: `actions/${actionId}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "TopicAction", id: arg.actionId },
-        { type: "Ticket", id: "ALL" },
-      ],
-    }),
-
     /* Action Log */
     createActionLog: builder.mutation({
       query: (data) => ({
@@ -325,7 +294,7 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
-      invalidatesTags: (result, error, arg) => [{ type: "Tag", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
 
     /* Tag */
@@ -334,12 +303,6 @@ export const tcApi = createApi({
         url: "tags",
       }),
       providesTags: (result, error) => [{ type: "Tag", id: "ALL" }],
-    }),
-
-    getTag: builder.query({
-      query: (tagId) => ({
-        url: `tags/${tagId}`,
-      }),
     }),
 
     /* Threat */
@@ -415,10 +378,6 @@ export const tcApi = createApi({
       query: (vulnId) => `/vulns/${vulnId}`,
       providesTags: (result, error, vulnId) => [{ type: "Vuln", id: `${vulnId}` }],
     }),
-    getTopic: builder.query({
-      query: (topicId) => `/topics/${topicId}`,
-      providesTags: (result, error, topicId) => [{ type: "Topic", id: `${topicId}` }],
-    }),
     createTopic: builder.mutation({
       query: ({ topicId, data }) => ({
         url: `topics/${topicId}`,
@@ -450,17 +409,17 @@ export const tcApi = createApi({
     }),
 
     /* Vuln Action */
-    getTopicActions: builder.query({
-      query: (topicId) => ({
-        url: `topics/${topicId}/actions/user/me`,
+    getVulnActions: builder.query({
+      query: (vulnId) => ({
+        url: `vulns/${vulnId}/actions`,
         method: "GET",
       }),
       providesTags: (result, error, arg) => [
         ...(result?.reduce(
-          (ret, action) => [...ret, { type: "TopicAction", id: action.action_id }],
+          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
           [],
         ) ?? []),
-        { type: "TopicAction", id: "ALL" },
+        { type: "VulnAction", id: "ALL" },
       ],
     }),
 
@@ -500,18 +459,6 @@ export const tcApi = createApi({
     }),
 
     /* Vuln */
-    getVulnActions: builder.query({
-      query: (vulnId) => ({
-        url: `vulns/${vulnId}/actions`,
-      }),
-      providesTags: (result, error, arg) => [
-        ...(result?.reduce(
-          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
-          [],
-        ) ?? []),
-        { type: "VulnAction", id: "ALL" },
-      ],
-    }),
     getVulns: builder.query({
       query: (params) => ({
         url: "vulns",
@@ -544,9 +491,6 @@ export const tcApi = createApi({
 });
 
 export const {
-  useCreateActionMutation,
-  useUpdateActionMutation,
-  useDeleteActionMutation,
   useCreateActionLogMutation,
   useGetDependencyQuery,
   useGetDependenciesQuery,
@@ -569,19 +513,16 @@ export const {
   useGetPTeamPackagesSummaryQuery,
   useUploadSBOMFileMutation,
   useGetTagsQuery,
-  useGetTagQuery,
   useGetThreatQuery,
   useUpdateThreatMutation,
   useGetTicketsQuery,
   useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
   useGetVulnQuery,
-  useGetTopicQuery,
   useCreateTopicMutation,
   useUpdateTopicMutation,
   useDeleteTopicMutation,
   useGetVulnActionsQuery,
-  useGetTopicActionsQuery,
   useGetUserMeQuery,
   useGetVulnsQuery,
   useTryLoginMutation,

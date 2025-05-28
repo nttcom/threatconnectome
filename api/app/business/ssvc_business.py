@@ -44,7 +44,7 @@ def _update_vuln_ids_from_dependencies(
     related_ticket_status: str | None,
     vuln_ids_dict: dict,
 ):
-    _completed = models.TopicStatusType.completed
+    _completed = models.VulnStatusType.completed
 
     for dependency in service.dependencies:
         if package_id and dependency.package_version.package_id != str(package_id):
@@ -52,14 +52,11 @@ def _update_vuln_ids_from_dependencies(
         for ticket in dependency.tickets:
             ssvc_priority = ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
 
-            if (
-                related_ticket_status == "solved"
-                and ticket.ticket_status.topic_status != _completed
-            ):
+            if related_ticket_status == "solved" and ticket.ticket_status.vuln_status != _completed:
                 continue
             elif (
                 related_ticket_status == "unsolved"
-                and ticket.ticket_status.topic_status == _completed
+                and ticket.ticket_status.vuln_status == _completed
             ):
                 continue
 
@@ -118,7 +115,7 @@ def _update_ticket_counts_from_dependencies(
     related_ticket_status: str | None,
     ticket_counts_dict: dict,
 ):
-    _completed = models.TopicStatusType.completed
+    _completed = models.VulnStatusType.completed
 
     for dependency in service.dependencies:
         if package_id and dependency.package_version.package_id != str(package_id):
@@ -126,14 +123,11 @@ def _update_ticket_counts_from_dependencies(
         for ticket in dependency.tickets:
             ssvc_priority = ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
 
-            if (
-                related_ticket_status == "solved"
-                and ticket.ticket_status.topic_status != _completed
-            ):
+            if related_ticket_status == "solved" and ticket.ticket_status.vuln_status != _completed:
                 continue
             elif (
                 related_ticket_status == "unsolved"
-                and ticket.ticket_status.topic_status == _completed
+                and ticket.ticket_status.vuln_status == _completed
             ):
                 continue
 

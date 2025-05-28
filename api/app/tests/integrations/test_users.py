@@ -262,7 +262,7 @@ class TestDeleteUserSideEffects:
 
         # Set ticket status
         status_request1 = {
-            "topic_status": models.TopicStatusType.completed.value,
+            "vuln_status": models.VulnStatusType.completed.value,
             "assignees": [str(self.user1.user_id)],
             "logging_ids": [self.actionlog1["logging_id"]],
         }
@@ -274,7 +274,7 @@ class TestDeleteUserSideEffects:
         )
 
         status_request2 = {
-            "topic_status": models.TopicStatusType.completed.value,
+            "vuln_status": models.VulnStatusType.completed.value,
             "assignees": [str(self.user2.user_id)],
             "logging_ids": [self.actionlog2["logging_id"]],
         }
@@ -436,7 +436,7 @@ class TestDeleteUserSideEffects:
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
 
         status_request = {
-            "topic_status": models.TopicStatusType.completed.value,
+            "vuln_status": models.VulnStatusType.completed.value,
             "assignees": [str(self.user1.user_id)],
             "logging_ids": [self.actionlog1["logging_id"]],
         }
@@ -461,7 +461,7 @@ class TestDeleteUserSideEffects:
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
 
         status_request = {
-            "topic_status": models.TopicStatusType.completed.value,
+            "vuln_status": models.VulnStatusType.completed.value,
             "assignees": [str(self.user1.user_id)],
             "logging_ids": [self.actionlog1["logging_id"]],
         }
