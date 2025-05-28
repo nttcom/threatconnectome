@@ -274,3 +274,60 @@ class TestGetAction:
         # Then
         assert response.status_code == 404
         assert response.json() == {"detail": "No such vuln action"}
+
+
+class TestDeleteAction:
+
+    @pytest.fixture(autouse=True)
+    def common_setup(self, testdb: Session):
+        # Create a user
+        self.user = create_user(USER1)
+
+        # Create a vuln
+        create_vuln(USER1, VULN1)
+
+        # Create an action
+        action_create_request = {
+            "vuln_id": VULN1["vuln_id"],
+            "action": "example action",
+            "action_type": "elimination",
+            "recommended": True,
+        }
+
+        action_response = client.post(
+            "/actions",
+            headers=headers(USER1),
+            json=action_create_request,
+        )
+        self.action_id = action_response.json()["action_id"]
+
+    def test_response_204_if_delete_action_successfully(self, testdb: Session):
+        # When
+        response = client.delete(
+            f"/actions/{self.action_id}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 204
+
+        get_response = client.get(
+            f"/actions/{self.action_id}",
+            headers=headers(USER1),
+        )
+        assert get_response.status_code == 404
+        assert get_response.json() == {"detail": "No such vuln action"}
+
+    def test_raise_404_if_action_id_does_not_exist(self):
+        # Given
+        non_existent_action_id = uuid4()
+
+        # When
+        response = client.delete(
+            f"/actions/{non_existent_action_id}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json() == {"detail": "No such vuln action"}
