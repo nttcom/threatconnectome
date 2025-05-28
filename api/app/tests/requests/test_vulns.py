@@ -789,7 +789,7 @@ class TestGetVulns:
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             if i == 0:
-                vuln_request = {
+                vuln_request: dict[str, Any] = {
                     "title": "",
                     "cve_id": f"CVE-0000-000{i}",
                     "detail": f"This is example vuln {i}.",
@@ -926,7 +926,7 @@ class TestGetVulns:
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             if i == 0:
-                vuln_request = {
+                vuln_request: dict[str, Any] = {
                     "title": f"Example-vuln-{i}",
                     "cve_id": f"CVE-0000-000{i}",
                     "detail": "",
@@ -1031,7 +1031,7 @@ class TestGetVulns:
         # Create two vulnerabilities (one for the SBOM package, and one for an unrelated package)
         vuln_ids = []
         package_ids = []
-        vuln_request_sbom = {
+        vuln_request_sbom: dict[str, Any] = {
             "title": "SBOM-related vulnerability",
             "cve_id": "CVE-2025-0001",
             "detail": "A vulnerability associated with a package created from the SBOM",
@@ -1061,7 +1061,7 @@ class TestGetVulns:
             raise Exception("package is None")
         package_ids.append(str(package._mapping["package_id"]))
 
-        vuln_request_other = {
+        vuln_request_other: dict[str, Any] = {
             "title": "Unrelated vulnerability",
             "cve_id": "CVE-2025-0002",
             "detail": "A vulnerability associated with a package unrelated to the SBOM",
