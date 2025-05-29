@@ -7,7 +7,7 @@ import { useState } from "react";
 
 import { ssvcPriorityProps } from "../../../utils/const.js";
 import { searchWorstSSVC } from "../../../utils/func.js";
-import { createActionText } from "../../../utils/vulnUtils.js";
+import { createActionByFixedVersions } from "../../../utils/vulnUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 
 import { TicketTable } from "./TicketTable.jsx";
@@ -24,9 +24,9 @@ export function TopicTableRowView(props) {
   );
   const affectedVersions = vulnerable_package.affected_versions;
   const patchedVersions = vulnerable_package.fixed_versions;
-  const actionText = createActionText(
-    affectedVersions.join(),
-    patchedVersions.join(),
+  const actionText = createActionByFixedVersions(
+    affectedVersions,
+    patchedVersions,
     vulnerable_package.name,
   );
 
