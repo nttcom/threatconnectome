@@ -368,7 +368,6 @@ class TestActionLog:
             )
 
             pteam2 = create_pteam(USER2, PTEAM2)
-
             upload_file_name = "test_syft_cyclonedx.json"
             sbom_file = Path(__file__).resolve().parent / "upload_test" / upload_file_name
             with open(sbom_file, "r") as sbom:

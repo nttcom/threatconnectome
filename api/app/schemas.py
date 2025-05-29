@@ -92,16 +92,17 @@ class ActionResponse(ORMModel):
     created_at: datetime
 
 
-class TagResponse(ORMModel):
-    tag_id: UUID
-    tag_name: str
-    parent_id: UUID | None = None
-    parent_name: str | None = None
+class ExtPackageResponse(ORMModel):
+    class Reference(ORMModel):
+        service: str
+        target: str
+        package_manager: str
+        version: str
 
-
-class ExtTagResponse(TagResponse):
-    references: list[dict] = []
-
+    package_id: UUID
+    package_name: str
+    ecosystem: str
+    references: list[Reference] = []
 
 class PTeamServiceResponse(ORMModel):
     service_name: str

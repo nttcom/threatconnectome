@@ -113,11 +113,13 @@ class ThreatconnectomeClient:
             sys.exit("Is the pteam_id correct?\n" + str(error))
         return response.json()
 
-    def get_threats(self, params) -> list:
+    def get_tickets(self, pteam_id, params) -> list:
         try:
-            response = self._retry_call(requests.get, f"{self.api_url}/threats", params=params)
+            response = self._retry_call(
+                requests.get, f"{self.api_url}/pteams/{pteam_id}/tickets", params=params
+            )
         except APIError as error:
-            sys.exit("There is no threat tied to service_id\n" + str(error))
+            sys.exit("There is no tickets tied to service_id\n" + str(error))
 
         return response.json()
 
@@ -125,18 +127,14 @@ class ThreatconnectomeClient:
         try:
             response = self._retry_call(
                 requests.get,
-                f"{self.api_url}/pteams/{pteam_id}/services/{service_id}/dependencies/{dependency_id}",
+                f"{self.api_url}/pteams/{pteam_id}/dependencies/{dependency_id}",
             )
         except APIError as error:
             sys.exit("Are pteam_id and service_id correct\n" + str(error))
         return response.json()
 
-    def get_tag(self, tag_id):
-        response = self._retry_call(requests.get, f"{self.api_url}/tags/{tag_id}")
-        return response.json()
-
-    def get_topic(self, topic_id):
-        response = self._retry_call(requests.get, f"{self.api_url}/topics/{topic_id}")
+    def get_vuln(self, vuln_id):
+        response = self._retry_call(requests.get, f"{self.api_url}/vulns/{vuln_id}")
         return response.json()
 
 
@@ -162,82 +160,72 @@ def get_pteam_and_service_data(
     return pteam_and_service_data
 
 
-def get_threats_data(tc_client: ThreatconnectomeClient, service_id: str) -> list:
+def get_tickets_data(tc_client: ThreatconnectomeClient, pteam_id: str, service_id: str) -> list:
     params = {"service_id": service_id}
-    threats = tc_client.get_threats(params)
+    tickets = tc_client.get_tickets(pteam_id, params)
 
-    if len(threats) == 0:
-        sys.exit("The threats data associated with service_id is empty")
+    if len(tickets) == 0:
+        sys.exit("The tickets data associated with service_id is empty")
 
-    return threats
+    return tickets
 
 
-def generate_purl(tag_name: str, tag_version: str) -> str:
-
-    # tag_name syntax
-    # {pkg_name}:{pkg_info}:{pkg_mgr}
-    splited_tag_name = tag_name.split(":")
-    if len(splited_tag_name) < 2:
-        print(f"ERROR: The tag_name has invalid syntax. tag_name: {tag_name}")
-        return ""
-    pkg_name = splited_tag_name[0]
-    pkg_info = splited_tag_name[1]
+def generate_purl(package_name: str, package_ecosystem: str, package_version: str) -> str:
     # The type must NOT be percent-encoded
-    type = pkg_info
-    name = urllib.parse.quote(pkg_name)
-    version = urllib.parse.quote(tag_version)
+    name = urllib.parse.quote(package_name)
+    version = urllib.parse.quote(package_version)
 
-    return f"pkg:{type}/{name}@{version}"
+    return f"pkg:{package_ecosystem}/{name}@{version}"
 
 
-def add_tag_data_to_threat(
-    tc_client: ThreatconnectomeClient, pteam_id: str, service_id: str, threats: list
+def add_package_data_to_ticket(
+    tc_client: ThreatconnectomeClient, pteam_id: str, service_id: str, tickets: list
 ) -> list:
-    threats_with_tags_data: list = []
-    for threat in threats:
-        dependency = tc_client.get_dependency(pteam_id, service_id, threat["dependency_id"])
-        tag = tc_client.get_tag(dependency["tag_id"])
-        purl = generate_purl(tag["tag_name"], dependency["version"])
+    tickets_with_packages_data: list = []
+    for ticket in tickets:
+        dependency = tc_client.get_dependency(pteam_id, service_id, ticket["dependency_id"])
+        purl = generate_purl(
+            dependency["package_name"],
+            dependency["package_ecosystem"],
+            dependency["package_version"],
+        )
 
-        threat_with_tag_data = {
+        ticket_with_package_data = {
             "purl": purl,
-            "threat_id": threat["threat_id"],
-            "threat_safety_impact": threat["threat_safety_impact"],
-            "topic_id": threat["topic_id"],
-            "tag_id": dependency["tag_id"],
-            "tag_version": dependency["version"],
-            "tag_name": tag["tag_name"],
+            "ticket_id": ticket["ticket_id"],
+            "ticket_safety_impact": ticket["ticket_safety_impact"],
+            "vuln_id": ticket["vuln_id"],
+            "package_version_id": dependency["package_version_id"],
+            "version": dependency["package_version"],
+            "package_id": dependency["package_id"],
+            "package_name": dependency["package_name"],
+            "ecosystem": dependency["package_ecosystem"],
+            "package_manager": dependency["package_manager"],
         }
-        threats_with_tags_data.append(threat_with_tag_data)
+        tickets_with_packages_data.append(ticket_with_package_data)
 
-    return threats_with_tags_data
+    return tickets_with_packages_data
 
 
-def add_cve_data_to_threat(tc_client: ThreatconnectomeClient, threats: list) -> list:
+def add_cve_data_to_ticket(tc_client: ThreatconnectomeClient, tickets: list) -> list:
     """
-    Remove threat that did not have cve_id in missp_tag.
+    Remove ticket that did not have cve_id.
     """
-    threat_with_tag_and_cve_data: list = []
-    for threat in threats:
-        topic = tc_client.get_topic(threat["topic_id"])
-        cve_id: list = []
-        for misp_tag in topic["misp_tags"]:
-            if misp_tag["tag_name"] and misp_tag["tag_name"].startswith("CVE"):
-                cve_id.append(misp_tag["tag_name"])
+    ticket_with_cve_data: list = []
+    for ticket in tickets:
+        vuln = tc_client.get_vuln(ticket["vuln_id"])
 
-        if len(cve_id) == 0:
-            continue
-        else:
-            threat.update(cve_id=cve_id)
-            threat_with_tag_and_cve_data.append(threat)
+        if vuln["cve_id"] and vuln["cve_id"].startswith("CVE"):
+            ticket.update(cve_id=vuln["cve_id"])
+            ticket_with_cve_data.append(ticket)
 
-    return threat_with_tag_and_cve_data
+    return ticket_with_cve_data
 
 
-def output_json_file(threats: dict, service_id: str):
-    filename = "collect_threats_data_" + service_id + ".json"
+def output_json_file(tickets: dict, service_id: str):
+    filename = "collect_tickets_data_" + service_id + ".json"
     with open(filename, "w", encoding="utf-8") as f:
-        json.dump(threats, f, ensure_ascii=False, indent=2)
+        json.dump(tickets, f, ensure_ascii=False, indent=2)
 
 
 def main() -> None:
@@ -274,15 +262,17 @@ def main() -> None:
     )
 
     pteam_and_service_data = get_pteam_and_service_data(tc_client, args.pteam_id, args.service_id)
-    threats = get_threats_data(tc_client, args.service_id)
-    threats_with_tags_data = add_tag_data_to_threat(
-        tc_client, args.pteam_id, args.service_id, threats
+    tickets = get_tickets_data(tc_client, args.pteam_id, args.service_id)
+    tickets_with_packages_data = add_package_data_to_ticket(
+        tc_client, args.pteam_id, args.service_id, tickets
     )
-    threat_with_tag_and_cve_data = add_cve_data_to_threat(tc_client, threats_with_tags_data)
+    tickets_with_package_and_cve_data = add_cve_data_to_ticket(
+        tc_client, tickets_with_packages_data
+    )
 
     output_data: dict = {}
     output_data = pteam_and_service_data
-    output_data.update(threats=threat_with_tag_and_cve_data)
+    output_data.update(tickets=tickets_with_package_and_cve_data)
     output_json_file(output_data, args.service_id)
 
 

@@ -25,7 +25,7 @@ from app.tests.medium.utils import (
     headers,
     invite_to_pteam,
     set_ticket_status,
-    upload_pteam_tags,
+    upload_pteam_packages,
 )
 
 client = TestClient(app)
@@ -202,8 +202,8 @@ class TestDeleteUserSideEffects:
         service_name1 = "test service1"
         service_name2 = "test service2"
 
-        upload_pteam_tags(USER1, self.pteam1.pteam_id, service_name1, refs0)
-        upload_pteam_tags(USER2, self.pteam2.pteam_id, service_name2, refs0)
+        upload_pteam_packages(USER1, self.pteam1.pteam_id, service_name1, refs0)
+        upload_pteam_packages(USER2, self.pteam2.pteam_id, service_name2, refs0)
 
         self.service1 = get_service_by_service_name(USER1, self.pteam1.pteam_id, service_name1)
         self.service2 = get_service_by_service_name(USER2, self.pteam2.pteam_id, service_name2)
