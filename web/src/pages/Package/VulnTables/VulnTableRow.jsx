@@ -11,7 +11,7 @@ import {
 import { APIError } from "../../../utils/APIError.js";
 import { errorToString } from "../../../utils/func.js";
 
-import { TopicTableRowView } from "./TopicTableRowView.jsx";
+import { VulnTableRowView } from "./VulnTableRowView.jsx";
 
 function SimpleCell(value = "") {
   return (
@@ -21,7 +21,7 @@ function SimpleCell(value = "") {
   );
 }
 
-export function TopicTableRow(props) {
+export function VulnTableRow(props) {
   const { pteamId, serviceId, packageId, vulnId, references } = props;
 
   const skipByAuth = useSkipUntilAuthUserIsReady();
@@ -74,7 +74,7 @@ export function TopicTableRow(props) {
   if (ticketsRelatedToServiceVulnPackageIsLoading) return SimpleCell("Now loading tickets...");
 
   return (
-    <TopicTableRowView
+    <VulnTableRowView
       pteamId={pteamId}
       serviceId={serviceId}
       packageId={packageId}
@@ -87,7 +87,7 @@ export function TopicTableRow(props) {
     />
   );
 }
-TopicTableRow.propTypes = {
+VulnTableRow.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
   packageId: PropTypes.string.isRequired,

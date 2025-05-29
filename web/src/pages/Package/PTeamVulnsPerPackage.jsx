@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import { sortedSSVCPriorities } from "../../utils/const";
 
 import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
-import { TopicTable } from "./TopicTables/TopicTable";
+import { VulnTable } from "./VulnTables/VulnTable";
 
 export function PTeamVulnsPerPackage(props) {
   const { pteamId, service, packageId, references, vulnIds, ticketCounts } = props;
@@ -29,7 +29,7 @@ export function PTeamVulnsPerPackage(props) {
         Default safety impact: {service.service_safety_impact}
       </Typography>
       <Box sx={{ my: 2 }}>
-        <TopicTable
+        <VulnTable
           pteamId={pteamId}
           serviceId={service.service_id}
           packageId={packageId}

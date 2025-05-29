@@ -9,9 +9,9 @@ import TableRow from "@mui/material/TableRow";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { TopicTableRow } from "./TopicTableRow";
+import { VulnTableRow } from "./VulnTableRow";
 
-export function TopicTable(props) {
+export function VulnTable(props) {
   const { pteamId, serviceId, packageId, vulnIds, references } = props;
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [page, setPage] = useState(0);
@@ -51,7 +51,7 @@ export function TopicTable(props) {
           </TableHead>
           <TableBody>
             {visibleVulnIds.map((vulnId) => (
-              <TopicTableRow
+              <VulnTableRow
                 key={vulnId}
                 pteamId={pteamId}
                 serviceId={serviceId}
@@ -75,7 +75,7 @@ export function TopicTable(props) {
     </Paper>
   );
 }
-TopicTable.propTypes = {
+VulnTable.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
   packageId: PropTypes.string.isRequired,

@@ -7,13 +7,13 @@ import { useState } from "react";
 
 import { ssvcPriorityProps } from "../../../utils/const.js";
 import { searchWorstSSVC } from "../../../utils/func.js";
-import { createActionText } from "../../../utils/vulnUtils.js";
+import { createActionByFixedVersions } from "../../../utils/vulnUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 
 import { TicketTable } from "./TicketTable.jsx";
 import { TicketTableRow } from "./TicketTableRow.jsx";
 
-export function TopicTableRowView(props) {
+export function VulnTableRowView(props) {
   const { pteamId, serviceId, packageId, vulnId, members, references, vuln, vulnActions, tickets } =
     props;
   const [ticketOpen, setTicketOpen] = useState(true);
@@ -24,9 +24,9 @@ export function TopicTableRowView(props) {
   );
   const affectedVersions = vulnerable_package.affected_versions;
   const patchedVersions = vulnerable_package.fixed_versions;
-  const actionText = createActionText(
-    affectedVersions.join(),
-    patchedVersions.join(),
+  const actionByFixedVersions = createActionByFixedVersions(
+    affectedVersions,
+    patchedVersions,
     vulnerable_package.name,
   );
 
@@ -104,7 +104,7 @@ export function TopicTableRowView(props) {
                   vulnId={vulnId}
                   members={members}
                   references={references}
-                  actionText={actionText}
+                  actionByFixedVersions={actionByFixedVersions}
                   vulnActions={vulnActions}
                   ticket={ticket}
                 />
@@ -124,7 +124,7 @@ export function TopicTableRowView(props) {
     </>
   );
 }
-TopicTableRowView.propTypes = {
+VulnTableRowView.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
   packageId: PropTypes.string.isRequired,

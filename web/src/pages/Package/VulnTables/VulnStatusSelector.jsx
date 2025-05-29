@@ -38,7 +38,7 @@ export function VulnStatusSelector(props) {
     packageId,
     ticketId,
     currentStatus,
-    actionText,
+    actionByFixedVersions,
     vulnActions,
   } = props;
 
@@ -125,7 +125,7 @@ export function VulnStatusSelector(props) {
         ticketId={ticketId}
         vulnId={vulnId}
         packageId={packageId}
-        actionText={actionText}
+        actionByFixedVersions={actionByFixedVersions}
         vulnActions={vulnActions}
         onSetShow={setActionModalOpen}
         show={actionModalOpen}
@@ -238,6 +238,6 @@ VulnStatusSelector.propTypes = {
   packageId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentStatus: PropTypes.object.isRequired,
-  actionText: PropTypes.object.isRequired,
+  actionByFixedVersions: PropTypes.object.isRequired,
   vulnActions: PropTypes.array.isRequired,
 };
