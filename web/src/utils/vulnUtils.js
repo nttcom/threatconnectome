@@ -1,4 +1,4 @@
-export const createActionText = (affectedVersion, fixedVersion, packageName) => {
+export const createActionByFixedVersions = (affectedVersions, fixedVersions, packageName) => {
   const action = {
     // Create action_id to make it common processing with manual registration action
     // This action_id is only used on the UI
@@ -7,12 +7,14 @@ export const createActionText = (affectedVersion, fixedVersion, packageName) => 
     recommended: true,
   };
 
-  if (affectedVersion && fixedVersion) {
-    action.action = `Update ${packageName} from ${affectedVersion} to ${fixedVersion}`;
-    return action;
-  } else if (fixedVersion) {
-    action.action = `Update ${packageName} to version ${fixedVersion}`;
-    return action;
+  if (fixedVersions && fixedVersions.length > 0) {
+    if (affectedVersions && affectedVersions.length > 0) {
+      action.action = `Update ${packageName} from [${affectedVersions.join(", ")}] to [${fixedVersions.join(", ")}]`;
+      return action;
+    } else {
+      action.action = `Update ${packageName} to version [${fixedVersions.join(", ")}]`;
+      return action;
+    }
   }
 
   return null;
@@ -21,13 +23,13 @@ export const createActionText = (affectedVersion, fixedVersion, packageName) => 
 export function getActions(vuln, vulnActions) {
   const actionsByFixedVersions = [];
   vuln.vulnerable_packages.forEach((vulnerable_package) => {
-    const actionText = createActionText(
-      vulnerable_package.affected_versions.join(),
-      vulnerable_package.fixed_versions.join(),
+    const action = createActionByFixedVersions(
+      vulnerable_package.affected_versions,
+      vulnerable_package.fixed_versions,
       vulnerable_package.name,
     );
-    if (actionText != null) {
-      actionsByFixedVersions.push(actionText);
+    if (action != null) {
+      actionsByFixedVersions.push(action);
     }
   });
 
