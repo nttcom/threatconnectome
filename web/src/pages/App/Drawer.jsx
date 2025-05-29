@@ -1,4 +1,4 @@
-import { Groups as GroupsIcon, Home as HomeIcon, Topic as VulnIcon } from "@mui/icons-material";
+import { Groups as GroupsIcon, Home as HomeIcon, Topic as TopicIcon } from "@mui/icons-material";
 import {
   Drawer as MuiDrawer,
   List,
@@ -104,7 +104,7 @@ export function Drawer() {
           selected={locationReader.isVulnsPage()}
         >
           <StyledListItemIcon>
-            <VulnIcon />
+            <TopicIcon />
           </StyledListItemIcon>
           <ListItemText>Vulns</ListItemText>
         </StyledListItemButton>
