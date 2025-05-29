@@ -24,7 +24,7 @@ export function TopicTableRowView(props) {
   );
   const affectedVersions = vulnerable_package.affected_versions;
   const patchedVersions = vulnerable_package.fixed_versions;
-  const actionText = createActionByFixedVersions(
+  const actionByFixedVersions = createActionByFixedVersions(
     affectedVersions,
     patchedVersions,
     vulnerable_package.name,
@@ -104,7 +104,7 @@ export function TopicTableRowView(props) {
                   vulnId={vulnId}
                   members={members}
                   references={references}
-                  actionText={actionText}
+                  actionByFixedVersions={actionByFixedVersions}
                   vulnActions={vulnActions}
                   ticket={ticket}
                 />

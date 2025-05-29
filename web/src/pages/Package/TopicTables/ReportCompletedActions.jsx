@@ -36,7 +36,7 @@ export function ReportCompletedActions(props) {
     ticketId,
     vulnId,
     packageId,
-    actionText,
+    actionByFixedVersions,
     vulnActions,
     onSetShow,
     show,
@@ -62,7 +62,7 @@ export function ReportCompletedActions(props) {
   if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
-  const actions = [actionText, ...vulnActions];
+  const actions = [actionByFixedVersions, ...vulnActions];
 
   const handleAction = async () =>
     await Promise.all(
@@ -73,10 +73,10 @@ export function ReportCompletedActions(props) {
           return;
         }
 
-        const isInActionText = actionText.action_id === actionId;
+        const isActionByFixedVersions = actionByFixedVersions.action_id === actionId;
 
         return await createActionLog({
-          action_id: isInActionText ? null : action.action_id,
+          action_id: isActionByFixedVersions ? null : action.action_id,
           action: action.action,
           action_type: action.action_type,
           recommended: action.recommended,
@@ -277,7 +277,7 @@ ReportCompletedActions.propTypes = {
   ticketId: PropTypes.string.isRequired,
   vulnId: PropTypes.string.isRequired,
   packageId: PropTypes.string.isRequired,
-  actionText: PropTypes.object.isRequired,
+  actionByFixedVersions: PropTypes.object.isRequired,
   vulnActions: PropTypes.array.isRequired,
   onSetShow: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,

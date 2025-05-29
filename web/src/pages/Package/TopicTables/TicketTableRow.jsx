@@ -16,7 +16,7 @@ export function TicketTableRow(props) {
     vulnId,
     members,
     references,
-    actionText,
+    actionByFixedVersions,
     vulnActions,
     ticket,
   } = props;
@@ -51,7 +51,7 @@ export function TicketTableRow(props) {
             packageId={packageId}
             ticketId={ticket.ticket_id}
             currentStatus={ticket.ticket_status}
-            actionText={actionText}
+            actionByFixedVersions={actionByFixedVersions}
             vulnActions={vulnActions}
           />
           {(ticket.ticket_status.vuln_status ?? "alerted") === "alerted" && (
@@ -88,7 +88,7 @@ TicketTableRow.propTypes = {
   vulnId: PropTypes.string.isRequired,
   members: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
-  actionText: PropTypes.object.isRequired,
+  actionByFixedVersions: PropTypes.object.isRequired,
   vulnActions: PropTypes.array.isRequired,
   ticket: PropTypes.object.isRequired,
 };
