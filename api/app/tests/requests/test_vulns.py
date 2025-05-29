@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.main import app
+from app.persistence import get_package_by_name_and_ecosystem
 from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import PTEAM1, USER1, USER2
 from app.tests.medium.utils import (
@@ -486,19 +487,14 @@ class TestGetVulns:
             vuln_ids.append(vuln_id)
             created_times.append(datetime.fromisoformat(response.json()["created_at"]))
             updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
-            # package_idをDBから取得
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
         # When
         response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
 
@@ -566,18 +562,14 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
             created_times.append(datetime.fromisoformat(response.json()["created_at"]))
             updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
 
@@ -618,18 +610,14 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i, scores[i])
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
 
         # When
         response = client.get(
@@ -663,18 +651,14 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i, scores[i])
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
 
         # When
         response = client.get(
@@ -706,18 +690,14 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
 
         # When
         response = client.get(f"/vulns?vuln_ids={vuln_ids[0]}", headers=self.headers_user)
@@ -749,18 +729,14 @@ class TestGetVulns:
                 f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
             )
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
             put_response_data.append(put_response.json())
 
         # When
@@ -824,20 +800,14 @@ class TestGetVulns:
                 }
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            print(type(vuln_request["vulnerable_packages"]))
-            print(vuln_request["vulnerable_packages"])
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
 
         # When
         response = client.get(
@@ -886,18 +856,14 @@ class TestGetVulns:
                 f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
             )
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
             put_response_data.append(put_response.json())
 
         # When
@@ -961,18 +927,14 @@ class TestGetVulns:
                 }
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
 
         # When
         response = client.get(
@@ -1050,16 +1012,14 @@ class TestGetVulns:
         vuln_id_sbom = uuid4()
         client.put(f"/vulns/{vuln_id_sbom}", headers=self.headers_user, json=vuln_request_sbom)
         vuln_ids.append(vuln_id_sbom)
-        package = testdb.execute(
-            text("SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"),
-            {
-                "name": vuln_request_sbom["vulnerable_packages"][0]["name"],
-                "ecosystem": vuln_request_sbom["vulnerable_packages"][0]["ecosystem"],
-            },
-        ).fetchone()
+        package = get_package_by_name_and_ecosystem(
+            testdb,
+            vuln_request_sbom["vulnerable_packages"][0]["name"],
+            vuln_request_sbom["vulnerable_packages"][0]["ecosystem"],
+        )
         if package is None:
             raise Exception("package is None")
-        package_ids.append(str(package._mapping["package_id"]))
+        package_ids.append(str(package.package_id))
 
         vuln_request_other: dict[str, Any] = {
             "title": "Unrelated vulnerability",
@@ -1080,16 +1040,14 @@ class TestGetVulns:
         vuln_id_other = uuid4()
         client.put(f"/vulns/{vuln_id_other}", headers=self.headers_user, json=vuln_request_other)
         vuln_ids.append(vuln_id_other)
-        package = testdb.execute(
-            text("SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"),
-            {
-                "name": vuln_request_other["vulnerable_packages"][0]["name"],
-                "ecosystem": vuln_request_other["vulnerable_packages"][0]["ecosystem"],
-            },
-        ).fetchone()
+        package = get_package_by_name_and_ecosystem(
+            testdb,
+            vuln_request_other["vulnerable_packages"][0]["name"],
+            vuln_request_other["vulnerable_packages"][0]["ecosystem"],
+        )
         if package is None:
             raise Exception("package is None")
-        package_ids.append(str(package._mapping["package_id"]))
+        package_ids.append(str(package.package_id))
 
         # When: filter pteam_id
         response = client.get(f"/vulns?pteam_id={pteam1.pteam_id}", headers=self.headers_user)
@@ -1119,18 +1077,14 @@ class TestGetVulns:
                 f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
             )
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
             put_response_data.append(put_response.json())
 
         # When
@@ -1180,18 +1134,14 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
 
         created_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
         updated_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
@@ -1315,18 +1265,14 @@ class TestGetVulns:
                     json=vuln_request,
                 )
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
             put_response_data.append(put_response.json())
 
         # When
@@ -1360,18 +1306,14 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
 
         # When
         response = client.get("/vulns?creator_ids=", headers=self.headers_user)
@@ -1405,18 +1347,14 @@ class TestGetVulns:
                 f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
             )
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
             put_response_data.append(put_response.json())
 
         # When
@@ -1450,18 +1388,14 @@ class TestGetVulns:
                 f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
             )
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
             put_response_data.append(put_response.json())
 
         # When
@@ -1494,18 +1428,14 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            package = testdb.execute(
-                text(
-                    "SELECT package_id FROM package WHERE name = :name AND ecosystem = :ecosystem"
-                ),
-                {
-                    "name": vuln_request["vulnerable_packages"][0]["name"],
-                    "ecosystem": vuln_request["vulnerable_packages"][0]["ecosystem"],
-                },
-            ).fetchone()
+            package = get_package_by_name_and_ecosystem(
+                testdb,
+                vuln_request["vulnerable_packages"][0]["name"],
+                vuln_request["vulnerable_packages"][0]["ecosystem"],
+            )
             if package is None:
                 raise Exception("package is None")
-            package_ids.append(str(package._mapping["package_id"]))
+            package_ids.append(str(package.package_id))
 
             if i == 0:  # Get the package_id of the first record
                 response_data = response.json()
