@@ -13,7 +13,7 @@ import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx
 import { TicketTable } from "./TicketTable.jsx";
 import { TicketTableRow } from "./TicketTableRow.jsx";
 
-export function TopicTableRowView(props) {
+export function VulnTableRowView(props) {
   const { pteamId, serviceId, packageId, vulnId, members, references, vuln, vulnActions, tickets } =
     props;
   const [ticketOpen, setTicketOpen] = useState(true);
@@ -124,7 +124,7 @@ export function TopicTableRowView(props) {
     </>
   );
 }
-TopicTableRowView.propTypes = {
+VulnTableRowView.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
   packageId: PropTypes.string.isRequired,
