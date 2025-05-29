@@ -52,6 +52,8 @@ def create_mail_alert_for_new_vuln(
     pteam_name: str,
     pteam_id: UUID | str,
     package_name: str,
+    ecosystem: str,
+    package_manager: str,
     package_id: UUID | str,
     service_id: UUID | str,
     services: list[str],
@@ -74,11 +76,13 @@ def create_mail_alert_for_new_vuln(
             "",
             f"Team: {pteam_name}",
             f"Services: {', '.join(services)}",
-            f"Artifact: {package_name}",
+            f"Package: {package_name}",
+            f"Ecosystem: {ecosystem}",
+            f"Package Manager: {package_manager}",
             "",
             (
                 f"<a href={_package_page_link(pteam_id, package_id, service_id)}>Link to"
-                " Artifact page</a>"
+                " Package page</a>"
             ),
         ]
     )
@@ -125,6 +129,8 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
                 pteam.pteam_name,
                 pteam.pteam_id,
                 package.name,
+                package.ecosystem,
+                ticket.dependency.package_manager,
                 package.package_id,
                 service.service_id,
                 [service.service_name],  # WORKAROUND

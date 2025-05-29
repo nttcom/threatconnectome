@@ -6,7 +6,6 @@ from datetime import datetime
 from hashlib import sha256
 from io import DEFAULT_BUFFER_SIZE, BytesIO
 from pathlib import Path
-from typing import Sequence
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -117,7 +116,7 @@ def upload_pteam_packages(
     params = {"service": service_name}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
         for ext_package in ext_packages:
-                tfile.writelines(json.dumps(ext_package) + "\n")
+            tfile.writelines(json.dumps(ext_package) + "\n")
         tfile.flush()
         tfile.seek(0)
         with open(tfile.name, "rb") as bfile:
@@ -188,26 +187,12 @@ def create_actionlog(
     return schemas.ActionLogResponse(**response.json())
 
 
-def compare_tags(
-    tags1: Sequence[dict | schemas.TagResponse],
-    tags2: Sequence[dict | schemas.TagResponse],
-) -> bool:
-    def _to_tuple(tag_: dict | schemas.TagResponse):
-        if isinstance(tag_, schemas.TagResponse):
-            tag_ = tag_.model_dump()
-        return (
-            tag_.get("tag_name"),
-            str(tag_.get("tag_id")),
-            tag_.get("parent_name"),
-            str(parent_id) if (parent_id := tag_.get("parent_id")) else None,
-        )
-
-    return [_to_tuple(t1) for t1 in tags1] == [_to_tuple(t2) for t2 in tags2]
-
-
 def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     def _to_tuple_set(refs):
-        return {(ref.get("service"), ref.get("target"), ref.get("version"), ref.get("package_manager")) for ref in refs}
+        return {
+            (ref.get("service"), ref.get("target"), ref.get("version"), ref.get("package_manager"))
+            for ref in refs
+        }
 
     if not isinstance(refs1, list) or not isinstance(refs2, list):
         return False
