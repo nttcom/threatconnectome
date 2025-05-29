@@ -31,9 +31,7 @@ def _ready_alert_by_email() -> bool:
     return True
 
 
-def _package_page_link(
-    pteam_id: UUID | str, package_id: UUID | str, service_id: UUID | str
-) -> str:
+def _package_page_link(pteam_id: UUID | str, package_id: UUID | str, service_id: UUID | str) -> str:
     return urljoin(
         os.getenv("WEBUI_URL", "http://localhost"),
         f"/packages/{str(package_id)}?pteamId={str(pteam_id)}&serviceId={str(service_id)}",
@@ -48,7 +46,7 @@ def _pteam_service_tab_link(pteam_id: UUID | str, service_id: UUID | str) -> str
     return urljoin(baseurl, f"?{encoded_params}")
 
 
-def create_mail_alert_for_new_topic(
+def create_mail_alert_for_new_vuln(
     vuln_title: str,
     ssvc_priority: models.SSVCDeployerPriorityEnum,
     pteam_name: str,
@@ -121,7 +119,7 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
 
     if alert_by_mail:
         try:
-            mail_subject, mail_body = create_mail_alert_for_new_topic(
+            mail_subject, mail_body = create_mail_alert_for_new_vuln(
                 vuln.title,  # WORKAROUND
                 ticket.ssvc_deployer_priority,
                 pteam.pteam_name,
