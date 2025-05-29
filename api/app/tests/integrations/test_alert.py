@@ -134,7 +134,7 @@ class TestGetVulnIdsTiedToServicePackage:
         )
         send_slack.assert_called_with(webhook_url, slack_message_blocks)
 
-    def test_it_should_not_alert_by_mail_when_alert_enable_is_false(self, mocker):
+    def test_it_should_not_alert_by_mail_and_slack_when_alert_enable_is_false(self, mocker):
         # Given
         address = "account0@example.com"
         webhook_url = SAMPLE_SLACK_WEBHOOK_URL + "0"
