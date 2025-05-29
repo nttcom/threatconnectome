@@ -24,7 +24,6 @@ from app.tests.medium.constants import (
     PACKAGE1,
     PTEAM1,
     PTEAM2,
-    SAMPLE_SLACK_WEBHOOK_URL,
     TAG1,
     TOPIC1,
     USER1,
@@ -1951,7 +1950,6 @@ class TestPostUploadPackagesFile:
                 )
                 return response
 
-
     def _eval_upload_packages_file_with_dict(self, lines_, params_):
         with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
             for line in lines_:
@@ -1967,7 +1965,6 @@ class TestPostUploadPackagesFile:
                 )
                 return response
 
-
     @staticmethod
     def _compare_ext_packages(_package1: dict, _package2: dict) -> bool:
         if not isinstance(_package1, dict) or not isinstance(_package2, dict):
@@ -1976,7 +1973,6 @@ class TestPostUploadPackagesFile:
         if any(_package1.get(_key) != _package2.get(_key) for _key in _keys):
             return False
         return compare_references(_package1["references"], _package2["references"])
-
 
     def _compare_responsed_packages(self, _packages1: list[dict], _packages2: list[dict]) -> bool:
         if not isinstance(_packages1, list) or not isinstance(_packages2, list):
@@ -1987,7 +1983,6 @@ class TestPostUploadPackagesFile:
             self._compare_ext_packages(_packages1[_idx], _packages2[_idx])
             for _idx in range(len(_packages1))
         )
-
 
     def test_it_should_return_200_when_upload_1_line_file(self):
         # Given
@@ -2020,7 +2015,6 @@ class TestPostUploadPackagesFile:
                 }
             ],
         )
-
 
     def test_it_should_return_200_when_upload_2_lines_file(self):
         # Given
@@ -2083,7 +2077,6 @@ class TestPostUploadPackagesFile:
                 },
             ],
         )
-
 
     def test_it_should_return_200_when_upload_duplicated_lines_file(self):
         # Given
@@ -2152,7 +2145,6 @@ class TestPostUploadPackagesFile:
             ],
         )
 
-
     def test_it_should_be_able_to_take_pteam_data_together(self):
         # Given
         service_a = {"service": "service-a"}
@@ -2215,7 +2207,6 @@ class TestPostUploadPackagesFile:
         }
         assert self._compare_responsed_packages(response.json(), [exp_a, exp_b])
 
-
     def test_it_should_update_when_the_same_service_name(self):
         # Given
         service_a = {"service": "service-a"}
@@ -2259,7 +2250,6 @@ class TestPostUploadPackagesFile:
         }
         assert self._compare_responsed_packages(data.json(), [exp])
 
-
     def test_it_should_return_400_with_wrong_filename(self):
         # When
         params = {"service": "threatconnectome"}
@@ -2276,7 +2266,6 @@ class TestPostUploadPackagesFile:
         assert response.status_code == 400
         data = response.json()
         assert data["detail"] == "Please upload a file with .jsonl as extension"
-
 
     def test_it_should_return_400_without_package_name(self):
         # Given
@@ -2297,18 +2286,14 @@ class TestPostUploadPackagesFile:
         data = response.json()
         assert data["detail"] == "Missing package name"
 
-
     def test_it_should_return_400_with_wrong_content_format(self):
         # Given
         params = {"service": "threatconnectome"}
 
-        lines = [
-            '{"test":"wrong file"},'
-        ]
+        lines = ['{"test":"wrong file"},']
 
         # When
         response = self._eval_upload_packages_file_with_string(lines, params)
-
 
         # Then
         assert response.status_code == 400
@@ -4113,209 +4098,6 @@ class TestUpdatePTeamService:
 
             assert response.status_code == 422
             assert response.json()["detail"][0]["msg"] == expected
-
-    class TestNotification:
-        @pytest.fixture(scope="function", autouse=True)
-        def common_setup(self):
-            def _gen_pteam_params(idx: int) -> dict:
-                return {
-                    "pteam_name": f"pteam{idx}",
-                    "alert_slack": {
-                        "enable": True,
-                        "webhook_url": SAMPLE_SLACK_WEBHOOK_URL + str(idx),
-                    },
-                    "alert_mail": {
-                        "enable": True,
-                        "address": f"account{idx}@example.com",
-                    },
-                    "alert_ssvc_priority": "out_of_cycle",
-                }
-
-            def _gen_topic_params(tags: list[schemas.TagResponse]) -> dict:
-                topic_id = str(uuid4())
-                return {
-                    "topic_id": topic_id,
-                    "title": "test topic " + topic_id,
-                    "abstract": "test abstract " + topic_id,
-                    "tags": [tag.tag_name for tag in tags],
-                    "misp_tags": [],
-                    "actions": [
-                        {
-                            "topic_id": topic_id,
-                            "action": "update to 999.9.9",
-                            "action_type": models.ActionType.elimination,
-                            "recommended": True,
-                            "ext": {
-                                "tags": [tag.tag_name for tag in tags],
-                                "vulnerable_versions": {
-                                    tag.tag_name: ["< 999.9.9"] for tag in tags
-                                },
-                            },
-                        },
-                    ],
-                    "exploitation": "active",
-                    "automatable": "yes",
-                }
-
-            self.user1 = create_user(USER1)
-            self.pteam0 = create_pteam(USER1, _gen_pteam_params(0))
-            self.tag1 = create_tag(USER1, TAG1)
-            test_service0 = "test_service0"
-            test_target = "test target"
-            test_version = "1.2.3"
-            refs0 = {self.tag1.tag_name: [(test_target, test_version)]}
-            upload_pteam_packages(USER1, self.pteam0.pteam_id, test_service0, refs0)
-            self.service_id0 = get_service_by_service_name(
-                USER1, self.pteam0.pteam_id, test_service0
-            )["service_id"]
-            self.topic = create_topic(USER1, _gen_topic_params([self.tag1]))
-
-        @staticmethod
-        def _get_access_token(user: dict) -> str:
-            body = {
-                "username": user["email"],
-                "password": user["pass"],
-            }
-            response = client.post("/auth/token", data=body)
-            if response.status_code != 200:
-                raise HTTPError(response)
-            data = response.json()
-            return data["access_token"]
-
-        def test_alert_by_mail_if_vulnerabilities_are_found_when_updating_service(
-            self, mocker, testdb: Session
-        ):
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-
-            ## ssvc_deployer_priority is out_of_cycle
-            request = {
-                "system_exposure": models.SystemExposureEnum.SMALL.value,
-                "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
-                "service_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
-            }
-
-            send_alert_to_pteam = mocker.patch("app.business.ticket_business.send_alert_to_pteam")
-            response = client.put(
-                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
-                headers=_headers,
-                json=request,
-            )
-            assert response.status_code == 200
-
-            ## get ticket_id
-            response_ticket = client.get(
-                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}/topics/{self.topic.topic_id}/tags/{self.tag1.tag_id}/tickets",
-                headers=_headers,
-            )
-            ticket_id = response_ticket.json()[0]["ticket_id"]
-
-            alerts = testdb.scalars(
-                select(models.Alert)
-                .where(models.Alert.ticket_id == str(ticket_id))
-                .order_by(models.Alert.alerted_at.desc())
-            ).all()
-
-            assert alerts
-
-            assert alerts[0].ticket.threat.topic_id == str(self.topic.topic_id)
-
-            send_alert_to_pteam.assert_called_once()
-            send_alert_to_pteam.assert_called_with(alerts[0])
-
-        def test_not_alert_by_mail_if_unchange_ssvc_priority_when_updating_service(
-            self, mocker, testdb: Session
-        ):
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-
-            ## ssvc_deployer_priority is immediate
-            request = {
-                "system_exposure": models.SystemExposureEnum.OPEN.value,
-                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
-                "service_safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
-            }
-
-            send_alert_to_pteam = mocker.patch("app.business.ticket_business.send_alert_to_pteam")
-            response = client.put(
-                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
-                headers=_headers,
-                json=request,
-            )
-            assert response.status_code == 200
-            send_alert_to_pteam.assert_not_called()
-
-        def test_not_alert_with_ticket_status_is_completed(self, mocker):
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-
-            ## Change the status of the ticket to completed
-            response_ticket = client.get(
-                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}/topics/{self.topic.topic_id}/tags/{self.tag1.tag_id}/tickets",
-                headers=_headers,
-            )
-            assert response_ticket.status_code == 200
-            data = response_ticket.json()
-            request_ticket_status = {"vuln_status": models.VulnStatusType.completed.value}
-            response_ticket_status = client.put(
-                f"/pteams/{self.pteam0.pteam_id}/tickets/{data[0]['ticket_id']}/ticketstatuses",
-                headers=_headers,
-                json=request_ticket_status,
-            )
-            assert response_ticket_status.status_code == 200
-
-            ## ssvc_deployer_priority is immediate
-            request = {
-                "system_exposure": models.SystemExposureEnum.OPEN.value,
-                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
-                "service_safety_impact": models.SafetyImpactEnum.CATASTROPHIC.value,
-            }
-            send_alert_to_pteam = mocker.patch("app.business.ticket_business.send_alert_to_pteam")
-            response = client.put(
-                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
-                headers=_headers,
-                json=request,
-            )
-            assert response.status_code == 200
-            send_alert_to_pteam.assert_not_called()
-
-        def test_not_alert_when_ssvc_deployer_priority_is_lower_than_alert_ssvc_priority_in_pteam(
-            self, mocker
-        ):
-            user1_access_token = self._get_access_token(USER1)
-            _headers = {
-                "Authorization": f"Bearer {user1_access_token}",
-                "Content-Type": "application/json",
-                "accept": "application/json",
-            }
-
-            ## ssvc_deployer_priority is scheduled
-            request = {
-                "system_exposure": models.SystemExposureEnum.SMALL.value,
-                "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
-                "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
-            }
-
-            send_alert_to_pteam = mocker.patch("app.business.ticket_business.send_alert_to_pteam")
-            response = client.put(
-                f"/pteams/{self.pteam0.pteam_id}/services/{self.service_id0}",
-                headers=_headers,
-                json=request,
-            )
-            assert response.status_code == 200
-            send_alert_to_pteam.assert_not_called()
 
 
 class TestGetTicket:
