@@ -9,9 +9,9 @@ from app.main import app
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     PTEAM1,
-    TOPIC1,
     USER1,
     USER2,
+    VULN1,
 )
 from app.tests.medium.utils import (
     create_pteam,
@@ -23,7 +23,8 @@ client = TestClient(app)
 
 
 def test_get_dependency(testdb):
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
+    service_name1 = "test_service1"
+    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, service_name1, VULN1)
     pteam_id = ticket_response["pteam_id"]
 
     dependencies_response = client.get(f"/pteams/{pteam_id}/dependencies", headers=headers(USER1))
@@ -38,13 +39,19 @@ def test_get_dependency(testdb):
     data = dependency_response.json()
     assert data["dependency_id"] == dependency1["dependency_id"]
     assert data["service_id"] == dependency1["service_id"]
-    assert data["tag_id"] == dependency1["tag_id"]
-    assert data["version"] == dependency1["version"]
+    assert data["package_version_id"] == dependency1["package_version_id"]
+    assert data["package_id"] == dependency1["package_id"]
+    assert data["package_manager"] == dependency1["package_manager"]
     assert data["target"] == dependency1["target"]
+    assert data["dependency_mission_impact"] == dependency1["dependency_mission_impact"]
+    assert data["package_name"] == dependency1["package_name"]
+    assert data["package_version"] == dependency1["package_version"]
+    assert data["package_ecosystem"] == dependency1["package_ecosystem"]
 
 
 def test_get_dependency_with_wrong_pteam_id(testdb):
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
+    service_name1 = "test_service1"
+    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, service_name1, VULN1)
     pteam_id = ticket_response["pteam_id"]
 
     dependencies_response = client.get(f"/pteams/{pteam_id}/dependencies", headers=headers(USER1))
@@ -61,7 +68,8 @@ def test_get_dependency_with_wrong_pteam_id(testdb):
 
 
 def test_get_dependency_with_wrong_dependency_id(testdb):
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
+    service_name1 = "test_service1"
+    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, service_name1, VULN1)
     pteam_id = ticket_response["pteam_id"]
     wrong_dependency_id = str(uuid4())
     dependency_response = client.get(
