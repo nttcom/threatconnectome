@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app import models
+from app import models, persistence
 from app.constants import (
     SYSTEM_EMAIL,
 )
@@ -67,7 +67,7 @@ class TestAlert:
             package_version = testdb.scalars(select(models.PackageVersion)).one()
             self.package_version1 = package_version
 
-        def test_it_should_alert_by_mail_when_put_matched_vuln(self, mocker):
+        def test_it_should_alert_by_mail_when_put_matched_vuln(self, testdb, mocker):
             # Given
             address = "account0@example.com"
             webhook_url = SAMPLE_SLACK_WEBHOOK_URL + "0"
@@ -85,6 +85,12 @@ class TestAlert:
                 f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=pteam_request
             )
 
+            dependency1 = persistence.get_dependency_from_service_id_and_package_id(
+                testdb, self.service1["service_id"], self.package_version1.package_id
+            )
+            if dependency1 is None:
+                raise Exception("Dependency not found")
+
             # When
             send_email = mocker.patch("app.notification.alert.send_email")
             vuln1 = create_vuln(USER1, VULN1)
@@ -98,6 +104,8 @@ class TestAlert:
                 PTEAM1["pteam_name"],
                 self.pteam1.pteam_id,
                 self.package_version1.package.name,
+                self.package_version1.package.ecosystem,
+                dependency1.package_manager,
                 self.package_version1.package_id,
                 self.service1["service_id"],
                 [self.service1["service_name"]],
