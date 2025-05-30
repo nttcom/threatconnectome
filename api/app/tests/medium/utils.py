@@ -6,6 +6,7 @@ from datetime import datetime
 from hashlib import sha256
 from io import DEFAULT_BUFFER_SIZE, BytesIO
 from pathlib import Path
+from typing import Any
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -106,13 +107,8 @@ def upload_pteam_packages(
     user: dict,
     pteam_id: UUID | str,
     service_name: str,
-    ext_packages: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
+    ext_packages: list[dict[str, Any]],
 ) -> list[schemas.ExtPackageResponse]:
-    """
-    The input data format has changed due to a change in the API specifications,
-      but this function receives data in the format before the change,
-      converts it to the format after the change, and executes the API.
-    """
     params = {"service": service_name}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
         for ext_package in ext_packages:
@@ -145,7 +141,6 @@ def create_vuln(
     user: dict,
     vuln: dict,
 ) -> schemas.VulnResponse:
-
     response = client.put(f'/vulns/{vuln["vuln_id"]}', headers=headers(user), json=vuln)
 
     if response.status_code != 200:
