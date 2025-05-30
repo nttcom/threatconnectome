@@ -11,9 +11,9 @@ from app.business import ticket_business
 from app.main import app
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
+    PACKAGE1,
     PTEAM1,
     PTEAM2,
-    TAG1,
     USER1,
     USER2,
     VULN1,
@@ -23,6 +23,7 @@ from app.tests.medium.utils import (
     accept_pteam_invitation,
     create_pteam,
     create_user,
+    create_vuln,
     headers,
     invite_to_pteam,
     set_ticket_status,
@@ -165,10 +166,10 @@ class TestGetTicketCountsTiedToServicePackage:
 
 
 class TestTicketStatus:
-
     class Common:
         @pytest.fixture(scope="function", autouse=True)
         def common_setup(self):
+            # Given
             self.user1 = create_user(USER1)
             self.user2 = create_user(USER2)
             self.pteam1 = create_pteam(USER1, PTEAM1)
@@ -177,41 +178,19 @@ class TestTicketStatus:
 
             # add test_service to pteam1
             test_service = "test_service"
-            test_target = "test target"
-            test_version = "1.2.3"
-            refs0 = {TAG1: [(test_target, test_version)]}
-            upload_pteam_packages(USER1, self.pteam1.pteam_id, test_service, refs0)
+            ext_packages = [
+                {
+                    **PACKAGE1,
+                    "references": [{"target": "test target", "version": "1.2.3"}],
+                }
+            ]
+            upload_pteam_packages(USER1, self.pteam1.pteam_id, test_service, ext_packages)
             self.service_id1 = self._get_service_id_by_service_name(
                 USER1, self.pteam1.pteam_id, test_service
             )
 
-        def create_vuln(self, user: dict) -> str:
-            request: dict = {
-                "title": "Example vuln",
-                "cve_id": "CVE-0000-0001",
-                "detail": "This vuln is example.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.8,
-                "vulnerable_packages": [
-                    {
-                        "name": "alpha",
-                        "ecosystem": "alpha2",
-                        "affected_versions": ["<999.99.9"],
-                        "fixed_versions": ["999.99.9"],
-                    }
-                ],
-            }
-            vuln_id: str = str(uuid4())
-            response = client.put(f"/vulns/{vuln_id}", headers=headers(user), json=request)
-            if response.status_code != 200:
-                raise HTTPError(response)
-            return vuln_id
-
-        @pytest.fixture(scope="function", autouse=False)
-        def actionable_topic1(self):
-            vuln_id1 = self.create_vuln(USER1)
-            tickets = self._get_tickets(self.pteam1.pteam_id, self.service_id1, vuln_id1)
+            vuln1 = create_vuln(USER1, VULN1)
+            tickets = self._get_tickets(self.pteam1.pteam_id, self.service_id1, vuln1.vuln_id)
             self.ticket_id1 = tickets[0]["ticket_id"]
 
         @staticmethod
@@ -258,8 +237,7 @@ class TestTicketStatus:
             return client.put(url, headers=_headers, json=request).json()
 
     class TestGet(Common):
-
-        def test_returns_initial_status_if_no_status_created(self, actionable_topic1):
+        def test_returns_initial_status_if_no_status_created(self):
             url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
             user1_access_token = self._get_access_token(USER1)
             _headers = {
@@ -288,7 +266,7 @@ class TestTicketStatus:
             created_at = datetime.fromisoformat(data["created_at"])
             assert now - timedelta(seconds=10) < created_at < now
 
-        def test_returns_current_status_if_status_created(self, actionable_topic1):
+        def test_returns_current_status_if_status_created(self):
             status_request = {
                 "vuln_status": models.VulnStatusType.scheduled.value,
                 "assignees": [str(self.user2.user_id)],
@@ -322,7 +300,6 @@ class TestTicketStatus:
             assert data == expected_status
 
     class TestSet(Common):
-
         def common_setup_for_set_ticket_status(self, vuln_status, need_scheduled_at, scheduled_at):
             status_request = {
                 "assignees": [str(self.user2.user_id)],
@@ -341,7 +318,7 @@ class TestTicketStatus:
             response = client.put(url, headers=_headers, json=status_request)
             return response
 
-        def test_set_requested_status(self, actionable_topic1):
+        def test_set_requested_status(self):
             status_request = {
                 "vuln_status": models.VulnStatusType.scheduled.value,
                 "assignees": [str(self.user2.user_id)],
@@ -381,7 +358,6 @@ class TestTicketStatus:
         )
         def test_it_should_return_400_when_required_fields_is_None(
             self,
-            actionable_topic1,
             field_name,
             expected_response_detail,
         ):
@@ -420,7 +396,6 @@ class TestTicketStatus:
         )
         def test_it_should_return_400_when_vuln_status_is_alerted(
             self,
-            actionable_topic1,
             vuln_status,
             scheduled_at,
             expected_response_detail,
@@ -456,7 +431,6 @@ class TestTicketStatus:
         )
         def test_it_should_return_400_when_vuln_statuss_is_not_scheduled_and_schduled_at_is_time(
             self,
-            actionable_topic1,
             vuln_status,
             scheduled_at,
             expected_response_detail,
@@ -490,7 +464,6 @@ class TestTicketStatus:
         )
         def test_it_should_return_400_when_schduled_at_is_not_future_time(
             self,
-            actionable_topic1,
             vuln_status,
             need_scheduled_at,
             scheduled_at,
@@ -521,7 +494,6 @@ class TestTicketStatus:
         )
         def test_it_should_return_200_when_vuln_statuss_and_schduled_at_have_the_correct_values(
             self,
-            actionable_topic1,
             vuln_status,
             need_scheduled_at,
             scheduled_at,
@@ -557,7 +529,6 @@ class TestTicketStatus:
         )
         def test_it_should_return_400_when_previous_status_is_schduled_and_schduled_at_is_reset(
             self,
-            actionable_topic1,
             current_vuln_status,
             current_scheduled_at,
             expected_response_detail,
@@ -596,7 +567,6 @@ class TestTicketStatus:
         )
         def test_it_should_return_400_when_vuln_status_and_scheduled_at_is_not_appropriate(
             self,
-            actionable_topic1,
             current_vuln_status,
             current_scheduled_at,
             expected_response_detail,
@@ -638,7 +608,6 @@ class TestTicketStatus:
         )
         def test_it_should_return_200_when_previous_and_current_status_have_the_correct_values(
             self,
-            actionable_topic1,
             current_vuln_status,
             need_scheduled_at,
             current_scheduled_at,
@@ -679,9 +648,7 @@ class TestTicketStatus:
                 _scheduled_at = previous_scheduled_at
             assert set_response["scheduled_at"] == _scheduled_at
 
-        def test_it_should_set_requester_if_assignee_is_not_specify_and_saved_current_user(
-            self, actionable_topic1
-        ):
+        def test_it_should_set_requester_if_assignee_is_not_specify_and_saved_current_user(self):
             status_request = {
                 "vuln_status": models.VulnStatusType.completed.value,
                 "note": "assign None",
