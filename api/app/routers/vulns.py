@@ -28,7 +28,7 @@ def update_vuln(
     if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
         vuln_response = __handle_create_vuln(vuln_id, request, current_user, db)
     else:
-        vuln_response = __handle_update_vuln(vuln, vuln_id, request, current_user, db)
+        vuln_response = __handle_update_vuln(vuln, request, current_user, db)
 
     db.commit()
 
@@ -38,29 +38,23 @@ def update_vuln(
 def __handle_create_vuln(
     vuln_id: UUID, request: schemas.VulnUpdate, current_user: models.Account, db: Session
 ):
-    # TODO: It may be unnecessary to check
     if vuln_id == UUID(int=0):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create default vuln"
         )
 
     # check request format
-    if (request.title is None) or (request.detail is None):
+    update_request = request.model_dump(exclude_unset=True)
+    if ("title" not in update_request.keys()) or ("detail" not in update_request.keys()):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Both 'title' and 'detail' are required when creating a vuln.",
         )
 
+    _check_request_fields(request, update_request)
+
     # check packages
     requested_packages = _get_requested_packages(db, request.vulnerable_packages)
-
-    # check cvss_v3_score range
-    if request.cvss_v3_score is not None:
-        if request.cvss_v3_score > 10.0 or request.cvss_v3_score < 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="cvss_v3_score is out of range",
-            )
 
     # create vuln
     now = datetime.now()
@@ -125,7 +119,6 @@ def __handle_create_vuln(
 
 def __handle_update_vuln(
     vuln: models.Vuln,
-    vuln_id: UUID,
     request: schemas.VulnUpdate,
     current_user: models.Account,
     db: Session,
@@ -138,28 +131,7 @@ def __handle_update_vuln(
 
     # check request format
     update_request = request.model_dump(exclude_unset=True)
-    fields_to_check = [
-        "title",
-        "detail",
-        "exploitation",
-        "automatable",
-    ]
-    for field in fields_to_check:
-        if field in update_request.keys() and getattr(request, field) is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Cannot specify None for {field}",
-            )
-
-    if (
-        "cvss_v3_score" in update_request.keys()
-        and request.cvss_v3_score is not None
-        and (request.cvss_v3_score > 10.0 or request.cvss_v3_score < 0)
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="cvss_v3_score is out of range",
-        )
+    _check_request_fields(request, update_request)
 
     # update vuln
     if "title" in update_request.keys() and request.title is not None:
@@ -187,14 +159,14 @@ def __handle_update_vuln(
         for package_id, vulnerable_package in requested_packages.items():
             if (
                 persisted_affect := persistence.get_affect_by_package_id_and_vuln_id(
-                    db, package_id, vuln_id
+                    db, package_id, vuln.vuln_id
                 )
             ) is not None:
                 persisted_affect.affected_versions = vulnerable_package.affected_versions
                 persisted_affect.fixed_versions = vulnerable_package.fixed_versions
             else:
                 new_affect = models.Affect(
-                    vuln_id=str(vuln_id),
+                    vuln_id=str(vuln.vuln_id),
                     package_id=package_id,
                     affected_versions=vulnerable_package.affected_versions,
                     fixed_versions=vulnerable_package.fixed_versions,
@@ -233,6 +205,39 @@ def __handle_update_vuln(
         cvss_v3_score=vuln.cvss_v3_score,
         vulnerable_packages=vulnerable_packages,
     )
+
+
+def _check_request_fields(request: schemas.VulnUpdate, update_request: dict):
+    fields_to_check = [
+        "title",
+        "detail",
+        "exploitation",
+        "automatable",
+    ]
+    for field in fields_to_check:
+        if field in update_request.keys() and getattr(request, field) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot specify None for {field}",
+            )
+
+    # check cvss_v3_score range
+    if request.cvss_v3_score is not None:
+        if request.cvss_v3_score > 10.0 or request.cvss_v3_score < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="cvss_v3_score is out of range",
+            )
+
+    name_ecosystem_pairs = set()
+    for vuln_pkg in request.vulnerable_packages:
+        pair = (vuln_pkg.name, vuln_pkg.ecosystem)
+        if pair in name_ecosystem_pairs:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Duplicate package {vuln_pkg.name} in ecosystem {vuln_pkg.ecosystem}",
+            )
+        name_ecosystem_pairs.add(pair)
 
 
 def _get_requested_packages(db: Session, vulnerable_packages: list) -> dict:
