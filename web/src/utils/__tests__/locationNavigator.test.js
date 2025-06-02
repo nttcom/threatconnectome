@@ -19,7 +19,7 @@ test.each([
   },
   // navigate location.pathname in tag page
   {
-    locationPathname: "/tags/dummyTagId1",
+    locationPathname: "/packages/dummyPackageId1",
     locationSearch: "?pteamId=dummyPteamId1",
     pteamRoles: [],
     navigateCallCount: 1,
