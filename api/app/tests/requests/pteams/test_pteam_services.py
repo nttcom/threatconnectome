@@ -309,9 +309,7 @@ def test_remove_pteam_by_service_id(testdb):
     response2 = upload_pteam_packages(USER1, pteam1.pteam_id, service2, ext_packages)
 
     for extPackage in response2:
-        print("testes extPackage:", extPackage)
         for reference in extPackage.references:
-            print("testes reference:", reference)
             assert reference.service in [service1, service2]
 
     def _get_service_id(testdb, pteam_id, service_name):

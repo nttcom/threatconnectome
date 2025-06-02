@@ -248,6 +248,11 @@ def create_package_version(db: Session, package_version: models.PackageVersion) 
     db.flush()
 
 
+def delete_package_version(db: Session, package_version: models.PackageVersion) -> None:
+    db.delete(package_version)
+    db.flush()
+
+
 ### Threat
 
 

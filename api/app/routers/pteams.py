@@ -1236,6 +1236,7 @@ def apply_service_packages(
     for obsoleted in obsoleted_dependencies:
         package = obsoleted.package_version.package
         service.dependencies.remove(obsoleted)
+        db.flush()
         package_business.fix_package(db, package)
     # create new dependencies
     for [package_version_id, target, package_manager] in new_dependencies_set:
@@ -1275,7 +1276,16 @@ def remove_service(
         # do not raise error even if specified service does not exist
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
+    related_packages = set()
+    for dependency in service.dependencies:
+        package = dependency.package_version.package
+        related_packages.add(package)
+
     pteam.services.remove(service)
+    db.flush()
+
+    for package in related_packages:
+        package_business.fix_package(db, package)
 
     db.commit()
 
@@ -1526,7 +1536,17 @@ def delete_pteam(
     if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
+    related_packages = set()
+    for service in pteam.services:
+        for dependency in service.dependencies:
+            package = dependency.package_version.package
+            related_packages.add(package)
+
     persistence.delete_pteam(db, pteam)
+    db.flush()
+
+    for package in related_packages:
+        package_business.fix_package(db, package)
 
     db.commit()
 
