@@ -260,6 +260,9 @@ class TestUpdateVuln:
             )
         )
 
+        if previous_ticket is None:
+            raise Exception("previous_ticket is None")
+
         # When
         response = client.put(f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=request)
 

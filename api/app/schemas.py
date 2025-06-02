@@ -104,6 +104,7 @@ class ExtPackageResponse(ORMModel):
     ecosystem: str
     references: list[Reference] = []
 
+
 class PTeamServiceResponse(ORMModel):
     service_name: str
     service_id: UUID
