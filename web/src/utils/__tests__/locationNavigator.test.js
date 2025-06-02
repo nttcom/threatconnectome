@@ -17,9 +17,9 @@ test.each([
     navigateCallCount: 1,
     expectedParam: "",
   },
-  // navigate location.pathname in tag page
+  // navigate location.pathname in package page
   {
-    locationPathname: "/tags/dummyTagId1",
+    locationPathname: "/packages/dummyPackageId1",
     locationSearch: "?pteamId=dummyPteamId1",
     pteamRoles: [],
     navigateCallCount: 1,
