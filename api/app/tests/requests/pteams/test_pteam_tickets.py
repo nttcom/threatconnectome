@@ -1174,7 +1174,7 @@ class TestPutTicket:
         )
         assert response.status_code == 200
         data = response.json()
-        print(data)
+
         assert data["ticket_id"] == str(self.ticket1.ticket_id)
         assert data["vuln_id"] == str(self.vuln1.vuln_id)
         assert data["dependency_id"] == str(self.dependency1.dependency_id)

@@ -241,7 +241,7 @@ class TestUpdateVuln:
         vuln = testdb.scalars(
             select(models.Vuln).where(models.Vuln.vuln_id == str(self.vuln1.vuln_id))
         ).one_or_none()
-        print(response.json()["detail"])
+
         assert response.status_code == 200
         assert vuln is not None
         assert self.affect1.affected_versions != vuln.affects[0].affected_versions
