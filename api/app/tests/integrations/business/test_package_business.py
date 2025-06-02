@@ -128,7 +128,7 @@ class TestFixPackage:
             is not None
         )
 
-    def test_it_should_not_delete_package_when_has_affect(
+    def test_it_should_not_delete_package_and_delete_package_version_when_has_affect(
         self,
         testdb: Session,
         package1: models.Package,
@@ -159,7 +159,7 @@ class TestFixPackage:
                     models.PackageVersion.package_version_id == package_version.package_version_id
                 )
             ).first()
-            is not None
+            is None
         )
         assert (
             testdb.execute(

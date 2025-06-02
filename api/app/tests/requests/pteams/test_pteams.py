@@ -16,10 +16,10 @@ from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     PTEAM1,
     PTEAM2,
-    TOPIC1,
     USER1,
     USER2,
     USER3,
+    VULN1,
 )
 from app.tests.medium.utils import (
     accept_pteam_invitation,
@@ -664,17 +664,20 @@ def test_it_should_return_400_when_try_to_remove_last_admin():
 class TestDeletePteam:
     @pytest.fixture(scope="function")
     def pteam_setup(self, testdb: Session):
-        ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, TOPIC1)
+        service_name1 = "test_service1"
+        ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, service_name1, VULN1)
         created_pteam_id = ticket_response["pteam_id"]
         created_service_id = ticket_response["service_id"]
 
         dependencies_response = client.get(
-            f"/pteams/{created_pteam_id}/services/{created_service_id}/dependencies",
+            f"/pteams/{created_pteam_id}/dependencies?service_id={created_service_id}",
             headers=headers(USER1),
         )
         created_dependency = dependencies_response.json()[0]
 
-        image_filepath = Path(__file__).resolve().parent / "upload_test" / "image" / "yes_image.png"
+        image_filepath = (
+            Path(__file__).resolve().parent.parent / "upload_test" / "image" / "yes_image.png"
+        )
         with open(image_filepath, "rb") as image_file:
             client.post(
                 f"/pteams/{created_pteam_id}/services/{created_service_id}/thumbnail",
@@ -750,7 +753,7 @@ class TestDeletePteam:
         assert deleted_ticket is None
         assert deleted_ticket_status is None
 
-    def test_raise_403_if_user_is_not_pteam_admin(self, testdb: Session, pteam_setup):
+    def test_raise_403_if_user_is_not_pteam_admin(self, pteam_setup):
         create_user(USER2)
         pteam_id = pteam_setup["pteam_id"]
 
@@ -763,7 +766,7 @@ class TestDeletePteam:
         assert delete_pteam_response.status_code == 403
         assert delete_pteam_response.json()["detail"] == "You do not have authority"
 
-    def test_raise_404_if_invalid_pteam_id(self, testdb: Session, pteam_setup):
+    def test_raise_404_if_invalid_pteam_id(self, pteam_setup):
         wrong_pteam_id = str(uuid4())
 
         # delete pteam

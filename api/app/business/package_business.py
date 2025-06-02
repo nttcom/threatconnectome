@@ -1,14 +1,18 @@
-from sqlalchemy.orm import Session
 from typing import Sequence
+
+from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
 
 
 def fix_package(db: Session, package: models.Package) -> None:
+    is_referenced_by_dependency = False
     for package_version in package.package_versions:
-        if len(package_version.dependencies) > 0:
-            return
-    if len(package.affects) > 0:
+        if len(package_version.dependencies) == 0:
+            persistence.delete_package_version(db, package_version)
+        else:
+            is_referenced_by_dependency = True
+    if is_referenced_by_dependency or len(package.affects) > 0:
         return
     persistence.delete_package(db, package)
 

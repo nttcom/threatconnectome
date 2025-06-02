@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app import models
 from app.constants import SYSTEM_EMAIL
@@ -25,8 +26,6 @@ from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     PTEAM1,
     SAMPLE_SLACK_WEBHOOK_URL,
-    TAG1,
-    TOPIC1,
     USER1,
     VULN1,
     VULN2,
@@ -1226,3 +1225,103 @@ class TestPostUploadPackagesFile:
             seconds=30
         )
         assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
+
+
+class TestDeletePteam:
+    def test_it_should_delete_package_when_delete_pteam(self, testdb: Session):
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        # Uploaded sbom file.
+        # Create package, package_version, service and dependency table
+        service_name1 = "test_service1"
+        upload_file_name = "test_trivy_cyclonedx_axios.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name1, upload_file_name)
+
+        # Saerch service table
+        service_id = testdb.scalars(
+            select(models.Service.service_id).where(
+                models.Service.pteam_id == str(pteam1.pteam_id),
+                models.Service.service_name == service_name1,
+            )
+        ).one()
+
+        dependencies_response = client.get(
+            f"/pteams/{pteam1.pteam_id}/dependencies?service_id={service_id}",
+            headers=headers(USER1),
+        )
+        created_dependency = dependencies_response.json()[0]
+        package_version_id = created_dependency["package_version_id"]
+        package_id = created_dependency["package_id"]
+
+        # When
+        client.delete(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1))
+
+        # Then
+        package_version = testdb.scalars(
+            select(models.PackageVersion).where(
+                models.PackageVersion.package_version_id == str(package_version_id)
+            )
+        ).one_or_none()
+        assert package_version is None
+        package = testdb.scalars(
+            select(models.Package).where(models.Package.package_id == str(package_id))
+        ).one_or_none()
+        assert package is None
+
+
+class TestDeleteService:
+    def test_it_should_delete_package_when_delete_service(self, testdb: Session):
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        # Uploaded sbom file.
+        # Create package, package_version, service and dependency table
+        service_name1 = "test_service1"
+        upload_file_name = "test_trivy_cyclonedx_axios.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name1, upload_file_name)
+
+        # Saerch service table
+        service_id = testdb.scalars(
+            select(models.Service.service_id).where(
+                models.Service.pteam_id == str(pteam1.pteam_id),
+                models.Service.service_name == service_name1,
+            )
+        ).one()
+
+        dependencies_response = client.get(
+            f"/pteams/{pteam1.pteam_id}/dependencies?service_id={service_id}",
+            headers=headers(USER1),
+        )
+        created_dependency = dependencies_response.json()[0]
+        package_version_id = created_dependency["package_version_id"]
+        package_id = created_dependency["package_id"]
+
+        # When
+        client.delete(f"/pteams/{pteam1.pteam_id}/services/{service_id}", headers=headers(USER1))
+
+        # Then
+        package_version = testdb.scalars(
+            select(models.PackageVersion).where(
+                models.PackageVersion.package_version_id == str(package_version_id)
+            )
+        ).one_or_none()
+        assert package_version is None
+        package = testdb.scalars(
+            select(models.Package).where(models.Package.package_id == str(package_id))
+        ).one_or_none()
+        assert package is None

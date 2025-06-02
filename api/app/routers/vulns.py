@@ -202,6 +202,7 @@ def __handle_update_vuln(
                 persistence.create_affect(db, new_affect)
 
     vuln.updated_at = datetime.now()
+    db.flush()
 
     new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
     for threat in new_threats:

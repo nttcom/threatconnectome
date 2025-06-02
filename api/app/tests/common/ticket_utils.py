@@ -54,5 +54,6 @@ def create_ticket(testdb: Session, user: dict, pteam: dict, service_name: str, v
         "package_id": str(package_version.package_id),
         "package_version_id": str(package_version.package_version_id),
         "vuln_id": str(vuln1.vuln_id),
+        "threat_id": str(ticket.threat.threat_id),
         "ticket_id": str(ticket.ticket_id),
     }
