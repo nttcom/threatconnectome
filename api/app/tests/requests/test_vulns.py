@@ -47,7 +47,13 @@ class TestUpdateVuln:
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
-                }
+                },
+                {
+                    "name": "@nextui-org/button",
+                    "ecosystem": "npm",
+                    "affected_versions": ["<2.0.26"],
+                    "fixed_versions": ["2.0.26"],
+                },
             ],
         }
         testdb.commit()
@@ -207,7 +213,7 @@ class TestUpdateVuln:
         assert response.status_code == 400
         assert response.json()["detail"] == "Cannot create default vuln"
 
-    def test_raise_400_if_requested_title_is_None(self):
+    def test_raise_400_if_requested_title_is_not_specified(self):
         # Given
         new_vuln_id = uuid4()
         title_none_request = {
@@ -237,7 +243,7 @@ class TestUpdateVuln:
             == "Both 'title' and 'detail' are required when creating a vuln."
         )
 
-    def test_raise_400_if_requested_detail_is_None(self):
+    def test_raise_400_if_requested_detail_is_not_specified(self):
         # Given
         new_vuln_id = uuid4()
         detail_none_request = {
@@ -266,6 +272,36 @@ class TestUpdateVuln:
             response.json()["detail"]
             == "Both 'title' and 'detail' are required when creating a vuln."
         )
+
+    def test_raise_400_if_duplicates_vulnerable_packages(self):
+        # Given
+        new_vuln_id = uuid4()
+        out_of_range_cvss_request = {
+            "title": "Example vuln",
+            "detail": "This vuln is example.",
+            "vulnerable_packages": [
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                },
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<3.0.0"],
+                    "fixed_versions": ["3.0.0"],
+                },
+            ],
+        }
+        # When
+        response = client.put(
+            f"/vulns/{new_vuln_id}", headers=headers(USER1), json=out_of_range_cvss_request
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Duplicate package example-lib in ecosystem pypi"
 
     def test_raise_400_if_cvss_v3_score_is_out_of_range(self):
         # Given
@@ -317,9 +353,43 @@ class TestUpdateVuln:
             "automatable",
         ],
     )
-    def test_raise_400_if_field_update_with_none(self, update_setup, field_name) -> None:
+    def test_raise_400_when_create_if_field_with_none(self, field_name) -> None:
         # Given
-        invalid_request: dict[str, Any] = {
+        new_vuln_id = uuid4()
+        request = {
+            "title": "Example vuln",
+            "cve_id": "CVE-0000-0001",
+            "detail": "This vuln is example.",
+            "cvss_v3_score": 7.8,
+            "vulnerable_packages": [
+                {
+                    "name": "example-lib",
+                    "ecosystem": "pypi",
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                }
+            ],
+        }
+        request[f"{field_name}"] = None
+
+        # When
+        response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=request)
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == f"Cannot specify None for {field_name}"
+
+    @pytest.mark.parametrize(
+        "field_name",
+        [
+            "title",
+            "detail",
+            "exploitation",
+            "automatable",
+        ],
+    )
+    def test_raise_400_when_update_if_field_with_none(self, update_setup, field_name):
+        # Given
+        invalid_request = {
             f"{field_name}": None,
         }
 
