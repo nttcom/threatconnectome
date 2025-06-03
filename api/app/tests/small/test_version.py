@@ -26,33 +26,45 @@ class TestComparableVersion:
             [
                 # might be tested in univers.
                 # for details, see https://manpages.debian.org/jessie/dpkg-dev/deb-version.5.en.html
+                ("1", (0, "1", "0")),
+                ("1.2", (0, "1.2", "0")),
+                ("1:2", (1, "2", "0")),
+                ("1:2.3", (1, "2.3", "0")),
+                ("0:2", (0, "2", "0")),
+                ("1.2-3.4", (0, "1.2", "3.4")),
+                ("1.2-3-4", (0, "1.2-3", "4")),
+            ],
+        )
+        def test_return_version_instance_when_given_valid_version_string_for_debian(
+            self, version_string, expected
+        ):
+            version_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, version_string)
+            assert isinstance(version_obj, ExtDebianVersion)
+            assert (version_obj.epoch, version_obj.upstream, version_obj.revision) == expected
+
+        @pytest.mark.parametrize(
+            "version_string, expected",
+            # expected: Union[tuple[int, str, str], str] -- (epoch, upstream, revision) or exception
+            [
+                # might be tested in univers.
+                # for details, see https://manpages.debian.org/jessie/dpkg-dev/deb-version.5.en.html
                 ("", "Invalid version string"),
                 ("a", "Invalid version string"),
                 ("a.1", "Invalid version string"),
-                ("1", (0, "1", "0")),
-                ("1.2", (0, "1.2", "0")),
                 (":", "Invalid version string"),
                 (":2", "Invalid version string"),
                 ("-1:2", "Invalid version string"),
                 ("a:1.2", "Invalid version string"),
                 ("1a:1.2", "Invalid version string"),
                 ("1:", "Invalid version string"),
-                ("1:2", (1, "2", "0")),
-                ("1:2.3", (1, "2.3", "0")),
-                ("0:2", (0, "2", "0")),
                 ("1.2:3", "Invalid version string"),
-                ("1.2-3.4", (0, "1.2", "3.4")),
-                ("1.2-3-4", (0, "1.2-3", "4")),
             ],
         )
-        def test_gen_instance(self, version_string, expected):
-            if isinstance(expected, str):
-                with pytest.raises(ValueError, match=expected):
-                    version_factory.gen_version_instance(PackageFamily.DEBIAN, version_string)
-                return
-            version_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, version_string)
-            assert isinstance(version_obj, ExtDebianVersion)
-            assert (version_obj.epoch, version_obj.upstream, version_obj.revision) == expected
+        def test_raise_invalid_version_string_error_when_given_invalid_version_string_for_debian(
+            self, version_string, expected
+        ):
+            with pytest.raises(ValueError, match=expected):
+                version_factory.gen_version_instance(PackageFamily.DEBIAN, version_string)
 
         @pytest.mark.parametrize(
             "left, right, operator, expected",
