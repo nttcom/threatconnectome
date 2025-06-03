@@ -115,30 +115,23 @@ class TestComparableVersion:
                 ("1.2-3-4", "1.2-3-5", "==", True),
             ],
         )
-        def test_compare(self, left, right, operator, expected):
+        def test_version_instances_can_be_properly_compared_using_comparison_operator(
+            self, left, right, operator, expected
+        ):
             left_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, left)
             right_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, right)
-            if isinstance(expected, str):
-                with pytest.raises(ValueError, match=expected):
-                    self.eval_operator(left_obj, right_obj, operator)
-                return
             assert self.eval_operator(left_obj, right_obj, operator) == expected
 
-        @pytest.mark.parametrize(
-            "package_family, version_string, expected",
-            [
-                (PackageFamily.DEBIAN, "1.2.3", True),
-                (PackageFamily.UNKNOWN, "1.2.3", " not supported between instances of "),
-            ],
-        )
-        def test_compare_with_different_family(self, package_family, version_string, expected):
+        def test_comparing_version_instances_with_different_package_families_raises_value_error(
+            self,
+        ):
+            expected = " not supported between instances of "
             debian_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, "1.2.3")
-            target_obj = version_factory.gen_version_instance(package_family, version_string)
+            target_obj = version_factory.gen_version_instance(PackageFamily.UNKNOWN, "1.2.3")
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
                     assert debian_obj >= target_obj
                 return
-            assert (debian_obj >= target_obj and debian_obj <= target_obj) == expected
 
     class TestPypiVersion(_TestVersion):
         @pytest.mark.parametrize(
