@@ -1353,7 +1353,8 @@ class TestPutTicket:
         )
         assert response.status_code == 400
         assert (
-            "Too long ticket_safety_impact_change_reason. Max length is 500 in half-width or 250 in full-width"
+            "Too long ticket_safety_impact_change_reason."
+            + " Max length is 500 in half-width or 250 in full-width"
             in response.json()["detail"]
         )
 
