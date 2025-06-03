@@ -277,12 +277,6 @@ def get_threat_by_package_version_id_and_vuln_id(
     ).one_or_none()
 
 
-def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None:
-    return db.scalars(
-        select(models.Threat).where(models.Threat.threat_id == str(threat_id))
-    ).one_or_none()
-
-
 ### Ticket
 
 
@@ -351,9 +345,9 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
 ### Dependency
 
 
-def get_dependency_from_service_id_and_package_id(
+def get_dependencies_from_service_id_and_package_id(
     db: Session, service_id: UUID | str, package_id: UUID | str
-) -> models.Dependency | None:
+) -> Sequence[models.Dependency]:
     return db.scalars(
         select(models.Dependency)
         .join(models.PackageVersion)
@@ -361,7 +355,7 @@ def get_dependency_from_service_id_and_package_id(
             models.Dependency.service_id == str(service_id),
             models.PackageVersion.package_id == str(package_id),
         )
-    ).first()
+    ).all()
 
 
 ### Alert

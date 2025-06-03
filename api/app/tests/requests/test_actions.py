@@ -70,7 +70,7 @@ class TestCreateAction:
         assert response.status_code == 400
         assert response.json() == {"detail": "No such vuln"}
 
-    def test_raise_400_if_vuln_id_is_none(self):
+    def test_raise_422_if_vuln_id_is_none(self):
         """
         Test that create_action raises a 400 error if vuln_id is None.
         """
@@ -90,8 +90,7 @@ class TestCreateAction:
         )
 
         # Then
-        assert response.status_code == 400
-        assert response.json() == {"detail": "Missing vuln_id"}
+        assert response.status_code == 422
 
 
 class TestUpdateAction:

@@ -85,10 +85,10 @@ class TestAlert:
                 f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=pteam_request
             )
 
-            dependency1 = persistence.get_dependency_from_service_id_and_package_id(
+            dependencies = persistence.get_dependencies_from_service_id_and_package_id(
                 testdb, self.service1["service_id"], self.package_version1.package_id
             )
-            if dependency1 is None:
+            if len(dependencies) == 0:
                 raise Exception("Dependency not found")
 
             # When
@@ -105,7 +105,7 @@ class TestAlert:
                 self.pteam1.pteam_id,
                 self.package_version1.package.name,
                 self.package_version1.package.ecosystem,
-                dependency1.package_manager,
+                dependencies[0].package_manager,
                 self.package_version1.package_id,
                 self.service1["service_id"],
                 [self.service1["service_name"]],

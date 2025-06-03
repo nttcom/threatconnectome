@@ -146,7 +146,7 @@ def validate_cve_id(value):
 
 
 class ActionCreateRequest(ORMModel):
-    vuln_id: UUID | None = None  # can be None if using in create_vuln()
+    vuln_id: UUID
     action: str = Field(..., max_length=1024)
     action_type: ActionType
     recommended: bool = False

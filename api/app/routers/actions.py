@@ -25,8 +25,6 @@ def create_action(
     """
     Create a vuln action.
     """
-    if not request.vuln_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing vuln_id")
     if not (vuln := persistence.get_vuln_by_id(db, request.vuln_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such vuln")
 

@@ -586,9 +586,10 @@ def get_vuln_ids_tied_to_service_package(
     if (
         service_id
         and package_id
-        and not persistence.get_dependency_from_service_id_and_package_id(
-            db, service_id, package_id
+        and len(
+            persistence.get_dependencies_from_service_id_and_package_id(db, service_id, package_id)
         )
+        == 0
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
 
@@ -637,9 +638,10 @@ def get_ticket_counts_tied_to_service_package(
     if (
         service_id
         and package_id
-        and not persistence.get_dependency_from_service_id_and_package_id(
-            db, service_id, package_id
+        and len(
+            persistence.get_dependencies_from_service_id_and_package_id(db, service_id, package_id)
         )
+        == 0
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
 
