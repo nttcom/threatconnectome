@@ -1,6 +1,4 @@
 import json
-import random
-import string
 import tempfile
 from datetime import datetime
 from hashlib import sha256
@@ -25,21 +23,12 @@ def assert_200(response) -> dict:
     return response.json()
 
 
-def assert_204(response):
-    if response.status_code != 204:
-        raise HTTPError(response)
-
-
 def headers(user: dict) -> dict:
     return get_access_token_headers(user["email"], user["pass"])
 
 
 def file_upload_headers(user: dict) -> dict:
     return get_file_upload_headers(user["email"], user["pass"])
-
-
-def random_string(number: int) -> str:
-    return "".join(random.choices(string.ascii_letters + string.digits, k=number))
 
 
 def create_user(user: dict) -> schemas.UserResponse:
@@ -207,13 +196,6 @@ def set_ticket_status(user: dict, pteam_id: UUID | str, ticket_id: UUID | str, j
         headers=headers(user),
         json=json,
     )
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return response.json()
-
-
-def common_put(user: dict, api_path: str, **kwargs) -> dict:
-    response = client.put(api_path, headers=headers(user), json=kwargs)
     if response.status_code != 200:
         raise HTTPError(response)
     return response.json()
