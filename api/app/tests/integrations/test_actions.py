@@ -56,7 +56,20 @@ class TestCreateAction:
     def test_vuln_action_triggers_ticket_creation(self, testdb: Session):
         # Given
         create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
+        # Create package, package_version, service and dependency table by upload sbom file
+        upload_file_name = "test_trivy_cyclonedx_axios.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        service_name = "Service1 name"
+        bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name, upload_file_name)
+
+        # Create a vuln
         ## If fixed_versions is not provided, a ticket will not be created without a vuln_action.
         no_fixed_versions_vuln_id = uuid4()
         no_fixed_versions_vuln_request: dict[str, Any] = {
@@ -68,8 +81,8 @@ class TestCreateAction:
             "cvss_v3_score": 7.8,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
-                    "ecosystem": "pypi",
+                    "name": "axios",
+                    "ecosystem": "npm",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": [],
                 }
@@ -82,46 +95,20 @@ class TestCreateAction:
             json=no_fixed_versions_vuln_request,
         )
 
-        pteam1 = create_pteam(USER1, PTEAM1)
+        no_fixed_versions_vuln = persistence.get_vuln_by_id(testdb, no_fixed_versions_vuln_id)
+        if no_fixed_versions_vuln is None:
+            raise Exception("no_fixed_versions_vuln is None")
 
-        service1 = models.Service(
-            service_name="Service1 name",
-            pteam_id=str(pteam1.pteam_id),
+        threat1 = (
+            no_fixed_versions_vuln.threats[0]
+            if no_fixed_versions_vuln and no_fixed_versions_vuln.threats
+            else None
         )
 
-        testdb.add(service1)
+        if threat1 is None:
+            raise Exception("threat1 is None")
 
-        package1 = persistence.get_package_by_name_and_ecosystem(
-            testdb,
-            str(no_fixed_versions_vuln_request["vulnerable_packages"][0]["name"]),
-            str(no_fixed_versions_vuln_request["vulnerable_packages"][0]["ecosystem"]),
-        )
-
-        if package1 is None:
-            raise Exception("package1 is None")
-
-        package_version = models.PackageVersion(
-            package_id=package1.package_id,
-            version="1.0.0",
-        )
-
-        persistence.create_package_version(testdb, package_version)
-
-        threat1 = models.Threat(
-            package_version_id=package_version.package_version_id, vuln_id=no_fixed_versions_vuln_id
-        )
-
-        persistence.create_threat(testdb, threat1)
-
-        dependency1 = models.Dependency(
-            service_id=str(service1.service_id),
-            package_version_id=package_version.package_version_id,
-            package_manager="npm",
-            target="dependency1 target",
-        )
-
-        testdb.add(dependency1)
-        testdb.commit()
+        dependency1 = testdb.scalars(select(models.Dependency)).one()
 
         # When
         action_create_request = {
@@ -321,14 +308,18 @@ class TestDeleteAction:
             json=action_create_request,
         )
 
-        vuln = persistence.get_vuln_by_id(testdb, no_fixed_versions_vuln_id)
-        if vuln is None:
-            raise Exception("Vulnerability not found")
+        no_fixed_versions_vuln = persistence.get_vuln_by_id(testdb, no_fixed_versions_vuln_id)
+        if no_fixed_versions_vuln is None:
+            raise Exception("no_fixed_versions_vuln is None")
 
-        threat1 = vuln.threats[0] if vuln and vuln.threats else None
+        threat1 = (
+            no_fixed_versions_vuln.threats[0]
+            if no_fixed_versions_vuln and no_fixed_versions_vuln.threats
+            else None
+        )
 
         if threat1 is None:
-            raise Exception("package1 is None")
+            raise Exception("threat1 is None")
 
         dependency1 = testdb.scalars(select(models.Dependency)).one()
         ticket_before_delete_action = persistence.get_ticket_by_threat_id_and_dependency_id(
