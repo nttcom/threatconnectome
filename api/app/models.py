@@ -360,7 +360,7 @@ class Ticket(Base):
     )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     ticket_safety_impact: Mapped[SafetyImpactEnum | None] = mapped_column(nullable=True)
-    reason_safety_impact: Mapped[str | None] = mapped_column(nullable=True)
+    ticket_safety_impact_change_reason: Mapped[str | None] = mapped_column(nullable=True)
     ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
 
     dependency = relationship("Dependency", back_populates="tickets")

@@ -867,7 +867,7 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
             "created_at": ticket.created_at,
             "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
             "ticket_safety_impact": ticket.ticket_safety_impact,
-            "reason_safety_impact": ticket.reason_safety_impact,
+            "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
             "ticket_status": ticket.ticket_status.__dict__,
         }
         for ticket in tickets
@@ -906,7 +906,7 @@ def get_ticket(
         "created_at": ticket.created_at,
         "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
         "ticket_safety_impact": ticket.ticket_safety_impact,
-        "reason_safety_impact": ticket.reason_safety_impact,
+        "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
         "ticket_status": ticket.ticket_status,
     }
 
@@ -939,25 +939,25 @@ def update_ticket_safety_impact(
     if "ticket_safety_impact" in updated_keys:
         need_fix_ssvc_priority = ticket.ticket_safety_impact != data.ticket_safety_impact
         ticket.ticket_safety_impact = data.ticket_safety_impact
-    if "reason_safety_impact" in updated_keys:
-        if data.reason_safety_impact and (
-            reason_safety_impact := data.reason_safety_impact.strip()
+    if "ticket_safety_impact_change_reason" in updated_keys:
+        if data.ticket_safety_impact_change_reason and (
+            ticket_safety_impact_change_reason := data.ticket_safety_impact_change_reason.strip()
         ):
             if (
-                count_full_width_and_half_width_characters(reason_safety_impact)
+                count_full_width_and_half_width_characters(ticket_safety_impact_change_reason)
                 > max_reason_safety_impact_length_in_half
             ):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=(
-                        f"Too long reason_safety_impact. "
+                        f"Too long ticket_safety_impact_change_reason. "
                         f"Max length is {max_reason_safety_impact_length_in_half} in half-width "
                         f"or {int(max_reason_safety_impact_length_in_half / 2)} in full-width"
                     ),
                 )
-            ticket.reason_safety_impact = reason_safety_impact
+            ticket.ticket_safety_impact_change_reason = ticket_safety_impact_change_reason
         else:
-            ticket.reason_safety_impact = None
+            ticket.ticket_safety_impact_change_reason = None
 
     if ticket and need_fix_ssvc_priority:
         db.flush()
@@ -974,7 +974,7 @@ def update_ticket_safety_impact(
         "created_at": ticket.created_at,
         "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
         "ticket_safety_impact": ticket.ticket_safety_impact,
-        "reason_safety_impact": ticket.reason_safety_impact,
+        "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
         "ticket_status": ticket.ticket_status,
     }
 

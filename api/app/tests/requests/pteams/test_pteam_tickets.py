@@ -756,7 +756,7 @@ class TestGetTickets:
                     if db_ticket1.ticket_safety_impact is None
                     else db_ticket1.ticket_safety_impact.value
                 ),
-                "reason_safety_impact": None,
+                "ticket_safety_impact_change_reason": None,
                 "ticket_status": {
                     "status_id": db_status1.status_id,  # do not check
                     "ticket_id": str(db_ticket1.ticket_id),
@@ -1165,7 +1165,7 @@ class TestPutTicket:
         }
         request = {
             "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
-            "reason_safety_impact": "Test reason for safety impact",
+            "ticket_safety_impact_change_reason": "Test reason for safety impact",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1181,7 +1181,10 @@ class TestPutTicket:
         assert data["created_at"] == self.ticket1.created_at.isoformat()
         assert data["ssvc_deployer_priority"] == models.VulnStatusType.scheduled.value
         assert data["ticket_safety_impact"] == request["ticket_safety_impact"]
-        assert data["reason_safety_impact"] == request["reason_safety_impact"]
+        assert (
+            data["ticket_safety_impact_change_reason"]
+            == request["ticket_safety_impact_change_reason"]
+        )
         assert data["ticket_status"]["status_id"] == self.ticket_status1.status_id
         assert data["ticket_status"]["ticket_id"] == str(self.ticket1.ticket_id)
         assert data["ticket_status"]["vuln_status"] == models.VulnStatusType.alerted.value
@@ -1192,7 +1195,7 @@ class TestPutTicket:
         assert data["ticket_status"]["scheduled_at"] is None
         assert data["ticket_status"]["action_logs"] == []
 
-    def test_it_should_update_reason_safety_impact(self):
+    def test_it_should_update_ticket_safety_impact_change_reason(self):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -1200,7 +1203,7 @@ class TestPutTicket:
             "accept": "application/json",
         }
         request = {
-            "reason_safety_impact": "Updated reason for safety impact",
+            "ticket_safety_impact_change_reason": "Updated reason for safety impact",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1209,9 +1212,9 @@ class TestPutTicket:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["reason_safety_impact"] == "Updated reason for safety impact"
+        assert data["ticket_safety_impact_change_reason"] == "Updated reason for safety impact"
 
-    def test_it_should_set_reason_safety_impact_none_when_blank(self):
+    def test_it_should_set_ticket_safety_impact_change_reason_none_when_blank(self):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -1219,9 +1222,9 @@ class TestPutTicket:
             "accept": "application/json",
         }
 
-        # Add a value to reason_safety_impact in advance
+        # Add a value to ticket_safety_impact_change_reason in advance
         set_request = {
-            "reason_safety_impact": "sample",
+            "ticket_safety_impact_change_reason": "sample",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1231,7 +1234,7 @@ class TestPutTicket:
 
         # In case of an empty string
         request = {
-            "reason_safety_impact": "",
+            "ticket_safety_impact_change_reason": "",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1240,11 +1243,11 @@ class TestPutTicket:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["reason_safety_impact"] is None
+        assert data["ticket_safety_impact_change_reason"] is None
 
-        # Add a value to reason_safety_impact in advance
+        # Add a value to ticket_safety_impact_change_reason in advance
         set_request = {
-            "reason_safety_impact": "sample",
+            "ticket_safety_impact_change_reason": "sample",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1254,7 +1257,7 @@ class TestPutTicket:
 
         # In case of whitespace characters
         request = {
-            "reason_safety_impact": "   ",
+            "ticket_safety_impact_change_reason": "   ",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1263,7 +1266,7 @@ class TestPutTicket:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["reason_safety_impact"] is None
+        assert data["ticket_safety_impact_change_reason"] is None
 
     def test_it_should_keep_previous_values_when_ticket_safety_impact_and_reason_not_specified(
         self,
@@ -1277,7 +1280,7 @@ class TestPutTicket:
 
         initial_request = {
             "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
-            "reason_safety_impact": "first reason",
+            "ticket_safety_impact_change_reason": "first reason",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1293,7 +1296,10 @@ class TestPutTicket:
         assert response.status_code == 200
         data = response.json()
         assert data["ticket_safety_impact"] == initial_request["ticket_safety_impact"]
-        assert data["reason_safety_impact"] == initial_request["reason_safety_impact"]
+        assert (
+            data["ticket_safety_impact_change_reason"]
+            == initial_request["ticket_safety_impact_change_reason"]
+        )
 
     def test_it_should_update_ticket_safety_impact_and_reason_to_none(self, testdb: Session):
         user1_access_token = self._get_access_token(USER1)
@@ -1305,7 +1311,7 @@ class TestPutTicket:
 
         initial_request = {
             "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
-            "reason_safety_impact": "some reason",
+            "ticket_safety_impact_change_reason": "some reason",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1316,7 +1322,7 @@ class TestPutTicket:
 
         request = {
             "ticket_safety_impact": None,
-            "reason_safety_impact": None,
+            "ticket_safety_impact_change_reason": None,
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1326,9 +1332,9 @@ class TestPutTicket:
         assert response.status_code == 200
         data = response.json()
         assert data["ticket_safety_impact"] is None
-        assert data["reason_safety_impact"] is None
+        assert data["ticket_safety_impact_change_reason"] is None
 
-    def test_it_should_return_400_when_reason_safety_impact_too_long(self):
+    def test_it_should_return_400_when_ticket_safety_impact_change_reason_too_long(self):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -1338,7 +1344,7 @@ class TestPutTicket:
         # 501 half-width characters（max is 500）
         too_long_reason = "a" * 501
         request = {
-            "reason_safety_impact": too_long_reason,
+            "ticket_safety_impact_change_reason": too_long_reason,
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1347,7 +1353,7 @@ class TestPutTicket:
         )
         assert response.status_code == 400
         assert (
-            "Too long reason_safety_impact. Max length is 500 in half-width or 250 in full-width"
+            "Too long ticket_safety_impact_change_reason. Max length is 500 in half-width or 250 in full-width"
             in response.json()["detail"]
         )
 
@@ -1361,7 +1367,7 @@ class TestPutTicket:
         wrong_ticket_id = str(uuid4())
         request = {
             "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
-            "reason_safety_impact": "Test reason",
+            "ticket_safety_impact_change_reason": "Test reason",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{wrong_ticket_id}",
@@ -1381,7 +1387,7 @@ class TestPutTicket:
         wrong_pteam_id = str(uuid4())
         request = {
             "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
-            "reason_safety_impact": "Test reason",
+            "ticket_safety_impact_change_reason": "Test reason",
         }
         response = client.put(
             f"/pteams/{wrong_pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1401,7 +1407,7 @@ class TestPutTicket:
         }
         request = {
             "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
-            "reason_safety_impact": "Test reason",
+            "ticket_safety_impact_change_reason": "Test reason",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1423,7 +1429,7 @@ class TestPutTicket:
 
         request = {
             "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
-            "reason_safety_impact": self.ticket1.reason_safety_impact,
+            "ticket_safety_impact_change_reason": self.ticket1.ticket_safety_impact_change_reason,
         }
 
         response = client.put(
@@ -1456,7 +1462,7 @@ class TestPutTicket:
 
         request = {
             "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
-            "reason_safety_impact": "update for test",
+            "ticket_safety_impact_change_reason": "update for test",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",
@@ -1483,7 +1489,7 @@ class TestPutTicket:
 
         request = {
             "ticket_safety_impact": "invalid_value",
-            "reason_safety_impact": "Test reason",
+            "ticket_safety_impact_change_reason": "Test reason",
         }
         response = client.put(
             f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket1.ticket_id}",

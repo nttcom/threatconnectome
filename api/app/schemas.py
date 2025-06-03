@@ -326,13 +326,13 @@ class TicketResponse(ORMModel):
     created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     ticket_safety_impact: SafetyImpactEnum | None
-    reason_safety_impact: str | None
+    ticket_safety_impact_change_reason: str | None
     ticket_status: TicketStatusResponse
 
 
 class TicketUpdateRequest(ORMModel):
     ticket_safety_impact: SafetyImpactEnum | None = None
-    reason_safety_impact: str | None = None
+    ticket_safety_impact_change_reason: str | None = None
 
 
 class PTeamPackagesSummary(ORMModel):

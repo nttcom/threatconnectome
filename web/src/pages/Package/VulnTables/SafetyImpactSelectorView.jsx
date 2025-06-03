@@ -29,7 +29,12 @@ import {
 import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 
 export function SafetyImpactSelectorView(props) {
-  const { fixedTicketSafetyImpact, fixedReasonSafetyImpact, onRevertedToDefault, onSave } = props;
+  const {
+    fixedTicketSafetyImpact,
+    fixedTicketSafetyImpactChangeReason,
+    onRevertedToDefault,
+    onSave,
+  } = props;
 
   const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
@@ -46,7 +51,9 @@ export function SafetyImpactSelectorView(props) {
       onRevertedToDefault();
     } else {
       setPendingSafetyImpact(e.target.value);
-      setPendingReasonSafetyImpact(fixedReasonSafetyImpact === null ? "" : fixedReasonSafetyImpact);
+      setPendingReasonSafetyImpact(
+        fixedTicketSafetyImpactChangeReason === null ? "" : fixedTicketSafetyImpactChangeReason,
+      );
       setOpenReasonDialog(true);
     }
   };
@@ -63,7 +70,7 @@ export function SafetyImpactSelectorView(props) {
   const handleReasonSafetyImpactLengthCheck = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxReasonSafetyImpactLengthInHalf) {
       enqueueSnackbar(
-        `Too long reason_safety_impact. Max length is ${maxReasonSafetyImpactLengthInHalf} in half-width or ${Math.floor(maxReasonSafetyImpactLengthInHalf / 2)} in full-width`,
+        `Too long ticket_safety_impact_change_reason. Max length is ${maxReasonSafetyImpactLengthInHalf} in half-width or ${Math.floor(maxReasonSafetyImpactLengthInHalf / 2)} in full-width`,
         {
           variant: "error",
         },
@@ -108,7 +115,7 @@ export function SafetyImpactSelectorView(props) {
           ))}
         </Select>
       </FormControl>
-      {fixedReasonSafetyImpact !== null && (
+      {fixedTicketSafetyImpactChangeReason !== null && (
         <StyledTooltip
           arrow
           title={
@@ -117,7 +124,7 @@ export function SafetyImpactSelectorView(props) {
                 Why was it changed from the default safety impact?
               </Typography>
               <Box sx={{ p: 1 }}>
-                <Typography variant="body2">{fixedReasonSafetyImpact}</Typography>
+                <Typography variant="body2">{fixedTicketSafetyImpactChangeReason}</Typography>
               </Box>
             </>
           }
@@ -168,7 +175,7 @@ export function SafetyImpactSelectorView(props) {
 }
 SafetyImpactSelectorView.propTypes = {
   fixedTicketSafetyImpact: PropTypes.string,
-  fixedReasonSafetyImpact: PropTypes.string,
+  fixedTicketSafetyImpactChangeReason: PropTypes.string,
   onRevertedToDefault: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
 };

@@ -31,15 +31,15 @@ export function SafetyImpactSelector(props) {
   const handleRevertedToDefault = async () => {
     const requestData = {
       ticket_safety_impact: null,
-      reason_safety_impact: null,
+      ticket_safety_impact_change_reason: null,
     };
     updateTicketFunction(requestData);
   };
 
-  const handleSave = async (safetyImpact, reasonSafetyImpact) => {
+  const handleSave = async (safetyImpact, ticketSafetyImpactChangeReason) => {
     const requestData = {
       ticket_safety_impact: safetyImpact,
-      reason_safety_impact: reasonSafetyImpact,
+      ticket_safety_impact_change_reason: ticketSafetyImpactChangeReason,
     };
     updateTicketFunction(requestData);
   };
@@ -47,7 +47,7 @@ export function SafetyImpactSelector(props) {
   return (
     <SafetyImpactSelectorView
       fixedTicketSafetyImpact={ticket.ticket_safety_impact}
-      fixedReasonSafetyImpact={ticket.reason_safety_impact}
+      fixedTicketSafetyImpactChangeReason={ticket.ticket_safety_impact_change_reason}
       onRevertedToDefault={handleRevertedToDefault}
       onSave={handleSave}
     />
