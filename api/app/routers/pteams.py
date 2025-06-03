@@ -15,8 +15,10 @@ from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
 from app.business import package_business, threat_business, ticket_business
 from app.business.ssvc_business import (
-    get_ticket_counts_summary_by_service_id_and_package_id,
-    get_vuln_ids_summary_by_service_id_and_package_id,
+    get_ticket_counts_summary_by_pteam_and_package_id,
+    get_ticket_counts_summary_by_service_and_package_id,
+    get_vuln_ids_summary_by_pteam_and_package_id,
+    get_vuln_ids_summary_by_service_and_package_id,
 )
 from app.business.ticket_business import fix_ticket_ssvc_priority
 from app.database import get_db, open_db_session
@@ -590,9 +592,14 @@ def get_vuln_ids_tied_to_service_package(
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
 
-    vuln_ids_summary = get_vuln_ids_summary_by_service_id_and_package_id(
-        pteam, service, package_id, related_ticket_status
-    )
+    if service:
+        vuln_ids_summary = get_vuln_ids_summary_by_service_and_package_id(
+            service, package_id, related_ticket_status
+        )
+    else:
+        vuln_ids_summary = get_vuln_ids_summary_by_pteam_and_package_id(
+            pteam, package_id, related_ticket_status
+        )
 
     return {
         "pteam_id": pteam_id,
@@ -636,9 +643,14 @@ def get_ticket_counts_tied_to_service_package(
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
 
-    ticket_counts_summary = get_ticket_counts_summary_by_service_id_and_package_id(
-        pteam, service, package_id, related_ticket_status
-    )
+    if service:
+        ticket_counts_summary = get_ticket_counts_summary_by_service_and_package_id(
+            service, package_id, related_ticket_status
+        )
+    else:
+        ticket_counts_summary = get_ticket_counts_summary_by_pteam_and_package_id(
+            pteam, package_id, related_ticket_status
+        )
 
     return {
         "pteam_id": pteam_id,
