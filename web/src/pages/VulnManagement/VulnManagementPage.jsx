@@ -145,16 +145,7 @@ export function VulnManagement() {
           </Button>
         </Box>
       </Box>
-      <TableContainer
-        component={Paper}
-        sx={{
-          mt: 1,
-          border: `1px solid ${grey[300]}`,
-          "&:before": { display: "none" },
-        }}
-      >
-        <VulnManagementTable vulns={vulnsList.vulns} />
-      </TableContainer>
+      <VulnManagementTable vulns={vulnsList.vulns} />
       {filterRow}
       <VulnSearchModal show={searchMenuOpen} onSearch={handleSearch} onCancel={handleCancel} />
     </>

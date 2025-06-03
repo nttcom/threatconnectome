@@ -54,25 +54,6 @@ LineWithTooltip.propTypes = {
   num: PropTypes.number,
 };
 
-function DisableLine() {
-  const tipAreaHeight = 15;
-  const lineHeight = 5;
-  const mt = (tipAreaHeight - lineHeight) / 2;
-
-  return (
-    <Box sx={{ width: "100%", height: tipAreaHeight + "px" }}>
-      <Box
-        sx={{
-          width: "100%",
-          height: lineHeight + "px",
-          mt: mt + "px",
-          backgroundColor: grey[400],
-        }}
-      />
-    </Box>
-  );
-}
-
 function StatusRatioGraph(props) {
   const { counts, displaySSVCPriority } = props;
   if (displaySSVCPriority === "empty") return "";
@@ -85,7 +66,6 @@ function StatusRatioGraph(props) {
 
   return (
     <Stack direction="row" spacing={0}>
-      {keys.length < 1 && <DisableLine />}
       {keys.map((key) => (
         <LineWithTooltip
           key={key}

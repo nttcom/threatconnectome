@@ -183,7 +183,7 @@ export function Status() {
     }
 
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
+  }, [pteamId, pteam, serviceId, isActiveAllServicesMode]);
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skipByAuth || !pteamId) return <></>;

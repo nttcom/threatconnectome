@@ -230,7 +230,7 @@ export function VulnSearchModal(props) {
         {(dateFormList === "since" || dateFormList === "until") && (
           <Grid item xs={5}>
             <DateTimePicker
-              inputFormat="yyyy/MM/dd HH:mm"
+              format="yyyy/MM/dd HH:mm"
               mask="____/__/__ __:__"
               maxDateTime={now}
               value={dateFormList === "since" ? updatedAfter : updatedBefore}

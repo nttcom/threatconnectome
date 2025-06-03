@@ -31,7 +31,7 @@ export function VulnManagementTable(props) {
       <Table sx={{ minWidth: 650 }}>
         <TableHead>
           <TableRow>
-            <TableCell style={{ width: "20%" }} display="flex">
+            <TableCell style={{ width: "20%" }}>
               <Box display="flex" flexDirection="row">
                 <Typography variant="body2" sx={{ fontWeight: 900 }}>
                   Last Update

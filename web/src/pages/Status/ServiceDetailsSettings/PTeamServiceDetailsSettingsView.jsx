@@ -36,7 +36,7 @@ export function PTeamServiceDetailsSettingsView(props) {
 
   const [serviceName, setServiceName] = useState(service.service_name);
   const [imageFileData, setImageFileData] = useState(null);
-  const [imageDeleteFalg, setImageDeleteFlag] = useState(false);
+  const [imageDeleteFlag, setImageDeleteFlag] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [currentKeywordsList, setCurrentKeywordsList] = useState(service.keywords);
   const [keywordText, setKeywordText] = useState("");
@@ -138,7 +138,7 @@ export function PTeamServiceDetailsSettingsView(props) {
     onSave(
       serviceName,
       imageFileData,
-      imageDeleteFalg,
+      imageDeleteFlag,
       currentKeywordsList,
       currentDescription,
       defaultSafetyImpactValue,

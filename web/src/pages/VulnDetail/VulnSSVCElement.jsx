@@ -13,6 +13,10 @@ import PropTypes from "prop-types";
 export function VulnSSVCElement(props) {
   const { title, titleDescription, values, value } = props;
 
+  const filterValue = values.filter((item) => value === item.key)[0];
+  const valueKey = filterValue.key;
+  const valueDescription = filterValue.valueDescription;
+
   return (
     <Grid key={title} item xs={6}>
       <Card variant="outlined" sx={{ p: 3, height: "100%" }}>
@@ -28,11 +32,7 @@ export function VulnSSVCElement(props) {
             <HelpOutlineOutlinedIcon color="action" fontSize="small" />
           </Tooltip>
         </Box>
-        <ToggleButtonGroup
-          color="primary"
-          value={values.filter((item) => value === item.key)[0].key}
-          sx={{ mb: 1 }}
-        >
+        <ToggleButtonGroup color="primary" value={valueKey} sx={{ mb: 1 }}>
           {values.map((value) => (
             <ToggleButton key={value.key} value={value.key} disabled>
               {value.name}
@@ -40,7 +40,7 @@ export function VulnSSVCElement(props) {
           ))}
         </ToggleButtonGroup>
         <Typography variant="body2" color="textSecondary">
-          {values.filter((item) => value === item.key)[0].valueDescription}
+          {valueDescription}
         </Typography>
       </Card>
     </Grid>
