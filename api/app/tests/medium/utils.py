@@ -97,7 +97,7 @@ def upload_pteam_packages(
     pteam_id: UUID | str,
     service_name: str,
     ext_packages: list[dict[str, Any]],
-) -> list[schemas.ExtPackageResponse]:
+) -> list[schemas.PackageFileResponse]:
     params = {"service": service_name}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
         for ext_package in ext_packages:
@@ -113,7 +113,7 @@ def upload_pteam_packages(
                     files={"file": bfile},
                 )
             )
-    return [schemas.ExtPackageResponse(**item) for item in data]
+    return [schemas.PackageFileResponse(**item) for item in data]
 
 
 def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceResponse]:

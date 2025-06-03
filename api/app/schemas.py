@@ -92,7 +92,7 @@ class ActionResponse(ORMModel):
     created_at: datetime
 
 
-class ExtPackageResponse(ORMModel):
+class PackageFileResponse(ORMModel):
     class Reference(ORMModel):
         service: str
         target: str
@@ -181,7 +181,7 @@ class VulnBase(BaseModel):
 
 
 class VulnResponse(VulnBase):
-    vuln_id: str
+    vuln_id: UUID
     created_at: datetime
     updated_at: datetime
     created_by: UUID | None = None
@@ -193,7 +193,7 @@ class VulnsListResponse(BaseModel):
     vulns: list[VulnResponse]
 
 
-class VulnUpdate(VulnBase):
+class VulnUpdateRequest(VulnBase):
     vulnerable_packages: list[VulnerablePackageBase] = []
 
 
@@ -362,7 +362,7 @@ class ServicePackageVulnsSolvedUnsolved(ORMModel):
     pteam_id: UUID
     service_id: UUID | None
     package_id: UUID | None
-    related_ticket_status: str | None
+    related_ticket_status: RelatedTicketStatus | None
     vuln_ids: list[UUID]
 
 
@@ -370,7 +370,7 @@ class ServicePackageTicketCountsSolvedUnsolved(ORMModel):
     pteam_id: UUID
     service_id: UUID | None
     package_id: UUID | None
-    related_ticket_status: str | None
+    related_ticket_status: RelatedTicketStatus | None
     ssvc_priority_count: dict[str, int]
 
 

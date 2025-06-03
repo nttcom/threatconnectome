@@ -17,7 +17,7 @@ NO_SUCH_VULN = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No s
 @router.put("/{vuln_id}", response_model=schemas.VulnResponse)
 def update_vuln(
     vuln_id: UUID,
-    request: schemas.VulnUpdate,
+    request: schemas.VulnUpdateRequest,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -36,7 +36,7 @@ def update_vuln(
 
 
 def __handle_create_vuln(
-    vuln_id: UUID, request: schemas.VulnUpdate, current_user: models.Account, db: Session
+    vuln_id: UUID, request: schemas.VulnUpdateRequest, current_user: models.Account, db: Session
 ):
     if vuln_id == UUID(int=0):
         raise HTTPException(
@@ -103,7 +103,7 @@ def __handle_create_vuln(
         )
 
     return schemas.VulnResponse(
-        vuln_id=str(vuln_id),
+        vuln_id=vuln_id,
         created_by=UUID(vuln.created_by) if vuln.created_by else None,
         created_at=vuln.created_at,
         updated_at=vuln.updated_at,
@@ -119,7 +119,7 @@ def __handle_create_vuln(
 
 def __handle_update_vuln(
     vuln: models.Vuln,
-    request: schemas.VulnUpdate,
+    request: schemas.VulnUpdateRequest,
     current_user: models.Account,
     db: Session,
 ):
@@ -194,7 +194,7 @@ def __handle_update_vuln(
     ]
 
     return schemas.VulnResponse(
-        vuln_id=vuln.vuln_id,
+        vuln_id=UUID(vuln.vuln_id),
         created_by=UUID(vuln.created_by) if vuln.created_by else None,
         created_at=vuln.created_at,
         updated_at=vuln.updated_at,
@@ -208,7 +208,7 @@ def __handle_update_vuln(
     )
 
 
-def _check_request_fields(request: schemas.VulnUpdate, update_request: dict):
+def _check_request_fields(request: schemas.VulnUpdateRequest, update_request: dict):
     fields_to_check = [
         "title",
         "detail",
@@ -303,7 +303,7 @@ def get_vuln(
     ]
 
     return schemas.VulnResponse(
-        vuln_id=vuln.vuln_id,
+        vuln_id=UUID(vuln.vuln_id),
         created_by=UUID(vuln.created_by) if vuln.created_by else None,
         created_at=vuln.created_at,
         updated_at=vuln.updated_at,

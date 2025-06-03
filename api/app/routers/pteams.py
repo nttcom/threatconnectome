@@ -1144,7 +1144,7 @@ async def upload_pteam_sbom_file(
     return ret
 
 
-@router.post("/{pteam_id}/upload_packages_file", response_model=list[schemas.ExtPackageResponse])
+@router.post("/{pteam_id}/upload_packages_file", response_model=list[schemas.PackageFileResponse])
 def upload_pteam_packages_file(
     pteam_id: UUID,
     file: UploadFile,

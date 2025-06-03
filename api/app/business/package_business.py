@@ -17,13 +17,13 @@ def fix_package(db: Session, package: models.Package) -> None:
     persistence.delete_package(db, package)
 
 
-def get_pteam_ext_packages(pteam: models.PTeam) -> Sequence[schemas.ExtPackageResponse]:
-    ext_packages_dict: dict[str, schemas.ExtPackageResponse] = {}
+def get_pteam_ext_packages(pteam: models.PTeam) -> Sequence[schemas.PackageFileResponse]:
+    ext_packages_dict: dict[str, schemas.PackageFileResponse] = {}
     for service in pteam.services:
         for dependency in service.dependencies:
             ext_package = ext_packages_dict.get(
                 dependency.package_version.package_id,
-                schemas.ExtPackageResponse(
+                schemas.PackageFileResponse(
                     package_id=dependency.package_version.package_id,
                     package_name=dependency.package_version.package.name,
                     ecosystem=dependency.package_version.package.ecosystem,
@@ -32,7 +32,7 @@ def get_pteam_ext_packages(pteam: models.PTeam) -> Sequence[schemas.ExtPackageRe
             )
 
             ext_package.references.append(
-                schemas.ExtPackageResponse.Reference(
+                schemas.PackageFileResponse.Reference(
                     service=service.service_name,
                     target=dependency.target,
                     package_manager=dependency.package_manager,

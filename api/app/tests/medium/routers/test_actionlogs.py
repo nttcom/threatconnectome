@@ -611,5 +611,5 @@ class TestGetVulnLogs:
         data = response.json()
 
         assert len(data) == 1
-        assert data[0]["vuln_id"] == self.vuln1.vuln_id
+        assert data[0]["vuln_id"] == str(self.vuln1.vuln_id)
         assert data[0]["logging_id"] != str(other_actionlog.logging_id)
