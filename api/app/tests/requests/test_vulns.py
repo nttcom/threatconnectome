@@ -969,7 +969,9 @@ class TestGetVulns:
         pteam1 = create_pteam(USER1, PTEAM1)
         service_name = "test-service"
         upload_file_name = "test_trivy_cyclonedx_axios.json"
-        sbom_file = Path(__file__).resolve().parent / "upload_test" / upload_file_name
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
         with open(sbom_file, "r") as sbom:
             sbom_json = json.load(sbom)
         bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name, upload_file_name)
