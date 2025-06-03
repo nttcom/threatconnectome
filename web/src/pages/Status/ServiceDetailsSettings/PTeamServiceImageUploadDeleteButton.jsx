@@ -28,7 +28,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const { enqueueSnackbar } = useSnackbar();
-  const serviceDetailsSetttingNoImageUrl = "images/720x480.png";
+  const serviceDetailsSettingNoImageUrl = "images/720x480.png";
 
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -77,7 +77,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
   const handleDelete = () => {
     setImageFileData(null);
     setImageDeleteFlag(true);
-    setImagePreview(serviceDetailsSetttingNoImageUrl);
+    setImagePreview(serviceDetailsSettingNoImageUrl);
     if (originalImage === "images/720x480.png") {
       setIsImageChanged(false);
     } else {
