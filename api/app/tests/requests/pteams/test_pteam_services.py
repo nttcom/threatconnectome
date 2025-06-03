@@ -432,7 +432,7 @@ class TestPostUploadPTeamSbomFile:
     def test_upload_pteam_sbom_file_wrong_content_format(self):
         params = {"service": "threatconnectome"}
         sbom_file = (
-            Path(__file__).resolve().parent.parent / "upload_test" / "tag_with_wrong_format.json"
+            Path(__file__).resolve().parent.parent / "upload_test" / "sbom_with_wrong_format.json"
         )
         with open(sbom_file, "rb") as tags:
             with pytest.raises(HTTPError, match=r"400: Bad Request: Not supported file format"):
