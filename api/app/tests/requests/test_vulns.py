@@ -353,7 +353,7 @@ class TestUpdateVuln:
             "automatable",
         ],
     )
-    def test_raise_400_when_create_if_field_with_none(self, field_name):
+    def test_raise_400_when_create_if_field_with_none(self, field_name) -> None:
         # Given
         new_vuln_id = uuid4()
         request = {
@@ -931,7 +931,8 @@ class TestGetVulns:
 
         # When
         response = client.get(
-            "/vulns?detail_words=&detail_words=This is example vuln 1&detail_words=This is example vuln 2",
+            "/vulns?detail_words=&detail_words=This is example vuln 1"
+            "&detail_words=This is example vuln 2",
             headers=self.headers_user,
         )
 
@@ -1411,9 +1412,17 @@ class TestGetVulns:
         testdb.execute(
             text(
                 f"""
-            INSERT INTO dependency (dependency_id, service_id, package_version_id, target, package_manager)
-            VALUES ('{dependency_id}', '{service_id}', '{package_version_id}', 'target', '{package_manager}');
-            """
+                INSERT INTO dependency (
+                    dependency_id, service_id, package_version_id, target, package_manager
+                )
+                VALUES (
+                '{dependency_id}',
+                '{service_id}',
+                '{package_version_id}',
+                'target',
+                '{package_manager}'
+                );
+                """
             )
         )
 
@@ -1656,7 +1665,7 @@ class TestGetVulns:
         ]
 
     # D2
-    def test_it_should_sort_by_cvss_v3_score_descending_when_updated_at_are_equal_and_sort_key_is_updated_at_desc(
+    def test_sort_by_cvss_v3_score_desc_when_updated_at_are_equal_and_sort_key_is_updated_at_desc(
         self, testdb: Session
     ):
         vulns_data = [

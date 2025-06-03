@@ -30,17 +30,6 @@ def assert_204(response):
         raise HTTPError(response)
 
 
-def schema_to_dict(data) -> dict:
-    if isinstance(data, schemas.TagResponse):
-        return {
-            "tag_name": data.tag_name,
-            "tag_id": str(data.tag_id),
-            "parent_name": data.parent_name,
-            "parent_id": str(data.parent_id) if data.parent_id else None,
-        }
-    raise ValueError(f"Not implemented for {type(data)}")
-
-
 def headers(user: dict) -> dict:
     return get_access_token_headers(user["email"], user["pass"])
 

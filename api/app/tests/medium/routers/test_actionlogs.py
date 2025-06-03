@@ -16,7 +16,6 @@ from app.tests.medium.constants import (
     PTEAM2,
     SERVICE1,
     SERVICE2,
-    TAG1,
     USER1,
     USER2,
     USER3,
@@ -39,9 +38,7 @@ client = TestClient(app)
 
 
 class TestActionLog:
-
     class Common:
-
         def create_action(
             self, user: dict, vuln_id: str | UUID, action: dict
         ) -> schemas.ActionResponse:
@@ -105,7 +102,6 @@ class TestActionLog:
             )[0]
 
     class TestCreate(Common):
-
         def test_create_log(self):
             now = datetime.now()
             actionlog1 = create_actionlog(
@@ -285,7 +281,6 @@ class TestActionLog:
                 )
 
     class TestGet(Common):
-
         def test_get_logs(self):
             # create topic2 with 2 actions
             vuln2 = create_vuln(USER1, VULN2)
@@ -448,7 +443,6 @@ class TestActionLog:
 
 
 class TestGetVulnLogs:
-
     def create_action(
         self, user: dict, vuln_id: str | UUID, action: dict
     ) -> schemas.ActionResponse:
