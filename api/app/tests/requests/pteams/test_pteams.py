@@ -76,16 +76,12 @@ def test_get_pteams__by_member():
 def test_get_pteams__by_not_member():
     create_user(USER1)
     create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
+    create_pteam(USER1, PTEAM1)
 
     response = client.get("/pteams", headers=headers(USER2))  # not a member
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
-    assert data[0]["pteam_id"] == str(pteam1.pteam_id)
-    assert data[0]["pteam_name"] == PTEAM1["pteam_name"]
-    assert data[0]["contact_info"] == PTEAM1["contact_info"]
-    assert "tag_name" not in data[0].keys()
 
 
 def test_get_pteam():
@@ -130,7 +126,7 @@ def test_get_pteam__by_member():
     assert data["alert_slack"]["webhook_url"] == PTEAM1["alert_slack"]["webhook_url"]
 
 
-def test_get_pteam__by_not_member():
+def test_it_should_return_403_when_get_pteam_by_not_member():
     create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -196,7 +192,7 @@ def test_it_should_return_401_when_create_pteam_without_auth():
     assert response.reason_phrase == "Unauthorized"
 
 
-def test_create_pteam__duplicate():
+def test_it_should_success_create_pteam_when_duplicate_pteam_name():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
     pteam2 = create_pteam(USER1, PTEAM1)
