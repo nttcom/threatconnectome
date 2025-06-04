@@ -482,7 +482,7 @@ def get_dependencies(
     pteam_id: UUID,
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=10000),
-    service_id: UUID | str | None = Query(None),
+    service_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -540,23 +540,24 @@ def get_dependency(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    for service in pteam.services:
-        for dependency in service.dependencies:
-            if dependency.dependency_id == str(dependency_id):
-                return schemas.DependencyResponse(
-                    dependency_id=dependency.dependency_id,
-                    service_id=dependency.service.service_id,
-                    package_version_id=dependency.package_version_id,
-                    package_id=dependency.package_version.package_id,
-                    package_manager=dependency.package_manager,
-                    target=dependency.target,
-                    dependency_mission_impact=dependency.dependency_mission_impact,
-                    package_name=dependency.package_version.package.name,
-                    package_version=dependency.package_version.version,
-                    package_ecosystem=dependency.package_version.package.ecosystem,
-                )
+    dependency = persistence.get_dependency_by_id(db, dependency_id)
+    if dependency is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such dependency")
+    if dependency.service.pteam_id != pteam_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such dependency")
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such dependency")
+    return schemas.DependencyResponse(
+        dependency_id=UUID(dependency.dependency_id),
+        service_id=dependency.service.service_id,
+        package_version_id=UUID(dependency.package_version_id),
+        package_id=dependency.package_version.package_id,
+        package_manager=dependency.package_manager,
+        target=dependency.target,
+        dependency_mission_impact=dependency.dependency_mission_impact,
+        package_name=dependency.package_version.package.name,
+        package_version=dependency.package_version.version,
+        package_ecosystem=dependency.package_version.package.ecosystem,
+    )
 
 
 @router.get(
@@ -1051,7 +1052,7 @@ def _json_loads(s: str | bytes | bytearray):
     except json.JSONDecodeError as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=("Wrong file content: " + f'{s[:32]!s}{"..." if len(s) > 32 else ""}'),
+            detail=("Wrong file content: " + f"{s[:32]!s}{'...' if len(s) > 32 else ''}"),
         ) from error
 
 

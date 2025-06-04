@@ -345,6 +345,12 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
 ### Dependency
 
 
+def get_dependency_by_id(db: Session, dependency_id: UUID | str) -> models.Dependency | None:
+    return db.scalars(
+        select(models.Dependency).where(models.Dependency.dependency_id == str(dependency_id))
+    ).one_or_none()
+
+
 def get_dependencies_from_service_id_and_package_id(
     db: Session, service_id: UUID | str, package_id: UUID | str
 ) -> Sequence[models.Dependency]:
