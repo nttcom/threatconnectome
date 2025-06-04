@@ -290,7 +290,7 @@ def create_os_tag_info(os_repos):
             os_name = family_name
 
         version = raw_version_text.lower()
-    return f"{os_name}-{version}:" if version else f"{os_name}:"
+    return f"{os_name}-{version}" if version else f"{os_name}"
 
 
 def get_package_info(repos):
