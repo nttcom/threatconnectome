@@ -141,7 +141,7 @@ def test_invited_pteam():
     assert UUID(data["user_id"]) == user1.user_id
 
 
-def test_list_invitations():
+def test_it_should_should_return_200_when_get_invitations_by_creator():
     create_user(USER1)  # master, have INVITE & ADMIN
     create_user(USER2)  # member, not have INVITE
     user3 = create_user(USER3)  # member, have INVITE
@@ -159,7 +159,7 @@ def test_list_invitations():
     # create invitation
     invitation1 = invite_to_pteam(USER1, pteam1.pteam_id)
 
-    # get by master
+    # get by creator
     response = client.get(f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER1))
     assert response.status_code == 200
     assert len(response.json()) == 1  # invitation0 should be expired
@@ -170,10 +170,24 @@ def test_list_invitations():
     assert data.limit_count == invitation1.limit_count
     assert data.used_count == invitation1.used_count == 0
 
-    # get without admin
-    response = client.get(f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER2))
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
+
+def test_it_should_should_return_200_when_get_invitations_by_admin():
+    create_user(USER1)  # master, have INVITE & ADMIN
+    create_user(USER2)  # member, not have INVITE
+    user3 = create_user(USER3)  # member, have INVITE
+    pteam1 = create_pteam(USER1, PTEAM1)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER2, invitation.invitation_id)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER3, invitation.invitation_id)
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}",
+        headers=headers(USER1),
+        json={"is_admin": True},
+    )
+
+    # create invitation
+    invitation1 = invite_to_pteam(USER1, pteam1.pteam_id)
 
     # get with admin
     response = client.get(f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER3))
@@ -185,6 +199,30 @@ def test_list_invitations():
     assert data.expiration == invitation1.expiration
     assert data.limit_count == invitation1.limit_count
     assert data.used_count == invitation1.used_count == 0
+
+
+def test_it_should_should_return_403_when_get_invitations_by_not_admin():
+    create_user(USER1)  # master, have INVITE & ADMIN
+    create_user(USER2)  # member, not have INVITE
+    user3 = create_user(USER3)  # member, have INVITE
+    pteam1 = create_pteam(USER1, PTEAM1)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER2, invitation.invitation_id)
+    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+    accept_pteam_invitation(USER3, invitation.invitation_id)
+    response = client.put(
+        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}",
+        headers=headers(USER1),
+        json={"is_admin": True},
+    )
+
+    # create invitation
+    invite_to_pteam(USER1, pteam1.pteam_id)
+
+    # get without admin
+    response = client.get(f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER2))
+    assert response.status_code == 403
+    assert response.reason_phrase == "Forbidden"
 
 
 def test_delete_invitation():
