@@ -15,16 +15,8 @@ export class LocationReader {
     return this.location.pathname === "/pteam";
   }
 
-  isPTeamInvitationPage() {
-    return this.location.pathname === "/pteam/join";
-  }
-
   isVulnsPage() {
     return this.location.pathname.includes("/vulns");
-  }
-
-  isVulnerabilitiesPage() {
-    return this.location.pathname.includes("/vulnerabilities");
   }
 
   getPTeamId() {
