@@ -1044,7 +1044,7 @@ class TestGetTicket:
         assert data["ticket_status"]["status_id"] == self.ticket_status1.status_id
         assert data["created_at"] == self.ticket1.created_at.isoformat()
 
-    def test_it_should_return_404_when_ticket_not_found(self):
+    def test_it_should_return_404_when_wrong_ticket_id(self):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -1358,7 +1358,7 @@ class TestPutTicket:
             in response.json()["detail"]
         )
 
-    def test_it_should_return_404_when_ticket_not_found(self):
+    def test_it_should_return_404_when_wrong_ticket_id(self):
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
