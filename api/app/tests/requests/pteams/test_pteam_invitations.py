@@ -46,6 +46,7 @@ def test_admin_can_create_invitation():
 
 def test_it_should_return_403_when_not_admin_create_invitation():
     create_user(USER1)
+    create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
     invitation = invite_to_pteam(USER1, pteam1.pteam_id)  # no admin
     accept_pteam_invitation(USER2, invitation.invitation_id)
