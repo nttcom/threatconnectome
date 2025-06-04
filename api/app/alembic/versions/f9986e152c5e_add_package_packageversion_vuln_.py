@@ -165,7 +165,7 @@ def upgrade() -> None:
         )
     ]
 
-    ## Data migration from depdency_tag table to package tabke and pacakgeversion table
+    ## Data migration from dependency_tag table to package table and packageversion table
     for row in dependency_tag_table:
         insert_from_dependency_tag_table_to_package_table(connection, row.name, row.ecosystem)
         package_id = get_package_id(connection, row.name, row.ecosystem)
