@@ -58,13 +58,6 @@ export const tcApi = createApi({
     }),
 
     /* Dependency */
-    getDependency: builder.query({
-      query: ({ pteamId, dependencyId }) => ({
-        url: `pteams/${pteamId}/dependencies/${dependencyId}`,
-        method: "GET",
-      }),
-      providesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
-    }),
     getDependencies: builder.query({
       query: ({ pteamId, serviceId, offset, limit }) => ({
         url: `pteams/${pteamId}/dependencies`,
@@ -297,38 +290,6 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
 
-    /* Tag */
-    getTags: builder.query({
-      query: () => ({
-        url: "tags",
-      }),
-      providesTags: (result, error) => [{ type: "Tag", id: "ALL" }],
-    }),
-
-    /* Threat */
-    getThreat: builder.query({
-      query: (threatId) => ({
-        url: `threats/${threatId}`,
-        method: "GET",
-      }),
-      providesTags: (result, error, threatId) => [
-        { type: "Threat", id: "ALL" },
-        { type: "Threat", id: threatId },
-        { type: "Service", id: "ALL" },
-      ],
-    }),
-    updateThreat: builder.mutation({
-      query: ({ threatId, data }) => ({
-        url: `threats/${threatId}`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "Threat", id: arg.threatId },
-        { type: "Ticket", id: "ALL" },
-      ],
-    }),
-
     /* Ticket */
     getTickets: builder.query({
       query: ({ pteamId, serviceId, vulnId, packageId }) => ({
@@ -463,7 +424,6 @@ export const tcApi = createApi({
 
 export const {
   useCreateActionLogMutation,
-  useGetDependencyQuery,
   useGetDependenciesQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
@@ -483,9 +443,6 @@ export const {
   useDeletePTeamServiceThumbnailMutation,
   useGetPTeamPackagesSummaryQuery,
   useUploadSBOMFileMutation,
-  useGetTagsQuery,
-  useGetThreatQuery,
-  useUpdateThreatMutation,
   useGetTicketsQuery,
   useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
