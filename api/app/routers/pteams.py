@@ -543,7 +543,7 @@ def get_dependency(
     dependency = persistence.get_dependency_by_id(db, dependency_id)
     if dependency is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such dependency")
-    if dependency.service.pteam_id != pteam_id:
+    if dependency.service.pteam_id != str(pteam_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such dependency")
 
     return schemas.DependencyResponse(
