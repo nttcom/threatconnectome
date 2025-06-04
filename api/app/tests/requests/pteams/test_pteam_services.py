@@ -60,7 +60,7 @@ def test_get_pteam_services_register_multiple_services():
     assert services1a[0].service_name == service_x
     assert services2a == []
 
-    # add grserviceoup y to pteam2
+    # add service_y to pteam2
     service_y = "service_y"
     upload_pteam_packages(USER1, pteam2.pteam_id, service_y, ext_packages)
 
