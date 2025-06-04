@@ -25,7 +25,7 @@ from app.tests.medium.utils import (
 client = TestClient(app)
 
 
-def test_create_invitation():
+def test_admin_can_create_invitation():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)  # master have ADMIN
 
@@ -44,7 +44,7 @@ def test_create_invitation():
     assert data["limit_count"] == request["limit_count"]
 
 
-def test_create_invitation__without_authorities():
+def test_it_should_return_403_when_not_admin_create_invitation():
     create_user(USER1)
     user2 = create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -62,27 +62,8 @@ def test_create_invitation__without_authorities():
     assert response.status_code == 403
     assert response.reason_phrase == "Forbidden"
 
-    # give admin
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
-        headers=headers(USER1),
-        json={"is_admin": True},
-    )
-    assert response.status_code == 200
 
-    # try again with admin
-    response = client.post(
-        f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER2), json=request
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert datetime.fromisoformat(data["expiration"]) == datetime.fromisoformat(
-        request["expiration"]
-    )
-    assert data["limit_count"] == request["limit_count"]
-
-
-def test_create_invitation__by_not_member():
+def test_it_should_return_403_not_member_create_invitation():
     create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
