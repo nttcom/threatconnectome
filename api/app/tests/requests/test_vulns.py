@@ -487,7 +487,7 @@ class TestGetVuln:
             <= self.updated_time + timedelta(seconds=10)
         )
 
-    def test_it_should_return_400_when_vuln_id_is_not_registered(self):
+    def test_it_should_return_404_when_vuln_id_is_not_registered(self):
         # Given
         not_registered_vuln_id = str(uuid4())
 

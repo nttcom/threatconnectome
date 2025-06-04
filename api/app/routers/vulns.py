@@ -22,15 +22,14 @@ def update_vuln(
     db: Session = Depends(get_db),
 ):
     """
-    Update a vuln.
+    Update a vuln if it exists,
+    or create a new vuln if the specified vuln_id is not found in the database.
     - `cvss_v3_score` : Ranges from 0.0 to 10.0.
     """
     if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
         vuln_response = __handle_create_vuln(vuln_id, request, current_user, db)
     else:
         vuln_response = __handle_update_vuln(vuln, request, current_user, db)
-
-    db.commit()
 
     return vuln_response
 
