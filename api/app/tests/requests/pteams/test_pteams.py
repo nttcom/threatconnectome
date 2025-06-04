@@ -526,7 +526,7 @@ def test_get_pteam_members__by_member():
     } == {False}
 
 
-def test_test_it_should_return_when_get_pteam_members_by_not_member():
+def test_test_it_should_return_403_when_get_pteam_members_by_not_member():
     create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
