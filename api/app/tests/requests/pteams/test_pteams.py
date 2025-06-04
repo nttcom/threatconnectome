@@ -188,7 +188,7 @@ def test_create_pteam__by_default():
     assert pteam1.alert_mail.address == ""
 
 
-def test_create_pteam__without_auth():
+def test_it_should_return_401_when_create_pteam_without_auth():
     create_user(USER1)
     request = {**PTEAM1}
     response = client.post("/pteams", json=request)  # no headers
@@ -222,7 +222,7 @@ def test_update_pteam():
     assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
 
 
-def test_update_pteam__by_not_admin():
+def test_it_should_return_403_when_update_pteam_by_not_admin():
     create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -275,7 +275,7 @@ def test_update_pteam_should_return_400_when_required_fields_is_None(
     assert response.json()["detail"] == expected_response_detail
 
 
-def test_delete_member__last_admin():
+def test_it_should_return_400_when_try_delete_last_admin():
     user1 = create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
 
@@ -530,7 +530,7 @@ def test_get_pteam_members__by_member():
     } == {False}
 
 
-def test_get_pteam_members__by_not_member():
+def test_test_it_should_return_when_get_pteam_members_by_not_member():
     create_user(USER1)
     create_user(USER2)
     pteam1 = create_pteam(USER1, PTEAM1)
