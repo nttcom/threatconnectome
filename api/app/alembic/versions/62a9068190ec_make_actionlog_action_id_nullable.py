@@ -18,9 +18,9 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.alter_column("actionlog", "action_id", existing_type=sa.Text(), nullable=True)
+    op.alter_column("actionlog", "action_id", existing_type=sa.String(length=36), nullable=True)
 
 
 def downgrade() -> None:
     op.get_bind().exec_driver_sql("DELETE FROM actionlog WHERE action_id IS NULL")
-    op.alter_column("actionlog", "action_id", existing_type=sa.Text(), nullable=False)
+    op.alter_column("actionlog", "action_id", existing_type=sa.String(length=36), nullable=False)
