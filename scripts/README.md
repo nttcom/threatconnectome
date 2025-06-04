@@ -100,7 +100,7 @@ Get your own `team_id` by following steps and copy it.
 ![Get my user info](images/get_my_user_info.png)
 ![Get my team_id](images/get_team_id.png)
 
-- 4.3 Scroll up to ⇨ `POST /pteams/{team_id}/upload_packages_file  Upload Pteam Tags File`
+- 4.3 Scroll up to ⇨ `POST /pteams/{team_id}/upload_packages_file  Upload Pteam Packages File`
 
 Click `Try it out`, paste `team_id`, specifiy `service` (repository or product), set `force_mode` if needed, click on "choose file" button and choose the `tags.jsonl` generated in procedure 3, then execute.
 ![Append team tags](images/append_team_tags.png)
