@@ -11,7 +11,6 @@ from typing_extensions import Annotated
 
 
 class ComparableStringEnum(str, enum.Enum):
-
     @property
     # Note: this method can be a classmethod in python3.10, but chaining classmethod descriptors
     #       is depricated in python3.11.
@@ -566,9 +565,7 @@ class ActionLog(Base):
     __tablename__ = "actionlog"
 
     logging_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    action_id: Mapped[StrUUID | None] = mapped_column(
-        nullable=True
-    )  # snapshot: don't set ForeignKey.
+    vuln_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
     action: Mapped[str]  # snapshot: don't update even if VulnAction is modified.
     action_type: Mapped[ActionType]
     recommended: Mapped[bool]  # snapshot: don't update even if VulnAction is modified.
