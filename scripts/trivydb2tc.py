@@ -276,7 +276,7 @@ class ThreatconnectomeClient:
         print(f"Http status: {response.status_code} {response.reason}")
 
 
-def create_os_tag_info(os_repos):
+def create_os_package_info(os_repos):
     key = os_repos.decode().split(" ", 1)[0]
     family_name = os_families[key]
     if family_name in ["redhat", "archlinux"]:
@@ -299,8 +299,8 @@ def get_package_info(repos):
         lang_ecosystem_info = lang_families[lang_pkg_raw_data]
         return f"{lang_ecosystem_info}"
     # os-pkgs
-    os_tag_info = create_os_tag_info(repos)
-    return f"{os_tag_info}"
+    os_package_info = create_os_package_info(repos)
+    return f"{os_package_info}"
 
 
 def vuln_info(repos, txs):
