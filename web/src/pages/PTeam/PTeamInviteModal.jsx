@@ -104,7 +104,7 @@ export function PTeamInviteModal(props) {
               <Grid container alignItems="center">
                 <Grid item p={1} xs={6} sm={6}>
                   <DateTimePicker
-                    inputFormat="yyyy/MM/dd HH:mm"
+                    format="yyyy/MM/dd HH:mm"
                     label="Expiration Date (future date)"
                     mask="____/__/__ __:__"
                     minDateTime={now}

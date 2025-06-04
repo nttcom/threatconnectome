@@ -101,8 +101,8 @@ export function PTeamAuthEditor(props) {
 
 PTeamAuthEditor.propTypes = {
   pteamId: PropTypes.string.isRequired,
-  memberUserId: PropTypes.string,
-  userEmail: PropTypes.string,
+  memberUserId: PropTypes.string.isRequired,
+  userEmail: PropTypes.string.isRequired,
   isTargetMemberAdmin: PropTypes.bool.isRequired,
   isCurrentUserAdmin: PropTypes.bool.isRequired,
   onClose: PropTypes.func,

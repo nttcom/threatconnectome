@@ -11,7 +11,7 @@ export function AuthAdminCheckbox(props) {
           checked={checked}
           disabled={!editable}
           onChange={editable ? onChange : undefined}
-          fontSize="small"
+          size="small"
         />
         {modified && "*"}
       </Box>
