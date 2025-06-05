@@ -33,7 +33,7 @@ jobs:
           scan-ref: "./"
           list-all-pkgs: true
           exit-code: 0
-          format: json
+          format: cyclonedx
           output: trivy-ci-result.json
         env:
           TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
