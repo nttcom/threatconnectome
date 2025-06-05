@@ -64,7 +64,7 @@ OSV-Scanner command example:
 osv-scanner -r --json threatconnectome > osv-result.json
 ```
 
-## :triangular_flag_on_post: Procedures for sbom registration in public environment
+## :triangular_flag_on_post: Procedures for sbom registration
 
 1. Run a full scan on all directories
 
@@ -75,54 +75,19 @@ sudo trivy fs -f cyclonedx -o trivy-result.json --list-all-pkgs --scanners vuln 
 2. Upload Sbom file via Web UI
 
 Login to `http://threatconnectome.metemcyber.ntt.com` and choose your team.
-Navigate to the 'Status' page and select 'upload' tab. Then drag & drop the 'trivy-result.json' file you created to the "Drop SBOM file here" area.
+(In the case of public environment, for local environment use `http://localhost:<your_port_for_threatconnectome>`)
+Navigate to the `Status` page and select `upload` tab. Then drag & drop the `trivy-result.json` file you created to the "Drop SBOM file here" area.
 
-Once the Upload SBOM File modal opens, input your Service name in the provided field and click the 'Upload' button to complete the registration process.
+Once the Upload SBOM File modal opens, input your Service name in the provided field and click the `Upload` button to complete the registration process.
 
 ![Upload Sbom file](images/upload_sbom_file.png)
 ![Input service name](images/enter_service_name.png)
 
 3. Verify registered content
-   After uploading, navigate back to the 'Status' page where you can view the newly registered service.
+
+After uploading, navigate back to the `Status` page where you can view the newly registered service.
 
 ![Verify registed content](images/verify_registed_content.png)
-
-## :triangular_flag_on_post: Procedures for tag registration in local development environment
-
-1. Inspect packages (OS packages & library packages) used in VM by running a full scan on all directories
-
-```bash
-sudo trivy fs -f json -o trivy-result.json --list-all-pkgs --scanners vuln /
-```
-
-2. Convert scan result to tags
-
-```bash
-cd threatconnectome
-python scripts/trivy_tags.py -i trivy-result.json -o tags.jsonl
-```
-
-3. Start local containers
-
-```bash
-sudo docker compose -f docker-compose-local.yml up -d --build
-```
-
-4. Register tags at API:
-   Access `http://localhost:<your_port_for_threatconnectome>/api/docs`.
-
-- 4.1 Go to ⇨ `POST /auth/token  Login For Access Token`
-  Login and authorize your account.
-
-- 4.2 Scroll down to ⇨ `GET /users/me  Get My User Info`
-  Get your own `team_id` and copy it.
-
-- 4.3 Scroll up to ⇨ `POST /pteams/{team_id}/upload_tags_file  Upload Pteam Tags File`
-  Click `Try it out`, paste `team_id`, specifiy `service` (repository or product), set `force_mode` if needed, click on "choose file" button and choose the `tags.jsonl` generated in procedure 2, then execute.
-
-5. Log in to Web UI
-
-Login to `http://localhost:<your_port_for_threatconnectome>` and choose your team. Tags will be shown on the page of `Status`.
 
 # :bulb: Topic Registration from TrivyDB
 
