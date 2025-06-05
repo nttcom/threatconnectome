@@ -106,12 +106,12 @@ class ThreatconnectomeClient:
                 _retry -= 1
             sleep(3)
 
-    def search_topics(self, params: dict) -> dict:
-        response = self._retry_call(requests.get, f"{self.api_url}/topics/search", params=params)
+    def get_vulns(self, params: dict) -> dict:
+        response = self._retry_call(requests.get, f"{self.api_url}/vulns", params=params)
         return response.json()
 
-    def update_topic(self, topic_id: str, topic_data: dict) -> requests.Response:
-        return self._retry_call(requests.put, f"{self.api_url}/topics/{topic_id}", json=topic_data)
+    def update_vuln(self, vuln_id: str, vuln_data: dict) -> requests.Response:
+        return self._retry_call(requests.put, f"{self.api_url}/vulns/{vuln_id}", json=vuln_data)
 
 
 def _json_loads(filepath: str | bytes | bytearray):
@@ -192,30 +192,30 @@ def _get_automatable_value(automatable: str) -> str:
     return automatable.lower()
 
 
-def _update_topics_by_cve_data(
+def _update_vulns_by_cve_data(
     tc_client: ThreatconnectomeClient, cve_id: str, exploitation: str, automatable: str
 ) -> None:
-    params = {"misp_tag_names": [cve_id]}
+    params = {"cve_ids": [cve_id]}
 
-    search_response = tc_client.search_topics(params)
-    for topicEntry in search_response["topics"]:
-        topic_id = topicEntry["topic_id"]
-        topic_data = {
+    vulns_response = tc_client.get_vulns(params)
+    for vuln in vulns_response["vulns"]:
+        vuln_id = vuln["vuln_id"]
+        vuln_data = {
             "exploitation": _get_exploitation_value(exploitation),
             "automatable": _get_automatable_value(automatable),
         }
-        response = tc_client.update_topic(topic_id, topic_data)
+        response = tc_client.update_vuln(vuln_id, vuln_data)
         if response.status_code == 200:
-            print(f"Success put topic. topic_id:{topic_id} cve_id:{cve_id} data: {topic_data}")
+            print(f"Success put vuln. vuln_id:{vuln_id} cve_id:{cve_id} data: {vuln_data}")
         else:
-            print(f"Faild put topic. Http status: {response.status_code} {response.reason}")
+            print(f"Faild put vuln. Http status: {response.status_code} {response.reason}")
 
 
-def _update_topics_by_cve_data_dict(
+def _update_vulns_by_cve_data_dict(
     tc_client: ThreatconnectomeClient, cve_data_list: list[tuple]
 ) -> None:
     for cve_data in cve_data_list:
-        _update_topics_by_cve_data(tc_client, cve_data[0], cve_data[1], cve_data[2])
+        _update_vulns_by_cve_data(tc_client, cve_data[0], cve_data[1], cve_data[2])
 
 
 def main() -> None:
@@ -253,7 +253,7 @@ def main() -> None:
     )
 
     cve_data_list = _get_cve_data_list(args.vulnrichment_path)
-    _update_topics_by_cve_data_dict(tc_client, cve_data_list)
+    _update_vulns_by_cve_data_dict(tc_client, cve_data_list)
 
 
 if __name__ == "__main__":

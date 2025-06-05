@@ -1,6 +1,5 @@
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React from "react";
 
 import {
   useUpdatePTeamServiceMutation,
@@ -12,7 +11,7 @@ import { errorToString } from "../../../utils/func";
 
 import { PTeamServiceDetailsSettingsView } from "./PTeamServiceDetailsSettingsView";
 
-const serviceDetailsSetttingNoImageUrl = "images/720x480.png";
+const serviceDetailsSettingNoImageUrl = "images/720x480.png";
 
 export function PTeamServiceDetailsSettings(props) {
   const { pteamId, service } = props;
@@ -26,7 +25,7 @@ export function PTeamServiceDetailsSettings(props) {
   const handleSave = async (
     serviceName,
     imageFileData,
-    imageDeleteFalg,
+    imageDeleteFlag,
     keywordsList,
     description,
     defaultSafetyImpactValue,
@@ -43,7 +42,7 @@ export function PTeamServiceDetailsSettings(props) {
       );
     }
 
-    if (imageDeleteFalg) {
+    if (imageDeleteFlag) {
       promiseList.push(() =>
         deletePTeamServiceThumbnail({
           pteamId: pteamId,
@@ -86,7 +85,7 @@ export function PTeamServiceDetailsSettings(props) {
 
   const image =
     thumbnailIsError || thumbnailIsLoading || !thumbnail
-      ? serviceDetailsSetttingNoImageUrl
+      ? serviceDetailsSettingNoImageUrl
       : thumbnail;
 
   return <PTeamServiceDetailsSettingsView service={service} image={image} onSave={handleSave} />;

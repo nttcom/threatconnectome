@@ -4,7 +4,6 @@ from datetime import datetime
 
 from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
-from sqlalchemy.sql.expression import join, outerjoin
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
 
@@ -12,7 +11,6 @@ from typing_extensions import Annotated
 
 
 class ComparableStringEnum(str, enum.Enum):
-
     @property
     # Note: this method can be a classmethod in python3.10, but chaining classmethod descriptors
     #       is depricated in python3.11.
@@ -54,7 +52,7 @@ class ActionType(str, enum.Enum):
     rejection = "rejection"
 
 
-class TopicStatusType(str, enum.Enum):
+class VulnStatusType(str, enum.Enum):
     alerted = "alerted"
     acknowledged = "acknowledged"
     scheduled = "scheduled"
@@ -136,6 +134,7 @@ class Base(DeclarativeBase):
             Str255: String(255),
             dict: JSON,
             list[dict]: ARRAY(JSON),
+            list[str]: ARRAY(Text),
             list[StrUUID]: ARRAY(String(36)),
             list[Str255]: ARRAY(String(255)),
             bytes: LargeBinary(),
@@ -143,7 +142,7 @@ class Base(DeclarativeBase):
     )
 
 
-# secondary tables #
+# primary tables #
 
 
 class PTeamAccountRole(Base):
@@ -163,31 +162,6 @@ class PTeamAccountRole(Base):
 
     pteam = relationship("PTeam", back_populates="pteam_roles", uselist=False)
     account = relationship("Account", back_populates="pteam_roles", uselist=False)
-
-
-class TopicTag(Base):
-    __tablename__ = "topictag"
-
-    topic_id = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    tag_id = mapped_column(
-        ForeignKey("tag.tag_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-
-
-class TopicMispTag(Base):
-    __tablename__ = "topicmisptag"
-
-    topic_id = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-    tag_id = mapped_column(
-        ForeignKey("misptag.tag_id", ondelete="CASCADE"), primary_key=True, index=True
-    )
-
-
-# primary tables #
 
 
 class Account(Base):
@@ -211,15 +185,56 @@ class Account(Base):
     )
 
 
+class PackageVersion(Base):
+    __tablename__ = "packageversion"
+    __table_args__ = (
+        UniqueConstraint("package_id", "version", name="package_version_package_id_version_key"),
+    )
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.package_version_id:
+            self.package_version_id = str(uuid.uuid4())
+
+    package_version_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    version: Mapped[str] = mapped_column()
+    package_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("package.package_id", ondelete="CASCADE"), index=True
+    )
+
+    package = relationship("Package", back_populates="package_versions")
+    dependencies = relationship(
+        "Dependency", back_populates="package_version", cascade="all, delete-orphan"
+    )
+
+
+class Package(Base):
+    __tablename__ = "package"
+    __table_args__ = (UniqueConstraint("name", "ecosystem", name="package_name_ecosystem_key"),)
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.package_id:
+            self.package_id = str(uuid.uuid4())
+
+    package_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column()
+    ecosystem: Mapped[str] = mapped_column()
+
+    package_versions = relationship(
+        "PackageVersion", back_populates="package", cascade="all, delete-orphan"
+    )
+    affects = relationship("Affect", back_populates="package")
+
+
 class Dependency(Base):
     __tablename__ = "dependency"
     __table_args__: tuple = (
         UniqueConstraint(
             "service_id",
-            "tag_id",
-            "version",
+            "package_version_id",
             "target",
-            name="dependency_service_id_tag_id_version_target_key",
+            name="dependency_service_id_package_version_id_target_key",
         ),
     )
 
@@ -232,18 +247,18 @@ class Dependency(Base):
     service_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("service.service_id", ondelete="CASCADE"), index=True
     )
-    tag_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("tag.tag_id", ondelete="CASCADE"), index=True
+    package_version_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("packageversion.package_version_id", ondelete="CASCADE"), index=True
     )
-    version: Mapped[str]
     target: Mapped[str]
+    package_manager: Mapped[str]
     dependency_mission_impact: Mapped[MissionImpactEnum | None] = mapped_column(
         server_default=None, nullable=True
     )
 
     service = relationship("Service", back_populates="dependencies")
-    tag = relationship("Tag", back_populates="dependencies")
-    threats = relationship("Threat", back_populates="dependency", cascade="all, delete-orphan")
+    package_version = relationship("PackageVersion", uselist=False, back_populates="dependencies")
+    tickets = relationship("Ticket", back_populates="dependency", cascade="all, delete-orphan")
 
 
 class Service(Base):
@@ -286,12 +301,6 @@ class Service(Base):
         "Dependency", back_populates="service", cascade="all, delete-orphan"
     )
     thumbnail = relationship("ServiceThumbnail", uselist=False, cascade="all, delete-orphan")
-    tickets = relationship(  # Service - [ Dependency - Threat ] - Ticket
-        "Ticket",
-        secondary="join(Dependency, Threat, Dependency.dependency_id == Threat.dependency_id)",
-        collection_class=set,
-        viewonly=True,
-    )
 
 
 class ServiceThumbnail(Base):
@@ -307,7 +316,9 @@ class ServiceThumbnail(Base):
 class Threat(Base):
     __tablename__ = "threat"
     __table_args__ = (
-        UniqueConstraint("dependency_id", "topic_id", name="threat_dependency_id_topic_id_key"),
+        UniqueConstraint(
+            "package_version_id", "vuln_id", name="threat_package_version_id_vuln_id_key"
+        ),
     )
 
     def __init__(self, *args, **kwargs) -> None:
@@ -316,18 +327,16 @@ class Threat(Base):
             self.threat_id = str(uuid.uuid4())
 
     threat_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    threat_safety_impact: Mapped[SafetyImpactEnum | None] = mapped_column(nullable=True)
-    reason_safety_impact: Mapped[str | None]
-    dependency_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
+    package_version_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("packageversion.package_version_id", ondelete="CASCADE"), index=True
     )
-    topic_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"), index=True
+    vuln_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
     )
 
-    topic = relationship("Topic", back_populates="threats")
-    ticket = relationship("Ticket", uselist=False, back_populates="threat", cascade="all, delete")
-    dependency = relationship("Dependency", uselist=False, back_populates="threats")
+    vuln = relationship("Vuln", back_populates="threats")
+    package_version = relationship("PackageVersion")
+    tickets = relationship("Ticket", back_populates="threat", cascade="all, delete-orphan")
 
 
 class Ticket(Base):
@@ -343,12 +352,18 @@ class Ticket(Base):
 
     ticket_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     threat_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True, unique=True
+        ForeignKey("threat.threat_id", ondelete="CASCADE"), index=True
+    )
+    dependency_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
     )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    ticket_safety_impact: Mapped[SafetyImpactEnum | None] = mapped_column(nullable=True)
+    ticket_safety_impact_change_reason: Mapped[str | None] = mapped_column(nullable=True)
     ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
 
-    threat = relationship("Threat", back_populates="ticket")
+    dependency = relationship("Dependency", back_populates="tickets")
+    threat = relationship("Threat", uselist=False, back_populates="tickets")
     alerts = relationship("Alert", back_populates="ticket")
     ticket_status = relationship("TicketStatus", uselist=False, cascade="all, delete-orphan")
 
@@ -371,7 +386,7 @@ class TicketStatus(Base):
     user_id: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("account.user_id", ondelete="SET NULL"), index=True
     )
-    topic_status: Mapped[TopicStatusType]
+    vuln_status: Mapped[VulnStatusType]
     note: Mapped[str | None]
     logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
     assignees: Mapped[list[StrUUID]] = mapped_column(default=[])
@@ -424,19 +439,6 @@ class PTeam(Base):
         server_default=SSVCDeployerPriorityEnum.IMMEDIATE
     )
 
-    tags = relationship(  # PTeam - [Service - Dependency] - Tag
-        "Tag",  # right most table is Tag
-        # secondary table is a joined table -- Service.join(Dependency)
-        secondary=join(Service, Dependency, Service.service_id == Dependency.service_id),
-        # left join condition : for PTeam.join(SecondaryTable)
-        #   declare with string because PTeam table is not yet defined
-        primaryjoin="PTeam.pteam_id == Service.pteam_id",
-        # right join condition : for SecondaryTable.join(Tag)
-        #   declare with string because Tag table is not yet defined
-        secondaryjoin="Dependency.tag_id == Tag.tag_id",
-        collection_class=set,  # avoid duplications
-        viewonly=True,  # block updating via this relationship
-    )
     services = relationship(
         "Service",
         order_by="Service.service_name",
@@ -484,107 +486,74 @@ class PTeamSlack(Base):
     pteam: Mapped[PTeam] = relationship(back_populates="alert_slack")
 
 
-class Tag(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.tag_id:
-            self.tag_id = str(uuid.uuid4())
-
-    __tablename__ = "tag"
-
-    tag_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    tag_name: Mapped[str] = mapped_column(unique=True)
-    parent_id: Mapped[StrUUID | None] = mapped_column(ForeignKey("tag.tag_id"), index=True)
-    parent_name: Mapped[str | None] = mapped_column(ForeignKey("tag.tag_name"), index=True)
-
-    topics = relationship(
-        "Topic",
-        secondary=TopicTag.__tablename__,
-        primaryjoin="TopicTag.tag_id.in_([Tag.tag_id, Tag.parent_id])",
-        collection_class=set,
-        viewonly=True,
-    )
-    dependencies = relationship("Dependency", back_populates="tag", cascade="all, delete-orphan")
-
-
-class Topic(Base):
-    __tablename__ = "topic"
+class Vuln(Base):
+    __tablename__ = "vuln"
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        if not self.topic_id:
-            self.topic_id = str(uuid.uuid4())
+        if not self.vuln_id:
+            self.vuln_id = str(uuid.uuid4())
         if not self.exploitation:
             self.exploitation = ExploitationEnum.NONE
         if not self.automatable:
             self.automatable = AutomatableEnum.NO
 
-    topic_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    title: Mapped[Str255]
-    abstract: Mapped[str]
+    vuln_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     cve_id: Mapped[str | None] = mapped_column(nullable=True)
+    detail: Mapped[str]
+    title: Mapped[Str255]
     created_by: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("account.user_id", ondelete="SET NULL"), index=True, nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
     updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-    content_fingerprint: Mapped[str]
     exploitation: Mapped[ExploitationEnum] = mapped_column(server_default=ExploitationEnum.NONE)
     automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.NO)
     cvss_v3_score: Mapped[float | None] = mapped_column(server_default=None, nullable=True)
 
-    actions = relationship("TopicAction", back_populates="topic", cascade="all, delete-orphan")
-    tags = relationship("Tag", secondary=TopicTag.__tablename__, order_by="Tag.tag_name")
-    misp_tags = relationship(
-        "MispTag", secondary=TopicMispTag.__tablename__, order_by="MispTag.tag_name"
-    )
-    threats = relationship("Threat", back_populates="topic", cascade="all, delete-orphan")
-    dependencies_via_tag = relationship(  # dependencies which have one of topic tag (or child)
-        Dependency,  # Topic - [TopicTag - Tag] - Dependency
-        secondary=outerjoin(TopicTag, Tag, TopicTag.tag_id.in_([Tag.tag_id, Tag.parent_id])),
-        primaryjoin="Topic.topic_id == TopicTag.topic_id",
-        secondaryjoin="Tag.tag_id == Dependency.tag_id",
-        collection_class=set,
-        viewonly=True,
-    )
+    vuln_actions = relationship("VulnAction", cascade="all, delete-orphan")
+    affects = relationship("Affect", back_populates="vuln", cascade="all, delete-orphan")
+    threats = relationship("Threat", back_populates="vuln", cascade="all, delete-orphan")
 
 
-class TopicAction(Base):
+class VulnAction(Base):
+    __tablename__ = "vulnaction"
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if not self.action_id:
             self.action_id = str(uuid.uuid4())
 
-    __tablename__ = "topicaction"
-
     action_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    topic_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("topic.topic_id", ondelete="CASCADE"), index=True
+    vuln_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
     )
     action: Mapped[str]
     action_type: Mapped[ActionType] = mapped_column(default=ActionType.elimination)
     recommended: Mapped[bool] = mapped_column(default=False)
-    ext: Mapped[dict] = mapped_column(default={})
-    created_by: Mapped[StrUUID | None] = mapped_column(
-        ForeignKey("account.user_id", ondelete="SET NULL"), index=True, nullable=True
-    )
     created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
 
-    topic = relationship("Topic", back_populates="actions")
 
+class Affect(Base):
+    __tablename__ = "affect"
 
-class MispTag(Base):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        if not self.tag_id:
-            self.tag_id = str(uuid.uuid4())
+        if not self.affect_id:
+            self.affect_id = str(uuid.uuid4())
 
-    __tablename__ = "misptag"
+    affect_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    vuln_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
+    )
+    package_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("package.package_id", ondelete="CASCADE"), index=True
+    )
+    affected_versions: Mapped[list[str]] = mapped_column(default=[])
+    fixed_versions: Mapped[list[str]] = mapped_column(default=[])
 
-    tag_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    tag_name: Mapped[str]
-
-    topics = relationship("Topic", secondary=TopicMispTag.__tablename__, back_populates="misp_tags")
+    vuln = relationship("Vuln", back_populates="affects")
+    package = relationship("Package", back_populates="affects")
 
 
 class ActionLog(Base):
@@ -596,11 +565,13 @@ class ActionLog(Base):
     __tablename__ = "actionlog"
 
     logging_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    action_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
-    topic_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
-    action: Mapped[str]  # snapshot: don't update even if TopicAction is modified.
+    action_id: Mapped[StrUUID | None] = mapped_column(
+        nullable=True
+    )  # snapshot: don't set ForeignKey.
+    vuln_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
+    action: Mapped[str]  # snapshot: don't update even if VulnAction is modified.
     action_type: Mapped[ActionType]
-    recommended: Mapped[bool]  # snapshot: don't update even if TopicAction is modified.
+    recommended: Mapped[bool]  # snapshot: don't update even if VulnAction is modified.
     user_id: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("account.user_id", ondelete="SET NULL"), index=True
     )

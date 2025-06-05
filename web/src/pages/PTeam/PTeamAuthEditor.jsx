@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { useUpdatePTeamMemberMutation } from "../../services/tcApi";
@@ -101,8 +101,8 @@ export function PTeamAuthEditor(props) {
 
 PTeamAuthEditor.propTypes = {
   pteamId: PropTypes.string.isRequired,
-  memberUserId: PropTypes.string,
-  userEmail: PropTypes.string,
+  memberUserId: PropTypes.string.isRequired,
+  userEmail: PropTypes.string.isRequired,
   isTargetMemberAdmin: PropTypes.bool.isRequired,
   isCurrentUserAdmin: PropTypes.bool.isRequired,
   onClose: PropTypes.func,

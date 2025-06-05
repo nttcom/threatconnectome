@@ -4,7 +4,11 @@ export const navigateSpecifiedPteam = (location, pteam_roles, navigate) => {
   const params = new URLSearchParams(location.search);
   const locationReader = new LocationReader(location);
 
-  if (locationReader.isStatusPage() || locationReader.isTagPage() || locationReader.isPTeamPage()) {
+  if (
+    locationReader.isStatusPage() ||
+    locationReader.isPackagePage() ||
+    locationReader.isPTeamPage()
+  ) {
     if (!pteam_roles.length > 0) {
       if (params.get("pteamId")) {
         navigate(location.pathname);

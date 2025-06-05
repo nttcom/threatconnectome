@@ -1,7 +1,6 @@
 import { Box, TableCell, TableRow, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { APIError } from "../../utils/APIError";
 

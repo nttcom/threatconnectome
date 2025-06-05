@@ -26,18 +26,14 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import { PTeamLabel } from "../../components/PTeamLabel";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
-import {
-  useGetPTeamQuery,
-  useGetPTeamTagsSummaryQuery,
-  useGetPTeamServiceTagsSummaryQuery,
-} from "../../services/tcApi";
+import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
@@ -135,9 +131,9 @@ export function Status() {
   const [isActiveUploadMode, setIsActiveUploadMode] = useState(0);
 
   const [pTeamServicesListModalOpen, setPTeamServicesListModalOpen] = useState(false);
-  const [selectedTagInfo, setSelectedTagInfo] = useState({
-    tagId: "",
-    tagName: "",
+  const [selectedPackageInfo, setSelectedPackageInfo] = useState({
+    packageId: "",
+    packageName: "",
     serviceIds: [],
   });
 
@@ -151,21 +147,26 @@ export function Status() {
   } = useGetPTeamQuery(pteamId, { skip: skipByAuth || !pteamId });
 
   const {
-    currentData: serviceTagsSummary,
-    error: serviceTagsSummaryError,
-    isFetching: serviceTagsSummaryIsFetching,
-  } = useGetPTeamServiceTagsSummaryQuery(
-    { pteamId, serviceId },
-    { skip: skipByAuth || !pteamId || !serviceId || isActiveAllServicesMode },
+    currentData: pteamAllServicesPackagesSummary,
+    error: pteamAllServicesPackagesSummaryError,
+    isFetching: pteamAllServicesPackagesSummaryIsFetching,
+  } = useGetPTeamPackagesSummaryQuery(
+    { pteamId },
+    {
+      skip: skipByAuth || !pteamId || !isActiveAllServicesMode,
+    },
   );
 
   const {
-    currentData: pteamTagsSummary,
-    error: pteamTagsSummaryError,
-    isFetching: pteamTagsSummaryIsFetching,
-  } = useGetPTeamTagsSummaryQuery(pteamId, {
-    skip: skipByAuth || !pteamId || !isActiveAllServicesMode,
-  });
+    currentData: pteamServicePackagesSummary,
+    error: pteamServicePackagesSummaryError,
+    isFetching: pteamServicePackagesSummaryIsFetching,
+  } = useGetPTeamPackagesSummaryQuery(
+    { pteamId, serviceId },
+    {
+      skip: skipByAuth || !pteamId || !serviceId || isActiveAllServicesMode,
+    },
+  );
 
   useEffect(() => {
     if (!pteamId) return; // wait fixed by App
@@ -182,7 +183,7 @@ export function Status() {
     }
 
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [pteamId, pteam, pteamId, serviceId, isActiveAllServicesMode]);
+  }, [pteamId, pteam, serviceId, isActiveAllServicesMode]);
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skipByAuth || !pteamId) return <></>;
@@ -192,27 +193,27 @@ export function Status() {
     });
   if (pteamIsLoading) return <>Now loading Team...</>;
 
-  if (isActiveAllServicesMode) {
-    if (pteamTagsSummaryError)
-      throw new APIError(errorToString(pteamTagsSummaryError), {
-        api: "getPTeamTagsSummary",
-      });
+  if (pteamAllServicesPackagesSummaryError)
+    throw new APIError(errorToString(pteamAllServicesPackagesSummaryError), {
+      api: "getPTeamPackagesSummary",
+    });
 
-    if (!pteamTagsSummary || pteamTagsSummaryIsFetching)
-      return <>Now loading pteamTagsSummary...</>;
-  } else {
-    if (serviceTagsSummaryError)
-      throw new APIError(errorToString(serviceTagsSummaryError), {
-        api: "getPTeamServiceTagsSummary",
-      });
+  if (pteamServicePackagesSummaryError)
+    throw new APIError(errorToString(pteamServicePackagesSummaryError), {
+      api: "getPTeamPackagesSummary",
+    });
 
-    if (
-      (serviceId || pteam.services.length > 0) &&
-      (!serviceTagsSummary || serviceTagsSummaryIsFetching)
-    ) {
-      return <>Now loading serviceTagsSummary...</>;
-    }
-  }
+  if (
+    (!pteamAllServicesPackagesSummary && isActiveAllServicesMode) ||
+    (!pteamServicePackagesSummary &&
+      !isActiveAllServicesMode &&
+      (serviceId || pteam.services.length > 0)) ||
+    (pteamAllServicesPackagesSummaryIsFetching && isActiveAllServicesMode) ||
+    (pteamServicePackagesSummaryIsFetching &&
+      !isActiveAllServicesMode &&
+      (serviceId || pteam.services.length > 0))
+  )
+    return <>Now loading PTeamPackagesSummary...</>;
 
   const service =
     isActiveAllServicesMode || !serviceId
@@ -235,35 +236,36 @@ export function Status() {
     }
   }
 
-  if (isActiveAllServicesMode) {
-    if (!pteamTagsSummary) return <>Now loading PTeamTagsSummary...</>;
-  } else {
-    if (!serviceTagsSummary) return <>Now loading ServiceTagsSummary...</>;
-  }
-
   let priorityFilters = params.getAll("priorityFilter").filter((filter) =>
     Object.values(ssvcPriorityProps)
       .map((prop) => prop.displayName)
       .includes(filter),
   );
 
-  const summary = isActiveAllServicesMode ? pteamTagsSummary : serviceTagsSummary;
-  const filteredTags = summary.tags.filter(
-    (tag) =>
+  const summary = isActiveAllServicesMode
+    ? pteamAllServicesPackagesSummary
+    : pteamServicePackagesSummary;
+  const filteredPackages = summary.packages.filter(
+    (packageInfo) =>
       (priorityFilters.length === 0
         ? true // show all if selected none
-        : priorityFilters.includes(ssvcPriorityProps[tag.ssvc_priority || "defer"].displayName)) &&
-      (!searchWord?.length > 0 || tag.tag_name.toLowerCase().includes(searchWord)),
+        : priorityFilters.includes(
+            ssvcPriorityProps[packageInfo.ssvc_priority || "defer"].displayName,
+          )) &&
+      (!searchWord?.length > 0 ||
+        (packageInfo.package_name + ":" + packageInfo.ecosystem)
+          .toLowerCase()
+          .includes(searchWord)),
   );
 
   let tmp;
   const perPage = (tmp = parseInt(params.get("perPage"))) > 0 ? tmp : 10;
-  const numPages = Math.ceil(filteredTags.length / perPage);
+  const numPages = Math.ceil(filteredPackages.length / perPage);
   const page = (tmp = parseInt(params.get("page"))) > 0 ? (tmp > numPages ? numPages : tmp) : 1;
   if (tmp !== page) {
     params.set("page", page); // fix for the next
   }
-  const targetTags = filteredTags.slice(perPage * (page - 1), perPage * page);
+  const targetPackages = filteredPackages.slice(perPage * (page - 1), perPage * page);
 
   const filterRow = (
     <Box display="flex" alignItems="center" sx={{ mt: 1 }}>
@@ -317,24 +319,28 @@ export function Status() {
     navigate(location.pathname + "?" + params.toString());
   };
 
-  function navigateArtifactPage(tagId) {
+  function navigatePackagePage(packageId) {
     for (let key of ["priorityFilter", "word", "perPage", "page", "allservices"]) {
       params.delete(key);
     }
-    navigate(`/tags/${tagId}?${params.toString()}`);
+    navigate(`/packages/${packageId}?${params.toString()}`);
   }
 
-  const handleNavigateServiceList = (tagId, tagName, serviceIds) => {
+  const handleNavigateServiceList = (packageId, packageName, serviceIds) => {
     if (serviceIds.length === 1) {
       params.set("serviceId", serviceIds[0]);
-      navigateArtifactPage(tagId);
+      navigatePackagePage(packageId);
     } else {
-      setSelectedTagInfo({ tagId: tagId, tagName: tagName, serviceIds: serviceIds });
+      setSelectedPackageInfo({
+        packageId: packageId,
+        packageName: packageName,
+        serviceIds: serviceIds,
+      });
       setPTeamServicesListModalOpen(true);
     }
   };
 
-  const handleNavigateTag = (tagId) => navigateArtifactPage(tagId);
+  const handleNavigatePackage = (packageId) => navigatePackagePage(packageId);
 
   const handleAllServices = () => {
     setIsActiveUploadMode(0);
@@ -383,7 +389,9 @@ export function Status() {
           const priorityProp = ssvcPriorityProps[priorityApiKey];
           const priorityDisplayName = priorityProp.displayName;
           const checked = priorityFilters.includes(priorityDisplayName);
-          const summary = isActiveAllServicesMode ? pteamTagsSummary : serviceTagsSummary;
+          const summary = isActiveAllServicesMode
+            ? pteamAllServicesPackagesSummary
+            : pteamServicePackagesSummary;
           const ssvcPriorityCount = summary.ssvc_priority_count[priorityApiKey];
 
           const fixedSx = {
@@ -463,7 +471,7 @@ export function Status() {
             service={service}
             expandService={expandService}
             onSwitchExpandService={handleSwitchExpandService}
-            highestSsvcPriority={serviceTagsSummary.tags[0]?.ssvc_priority ?? "defer"}
+            highestSsvcPriority={pteamServicePackagesSummary.packages[0]?.ssvc_priority ?? "defer"}
           />
         )}
         <Box display="flex" mt={2}>
@@ -490,29 +498,39 @@ export function Status() {
             <TableBody>
               {isActiveAllServicesMode ? (
                 <>
-                  {targetTags.map((tag) => (
-                    <ErrorBoundary key={tag.tag_id} FallbackComponent={PTeamStatusCardFallback}>
+                  {targetPackages.map((packageInfo) => (
+                    <ErrorBoundary
+                      key={packageInfo.package_id}
+                      FallbackComponent={PTeamStatusCardFallback}
+                    >
                       <PTeamStatusCard
-                        key={tag.tag_id}
+                        key={packageInfo.package_id}
                         onHandleClick={() =>
-                          handleNavigateServiceList(tag.tag_id, tag.tag_name, tag.service_ids)
+                          handleNavigateServiceList(
+                            packageInfo.package_id,
+                            packageInfo.package_name,
+                            packageInfo.service_ids,
+                          )
                         }
                         pteam={pteam}
-                        tag={tag}
-                        serviceIds={tag.service_ids}
+                        packageInfo={packageInfo}
+                        serviceIds={packageInfo.service_ids}
                       />
                     </ErrorBoundary>
                   ))}
                 </>
               ) : (
                 <>
-                  {targetTags.map((tag) => (
-                    <ErrorBoundary key={tag.tag_id} FallbackComponent={PTeamStatusCardFallback}>
+                  {targetPackages.map((packageInfo) => (
+                    <ErrorBoundary
+                      key={packageInfo.package_id}
+                      FallbackComponent={PTeamStatusCardFallback}
+                    >
                       <PTeamStatusCard
-                        key={tag.tag_id}
-                        onHandleClick={() => handleNavigateTag(tag.tag_id)}
+                        key={packageInfo.package_id}
+                        onHandleClick={() => handleNavigatePackage(packageInfo.package_id)}
                         pteam={pteam}
-                        tag={tag}
+                        packageInfo={packageInfo}
                       />
                     </ErrorBoundary>
                   ))}
@@ -521,7 +539,7 @@ export function Status() {
             </TableBody>
           </Table>
         </TableContainer>
-        {targetTags.length > 3 && filterRow}
+        {targetPackages.length > 3 && filterRow}
       </CustomTabPanel>
       <CustomTabPanel value={isActiveUploadMode} index={1}>
         <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
@@ -529,9 +547,9 @@ export function Status() {
       <PTeamServicesListModal
         onSetShow={setPTeamServicesListModalOpen}
         show={pTeamServicesListModalOpen}
-        tagId={selectedTagInfo.tagId}
-        tagName={selectedTagInfo.tagName}
-        serviceIds={selectedTagInfo.serviceIds}
+        packageId={selectedPackageInfo.packageId}
+        packageName={selectedPackageInfo.packageName}
+        serviceIds={selectedPackageInfo.serviceIds}
       />
     </>
   );

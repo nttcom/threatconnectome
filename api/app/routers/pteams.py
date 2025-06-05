@@ -13,16 +13,15 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.business.ssvc_business import get_topic_ids_summary_by_service_id_and_tag_id
-from app.business.tag_business import (
-    create_topic_tag,
-    get_pteam_ext_tags,
-    get_tag_ids_with_parent_ids,
+from app.business import package_business, threat_business, ticket_business
+from app.business.ssvc_business import (
+    get_ticket_counts_summary_by_pteam_and_package_id,
+    get_ticket_counts_summary_by_service_and_package_id,
+    get_vuln_ids_summary_by_pteam_and_package_id,
+    get_vuln_ids_summary_by_service_and_package_id,
 )
 from app.business.ticket_business import fix_ticket_ssvc_priority
-from app.business.topic_business import get_sorted_topics
 from app.database import get_db, open_db_session
-from app.detector.vulnerability_detector import fix_threats_for_dependency
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
 from app.routers.validators.account_validator import (
@@ -44,8 +43,8 @@ NOT_HAVE_AUTH = HTTPException(
     detail="You do not have authority",
 )
 NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
-NO_SUCH_TOPIC = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such topic")
-NO_SUCH_TAG = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such tag")
+NO_SUCH_VULN = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
+NO_SUCH_PACKAGE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such package")
 NO_SUCH_SERVICE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
 NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 
@@ -142,8 +141,10 @@ def force_calculate_ssvc_priority(
         raise NOT_HAVE_AUTH
 
     now = datetime.now()
-    for ticket in [ticket for service in pteam.services for ticket in service.tickets]:
-        fix_ticket_ssvc_priority(db, ticket, now=now)
+    for service in pteam.services:
+        for dependency in service.dependencies:
+            for ticket in dependency.tickets:
+                ticket_business.fix_ticket_ssvc_priority(db, ticket, now=now)
 
     db.commit()
     return "OK"
@@ -302,8 +303,9 @@ def update_pteam_service(
 
     if need_fix_tickets:
         db.flush()
-        for ticket in service.tickets:
-            fix_ticket_ssvc_priority(db, ticket, now=datetime.now())
+        for dependency in service.dependencies:
+            for ticket in dependency.tickets:
+                ticket_business.fix_ticket_ssvc_priority(db, ticket, now=datetime.now())
 
     db.commit()
 
@@ -432,77 +434,55 @@ def remove_service_thumbnail(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _count_ssvc_priority_from_summary(tags_summary: list[dict]):
+def _count_ssvc_priority_from_summary(packages_summary: list[dict]):
     ssvc_priority_count: dict[models.SSVCDeployerPriorityEnum, int] = {
         priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
     }
-    for tag_summary in tags_summary:
+    for package_summary in packages_summary:
         ssvc_priority_count[
-            tag_summary["ssvc_priority"] or models.SSVCDeployerPriorityEnum.DEFER
+            package_summary["ssvc_priority"] or models.SSVCDeployerPriorityEnum.DEFER
         ] += 1
     return ssvc_priority_count
 
 
-@router.get(
-    "/{pteam_id}/services/{service_id}/tags/summary", response_model=schemas.PTeamServiceTagsSummary
-)
-def get_pteam_service_tags_summary(
+@router.get("/{pteam_id}/packages/summary", response_model=schemas.PTeamPackagesSummary)
+def get_pteam_packages_summary(
     pteam_id: UUID,
-    service_id: UUID,
+    service_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Get tags summary of the pteam service.
+    Get packages summary of the pteam service.
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
-    if not next(filter(lambda x: x.service_id == str(service_id), pteam.services), None):
+    if service_id and not next(
+        filter(lambda x: x.service_id == str(service_id), pteam.services), None
+    ):
         raise NO_SUCH_SERVICE
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    tags_summary = command.get_tags_summary_by_service_id(db, service_id)
+    packages_summary = command.get_packages_summary(db, pteam_id, service_id)
 
-    ssvc_priority_count = _count_ssvc_priority_from_summary(tags_summary)
-
-    return {
-        "ssvc_priority_count": ssvc_priority_count,
-        "tags": tags_summary,
-    }
-
-
-@router.get("/{pteam_id}/tags/summary", response_model=schemas.PTeamTagsSummary)
-def get_pteam_tags_summary(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get tags summary of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    tags_summary = command.get_tags_summary_by_pteam_id(db, pteam_id)
-
-    ssvc_priority_count = _count_ssvc_priority_from_summary(tags_summary)
+    ssvc_priority_count = _count_ssvc_priority_from_summary(packages_summary)
 
     return {
         "ssvc_priority_count": ssvc_priority_count,
-        "tags": tags_summary,
+        "packages": packages_summary,
     }
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/dependencies",
+    "/{pteam_id}/dependencies",
     response_model=list[schemas.DependencyResponse],
 )
 def get_dependencies(
     pteam_id: UUID,
-    service_id: UUID,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=10000),
+    service_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -510,21 +490,47 @@ def get_dependencies(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (
-        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
-    ):
-        raise NO_SUCH_SERVICE
 
-    return service.dependencies
+    dependencies = []
+    if service_id:
+        if not (
+            service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
+        ):
+            raise NO_SUCH_SERVICE
+        dependencies = service.dependencies
+    else:
+        for service in pteam.services:
+            dependencies.extend(service.dependencies)
+
+    dependencies.sort(key=lambda x: x.dependency_id)
+
+    paginated_dependencies = dependencies[offset : offset + limit]
+
+    dependency_responses = []
+    for dependency in paginated_dependencies:
+        dependency_response = schemas.DependencyResponse(
+            dependency_id=dependency.dependency_id,
+            service_id=dependency.service.service_id,
+            package_version_id=dependency.package_version_id,
+            package_id=dependency.package_version.package_id,
+            package_manager=dependency.package_manager,
+            target=dependency.target,
+            dependency_mission_impact=dependency.dependency_mission_impact,
+            package_name=dependency.package_version.package.name,
+            package_version=dependency.package_version.version,
+            package_ecosystem=dependency.package_version.package.ecosystem,
+        )
+        dependency_responses.append(dependency_response)
+
+    return dependency_responses
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/dependencies/{dependency_id}",
+    "/{pteam_id}/dependencies/{dependency_id}",
     response_model=schemas.DependencyResponse,
 )
 def get_dependency(
     pteam_id: UUID,
-    service_id: UUID,
     dependency_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -533,45 +539,36 @@ def get_dependency(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (
-        service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
-    ):
-        raise NO_SUCH_SERVICE
-    if not (
-        dependency := next(
-            filter(lambda x: x.dependency_id == str(dependency_id), service.dependencies), None
-        )
-    ):
+
+    dependency = persistence.get_dependency_by_id(db, dependency_id)
+    if dependency is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such dependency")
+    if dependency.service.pteam_id != str(pteam_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such dependency")
 
-    return dependency
-
-
-@router.get("/{pteam_id}/tags", response_model=list[schemas.ExtTagResponse])
-def get_pteam_tags(
-    pteam_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get tags of the pteam.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-
-    return get_pteam_ext_tags(pteam)
+    return schemas.DependencyResponse(
+        dependency_id=UUID(dependency.dependency_id),
+        service_id=dependency.service.service_id,
+        package_version_id=UUID(dependency.package_version_id),
+        package_id=dependency.package_version.package_id,
+        package_manager=dependency.package_manager,
+        target=dependency.target,
+        dependency_mission_impact=dependency.dependency_mission_impact,
+        package_name=dependency.package_version.package.name,
+        package_version=dependency.package_version.version,
+        package_ecosystem=dependency.package_version.package.ecosystem,
+    )
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/tags/{tag_id}/topic_ids",
-    response_model=schemas.ServiceTaggedTopicsSolvedUnsolved,
+    "/{pteam_id}/vuln_ids",
+    response_model=schemas.ServicePackageVulnsSolvedUnsolved,
 )
-def get_service_tagged_topic_ids(
+def get_vuln_ids_tied_to_service_package(
     pteam_id: UUID,
-    service_id: UUID,
-    tag_id: UUID,
+    service_id: UUID | None = Query(None),
+    package_id: UUID | None = Query(None),
+    related_ticket_status: schemas.RelatedTicketStatus | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -579,33 +576,100 @@ def get_service_tagged_topic_ids(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
-    if not persistence.get_tag_by_id(db, tag_id):
-        raise NO_SUCH_TAG
-    if not persistence.get_dependency_from_service_id_and_tag_id(db, service_id, tag_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service tag")
+    service = None
+    if service_id:
+        if not (service := persistence.get_service_by_id(db, service_id)):
+            raise NO_SUCH_SERVICE
+        if service.pteam_id != str(pteam_id):
+            raise NO_SUCH_SERVICE
+    if package_id and not persistence.get_package_by_id(db, package_id):
+        raise NO_SUCH_PACKAGE
+    if (
+        service_id
+        and package_id
+        and len(
+            persistence.get_dependencies_from_service_id_and_package_id(db, service_id, package_id)
+        )
+        == 0
+    ):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
 
-    ## sovled
-    topic_ids_summary = get_topic_ids_summary_by_service_id_and_tag_id(service, tag_id)
+    if service:
+        vuln_ids_summary = get_vuln_ids_summary_by_service_and_package_id(
+            service, package_id, related_ticket_status
+        )
+    else:
+        vuln_ids_summary = get_vuln_ids_summary_by_pteam_and_package_id(
+            pteam, package_id, related_ticket_status
+        )
 
     return {
         "pteam_id": pteam_id,
         "service_id": service_id,
-        "tag_id": tag_id,
-        **topic_ids_summary,
+        "package_id": package_id,
+        "related_ticket_status": related_ticket_status,
+        **vuln_ids_summary,
     }
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
+    "/{pteam_id}/ticket_counts",
+    response_model=schemas.ServicePackageTicketCountsSolvedUnsolved,
+)
+def get_ticket_counts_tied_to_service_package(
+    pteam_id: UUID,
+    service_id: UUID | None = Query(None),
+    package_id: UUID | None = Query(None),
+    related_ticket_status: schemas.RelatedTicketStatus | None = Query(None),
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    service = None
+    if service_id:
+        if not (service := persistence.get_service_by_id(db, service_id)):
+            raise NO_SUCH_SERVICE
+        if service.pteam_id != str(pteam_id):
+            raise NO_SUCH_SERVICE
+    if package_id and not persistence.get_package_by_id(db, package_id):
+        raise NO_SUCH_PACKAGE
+    if (
+        service_id
+        and package_id
+        and len(
+            persistence.get_dependencies_from_service_id_and_package_id(db, service_id, package_id)
+        )
+        == 0
+    ):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
+
+    if service:
+        ticket_counts_summary = get_ticket_counts_summary_by_service_and_package_id(
+            service, package_id, related_ticket_status
+        )
+    else:
+        ticket_counts_summary = get_ticket_counts_summary_by_pteam_and_package_id(
+            pteam, package_id, related_ticket_status
+        )
+
+    return {
+        "pteam_id": pteam_id,
+        "service_id": service_id,
+        "package_id": package_id,
+        "related_ticket_status": related_ticket_status,
+        **ticket_counts_summary,
+    }
+
+
+@router.get(
+    "/{pteam_id}/tickets/{ticket_id}/ticketstatuses",
     response_model=schemas.TicketStatusResponse,
 )
 def get_ticket_status(
     pteam_id: UUID,
-    service_id: UUID,
     ticket_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -617,25 +681,18 @@ def get_ticket_status(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
     if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
-        raise NO_SUCH_TICKET
-    if ticket.threat.dependency.service_id != str(service_id):
         raise NO_SUCH_TICKET
 
     return ticket.ticket_status
 
 
 @router.put(
-    "/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
+    "/{pteam_id}/tickets/{ticket_id}/ticketstatuses",
     response_model=schemas.TicketStatusResponse,
 )
 def set_ticket_status(
     pteam_id: UUID,
-    service_id: UUID,
     ticket_id: UUID,
     data: schemas.TicketStatusRequest,
     current_user: models.Account = Depends(get_current_user),
@@ -645,27 +702,21 @@ def set_ticket_status(
     Set status of the ticket.
     Current value should be inherited if not specified.
 
-    scheduled_at is necessary to make topic_status "scheduled".
+    scheduled_at is necessary to make vuln_status "scheduled".
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
     if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
-        raise NO_SUCH_TICKET
-    if ticket.threat.dependency.service_id != str(service_id):
         raise NO_SUCH_TICKET
 
     update_data = data.model_dump(exclude_unset=True)
 
-    if "topic_status" in update_data.keys() and data.topic_status is None:
+    if "vuln_status" in update_data.keys() and data.vuln_status is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot specify None for topic_status",
+            detail="Cannot specify None for vuln_status",
         )
     if "logging_ids" in update_data.keys() and data.logging_ids is None:
         raise HTTPException(
@@ -678,7 +729,7 @@ def set_ticket_status(
             detail="Cannot specify None for assignees",
         )
 
-    if data.topic_status == models.TopicStatusType.alerted:
+    if data.vuln_status == models.VulnStatusType.alerted:
         # user cannot set alerted
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
 
@@ -686,12 +737,12 @@ def set_ticket_status(
     if data.scheduled_at:
         data_scheduled_at = data.scheduled_at.replace(tzinfo=None)
 
-    if data.topic_status == models.TopicStatusType.scheduled or (
-        "topic_status" not in update_data.keys()
-        and ticket.ticket_status.topic_status == models.TopicStatusType.scheduled
+    if data.vuln_status == models.VulnStatusType.scheduled or (
+        "vuln_status" not in update_data.keys()
+        and ticket.ticket_status.vuln_status == models.VulnStatusType.scheduled
     ):
         if "scheduled_at" not in update_data.keys():
-            if ticket.ticket_status.topic_status != models.TopicStatusType.scheduled:
+            if ticket.ticket_status.vuln_status != models.VulnStatusType.scheduled:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="If status is scheduled, specify schduled_at",
@@ -709,7 +760,7 @@ def set_ticket_status(
                 )
     else:
         if "scheduled_at" not in update_data.keys():
-            if ticket.ticket_status.topic_status == models.TopicStatusType.scheduled:
+            if ticket.ticket_status.vuln_status == models.VulnStatusType.scheduled:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=(
@@ -752,11 +803,11 @@ def set_ticket_status(
         ticket.ticket_status.assignees = list(map(str, data.assignees))
     elif ticket.ticket_status.assignees == []:
         ticket.ticket_status.assignees = [UUID(current_user.user_id)]
-    if "topic_status" in update_data.keys():
-        ticket.ticket_status.topic_status = data.topic_status
-    elif ticket.ticket_status.topic_status == models.TopicStatusType.alerted:
+    if "vuln_status" in update_data.keys():
+        ticket.ticket_status.vuln_status = data.vuln_status
+    elif ticket.ticket_status.vuln_status == models.VulnStatusType.alerted:
         # this is the first update
-        ticket.ticket_status.topic_status = models.TopicStatusType.acknowledged
+        ticket.ticket_status.vuln_status = models.VulnStatusType.acknowledged
     if "logging_ids" in update_data.keys() and data.logging_ids is not None:
         ticket.ticket_status.logging_ids = list(map(str, data.logging_ids))
     if "note" in update_data.keys():
@@ -766,7 +817,7 @@ def set_ticket_status(
             ticket.ticket_status.scheduled_at = None
         elif (
             data_scheduled_at > now
-            and ticket.ticket_status.topic_status == models.TopicStatusType.scheduled
+            and ticket.ticket_status.vuln_status == models.VulnStatusType.scheduled
         ):
             ticket.ticket_status.scheduled_at = data.scheduled_at
 
@@ -779,41 +830,47 @@ def set_ticket_status(
 
 
 @router.get(
-    "/{pteam_id}/services/{service_id}/topics/{topic_id}/tags/{tag_id}/tickets",
+    "/{pteam_id}/tickets",
     response_model=list[schemas.TicketResponse],
 )
-def get_tickets_with_status_by_service_id_and_topic_id(
+def get_tickets_by_service_id_and_package_id_and_vuln_id(
     pteam_id: UUID,
-    service_id: UUID,
-    topic_id: UUID,
-    tag_id: UUID,
+    service_id: UUID | None = Query(None),
+    package_id: UUID | None = Query(None),
+    vuln_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Get tickets (with status) related to the service, topic and tag.
+    Get tickets related to the service, package and vuln.
     """
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if not (service := persistence.get_service_by_id(db, service_id)):
-        raise NO_SUCH_SERVICE
-    if service.pteam_id != str(pteam_id):
-        raise NO_SUCH_SERVICE
-    if not persistence.get_topic_by_id(db, topic_id):
-        raise NO_SUCH_TOPIC
-    if not persistence.get_tag_by_id(db, tag_id):
-        raise NO_SUCH_TAG
+    if service_id:
+        if not (service := persistence.get_service_by_id(db, service_id)):
+            raise NO_SUCH_SERVICE
+        if service.pteam_id != str(pteam_id):
+            raise NO_SUCH_SERVICE
+    if package_id and not (persistence.get_package_by_id(db, package_id)):
+        raise NO_SUCH_PACKAGE
+    if vuln_id and not (persistence.get_vuln_by_id(db, vuln_id)):
+        raise NO_SUCH_VULN
 
-    tickets = command.get_sorted_tickets_related_to_service_and_topic_and_tag(
-        db, service_id, topic_id, tag_id
+    tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
+        db, service_id, package_id, vuln_id
     )
 
     ret = [
         {
-            **ticket.__dict__,
-            "threat": ticket.threat.__dict__,
+            "ticket_id": ticket.ticket_id,
+            "vuln_id": ticket.threat.vuln_id,
+            "dependency_id": ticket.dependency_id,
+            "created_at": ticket.created_at,
+            "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
+            "ticket_safety_impact": ticket.ticket_safety_impact,
+            "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
             "ticket_status": ticket.ticket_status.__dict__,
         }
         for ticket in tickets
@@ -821,24 +878,108 @@ def get_tickets_with_status_by_service_id_and_topic_id(
     return ret
 
 
-@router.get("/{pteam_id}/topics", response_model=list[schemas.TopicResponse])
-def get_pteam_topics(
+@router.get("/{pteam_id}/tickets/{ticket_id}", response_model=schemas.TicketResponse)
+def get_ticket(
     pteam_id: UUID,
+    ticket_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Get topics of the pteam.
+    Get a ticket.
     """
+
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
 
-    if not pteam.tags:
-        return []
-    topic_tag_ids = get_tag_ids_with_parent_ids(pteam.tags)
-    return get_sorted_topics(persistence.get_topics_by_tag_ids(db, topic_tag_ids))
+    service = ticket.dependency.service
+    if str(service.pteam_id) != str(pteam_id):
+        raise NO_SUCH_TICKET
+
+    vuln_id = ticket.threat.vuln_id if ticket.threat else None
+
+    return {
+        "ticket_id": ticket.ticket_id,
+        "vuln_id": vuln_id,
+        "dependency_id": ticket.dependency_id,
+        "created_at": ticket.created_at,
+        "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
+        "ticket_safety_impact": ticket.ticket_safety_impact,
+        "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
+        "ticket_status": ticket.ticket_status,
+    }
+
+
+@router.put(
+    "/{pteam_id}/tickets/{ticket_id}",
+    response_model=schemas.TicketResponse,
+)
+def update_ticket_safety_impact(
+    pteam_id: UUID,
+    ticket_id: UUID,
+    data: schemas.TicketUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Update ticket_safety_impact.
+    """
+    max_reason_safety_impact_length_in_half = 500
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+
+    need_fix_ssvc_priority = False
+    updated_keys = data.model_dump(exclude_unset=True).keys()
+    if "ticket_safety_impact" in updated_keys:
+        need_fix_ssvc_priority = ticket.ticket_safety_impact != data.ticket_safety_impact
+        ticket.ticket_safety_impact = data.ticket_safety_impact
+    if "ticket_safety_impact_change_reason" in updated_keys:
+        if data.ticket_safety_impact_change_reason and (
+            ticket_safety_impact_change_reason := data.ticket_safety_impact_change_reason.strip()
+        ):
+            if (
+                count_full_width_and_half_width_characters(ticket_safety_impact_change_reason)
+                > max_reason_safety_impact_length_in_half
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"Too long ticket_safety_impact_change_reason. "
+                        f"Max length is {max_reason_safety_impact_length_in_half} in half-width "
+                        f"or {int(max_reason_safety_impact_length_in_half / 2)} in full-width"
+                    ),
+                )
+            ticket.ticket_safety_impact_change_reason = ticket_safety_impact_change_reason
+        else:
+            ticket.ticket_safety_impact_change_reason = None
+
+    if ticket and need_fix_ssvc_priority:
+        db.flush()
+        fix_ticket_ssvc_priority(db, ticket)
+
+    db.commit()
+
+    vuln_id = ticket.threat.vuln_id if ticket.threat else None
+
+    return {
+        "ticket_id": ticket.ticket_id,
+        "vuln_id": vuln_id,
+        "dependency_id": ticket.dependency_id,
+        "created_at": ticket.created_at,
+        "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
+        "ticket_safety_impact": ticket.ticket_safety_impact,
+        "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
+        "ticket_status": ticket.ticket_status,
+    }
 
 
 @router.post("", response_model=schemas.PTeamInfo)
@@ -849,8 +990,6 @@ def create_pteam(
 ):
     """
     Create a pteam.
-
-    `tags` is optional, the default is an empty list.
     """
 
     if data.alert_slack and data.alert_slack.webhook_url:
@@ -913,7 +1052,7 @@ def _json_loads(s: str | bytes | bytearray):
     except json.JSONDecodeError as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=("Wrong file content: " + f'{s[:32]!s}{"..." if len(s) > 32 else ""}'),
+            detail=("Wrong file content: " + f"{s[:32]!s}{'...' if len(s) > 32 else ''}"),
         ) from error
 
 
@@ -921,7 +1060,6 @@ def bg_create_tags_from_sbom_json(
     sbom_json: dict,
     pteam_id: UUID | str,
     service_name: str,
-    force_mode: bool,
     filename: str | None,
 ):
     # TODO
@@ -943,7 +1081,7 @@ def bg_create_tags_from_sbom_json(
 
         try:
             json_lines = sbom_json_to_artifact_json_lines(sbom_json)
-            apply_service_tags(db, service, json_lines, auto_create_tags=force_mode)
+            apply_service_packages(db, service, json_lines)
         except ValueError:
             notify_sbom_upload_ended(service, filename, False)
             log.error(f"Failed uploading SBOM as a service: {service_name}")
@@ -964,7 +1102,6 @@ async def upload_pteam_sbom_file(
     file: UploadFile,
     background_tasks: BackgroundTasks,
     service: str = Query("", description="name of service(repository or product)"),
-    force_mode: bool = Query(False, description="if true, create unexist tags"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -1005,22 +1142,21 @@ async def upload_pteam_sbom_file(
         ) from error
 
     background_tasks.add_task(
-        bg_create_tags_from_sbom_json, sbom_json, pteam_id, service, force_mode, file.filename
+        bg_create_tags_from_sbom_json, sbom_json, pteam_id, service, file.filename
     )
     return ret
 
 
-@router.post("/{pteam_id}/upload_tags_file", response_model=list[schemas.ExtTagResponse])
-def upload_pteam_tags_file(
+@router.post("/{pteam_id}/upload_packages_file", response_model=list[schemas.PackageFileResponse])
+def upload_pteam_packages_file(
     pteam_id: UUID,
     file: UploadFile,
     service: str = Query("", description="name of service(repository or product)"),
-    force_mode: bool = Query(False, description="if true, create unexist tags"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Update pteam tags by uploading a .jsonl file.
+    Update pteam packages by uploading a .jsonl file.
 
     Format of file content must be JSON Lines.
     """
@@ -1046,7 +1182,7 @@ def upload_pteam_tags_file(
         db.flush()
 
     try:
-        apply_service_tags(db, service_model, json_lines, auto_create_tags=force_mode)
+        apply_service_packages(db, service_model, json_lines)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
@@ -1055,60 +1191,83 @@ def upload_pteam_tags_file(
 
     db.commit()
 
-    return get_pteam_ext_tags(pteam)
+    return package_business.get_pteam_ext_packages(pteam)
 
 
-def apply_service_tags(
+def apply_service_packages(
     db: Session,
     service: models.Service,
     json_lines: list[dict],
-    auto_create_tags=False,
 ) -> None:
-    # Check file format and get tag_names
-    missing_tags = set()
-    new_dependencies_set: set[tuple[str, str, str]] = set()  # (tag_id, target, version)
+    new_dependencies_set: set[tuple[str, str, str]] = (
+        set()
+    )  # (package_version_id, target, package_manager)
     for line in json_lines:
-        if not (_tag_name := line.get("tag_name")):
-            raise ValueError("Missing tag_name")
+        if not (package_name_raw := line.get("package_name")):
+            raise ValueError("Missing package name")
+        package_name = str(package_name_raw)
+        if not (ecosystem_raw := line.get("ecosystem")):
+            raise ValueError("Missing ecosystem")
+        ecosystem = str(ecosystem_raw)
         if not (_refs := line.get("references")):
             raise ValueError("Missing references")
         if any(None in {_ref.get("target"), _ref.get("version")} for _ref in _refs):
             raise ValueError("Missing target and|or version")
-        if not (_tag := persistence.get_tag_by_name(db, _tag_name)):
-            if auto_create_tags:
-                _tag = create_topic_tag(db, _tag_name)
-            else:
-                missing_tags.add(_tag_name)
-        if _tag:
+        package_manager = str(line.get("package_manager", ""))
+
+        if not (
+            _package := persistence.get_package_by_name_and_ecosystem(db, package_name, ecosystem)
+        ):
+            # create new package
+            _package = models.Package(name=package_name, ecosystem=ecosystem)
+            persistence.create_package(db, _package)
+
+        if _package:
             for ref in line.get("references", [{}]):
+                if not (
+                    _package_version := persistence.get_package_version_by_package_id_and_version(
+                        db, _package.package_id, ref.get("version", "")
+                    )
+                ):
+                    # create new package version
+                    _package_version = models.PackageVersion(
+                        package_id=_package.package_id,
+                        version=ref.get("version", ""),
+                    )
+                    persistence.create_package_version(db, _package_version)
                 new_dependencies_set.add(
-                    (_tag.tag_id, ref.get("target", ""), ref.get("version", ""))
+                    (_package_version.package_version_id, ref.get("target", ""), package_manager)
                 )
-    if missing_tags:
-        raise ValueError(f"No such tags: {', '.join(sorted(missing_tags))}")
 
     # separate dependencis to keep, delete or create
     obsoleted_dependencies = []
     for dependency in service.dependencies:
         if (
-            item := (dependency.tag_id, dependency.target, dependency.version)
+            item := (dependency.package_version_id, dependency.target, dependency.package_manager)
         ) in new_dependencies_set:
             new_dependencies_set.remove(item)  # already exists
             continue
         obsoleted_dependencies.append(dependency)
     for obsoleted in obsoleted_dependencies:
+        package = obsoleted.package_version.package
         service.dependencies.remove(obsoleted)
+        db.flush()
+        package_business.fix_package(db, package)
     # create new dependencies
-    for [tag_id, target, version] in new_dependencies_set:
+    for [package_version_id, target, package_manager] in new_dependencies_set:
         new_dependency = models.Dependency(
             service_id=service.service_id,
-            tag_id=tag_id,
-            version=version,
+            package_version_id=package_version_id,
             target=target,
+            package_manager=package_manager,
         )
         service.dependencies.append(new_dependency)
         db.flush()
-        fix_threats_for_dependency(db, new_dependency)
+        threats: list[models.Threat] = threat_business.fix_threat_by_package_version_id(
+            db, package_version_id
+        )
+        for threat in threats:
+            ticket_business.fix_ticket_by_threat(db, threat)
     db.flush()
 
 
@@ -1132,7 +1291,16 @@ def remove_service(
         # do not raise error even if specified service does not exist
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
+    related_packages = set()
+    for dependency in service.dependencies:
+        package = dependency.package_version.package
+        related_packages.add(package)
+
     pteam.services.remove(service)
+    db.flush()
+
+    for package in related_packages:
+        package_business.fix_package(db, package)
 
     db.commit()
 
@@ -1383,7 +1551,17 @@ def delete_pteam(
     if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
+    related_packages = set()
+    for service in pteam.services:
+        for dependency in service.dependencies:
+            package = dependency.package_version.package
+            related_packages.add(package)
+
     persistence.delete_pteam(db, pteam)
+    db.flush()
+
+    for package in related_packages:
+        package_business.fix_package(db, package)
 
     db.commit()
 

@@ -2,15 +2,14 @@ import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui
 import { grey, yellow, amber } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
-import { topicStatusProps, sortedTopicStatus } from "../../utils/const";
+import { vulnStatusProps, sortedVulnStatus } from "../../utils/const";
 import { calcTimestampDiff, compareSSVCPriority } from "../../utils/func";
 
 function LineWithTooltip(props) {
-  const { topicStatus, ratio, num } = props;
-  const constProp = topicStatusProps[topicStatus];
+  const { vulnStatus, ratio, num } = props;
+  const constProp = vulnStatusProps[vulnStatus];
 
   const tipAreaHeight = 15;
   const lineHeight = 5;
@@ -50,29 +49,10 @@ function LineWithTooltip(props) {
 }
 
 LineWithTooltip.propTypes = {
-  topicStatus: PropTypes.string,
+  vulnStatus: PropTypes.string,
   ratio: PropTypes.number,
   num: PropTypes.number,
 };
-
-function DisableLine() {
-  const tipAreaHeight = 15;
-  const lineHeight = 5;
-  const mt = (tipAreaHeight - lineHeight) / 2;
-
-  return (
-    <Box sx={{ width: "100%", height: tipAreaHeight + "px" }}>
-      <Box
-        sx={{
-          width: "100%",
-          height: lineHeight + "px",
-          mt: mt + "px",
-          backgroundColor: grey[400],
-        }}
-      />
-    </Box>
-  );
-}
 
 function StatusRatioGraph(props) {
   const { counts, displaySSVCPriority } = props;
@@ -86,11 +66,10 @@ function StatusRatioGraph(props) {
 
   return (
     <Stack direction="row" spacing={0}>
-      {keys.length < 1 && <DisableLine />}
       {keys.map((key) => (
         <LineWithTooltip
           key={key}
-          topicStatus={key}
+          vulnStatus={key}
           ratio={ratios[key] ?? 0}
           num={counts[key] ?? 0}
         />
@@ -105,18 +84,18 @@ StatusRatioGraph.propTypes = {
 };
 
 export function PTeamStatusCard(props) {
-  const { onHandleClick, pteam, tag, serviceIds } = props;
+  const { onHandleClick, pteam, packageInfo, serviceIds } = props;
 
   let displaySSVCPriority = "";
-  if (!tag.ssvc_priority && tag.status_count["completed"] > 0) {
+  if (!packageInfo.ssvc_priority && packageInfo.status_count["completed"] > 0) {
     displaySSVCPriority = "safe"; // solved all and at least 1 tickets
   } else if (
-    !tag.ssvc_priority &&
-    sortedTopicStatus.every((topicStatus) => tag.status_count[topicStatus] === 0)
+    !packageInfo.ssvc_priority &&
+    sortedVulnStatus.every((vulnStatus) => packageInfo.status_count[vulnStatus] === 0)
   ) {
     displaySSVCPriority = "empty";
   } else {
-    displaySSVCPriority = tag.ssvc_priority ?? "defer";
+    displaySSVCPriority = packageInfo.ssvc_priority ?? "defer";
   }
 
   // Change the background color and border based on the Alert Threshold value set by the team.
@@ -144,7 +123,9 @@ export function PTeamStatusCard(props) {
       </TableCell>
       <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
-          {tag.tag_name}
+          {packageInfo.package_name}
+          {":"}
+          {packageInfo.ecosystem}
         </Typography>
         {serviceIds &&
           pteam.services
@@ -164,10 +145,13 @@ export function PTeamStatusCard(props) {
                     : "visible",
               }}
             >
-              Updated {calcTimestampDiff(tag.updated_at)}
+              Updated {calcTimestampDiff(packageInfo.updated_at)}
             </Typography>
           </Box>
-          <StatusRatioGraph counts={tag.status_count} displaySSVCPriority={tag.ssvc_priority} />
+          <StatusRatioGraph
+            counts={packageInfo.status_count}
+            displaySSVCPriority={packageInfo.ssvc_priority}
+          />
         </Box>
       </TableCell>
     </TableRow>
@@ -177,14 +161,15 @@ export function PTeamStatusCard(props) {
 PTeamStatusCard.propTypes = {
   onHandleClick: PropTypes.func.isRequired,
   pteam: PropTypes.object.isRequired,
-  tag: PropTypes.shape({
-    tag_name: PropTypes.string,
-    tag_id: PropTypes.string,
+  packageInfo: PropTypes.shape({
+    package_name: PropTypes.string,
+    package_id: PropTypes.string,
     references: PropTypes.arrayOf(PropTypes.object),
     text: PropTypes.string,
     ssvc_priority: PropTypes.string,
     updated_at: PropTypes.string,
     status_count: PropTypes.object,
+    ecosystem: PropTypes.string,
   }).isRequired,
   serviceIds: PropTypes.array,
 };

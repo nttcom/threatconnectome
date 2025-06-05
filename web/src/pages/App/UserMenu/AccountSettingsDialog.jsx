@@ -7,7 +7,6 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { DeleteAccountDialog } from "./DeleteAccountDialog";
 

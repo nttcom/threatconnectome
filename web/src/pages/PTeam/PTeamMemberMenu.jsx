@@ -5,7 +5,7 @@ import {
 } from "@mui/icons-material";
 import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery, useGetUserMeQuery } from "../../services/tcApi";

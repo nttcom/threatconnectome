@@ -100,7 +100,7 @@ Get your own `team_id` by following steps and copy it.
 ![Get my user info](images/get_my_user_info.png)
 ![Get my team_id](images/get_team_id.png)
 
-- 4.3 Scroll up to ⇨ `POST /pteams/{team_id}/upload_tags_file  Upload Pteam Tags File`
+- 4.3 Scroll up to ⇨ `POST /pteams/{team_id}/upload_packages_file  Upload Pteam Packages File`
 
 Click `Try it out`, paste `team_id`, specifiy `service` (repository or product), set `force_mode` if needed, click on "choose file" button and choose the `tags.jsonl` generated in procedure 3, then execute.
 ![Append team tags](images/append_team_tags.png)
@@ -239,13 +239,13 @@ The available options are as follow:
 - -s / --skip_rules: Skip rules. Multiple skip rules can be specified.
 - -H / --hostname: Specify target hostname. If not specified, auto-detection will be attempted under specific conditions.
 
-# :bulb: Colletct threats data
+# :bulb: Colletct tickets data
 
-Run the following commands to colletct threats data
+Run the following commands to colletct tickets data
 
 ```bash
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
 # For local development environment
-python3 collect_threats_data.py -p <pteam_id> -s <service_id> "http://localhost/api"
+python3 collect_tickets_data.py -p <pteam_id> -s <service_id> "http://localhost/api"
 
 ```

@@ -1,17 +1,15 @@
 import json
-import random
-import string
 import tempfile
 from datetime import datetime
 from hashlib import sha256
 from io import DEFAULT_BUFFER_SIZE, BytesIO
 from pathlib import Path
-from typing import Sequence
+from typing import Any
 from uuid import UUID
 
 from fastapi.testclient import TestClient
 
-from app import models, schemas
+from app import schemas
 from app.main import app
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.routers.test_auth import get_access_token_headers, get_file_upload_headers
@@ -25,32 +23,12 @@ def assert_200(response) -> dict:
     return response.json()
 
 
-def assert_204(response):
-    if response.status_code != 204:
-        raise HTTPError(response)
-
-
-def schema_to_dict(data) -> dict:
-    if isinstance(data, schemas.TagResponse):
-        return {
-            "tag_name": data.tag_name,
-            "tag_id": str(data.tag_id),
-            "parent_name": data.parent_name,
-            "parent_id": str(data.parent_id) if data.parent_id else None,
-        }
-    raise ValueError(f"Not implemented for {type(data)}")
-
-
 def headers(user: dict) -> dict:
     return get_access_token_headers(user["email"], user["pass"])
 
 
 def file_upload_headers(user: dict) -> dict:
     return get_file_upload_headers(user["email"], user["pass"])
-
-
-def random_string(number: int) -> str:
-    return "".join(random.choices(string.ascii_letters + string.digits, k=number))
 
 
 def create_user(user: dict) -> schemas.UserResponse:
@@ -103,35 +81,28 @@ def accept_pteam_invitation(user: dict, invitation_id: UUID) -> schemas.PTeamInf
     return schemas.PTeamInfo(**response.json())
 
 
-def upload_pteam_tags(
+def upload_pteam_packages(
     user: dict,
     pteam_id: UUID | str,
-    service: str,
-    ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
-    force_mode: bool = True,
-) -> list[schemas.ExtTagResponse]:
-    params = {"service": service, "force_mode": str(force_mode)}
+    service_name: str,
+    ext_packages: list[dict[str, Any]],
+) -> list[schemas.PackageFileResponse]:
+    params = {"service": service_name}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
-        for tag_name, etags in ext_tags.items():
-            assert all(len(etag) == 2 and None not in etag for etag in etags)  # check test code
-            refs = [{"target": etag[0], "version": etag[1]} for etag in etags]
-            tfile.writelines(json.dumps({"tag_name": tag_name, "references": refs}) + "\n")
+        for ext_package in ext_packages:
+            tfile.writelines(json.dumps(ext_package) + "\n")
         tfile.flush()
+        tfile.seek(0)
         with open(tfile.name, "rb") as bfile:
             data = assert_200(
                 client.post(
-                    f"/pteams/{pteam_id}/upload_tags_file",
+                    f"/pteams/{pteam_id}/upload_packages_file",
                     headers=file_upload_headers(user),
                     params=params,
                     files={"file": bfile},
                 )
             )
-    return [schemas.ExtTagResponse(**item) for item in data]
-
-
-def get_pteam_tags(user: dict, pteam_id: str) -> list[schemas.ExtTagResponse]:
-    data = assert_200(client.get(f"/pteams/{pteam_id}/tags", headers=headers(user)))
-    return [schemas.ExtTagResponse(**item) for item in data]
+    return [schemas.PackageFileResponse(**item) for item in data]
 
 
 def get_pteam_services(user: dict, pteam_id: str) -> list[schemas.PTeamServiceResponse]:
@@ -144,100 +115,24 @@ def get_service_by_service_name(user: dict, pteam_id: UUID | str, service_name: 
     return next(filter(lambda x: x["service_name"] == service_name, data["services"]), None)
 
 
-def create_tag(user: dict, tag_name: str) -> schemas.TagResponse:
-    request = {
-        "tag_name": tag_name,
-    }
-    response = client.post("/tags", headers=headers(user), json=request)
+def create_vuln(
+    user: dict,
+    vuln: dict,
+) -> schemas.VulnResponse:
+    response = client.put(f'/vulns/{vuln["vuln_id"]}', headers=headers(user), json=vuln)
+
     if response.status_code != 200:
         raise HTTPError(response)
-    return schemas.TagResponse(**response.json())
-
-
-def create_misp_tag(user: dict, tag_name: str) -> schemas.MispTagResponse:
-    request = {
-        "tag_name": tag_name,
-    }
-    response = client.post("/misp_tags", headers=headers(user), json=request)
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return schemas.MispTagResponse(**response.json())
-
-
-def create_topic(
-    user: dict,
-    topic: dict,
-    actions: list[dict] | None = None,
-    auto_create_tags: bool = True,
-) -> schemas.TopicCreateResponse:
-    request = {**topic}
-    if actions is not None:
-        request.update({"actions": actions})
-    del request["topic_id"]
-
-    response = client.post(f'/topics/{topic["topic_id"]}', headers=headers(user), json=request)
-
-    if response.status_code != 200:
-        no_tag_msg = "No such tags: "
-        if (
-            auto_create_tags
-            and response.status_code == 400
-            and (detail := response.json().get("detail", "")).startswith(no_tag_msg)
-        ):
-            for tag_name in detail[len(no_tag_msg) :].split(", "):  # split tag_names CSV
-                create_tag(user, tag_name)
-            return create_topic(user, topic, actions, auto_create_tags=False)
-        raise HTTPError(response)
-    return schemas.TopicCreateResponse(**response.json())
-
-
-def create_topic_with_versioned_actions(
-    user: dict,
-    topic: dict,
-    actions_tagnames: list[list[str]],
-) -> schemas.TopicCreateResponse:
-    def _gen_action(tag_names: list[str]) -> dict:
-        return {
-            "action": f"action for {','.join(tag_names)}",
-            "action_type": models.ActionType.elimination,
-            "recommended": True,
-            "ext": {
-                "tags": tag_names,
-                "vulnerable_versions": {tag_name: ["< 99.9.9"] for tag_name in tag_names},
-            },
-        }
-
-    return create_topic(
-        user,
-        {
-            **topic,
-            "tags": actions_tagnames[0],
-            "actions": [_gen_action(tag_names) for tag_names in actions_tagnames],
-        },
-    )
-
-
-def update_topic(
-    user: dict,
-    topic: schemas.TopicEntry,
-    params: dict,
-) -> schemas.TopicResponse:
-    data = assert_200(client.put(f"/topics/{topic.topic_id}", headers=headers(user), json=params))
-    return schemas.TopicResponse(**data)
-
-
-def search_topics(
-    user: dict,
-    params: dict,
-) -> schemas.SearchTopicsResponse:
-    data = assert_200(client.get("/topics/search", headers=headers(user), params=params))
-    return schemas.SearchTopicsResponse(**data)
+    return schemas.VulnResponse(**response.json())
 
 
 def create_actionlog(
     user: dict,
-    action_id: UUID | str,
-    topic_id: UUID | str,
+    action_id: UUID | str | None,
+    action: str,
+    action_type: str,
+    recommended: bool,
+    vuln_id: UUID | str,
     user_id: UUID | str,
     pteam_id: UUID | str,
     service_id: UUID | str,
@@ -245,14 +140,18 @@ def create_actionlog(
     executed_at: datetime | None,
 ) -> schemas.ActionLogResponse:
     request = {
-        "action_id": str(action_id),
-        "topic_id": str(topic_id),
+        "action": action,
+        "action_type": action_type,
+        "recommended": recommended,
+        "vuln_id": str(vuln_id),
         "user_id": str(user_id),
         "pteam_id": str(pteam_id),
         "service_id": str(service_id),
         "ticket_id": str(ticket_id),
         "executed_at": str(executed_at) if executed_at else None,
     }
+    if action_id is not None:
+        request["action_id"] = str(action_id)
 
     response = client.post("/actionlogs", headers=headers(user), json=request)
 
@@ -261,26 +160,12 @@ def create_actionlog(
     return schemas.ActionLogResponse(**response.json())
 
 
-def compare_tags(
-    tags1: Sequence[dict | schemas.TagResponse],
-    tags2: Sequence[dict | schemas.TagResponse],
-) -> bool:
-    def _to_tuple(tag_: dict | schemas.TagResponse):
-        if isinstance(tag_, schemas.TagResponse):
-            tag_ = tag_.model_dump()
-        return (
-            tag_.get("tag_name"),
-            str(tag_.get("tag_id")),
-            tag_.get("parent_name"),
-            str(parent_id) if (parent_id := tag_.get("parent_id")) else None,
-        )
-
-    return [_to_tuple(t1) for t1 in tags1] == [_to_tuple(t2) for t2 in tags2]
-
-
 def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     def _to_tuple_set(refs):
-        return {(ref.get("service"), ref.get("target"), ref.get("version")) for ref in refs}
+        return {
+            (ref.get("service"), ref.get("target"), ref.get("version"), ref.get("package_manager"))
+            for ref in refs
+        }
 
     if not isinstance(refs1, list) or not isinstance(refs2, list):
         return False
@@ -289,15 +174,15 @@ def compare_references(refs1: list[dict], refs2: list[dict]) -> bool:
     return _to_tuple_set(refs1) == _to_tuple_set(refs2)
 
 
-def get_tickets_related_to_topic_tag(
+def get_tickets_related_to_vuln_package(
     user: dict,
     pteam_id: UUID | str,
     service_id: UUID | str,
-    topic_id: UUID | str,
-    tag_id: UUID | str,
+    vuln_id: UUID | str,
+    package_id: UUID | str,
 ) -> list[dict]:
     response = client.get(
-        f"/pteams/{pteam_id}/services/{service_id}/topics/{topic_id}/tags/{tag_id}/tickets",
+        f"/pteams/{pteam_id}/tickets?service_id={service_id}&vuln_id={vuln_id}&package_id={package_id}",
         headers=headers(user),
     )
     if response.status_code != 200:
@@ -305,21 +190,12 @@ def get_tickets_related_to_topic_tag(
     return response.json()
 
 
-def set_ticket_status(
-    user: dict, pteam_id: UUID | str, service_id: UUID | str, ticket_id: UUID | str, json: dict
-) -> dict:
+def set_ticket_status(user: dict, pteam_id: UUID | str, ticket_id: UUID | str, json: dict) -> dict:
     response = client.put(
-        f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}",
+        f"/pteams/{pteam_id}/tickets/{ticket_id}/ticketstatuses",
         headers=headers(user),
         json=json,
     )
-    if response.status_code != 200:
-        raise HTTPError(response)
-    return response.json()
-
-
-def common_put(user: dict, api_path: str, **kwargs) -> dict:
-    response = client.put(api_path, headers=headers(user), json=kwargs)
     if response.status_code != 200:
         raise HTTPError(response)
     return response.json()

@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { TabPanel } from "../components/TabPanel";
 import dialogStyle from "../cssModule/dialog.module.css";
