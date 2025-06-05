@@ -89,9 +89,9 @@ After uploading, navigate back to the `Status` page where you can view the newly
 
 ![Verify registed content](images/verify_registed_content.png)
 
-# :bulb: Topic Registration from TrivyDB
+# :bulb: Vuln Registration from TrivyDB
 
-Purpose: To create topics from TrivyDB to understand the threat impact of your tags.
+Purpose: To create vulns from TrivyDB to understand the threat impact of your packages.
 
 ## :pushpin: Requirements
 
@@ -113,7 +113,7 @@ The default path of `trivy.db` is as follows:
 - Linux: `~/.cache/trivy/db/trivy.db`
 - macOS: `~/Library/Caches/trivy/db/trivy.db`
 
-Run the following commands to create topics from Trivy DB:
+Run the following commands to create vulns from Trivy DB:
 
 ```bash
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
@@ -122,16 +122,16 @@ python3 trivydb2tc.py -d ~/.cache/trivy/db/trivy.db "http://localhost/api"
 
 ```
 
-Use `--force-update` option to update existing topics.
+Use `--force-update` option to update existing vulns.
 
 ```bash
 python3 trivydb2tc.py -d ~/.cache/trivy/db/trivy.db --force-update "http://localhost/api"
 
 ```
 
-# :bulb: Topic Update from Vulnrichment
+# :bulb: Vuln Update from Vulnrichment
 
-Purpose: To update topics from Vulnrichment to regist exploitation and automatable in topic.
+Purpose: To update vulns from Vulnrichment to regist exploitation and automatable in vuln.
 
 ## :triangular_flag_on_post: Usage
 
@@ -142,7 +142,7 @@ git clone https://github.com/cisagov/vulnrichment
 
 ```
 
-Run the following commands to update topics from vulnrichment:
+Run the following commands to update vulns from vulnrichment:
 
 ```bash
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
