@@ -1,4 +1,4 @@
-# :bulb: Tag Registration
+# :bulb: SBOM Registration
 
 Purpose: To inspect packages (OS packages & library packages) used in a user's server by Trivy, register them with Threatconnectome and manage their security status.
 
@@ -64,52 +64,28 @@ OSV-Scanner command example:
 osv-scanner -r --json threatconnectome > osv-result.json
 ```
 
-## :triangular_flag_on_post: Procedures for tag registration in public environment
+## :triangular_flag_on_post: Procedures for sbom registration in public environment
 
-1. Script Download
-
-Please access `https://github.com/nttcom/threatconnectome/blob/main/scripts/trivy_tags.py`, click the `Raw` button, and save the contents as trivy_tags.py.
-
-2. Run a full scan on all directories
+1. Run a full scan on all directories
 
 ```bash
-sudo trivy fs -f json -o trivy-result.json --list-all-pkgs --scanners vuln /
+sudo trivy fs -f cyclonedx -o trivy-result.json --list-all-pkgs --scanners vuln /
 ```
 
-:warning: Please make sure `trivy_tags.py` and `trivy-result.json` are in the same directory before next step.
+2. Upload Sbom file via Web UI
 
-3. Convert scan result to tags
+Login to `http://threatconnectome.metemcyber.ntt.com` and choose your team.
+Navigate to the 'Status' page and select 'upload' tab. Then drag & drop the 'trivy-result.json' file you created to the "Drop SBOM file here" area.
 
-```bash
-python3 trivy_tags.py -i trivy-result.json -o tags.jsonl
-```
+Once the Upload SBOM File modal opens, input your Service name in the provided field and click the 'Upload' button to complete the registration process.
 
-4. Register tags at API:
-   Access `https://api.threatconnectome.metemcyber.ntt.com/docs`.
+![Upload Sbom file](images/upload_sbom_file.png)
+![Input service name](images/enter_service_name.png)
 
-- 4.1 Go to ⇨ `POST /auth/token  Login For Access Token`
+3. Verify registered content
+   After uploading, navigate back to the 'Status' page where you can view the newly registered service.
 
-Follow the steps below to login and authorize your account.
-![Login](images/login.png)
-![Execute and authorize](images/authorize.png)
-![Close authorization](images/close_authorization.png)
-
-- 4.2 Scroll down to ⇨ `GET /users/me  Get My User Info`
-
-Get your own `team_id` by following steps and copy it.
-![Get my user info](images/get_my_user_info.png)
-![Get my team_id](images/get_team_id.png)
-
-- 4.3 Scroll up to ⇨ `POST /pteams/{team_id}/upload_packages_file  Upload Pteam Packages File`
-
-Click `Try it out`, paste `team_id`, specifiy `service` (repository or product), set `force_mode` if needed, click on "choose file" button and choose the `tags.jsonl` generated in procedure 3, then execute.
-![Append team tags](images/append_team_tags.png)
-![Paste team_id and upload tags.jsonl](images/registered_tags.png)
-
-5. Log in to Web UI
-
-Login to `http://threatconnectome.metemcyber.ntt.com` and choose your team. Tags will be shown on the page of `Status`.
-![Successful image (Web UI)](images/successful_image.png)
+![Verify registed content](images/verify_registed_content.png)
 
 ## :triangular_flag_on_post: Procedures for tag registration in local development environment
 
