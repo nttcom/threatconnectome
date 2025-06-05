@@ -29,9 +29,7 @@ jobs:
       - name: Run Trivy scan on CI and output report
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: "fs"
           scan-ref: "./"
-          list-all-pkgs: true
           exit-code: 0
           format: cyclonedx
           output: trivy-ci-result.json
