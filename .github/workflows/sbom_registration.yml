@@ -61,11 +61,3 @@ jobs:
           else
             echo "SERVICE_NAME=${{ env.REPOSITORY_NAME }}" >> "$GITHUB_ENV"
           fi
-      - name: Call upload_pteam_sbom_file API to register packages
-        run: |
-          curl -fX 'POST' \
-            '${{ secrets.TC_API_URL }}/pteams/${{ secrets.THREATCONNECTOME_TEAM_ID }}/upload_sbom_file?service=${{ env.SERVICE_NAME }}' \
-            -H 'Authorization: Bearer ${{ env.AUTHTOKEN }}' \
-            -H 'accept: application/json' \
-            -H 'Content-Type: multipart/form-data' \
-            -F 'file=@trivy-ci-result.json'
