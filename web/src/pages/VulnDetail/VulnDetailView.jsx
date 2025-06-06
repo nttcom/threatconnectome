@@ -78,7 +78,7 @@ export function VulnDetailView(props) {
               <Typography sx={{ fontWeight: "bold" }}>CVE ID</Typography>
             </Box>
             {vuln.cve_id === null ? (
-              <Typography sx={{ margin: 1 }}>No data</Typography>
+              <Typography sx={{ margin: 1 }}>No Known CVE</Typography>
             ) : (
               <Box sx={{ mt: 1 }}>
                 <Chip

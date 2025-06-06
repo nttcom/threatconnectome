@@ -50,6 +50,7 @@ export function VulnManagementTableRow(props) {
     vuln.cvss_v3_score === undefined || vuln.cvss_v3_score === null ? "N/A" : vuln.cvss_v3_score;
 
   const cvss = cvssConvertToName(cvssScore);
+  const cveId = vuln.cve_id === null ? "No Known CVE" : vuln.cve_id;
 
   return (
     <TableRow
@@ -79,12 +80,7 @@ export function VulnManagementTableRow(props) {
         </Typography>
       </TableCell>
       <TableCell>
-        <Chip
-          key={vuln.cve_id}
-          label={vuln.cve_id}
-          size="small"
-          sx={{ m: 0.5, borderRadius: 0.5 }}
-        />
+        <Chip key={cveId} label={cveId} size="small" sx={{ m: 0.5, borderRadius: 0.5 }} />
       </TableCell>
     </TableRow>
   );
