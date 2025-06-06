@@ -83,8 +83,20 @@ export function PTeamServiceDetailsSettingsView(props) {
     service,
     isImageChanged,
   ]);
+
   const handleClose = () => {
+    setServiceName(service.service_name);
+    setImageFileData(null);
+    setImageDeleteFlag(false);
+    setImagePreview(null);
+    setCurrentKeywordsList(service.keywords);
+    setKeywordText("");
     setOpen(false);
+    setKeywordAddingMode(false);
+    setCurrentDescription(service.description);
+    setDefaultSafetyImpactValue(service.service_safety_impact);
+    setIsChanged(false);
+    setIsImageChanged(false);
   };
   const handleClickOpen = () => {
     setOpen(true);
