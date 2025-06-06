@@ -151,35 +151,6 @@ python3 vulnrichment2tc.py -v vulnrichment
 
 ```
 
-# :bulb: Read and parse CycloneDX v1.5 files
-
-Purpose: To parse CycloneDX v1.5 files (Trivy, Syft) and output JSON for Threatconnectome registration.
-
-## :pushpin: Requirements
-
-```bash
-pip install packageurl-python
-pip install 'cyclonedx-python-lib[json-validation]'
-```
-
-## :triangular_flag_on_post: Usage
-
-Run the following commands
-
-```bash
-python cdx_tags.py [Options]
-
-```
-
-The available options are as follow:
-
-- -i / --infile: Specifies the input file. If not specified, read from standard input.
-- -o / --outfile: Specifies the output file. If not specified, the file is written to standard output.
-- -t / --tool: Specifies the tool to use. Supported tools are "syft" and "trivy". If not specified, auto-detection is attempted.
-- -r / --replace_rules: Specify replacement rules. You can specify more than one.
-- -s / --skip_rules: Skip rules. Multiple skip rules can be specified.
-- -H / --hostname: Specify target hostname. If not specified, auto-detection will be attempted under specific conditions.
-
 # :bulb: Colletct tickets data
 
 Run the following commands to colletct tickets data
