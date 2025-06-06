@@ -7,7 +7,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
-import { Fragment } from "react";
+import React, { Fragment } from "react";
 
 import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
@@ -69,12 +69,12 @@ export function AccountSettingsDialog(props) {
                 Team
               </Typography>
               {userMe.pteam_roles.map((pteam_role) => (
-                <Fragment key={pteam_role.pteam.pteam_id}>
+                <React.Fragment key={pteam_role.pteam.pteam_id}>
                   <DialogContentText>{pteam_role.pteam.pteam_name}</DialogContentText>
                   <DialogContentText variant="caption">
                     {pteam_role.pteam.pteam_id}
                   </DialogContentText>
-                </Fragment>
+                </React.Fragment>
               ))}
             </Box>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
