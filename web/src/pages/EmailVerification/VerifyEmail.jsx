@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { useAuth } from "../../hooks/auth";
 

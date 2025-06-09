@@ -18,7 +18,7 @@ import {
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import dialogStyle from "../../../cssModule/dialog.module.css";
 import {
@@ -36,7 +36,7 @@ export function PTeamServiceDetailsSettingsView(props) {
 
   const [serviceName, setServiceName] = useState(service.service_name);
   const [imageFileData, setImageFileData] = useState(null);
-  const [imageDeleteFalg, setImageDeleteFlag] = useState(false);
+  const [imageDeleteFlag, setImageDeleteFlag] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [currentKeywordsList, setCurrentKeywordsList] = useState(service.keywords);
   const [keywordText, setKeywordText] = useState("");
@@ -83,8 +83,20 @@ export function PTeamServiceDetailsSettingsView(props) {
     service,
     isImageChanged,
   ]);
+
   const handleClose = () => {
+    setServiceName(service.service_name);
+    setImageFileData(null);
+    setImageDeleteFlag(false);
+    setImagePreview(null);
+    setCurrentKeywordsList(service.keywords);
+    setKeywordText("");
     setOpen(false);
+    setKeywordAddingMode(false);
+    setCurrentDescription(service.description);
+    setDefaultSafetyImpactValue(service.service_safety_impact);
+    setIsChanged(false);
+    setIsImageChanged(false);
   };
   const handleClickOpen = () => {
     setOpen(true);
@@ -138,7 +150,7 @@ export function PTeamServiceDetailsSettingsView(props) {
     onSave(
       serviceName,
       imageFileData,
-      imageDeleteFalg,
+      imageDeleteFlag,
       currentKeywordsList,
       currentDescription,
       defaultSafetyImpactValue,

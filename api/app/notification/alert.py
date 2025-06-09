@@ -13,7 +13,7 @@ from app.notification.sendgrid import (
 from app.notification.slack import (
     create_slack_blocks_to_notify_sbom_upload_failed,
     create_slack_blocks_to_notify_sbom_upload_succeeded,
-    create_slack_pteam_alert_blocks_for_new_topic,
+    create_slack_pteam_alert_blocks_for_new_vuln,
     send_slack,
 )
 
@@ -31,10 +31,10 @@ def _ready_alert_by_email() -> bool:
     return True
 
 
-def _pteam_tag_page_link(pteam_id: UUID | str, tag_id: UUID | str, service_id: UUID | str) -> str:
+def _package_page_link(pteam_id: UUID | str, package_id: UUID | str, service_id: UUID | str) -> str:
     return urljoin(
         os.getenv("WEBUI_URL", "http://localhost"),
-        f"/tags/{str(tag_id)}?pteamId={str(pteam_id)}&serviceId={str(service_id)}",
+        f"/packages/{str(package_id)}?pteamId={str(pteam_id)}&serviceId={str(service_id)}",
     )
 
 
@@ -46,13 +46,15 @@ def _pteam_service_tab_link(pteam_id: UUID | str, service_id: UUID | str) -> str
     return urljoin(baseurl, f"?{encoded_params}")
 
 
-def create_mail_alert_for_new_topic(
-    topic_title: str,
+def create_mail_alert_for_new_vuln(
+    vuln_title: str,
     ssvc_priority: models.SSVCDeployerPriorityEnum,
     pteam_name: str,
     pteam_id: UUID | str,
-    tag_name: str,  # should be pteamtag, not topictag
-    tag_id: UUID | str,  # should be pteamtag, not topictag
+    package_name: str,
+    ecosystem: str,
+    package_manager: str,
+    package_id: UUID | str,
     service_id: UUID | str,
     services: list[str],
 ) -> tuple[str, str]:  # subject, body
@@ -64,21 +66,23 @@ def create_mail_alert_for_new_topic(
         models.SSVCDeployerPriorityEnum.SCHEDULED: "Scheduled",
         models.SSVCDeployerPriorityEnum.DEFER: "Defer",
     }.get(ssvc_priority) or "Defer"
-    subject = f"[Tc Alert] {ssvc_priority_label}: {topic_title}"
+    subject = f"[Tc Alert] {ssvc_priority_label}: {vuln_title}"
     body = "<br>".join(
         [
-            "A new topic created.",
+            "A new vuln created.",
             "",
-            f"Title: {topic_title}",
+            f"Title: {vuln_title}",
             f"SSVC Priority: {ssvc_priority_label}",
             "",
             f"Team: {pteam_name}",
             f"Services: {', '.join(services)}",
-            f"Artifact: {tag_name}",
+            f"Package: {package_name}",
+            f"Ecosystem: {ecosystem}",
+            f"Package Manager: {package_manager}",
             "",
             (
-                f"<a href={_pteam_tag_page_link(pteam_id, tag_id, service_id)}>Link to"
-                " Artifact page</a>"
+                f"<a href={_package_page_link(pteam_id, package_id, service_id)}>Link to"
+                " Package page</a>"
             ),
         ]
     )
@@ -89,9 +93,9 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
     if not (ticket := alert.ticket):  # this alert is orphan, no info to send to.
         return
     threat = ticket.threat
-    tag = threat.dependency.tag
-    topic = threat.topic
-    service = threat.dependency.service
+    package = threat.package_version.package
+    vuln = threat.vuln
+    service = ticket.dependency.service
     pteam = service.pteam
 
     # check alert settings
@@ -102,13 +106,13 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
 
     if alert_by_slack:
         try:
-            slack_message_blocks = create_slack_pteam_alert_blocks_for_new_topic(
+            slack_message_blocks = create_slack_pteam_alert_blocks_for_new_vuln(
                 pteam.pteam_id,
                 pteam.pteam_name,
-                tag.tag_id,
-                tag.tag_name,
-                topic.topic_id,
-                topic.title,  # WORKAROUND
+                package.package_id,
+                package.name,
+                vuln.vuln_id,
+                vuln.title,  # WORKAROUND
                 ticket.ssvc_deployer_priority,
                 service.service_id,
                 [service.service_name],  # WORKAROUND
@@ -119,13 +123,15 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
 
     if alert_by_mail:
         try:
-            mail_subject, mail_body = create_mail_alert_for_new_topic(
-                topic.title,  # WORKAROUND
+            mail_subject, mail_body = create_mail_alert_for_new_vuln(
+                vuln.title,  # WORKAROUND
                 ticket.ssvc_deployer_priority,
                 pteam.pteam_name,
                 pteam.pteam_id,
-                tag.tag_name,
-                tag.tag_id,
+                package.name,
+                package.ecosystem,
+                ticket.dependency.package_manager,
+                package.package_id,
                 service.service_id,
                 [service.service_name],  # WORKAROUND
             )

@@ -11,7 +11,7 @@ from app import models
 WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
 WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
 # CAUTION: do *NOT* urljoin subpath which starts with "/"
-TAG_URL = urljoin(WEBUI_URL, "tags/")
+PACKAGE_URL = urljoin(WEBUI_URL, "packages/")
 SSVC_PRIORITY_LABEL = {
     models.SSVCDeployerPriorityEnum.IMMEDIATE: ":red_circle: Immediate",
     models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: ":large_orange_circle: Out-of-cycle",
@@ -49,12 +49,12 @@ def send_slack(url: str, blocks: Sequence[dict]):
         return None
 
 
-def create_slack_pteam_alert_blocks_for_new_topic(
+def create_slack_pteam_alert_blocks_for_new_vuln(
     pteam_id: str,
     pteam_name: str,
-    tag_id: str,
-    tag_name: str,
-    topic_id: str,
+    package_id: str,
+    package_name: str,
+    vuln_id: str,
     title: str,
     ssvc_priority: models.SSVCDeployerPriorityEnum,
     service_id: str,
@@ -71,7 +71,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
                     "type": "mrkdwn",
                     "text": "\n".join(
                         [
-                            f"*<{TAG_URL}{str(tag_id)}?pteamId={pteam_id}&serviceId={service_id}|{tag_name}>*",
+                            f"*<{PACKAGE_URL}{str(package_id)}?pteamId={pteam_id}&serviceId={service_id}|{package_name}>*",
                             f"*{title}*",
                             f"*{services_name}*",
                             SSVC_PRIORITY_LABEL[ssvc_priority],
@@ -81,7 +81,7 @@ def create_slack_pteam_alert_blocks_for_new_topic(
             },
             {
                 "type": "context",
-                "elements": [{"type": "plain_text", "text": str(topic_id)}],
+                "elements": [{"type": "plain_text", "text": str(vuln_id)}],
             },
             {"type": "divider"},
         ]

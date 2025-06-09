@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { useUploadSBOMFileMutation } from "../../services/tcApi";

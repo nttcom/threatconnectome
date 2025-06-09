@@ -9,7 +9,6 @@ import {
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import React from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -100,15 +99,15 @@ export function Drawer() {
             <ListItemText>Team</ListItemText>
           </StyledListItemButton>
         </>
-        {/* Topics */}
+        {/* Vulns */}
         <StyledListItemButton
-          onClick={() => navigate("/topics?" + queryParams)}
-          selected={locationReader.isTopicsPage()}
+          onClick={() => navigate("/vulns?" + queryParams)}
+          selected={locationReader.isVulnsPage()}
         >
           <StyledListItemIcon>
             <TopicIcon />
           </StyledListItemIcon>
-          <ListItemText>Topics</ListItemText>
+          <ListItemText>Vulns</ListItemText>
         </StyledListItemButton>
         {/* Vulnerabilities -- not listed on drawer, currently */}
         {/* ToDo */}

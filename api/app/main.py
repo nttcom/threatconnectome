@@ -12,12 +12,9 @@ from app.routers import (
     actions,
     auth,
     external,
-    misptags,
     pteams,
-    tags,
-    threat,
-    topics,
     users,
+    vulns,
 )
 from app.ssvc import deployer_data
 
@@ -49,12 +46,9 @@ def create_app():
     app.include_router(actionlogs.router)
     app.include_router(actions.router)
     app.include_router(external.router)
-    app.include_router(misptags.router)
     app.include_router(pteams.router)
-    app.include_router(tags.router)
-    app.include_router(topics.router)
     app.include_router(users.router)
-    app.include_router(threat.router)
+    app.include_router(vulns.router)
 
     # setup auth
 

@@ -1,7 +1,6 @@
 import { Box, Tooltip } from "@mui/material";
 import { orange } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React from "react";
 import { IconContext } from "react-icons";
 import { FaSkullCrossbones, FaVirusSlash } from "react-icons/fa";
 import { MdDoNotTouch, MdPolicy } from "react-icons/md";

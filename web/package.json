@@ -12,7 +12,7 @@
     "@mui/material": "^5.15.10",
     "@mui/x-date-pickers": "^6.19.4",
     "@reduxjs/toolkit": "^2.2.0",
-    "@supabase/supabase-js": "^2.48.1",
+    "@supabase/supabase-js": "^2.49.10",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
@@ -50,7 +50,7 @@
     "globals": "^15.14.0",
     "jsdom": "^26.0.0",
     "prettier": "^3.2.5",
-    "vite": "^6.2.5",
+    "vite": "^6.3.4",
     "vitest": "^3.0.5"
   },
   "scripts": {

@@ -1,4 +1,4 @@
-name: Register tags from Trivy scan result on CI
+name: Register packages from Trivy scan result on CI
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 jobs:
-  tag_registration:
+  package_registration:
     runs-on: ubuntu-latest
     environment: threatconnectome
     strategy:
@@ -31,9 +31,8 @@ jobs:
         with:
           scan-type: "fs"
           scan-ref: "./"
-          list-all-pkgs: true
           exit-code: 0
-          format: json
+          format: cyclonedx
           output: trivy-ci-result.json
         env:
           TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
@@ -43,15 +42,6 @@ jobs:
         with:
           name: trivy-ci-result
           path: ./trivy-ci-result.json
-      - name: Download trivy_tags.py
-        run: wget https://storage.googleapis.com/metemcyber/trivy_tags.py
-      - name: Transform CI scan result by trivy_tags.py
-        run: python3 trivy_tags.py -i trivy-ci-result.json -o artifact_tags.jsonl
-      - name: Upload artifact_tags.jsonl as an artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact_tags
-          path: ./artifact_tags.jsonl
       - name: Get AuthToken from RefreshToken
         run: |
           echo "AUTHTOKEN=$(curl -X 'POST' \
@@ -63,18 +53,18 @@ jobs:
           }' | jq -r .access_token)" >> "$GITHUB_ENV"
       - name: Get repository name
         run: echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#"${GITHUB_REPOSITORY_OWNER}"/}" >> "$GITHUB_ENV"
-      - name: Set tag group name
+      - name: Set package service name
         run: |
           if [ -n "${{ secrets.SERVICE_NAME }}" ]; then
             echo "SERVICE_NAME=${{ secrets.SERVICE_NAME }}" >> "$GITHUB_ENV"
           else
             echo "SERVICE_NAME=${{ env.REPOSITORY_NAME }}" >> "$GITHUB_ENV"
           fi
-      - name: Call upload_pteam_tags_file API to register tags
+      - name: Call upload_pteam_sbom_file API to register packages
         run: |
           curl -fX 'POST' \
-            '${{ secrets.TC_API_URL }}/pteams/${{ secrets.THREATCONNECTOME_TEAM_ID }}/upload_tags_file?service=${{ env.SERVICE_NAME }}&force_mode=True' \
+            '${{ secrets.TC_API_URL }}/pteams/${{ secrets.THREATCONNECTOME_TEAM_ID }}/upload_sbom_file?service=${{ env.SERVICE_NAME }}' \
             -H 'Authorization: Bearer ${{ env.AUTHTOKEN }}' \
             -H 'accept: application/json' \
             -H 'Content-Type: multipart/form-data' \
-            -F 'file=@artifact_tags.jsonl'
+            -F 'file=@trivy-ci-result.json'

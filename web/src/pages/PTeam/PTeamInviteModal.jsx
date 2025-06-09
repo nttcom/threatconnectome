@@ -18,7 +18,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { addHours, isBefore } from "date-fns";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import styles from "../../cssModule/button.module.css";
 import dialogStyle from "../../cssModule/dialog.module.css";
@@ -104,7 +104,7 @@ export function PTeamInviteModal(props) {
               <Grid container alignItems="center">
                 <Grid item p={1} xs={6} sm={6}>
                   <DateTimePicker
-                    inputFormat="yyyy/MM/dd HH:mm"
+                    format="yyyy/MM/dd HH:mm"
                     label="Expiration Date (future date)"
                     mask="____/__/__ __:__"
                     minDateTime={now}

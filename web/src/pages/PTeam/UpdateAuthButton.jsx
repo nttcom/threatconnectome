@@ -1,6 +1,5 @@
 import { Button } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 

@@ -1,7 +1,7 @@
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from app import models
@@ -19,10 +19,6 @@ def get_account_by_id(db: Session, user_id: UUID | str) -> models.Account | None
     ).one_or_none()
 
 
-def get_account_by_email(db: Session, email: str) -> models.Account | None:
-    return db.scalars(select(models.Account).where(models.Account.email == email)).first()
-
-
 def create_account(db: Session, account: models.Account) -> None:
     db.add(account)
     db.flush()
@@ -36,19 +32,13 @@ def delete_account(db: Session, account: models.Account) -> None:
 ### Action
 
 
-def get_action_by_id(db: Session, action_id: UUID | str) -> models.TopicAction | None:
+def get_action_by_id(db: Session, action_id: UUID | str) -> models.VulnAction | None:
     return db.scalars(
-        select(models.TopicAction).where(models.TopicAction.action_id == str(action_id))
+        select(models.VulnAction).where(models.VulnAction.action_id == str(action_id))
     ).one_or_none()
 
 
-def get_actions_by_topic_id(db: Session, topic_id: UUID | str) -> Sequence[models.TopicAction]:
-    return db.scalars(
-        select(models.TopicAction).where(models.TopicAction.topic_id == str(topic_id))
-    ).all()
-
-
-def delete_action(db: Session, action: models.TopicAction) -> None:
+def delete_action(db: Session, action: models.VulnAction) -> None:
     db.delete(action)
     db.flush()
 
@@ -81,14 +71,14 @@ def create_action_log(db: Session, action_log: models.ActionLog) -> None:
     db.flush()
 
 
-def get_topic_logs_by_user_id(
+def get_vuln_logs_by_user_id(
     db: Session,
-    topic_id: UUID | str,
+    vuln_id: UUID | str,
     user_id: UUID | str,
 ) -> Sequence[models.ActionLog]:
     return db.scalars(
         select(models.ActionLog).where(
-            models.ActionLog.topic_id == str(topic_id),
+            models.ActionLog.vuln_id == str(vuln_id),
             models.ActionLog.pteam_id.in_(
                 db.scalars(
                     select(models.PTeamAccountRole.pteam_id).where(
@@ -98,6 +88,33 @@ def get_topic_logs_by_user_id(
             ),
         )
     ).all()
+
+
+### Affect
+def get_affect_by_package_id(db: Session, package_id: UUID | str) -> Sequence[models.Affect]:
+    return db.scalars(
+        select(models.Affect).where(models.Affect.package_id == str(package_id))
+    ).all()
+
+
+def get_affect_by_package_id_and_vuln_id(
+    db: Session, package_id: UUID | str, vuln_id: UUID | str
+) -> models.Affect | None:
+    return db.scalars(
+        select(models.Affect).where(
+            models.Affect.package_id == str(package_id), models.Affect.vuln_id == str(vuln_id)
+        )
+    ).one_or_none()
+
+
+def create_affect(db: Session, affect: models.Affect) -> None:
+    db.add(affect)
+    db.flush()
+
+
+def delete_affect(db: Session, affect: models.Affect) -> None:
+    db.delete(affect)
+    db.flush()
 
 
 ### PTeam
@@ -175,78 +192,64 @@ def create_pteam_account_role(db: Session, account_role: models.PTeamAccountRole
     db.flush()
 
 
-### Artifact Tag
-
-
-def get_all_tags(db: Session) -> Sequence[models.Tag]:
-    return db.scalars(select(models.Tag)).all()
-
-
-def get_tag_by_id(db: Session, tag_id: UUID | str) -> models.Tag | None:
-    return db.scalars(select(models.Tag).where(models.Tag.tag_id == str(tag_id))).one_or_none()
-
-
-def get_tag_by_name(db: Session, tag_name: str) -> models.Tag | None:
-    return db.scalars(select(models.Tag).where(models.Tag.tag_name == tag_name)).one_or_none()
-
-
-def create_tag(db: Session, tag: models.Tag) -> None:
-    db.add(tag)
-    db.flush()
-
-
-def delete_tag(db: Session, tag: models.Tag):
-    db.delete(tag)
-    db.flush()
-
-
-### MispTag
-
-
-def get_all_misp_tags(db: Session) -> Sequence[models.MispTag]:
-    return db.scalars(select(models.MispTag)).all()
-
-
-def get_misp_tag_by_name(db: Session, tag_name: str) -> models.MispTag | None:
+### Package
+def get_package_by_id(db: Session, package_id: UUID | str) -> models.Package | None:
     return db.scalars(
-        select(models.MispTag).where(models.MispTag.tag_name == tag_name)
+        select(models.Package).where(models.Package.package_id == str(package_id))
     ).one_or_none()
 
 
-def create_misp_tag(db: Session, misptag: models.MispTag) -> None:
-    db.add(misptag)
-    db.flush()
-
-
-### Topic
-
-
-def get_all_topics(db: Session) -> Sequence[models.Topic]:
-    return db.scalars(select(models.Topic)).all()
-
-
-def get_topics_by_tag_ids(db: Session, tag_ids: Sequence[UUID | str]) -> Sequence[models.Topic]:
+def get_package_by_name_and_ecosystem(
+    db: Session, name: str, ecosystem: str
+) -> models.Package | None:
     return db.scalars(
-        select(models.Topic)
-        .join(models.TopicTag)
-        .where(models.TopicTag.tag_id.in_(list(map(str, tag_ids))))
-        .distinct()
-    ).all()
-
-
-def get_topic_by_id(db: Session, topic_id: UUID | str) -> models.Topic | None:
-    return db.scalars(
-        select(models.Topic).where(models.Topic.topic_id == str(topic_id))
+        select(models.Package).where(
+            and_(models.Package.name == name, models.Package.ecosystem == ecosystem)
+        )
     ).one_or_none()
 
 
-def create_topic(db: Session, topic: models.Topic):
-    db.add(topic)
+def create_package(db: Session, package: models.Package) -> None:
+    db.add(package)
     db.flush()
 
 
-def delete_topic(db: Session, topic: models.Topic):
-    db.delete(topic)
+def delete_package(db: Session, package: models.Package) -> None:
+    db.delete(package)
+    db.flush()
+
+
+### PackageVersion
+def get_package_version_by_id(
+    db: Session, package_version_id: UUID | str
+) -> models.PackageVersion | None:
+    return db.scalars(
+        select(models.PackageVersion).where(
+            models.PackageVersion.package_version_id == str(package_version_id)
+        )
+    ).one_or_none()
+
+
+def get_package_version_by_package_id_and_version(
+    db: Session, package_id: UUID | str, version: str
+) -> models.PackageVersion | None:
+    return db.scalars(
+        select(models.PackageVersion).where(
+            and_(
+                models.PackageVersion.package_id == str(package_id),
+                models.PackageVersion.version == version,
+            )
+        )
+    ).one_or_none()
+
+
+def create_package_version(db: Session, package_version: models.PackageVersion) -> None:
+    db.add(package_version)
+    db.flush()
+
+
+def delete_package_version(db: Session, package_version: models.PackageVersion) -> None:
+    db.delete(package_version)
     db.flush()
 
 
@@ -263,9 +266,14 @@ def delete_threat(db: Session, threat: models.Threat) -> None:
     db.flush()
 
 
-def get_threat_by_id(db: Session, threat_id: UUID | str) -> models.Threat | None:
+def get_threat_by_package_version_id_and_vuln_id(
+    db: Session, package_version_id: UUID | str, vuln_id: UUID | str
+) -> models.Threat | None:
     return db.scalars(
-        select(models.Threat).where(models.Threat.threat_id == str(threat_id))
+        select(models.Threat).where(
+            models.Threat.package_version_id == str(package_version_id),
+            models.Threat.vuln_id == str(vuln_id),
+        )
     ).one_or_none()
 
 
@@ -288,6 +296,17 @@ def get_ticket_by_id(db: Session, ticket_id: UUID | str) -> models.Ticket | None
     ).one_or_none()
 
 
+def get_ticket_by_threat_id_and_dependency_id(
+    db: Session, threat_id: UUID | str, dependency_id: UUID | str
+) -> models.Ticket | None:
+    return db.scalars(
+        select(models.Ticket).where(
+            models.Ticket.threat_id == str(threat_id),
+            models.Ticket.dependency_id == str(dependency_id),
+        )
+    ).one_or_none()
+
+
 ### TicketStatus
 
 
@@ -296,6 +315,21 @@ def create_ticket_status(
     status: models.TicketStatus,
 ) -> None:
     db.add(status)
+    db.flush()
+
+
+### Vuln
+def get_vuln_by_id(db: Session, vuln_id: UUID | str) -> models.Vuln | None:
+    return db.scalars(select(models.Vuln).where(models.Vuln.vuln_id == str(vuln_id))).one_or_none()
+
+
+def create_vuln(db: Session, vuln: models.Vuln):
+    db.add(vuln)
+    db.flush()
+
+
+def delete_vuln(db: Session, vuln: models.Vuln) -> None:
+    db.delete(vuln)
     db.flush()
 
 
@@ -311,15 +345,23 @@ def get_service_by_id(db: Session, service_id: UUID | str) -> models.Service | N
 ### Dependency
 
 
-def get_dependency_from_service_id_and_tag_id(
-    db: Session, service_id: UUID | str, tag_id: UUID | str
-) -> models.Dependency | None:
+def get_dependency_by_id(db: Session, dependency_id: UUID | str) -> models.Dependency | None:
     return db.scalars(
-        select(models.Dependency).where(
+        select(models.Dependency).where(models.Dependency.dependency_id == str(dependency_id))
+    ).one_or_none()
+
+
+def get_dependencies_from_service_id_and_package_id(
+    db: Session, service_id: UUID | str, package_id: UUID | str
+) -> Sequence[models.Dependency]:
+    return db.scalars(
+        select(models.Dependency)
+        .join(models.PackageVersion)
+        .where(
             models.Dependency.service_id == str(service_id),
-            models.Dependency.tag_id == str(tag_id),
+            models.PackageVersion.package_id == str(package_id),
         )
-    ).first()  # FIXME: WORKAROUND to avoid getting multiple row
+    ).all()
 
 
 ### Alert

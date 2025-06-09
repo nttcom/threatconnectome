@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -49,7 +49,7 @@ export function App() {
       <Main open={system.drawerOpen}>
         <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" m={1}>
           <Box display="flex" flexDirection="column" flexGrow={1} maxWidth={mainMaxWidth}>
-            <ErrorBoundary FallbackComponent={AppFallback}>
+            <ErrorBoundary FallbackComponent={AppFallback} resetKeys={[location.pathname]}>
               <OutletWithCheckedParams />
             </ErrorBoundary>
           </Box>

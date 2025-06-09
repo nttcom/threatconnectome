@@ -4,13 +4,13 @@ import { AuthKeycloakCallback } from "./AuthKeycloakCallback/AuthKeycloakCallbac
 import { EmailVerification } from "./EmailVerification/EmailVerificationPage";
 import { Login } from "./Login/LoginPage";
 import { PTeam } from "./PTeam/PTeamPage";
+import { Package } from "./Package/PackagePage";
 import { ResetPassword } from "./ResetPassword/ResetPasswordPage";
 import { SignUp } from "./SignUp/SignUpPage";
 import { Status } from "./Status/StatusPage";
-import { Tag } from "./Tag/TagPage";
 import { ToDo } from "./ToDo/ToDoPage";
-import { TopicDetail } from "./TopicDetail/TopicDetailPage";
-import { TopicManagement } from "./TopicManagement/TopicManagementPage";
+import { VulnDetail } from "./VulnDetail/VulnDetailPage";
+import { VulnManagement } from "./VulnManagement/VulnManagementPage";
 import { Vulnerability } from "./Vulnerability/VulnerabilityPage";
 
 export {
@@ -19,13 +19,13 @@ export {
   AuthKeycloakCallback,
   EmailVerification,
   Login,
+  Package,
   PTeam,
   ResetPassword,
   SignUp,
   Status,
-  Tag,
-  TopicDetail,
-  TopicManagement,
   ToDo,
+  VulnDetail,
+  VulnManagement,
   Vulnerability,
 };

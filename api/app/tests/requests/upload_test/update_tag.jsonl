@@ -1,5 +1,0 @@
-{"tag_name":"test1","references":[{"target":"api2/Pipfile.lock","version":"2.0"}],"text":"text1"} 
-{"tag_name":"test2"}
-{"tag_name":"test3","text":"text3"}
-{"tag_name":"test4"}
-{"tag_name":"test5","text":"text5"}

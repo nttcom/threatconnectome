@@ -1,16 +1,13 @@
 from operator import ge, gt, le, lt
 
 import pytest
+from univers.versions import GolangVersion, SemverVersion
 
-from app.detector.version import (
-    ExtDebianVersion,
-    ExtPypiVersion,
-    GolangVersion,
-    PackageFamily,
-    SemverVersion,  # from univers
-    VulnerableRange,
-    gen_version_instance,
-)
+from app.detector.package_family import PackageFamily
+from app.detector.version import version_factory
+from app.detector.version.ext_debian_version import ExtDebianVersion
+from app.detector.version.ext_pypi_version import ExtPypiVersion
+from app.detector.vulnerable_range import VulnerableRange
 
 
 class TestComparableVersion:
@@ -29,33 +26,45 @@ class TestComparableVersion:
             [
                 # might be tested in univers.
                 # for details, see https://manpages.debian.org/jessie/dpkg-dev/deb-version.5.en.html
+                ("1", (0, "1", "0")),
+                ("1.2", (0, "1.2", "0")),
+                ("1:2", (1, "2", "0")),
+                ("1:2.3", (1, "2.3", "0")),
+                ("0:2", (0, "2", "0")),
+                ("1.2-3.4", (0, "1.2", "3.4")),
+                ("1.2-3-4", (0, "1.2-3", "4")),
+            ],
+        )
+        def test_return_version_instance_when_given_valid_version_string_for_debian(
+            self, version_string, expected
+        ):
+            version_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, version_string)
+            assert isinstance(version_obj, ExtDebianVersion)
+            assert (version_obj.epoch, version_obj.upstream, version_obj.revision) == expected
+
+        @pytest.mark.parametrize(
+            "version_string, expected",
+            # expected: Union[tuple[int, str, str], str] -- (epoch, upstream, revision) or exception
+            [
+                # might be tested in univers.
+                # for details, see https://manpages.debian.org/jessie/dpkg-dev/deb-version.5.en.html
                 ("", "Invalid version string"),
                 ("a", "Invalid version string"),
                 ("a.1", "Invalid version string"),
-                ("1", (0, "1", "0")),
-                ("1.2", (0, "1.2", "0")),
                 (":", "Invalid version string"),
                 (":2", "Invalid version string"),
                 ("-1:2", "Invalid version string"),
                 ("a:1.2", "Invalid version string"),
                 ("1a:1.2", "Invalid version string"),
                 ("1:", "Invalid version string"),
-                ("1:2", (1, "2", "0")),
-                ("1:2.3", (1, "2.3", "0")),
-                ("0:2", (0, "2", "0")),
                 ("1.2:3", "Invalid version string"),
-                ("1.2-3.4", (0, "1.2", "3.4")),
-                ("1.2-3-4", (0, "1.2-3", "4")),
             ],
         )
-        def test_gen_instance(self, version_string, expected):
-            if isinstance(expected, str):
-                with pytest.raises(ValueError, match=expected):
-                    gen_version_instance(PackageFamily.DEBIAN, version_string)
-                return
-            version_obj = gen_version_instance(PackageFamily.DEBIAN, version_string)
-            assert isinstance(version_obj, ExtDebianVersion)
-            assert (version_obj.epoch, version_obj.upstream, version_obj.revision) == expected
+        def test_raise_invalid_version_string_error_when_given_invalid_version_string_for_debian(
+            self, version_string, expected
+        ):
+            with pytest.raises(ValueError, match=expected):
+                version_factory.gen_version_instance(PackageFamily.DEBIAN, version_string)
 
         @pytest.mark.parametrize(
             "left, right, operator, expected",
@@ -118,30 +127,23 @@ class TestComparableVersion:
                 ("1.2-3-4", "1.2-3-5", "==", True),
             ],
         )
-        def test_compare(self, left, right, operator, expected):
-            left_obj = gen_version_instance(PackageFamily.DEBIAN, left)
-            right_obj = gen_version_instance(PackageFamily.DEBIAN, right)
-            if isinstance(expected, str):
-                with pytest.raises(ValueError, match=expected):
-                    self.eval_operator(left_obj, right_obj, operator)
-                return
+        def test_version_instances_can_be_properly_compared_using_comparison_operator(
+            self, left, right, operator, expected
+        ):
+            left_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, left)
+            right_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, right)
             assert self.eval_operator(left_obj, right_obj, operator) == expected
 
-        @pytest.mark.parametrize(
-            "package_family, version_string, expected",
-            [
-                (PackageFamily.DEBIAN, "1.2.3", True),
-                (PackageFamily.UNKNOWN, "1.2.3", " not supported between instances of "),
-            ],
-        )
-        def test_compare_with_different_family(self, package_family, version_string, expected):
-            debian_obj = gen_version_instance(PackageFamily.DEBIAN, "1.2.3")
-            target_obj = gen_version_instance(package_family, version_string)
+        def test_comparing_version_instances_with_different_package_families_raises_value_error(
+            self,
+        ):
+            expected = " not supported between instances of "
+            debian_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, "1.2.3")
+            target_obj = version_factory.gen_version_instance(PackageFamily.UNKNOWN, "1.2.3")
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
                     assert debian_obj >= target_obj
                 return
-            assert (debian_obj >= target_obj and debian_obj <= target_obj) == expected
 
     class TestPypiVersion(_TestVersion):
         @pytest.mark.parametrize(
@@ -178,9 +180,9 @@ class TestComparableVersion:
         def test_gen_instance(self, version_string, expected):
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
-                    gen_version_instance(PackageFamily.PYPI, version_string)
+                    version_factory.gen_version_instance(PackageFamily.PYPI, version_string)
                 return
-            pypi_obj = gen_version_instance(PackageFamily.PYPI, version_string)
+            pypi_obj = version_factory.gen_version_instance(PackageFamily.PYPI, version_string)
             assert isinstance(pypi_obj, ExtPypiVersion)
             assert (
                 pypi_obj.epoch,
@@ -244,8 +246,8 @@ class TestComparableVersion:
             ],
         )
         def test_compare(self, left, right, operator, expected):
-            left_obj = gen_version_instance(PackageFamily.PYPI, left)
-            right_obj = gen_version_instance(PackageFamily.PYPI, right)
+            left_obj = version_factory.gen_version_instance(PackageFamily.PYPI, left)
+            right_obj = version_factory.gen_version_instance(PackageFamily.PYPI, right)
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
                     self.eval_operator(left_obj, right_obj, operator)
@@ -260,12 +262,12 @@ class TestComparableVersion:
             [
                 # might be tested in univers.
                 # for details, see https://semver.org/#semantic-versioning-specification-semver
-                ("", " is not a valid "),
-                ("a", " is not a valid "),
-                ("a.1", " is not a valid "),
-                (".", " is not a valid "),
-                (".2", " is not a valid "),
-                ("-1.2", " is not a valid "),
+                ("", "Invalid version string"),
+                ("a", "Invalid version string"),
+                ("a.1", "Invalid version string"),
+                (".", "Invalid version string"),
+                (".2", "Invalid version string"),
+                ("-1.2", "Invalid version string"),
                 ("1", (1, 0, 0, ())),
                 ("1.", (1, 0, 0, ())),
                 ("1.2", (1, 2, 0, ())),
@@ -283,9 +285,9 @@ class TestComparableVersion:
         def test_gen_instance(self, version_string, expected):
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
-                    gen_version_instance(PackageFamily.UNKNOWN, version_string)
+                    version_factory.gen_version_instance(PackageFamily.UNKNOWN, version_string)
                 return
-            sem_obj = gen_version_instance(PackageFamily.UNKNOWN, version_string)
+            sem_obj = version_factory.gen_version_instance(PackageFamily.UNKNOWN, version_string)
             assert isinstance(sem_obj, SemverVersion)
             assert (sem_obj.major, sem_obj.minor, sem_obj.patch, sem_obj.prerelease) == expected
 
@@ -318,8 +320,8 @@ class TestComparableVersion:
             ],
         )
         def test_compare(self, left, right, operator, expected):
-            left_obj = gen_version_instance(PackageFamily.UNKNOWN, left)
-            right_obj = gen_version_instance(PackageFamily.UNKNOWN, right)
+            left_obj = version_factory.gen_version_instance(PackageFamily.UNKNOWN, left)
+            right_obj = version_factory.gen_version_instance(PackageFamily.UNKNOWN, right)
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
                     self.eval_operator(left_obj, right_obj, operator)
@@ -334,8 +336,8 @@ class TestComparableVersion:
             ],
         )
         def test_compare_with_different_family(self, package_family, version_string, expected):
-            semver_obj = gen_version_instance(PackageFamily.UNKNOWN, "1.2.3")
-            target_obj = gen_version_instance(package_family, version_string)
+            semver_obj = version_factory.gen_version_instance(PackageFamily.UNKNOWN, "1.2.3")
+            target_obj = version_factory.gen_version_instance(package_family, version_string)
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
                     assert semver_obj >= target_obj
@@ -358,9 +360,9 @@ class TestComparableVersion:
         def test_gen_instance(self, version_string, expected):
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
-                    gen_version_instance(PackageFamily.NPM, version_string)
+                    version_factory.gen_version_instance(PackageFamily.NPM, version_string)
                 return
-            sem_obj = gen_version_instance(PackageFamily.NPM, version_string)
+            sem_obj = version_factory.gen_version_instance(PackageFamily.NPM, version_string)
             assert isinstance(sem_obj, SemverVersion)
             assert (sem_obj.major, sem_obj.minor, sem_obj.patch, sem_obj.prerelease) == expected
 
@@ -406,9 +408,9 @@ class TestComparableVersion:
         def test_gen_instance(self, version_string, expected):
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
-                    gen_version_instance(PackageFamily.GO, version_string)
+                    version_factory.gen_version_instance(PackageFamily.GO, version_string)
                 return
-            sem_obj = gen_version_instance(PackageFamily.GO, version_string)
+            sem_obj = version_factory.gen_version_instance(PackageFamily.GO, version_string)
             assert isinstance(sem_obj, GolangVersion)
             assert (sem_obj.major, sem_obj.minor, sem_obj.patch, sem_obj.prerelease) == expected
 
@@ -416,9 +418,9 @@ class TestComparableVersion:
 class TestVulnerableRange:
     @pytest.fixture(scope="function", name="gen_preset_versions")
     def gen_preset_versions(self):
-        self.semver_version1 = gen_version_instance(PackageFamily.UNKNOWN, "1.0")
-        self.debian_version1 = gen_version_instance(PackageFamily.DEBIAN, "1.0")
-        self.pypi_version1 = gen_version_instance(PackageFamily.PYPI, "1.0")
+        self.semver_version1 = version_factory.gen_version_instance(PackageFamily.UNKNOWN, "1.0")
+        self.debian_version1 = version_factory.gen_version_instance(PackageFamily.DEBIAN, "1.0")
+        self.pypi_version1 = version_factory.gen_version_instance(PackageFamily.PYPI, "1.0")
 
     @pytest.mark.parametrize(
         "attrs",
@@ -473,7 +475,10 @@ class TestVulnerableRange:
             ],
         )
         def test_detect_matched(self, references, vulnerable, expected):
-            reference_objs = [gen_version_instance(PackageFamily.DEBIAN, ref) for ref in references]
+            reference_objs = [
+                version_factory.gen_version_instance(PackageFamily.DEBIAN, ref)
+                for ref in references
+            ]
             vulnerable_range = VulnerableRange.from_string(PackageFamily.DEBIAN, vulnerable)
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
@@ -491,7 +496,7 @@ class TestVulnerableRange:
         )
         def test_with_different_family(self, package_family, version_string, expected):
             vulnerable = VulnerableRange.from_string(PackageFamily.DEBIAN, "=1.2.3")
-            target_obj = gen_version_instance(package_family, version_string)
+            target_obj = version_factory.gen_version_instance(package_family, version_string)
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
                     assert vulnerable.detect_matched([target_obj])
@@ -530,7 +535,9 @@ class TestVulnerableRange:
             ],
         )
         def test_detect_matched(self, references, vulnerable, expected):
-            reference_objs = [gen_version_instance(PackageFamily.PYPI, ref) for ref in references]
+            reference_objs = [
+                version_factory.gen_version_instance(PackageFamily.PYPI, ref) for ref in references
+            ]
             vulnerable_range = VulnerableRange.from_string(PackageFamily.PYPI, vulnerable)
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
@@ -548,7 +555,7 @@ class TestVulnerableRange:
         )
         def test_with_different_family(self, package_family, version_string, expected):
             vulnerable = VulnerableRange.from_string(PackageFamily.PYPI, "=1.2.3")
-            target_obj = gen_version_instance(package_family, version_string)
+            target_obj = version_factory.gen_version_instance(package_family, version_string)
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
                     assert vulnerable.detect_matched([target_obj])
@@ -578,7 +585,8 @@ class TestVulnerableRange:
         )
         def test_detect_matched(self, references, vulnerable, expected):
             reference_objs = [
-                gen_version_instance(PackageFamily.UNKNOWN, ref) for ref in references
+                version_factory.gen_version_instance(PackageFamily.UNKNOWN, ref)
+                for ref in references
             ]
             vulnerable_range = VulnerableRange.from_string(PackageFamily.UNKNOWN, vulnerable)
             if isinstance(expected, str):
@@ -597,7 +605,7 @@ class TestVulnerableRange:
         )
         def test_with_different_family(self, package_family, version_string, expected):
             vulnerable = VulnerableRange.from_string(PackageFamily.UNKNOWN, "=1.2.3")
-            target_obj = gen_version_instance(package_family, version_string)
+            target_obj = version_factory.gen_version_instance(package_family, version_string)
             if isinstance(expected, str):
                 with pytest.raises(ValueError, match=expected):
                     assert vulnerable.detect_matched([target_obj])

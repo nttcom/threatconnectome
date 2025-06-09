@@ -3,29 +3,28 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import models, persistence, schemas
 from app.main import app
 from app.tests.medium.constants import (
     PTEAM1,
     PTEAM2,
-    TOPIC1,
-    TOPIC2,
     USER1,
     USER2,
+    VULN1,
+    VULN2,
 )
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.utils import (
     accept_pteam_invitation,
     create_pteam,
-    create_tag,
-    create_topic,
     create_user,
+    create_vuln,
     get_service_by_service_name,
-    get_tickets_related_to_topic_tag,
+    get_tickets_related_to_vuln_package,
     headers,
     invite_to_pteam,
     set_ticket_status,
-    upload_pteam_tags,
+    upload_pteam_packages,
 )
 
 client = TestClient(app)
@@ -173,37 +172,39 @@ class TestDeleteUser:
 
 class TestDeleteUserSideEffects:
     @pytest.fixture(scope="function", autouse=True)
-    def common_setup(self):
-        # Setup user, pteam, service, and topic
+    def common_setup(self, testdb):
+        # Setup user, pteam, service, and vuln
         self.user1 = create_user(USER1)
         self.user2 = create_user(USER2)
         self.pteam1 = create_pteam(USER1, PTEAM1)
         self.pteam2 = create_pteam(USER2, PTEAM2)
-        self.tag1 = create_tag(USER1, "foobar:ubuntu-24.04:")
 
-        action1 = {
-            "action": "test action1",
-            "action_type": models.ActionType.elimination,
-            "recommended": True,
-            "ext": {
-                "tags": [self.tag1.tag_name],
-                "vulnerable_versions": {self.tag1.tag_name: ["< 9999.99.99"]},
-            },
-        }
+        self.vuln1 = create_vuln(USER1, VULN1)
+        self.vuln2 = create_vuln(USER2, VULN2)
 
-        self.topic1 = create_topic(
-            USER1, {**TOPIC1, "tags": [self.tag1.tag_name], "actions": [action1]}
-        )
-        self.topic2 = create_topic(
-            USER2, {**TOPIC2, "tags": [self.tag1.tag_name], "actions": [action1]}
-        )
+        refs1 = [
+            {
+                "package_name": "axios",
+                "ecosystem": "npm",
+                "package_manager": "npm",
+                "references": [{"target": "target1", "version": "1.0"}],
+            }
+        ]
 
-        refs0 = {self.tag1.tag_name: [("test target", "1.2.3"), ("noise target", "1.2.3")]}
+        refs2 = [
+            {
+                "package_name": "asynckit",
+                "ecosystem": "npm",
+                "package_manager": "npm",
+                "references": [{"target": "target2", "version": "1.0"}],
+            }
+        ]
+
         service_name1 = "test service1"
         service_name2 = "test service2"
 
-        upload_pteam_tags(USER1, self.pteam1.pteam_id, service_name1, refs0)
-        upload_pteam_tags(USER2, self.pteam2.pteam_id, service_name2, refs0)
+        upload_pteam_packages(USER1, self.pteam1.pteam_id, service_name1, refs1)
+        upload_pteam_packages(USER2, self.pteam2.pteam_id, service_name2, refs2)
 
         self.service1 = get_service_by_service_name(USER1, self.pteam1.pteam_id, service_name1)
         self.service2 = get_service_by_service_name(USER2, self.pteam2.pteam_id, service_name2)
@@ -214,33 +215,43 @@ class TestDeleteUserSideEffects:
         accept_pteam_invitation(USER2, invitation1.invitation_id)
         accept_pteam_invitation(USER1, invitation2.invitation_id)
 
+        package1 = persistence.get_package_by_name_and_ecosystem(
+            testdb, refs1[0]["package_name"], refs1[0]["ecosystem"]
+        )
+
         # Setup ticket status with actionlog
-        tickets1 = get_tickets_related_to_topic_tag(
+        tickets1 = get_tickets_related_to_vuln_package(
             USER1,
             self.pteam1.pteam_id,
             self.service1["service_id"],
-            self.topic1.topic_id,
-            self.tag1.tag_id,
+            self.vuln1.vuln_id,
+            package1.package_id,
         )
         self.ticket1 = tickets1[0]
 
-        tickets2 = get_tickets_related_to_topic_tag(
+        package2 = persistence.get_package_by_name_and_ecosystem(
+            testdb, refs2[0]["package_name"], refs2[0]["ecosystem"]
+        )
+
+        tickets2 = get_tickets_related_to_vuln_package(
             USER2,
             self.pteam2.pteam_id,
             self.service2["service_id"],
-            self.topic2.topic_id,
-            self.tag1.tag_id,
+            self.vuln2.vuln_id,
+            package2.package_id,
         )
         self.ticket2 = tickets2[0]
 
         # Action logs for tickets
         log_request1 = {
-            "action_id": str(self.topic1.actions[0].action_id),
-            "topic_id": str(self.topic1.topic_id),
+            "vuln_id": str(self.vuln1.vuln_id),
             "user_id": str(self.user1.user_id),
             "pteam_id": str(self.pteam1.pteam_id),
             "service_id": self.service1["service_id"],
             "ticket_id": self.ticket1["ticket_id"],
+            "action": "test_action1",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
             "executed_at": None,
         }
 
@@ -248,12 +259,14 @@ class TestDeleteUserSideEffects:
         self.actionlog1 = log_response1.json()
 
         log_request2 = {
-            "action_id": str(self.topic2.actions[0].action_id),
-            "topic_id": str(self.topic2.topic_id),
+            "vuln_id": str(self.vuln1.vuln_id),
             "user_id": str(self.user2.user_id),
             "pteam_id": str(self.pteam2.pteam_id),
             "service_id": self.service2["service_id"],
             "ticket_id": self.ticket2["ticket_id"],
+            "action": "test_action2",
+            "action_type": models.ActionType.elimination,
+            "recommended": True,
             "executed_at": None,
         }
 
@@ -262,27 +275,25 @@ class TestDeleteUserSideEffects:
 
         # Set ticket status
         status_request1 = {
-            "topic_status": models.TopicStatusType.completed.value,
+            "vuln_status": models.VulnStatusType.completed.value,
             "assignees": [str(self.user1.user_id)],
             "logging_ids": [self.actionlog1["logging_id"]],
         }
         set_ticket_status(
             USER1,
             self.pteam1.pteam_id,
-            self.service1["service_id"],
             self.ticket1["ticket_id"],
             status_request1,
         )
 
         status_request2 = {
-            "topic_status": models.TopicStatusType.completed.value,
+            "vuln_status": models.VulnStatusType.completed.value,
             "assignees": [str(self.user2.user_id)],
             "logging_ids": [self.actionlog2["logging_id"]],
         }
         set_ticket_status(
             USER2,
             self.pteam2.pteam_id,
-            self.service2["service_id"],
             self.ticket2["ticket_id"],
             status_request2,
         )
@@ -342,47 +353,25 @@ class TestDeleteUserSideEffects:
         ).one()
         assert db_actionlog.user_id == str(self.user2.user_id)
 
-    def test_created_by_of_deleted_users_action_should_be_none(self, testdb):
-        action1 = self.topic1.actions[0]
+    def test_created_by_of_deleted_users_vuln_should_be_none(self, testdb):
         # Make user2 admin to prevent deletion of pteam1
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
         self.delete_user_me(USER1)
 
-        # Check created_by of deleted user's action
-        db_action = testdb.scalars(
-            select(models.TopicAction).where(models.TopicAction.action_id == str(action1.action_id))
+        # Check created_by of deleted user's vuln
+        db_vuln = testdb.scalars(
+            select(models.Vuln).where(models.Vuln.vuln_id == str(self.vuln1.vuln_id))
         ).one()
-        assert db_action.created_by is None
+        assert db_vuln.created_by is None
 
-    def test_created_by_of_not_deleted_users_action_should_be_kept(self, testdb):
-        action2 = self.topic2.actions[0]
+    def test_created_by_of_not_deleted_users_vuln_should_be_kept(self, testdb):
         self.delete_user_me(USER1)
 
-        # Check created_by of non-deleted user's action
-        db_action = testdb.scalars(
-            select(models.TopicAction).where(models.TopicAction.action_id == str(action2.action_id))
+        # Check created_by of non-deleted user's vuln
+        db_vuln = testdb.scalars(
+            select(models.Vuln).where(models.Vuln.vuln_id == str(self.vuln2.vuln_id))
         ).one()
-        assert db_action.created_by == str(self.user2.user_id)
-
-    def test_created_by_of_deleted_users_topic_should_be_none(self, testdb):
-        # Make user2 admin to prevent deletion of pteam1
-        self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
-        self.delete_user_me(USER1)
-
-        # Check created_by of deleted user's topic
-        db_topic = testdb.scalars(
-            select(models.Topic).where(models.Topic.topic_id == str(self.topic1.topic_id))
-        ).one()
-        assert db_topic.created_by is None
-
-    def test_created_by_of_not_deleted_users_topic_should_be_kept(self, testdb):
-        self.delete_user_me(USER1)
-
-        # Check created_by of non-deleted user's topic
-        db_topic = testdb.scalars(
-            select(models.Topic).where(models.Topic.topic_id == str(self.topic2.topic_id))
-        ).one()
-        assert db_topic.created_by == str(self.topic2.created_by)
+        assert db_vuln.created_by == str(self.vuln2.created_by)
 
     def test_pteam_invitations_from_deleted_users_should_be_none(self, testdb):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
@@ -438,14 +427,13 @@ class TestDeleteUserSideEffects:
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
 
         status_request = {
-            "topic_status": models.TopicStatusType.completed.value,
+            "vuln_status": models.VulnStatusType.completed.value,
             "assignees": [str(self.user1.user_id)],
             "logging_ids": [self.actionlog1["logging_id"]],
         }
         set_ticket_status(
             USER2,
             self.pteam1.pteam_id,
-            self.service1["service_id"],
             self.ticket1["ticket_id"],
             status_request,
         )
@@ -464,14 +452,13 @@ class TestDeleteUserSideEffects:
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
 
         status_request = {
-            "topic_status": models.TopicStatusType.completed.value,
+            "vuln_status": models.VulnStatusType.completed.value,
             "assignees": [str(self.user1.user_id)],
             "logging_ids": [self.actionlog1["logging_id"]],
         }
         set_ticket_status(
             USER2,
             self.pteam1.pteam_id,
-            self.service1["service_id"],
             self.ticket1["ticket_id"],
             status_request,
         )
