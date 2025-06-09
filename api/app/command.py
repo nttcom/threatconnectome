@@ -48,6 +48,7 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
     service_id: UUID | str | None,
     package_id: UUID | str | None,
     vuln_id: UUID | str | None,
+    user_id: UUID | str | None = None,
 ) -> Sequence[models.Ticket]:
     select_stmt = (
         select(models.Ticket)
@@ -79,6 +80,11 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
                 models.Dependency.dependency_id == models.Ticket.dependency_id,
                 models.Dependency.service_id == str(service_id),
             ),
+        )
+
+    if user_id:
+        select_stmt = select_stmt.where(
+            models.Ticket.ticket_status.has(models.TicketStatus.assignees.any(str(user_id)))
         )
 
     select_stmt = select_stmt.order_by(
