@@ -56,7 +56,7 @@ def __handle_create_vuln(
     requested_packages = _get_requested_packages(db, request.vulnerable_packages)
 
     # create vuln
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
 
     vuln = models.Vuln(
         vuln_id=str(vuln_id),
