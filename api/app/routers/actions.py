@@ -44,7 +44,10 @@ def create_action(
 
     db.commit()
 
-    return action
+    action_dict = action.__dict__.copy()
+    if action.created_at:
+        action_dict["created_at"] = action.created_at.astimezone(timezone.utc)
+    return action_dict
 
 
 @router.get("/{action_id}", response_model=schemas.ActionResponse)
