@@ -7,7 +7,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
 
-import { DeleteAccountDialog } from "../DeleteAccountDialog";
+import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
 export function AccountSettingsDialog(props) {
   const { accountSettingOpen, setAccountSettingOpen, onSelectYear, userMe } = props;

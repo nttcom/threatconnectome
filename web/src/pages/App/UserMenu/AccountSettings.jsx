@@ -5,7 +5,7 @@ import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useUpdateUserMutation } from "../../../services/tcApi";
 import { errorToString } from "../../../utils/func";
 
-import { AccountSettingsDialog } from "./AccountSettingsDialog/AccountSettingsDialog";
+import { AccountSettingsDialog } from "./AccountSettingsDialog";
 
 export function AccountSettings(props) {
   const { accountSettingOpen, setAccountSettingOpen, userMe } = props;
