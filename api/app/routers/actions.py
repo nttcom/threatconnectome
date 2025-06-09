@@ -28,7 +28,7 @@ def create_action(
     if not (vuln := persistence.get_vuln_by_id(db, request.vuln_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such vuln")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     action = models.VulnAction(
         # vuln_id will be filled at appending to vuln.vuln_actions
         action=request.action,

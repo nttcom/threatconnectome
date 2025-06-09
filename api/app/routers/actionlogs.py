@@ -21,13 +21,13 @@ def get_logs(
     """
     logs = persistence.get_action_logs_by_user_id(db, current_user.user_id)
     result = []
-    for original_log in sorted(logs, key=lambda l: l.executed_at, reverse=True):
-        log_for_response = original_log.__dict__.copy()  # to avoid modifying the original log
-        if original_log.created_at:
-            log_for_response["created_at"] = original_log.created_at.astimezone(timezone.utc)
-        if original_log.executed_at:
-            log_for_response["executed_at"] = original_log.executed_at.astimezone(timezone.utc)
-        result.append(log_for_response)
+    for log in sorted(logs, key=lambda l: l.executed_at, reverse=True):
+        original_log = log.__dict__.copy()  # to avoid modifying the DB log
+        if log.created_at:
+            original_log["created_at"] = log.created_at.astimezone(timezone.utc)
+        if log.executed_at:
+            original_log["executed_at"] = log.executed_at.astimezone(timezone.utc)
+        result.append(original_log)
     return result
 
 
@@ -70,7 +70,7 @@ def create_log(
     if data.executed_at:
         data.executed_at = data.executed_at.astimezone(timezone.utc)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     log = models.ActionLog(
         action_id=data.action_id,
         vuln_id=data.vuln_id,
@@ -106,11 +106,11 @@ def get_vuln_logs(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
     rows = persistence.get_vuln_logs_by_user_id(db, vuln_id, current_user.user_id)
     result = []
-    for original_log in sorted(rows, key=lambda l: l.executed_at, reverse=True):
-        log_for_response = original_log.__dict__.copy()
-        if original_log.created_at:
-            log_for_response["created_at"] = original_log.created_at.astimezone(timezone.utc)
-        if original_log.executed_at:
-            log_for_response["executed_at"] = original_log.executed_at.astimezone(timezone.utc)
-        result.append(log_for_response)
+    for log in sorted(rows, key=lambda l: l.executed_at, reverse=True):
+        original_log = log.__dict__.copy()
+        if log.created_at:
+            original_log["created_at"] = log.created_at.astimezone(timezone.utc)
+        if log.executed_at:
+            original_log["executed_at"] = log.executed_at.astimezone(timezone.utc)
+        result.append(original_log)
     return result
