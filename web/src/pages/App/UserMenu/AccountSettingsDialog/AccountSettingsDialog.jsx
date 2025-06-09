@@ -1,19 +1,13 @@
 import CloseIcon from "@mui/icons-material/Close";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { Box, IconButton, MenuItem, Select, Stack, Tooltip, Typography } from "@mui/material";
-import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
-import { Fragment, useState } from "react";
 
 import { DeleteAccountDialog } from "../DeleteAccountDialog";
-
-import { ChangeEmailDialog } from "./ChangeEmailDialog/ChangeEmailDialog";
-import { UpdatePasswordDialog } from "./UpdatePasswordDialog";
-import { CHANGE_EMAIL_DIALOG_STATES, UPDATE_PASSWORD_DIALOG_STATES } from "./dialogStates";
 
 export function AccountSettingsDialog(props) {
   const { accountSettingOpen, setAccountSettingOpen, onSelectYear, userMe } = props;
@@ -21,18 +15,6 @@ export function AccountSettingsDialog(props) {
   const handleClose = () => {
     setAccountSettingOpen(false);
   };
-
-  // Change Email is not implemented
-  const changeEmaildisabled = true;
-  // Change Password is not implemented
-  const changePasswordDisabled = true;
-
-  const [changeEmailDialogOpen, setChangeEmailDialogOpen] = useState(
-    CHANGE_EMAIL_DIALOG_STATES.NONE,
-  );
-  const [updatePasswordDialogOpen, setUpdatePasswordDialogOpen] = useState(
-    UPDATE_PASSWORD_DIALOG_STATES.NONE,
-  );
 
   return (
     <>
@@ -52,43 +34,12 @@ export function AccountSettingsDialog(props) {
                 Email
               </Typography>
               <DialogContentText>{userMe.email}</DialogContentText>
-              <Button
-                variant="contained"
-                size="small"
-                sx={{ mt: 1 }}
-                disabled={changeEmaildisabled}
-                onClick={() => {
-                  setChangeEmailDialogOpen(CHANGE_EMAIL_DIALOG_STATES.SEND_VERIFICATION_EMAIL);
-                }}
-              >
-                Change Email
-              </Button>
-              <ChangeEmailDialog open={changeEmailDialogOpen} setOpen={setChangeEmailDialogOpen} />
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 User ID
               </Typography>
               <DialogContentText>{userMe.user_id}</DialogContentText>
-            </Box>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                Password
-              </Typography>
-              <Button
-                variant="contained"
-                size="small"
-                disabled={changePasswordDisabled}
-                onClick={() => {
-                  setUpdatePasswordDialogOpen(UPDATE_PASSWORD_DIALOG_STATES.UPDATE_PASSWORD);
-                }}
-              >
-                Change Password
-              </Button>
-              <UpdatePasswordDialog
-                open={updatePasswordDialogOpen}
-                setOpen={setUpdatePasswordDialogOpen}
-              />
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
