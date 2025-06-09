@@ -1,3 +1,4 @@
+<!-- I want to review in Japanese. -->
 ## PR の目的
 
 - 機能追加の場合
@@ -13,3 +14,5 @@
 このプルリクエストの対象外とした内容があるならば、その理由も含めて記述する。
 
 ## 参考文献
+
+<!-- I want to review in Japanese. -->

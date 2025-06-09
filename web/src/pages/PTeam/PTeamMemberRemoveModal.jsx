@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React from "react";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { useDeletePTeamMemberMutation } from "../../services/tcApi";

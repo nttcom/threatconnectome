@@ -20,9 +20,6 @@ USER3 = {
     "disabled": False,
     "years": 2,
 }
-TAG1 = "alpha:alpha2:alpha3"
-TAG2 = "bravo:bravo2:bravo3"
-TAG3 = "charlie:charlie2:charlie3"
 SERVICE1 = "Threatconnectome"
 SERVICE2 = "RepoA"
 REF1 = [
@@ -39,9 +36,6 @@ REF3 = [
     }
 ]
 
-MISPTAG1 = "tlp:amber"
-MISPTAG2 = "tlp:clear"
-MISPTAG3 = "tlp:red"
 PTEAM1 = {
     "pteam_name": "pteam alpha",
     "contact_info": "alpha@ml.com",
@@ -57,65 +51,83 @@ PTEAM2 = {
     "alert_ssvc_priority": "out_of_cycle",
     "alert_mail": {"enable": False, "address": "bravo@ml.com"},  # disable SendGrid if not needed
 }
-TOPIC1 = {
-    "topic_id": uuid4(),
-    "title": "topic one",
-    "abstract": "abstract one",
-    "tags": [TAG1],
-    "misp_tags": [MISPTAG1],
-    "actions": [],
-    "exploitation": "active",
-    "automatable": "yes",
-    "cvss_v3_score": 2.0,
-    "cve_id": "CVE-0000-0001",
-}
-TOPIC2 = {
-    "topic_id": uuid4(),
-    "title": "topic two",
-    "abstract": "abstract two",
-    "tags": [TAG1],
-    "misp_tags": [],
-    "actions": [],
-    "exploitation": "active",
-    "automatable": "yes",
-}
-TOPIC3 = {
-    "topic_id": uuid4(),
-    "title": "topic three",
-    "abstract": "abstract three",
-    "tags": [TAG1, TAG3],
-    "misp_tags": [],
-    "actions": [],
-    "exploitation": "active",
-    "automatable": "yes",
-}
-TOPIC4 = {
-    "topic_id": uuid4(),
-    "title": "topic four",
-    "abstract": "abstract four",
-    "tags": [TAG3],
-    "misp_tags": [],
-    "actions": [],
-    "exploitation": "active",
-    "automatable": "yes",
-}
 ACTION1 = {
     "action": "action one",
     "action_type": "elimination",
     "recommended": True,
-    "ext": {},
 }
 ACTION2 = {
     "action": "action two",
     "action_type": "mitigation",
     "recommended": False,
-    "ext": {},
 }
 ACTION3 = {
     "action": "action three",
     "action_type": "rejection",
     "recommended": False,
-    "ext": {},
+}
+PACKAGE1 = {
+    "package_name": "axios",
+    "ecosystem": "npm",
+    "package_manager": "npm",
+}
+PACKAGE2 = {
+    "package_name": "asynckit",
+    "ecosystem": "npm",
+    "package_manager": "npm",
+}
+PACKAGE3 = {
+    "package_name": "combined-stream",
+    "ecosystem": "npm",
+    "package_manager": "npm",
+}
+VULNPACKAGE1 = {
+    "name": PACKAGE1["package_name"],
+    "ecosystem": PACKAGE1["ecosystem"],
+    "affected_versions": ["<2.0"],
+    "fixed_versions": ["2.0"],
+}
+VULNPACKAGE2 = {
+    "name": PACKAGE2["package_name"],
+    "ecosystem": PACKAGE2["ecosystem"],
+    "affected_versions": ["<2.0"],
+    "fixed_versions": ["2.0"],
+}
+VULNPACKAGE3 = {
+    "name": PACKAGE3["package_name"],
+    "ecosystem": PACKAGE3["ecosystem"],
+    "affected_versions": ["<2.0"],
+    "fixed_versions": ["2.0"],
+}
+VULN1 = {
+    "vuln_id": str(uuid4()),
+    "cve_id": "CVE-0000-0001",
+    "title": "Test Vulnerability1",
+    "detail": "This is a test vulnerability.",
+    "exploitation": "active",
+    "automatable": "yes",
+    "cvss_v3_score": 2.0,
+    "vulnerable_packages": [VULNPACKAGE1],
+}
+VULN2 = {
+    "vuln_id": str(uuid4()),
+    "cve_id": "CVE-0000-0002",
+    "title": "Test Vulnerability2",
+    "detail": "This is a test vulnerability.",
+    "exploitation": "active",
+    "automatable": "yes",
+    "cvss_v3_score": 2.0,
+    "vulnerable_packages": [VULNPACKAGE2],
+}
+VULN3 = {
+    "vuln_id": str(uuid4()),
+    "cve_id": "CVE-0000-0002",
+    "title": "Test Vulnerability2",
+    "detail": "This is a test vulnerability.",
+    "exploitation": "none",
+    "automatable": "no",
+    "cvss_v3_score": 2.0,
+    "vulnerable_packages": [VULNPACKAGE3],
 }
 
 SAMPLE_SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/T00000000/B00000000/XXXX"

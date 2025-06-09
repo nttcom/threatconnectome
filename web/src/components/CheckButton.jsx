@@ -1,6 +1,5 @@
 import { Button, CircularProgress } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 import styles from "../cssModule/button.module.css";
 

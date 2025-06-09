@@ -7,7 +7,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 export function WaitingModal(props) {
   const { isOpen, text } = props;

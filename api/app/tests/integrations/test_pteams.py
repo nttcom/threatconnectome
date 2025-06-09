@@ -1,11 +1,14 @@
+import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from logging import ERROR, INFO
+from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app import models
 from app.constants import SYSTEM_EMAIL
@@ -23,467 +26,533 @@ from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     PTEAM1,
     SAMPLE_SLACK_WEBHOOK_URL,
-    TAG1,
-    TOPIC1,
     USER1,
+    VULN1,
+    VULN2,
+    VULN3,
 )
 from app.tests.medium.utils import (
     create_pteam,
-    create_tag,
-    create_topic,
-    create_topic_with_versioned_actions,
     create_user,
-    get_service_by_service_name,
-    get_tickets_related_to_topic_tag,
+    create_vuln,
     headers,
     set_ticket_status,
-    upload_pteam_tags,
+    upload_pteam_packages,
 )
 
 client = TestClient(app)
 
 
-@pytest.mark.parametrize(
-    "topic_status, scheduled_at, solved_num, unsolved_num",
-    [
-        (models.TopicStatusType.acknowledged, None, 0, 1),
-        (models.TopicStatusType.scheduled, "2345-06-07T08:09:10", 0, 1),
-        (models.TopicStatusType.completed, None, 1, 0),
-    ],
-)
-def test_it_should_return_solved_or_unsolved_number_based_on_ticket_status(
-    testdb, topic_status, scheduled_at, solved_num, unsolved_num
-):
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    tag1 = create_tag(USER1, TAG1)
-    topic1 = create_topic_with_versioned_actions(USER1, TOPIC1, [[TAG1]])
-    test_service = "test service"
-    refs0 = {TAG1: [("test target", "1.2.3")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service)
-    tickets = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic1.topic_id, tag1.tag_id
-    )
-    ticket1 = tickets[0]
-
-    # set status
-    json_data = {
-        "topic_status": topic_status,
-        "note": "string",
-        "assignees": [],
-        "scheduled_at": scheduled_at,
-    }
-    set_ticket_status(
-        USER1, pteam1.pteam_id, service1["service_id"], ticket1["ticket_id"], json_data
-    )
-
-    # get summary
-    response = client.get(
-        f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    response = response.json()
-
-    # common
-    assert response["pteam_id"] == str(pteam1.pteam_id)
-    assert response["service_id"] == service1["service_id"]
-    assert response["tag_id"] == str(tag1.tag_id)
-    # solved
-    assert len(response["solved"]["topic_ids"]) == solved_num
-    if solved_num > 0:
-        all(topic_id == str(topic1.topic_id) for topic_id in response["solved"]["topic_ids"])
-    # unsolved
-    assert len(response["unsolved"]["topic_ids"]) == unsolved_num
-    if unsolved_num > 0:
-        all(topic_id == str(topic1.topic_id) for topic_id in response["unsolved"]["topic_ids"])
-
-
-@pytest.mark.parametrize(
-    "exploitation, topic_status1, topic_status2, expected_solved_count, expected_unsolved_count",
-    [
-        (
-            "none",
-            models.TopicStatusType.completed,
-            models.TopicStatusType.completed,
-            {"immediate": 0, "out_of_cycle": 2, "scheduled": 0, "defer": 0},
-            {"immediate": 0, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
-        ),
-        (
-            "none",
-            models.TopicStatusType.completed,
-            models.TopicStatusType.acknowledged,
-            {"immediate": 0, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
-            {"immediate": 0, "out_of_cycle": 1, "scheduled": 0, "defer": 0},
-        ),
-        (
-            "public_poc",
-            models.TopicStatusType.acknowledged,
-            models.TopicStatusType.completed,
-            {"immediate": 0, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
-            {"immediate": 0, "out_of_cycle": 1, "scheduled": 0, "defer": 0},
-        ),
-        (
-            "active",
-            models.TopicStatusType.acknowledged,
-            models.TopicStatusType.acknowledged,
-            {"immediate": 0, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
-            {"immediate": 2, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
-        ),
-    ],
-)
-def test_it_should_return_ssvc_priority_count_num_based_on_tickte_status(
-    testdb,
-    exploitation,
-    topic_status1,
-    topic_status2,
-    expected_solved_count,
-    expected_unsolved_count,
-):
-    @staticmethod
-    def _set_ticket_status(
-        user: dict,
-        pteam_id: str,
-        service_id: str,
-        ticket_id: str,
-        topic_status: models.TopicStatusType,
-    ) -> None:
-        post_topicstatus_url = f"/pteams/{pteam_id}/services/{service_id}/ticketstatus/{ticket_id}"
-        status_request = {
-            "topic_status": topic_status,
+class TestGetVulnIdsTiedToServicePackage:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, testdb):
+        # Given
+        # Create 1st ticket
+        service_name1 = "test_service1"
+        self.ticket_response1 = ticket_utils.create_ticket(
+            testdb, USER1, PTEAM1, service_name1, VULN1
+        )
+        json_data = {
+            "vuln_status": "acknowledged",
+            "note": "string",
             "assignees": [],
-            "note": "",
             "scheduled_at": None,
         }
-        client.put(
-            post_topicstatus_url,
-            headers=headers(user),
-            json=status_request,
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
         )
 
-    # Given
-    # create ticket
-    topic = {
-        **TOPIC1,
-        "exploitation": exploitation,
-    }
+        # Create 2st ticket
+        service_name2 = "test_service2"
+        upload_file_name = "test_trivy_cyclonedx_asynckit.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
 
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, topic)
+        bg_create_tags_from_sbom_json(
+            sbom_json, self.ticket_response1["pteam_id"], service_name2, upload_file_name
+        )
+        self.vuln2 = create_vuln(USER1, VULN2)
 
-    # set topic_status
-    get_tickets_url = (
-        f"/pteams/{ticket_response['pteam_id']}/services/"
-        f"{ticket_response['service_id']}/topics/{ticket_response['topic_id']}/tags/{ticket_response['tag_id']}/tickets"
+    def test_it_able_to_filter_when_service_id_is_specified_as_query_parameter(self):
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids?service_id={self.ticket_response1['service_id']}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert len(response1.json()["vuln_ids"]) == 2
+        assert set(response1.json()["vuln_ids"]) == {
+            self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] == self.ticket_response1["service_id"]
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] is None
+        assert len(response2.json()["vuln_ids"]) == 1
+        assert set(response2.json()["vuln_ids"]) == {self.ticket_response1["vuln_id"]}
+
+    def test_it_able_to_filter_when_package_id_is_specified_as_query_parameter(self):
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids?package_id={self.ticket_response1['package_id']}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert len(response1.json()["vuln_ids"]) == 2
+        assert set(response1.json()["vuln_ids"]) == {
+            self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] == self.ticket_response1["package_id"]
+        assert response2.json()["related_ticket_status"] is None
+        assert len(response2.json()["vuln_ids"]) == 1
+        assert set(response2.json()["vuln_ids"]) == {self.ticket_response1["vuln_id"]}
+
+    def test_it_able_to_filter_when_solved_is_specified_as_query_parameter(self):
+        # Given
+        # Change status of ticket1
+        json_data = {
+            "vuln_status": "completed",
+            "note": "string",
+            "assignees": [self.ticket_response1["user_id"]],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids?related_ticket_status=solved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert len(response1.json()["vuln_ids"]) == 2
+        assert set(response1.json()["vuln_ids"]) == {
+            self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] == "solved"
+        assert len(response2.json()["vuln_ids"]) == 1
+        assert set(response2.json()["vuln_ids"]) == {self.ticket_response1["vuln_id"]}
+
+    def test_it_able_to_filter_when_unsolved_is_specified_as_query_parameter(self):
+        # Given
+        # Change status of ticket1
+        json_data = {
+            "vuln_status": "completed",
+            "note": "string",
+            "assignees": [self.ticket_response1["user_id"]],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids?related_ticket_status=unsolved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert len(response1.json()["vuln_ids"]) == 2
+        assert set(response1.json()["vuln_ids"]) == {
+            self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] == "unsolved"
+        assert len(response2.json()["vuln_ids"]) == 1
+        assert set(response2.json()["vuln_ids"]) == {str(self.vuln2.vuln_id)}
+
+    def test_vuln_ids_are_sorted_correctly(self):
+        """
+        Memo
+        ticket1 ssvc_deployer_priority is IMMEDIATE
+        ticket2 ssvc_deployer_priority is IMMEDIATE
+        ticket3 ssvc_deployer_priority is SCHEDULED
+        """
+        # Given
+        # Create 3st ticket
+        service_name2 = "test_service3"
+        upload_file_name = "test_trivy_cyclonedx_combined-stream.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        bg_create_tags_from_sbom_json(
+            sbom_json, self.ticket_response1["pteam_id"], service_name2, upload_file_name
+        )
+        vuln3 = create_vuln(USER1, VULN3)
+
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert len(response1.json()["vuln_ids"]) == 3
+        vuln_ids_sorted = [
+            str(self.vuln2.vuln_id),
+            self.ticket_response1["vuln_id"],
+            str(vuln3.vuln_id),
+        ]
+        assert response1.json()["vuln_ids"] == vuln_ids_sorted
+
+
+class TestGetTicketCountsTiedToServicePackage:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, testdb):
+        # Given
+        # Create 1st ticket
+        service_name1 = "test_service1"
+        self.ticket_response1 = ticket_utils.create_ticket(
+            testdb, USER1, PTEAM1, service_name1, VULN1
+        )
+        json_data = {
+            "vuln_status": "acknowledged",
+            "note": "string",
+            "assignees": [],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
+        # Create 2st ticket
+        service_name2 = "test_service2"
+        upload_file_name = "test_trivy_cyclonedx_asynckit.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        bg_create_tags_from_sbom_json(
+            sbom_json, self.ticket_response1["pteam_id"], service_name2, upload_file_name
+        )
+        self.vuln2 = create_vuln(USER1, VULN2)
+
+    def test_it_able_to_filter_when_service_id_is_specified_as_query_parameter(self):
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?service_id={self.ticket_response1['service_id']}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert response1.json()["ssvc_priority_count"] == {
+            "immediate": 2,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] == self.ticket_response1["service_id"]
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] is None
+        assert response2.json()["ssvc_priority_count"] == {
+            "immediate": 1,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+    def test_it_able_to_filter_when_package_id_is_specified_as_query_parameter(self):
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?package_id={self.ticket_response1['package_id']}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert response1.json()["ssvc_priority_count"] == {
+            "immediate": 2,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] == self.ticket_response1["package_id"]
+        assert response2.json()["related_ticket_status"] is None
+        assert response2.json()["ssvc_priority_count"] == {
+            "immediate": 1,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+    def test_it_able_to_filter_when_solved_is_specified_as_query_parameter(self):
+        # Given
+        # Change status of ticket1
+        json_data = {
+            "vuln_status": "completed",
+            "note": "string",
+            "assignees": [self.ticket_response1["user_id"]],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?related_ticket_status=solved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert response1.json()["ssvc_priority_count"] == {
+            "immediate": 2,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] == "solved"
+        assert response2.json()["ssvc_priority_count"] == {
+            "immediate": 1,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+    def test_it_able_to_filter_when_unsolved_is_specified_as_query_parameter(self):
+        # Given
+        # Change status of ticket1
+        json_data = {
+            "vuln_status": "completed",
+            "note": "string",
+            "assignees": [self.ticket_response1["user_id"]],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            self.ticket_response1["ticket_id"],
+            json_data,
+        )
+
+        # When
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts",
+            headers=headers(USER1),
+        )
+        response2 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?related_ticket_status=unsolved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response1.status_code == 200
+        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response1.json()["service_id"] is None
+        assert response1.json()["package_id"] is None
+        assert response1.json()["related_ticket_status"] is None
+        assert response1.json()["ssvc_priority_count"] == {
+            "immediate": 2,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] == "unsolved"
+        assert response2.json()["ssvc_priority_count"] == {
+            "immediate": 1,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+    @pytest.mark.parametrize(
+        "exploitation, automatable, service_mission_impact, expected_ssvc_priority_count",
+        [
+            (
+                "active",
+                "yes",
+                "mission_failure",
+                {"immediate": 1, "out_of_cycle": 0, "scheduled": 0, "defer": 0},
+            ),
+            (
+                "public_poc",
+                "yes",
+                "mission_failure",
+                {"immediate": 0, "out_of_cycle": 1, "scheduled": 0, "defer": 0},
+            ),
+            (
+                "none",
+                "no",
+                "mission_failure",
+                {"immediate": 0, "out_of_cycle": 0, "scheduled": 1, "defer": 0},
+            ),
+            (
+                "none",
+                "no",
+                "degraded",
+                {"immediate": 0, "out_of_cycle": 0, "scheduled": 0, "defer": 1},
+            ),
+        ],
     )
-    tickets = client.get(get_tickets_url, headers=headers(USER1)).json()
-    _set_ticket_status(
-        USER1,
-        ticket_response["pteam_id"],
-        ticket_response["service_id"],
-        tickets[0]["ticket_id"],
-        topic_status1,
-    )
-    _set_ticket_status(
-        USER1,
-        ticket_response["pteam_id"],
-        ticket_response["service_id"],
-        tickets[1]["ticket_id"],
-        topic_status2,
-    )
+    def test_it_should_return_correct_ssvc_priority_count_when_ssvc_is_changed(
+        self,
+        exploitation,
+        automatable,
+        service_mission_impact,
+        expected_ssvc_priority_count,
+    ):
+        # Given
+        vuln = {
+            **VULN1,
+            "exploitation": exploitation,
+            "automatable": automatable,
+        }
+        data_service = {"service_mission_impact": service_mission_impact}
 
-    # When
-    response = client.get(
-        f"/pteams/{ticket_response['pteam_id']}/services/{ticket_response['service_id']}/tags/{ticket_response['tag_id']}/topic_ids",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    response = response.json()
+        create_vuln(USER1, vuln)
 
-    # Then
-    # common
-    assert response["pteam_id"] == ticket_response["pteam_id"]
-    assert response["service_id"] == ticket_response["service_id"]
-    assert response["tag_id"] == ticket_response["tag_id"]
-    # solved
-    assert response["solved"]["ssvc_priority_count"] == expected_solved_count
-    # unsolved
-    assert response["unsolved"]["ssvc_priority_count"] == expected_unsolved_count
+        client.put(
+            f"/pteams/{self.ticket_response1['pteam_id']}/services/{self.ticket_response1['service_id']}",
+            headers=headers(USER1),
+            json=data_service,
+        )
 
+        # When
+        response = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?service_id={self.ticket_response1['service_id']}&package_id={self.ticket_response1['package_id']}",
+            headers=headers(USER1),
+        )
 
-@pytest.mark.parametrize(
-    "_topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority",
-    [
-        (
-            {"exploitation": "active", "automatable": "no", "title": "topic one"},
-            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
-            {"exploitation": "none", "automatable": "no", "title": "topic three"},
-            ["topic one", "topic two", "topic three"],
-        ),
-        (
-            {"exploitation": "none", "automatable": "no", "title": "topic one"},
-            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
-            {"exploitation": "active", "automatable": "no", "title": "topic three"},
-            ["topic three", "topic two", "topic one"],
-        ),
-        (
-            {"exploitation": "none", "automatable": "no", "title": "topic one"},
-            {"exploitation": "none", "automatable": "no", "title": "topic two"},
-            {"exploitation": "none", "automatable": "no", "title": "topic three"},
-            ["topic three", "topic two", "topic one"],
-        ),
-    ],
-)
-def test_it_shoud_return_solved_sorted_title_based_on_ssvc_priority(
-    _topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority
-):
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    tag1 = create_tag(USER1, TAG1)
-
-    test_service1 = "test service"
-    refs0 = {TAG1: [("test target", "1.2.3")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, test_service1, refs0)
-    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service1)
-
-    topic1 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "title": _topic1["title"],
-            "exploitation": _topic1["exploitation"],
-            "automatable": _topic1["automatable"],
-        },
-        [[TAG1]],
-    )
-    topic2 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "title": _topic2["title"],
-            "exploitation": _topic2["exploitation"],
-            "automatable": _topic2["automatable"],
-        },
-        [[TAG1]],
-    )
-    topic3 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "title": _topic3["title"],
-            "exploitation": _topic3["exploitation"],
-            "automatable": _topic3["automatable"],
-        },
-        [[TAG1]],
-    )
-    ticket1 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic1.topic_id, tag1.tag_id
-    )[0]
-    ticket2 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic2.topic_id, tag1.tag_id
-    )[0]
-    ticket3 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic3.topic_id, tag1.tag_id
-    )[0]
-
-    json_data = {
-        "topic_status": models.TopicStatusType.completed,
-        "note": "string",
-        "assignees": [],
-        "scheduled_at": None,
-    }
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket1["ticket_id"],
-        json_data,
-    )
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket2["ticket_id"],
-        json_data,
-    )
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket3["ticket_id"],
-        json_data,
-    )
-
-    response = client.get(
-        f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    response_json = response.json()
-
-    # common
-    assert response_json["pteam_id"] == str(pteam1.pteam_id)
-    assert response_json["service_id"] == service1["service_id"]
-    assert response_json["tag_id"] == str(tag1.tag_id)
-    # solved
-    topic_title_list = []
-    for topic_id in response_json["solved"]["topic_ids"]:
-        response_topic = client.get(f"/topics/{topic_id}", headers=headers(USER1))
-        topic = response_topic.json()
-        topic_title_list.append(topic["title"])
-    assert topic_title_list == titles_sorted_by_ssvc_priority
-    # unsolved
-    assert len(response_json["unsolved"]["topic_ids"]) == 0
-
-
-@pytest.mark.parametrize(
-    "_topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority",
-    [
-        (
-            {"exploitation": "active", "automatable": "no", "title": "topic one"},
-            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
-            {"exploitation": "none", "automatable": "no", "title": "topic three"},
-            ["topic one", "topic two", "topic three"],
-        ),
-        (
-            {"exploitation": "none", "automatable": "no", "title": "topic one"},
-            {"exploitation": "public_poc", "automatable": "no", "title": "topic two"},
-            {"exploitation": "active", "automatable": "no", "title": "topic three"},
-            ["topic three", "topic two", "topic one"],
-        ),
-        (
-            {"exploitation": "none", "automatable": "no", "title": "topic one"},
-            {"exploitation": "none", "automatable": "no", "title": "topic two"},
-            {"exploitation": "none", "automatable": "no", "title": "topic three"},
-            ["topic three", "topic two", "topic one"],
-        ),
-    ],
-)
-def test_it_shoud_return_unsolved_sorted_title_based_on_ssvc_priority(
-    _topic1, _topic2, _topic3, titles_sorted_by_ssvc_priority
-):
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    tag1 = create_tag(USER1, TAG1)
-    test_service = "test service"
-    refs0 = {TAG1: [("test target", "1.2.3")]}
-    upload_pteam_tags(USER1, pteam1.pteam_id, test_service, refs0)
-    service1 = get_service_by_service_name(USER1, pteam1.pteam_id, test_service)
-
-    topic1 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "title": _topic1["title"],
-            "exploitation": _topic1["exploitation"],
-            "automatable": _topic1["automatable"],
-        },
-        [[TAG1]],
-    )
-    topic2 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "title": _topic2["title"],
-            "exploitation": _topic2["exploitation"],
-            "automatable": _topic2["automatable"],
-        },
-        [[TAG1]],
-    )
-    topic3 = create_topic_with_versioned_actions(
-        USER1,
-        {
-            **TOPIC1,
-            "topic_id": uuid4(),
-            "title": _topic3["title"],
-            "exploitation": _topic3["exploitation"],
-            "automatable": _topic3["automatable"],
-        },
-        [[TAG1]],
-    )
-    ticket1 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic1.topic_id, tag1.tag_id
-    )[0]
-    ticket2 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic2.topic_id, tag1.tag_id
-    )[0]
-    ticket3 = get_tickets_related_to_topic_tag(
-        USER1, pteam1.pteam_id, service1["service_id"], topic3.topic_id, tag1.tag_id
-    )[0]
-
-    json_data = {
-        "topic_status": models.TopicStatusType.acknowledged,
-        "note": "string",
-        "assignees": [],
-        "scheduled_at": None,
-    }
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket1["ticket_id"],
-        json_data,
-    )
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket2["ticket_id"],
-        json_data,
-    )
-    set_ticket_status(
-        USER1,
-        pteam1.pteam_id,
-        service1["service_id"],
-        ticket3["ticket_id"],
-        json_data,
-    )
-
-    response = client.get(
-        f"/pteams/{pteam1.pteam_id}/services/{service1['service_id']}/tags/{tag1.tag_id}/topic_ids",
-        headers=headers(USER1),
-    )
-    assert response.status_code == 200
-    response_json = response.json()
-
-    # common
-    assert response_json["pteam_id"] == str(pteam1.pteam_id)
-    assert response_json["service_id"] == service1["service_id"]
-    assert response_json["tag_id"] == str(tag1.tag_id)
-    # solved
-    assert len(response_json["solved"]["topic_ids"]) == 0
-    # unsolved
-    topic_title_list = []
-    for topic_id in response_json["unsolved"]["topic_ids"]:
-        response_topic = client.get(f"/topics/{topic_id}", headers=headers(USER1))
-        topic = response_topic.json()
-        topic_title_list.append(topic["title"])
-    assert topic_title_list == titles_sorted_by_ssvc_priority
-
-
-def test_sbom_uploaded_at_with_called_upload_tags_file():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    service_name = "test service 1"
-    upload_pteam_tags(USER1, pteam1.pteam_id, service_name, {TAG1: [("Pipfile.lock", "1.0.0")]})
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1))
-    services = response.json().get("services", {})
-    service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
-    assert service1
-    now = datetime.now()
-    datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
-    assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) > now - timedelta(
-        seconds=30
-    )
-    assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
+        # Then
+        assert response.status_code == 200
+        assert response.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response.json()["service_id"] == self.ticket_response1["service_id"]
+        assert response.json()["package_id"] == self.ticket_response1["package_id"]
+        assert response.json()["ssvc_priority_count"] == expected_ssvc_priority_count
 
 
 class TestPostUploadSBOMFileCycloneDX:
-
     class Common:
         @pytest.fixture(scope="function", autouse=True)
         def common_setup(self):
@@ -606,14 +675,20 @@ class TestPostUploadSBOMFileCycloneDX:
 
         def get_service_dependencies(self, service_id: UUID | str) -> dict:
             response = client.get(
-                f"/pteams/{self.pteam1.pteam_id}/services/{service_id}/dependencies",
+                f"/pteams/{self.pteam1.pteam_id}/dependencies",
                 headers=headers(USER1),
+                params={"service_id": str(service_id)},
             )
             return response.json()
 
-        def get_tag(self, tag_id: UUID | str) -> dict:
-            response = client.get(f"/tags/{tag_id}", headers=headers(USER1))
-            return response.json()
+        def get_package(
+            self, testdb, package_version_id: UUID | str
+        ) -> models.PackageVersion | None:
+            return testdb.scalars(
+                select(models.PackageVersion, models.Package)
+                .join(models.Package)
+                .where(models.PackageVersion.package_version_id == str(package_version_id))
+            ).one_or_none()
 
         def enable_slack(self, webhook_url: str) -> dict:
             request = {"alert_slack": {"enable": True, "webhook_url": webhook_url}}
@@ -677,12 +752,16 @@ class TestPostUploadSBOMFileCycloneDX:
                     ],
                     [  # expected
                         {
-                            "tag_name": "cryptography:pypi:pipenv",
+                            "package_name": "cryptography",
+                            "ecosystem": "pypi",
+                            "package_manager": "pipenv",
                             "target": "threatconnectome/api/Pipfile.lock",
                             "version": "39.0.2",
                         },
                         {
-                            "tag_name": "cryptography:pypi:pipenv",
+                            "package_name": "cryptography",
+                            "ecosystem": "pypi",
+                            "package_manager": "pipenv",
                             "target": "sample target1",  # scan root
                             "version": "39.0.2",
                         },
@@ -714,12 +793,16 @@ class TestPostUploadSBOMFileCycloneDX:
                     ],
                     [  # expected
                         {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
+                            "package_name": "libcrypt1",
+                            "ecosystem": "ubuntu-20.04",
+                            "package_manager": "",
                             "target": "ubuntu",
                             "version": "1:4.4.10-10ubuntu4",
                         },
                         {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
+                            "package_name": "libcrypt1",
+                            "ecosystem": "ubuntu-20.04",
+                            "package_manager": "",
                             "target": "sample target1",  # scan root
                             "version": "1:4.4.10-10ubuntu4",
                         },
@@ -748,12 +831,16 @@ class TestPostUploadSBOMFileCycloneDX:
                     ],
                     [  # expected
                         {
-                            "tag_name": "@nextui-org/button:npm:npm",
+                            "package_name": "@nextui-org/button",
+                            "ecosystem": "npm",
+                            "package_manager": "npm",
                             "target": "web/package-lock.json",
                             "version": "2.0.26",
                         },
                         {
-                            "tag_name": "@nextui-org/button:npm:npm",
+                            "package_name": "@nextui-org/button",
+                            "ecosystem": "npm",
+                            "package_manager": "npm",
                             "target": "sample target1",  # scan root
                             "version": "2.0.26",
                         },
@@ -782,12 +869,16 @@ class TestPostUploadSBOMFileCycloneDX:
                     ],
                     [  # expected
                         {
-                            "tag_name": "@nextui-org/button:npm:npm",
+                            "package_name": "@nextui-org/button",
+                            "ecosystem": "npm",
+                            "package_manager": "npm",
                             "target": "web/package-lock.json",
                             "version": "2.0.26",
                         },
                         {
-                            "tag_name": "@nextui-org/button:npm:npm",
+                            "package_name": "@nextui-org/button",
+                            "ecosystem": "npm",
+                            "package_manager": "npm",
                             "target": "sample target1",  # scan root
                             "version": "2.0.26",
                         },
@@ -795,8 +886,8 @@ class TestPostUploadSBOMFileCycloneDX:
                 ),
             ],
         )
-        def test_create_dependencies_based_on_sbom(
-            self, service_name, component_params, expected_dependency_params
+        def test_dependencies_should_ralated_to_expected_package(
+            self, testdb, service_name, component_params, expected_dependency_params
         ) -> None:
             target_name = "sample target1"
             components_dict = {
@@ -807,7 +898,7 @@ class TestPostUploadSBOMFileCycloneDX:
             }
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
 
-            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, True, None)
+            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, None)
 
             services = self.get_services()
             service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
@@ -821,334 +912,30 @@ class TestPostUploadSBOMFileCycloneDX:
 
             @dataclass(frozen=True, kw_only=True)
             class DependencyParamsToCheck:
-                tag_name: str
+                package_name: str
+                ecosystem: str
+                package_manager: str
                 target: str
                 version: str
 
-            created_dependencies = {
-                DependencyParamsToCheck(
-                    tag_name=self.get_tag(dependency["tag_id"])["tag_name"],
-                    target=dependency["target"],
-                    version=dependency["version"],
-                )
-                for dependency in self.get_service_dependencies(service1["service_id"])
-            }
+            created_dependencies = set()
+            for dependency in self.get_service_dependencies(service1["service_id"]):
+                if package_version := self.get_package(testdb, dependency["package_version_id"]):
+                    created_dependencies.add(
+                        DependencyParamsToCheck(
+                            package_name=package_version.package.name,
+                            ecosystem=package_version.package.ecosystem,
+                            package_manager=dependency["package_manager"],
+                            target=dependency["target"],
+                            version=package_version.version,
+                        )
+                    )
+
             expected_dependencies = {
                 DependencyParamsToCheck(**expected_dependency_param)
                 for expected_dependency_param in expected_dependency_params
             }
             assert created_dependencies == expected_dependencies
-
-        @pytest.mark.parametrize(
-            "service_name, component_params, vulnerable_versions, expected_threat_params",
-            # Note: components_params: list[tuple[ApplicationParam, list[LibraryParam]]]
-            #       vulnerable_versions: {str: list[str]} -- {tag_name: ["< 2.0", ...]}
-            [
-                # test case 1: lang-pkgs
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "threatconnectome/api/Pipfile.lock",
-                                "type": "application",
-                                "trivy_type": "pipenv",
-                                "trivy_class": "lang-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": "pkg:pypi/cryptography@39.0.2",
-                                    "name": "cryptography",
-                                    "group": None,
-                                    "version": "39.0.2",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "cryptography:pypi:pipenv": ["<40.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "cryptography:pypi:pipenv",
-                            "target": "threatconnectome/api/Pipfile.lock",
-                            "version": "39.0.2",
-                        },
-                        {
-                            "tag_name": "cryptography:pypi:pipenv",
-                            "target": "sample target1",  # scan root
-                            "version": "39.0.2",
-                        },
-                    ],
-                ),
-                # test case 1b: lang-pkgs with not vulnerable version
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "threatconnectome/api/Pipfile.lock",
-                                "type": "application",
-                                "trivy_type": "pipenv",
-                                "trivy_class": "lang-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": "pkg:pypi/cryptography@39.0.2",
-                                    "name": "cryptography",
-                                    "group": None,
-                                    "version": "39.0.2",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "cryptography:pypi:pipenv": ["<30.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "cryptography:pypi:pipenv",
-                            "target": "threatconnectome/api/Pipfile.lock",
-                            "version": "39.0.2",
-                        },
-                        {
-                            "tag_name": "cryptography:pypi:pipenv",
-                            "target": "sample target1",  # scan root
-                            "version": "39.0.2",
-                        },
-                    ],
-                ),
-                # test case 2: os-pkgs
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "ubuntu",
-                                "type": "operating-system",
-                                "trivy_type": "ubuntu",
-                                "trivy_class": "os-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": (
-                                        "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4"
-                                        "?distro=ubuntu-20.04"
-                                    ),
-                                    "name": "libcrypt1",
-                                    "group": None,
-                                    "version": "1:4.4.10-10ubuntu4",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "libcrypt1:ubuntu-20.04:": ["<4.5.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
-                            "target": "ubuntu",
-                            "version": "1:4.4.10-10ubuntu4",
-                        },
-                        {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
-                            "target": "sample target1",  # scan root
-                            "version": "1:4.4.10-10ubuntu4",
-                        },
-                    ],
-                ),
-                # test case 2b: os-pkgs with not vulnerable version
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "ubuntu",
-                                "type": "operating-system",
-                                "trivy_type": "ubuntu",
-                                "trivy_class": "os-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": (
-                                        "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4"
-                                        "?distro=ubuntu-20.04"
-                                    ),
-                                    "name": "libcrypt1",
-                                    "group": None,
-                                    "version": "1:4.4.10-10ubuntu4",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "libcrypt1:ubuntu-20.04:": ["<4.3.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
-                            "target": "ubuntu",
-                            "version": "1:4.4.10-10ubuntu4",
-                        },
-                        {
-                            "tag_name": "libcrypt1:ubuntu-20.04:",
-                            "target": "sample target1",  # scan root
-                            "version": "1:4.4.10-10ubuntu4",
-                        },
-                    ],
-                ),
-                # test case 3: lang-pkgs with group
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "web/package-lock.json",
-                                "type": "application",
-                                "trivy_type": "npm",
-                                "trivy_class": "lang-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": "pkg:npm/%40nextui-org/button@2.0.26",
-                                    "name": "button",
-                                    "group": "@nextui-org",
-                                    "version": "2.0.26",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "@nextui-org/button:npm:npm": ["< 2.1.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "@nextui-org/button:npm:npm",
-                            "target": "web/package-lock.json",
-                            "version": "2.0.26",
-                        },
-                        {
-                            "tag_name": "@nextui-org/button:npm:npm",
-                            "target": "sample target1",  # scan root
-                            "version": "2.0.26",
-                        },
-                    ],
-                ),
-                # test case 4: (legacy) lang-pkgs without group
-                (
-                    "sample service1",
-                    [  # input
-                        (
-                            {  # application
-                                "name": "web/package-lock.json",
-                                "type": "application",
-                                "trivy_type": "npm",
-                                "trivy_class": "lang-pkgs",
-                            },
-                            [  # libraries
-                                {
-                                    "purl": "pkg:npm/%40nextui-org/button@2.0.26",
-                                    "name": "@nextui-org/button",
-                                    "group": None,
-                                    "version": "2.0.26",
-                                },
-                            ],
-                        ),
-                    ],
-                    {  # vulnerable_versions
-                        "@nextui-org/button:npm:npm": ["< 2.1.0"],
-                    },
-                    [  # expected
-                        {
-                            "tag_name": "@nextui-org/button:npm:npm",
-                            "target": "web/package-lock.json",
-                            "version": "2.0.26",
-                        },
-                        {
-                            "tag_name": "@nextui-org/button:npm:npm",
-                            "target": "sample target1",  # scan root
-                            "version": "2.0.26",
-                        },
-                    ],
-                ),
-            ],
-        )
-        def test_create_threats_based_on_sbom(
-            self,
-            service_name,
-            component_params,
-            vulnerable_versions,
-            expected_threat_params,
-            testdb,
-        ) -> None:
-            tag_names = list(vulnerable_versions.keys())
-            actions = [
-                {
-                    "action": "sample action 1",
-                    "action_type": models.ActionType.elimination,
-                    "recommended": True,
-                    "ext": {
-                        "tags": tag_names,
-                        "vulnerable_versions": vulnerable_versions,
-                    },
-                }
-            ]
-            topic1 = create_topic(USER1, {**TOPIC1, "tags": tag_names, "actions": actions})
-
-            target_name = "sample target1"
-            components_dict = {
-                self.ApplicationParam(**application_param): [
-                    self.LibraryParam(**library_param) for library_param in library_params
-                ]
-                for application_param, library_params in component_params
-            }
-            sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
-
-            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, True, None)
-
-            services = self.get_services()
-            service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
-            assert service1
-
-            @dataclass(frozen=True, kw_only=True)
-            class ThreatParamsToCheck:
-                tag_name: str
-                target: str
-                version: str
-                title: str
-
-            db_threats = testdb.execute(
-                select(
-                    models.Threat.dependency_id,
-                    models.Dependency.version,
-                    models.Dependency.target,
-                    models.Tag.tag_name,
-                    models.Topic.title,
-                )
-                .join(
-                    models.Dependency,
-                    models.Dependency.dependency_id == models.Threat.dependency_id,
-                )
-                .join(models.Tag)
-                .join(models.Topic)
-                .where(models.Dependency.service_id == service1["service_id"])
-            ).all()
-
-            created_threats = {
-                ThreatParamsToCheck(
-                    tag_name=db_threat.tag_name,
-                    target=db_threat.target,
-                    version=db_threat.version,
-                    title=db_threat.title,
-                )
-                for db_threat in db_threats
-            }
-            expected_threats = {
-                ThreatParamsToCheck(**expected_threat_param, title=topic1.title)
-                for expected_threat_param in expected_threat_params
-            }
-            assert created_threats == expected_threats
 
         @pytest.mark.parametrize(
             "enable_slack, expected_notify",
@@ -1178,7 +965,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), {})
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1226,7 +1013,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_broken_sbom_json(self.gen_base_json(target_name))
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1270,7 +1057,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), {})
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1322,7 +1109,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_broken_sbom_json(self.gen_base_json(target_name))
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1350,7 +1137,7 @@ class TestPostUploadSBOMFileCycloneDX:
 
             caplog.set_level(INFO)
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
             assert [
                 ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),
@@ -1367,7 +1154,7 @@ class TestPostUploadSBOMFileCycloneDX:
 
             caplog.set_level(INFO)
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, True, upload_filename
+                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
             assert [
                 ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),
@@ -1407,3 +1194,134 @@ class TestPostUploadSBOMFileCycloneDX:
                     },
                 },
             }
+
+
+class TestPostUploadPackagesFile:
+    def test_sbom_uploaded_at_with_called_upload_tags_file(self):
+        # when
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        service_name = "test service 1"
+
+        # When
+        ext_packages = [
+            {
+                "package_name": "test_package_name1",
+                "ecosystem": "test_ecosystem1",
+                "package_manager": "test_package_manager1",
+                "references": [{"target": "target1", "version": "1.0"}],
+            }
+        ]
+        upload_pteam_packages(USER1, pteam1.pteam_id, service_name, ext_packages)
+
+        # Then
+        response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1))
+        services = response.json().get("services", {})
+        service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+        assert service1
+        now = datetime.now()
+        datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
+        assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) > now - timedelta(
+            seconds=30
+        )
+        assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
+
+
+class TestDeletePteam:
+    def test_it_should_delete_package_when_delete_pteam(self, testdb: Session):
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        # Uploaded sbom file.
+        # Create package, package_version, service and dependency table
+        service_name1 = "test_service1"
+        upload_file_name = "test_trivy_cyclonedx_axios.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name1, upload_file_name)
+
+        # Saerch service table
+        service_id = testdb.scalars(
+            select(models.Service.service_id).where(
+                models.Service.pteam_id == str(pteam1.pteam_id),
+                models.Service.service_name == service_name1,
+            )
+        ).one()
+
+        dependencies_response = client.get(
+            f"/pteams/{pteam1.pteam_id}/dependencies?service_id={service_id}",
+            headers=headers(USER1),
+        )
+        created_dependency = dependencies_response.json()[0]
+        package_version_id = created_dependency["package_version_id"]
+        package_id = created_dependency["package_id"]
+
+        # When
+        client.delete(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1))
+
+        # Then
+        package_version = testdb.scalars(
+            select(models.PackageVersion).where(
+                models.PackageVersion.package_version_id == str(package_version_id)
+            )
+        ).one_or_none()
+        assert package_version is None
+        package = testdb.scalars(
+            select(models.Package).where(models.Package.package_id == str(package_id))
+        ).one_or_none()
+        assert package is None
+
+
+class TestDeleteService:
+    def test_it_should_delete_package_when_delete_service(self, testdb: Session):
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        # Uploaded sbom file.
+        # Create package, package_version, service and dependency table
+        service_name1 = "test_service1"
+        upload_file_name = "test_trivy_cyclonedx_axios.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name1, upload_file_name)
+
+        # Saerch service table
+        service_id = testdb.scalars(
+            select(models.Service.service_id).where(
+                models.Service.pteam_id == str(pteam1.pteam_id),
+                models.Service.service_name == service_name1,
+            )
+        ).one()
+
+        dependencies_response = client.get(
+            f"/pteams/{pteam1.pteam_id}/dependencies?service_id={service_id}",
+            headers=headers(USER1),
+        )
+        created_dependency = dependencies_response.json()[0]
+        package_version_id = created_dependency["package_version_id"]
+        package_id = created_dependency["package_id"]
+
+        # When
+        client.delete(f"/pteams/{pteam1.pteam_id}/services/{service_id}", headers=headers(USER1))
+
+        # Then
+        package_version = testdb.scalars(
+            select(models.PackageVersion).where(
+                models.PackageVersion.package_version_id == str(package_version_id)
+            )
+        ).one_or_none()
+        assert package_version is None
+        package = testdb.scalars(
+            select(models.Package).where(models.Package.package_id == str(package_id))
+        ).one_or_none()
+        assert package is None

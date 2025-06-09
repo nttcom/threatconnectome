@@ -7,7 +7,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { Fragment, useState } from "react";
 
 import { DeleteAccountDialog } from "../DeleteAccountDialog";
 
@@ -130,7 +130,7 @@ export function AccountSettingsDialog(props) {
               </Box>
             </Box>
             <Box>
-              <DeleteAccountDialog />
+              <DeleteAccountDialog userMe={userMe} />
             </Box>
           </Stack>
         </DialogContent>

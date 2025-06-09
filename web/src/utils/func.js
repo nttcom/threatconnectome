@@ -1,4 +1,4 @@
-import { addMinutes, format } from "date-fns";
+import { addMinutes } from "date-fns";
 
 import { cvssRatings } from "./const";
 
@@ -28,12 +28,6 @@ export const utcStringToLocalDate = (utcString) => {
   } catch (error) {
     return null;
   }
-};
-
-export const pickParentTagName = (tagName) => {
-  const tokens = tagName.split(":");
-  if (tokens.length < 3) return null;
-  return tokens.slice(0, -1).join(":") + ":"; // trim the right most token
 };
 
 export const errorToString = (error) => {

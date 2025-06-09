@@ -12,7 +12,6 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import React from "react";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { experienceColors } from "../../utils/const";
@@ -44,8 +43,8 @@ export function PTeamMember(props) {
             <TableBody>
               {members &&
                 [...Object.values(members)]
-                  .sort((a, b) => b.email < a.email)
-                  .sort((a, b) => b.years - a.years)
+                  .sort((memberA, memberB) => memberB.email < memberA.email)
+                  .sort((memberA, memberB) => memberB.years - memberA.years)
                   .filter((member) => member.disabled === false)
                   .map((member) => (
                     <TableRow
@@ -93,11 +92,13 @@ export function PTeamMember(props) {
 
 PTeamMember.propTypes = {
   pteamId: PropTypes.string,
-  members: PropTypes.shape({
-    user_id: PropTypes.string,
-    uid: PropTypes.string,
-    email: PropTypes.string,
-    disabled: PropTypes.bool,
-    years: PropTypes.number,
-  }).isRequired,
+  members: PropTypes.objectOf(
+    PropTypes.shape({
+      user_id: PropTypes.string.isRequired,
+      uid: PropTypes.string,
+      email: PropTypes.string.isRequired,
+      disabled: PropTypes.bool,
+      years: PropTypes.number.isRequired,
+    }),
+  ).isRequired,
 };

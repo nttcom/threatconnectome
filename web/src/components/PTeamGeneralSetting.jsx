@@ -1,7 +1,7 @@
 import { Box, Button, Divider, TextField, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { useUpdatePTeamMutation } from "../services/tcApi";
 import { modalCommonButtonStyle } from "../utils/const";
