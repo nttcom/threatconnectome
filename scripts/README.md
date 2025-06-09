@@ -69,7 +69,7 @@ osv-scanner -r --json threatconnectome > osv-result.json
 1. Run a full scan on all directories
 
 ```bash
-sudo trivy fs -f cyclonedx -o trivy-result.json --list-all-pkgs --scanners vuln /
+sudo trivy fs -f cyclonedx -o trivy-result.json /
 ```
 
 2. Upload Sbom file via Web UI
@@ -87,7 +87,7 @@ Once the Upload SBOM File modal opens, input your Service name in the provided f
 
 After uploading, navigate back to the `Status` page where you can view the newly registered service.
 
-![Verify registed content](images/verify_registed_content.png)
+![Verify registered content](images/verify_registed_content.png)
 
 # :bulb: Vuln Registration from TrivyDB
 
