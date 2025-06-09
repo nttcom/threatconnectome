@@ -961,8 +961,11 @@ class TestGetTickets:
 
             return user2
 
-        def test_it_should_return_200_and_two_tickets_with_user1_in_assignees(self, testdb):
+        def test_it_should_return_all_assigned_tickets_when_assigned_to_me_is_true_for_user1(
+            self, testdb
+        ):
             # Given
+            # user1 is assigned to all tickets
             self._setup_tickets_with_two_users_and_assignees(testdb)
 
             # When
@@ -981,8 +984,11 @@ class TestGetTickets:
                 ticket_status = ticket["ticket_status"]
                 assert str(self.user1.user_id) in ticket_status["assignees"]
 
-        def test_it_should_return_200_and_one_ticket_with_user2_in_assignees(self, testdb):
+        def test_it_should_return_only_one_ticket_when_assigned_to_me_is_true_for_user2(
+            self, testdb
+        ):
             # Given
+            # user2 is assigned to one ticket
             user2 = self._setup_tickets_with_two_users_and_assignees(testdb)
 
             # When
