@@ -838,6 +838,7 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
     service_id: UUID | None = Query(None),
     package_id: UUID | None = Query(None),
     vuln_id: UUID | None = Query(None),
+    user_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -859,7 +860,7 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
         raise NO_SUCH_VULN
 
     tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
-        db, service_id, package_id, vuln_id
+        db, service_id, package_id, vuln_id, user_id
     )
 
     ret = [
