@@ -47,7 +47,7 @@ export function AccountSettingsDialog(props) {
               </Typography>
               <Stack spacing={1}>
                 {userMe.pteam_roles.map((pteam_role) => (
-                  <DialogContentText key={pteam_role.pteam.pteam_name}>
+                  <DialogContentText key={pteam_role.pteam.pteam_id}>
                     {pteam_role.pteam.pteam_name}
                   </DialogContentText>
                 ))}
