@@ -153,7 +153,7 @@ python3 vulnrichment2tc.py -v vulnrichment
 
 # :bulb: Colletct tickets data
 
-Run the following commands to colletct tickets data
+Run the following commands to collect tickets data
 
 ```bash
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
