@@ -48,15 +48,17 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
     service_id: UUID | str | None,
     package_id: UUID | str | None,
     vuln_id: UUID | str | None,
-    user_id: UUID | str | None = None,
+    assigned_user_id: UUID | str | None = None,
 ) -> Sequence[models.Ticket]:
     select_stmt = select(models.Ticket)
-    if user_id:
+    if assigned_user_id:
         select_stmt = select_stmt.join(
             models.TicketStatus,
             and_(
                 models.TicketStatus.ticket_id == models.Ticket.ticket_id,
-                func.array_position(models.TicketStatus.assignees, str(user_id)).isnot(None),
+                func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(
+                    None
+                ),
             ),
         )
     else:
