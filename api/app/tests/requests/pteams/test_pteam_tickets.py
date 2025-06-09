@@ -961,7 +961,7 @@ class TestGetTickets:
 
             return user2
 
-        def test_it_should_return_200_and_tickets_with_user1_in_assignees(self, testdb):
+        def test_it_should_return_200_and_two_tickets_with_user1_in_assignees(self, testdb):
             # Given
             self._setup_tickets_with_two_users_and_assignees(testdb)
 
@@ -981,7 +981,7 @@ class TestGetTickets:
                 ticket_status = ticket["ticket_status"]
                 assert str(self.user1.user_id) in ticket_status["assignees"]
 
-        def test_it_should_return_200_and_tickets_with_user2_in_assignees(self, testdb):
+        def test_it_should_return_200_and_one_ticket_with_user2_in_assignees(self, testdb):
             # Given
             user2 = self._setup_tickets_with_two_users_and_assignees(testdb)
 
