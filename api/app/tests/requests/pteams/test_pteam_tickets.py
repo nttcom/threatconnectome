@@ -966,7 +966,7 @@ class TestGetTickets:
 
             # When
             response = client.get(
-                f"/pteams/{self.pteam1.pteam_id}/tickets?user_id={self.user1.user_id}",
+                f"/pteams/{self.pteam1.pteam_id}/tickets?assigned_to_me=true",
                 headers=headers(USER1),
             )
 
@@ -986,7 +986,7 @@ class TestGetTickets:
 
             # When
             response = client.get(
-                f"/pteams/{self.pteam1.pteam_id}/tickets?user_id={user2.user_id}",
+                f"/pteams/{self.pteam1.pteam_id}/tickets?assigned_to_me=true",
                 headers=headers(USER2),
             )
 
@@ -1005,7 +1005,7 @@ class TestGetTickets:
             # no tickets have been assigned to user1 yet
             # When
             response = client.get(
-                f"/pteams/{self.pteam1.pteam_id}/tickets?user_id={self.user1.user_id}",
+                f"/pteams/{self.pteam1.pteam_id}/tickets?assigned_to_me=true",
                 headers=headers(USER1),
             )
 

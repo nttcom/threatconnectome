@@ -84,7 +84,9 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
 
     if user_id:
         select_stmt = select_stmt.where(
-            models.Ticket.ticket_status.has(models.TicketStatus.assignees.any(str(user_id)))
+            models.Ticket.ticket_status.has(
+                func.array_position(models.TicketStatus.assignees, str(user_id)) != None
+            )
         )
 
     select_stmt = select_stmt.order_by(
