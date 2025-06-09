@@ -81,7 +81,7 @@ export function UserMenu() {
           </Typography>
         </Button>
       ) : (
-        <IconButton onClick={handleClick} color="primary" size="large">
+        <IconButton aria-label="user menu" onClick={handleClick} color="primary" size="large">
           <AccountCircleIcon />
         </IconButton>
       )}
