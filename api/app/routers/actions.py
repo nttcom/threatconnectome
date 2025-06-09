@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -28,7 +28,7 @@ def create_action(
     if not (vuln := persistence.get_vuln_by_id(db, request.vuln_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such vuln")
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     action = models.VulnAction(
         # vuln_id will be filled at appending to vuln.vuln_actions
         action=request.action,
@@ -59,7 +59,10 @@ def get_action(
     if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
 
-    return action
+    action_dict = action.__dict__.copy()
+    if action.created_at:
+        action_dict["created_at"] = action.created_at.astimezone(timezone.utc)
+    return action_dict
 
 
 @router.put("/{action_id}", response_model=schemas.ActionResponse)
@@ -103,7 +106,10 @@ def update_action(
 
     db.commit()
 
-    return action
+    action_dict = action.__dict__.copy()
+    if action.created_at:
+        action_dict["created_at"] = action.created_at.astimezone(timezone.utc)
+    return action_dict
 
 
 @router.delete("/{action_id}", status_code=status.HTTP_204_NO_CONTENT)

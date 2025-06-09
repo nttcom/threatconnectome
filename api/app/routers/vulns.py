@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
@@ -56,7 +56,7 @@ def __handle_create_vuln(
     requested_packages = _get_requested_packages(db, request.vulnerable_packages)
 
     # create vuln
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
 
     vuln = models.Vuln(
         vuln_id=str(vuln_id),
@@ -104,8 +104,8 @@ def __handle_create_vuln(
     return schemas.VulnResponse(
         vuln_id=vuln_id,
         created_by=UUID(vuln.created_by) if vuln.created_by else None,
-        created_at=vuln.created_at,
-        updated_at=vuln.updated_at,
+        created_at=vuln.created_at.astimezone(timezone.utc),
+        updated_at=vuln.updated_at.astimezone(timezone.utc),
         title=vuln.title,
         cve_id=vuln.cve_id,
         detail=vuln.detail,
@@ -195,8 +195,8 @@ def __handle_update_vuln(
     return schemas.VulnResponse(
         vuln_id=UUID(vuln.vuln_id),
         created_by=UUID(vuln.created_by) if vuln.created_by else None,
-        created_at=vuln.created_at,
-        updated_at=vuln.updated_at,
+        created_at=vuln.created_at.astimezone(timezone.utc),
+        updated_at=vuln.updated_at.astimezone(timezone.utc),
         title=vuln.title,
         cve_id=vuln.cve_id,
         detail=vuln.detail,
@@ -304,8 +304,8 @@ def get_vuln(
     return schemas.VulnResponse(
         vuln_id=UUID(vuln.vuln_id),
         created_by=UUID(vuln.created_by) if vuln.created_by else None,
-        created_at=vuln.created_at,
-        updated_at=vuln.updated_at,
+        created_at=vuln.created_at.astimezone(timezone.utc),
+        updated_at=vuln.updated_at.astimezone(timezone.utc),
         title=vuln.title,
         cve_id=vuln.cve_id,
         detail=vuln.detail,
@@ -413,6 +413,8 @@ def get_vulns(
 
     response_vulns = []
     for vuln in result["vulns"]:
+        created_at = vuln.created_at.astimezone(timezone.utc)
+        updated_at = vuln.updated_at.astimezone(timezone.utc)
         vulnerable_packages = [
             schemas.VulnerablePackageResponse(
                 package_id=affect.package_id,
@@ -426,8 +428,8 @@ def get_vulns(
         response_vulns.append(
             schemas.VulnResponse(
                 vuln_id=vuln.vuln_id,
-                created_at=vuln.created_at,
-                updated_at=vuln.updated_at,
+                created_at=created_at,
+                updated_at=updated_at,
                 created_by=UUID(vuln.created_by) if vuln.created_by else None,
                 title=vuln.title,
                 cve_id=vuln.cve_id,
@@ -455,4 +457,10 @@ def get_vuln_actions(
         raise NO_SUCH_VULN
 
     # Use the new relationship to fetch actions
-    return vuln.vuln_actions
+    return [
+        {
+            **action.__dict__,
+            "created_at": action.created_at.astimezone(timezone.utc) if action.created_at else None,
+        }
+        for action in vuln.vuln_actions
+    ]

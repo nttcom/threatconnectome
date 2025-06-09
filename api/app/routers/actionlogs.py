@@ -21,12 +21,13 @@ def get_logs(
     """
     logs = persistence.get_action_logs_by_user_id(db, current_user.user_id)
     result = []
-    for log in sorted(logs, key=lambda l: l.executed_at, reverse=True):
-        if log.created_at:
-            log.created_at = log.created_at.astimezone(timezone.utc)
-        if log.executed_at:
-            log.executed_at = log.executed_at.astimezone(timezone.utc)
-        result.append(log.__dict__)
+    for original_log in sorted(logs, key=lambda l: l.executed_at, reverse=True):
+        log_for_response = original_log.__dict__.copy()  # to avoid modifying the original log
+        if original_log.created_at:
+            log_for_response["created_at"] = original_log.created_at.astimezone(timezone.utc)
+        if original_log.executed_at:
+            log_for_response["executed_at"] = original_log.executed_at.astimezone(timezone.utc)
+        result.append(log_for_response)
     return result
 
 
@@ -66,8 +67,10 @@ def create_log(
         vuln_action = persistence.get_action_by_id(db, data.action_id)
         if not vuln_action or vuln_action.vuln_id != str(data.vuln_id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
+    if data.executed_at:
+        data.executed_at = data.executed_at.astimezone(timezone.utc)
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     log = models.ActionLog(
         action_id=data.action_id,
         vuln_id=data.vuln_id,
@@ -102,4 +105,12 @@ def get_vuln_logs(
     if vuln is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
     rows = persistence.get_vuln_logs_by_user_id(db, vuln_id, current_user.user_id)
-    return sorted(rows, key=lambda x: x.executed_at, reverse=True)
+    result = []
+    for original_log in sorted(rows, key=lambda l: l.executed_at, reverse=True):
+        log_for_response = original_log.__dict__.copy()
+        if original_log.created_at:
+            log_for_response["created_at"] = original_log.created_at.astimezone(timezone.utc)
+        if original_log.executed_at:
+            log_for_response["executed_at"] = original_log.executed_at.astimezone(timezone.utc)
+        result.append(log_for_response)
+    return result
