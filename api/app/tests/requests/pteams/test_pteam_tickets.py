@@ -907,31 +907,32 @@ class TestGetTickets:
             )
 
             # Create second ticket with new vulnerability
-            vuln2 = models.Vuln(
-                title="Test Vulnerability2",
-                detail="This is a test vulnerability.",
-                cvss_v3_score=7.5,
-                created_by=self.user1.user_id,
-                created_at="2023-10-01T00:00:00Z",
-                updated_at="2023-10-01T00:00:00Z",
-            )
-            persistence.create_vuln(testdb, vuln2)
+            vuln2_id = uuid4()
+            vuln_request2 = {
+                "title": "Test Vulnerability2",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This is a test vulnerability.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": self.package1.name,
+                        "ecosystem": self.package1.ecosystem,
+                        "affected_versions": ["<=1.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
 
-            affect2 = models.Affect(
-                vuln_id=vuln2.vuln_id,
-                package_id=self.package1.package_id,
-                affected_versions=["<=1.0.0"],
-                fixed_versions=["2.0.0"],
+            vuln_response2 = client.put(
+                f"/vulns/{vuln2_id}", headers=headers(USER1), json=vuln_request2
             )
-            persistence.create_affect(testdb, affect2)
+            vuln_data2 = vuln_response2.json()
 
-            threat2 = models.Threat(
-                package_version_id=self.package_version1.package_version_id,
-                vuln_id=vuln2.vuln_id,
+            threat2 = persistence.get_threat_by_package_version_id_and_vuln_id(
+                testdb, self.package_version1.package_version_id, vuln_data2["vuln_id"]
             )
-            persistence.create_threat(testdb, threat2)
-
-            ticket_business.fix_ticket_by_threat(testdb, threat2)
 
             ticket2 = persistence.get_ticket_by_threat_id_and_dependency_id(
                 testdb, threat2.threat_id, self.dependency1.dependency_id
