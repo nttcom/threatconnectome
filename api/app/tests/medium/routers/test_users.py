@@ -11,7 +11,7 @@ from app.tests.medium.routers.test_auth import (
     refresh_access_token,
     refresh_headers,
 )
-from app.tests.medium.utils import create_user, headers
+from app.tests.medium.utils import create_user, headers, judge_whether_firebase_or_supabase
 
 client = TestClient(app)
 
@@ -61,9 +61,15 @@ def test_refresh_token():
     assert new["refresh_token"] == old["refresh_token"]
 
 
-def test_delete_user():
+def test_delete_user(mocker):
     create_user(USER1)
+    module = judge_whether_firebase_or_supabase()
+    delete_user = mocker.patch.object(
+        module,
+        "delete_user",
+    )
     response1 = client.delete("/users/me", headers=headers(USER1))
+    delete_user.assert_called_once()
     assert response1.status_code == 204
     response2 = client.get("/users/me", headers=headers(USER1))
     assert response2.status_code == 404
