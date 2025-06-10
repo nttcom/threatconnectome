@@ -353,4 +353,4 @@ def test_apply_invitation__individual_auth():
 
     response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER1))
     members_map = {UUID(x["user_id"]): x for x in response.json()}
-    assert {p["is_admin"] for p in members_map.get(user2.user_id).get("pteam_roles", [])} == {False}
+    assert members_map.get(user2.user_id).get("is_admin") == False

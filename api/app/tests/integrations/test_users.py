@@ -314,14 +314,14 @@ class TestDeleteUserSideEffects:
     @staticmethod
     def update_pteam_member(
         operate_user, user_id, pteam_id, is_admin: bool
-    ) -> schemas.PTeamMemberResponse:
+    ) -> schemas.PTeamMemberUpdateResponse:
         request = {"is_admin": is_admin}
         response = client.put(
             f"/pteams/{pteam_id}/members/{user_id}", headers=headers(operate_user), json=request
         )
         if response.status_code != 200:
             raise HTTPError(response)
-        return schemas.PTeamMemberResponse(**response.json())
+        return schemas.PTeamMemberUpdateResponse(**response.json())
 
     def test_cannot_get_user_after_deleted(self, testdb):
         self.delete_user_me(USER1)

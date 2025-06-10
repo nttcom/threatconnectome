@@ -74,6 +74,15 @@ class UserResponse(ORMModel):
     pteam_roles: list[PTeamRole]
 
 
+class PteamMemberGetResponse(ORMModel):
+    user_id: UUID
+    uid: str
+    email: str
+    disabled: bool
+    years: int
+    is_admin: bool
+
+
 class UserCreateRequest(ORMModel):
     years: int = 0
 
@@ -236,11 +245,11 @@ class PTeamAuthInfo(ORMModel):
     pseudo_uuids: list[PseudoUUID]
 
 
-class PTeamMemberRequest(ORMModel):
+class PTeamMemberUpdateRequest(ORMModel):
     is_admin: bool
 
 
-class PTeamMemberResponse(ORMModel):
+class PTeamMemberUpdateResponse(ORMModel):
     pteam_id: UUID
     user_id: UUID
     is_admin: bool

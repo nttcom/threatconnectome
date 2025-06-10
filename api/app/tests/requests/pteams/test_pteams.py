@@ -443,97 +443,46 @@ def test_delete_member__by_not_admin():
     assert response.status_code == 204
 
 
-def test_get_pteam_members():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
+class TestGetPteamMembers:
+    def test_get_pteam_members__by_member(self):
+        # Given
+        user1 = create_user(USER1)
+        user2 = create_user(USER2)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER1))
-    assert response.status_code == 200
-    members = response.json()
-    assert len(members) == 1
-    keys = ["user_id", "uid", "email", "disabled", "years"]
-    for key in keys:
-        assert str(members[0].get(key)) == str(getattr(user1, key))
-    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in members[0]["pteam_roles"]} == {
-        pteam1.pteam_id
-    }
-    assert {pteam["is_admin"] for pteam in members[0]["pteam_roles"]} == {True}
+        ## When
+        response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER2))
 
-    user2 = create_user(USER2)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
+        # then
+        assert response.status_code == 200
+        members = response.json()
+        assert len(members) == 2
 
-    response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER1))
-    assert response.status_code == 200
-    members = response.json()
-    assert len(members) == 2
-    members_map = {UUID(x["user_id"]): x for x in members}
-    keys = ["user_id", "uid", "email", "disabled", "years"]
-    for key in keys:
-        assert str(members_map.get(user1.user_id).get(key)) == str(getattr(user1, key))
-        assert str(members_map.get(user2.user_id).get(key)) == str(getattr(user2, key))
-    assert (
-        {
-            UUID(p["pteam"]["pteam_id"])
-            for p in members_map.get(user1.user_id).get("pteam_roles", [])
-        }
-        == {
-            UUID(p["pteam"]["pteam_id"])
-            for p in members_map.get(user2.user_id).get("pteam_roles", [])
-        }
-        == {pteam1.pteam_id}
-    )
-    assert {
-        pteam["is_admin"] for pteam in members_map.get(user1.user_id).get("pteam_roles", [])
-    } == {True}
-    assert {
-        pteam["is_admin"] for pteam in members_map.get(user2.user_id).get("pteam_roles", [])
-    } == {False}
+        for member in members:
+            if member["user_id"] == str(user1.user_id):
+                assert member["uid"] == user1.uid
+                assert member["email"] == user1.email
+                assert member["disabled"] == user1.disabled
+                assert member["years"] == user1.years
+                assert member["is_admin"] is True
 
+            else:
+                assert member["uid"] == user2.uid
+                assert member["email"] == user2.email
+                assert member["disabled"] == user2.disabled
+                assert member["years"] == user2.years
+                assert member["is_admin"] is False
 
-def test_get_pteam_members__by_member():
-    user1 = create_user(USER1)
-    user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
+    def test_it_should_return_403_when_get_pteam_members_by_not_member(self):
+        create_user(USER1)
+        create_user(USER2)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
-    response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER2))
-    assert response.status_code == 200
-    members = response.json()
-    assert len(members) == 2
-    members_map = {UUID(x["user_id"]): x for x in members}
-    keys = ["user_id", "uid", "email", "disabled", "years"]
-    for key in keys:
-        assert str(members_map.get(user1.user_id).get(key)) == str(getattr(user1, key))
-        assert str(members_map.get(user2.user_id).get(key)) == str(getattr(user2, key))
-    assert (
-        {
-            UUID(p["pteam"]["pteam_id"])
-            for p in members_map.get(user1.user_id).get("pteam_roles", [])
-        }
-        == {
-            UUID(p["pteam"]["pteam_id"])
-            for p in members_map.get(user2.user_id).get("pteam_roles", [])
-        }
-        == {pteam1.pteam_id}
-    )
-    assert {
-        pteam["is_admin"] for pteam in members_map.get(user1.user_id).get("pteam_roles", [])
-    } == {True}
-    assert {
-        pteam["is_admin"] for pteam in members_map.get(user2.user_id).get("pteam_roles", [])
-    } == {False}
-
-
-def test_test_it_should_return_403_when_get_pteam_members_by_not_member():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER2))
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
+        response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER2))
+        assert response.status_code == 403
+        assert response.reason_phrase == "Forbidden"
 
 
 def test_it_should_return_200_when_admin_updates_pteam_members():
@@ -545,7 +494,9 @@ def test_it_should_return_200_when_admin_updates_pteam_members():
 
     request = {"is_admin": True}
     response = client.put(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER1), json=request
+        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
+        headers=headers(USER1),
+        json=request,
     )
     assert response.status_code == 200
     assert response.json()["pteam_id"] == str(pteam1.pteam_id)
