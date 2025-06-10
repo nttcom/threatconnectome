@@ -144,3 +144,6 @@ class FirebaseAuthModule(AuthModule):
                 email = user_info.provider_data[0].email
 
         return user_info.uid, email
+
+    def delete_user(self, uid):
+        auth.delete_user(uid)
