@@ -8,12 +8,6 @@ on:
 env:
   DB_USER: postgres
   DB_PASSWORD: postgres
-  DB_HOST: db
-  TESTDB_HOST: testdb
-  DB_PORT: 5432
-  DB_SCHEMA: postgres
-  FLASHSENSE_API_URL: http://flashsense.api.url.example/api
-  FIREBASE_CRED: /key/firebase_credentials.json
   FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
 jobs:
   e2etest:
