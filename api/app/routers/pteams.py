@@ -868,6 +868,7 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
     service_id: UUID | None = Query(None),
     package_id: UUID | None = Query(None),
     vuln_id: UUID | None = Query(None),
+    assigned_to_me: bool = Query(False),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -888,9 +889,14 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
     if vuln_id and not (persistence.get_vuln_by_id(db, vuln_id)):
         raise NO_SUCH_VULN
 
-    tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
-        db, service_id, package_id, vuln_id
-    )
+    if assigned_to_me:
+        tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
+            db, service_id, package_id, vuln_id, current_user.user_id
+        )
+    else:
+        tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
+            db, service_id, package_id, vuln_id
+        )
 
     ret = [
         {

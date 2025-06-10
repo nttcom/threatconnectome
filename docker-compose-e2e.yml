@@ -23,13 +23,13 @@ services:
       - WEBUI_URL=${WEBUI_URL}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - DB_HOST=${TESTDB_HOST} # overwright
-      - DB_PORT=${DB_PORT}
-      - DB_SCHEMA=${DB_SCHEMA}
-      - TESTDB_HOST=${TESTDB_HOST}
+      - DB_HOST=testdb
+      - DB_PORT=5432
+      - DB_SCHEMA=postgres
+      - TESTDB_HOST=testdb
       - AUTH_SERVICE=FIREBASE
       - FIREBASE_API_KEY=${FIREBASE_API_KEY}
-      - FIREBASE_CRED=${FIREBASE_CRED}
+      - FIREBASE_CRED=/key/firebase_credentials.json
     labels:
       - traefik.http.routers.api.entrypoints=http
       - traefik.http.routers.api.priority=10

@@ -32,7 +32,6 @@ env:
   TESTDB_HOST: localhost
   DB_PORT: 5432
   DB_SCHEMA: postgres
-  FLASHSENSE_API_URL: http://flashsense.api.url.example/api
   FIREBASE_CRED: ../key/firebase_credentials.json
   FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
   SENDGRID_API_KEY: fake_api_key_for_sendgrid_test

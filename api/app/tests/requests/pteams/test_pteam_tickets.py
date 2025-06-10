@@ -735,6 +735,18 @@ class TestGetTickets:
 
             ticket_business.fix_ticket_by_threat(testdb, self.threat1)
 
+        @staticmethod
+        def _get_access_token(user: dict) -> str:
+            body = {
+                "username": user["email"],
+                "password": user["pass"],
+            }
+            response = client.post("/auth/token", data=body)
+            if response.status_code != 200:
+                raise HTTPError(response)
+            data = response.json()
+            return data["access_token"]
+
     class TestQueryParameter(Common):
         @pytest.fixture(scope="function", autouse=True)
         def common_setup_for_test_query_parameter(self, testdb):
@@ -875,6 +887,132 @@ class TestGetTickets:
             # When
             response = client.get(
                 f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={service2.service_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json() == []
+
+        def _setup_tickets_with_two_users_and_assignees(self, testdb):
+            """Set up test environment with two tickets and two users for assignee tests"""
+            # Create second pteam member
+            user2 = create_user(USER2)
+            invitation1 = invite_to_pteam(USER1, self.pteam1.pteam_id)
+            accept_pteam_invitation(USER2, invitation1.invitation_id)
+
+            # Get first ticket
+            ticket1 = persistence.get_ticket_by_threat_id_and_dependency_id(
+                testdb, self.threat1.threat_id, self.dependency1.dependency_id
+            )
+
+            # Create second ticket with new vulnerability
+            vuln2_id = uuid4()
+            vuln_request2 = {
+                "title": "Test Vulnerability2",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This is a test vulnerability.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.5,
+                "vulnerable_packages": [
+                    {
+                        "name": self.package1.name,
+                        "ecosystem": self.package1.ecosystem,
+                        "affected_versions": ["<=1.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+
+            vuln_response2 = client.put(
+                f"/vulns/{vuln2_id}", headers=headers(USER1), json=vuln_request2
+            )
+            vuln_data2 = vuln_response2.json()
+
+            threat2 = persistence.get_threat_by_package_version_id_and_vuln_id(
+                testdb, self.package_version1.package_version_id, vuln_data2["vuln_id"]
+            )
+
+            ticket2 = persistence.get_ticket_by_threat_id_and_dependency_id(
+                testdb, threat2.threat_id, self.dependency1.dependency_id
+            )
+
+            # Prepare ticket status request objects
+            status_request1 = {
+                "assignees": [str(self.user1.user_id)],
+            }
+            status_request2 = {
+                "assignees": [str(self.user1.user_id), str(user2.user_id)],
+            }
+
+            # Prepare API endpoint URLs
+            url1 = f"/pteams/{self.pteam1.pteam_id}/tickets/{ticket1.ticket_id}/ticketstatuses"
+            url2 = f"/pteams/{self.pteam1.pteam_id}/tickets/{ticket2.ticket_id}/ticketstatuses"
+
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            client.put(url1, headers=_headers, json=status_request1)
+            client.put(url2, headers=_headers, json=status_request2)
+
+            return user2
+
+        def test_it_should_return_all_assigned_tickets_when_assigned_to_me_is_true_for_user1(
+            self, testdb
+        ):
+            # Given
+            # user1 is assigned to all tickets
+            self._setup_tickets_with_two_users_and_assignees(testdb)
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?assigned_to_me=true",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert len(response.json()) == 2
+
+            # Check ticket assignees
+            tickets_data = response.json()
+            for ticket in tickets_data:
+                ticket_status = ticket["ticket_status"]
+                assert str(self.user1.user_id) in ticket_status["assignees"]
+
+        def test_it_should_return_only_one_ticket_when_assigned_to_me_is_true_for_user2(
+            self, testdb
+        ):
+            # Given
+            # user2 is assigned to one ticket
+            user2 = self._setup_tickets_with_two_users_and_assignees(testdb)
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?assigned_to_me=true",
+                headers=headers(USER2),
+            )
+
+            # Then
+            assert response.status_code == 200
+            # There are two tickets in db but only one has user2 assigned
+            assert len(response.json()) == 1
+
+            # Check ticket assignees
+            tickets_data = response.json()
+            for ticket in tickets_data:
+                ticket_status = ticket["ticket_status"]
+                assert str(user2.user_id) in ticket_status["assignees"]
+
+        def test_it_should_return_empty_list_when_querying_unassigned_user(self):
+            # no tickets have been assigned to user1 yet
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?assigned_to_me=true",
                 headers=headers(USER1),
             )
 
