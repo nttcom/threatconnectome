@@ -67,10 +67,7 @@ def create_log(
         vuln_action = persistence.get_action_by_id(db, data.action_id)
         if not vuln_action or vuln_action.vuln_id != str(data.vuln_id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
-    if data.executed_at:
-        executed_at_utc = data.executed_at.astimezone(timezone.utc)
-    else:
-        executed_at_utc = None
+    executed_at = data.executed_at.astimezone(timezone.utc)
 
     now = datetime.now()
     log = models.ActionLog(
@@ -84,7 +81,7 @@ def create_log(
         service_id=data.service_id,
         ticket_id=data.ticket_id,
         email=user.email,
-        executed_at=executed_at_utc or now,
+        executed_at=executed_at or now,
         created_at=now,
     )
     persistence.create_action_log(db, log)

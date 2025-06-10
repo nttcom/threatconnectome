@@ -44,10 +44,7 @@ def create_action(
 
     db.commit()
 
-    action_dict = action.__dict__.copy()
-    if action.created_at:
-        action_dict["created_at"] = action.created_at.astimezone(timezone.utc)
-    return action_dict
+    return action
 
 
 @router.get("/{action_id}", response_model=schemas.ActionResponse)
@@ -109,10 +106,10 @@ def update_action(
 
     db.commit()
 
-    action_dict = action.__dict__.copy()
+    original_action = action.__dict__.copy()
     if action.created_at:
-        action_dict["created_at"] = action.created_at.astimezone(timezone.utc)
-    return action_dict
+        original_action["created_at"] = action.created_at.astimezone(timezone.utc)
+    return original_action
 
 
 @router.delete("/{action_id}", status_code=status.HTTP_204_NO_CONTENT)
