@@ -146,4 +146,13 @@ class FirebaseAuthModule(AuthModule):
         return user_info.uid, email
 
     def delete_user(self, uid):
-        auth.delete_user(uid)
+        try:
+            auth.delete_user(uid)
+        except auth.ValueError as error:
+            raise AuthException(
+                AuthErrorType.SERVICE_UNAVAILABLE, "user ID is None, empty or malformed"
+            ) from error
+        except auth.FirebaseError as error:
+            raise AuthException(
+                AuthErrorType.INTERNAL_SERVER_ERROR, "Error deleting user"
+            ) from error
