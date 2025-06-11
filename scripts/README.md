@@ -122,7 +122,7 @@ Run the following commands to update vulns from vulnrichment:
 ```bash
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
 # For local development environment
-python3 vulnrichment2tc.py -v vulnrichment
+python3 vulnrichment2tc.py -v vulnrichment "http://localhost/api"
 
 ```
 
