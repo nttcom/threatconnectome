@@ -6,14 +6,27 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+
+import { useAuth } from "../../../hooks/auth";
+import { tcApi, useDeleteUserMutation } from "../../../services/tcApi";
+import { setAuthUserIsReady, setRedirectedFrom } from "../../../slices/auth";
+import { errorToString } from "../../../utils/func";
 
 export function DeleteAccountDialog(props) {
   const { userMe } = props;
 
+  const dispatch = useDispatch();
+  const { enqueueSnackbar } = useSnackbar();
+  const { signOut } = useAuth();
+
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
+
+  const [deleteUser] = useDeleteUserMutation();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -23,25 +36,27 @@ export function DeleteAccountDialog(props) {
     setOpen(false);
   };
 
-  const handleDeleteAccount = () => {
-    // Delete my account is not implemented
-    if (email !== userMe.email) {
-      return;
+  const handleDeleteAccount = async () => {
+    if (email === userMe.email) {
+      await deleteUser()
+        .unwrap()
+        .then(async () => {
+          dispatch(tcApi.util.resetApiState()); // reset RTKQ
+          dispatch(setAuthUserIsReady(false));
+          dispatch(setRedirectedFrom({}));
+          await signOut();
+        })
+        .catch((error) => {
+          enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
+        });
+    } else if (email !== userMe.email) {
+      enqueueSnackbar("EMail is wrong", { variant: "error" });
     }
-    handleClose();
   };
-
-  // Delete my account is not implemented
-  const deleteAccountDisabled = true;
 
   return (
     <>
-      <Button
-        color="error"
-        onClick={handleClickOpen}
-        sx={{ p: 0 }}
-        disabled={deleteAccountDisabled}
-      >
+      <Button color="error" onClick={handleClickOpen} sx={{ p: 0 }}>
         Delete my account
       </Button>
       <Dialog open={open} onClose={handleClose} maxWidth="xs">

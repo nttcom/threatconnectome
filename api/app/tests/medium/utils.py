@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 from datetime import datetime
 from hashlib import sha256
@@ -10,6 +11,8 @@ from uuid import UUID
 from fastapi.testclient import TestClient
 
 from app import schemas
+from app.auth.firebase_auth_module import FirebaseAuthModule
+from app.auth.supabase_auth_module import SupabaseAuthModule
 from app.main import app
 from app.tests.medium.exceptions import HTTPError
 from app.tests.medium.routers.test_auth import get_access_token_headers, get_file_upload_headers
@@ -119,7 +122,7 @@ def create_vuln(
     user: dict,
     vuln: dict,
 ) -> schemas.VulnResponse:
-    response = client.put(f'/vulns/{vuln["vuln_id"]}', headers=headers(user), json=vuln)
+    response = client.put(f"/vulns/{vuln['vuln_id']}", headers=headers(user), json=vuln)
 
     if response.status_code != 200:
         raise HTTPError(response)
@@ -207,3 +210,14 @@ def calc_file_sha256(file_path: str | Path) -> str:
         while data := fin.read(DEFAULT_BUFFER_SIZE):
             file_sha256.update(BytesIO(data).getbuffer())
         return file_sha256.hexdigest()
+
+
+def judge_whether_firebase_or_supabase():
+    auth_service = os.environ.get("AUTH_SERVICE")
+    match auth_service:
+        case "FIREBASE":
+            return FirebaseAuthModule
+        case "SUPABASE":
+            return SupabaseAuthModule
+        case _:
+            raise Exception(f"Unsupported AUTH_SERVICE: {auth_service}")
