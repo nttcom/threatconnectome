@@ -98,7 +98,9 @@ def update_user(
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
-    current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: models.Account = Depends(get_current_user),
+    auth_module: AuthModule = Depends(get_auth_module),
+    db: Session = Depends(get_db),
 ):
     """
     Delete current user and left admin-less pteams.
@@ -121,7 +123,12 @@ def delete_user(
     ]:
         persistence.delete_pteam(db, delete_target)
 
-    persistence.delete_account(db, current_user)
+    try:
+        persistence.delete_account(db, current_user)
+        auth_module.delete_user(current_user.uid)
+    except AuthException as auth_exception:
+        raise create_http_exception(auth_exception)
+
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)

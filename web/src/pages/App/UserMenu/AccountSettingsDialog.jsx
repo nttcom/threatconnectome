@@ -1,13 +1,11 @@
 import CloseIcon from "@mui/icons-material/Close";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { Box, IconButton, MenuItem, Select, Stack, Tooltip, Typography } from "@mui/material";
-import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
-import { Fragment } from "react";
 
 import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
@@ -17,11 +15,6 @@ export function AccountSettingsDialog(props) {
   const handleClose = () => {
     setAccountSettingOpen(false);
   };
-
-  // Change Email is not implemented
-  const changeEmaildisabled = true;
-  // Change Password is not implemented
-  const changePasswordDisabled = true;
 
   return (
     <>
@@ -41,14 +34,6 @@ export function AccountSettingsDialog(props) {
                 Email
               </Typography>
               <DialogContentText>{userMe.email}</DialogContentText>
-              <Button
-                variant="contained"
-                size="small"
-                sx={{ mt: 1 }}
-                disabled={changeEmaildisabled}
-              >
-                Change Email
-              </Button>
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
@@ -58,24 +43,15 @@ export function AccountSettingsDialog(props) {
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                Password
-              </Typography>
-              <Button variant="contained" size="small" disabled={changePasswordDisabled}>
-                Change Password
-              </Button>
-            </Box>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 Team
               </Typography>
-              {userMe.pteam_roles.map((pteam_role) => (
-                <Fragment key={pteam_role.pteam.pteam_id}>
-                  <DialogContentText>{pteam_role.pteam.pteam_name}</DialogContentText>
-                  <DialogContentText variant="caption">
-                    {pteam_role.pteam.pteam_id}
+              <Stack spacing={1}>
+                {userMe.pteam_roles.map((pteam_role) => (
+                  <DialogContentText key={pteam_role.pteam.pteam_id}>
+                    {pteam_role.pteam.pteam_name}
                   </DialogContentText>
-                </Fragment>
-              ))}
+                ))}
+              </Stack>
             </Box>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Box>

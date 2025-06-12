@@ -48,18 +48,29 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
     service_id: UUID | str | None,
     package_id: UUID | str | None,
     vuln_id: UUID | str | None,
+    assigned_user_id: UUID | str | None = None,
 ) -> Sequence[models.Ticket]:
-    select_stmt = (
-        select(models.Ticket)
-        .options(
+    select_stmt = select(models.Ticket)
+    if assigned_user_id:
+        select_stmt = select_stmt.join(
+            models.TicketStatus,
+            and_(
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(
+                    None
+                ),
+            ),
+        )
+    else:
+        select_stmt = select_stmt.options(
             joinedload(models.Ticket.ticket_status, innerjoin=True).joinedload(
                 models.TicketStatus.action_logs, innerjoin=False
             ),
         )
-        .join(
-            models.Threat,
-            models.Threat.threat_id == models.Ticket.threat_id,
-        )
+
+    select_stmt = select_stmt.join(
+        models.Threat,
+        models.Threat.threat_id == models.Ticket.threat_id,
     )
 
     if vuln_id:
