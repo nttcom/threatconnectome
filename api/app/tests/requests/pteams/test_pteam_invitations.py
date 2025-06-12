@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 import pytest
@@ -38,9 +38,9 @@ def test_admin_can_create_invitation():
     )
     assert response.status_code == 200
     data = response.json()
-    assert datetime.fromisoformat(data["expiration"]) == datetime.fromisoformat(
-        request["expiration"]
-    )
+    assert datetime.fromisoformat(
+        data["expiration"].replace("Z", "+00:00")
+    ) == datetime.fromisoformat(request["expiration"]).replace(tzinfo=timezone.utc)
     assert data["limit_count"] == request["limit_count"]
 
 
