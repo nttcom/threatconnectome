@@ -204,6 +204,9 @@ class TestGetPTeamPackagesSummary:
             **self.ssvc_priority_count_zero,
             expected_ssvc_priority.value: 1,
         }
+        summary["packages"][0]["updated_at"] = summary["packages"][0]["updated_at"].replace(
+            "Z", "+00:00"
+        )
         assert summary["packages"] == [
             {
                 "package_id": str(self.package1.package_id),
@@ -302,6 +305,9 @@ class TestGetPTeamPackagesSummary:
         }
 
         del summary["packages"][0]["service_ids"]
+        summary["packages"][0]["updated_at"] = summary["packages"][0]["updated_at"].replace(
+            "Z", "+00:00"
+        )
         assert summary["packages"] == [
             {
                 "package_id": str(package.package_id),
