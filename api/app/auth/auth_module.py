@@ -27,3 +27,6 @@ class AuthModule:
                 detail="Could not validate credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+
+    def delete_user(self, uid):
+        pass

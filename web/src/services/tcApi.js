@@ -389,6 +389,12 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [{ type: "Account", id: arg.userId }],
     }),
+    deleteUser: builder.mutation({
+      query: () => ({
+        url: "users/me",
+        method: "DELETE",
+      }),
+    }),
 
     /* Vuln */
     getVulns: builder.query({
@@ -453,6 +459,7 @@ export const {
   useTryLoginMutation,
   useCreateUserMutation,
   useUpdateUserMutation,
+  useDeleteUserMutation,
   useCheckMailMutation,
   useCheckSlackMutation,
 } = tcApi;
