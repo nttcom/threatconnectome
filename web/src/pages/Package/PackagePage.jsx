@@ -129,8 +129,8 @@ export function Package() {
   const visibleCodeBlock = false;
 
   // TODO: tagName and tagRepository are mock data. Replace with actual data logic.
-  const tagName = "setuptools";
-  const tagRepository = "pypi";
+  const packageName = "setuptools";
+  const packageEcosystem = "pypi";
 
   return (
     <>
@@ -151,9 +151,9 @@ export function Package() {
           </Box>
           <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              {tagName}
+              {packageName}
             </Typography>
-            <Chip label={tagRepository} sx={{ ml: 1 }} />
+            <Chip label={packageEcosystem} sx={{ ml: 1 }} />
           </Box>
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{packageId}</UUIDTypography>
