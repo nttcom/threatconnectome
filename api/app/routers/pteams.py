@@ -1385,7 +1385,7 @@ def update_pteam(
     return pteam
 
 
-@router.get("/{pteam_id}/members", response_model=list[schemas.UserResponse])
+@router.get("/{pteam_id}/members", response_model=list[schemas.PteamMemberGetResponse])
 def get_pteam_members(
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
@@ -1398,14 +1398,37 @@ def get_pteam_members(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    return pteam.members
+
+    pteam_members = []
+    for member in pteam.members:
+        is_admin = next(
+            (
+                pteam_role.is_admin
+                for pteam_role in member.pteam_roles
+                if pteam_role.pteam_id == str(pteam_id)
+            ),
+            False,
+        )
+
+        pteam_members.append(
+            schemas.PteamMemberGetResponse(
+                user_id=member.user_id,
+                uid=member.uid,
+                email=member.email,
+                disabled=member.disabled,
+                years=member.years,
+                is_admin=is_admin,
+            )
+        )
+
+    return pteam_members
 
 
-@router.put("/{pteam_id}/members/{user_id}", response_model=schemas.PTeamMemberResponse)
+@router.put("/{pteam_id}/members/{user_id}", response_model=schemas.PTeamMemberUpdateResponse)
 def update_pteam_member(
     pteam_id: UUID,
     user_id: UUID,
-    data: schemas.PTeamMemberRequest,
+    data: schemas.PTeamMemberUpdateRequest,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
