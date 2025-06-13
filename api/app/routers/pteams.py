@@ -1402,8 +1402,12 @@ def get_pteam_members(
     pteam_members = []
     for member in pteam.members:
         is_admin = next(
-            (pteam_role.is_admin for pteam_role in member.pteam_roles if pteam_role.pteam_id == str(pteam_id)),
-            False
+            (
+                pteam_role.is_admin
+                for pteam_role in member.pteam_roles
+                if pteam_role.pteam_id == str(pteam_id)
+            ),
+            False,
         )
 
         pteam_members.append(
