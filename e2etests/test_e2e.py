@@ -4,8 +4,8 @@ from urllib.parse import urlencode, urljoin
 
 from playwright.sync_api import Page, expect
 
-from api_utils import create_pteam, create_topic, get_pteam_services, upload_pteam_tags
-from constants import ACTION1, ACTION2, PTEAM1, TAG1, TOPIC1, TOPIC2, USER1
+from api_utils import create_pteam, create_vuln, get_pteam_services, upload_pteam_packages
+from constants import PACKAGE1, PACKAGE2, PTEAM1, USER1, VULN1, VULN2
 
 base_url = os.getenv("BASE_URL", "http://localhost")
 
@@ -35,12 +35,12 @@ def login(page: Page, user: dict):
     # Login
     page.get_by_label("Email Address").fill(user["email"])
     page.get_by_label("Password").fill(user["pass"])
-    page.get_by_role("button", name="Log In with Email").click()
+    page.get_by_role("button", name="Log In").click()
 
-    # Wait login process finish and print logout button
+    # Wait login process finish and print menu button
     # https://playwright.dev/python/docs/api/class-locator#locator-wait-for
-    logout_button = page.locator("text=Logout")
-    logout_button.wait_for(timeout=10000)
+    menu_button = page.locator("text=menu")
+    menu_button.wait_for(timeout=10000)
 
 
 def test_login_first_time(page: Page):
@@ -52,15 +52,27 @@ def test_login_first_time(page: Page):
     expect(page).to_have_url(re.compile(".*/account"))
 
 
-def test_show_tag_page_directly(page: Page):
+def test_show_package_page_directly(page: Page):
     print_console(page)
     # register data via API
     pteam1 = create_pteam(USER1, PTEAM1)
-    etags = upload_pteam_tags(
-        USER1, pteam1["pteam_id"], "repoA", {TAG1: [("api/Pipfile.lock", "1.0.0")]}, True
-    )
-    create_topic(USER1, TOPIC1, actions=[ACTION1, ACTION2])
-    create_topic(USER1, TOPIC2, actions=[ACTION1, ACTION2])
+    ext_packages = [
+        {
+            "package_name": PACKAGE1["package_name"],
+            "ecosystem": PACKAGE1["ecosystem"],
+            "package_manager": "test_package_manager1",
+            "references": [{"target": "target1", "version": "1.0"}],
+        },
+        {
+            "package_name": PACKAGE2["package_name"],
+            "ecosystem": PACKAGE2["ecosystem"],
+            "package_manager": "test_package_manager1",
+            "references": [{"target": "target1", "version": "1.0"}],
+        },
+    ]
+    packages = upload_pteam_packages(USER1, pteam1["pteam_id"], "repoA", ext_packages)
+    create_vuln(USER1, VULN1)
+    create_vuln(USER1, VULN2)
 
     # get service id
     services = get_pteam_services(USER1, pteam1["pteam_id"])
@@ -68,7 +80,7 @@ def test_show_tag_page_directly(page: Page):
 
     # goto tag page directly
     params = urlencode({"pteamId": pteam1["pteam_id"], "serviceId": service_id})
-    path = "/tags/" + etags[0]["tag_id"]
+    path = "/packages/" + packages[0]["package_id"]
     url = urljoin(base_url, path) + "?" + params
     page.goto(url)
 
@@ -78,23 +90,24 @@ def test_show_tag_page_directly(page: Page):
     page.get_by_label("Email Address").fill(str(USER1["email"]))
     page.get_by_label("Password").fill(str(USER1["pass"]))
     page.get_by_role("button", name="Log In").click()
-
-    # tag page
+    # package page
     expect(page).to_have_url(re.compile(path))
-    expect(page.get_by_role("heading", name=TAG1)).to_have_text(TAG1)
-    expect(page.locator("#ssvc-priority-count-chip-immediate")).to_have_text("0")
+
+    package_title = f"{packages[0]['package_name']}:{packages[0]['ecosystem']}"
+    heading = page.get_by_role("heading", name=package_title)
+    heading.wait_for(timeout=10000)
+    expect(heading).to_have_text(package_title)
+
+    expect(page.locator("#ssvc-priority-count-chip-immediate")).to_have_text("1")
     expect(page.locator("#ssvc-priority-count-chip-out_of_cycle")).to_have_text("0")
-    expect(page.locator("#ssvc-priority-count-chip-scheduled")).to_have_text("2")
+    expect(page.locator("#ssvc-priority-count-chip-scheduled")).to_have_text("0")
     expect(page.locator("#ssvc-priority-count-chip-defer")).to_have_text("0")
-    expect(
-        page.locator("#tab-panel-0").locator("td", has_text=str(TOPIC1["title"]))
-    ).to_be_visible()
-    expect(
-        page.locator("#tab-panel-0").locator("td", has_text=str(TOPIC2["title"]))
-    ).to_be_visible()
+
+    expect(page.locator("#tab-panel-0").locator("td", has_text=str(VULN1["title"]))).to_be_visible()
+    expect(page.locator("#tab-panel-0").locator("td", has_text=str(VULN2["title"]))).to_be_visible()
 
 
-def test_show_tag_page(page: Page):
+def test_show_package_page(page: Page):
     print_console(page)
     login(page, USER1)
 
