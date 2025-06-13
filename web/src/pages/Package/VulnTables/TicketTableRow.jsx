@@ -45,8 +45,8 @@ export function TicketTableRow(props) {
       <TableCell
         align="center"
         sx={{
-          whiteSpace: "normal", // 折り返しを許可
-          wordBreak: "break-all", // 長い単語も折り返す
+          whiteSpace: "normal",
+          wordBreak: "break-all",
         }}
       >
         {packageManager}
