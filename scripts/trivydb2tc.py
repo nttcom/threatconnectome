@@ -137,6 +137,7 @@ allow_list = [
     b"ubuntu 22.04",
     # b"ubuntu 22.10",
     # b"ubuntu 23.04",
+    b"ubuntu 24.04",
     # b"wolfi",
 ]
 
