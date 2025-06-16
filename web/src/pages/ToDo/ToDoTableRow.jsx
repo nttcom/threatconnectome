@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import { Button, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
@@ -6,14 +5,17 @@ import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
-import { APIError } from "../../utils/APIError";
-import { errorToString } from "../../utils/func";
 import {
   useGetVulnQuery,
   useGetVulnActionsQuery,
   useGetDependencyQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
+import { errorToString } from "../../utils/func";
+
 import { ToDoDrawer } from "./ToDoDrawer";
 
 function SimpleCell(value = "") {
@@ -44,9 +46,7 @@ export function ToDoTableRow(props) {
     data: dependency,
     error: dependencyError,
     isLoading: dependencyIsLoading,
-  } = useGetDependencyQuery(
-    row.dependency_id ? { pteamId: row.pteam_id, dependencyId: row.dependency_id } : skipToken,
-  );
+  } = useGetDependencyQuery({ pteamId: row.pteam_id, dependencyId: row.dependency_id }, { skip });
 
   if (skip) return SimpleCell("");
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });

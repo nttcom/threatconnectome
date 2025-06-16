@@ -5,12 +5,14 @@ import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 import TablePagination from "@mui/material/TablePagination";
 import { amber, grey, orange, red } from "@mui/material/colors";
+import PropTypes from "prop-types";
 import { useState, useEffect, useMemo } from "react";
 
 import { useGetUserMeQuery } from "../../services/tcApi";
-import { ToDoTableRow } from "./ToDoTableRow";
 
-import { EnhancedTableHead, getComparator, useTicketsAndPteams } from "./ToDoTableFunc";
+import { EnhancedTableHead } from "./EnhancedTableHead";
+import { getComparator, useTicketsAndPteams } from "./ToDoTableFunc";
+import { ToDoTableRow } from "./ToDoTableRow";
 
 export function ToDoTable({ myTasks, pteamIds }) {
   const { data: me } = useGetUserMeQuery();
@@ -166,3 +168,8 @@ export function ToDoTable({ myTasks, pteamIds }) {
     </Paper>
   );
 }
+
+ToDoTable.propTypes = {
+  myTasks: PropTypes.bool.isRequired,
+  pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+};

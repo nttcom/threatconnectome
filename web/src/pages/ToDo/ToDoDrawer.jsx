@@ -1,4 +1,3 @@
-import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
@@ -23,6 +22,7 @@ import Box from "@mui/material/Box";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { PackageView } from "../../components/PackageView";
 import { createActionByFixedVersions } from "../../utils/vulnUtils.js";
 
@@ -282,4 +282,9 @@ ToDoDrawer.propTypes = {
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
   row: PropTypes.object.isRequired,
+  service: PropTypes.object,
+  dependency: PropTypes.object,
+  vuln: PropTypes.object,
+  vulnActions: PropTypes.array,
+  bgcolor: PropTypes.string.isRequired,
 };
