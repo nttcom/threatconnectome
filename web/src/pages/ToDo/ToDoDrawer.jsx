@@ -1,4 +1,4 @@
-import { Recommend as RecommendIcon, Warning as WarningIcon } from "@mui/icons-material";
+import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
@@ -9,6 +9,7 @@ import {
   IconButton,
   List,
   ListItem,
+  ListItemIcon,
   ListItemText,
   MenuItem,
   Select,
@@ -19,9 +20,11 @@ import {
   Typography,
 } from "@mui/material";
 import Box from "@mui/material/Box";
-import { green, yellow } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import { useState } from "react";
+
+import { PackageView } from "../../components/PackageView";
+import { createActionByFixedVersions } from "../../utils/vulnUtils.js";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -46,9 +49,21 @@ CustomTabPanel.propTypes = {
 };
 
 export function ToDoDrawer(props) {
-  const { open, setOpen } = props;
+  const { open, setOpen, row, service, dependency, vuln, vulnActions, bgcolor } = props;
   const [value, setValue] = useState(0);
   const [assignees, setAssignees] = useState([]);
+  const packageId = dependency?.package_id;
+  const matchedVulnPackage = vuln?.vulnerable_packages.find((pkg) => pkg.package_id === packageId);
+  const affectedVersions = matchedVulnPackage?.affected_versions ?? [];
+  const patchedVersions = matchedVulnPackage?.fixed_versions ?? [];
+  const actionByFixedVersions = createActionByFixedVersions(
+    affectedVersions,
+    patchedVersions,
+    matchedVulnPackage?.name ?? "",
+  );
+  const actions = [actionByFixedVersions, ...(Array.isArray(vulnActions) ? vulnActions : [])];
+  const assigneeOptions = ["user1@example.com", "user2@example.com", "user3@example.com"];
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -70,13 +85,13 @@ export function ToDoDrawer(props) {
       <Box sx={{ width: 800, px: 3 }}>
         <Box>
           <Typography variant="h4" sx={{ pb: 1, fontWeight: "bold" }}>
-            Ticket #XXXXXX
+            Ticket #{row?.ticket_id || ""}
           </Typography>
         </Box>
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
           <Tabs value={value} onChange={handleChange}>
             <Tab label="Ticket" />
-            <Tab label="Topic" />
+            <Tab label="Vuln" />
           </Tabs>
         </Box>
         {/* ticket */}
@@ -86,13 +101,17 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 SSVC
               </Typography>
-              <Chip label="Immediate" color="error" />
+              <Chip label={row?.ssvc || "-"} sx={{ backgroundColor: bgcolor, color: "#fff" }} />
             </Box>
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <Typography variant="h6" sx={{ width: 170 }}>
-                CVE-ID
+                CVE ID
               </Typography>
-              <Typography>CVE-XXXX-XXXX</Typography>
+              {vuln?.cve_id === null ? (
+                <Typography sx={{ margin: 1 }}>No Known CVE</Typography>
+              ) : (
+                <Box>{vuln?.cve_id && <Chip label={vuln.cve_id} sx={{ m: 1 }} />}</Box>
+              )}
               <IconButton size="small">
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
@@ -101,7 +120,7 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 Team
               </Typography>
-              <Typography>team_name</Typography>
+              <Typography>{row?.team || "-"}</Typography>
               <IconButton size="small">
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
@@ -110,16 +129,20 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 Service
               </Typography>
-              <Typography>Django</Typography>
+              <Typography>{service?.service_name || "-"}</Typography>
               <IconButton size="small">
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <Typography variant="h6" sx={{ width: 170 }}>
-                Artifact
+                Package
               </Typography>
-              <Typography>setuptools:pypi:python-pkg</Typography>
+              <Typography>
+                {matchedVulnPackage
+                  ? `${matchedVulnPackage.name} : ${matchedVulnPackage.ecosystem}`
+                  : "-"}
+              </Typography>
               <IconButton size="small">
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
@@ -178,90 +201,74 @@ export function ToDoDrawer(props) {
                     </Box>
                   )}
                 >
-                  <MenuItem value="sample1@example.com">sample1@example.com</MenuItem>
-                  <MenuItem value="sample2@example.com">sample2@example.com</MenuItem>
-                  <MenuItem value="sample3@example.com">sample3@example.com</MenuItem>
-                  <MenuItem value="sample4@example.com">sample4@example.com</MenuItem>
+                  {assigneeOptions.map((email) => (
+                    <MenuItem key={email} value={email}>
+                      {email}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Box>
           </Stack>
         </CustomTabPanel>
 
-        {/* topic */}
+        {/* vuln */}
         <CustomTabPanel value={value} index={1}>
           <Stack spacing={1}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                Artifact Tag
+                Package
               </Typography>
-              <Card variant="outlined" display="flex" sx={{ padding: 2 }}>
-                <Typography variant="h5">setuptools:pypi:</Typography>
-                <Box
-                  display="flex"
-                  flexDirection="row"
-                  justifyContent="center"
-                  sx={{ alignItems: "center" }}
-                >
-                  <Box
-                    alignItems="flexStart"
-                    display="flex"
-                    flexDirection="column"
-                    sx={{ width: "50%", minWidth: "50%" }}
-                  >
-                    <Box alignItems="center" display="flex" flexDirection="row" sx={{ ml: 2 }}>
-                      <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
-                    </Box>
-                  </Box>
-                  <Box
-                    alignItems="center"
-                    display="flex"
-                    flexDirection="row"
-                    sx={{ width: "50%", ml: 2 }}
-                  >
-                    <RecommendIcon sx={{ fontSize: 32, color: green[500] }} />
-                    <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
-                      -
-                    </Typography>
-                  </Box>
-                </Box>
-              </Card>
+              {matchedVulnPackage ? (
+                <PackageView vulnPackage={matchedVulnPackage} />
+              ) : (
+                <Typography color="text.secondary">No package data</Typography>
+              )}
             </Box>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                 Mitigations
               </Typography>
-              <Card variant="outlined">
+              <Card variant="outlined" sx={{ m: 1, p: 2 }}>
                 <List>
-                  <ListItem>
-                    <ListItemText primary="Update setuptools from version ['<70.0.0'] to ['70.0.0']" />
-                  </ListItem>
+                  {actions.length === 0 ? (
+                    <ListItem>
+                      <ListItemText primary={"No data"} />
+                    </ListItem>
+                  ) : (
+                    actions
+                      .filter((action) => action)
+                      .map((action) => (
+                        <ListItem key={action.action_id}>
+                          <ListItemIcon>
+                            <ActionTypeIcon
+                              actionType={action.action_type}
+                              disabled={!action.recommended}
+                            />
+                          </ListItemIcon>
+                          <ListItemText primary={action.action} />
+                        </ListItem>
+                      ))
+                  )}
                 </List>
               </Card>
             </Box>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                Topic Tags
+              <Typography variant="h6" sx={{ width: 170 }}>
+                CVE ID
               </Typography>
-              <List>
-                <ListItem>
-                  <ListItemText primary={"-"} />
-                </ListItem>
-              </List>
+              {vuln?.cve_id === null ? (
+                <Typography sx={{ margin: 1 }}>No Known CVE</Typography>
+              ) : (
+                <Box>{vuln?.cve_id && <Chip label={vuln.cve_id} sx={{ m: 1 }} />}</Box>
+              )}
             </Box>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                 Detail
               </Typography>
-              <Card variant="outlined" sx={{ p: 2 }}>
-                <Typography variant="body1">
-                  A vulnerability in the package_index module of pypa/setuptools versions up to
-                  69.1.1 allows for remote code execution via its download functions. These
-                  functions, which are used to download packages from URLs provided by users or
-                  retrieved from package index servers, are susceptible to code injection. If these
-                  functions are exposed to user-controlled inputs, such as package URLs, they can
-                  execute arbitrary commands on the system. The issue is fixed in version 70.0.
-                </Typography>
+              <Card variant="outlined" sx={{ m: 1, p: 2 }}>
+                <Typography variant="body1">{vuln?.detail}</Typography>
               </Card>
             </Box>
           </Stack>
@@ -272,6 +279,7 @@ export function ToDoDrawer(props) {
 }
 
 ToDoDrawer.propTypes = {
-  open: PropTypes.bool.required,
-  setOpen: PropTypes.func.required,
+  open: PropTypes.bool.isRequired,
+  setOpen: PropTypes.func.isRequired,
+  row: PropTypes.object.isRequired,
 };

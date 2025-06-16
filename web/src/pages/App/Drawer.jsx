@@ -112,7 +112,7 @@ export function Drawer() {
         {/* Vulnerabilities -- not listed on drawer, currently */}
         {/* ToDo */}
         <StyledListItemButton
-          onClick={() => navigate("/todo")}
+          onClick={() => navigate("/todo?" + queryParams)}
           selected={locationReader.isToDoPage()}
         >
           <StyledListItemIcon>

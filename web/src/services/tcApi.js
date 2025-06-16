@@ -70,7 +70,16 @@ export const tcApi = createApi({
       }),
       providesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
-
+    getDependency: builder.query({
+      query: ({ pteamId, dependencyId }) => ({
+        url: `pteams/${pteamId}/dependencies/${dependencyId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        { type: "Service", id: "ALL" },
+        { type: "Dependency", id: arg.dependencyId },
+      ],
+    }),
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
@@ -292,13 +301,14 @@ export const tcApi = createApi({
 
     /* Ticket */
     getTickets: builder.query({
-      query: ({ pteamId, serviceId, vulnId, packageId }) => ({
+      query: ({ pteamId, serviceId, vulnId, packageId, assignedToMe }) => ({
         url: `pteams/${pteamId}/tickets`,
         method: "GET",
         params: {
           service_id: serviceId,
           vuln_id: vulnId,
           package_id: packageId,
+          assigned_to_me: assignedToMe ? "true" : undefined,
         },
       }),
       providesTags: (result, error, arg) => [
@@ -431,6 +441,7 @@ export const tcApi = createApi({
 export const {
   useCreateActionLogMutation,
   useGetDependenciesQuery,
+  useGetDependencyQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
