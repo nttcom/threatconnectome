@@ -1,9 +1,9 @@
 from typing import TypeAlias
 
+from univers.debian import Version as DebianVersion
 from univers.versions import GolangVersion, InvalidVersion, SemverVersion
 
 from app.detector.package_family import PackageFamily
-from app.detector.version.ext_debian_version import ExtDebianVersion
 from app.detector.version.ext_pypi_version import ExtPypiVersion
 
 # supported version classes:
@@ -11,7 +11,7 @@ from app.detector.version.ext_pypi_version import ExtPypiVersion
 #   - required implemented __gt__, __ge__, __lt__, __le__.
 #     Note: __eq__ cannot be used to compare versions. use >= and <= instead.
 #   - may raise ValueError on errors.
-ComparableVersion: TypeAlias = ExtDebianVersion | ExtPypiVersion | SemverVersion | GolangVersion
+ComparableVersion: TypeAlias = DebianVersion | ExtPypiVersion | SemverVersion | GolangVersion
 
 
 def gen_version_instance(
@@ -20,7 +20,7 @@ def gen_version_instance(
 ) -> ComparableVersion:
     try:
         if package_family == PackageFamily.DEBIAN:
-            return ExtDebianVersion.from_string(version_string)
+            return DebianVersion.from_string(version_string)
         if package_family == PackageFamily.PYPI:
             return ExtPypiVersion(version_string)
         if package_family == PackageFamily.NPM:
