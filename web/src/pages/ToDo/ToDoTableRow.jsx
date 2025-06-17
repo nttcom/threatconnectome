@@ -17,6 +17,7 @@ import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
 import { ToDoDrawer } from "./ToDoDrawer";
+import { de } from "date-fns/locale";
 
 function SimpleCell(value = "") {
   return (
@@ -31,6 +32,7 @@ export function ToDoTableRow(props) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const skip = useSkipUntilAuthUserIsReady();
+  const skipDependency = !row.dependency_id;
 
   const {
     data: vuln,
@@ -46,20 +48,23 @@ export function ToDoTableRow(props) {
     data: dependency,
     error: dependencyError,
     isLoading: dependencyIsLoading,
-  } = useGetDependencyQuery({ pteamId: row.pteam_id, dependencyId: row.dependency_id }, { skip });
-
+  } = useGetDependencyQuery(
+    { pteamId: row.pteam_id, dependencyId: row.dependency_id },
+    { skip: skipDependency },
+  );
+  console.log("ToDoTableRow dependency", dependency);
   if (skip) return SimpleCell("");
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
   if (vulnActionsError)
     throw new APIError(errorToString(vulnActionsError), { api: "getVulnActions" });
-  if (dependencyError) throw new APIError(errorToString(dependencyError), { api: "getDependency" });
+  // if (dependencyError) throw new APIError(errorToString(dependencyError), { api: "getDependency" });
   if (vulnIsLoading) return SimpleCell("Now loading Vulnerability...");
   if (vulnActionsIsLoading) return SimpleCell("Now loading VulnActions...");
   if (dependencyIsLoading) return SimpleCell("Now loading Dependency...");
 
-  const servicePteamId = row.pteam_id;
-  const serviceId = dependency?.service_id ?? row.service_id;
-  const service = serviceMap.get(servicePteamId + ":" + serviceId);
+  const serviceId = dependency?.service_id;
+  const service = serviceMap.get(row.pteam_id + ":" + serviceId);
+  console.log("ToDoTableRow service", service);
 
   const handleRowClick = () => {
     const packageId = dependency.package_id;
@@ -102,7 +107,10 @@ export function ToDoTableRow(props) {
             variant="outlined"
             startIcon={<KeyboardDoubleArrowLeftIcon />}
             size="small"
-            onClick={() => setOpen(true)}
+            onClick={(e) => {
+              e.stopPropagation(); // これを追加
+              setOpen(true);
+            }}
           >
             Details
           </Button>
