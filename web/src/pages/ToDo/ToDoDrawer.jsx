@@ -21,6 +21,8 @@ import {
 import Box from "@mui/material/Box";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
+import { useGetPTeamMembersQuery } from "../../services/tcApi.js";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { PackageView } from "../../components/PackageView";
@@ -51,7 +53,7 @@ CustomTabPanel.propTypes = {
 export function ToDoDrawer(props) {
   const { open, setOpen, row, service, dependency, vuln, vulnActions, bgcolor } = props;
   const [value, setValue] = useState(0);
-  const [assignees, setAssignees] = useState([]);
+  const skipByAuth = useSkipUntilAuthUserIsReady();
   const packageId = dependency?.package_id;
   const matchedVulnPackage = vuln?.vulnerable_packages.find((pkg) => pkg.package_id === packageId);
   const affectedVersions = matchedVulnPackage?.affected_versions ?? [];
@@ -62,7 +64,13 @@ export function ToDoDrawer(props) {
     matchedVulnPackage?.name ?? "",
   );
   const actions = [actionByFixedVersions, ...(Array.isArray(vulnActions) ? vulnActions : [])];
-  const assigneeOptions = ["user1@example.com", "user2@example.com", "user3@example.com"];
+  const {
+    data: members,
+    error: membersError,
+    isLoading: membersIsLoading,
+  } = useGetPTeamMembersQuery(row?.pteam_id, { skip: skipByAuth });
+
+  const memberList = Array.isArray(members) ? members : members ? Object.values(members) : [];
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -73,6 +81,7 @@ export function ToDoDrawer(props) {
     } = event;
     setAssignees(typeof value === "string" ? value.split(",") : value);
   };
+
   return (
     <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
       <Box>
@@ -108,9 +117,9 @@ export function ToDoDrawer(props) {
                 CVE ID
               </Typography>
               {vuln?.cve_id === null ? (
-                <Typography sx={{ margin: 1 }}>No Known CVE</Typography>
+                <Typography>No Known CVE</Typography>
               ) : (
-                <Box>{vuln?.cve_id && <Chip label={vuln.cve_id} sx={{ m: 1 }} />}</Box>
+                <Typography>{vuln?.cve_id || "-"}</Typography>
               )}
               <IconButton size="small">
                 <OpenInNewIcon color="primary" fontSize="small" />
@@ -151,7 +160,7 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 Target
               </Typography>
-              <Typography>Python</Typography>
+              <Typography>{dependency?.target || "-"}</Typography>
             </Box>
             <Box sx={{ display: "flex" }}>
               <Typography variant="h6" sx={{ width: 170 }}>
@@ -179,31 +188,25 @@ export function ToDoDrawer(props) {
                 </Select>
               </FormControl>
             </Box>
-            <Box sx={{ display: "flex" }}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
               <Typography variant="h6" sx={{ width: 170 }}>
                 Due date
               </Typography>
+              <Typography>{row?.dueDate}</Typography>
             </Box>
             <Box sx={{ display: "flex" }}>
               <Typography variant="h6" sx={{ width: 170 }}>
                 Assignees
               </Typography>
-              <FormControl sx={{ width: 300 }} size="small" variant="standard">
+              <FormControl sx={{ width: 200 }} size="small" variant="standard">
                 <Select
-                  value={assignees}
+                  defaultValue={row?.assignee ? row.assignee.split(",").map((s) => s.trim()) : []}
                   multiple
                   onChange={handleAssigneesChange}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                      {selected.map((value) => (
-                        <Chip key={value} label={value} />
-                      ))}
-                    </Box>
-                  )}
                 >
-                  {assigneeOptions.map((email) => (
-                    <MenuItem key={email} value={email}>
-                      {email}
+                  {memberList.map((member) => (
+                    <MenuItem key={member.email} value={member.email}>
+                      {member.email}
                     </MenuItem>
                   ))}
                 </Select>
