@@ -339,6 +339,13 @@ class TicketResponse(ORMModel):
     ticket_status: TicketStatusResponse
 
 
+class TicketListResponse(BaseModel):
+    total: int
+    offset: int
+    limit: int
+    tickets: list[TicketResponse]
+
+
 class TicketUpdateRequest(ORMModel):
     ticket_safety_impact: SafetyImpactEnum | None = None
     ticket_safety_impact_change_reason: str | None = None
