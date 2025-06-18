@@ -6,11 +6,16 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useSelector } from "react-redux";
+import { set } from "date-fns";
+import { use, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { setDrawerOpen } from "../../slices/system";
 import { LocationReader } from "../../utils/LocationReader";
 import { drawerWidth, drawerParams } from "../../utils/const";
 
@@ -50,6 +55,13 @@ export function Drawer() {
   const handleNavigateTop = () => {
     navigate("/?" + queryParams);
   };
+
+  const dispatch = useDispatch();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  useEffect(() => {
+    dispatch(setDrawerOpen(isDesktop));
+  }, [isDesktop, dispatch]);
 
   const drawerTitle = "Threatconnectome";
 
