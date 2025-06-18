@@ -60,9 +60,15 @@ export function Drawer() {
   const theme = useTheme();
   const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  // --- Effects for responsive drawer behavior ---
+
+  // Auto-open drawer on large screens.
   useEffect(() => {
     dispatch(setDrawerOpen(isLargeScreen));
   }, [isLargeScreen, dispatch]);
+
+  // Force-close drawer on mobile to prevent a resize bug.
   useEffect(() => {
     if (isMobile) {
       dispatch(setDrawerOpen(false));
