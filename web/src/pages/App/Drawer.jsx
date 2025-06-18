@@ -59,6 +59,7 @@ export function Drawer() {
   const dispatch = useDispatch();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   useEffect(() => {
     dispatch(setDrawerOpen(isDesktop));
   }, [isDesktop, dispatch]);
@@ -69,7 +70,8 @@ export function Drawer() {
     <MuiDrawer
       anchor="left"
       open={system.drawerOpen}
-      variant="persistent"
+      variant={isMobile ? "temporary" : "persistent"}
+      onClose={() => dispatch(setDrawerOpen(false))}
       sx={{
         flexShrink: 0,
         "& .MuiDrawer-paper": {
