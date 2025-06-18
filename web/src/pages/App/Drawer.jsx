@@ -58,11 +58,16 @@ export function Drawer() {
 
   const dispatch = useDispatch();
   const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   useEffect(() => {
-    dispatch(setDrawerOpen(isDesktop));
-  }, [isDesktop, dispatch]);
+    dispatch(setDrawerOpen(isLargeScreen));
+  }, [isLargeScreen, dispatch]);
+  useEffect(() => {
+    if (isMobile) {
+      dispatch(setDrawerOpen(false));
+    }
+  }, [isMobile, dispatch]);
 
   const drawerTitle = "Threatconnectome";
 
