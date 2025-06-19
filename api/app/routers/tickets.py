@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session, joinedload
 
@@ -13,7 +11,7 @@ router = APIRouter(prefix="/tickets", tags=["tickets"])
 @router.get("", response_model=schemas.TicketListResponse)
 def get_tickets(
     my_tasks: bool = Query(False),
-    pteam_ids: list[UUID] | None = Query(None),
+    pteam_ids: list[str] | None = Query(None),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     current_user: models.Account = Depends(get_current_user),
@@ -48,5 +46,14 @@ def get_tickets(
         total=total_count,
         offset=offset,
         limit=limit,
-        tickets=[schemas.TicketResponse.model_validate(ticket) for ticket in tickets],
+        tickets=[
+            schemas.TicketResponse.model_validate(
+                {
+                    **ticket.__dict__,
+                    "vuln_id": str(ticket.threat.vuln_id) if ticket.threat else None,
+                },
+                from_attributes=True,
+            )
+            for ticket in tickets
+        ],
     )
