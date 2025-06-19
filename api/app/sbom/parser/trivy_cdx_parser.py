@@ -187,14 +187,23 @@ class TrivyCDXParser(SBOMParser):
             artifacts_key = (
                 f"{package_info['pkg_name']}:{package_info['ecosystem']}:{package_info['pkg_mgr']}"
             )
+
+            source_name = None
+            for key, value in component.properties.items():
+                if "SrcName" in key:
+                    source_name = value
+                    break
+
             artifact = artifacts_map.get(
                 artifacts_key,
                 Artifact(
                     package_name=package_info["pkg_name"],
                     ecosystem=package_info["ecosystem"],
                     package_manager=package_info["pkg_mgr"],
+                    source_name=source_name,
                 ),
             )
+
             artifacts_map[artifacts_key] = artifact
             for _target_ref, target_name in component.targets:
                 new_target = (target_name, component.version)

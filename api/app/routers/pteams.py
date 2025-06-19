@@ -1221,11 +1221,18 @@ def apply_service_packages(
             raise ValueError("Missing target and|or version")
         package_manager = str(line.get("package_manager", ""))
 
+        if source_name_raw := line.get("source_name"):
+            source_name = str(source_name_raw)
+        else:
+            source_name = source_name_raw
+
         if not (
             _package := persistence.get_package_by_name_and_ecosystem(db, package_name, ecosystem)
         ):
             # create new package
-            _package = models.Package(name=package_name, ecosystem=ecosystem)
+            _package = models.Package(
+                name=package_name, ecosystem=ecosystem, source_name=source_name
+            )
             persistence.create_package(db, _package)
 
         if _package:
