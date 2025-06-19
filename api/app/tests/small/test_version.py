@@ -1,11 +1,11 @@
 from operator import ge, gt, le, lt
 
 import pytest
+from univers.debian import Version as DebianVersion
 from univers.versions import GolangVersion, SemverVersion
 
 from app.detector.package_family import PackageFamily
 from app.detector.version import version_factory
-from app.detector.version.ext_debian_version import ExtDebianVersion
 from app.detector.version.ext_pypi_version import ExtPypiVersion
 from app.detector.vulnerable_range import VulnerableRange
 
@@ -19,7 +19,7 @@ class TestComparableVersion:
             actual_operator = {">=": ge, ">": gt, "<=": le, "<": lt}[operator]
             return actual_operator(left, right)
 
-    class TestExtDebianVersion(_TestVersion):
+    class TestDebianVersion(_TestVersion):
         @pytest.mark.parametrize(
             "version_string, expected",
             # expected: Union[tuple[int, str, str], str] -- (epoch, upstream, revision) or exception
@@ -39,7 +39,7 @@ class TestComparableVersion:
             self, version_string, expected
         ):
             version_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, version_string)
-            assert isinstance(version_obj, ExtDebianVersion)
+            assert isinstance(version_obj, DebianVersion)
             assert (version_obj.epoch, version_obj.upstream, version_obj.revision) == expected
 
         @pytest.mark.parametrize(
@@ -88,43 +88,43 @@ class TestComparableVersion:
                 ("1.3", "1.2.3", ">", True),
                 ("1.3", "1.2.3", "<=", False),
                 ("1.3", "1.2.3", "<", False),
-                ("1:1.2", "1.2", "==", True),  # epoch should be ignored
-                ("1:1.2", "1.2.0", "==", False),  # epoch should be ignored
-                ("1:1.2", "1.2.0", "<", True),  # epoch should be ignored
-                ("1:1.2", "1.2.0", "<=", True),  # epoch should be ignored
-                ("1:1.2", "1.2.0", ">", False),  # epoch should be ignored
-                ("1:1.2", "1.2.0", ">=", False),  # epoch should be ignored
-                ("1.2", "1:1.2", "==", True),  # epoch should be ignored
-                ("1.2", "1:1.2.0", "==", False),  # epoch should be ignored
-                ("1.2", "1:1.2.0", "<", True),  # epoch should be ignored
-                ("1.2", "1:1.2.0", "<=", True),  # epoch should be ignored
-                ("1.2", "1:1.2.0", ">", False),  # epoch should be ignored
-                ("1.2", "1:1.2.0", ">=", False),  # epoch should be ignored
+                ("1:1.2", "1.2", "==", False),
+                ("1:1.2", "1.2.0", "==", False),
+                ("1:1.2", "1.2.0", "<", False),
+                ("1:1.2", "1.2.0", "<=", False),
+                ("1:1.2", "1.2.0", ">", True),
+                ("1:1.2", "1.2.0", ">=", True),
+                ("1.2", "1:1.2", "==", False),
+                ("1.2", "1:1.2.0", "==", False),
+                ("1.2", "1:1.2.0", "<", True),
+                ("1.2", "1:1.2.0", "<=", True),
+                ("1.2", "1:1.2.0", ">", False),
+                ("1.2", "1:1.2.0", ">=", False),
                 ("0:2.3", "2.3", "==", True),
                 ("2.3", "0:2.3", "==", True),
-                ("1.2-5ubuntu4.6", "1.2", "==", True),  # revision should be ignored
-                ("1.2-5ubuntu4.6", "1.2", "<", False),  # revision should be ignored
-                ("1.2-5ubuntu4.6", "1.2", "<=", True),  # revision should be ignored
-                ("1.2-5ubuntu4.6", "1.2", ">", False),  # revision should be ignored
-                ("1.2-5ubuntu4.6", "1.2", ">=", True),  # revision should be ignored
-                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", "==", True),  # revision should be ignored
-                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", "<", False),  # revision should be ignored
-                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", "<=", True),  # revision should be ignored
-                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", ">", False),  # revision should be ignored
-                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", ">=", True),  # revision should be ignored
-                ("1.2-6", "1.2-5ubuntu4.6", "==", True),  # revision should be ignored
-                ("1.2-6", "1.2-5ubuntu4.6", "<", False),  # revision should be ignored
-                ("1.2-6", "1.2-5ubuntu4.6", "<=", True),  # revision should be ignored
-                ("1.2-6", "1.2-5ubuntu4.6", ">", False),  # revision should be ignored
-                ("1.2-6", "1.2-5ubuntu4.6", ">=", True),  # revision should be ignored
-                ("3:1.2-6", "4:1.2-5", "==", True),  # epoch & revision should be ignored
-                ("3:1.2-6", "4:1.2-5", "<", False),  # epoch & revision should be ignored
-                ("3:1.2-6", "4:1.2-5", "<=", True),  # epoch & revision should be ignored
-                ("3:1.2-6", "4:1.2-5", ">", False),  # epoch & revision should be ignored
-                ("3:1.2-6", "4:1.2-5", ">=", True),  # epoch & revision should be ignored
+                ("1.2-5ubuntu4.6", "1.2", "==", False),
+                ("1.2-5ubuntu4.6", "1.2", "<", False),
+                ("1.2-5ubuntu4.6", "1.2", "<=", False),
+                ("1.2-5ubuntu4.6", "1.2", ">", True),
+                ("1.2-5ubuntu4.6", "1.2", ">=", True),
+                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", "==", True),
+                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", "<", False),
+                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", "<=", True),
+                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", ">", False),
+                ("1.2-5ubuntu4.6", "1.2-5ubuntu4.6", ">=", True),
+                ("1.2-6", "1.2-5ubuntu4.6", "==", False),
+                ("1.2-6", "1.2-5ubuntu4.6", "<", False),
+                ("1.2-6", "1.2-5ubuntu4.6", "<=", False),
+                ("1.2-6", "1.2-5ubuntu4.6", ">", True),
+                ("1.2-6", "1.2-5ubuntu4.6", ">=", True),
+                ("3:1.2-6", "4:1.2-5", "==", False),
+                ("3:1.2-6", "4:1.2-5", "<", True),
+                ("3:1.2-6", "4:1.2-5", "<=", True),
+                ("3:1.2-6", "4:1.2-5", ">", False),
+                ("3:1.2-6", "4:1.2-5", ">=", False),
                 ("1.2-3-4", "1.2-3", "==", False),
-                ("1.2-3-4", "1.2-3-", "==", True),
-                ("1.2-3-4", "1.2-3-5", "==", True),
+                ("1.2-3-4", "1.2-3-", "==", False),
+                ("1.2-3-4", "1.2-3-5", "==", False),
             ],
         )
         def test_version_instances_can_be_properly_compared_using_comparison_operator(
@@ -137,11 +137,11 @@ class TestComparableVersion:
         def test_comparing_version_instances_with_different_package_families_raises_value_error(
             self,
         ):
-            expected = " not supported between instances of "
+            expected = "'>=' not supported between instances of 'Version' and 'SemverVersion'"
             debian_obj = version_factory.gen_version_instance(PackageFamily.DEBIAN, "1.2.3")
             target_obj = version_factory.gen_version_instance(PackageFamily.UNKNOWN, "1.2.3")
             if isinstance(expected, str):
-                with pytest.raises(ValueError, match=expected):
+                with pytest.raises(TypeError, match=expected):
                     assert debian_obj >= target_obj
                 return
 
@@ -214,18 +214,18 @@ class TestComparableVersion:
                 ("1.3", "1.2.3", ">", True),
                 ("1.3", "1.2.3", "<=", False),
                 ("1.3", "1.2.3", "<", False),
-                ("1!1.2", "1.2", "==", True),  # epoch should be ignored
+                ("1!1.2", "1.2", "==", True),
                 ("1!1.2", "1.2.0", "==", True),  # epoch should be ignored, different from debian
                 ("1!1.2", "1.2.0", "<", False),  # epoch should be ignored, different from debian
-                ("1!1.2", "1.2.0", "<=", True),  # epoch should be ignored
-                ("1!1.2", "1.2.0", ">", False),  # epoch should be ignored
-                ("1!1.2", "1.2.0", ">=", True),  # epoch should be ignored
-                ("1.2", "1!1.2", "==", True),  # epoch should be ignored
-                ("1.2", "1!1.2.0", "==", True),  # epoch should be ignored
-                ("1.2", "1!1.2.0", "<", False),  # epoch should be ignored
-                ("1.2", "1!1.2.0", "<=", True),  # epoch should be ignored
-                ("1.2", "1!1.2.0", ">", False),  # epoch should be ignored
-                ("1.2", "1!1.2.0", ">=", True),  # epoch should be ignored
+                ("1!1.2", "1.2.0", "<=", True),
+                ("1!1.2", "1.2.0", ">", False),
+                ("1!1.2", "1.2.0", ">=", True),
+                ("1.2", "1!1.2", "==", True),
+                ("1.2", "1!1.2.0", "==", True),
+                ("1.2", "1!1.2.0", "<", False),
+                ("1.2", "1!1.2.0", "<=", True),
+                ("1.2", "1!1.2.0", ">", False),
+                ("1.2", "1!1.2.0", ">=", True),
                 ("0!2.3", "2.3", "==", True),
                 ("2.3", "0!2.3", "==", True),
                 ("1.2+abc", "1.2", "==", True),  # local should be ignored
@@ -331,7 +331,11 @@ class TestComparableVersion:
         @pytest.mark.parametrize(
             "package_family, version_string, expected",
             [
-                (PackageFamily.DEBIAN, "1.2.3", " not supported between instances of "),
+                (
+                    PackageFamily.DEBIAN,
+                    "1.2.3",
+                    "'>=' not supported between instances of 'SemverVersion' and 'Version'",
+                ),
                 (PackageFamily.UNKNOWN, "1.2.3", True),
             ],
         )
@@ -339,7 +343,7 @@ class TestComparableVersion:
             semver_obj = version_factory.gen_version_instance(PackageFamily.UNKNOWN, "1.2.3")
             target_obj = version_factory.gen_version_instance(package_family, version_string)
             if isinstance(expected, str):
-                with pytest.raises(ValueError, match=expected):
+                with pytest.raises(TypeError, match=expected):
                     assert semver_obj >= target_obj
                 return
             assert (semver_obj >= target_obj and semver_obj <= target_obj) == expected
@@ -446,24 +450,24 @@ class TestVulnerableRange:
         with pytest.raises(ValueError, match=r"Ambiguous "):
             VulnerableRange(ge=self.pypi_version1, lt=self.debian_version1)
 
-    class TestExtDebianVersion:
+    class TestDebianVersion:
         @pytest.mark.parametrize(
             "references, vulnerable, expected",
             [
                 (["9.50~dfsg-5ubuntu4.6"], "=9.50~dfsg-5ubuntu4.6", True),
-                (["9.50~dfsg-5ubuntu4.6"], "=9.50~dfsg-6ubuntu4.6", True),
+                (["9.50~dfsg-5ubuntu4.6"], "=9.50~dfsg-6ubuntu4.6", False),
                 (["9.50~dfsg-5ubuntu4.6"], "<=9.50~dfsg-5ubuntu4.6", True),
-                (["9.50~dfsg-5ubuntu4.6"], "<=9.50~dfsg-4ubuntu4.6", True),
-                (["9.50~dfsg-5ubuntu4.6"], "<9.50~dfsg-6ubuntu4.6", False),
+                (["9.50~dfsg-5ubuntu4.6"], "<=9.50~dfsg-4ubuntu4.6", False),
+                (["9.50~dfsg-5ubuntu4.6"], "<9.50~dfsg-6ubuntu4.6", True),
                 (["9.50~dfsg-5ubuntu4.6"], "<9.50~dfsg-5ubuntu4.6", False),
                 (["9.50~dfsg-5ubuntu4.6"], ">=9.50~dfsg-5ubuntu4.6", True),
-                (["9.50~dfsg-5ubuntu4.6"], ">=9.50~dfsg-6ubuntu4.6", True),
-                (["9.50~dfsg-5ubuntu4.6"], ">9.50~dfsg-4ubuntu4.6", False),
+                (["9.50~dfsg-5ubuntu4.6"], ">=9.50~dfsg-6ubuntu4.6", False),
+                (["9.50~dfsg-5ubuntu4.6"], ">9.50~dfsg-4ubuntu4.6", True),
                 (["9.50~dfsg-5ubuntu4.6"], ">9.50~dfsg-5ubuntu4.6", False),
                 (["0:9.50~dfsg-5ubuntu4.6"], "=9.50~dfsg-5ubuntu4.6", True),
-                (["9.50~dfsg-5ubuntu4.6"], "=1:9.50~dfsg-5ubuntu4.6", True),
-                (["1:9.50~dfsg-5ubuntu4.6"], "=9.50~dfsg-5ubuntu4.6", True),
-                (["1:9.50~dfsg-5ubuntu4.6"], "=2:9.50~dfsg-5ubuntu4.6", True),
+                (["9.50~dfsg-5ubuntu4.6"], "=1:9.50~dfsg-5ubuntu4.6", False),
+                (["1:9.50~dfsg-5ubuntu4.6"], "=9.50~dfsg-5ubuntu4.6", False),
+                (["1:9.50~dfsg-5ubuntu4.6"], "=2:9.50~dfsg-5ubuntu4.6", False),
                 (["1:9.50~dfsg-5ubuntu4.6"], "=1:9.50~dfsg-5ubuntu4.6", True),
                 (["2.3.4"], ">=2.0.0 <2.3.4", False),
                 (["2.3.4"], ">=2.0.0 <2.3.5", True),
