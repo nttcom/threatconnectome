@@ -52,6 +52,12 @@ class ActionType(str, enum.Enum):
     rejection = "rejection"
 
 
+class PackageType(str, enum.Enum):
+    lang = "lang"
+    os = "os"
+    package = "package"
+
+
 class VulnStatusType(str, enum.Enum):
     alerted = "alerted"
     acknowledged = "acknowledged"
@@ -221,10 +227,30 @@ class Package(Base):
     name: Mapped[str] = mapped_column()
     ecosystem: Mapped[str] = mapped_column()
 
+    type: Mapped[PackageType] = mapped_column(String(50))
+
+    __mapper_args__ = {
+        "polymorphic_on": type,
+        "polymorphic_identity": PackageType.package,
+    }
+
     package_versions = relationship(
         "PackageVersion", back_populates="package", cascade="all, delete-orphan"
     )
-    affects = relationship("Affect", back_populates="package")
+
+
+class LangPackage(Package):
+    __mapper_args__ = {
+        "polymorphic_identity": PackageType.lang,
+    }
+
+
+class OSPackage(Package):
+    source_name: Mapped[str] = mapped_column()
+
+    __mapper_args__ = {
+        "polymorphic_identity": PackageType.os,
+    }
 
 
 class Dependency(Base):
@@ -546,14 +572,13 @@ class Affect(Base):
     vuln_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
     )
-    package_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("package.package_id", ondelete="CASCADE"), index=True
-    )
+
     affected_versions: Mapped[list[str]] = mapped_column(default=[])
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
+    name: Mapped[str] = mapped_column()
+    ecosystem: Mapped[str] = mapped_column()
 
     vuln = relationship("Vuln", back_populates="affects")
-    package = relationship("Package", back_populates="affects")
 
 
 class ActionLog(Base):
