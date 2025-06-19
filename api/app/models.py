@@ -2,7 +2,8 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
+from sqlalchemy import JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
