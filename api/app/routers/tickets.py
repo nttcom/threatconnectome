@@ -51,8 +51,7 @@ def get_tickets(
                 {
                     **ticket.__dict__,
                     "vuln_id": str(ticket.threat.vuln_id) if ticket.threat else None,
-                },
-                from_attributes=True,
+                }
             )
             for ticket in tickets
         ],
