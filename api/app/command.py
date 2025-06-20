@@ -484,8 +484,8 @@ def get_tickets_for_pteams(
             )
         )
     # Deduplication, sorting, and pagination
-    tickets = list({t.ticket_id: t for t in tickets}.values())
-    tickets.sort(key=lambda t: (t.ssvc_deployer_priority, t.created_at))
+    tickets = list({ticket.ticket_id: ticket for ticket in tickets}.values())
+    tickets.sort(key=lambda ticket: (ticket.ssvc_deployer_priority, ticket.created_at))
     total_count = len(tickets)
     tickets = tickets[offset : offset + limit]
     return total_count, tickets
