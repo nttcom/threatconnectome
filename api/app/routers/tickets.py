@@ -36,6 +36,7 @@ def get_tickets(
     pteam_ids: list[UUID] | None = Query(None),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    order: str = Query("desc", pattern="^(asc|desc)$"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -43,8 +44,7 @@ def get_tickets(
     Get paginated tickets related to the pteams the current user belongs to.
     """
 
-    user_pteam_ids = {role.pteam_id for role in current_user.pteam_roles}
-
+    user_pteam_ids = {UUID(str(role.pteam_id)) for role in current_user.pteam_roles}
     if not pteam_ids:
         pteam_ids = list(user_pteam_ids)
 
