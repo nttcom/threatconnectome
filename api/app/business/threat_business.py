@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app import models, persistence
+from app import command, models, persistence
 from app.detector import vulnerability_detector
 
 
@@ -16,9 +16,10 @@ def fix_threat_by_vuln(db: Session, vuln: models.Vuln) -> list[models.Threat]:
 
 def _fix_threat_by_affect(db: Session, affect: models.Affect) -> list[models.Threat]:
     threats: list[models.Threat] = []
-    for package_version in affect.package.package_versions:
-        if threat := _fix_threat_for_package_version_and_affect(db, package_version, affect):
-            threats.append(threat)
+    for package in command.get_related_packages_by_affect(db, affect):
+        for package_version in package.package_versions:
+            if threat := _fix_threat_for_package_version_and_affect(db, package_version, affect):
+                threats.append(threat)
 
     return threats
 
@@ -27,7 +28,7 @@ def fix_threat_by_package_version_id(db: Session, package_version_id: str) -> li
     if not (package_version := persistence.get_package_version_by_id(db, package_version_id)):
         return []
 
-    affects = persistence.get_affect_by_package_id(db, package_version.package_id)
+    affects = command.get_related_affects_by_package(db, package_version.package)
     vulns: set[models.Vuln] = set()
     for affect in affects:
         vulns.add(affect.vuln)

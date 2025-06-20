@@ -455,3 +455,32 @@ def get_packages_summary(
     ]
 
     return summary
+
+
+def get_related_packages_by_affect(db: Session, affect: models.Affect) -> Sequence[models.Package]:
+    return db.scalars(
+        select(models.Package).where(
+            and_(
+                models.Package.ecosystem == str(affect.ecosystem),
+                or_(
+                    models.OSPackage.source_name == str(affect.affected_name),
+                    models.Package.name == str(affect.affected_name),
+                ),
+            )
+        )
+    ).all()
+
+
+def get_related_affects_by_package(db: Session, package: models.Package) -> Sequence[models.Affect]:
+    affected_name_condition = [models.Affect.affected_name == str(package.name)]
+    if isinstance(package, models.OSPackage):
+        affected_name_condition.append(models.Affect.affected_name == str(package.source_name))
+
+    return db.scalars(
+        select(models.Affect).where(
+            and_(
+                models.Affect.ecosystem == str(package.ecosystem),
+                or_(*affected_name_condition),
+            )
+        )
+    ).all()
