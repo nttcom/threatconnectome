@@ -53,9 +53,9 @@ class ActionType(str, enum.Enum):
 
 
 class PackageType(str, enum.Enum):
-    lang = "lang"
-    os = "os"
-    package = "package"
+    LANG = "lang"
+    OS = "os"
+    PACKAGE = "package"
 
 
 class VulnStatusType(str, enum.Enum):
@@ -227,11 +227,11 @@ class Package(Base):
     name: Mapped[str] = mapped_column()
     ecosystem: Mapped[str] = mapped_column()
 
-    type: Mapped[PackageType] = mapped_column(String(50))
+    type: Mapped[PackageType] = mapped_column()
 
     __mapper_args__ = {
         "polymorphic_on": type,
-        "polymorphic_identity": PackageType.package,
+        "polymorphic_identity": PackageType.PACKAGE,
     }
 
     package_versions = relationship(
@@ -241,7 +241,7 @@ class Package(Base):
 
 class LangPackage(Package):
     __mapper_args__ = {
-        "polymorphic_identity": PackageType.lang,
+        "polymorphic_identity": PackageType.LANG,
     }
 
 
@@ -249,7 +249,7 @@ class OSPackage(Package):
     source_name: Mapped[str] = mapped_column(nullable=True)
 
     __mapper_args__ = {
-        "polymorphic_identity": PackageType.os,
+        "polymorphic_identity": PackageType.OS,
     }
 
 
