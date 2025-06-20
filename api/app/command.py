@@ -495,7 +495,14 @@ def get_tickets_for_pteams(
     # Deduplication, sorting, and pagination
     tickets = list({ticket.ticket_id: ticket for ticket in tickets}.values())
     tickets.sort(
-        key=lambda ticket: SSVC_PRIORITY_ORDER.get(ticket.ssvc_deployer_priority, 99),
+        key=lambda ticket: SSVC_PRIORITY_ORDER.get(
+            (
+                str(ticket.ssvc_deployer_priority)
+                if ticket.ssvc_deployer_priority is not None
+                else "unknown"
+            ),
+            99,
+        ),
         reverse=reverse,
     )
     total_count = len(tickets)

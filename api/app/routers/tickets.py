@@ -57,6 +57,7 @@ def get_tickets(
         user_id=UUID(current_user.user_id) if current_user.user_id else None,
         offset=offset,
         limit=limit,
+        order=order,
     )
 
     return schemas.TicketListResponse(
