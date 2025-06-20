@@ -10,6 +10,25 @@ from app.database import get_db
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
 
+def ticket_to_response(ticket: models.Ticket):
+    dependency = ticket.dependency
+    service = dependency.service
+    pteam_id = service.pteam_id
+    service_id = service.service_id
+    return schemas.TicketResponse(
+        ticket_id=UUID(ticket.ticket_id),
+        vuln_id=UUID(ticket.threat.vuln_id),
+        dependency_id=UUID(ticket.dependency_id),
+        service_id=service_id,
+        pteam_id=pteam_id,
+        created_at=ticket.created_at,
+        ssvc_deployer_priority=ticket.ssvc_deployer_priority,
+        ticket_safety_impact=ticket.ticket_safety_impact,
+        ticket_safety_impact_change_reason=ticket.ticket_safety_impact_change_reason,
+        ticket_status=(schemas.TicketStatusResponse.model_validate(ticket.ticket_status)),
+    )
+
+
 @router.get("", response_model=schemas.TicketListResponse)
 def get_tickets(
     assigned_to_me: bool = Query(False),
@@ -46,13 +65,5 @@ def get_tickets(
 
     return schemas.TicketListResponse(
         total=total_count,
-        tickets=[
-            schemas.TicketResponse.model_validate(
-                {
-                    **ticket.__dict__,
-                    "vuln_id": str(ticket.threat.vuln_id) if ticket.threat else None,
-                }
-            )
-            for ticket in tickets
-        ],
+        tickets=[ticket_to_response(ticket) for ticket in tickets],
     )
