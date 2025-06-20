@@ -84,7 +84,7 @@ class TrivyCDXParser(SBOMParser):
 
             source_name = ""
             for key, value in self.properties.items():
-                if "SrcName" in key:
+                if "aquasecurity:trivy:SrcName" in key:
                     source_name = value
                     break
 
