@@ -168,14 +168,14 @@ class ActionUpdateRequest(ORMModel):
 
 
 class VulnerablePackageBase(BaseModel):
-    name: str
+    affected_name: str
     ecosystem: str
     affected_versions: list[str]
     fixed_versions: list[str]
 
 
 class VulnerablePackageResponse(VulnerablePackageBase):
-    package_id: UUID
+    package_ids: list[UUID] = []
 
 
 class VulnBase(BaseModel):
@@ -189,17 +189,24 @@ class VulnBase(BaseModel):
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
-class VulnResponse(VulnBase):
+class VulnResponseBase(VulnBase):
     vuln_id: UUID
     created_at: datetime
     updated_at: datetime
     created_by: UUID | None = None
+
+
+class VulnResponse(VulnResponseBase):
     vulnerable_packages: list[VulnerablePackageResponse] = []
+
+
+class VulnsResponse(VulnResponseBase):
+    vulnerable_packages: list[VulnerablePackageBase] = []
 
 
 class VulnsListResponse(BaseModel):
     num_vulns: int
-    vulns: list[VulnResponse]
+    vulns: list[VulnsResponse]
 
 
 class VulnUpdateRequest(VulnBase):

@@ -12,7 +12,7 @@ def fix_package(db: Session, package: models.Package) -> None:
             persistence.delete_package_version(db, package_version)
         else:
             is_referenced_by_dependency = True
-    if is_referenced_by_dependency or len(package.affects) > 0:
+    if is_referenced_by_dependency:
         return
     persistence.delete_package(db, package)
 
