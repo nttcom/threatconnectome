@@ -81,6 +81,13 @@ class TrivyCDXParser(SBOMParser):
             pkg_name = (
                 self.group + "/" + self.name if self.group else self.name
             )  # given by trivy. may include namespace in some case.
+
+            source_name = ""
+            for key, value in self.properties.items():
+                if "aquasecurity:trivy:SrcName" in key:
+                    source_name = value
+                    break
+
             pkg_info = self.purl.type
             pkg_mgr = ""
             if self.targets:
@@ -97,7 +104,12 @@ class TrivyCDXParser(SBOMParser):
                 else:
                     pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
 
-            return {"pkg_name": pkg_name, "ecosystem": pkg_info, "pkg_mgr": pkg_mgr}
+            return {
+                "pkg_name": pkg_name,
+                "source_name": source_name,
+                "ecosystem": pkg_info,
+                "pkg_mgr": pkg_mgr,
+            }
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
@@ -191,6 +203,7 @@ class TrivyCDXParser(SBOMParser):
                 artifacts_key,
                 Artifact(
                     package_name=package_info["pkg_name"],
+                    source_name=package_info["source_name"],
                     ecosystem=package_info["ecosystem"],
                     package_manager=package_info["pkg_mgr"],
                 ),

@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 @dataclass
 class Artifact:
     package_name: str
+    source_name: str
     ecosystem: str
     package_manager: str
     targets: set[tuple[str, str]] = field(init=False, repr=False, default_factory=set)
@@ -13,6 +14,7 @@ class Artifact:
         targets = self.targets if self.targets else {("", version) for version in self.versions}
         return {
             "package_name": self.package_name,
+            "source_name": self.source_name,
             "ecosystem": self.ecosystem,
             "package_manager": self.package_manager,
             "references": sorted(
