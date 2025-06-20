@@ -455,3 +455,52 @@ def get_packages_summary(
     ]
 
     return summary
+
+
+def get_tickets_for_pteams(
+    db: Session,
+    pteam_ids: list[UUID],
+    assigned_to_me: bool = False,
+    user_id: UUID | None = None,
+    offset: int = 0,
+    limit: int = 100,
+) -> tuple[int, Sequence[models.Ticket]]:
+    query = (
+        db.query(models.Ticket)
+        .options(joinedload(models.Ticket.ticket_status))
+        .filter(
+            models.Ticket.dependency.has(
+                models.Dependency.service.has(models.Service.pteam_id.in_(pteam_ids))
+            )
+        )
+    )
+
+    if assigned_to_me and user_id:
+        query = query.join(models.TicketStatus).filter(
+            models.TicketStatus.assignees.contains([str(user_id)])
+        )
+
+    total_count = query.count()
+    tickets = query.offset(offset).limit(limit).all()
+    return total_count, tickets
+
+
+def validate_pteam_ids(
+    db: Session,
+    pteam_ids: list[UUID],
+    user_pteam_ids: set[UUID],
+) -> None:
+    """
+    - Check if all specified pteam_ids exist in DB.
+    - Check if user belongs to all specified pteam_ids.
+    Raises ValueError if not.
+    """
+    db_pteams = db.query(models.PTeam).filter(models.PTeam.pteam_id.in_(pteam_ids)).all()
+    found_pteam_ids = {UUID(str(pteam.pteam_id)) for pteam in db_pteams}
+    not_found = set(pteam_ids) - found_pteam_ids
+    if not_found:
+        raise ValueError(f"Specified pteam_id(s) do not exist: {not_found}")
+
+    not_belong = set(pteam_ids) - user_pteam_ids
+    if not_belong:
+        raise ValueError(f"Specified pteam_id(s) not belonging to the user: {not_belong}")

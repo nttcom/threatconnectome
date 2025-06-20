@@ -1,10 +1,11 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.auth.account import get_current_user
+from app.command import get_tickets_for_pteams, validate_pteam_ids
 from app.database import get_db
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
@@ -41,27 +42,22 @@ def get_tickets(
     """
     Get paginated tickets related to the pteams the current user belongs to.
     """
+
+    user_pteam_ids = {role.pteam_id for role in current_user.pteam_roles}
+
     if not pteam_ids:
-        pteam_ids = [role.pteam_id for role in current_user.pteam_roles]
+        pteam_ids = list(user_pteam_ids)
 
-    query = (
-        db.query(models.Ticket)
-        .options(joinedload(models.Ticket.ticket_status))
-        .filter(
-            models.Ticket.dependency.has(
-                models.Dependency.service.has(models.Service.pteam_id.in_(pteam_ids))
-            )
-        )
+    validate_pteam_ids(db, pteam_ids, user_pteam_ids)
+
+    total_count, tickets = get_tickets_for_pteams(
+        db=db,
+        pteam_ids=pteam_ids,
+        assigned_to_me=assigned_to_me,
+        user_id=UUID(current_user.user_id) if current_user.user_id else None,
+        offset=offset,
+        limit=limit,
     )
-
-    if assigned_to_me:
-        query = query.join(models.TicketStatus).filter(
-            models.TicketStatus.assignees.contains([str(current_user.user_id)])
-        )
-
-    total_count = query.count()
-
-    tickets = query.offset(offset).limit(limit).all()
 
     return schemas.TicketListResponse(
         total=total_count,
