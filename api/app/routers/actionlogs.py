@@ -12,6 +12,12 @@ from app.routers.validators.account_validator import check_pteam_membership
 router = APIRouter(prefix="/actionlogs", tags=["actionlogs"])
 
 
+def to_utc(dt):
+    if isinstance(dt, str):
+        dt = datetime.fromisoformat(dt.replace("Z", "+00:00"))
+    return dt.astimezone(timezone.utc)
+
+
 @router.get("", response_model=list[schemas.ActionLogResponse])
 def get_logs(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
@@ -22,11 +28,12 @@ def get_logs(
     logs = persistence.get_action_logs_by_user_id(db, current_user.user_id)
     result = []
     for log in sorted(logs, key=lambda l: l.executed_at, reverse=True):
+        original_log = log.__dict__.copy()  # to avoid modifying the DB log
         if log.created_at:
-            log.created_at = log.created_at.astimezone(timezone.utc)
+            original_log["created_at"] = to_utc(log.created_at)
         if log.executed_at:
-            log.executed_at = log.executed_at.astimezone(timezone.utc)
-        result.append(log.__dict__)
+            original_log["executed_at"] = to_utc(log.executed_at)
+        result.append(original_log)
     return result
 
 
@@ -102,4 +109,12 @@ def get_vuln_logs(
     if vuln is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
     rows = persistence.get_vuln_logs_by_user_id(db, vuln_id, current_user.user_id)
-    return sorted(rows, key=lambda x: x.executed_at, reverse=True)
+    result = []
+    for log in sorted(rows, key=lambda l: l.executed_at, reverse=True):
+        original_log = log.__dict__.copy()
+        if log.created_at:
+            original_log["created_at"] = to_utc(log.created_at)
+        if log.executed_at:
+            original_log["executed_at"] = to_utc(log.executed_at)
+        result.append(original_log)
+    return result
