@@ -465,23 +465,29 @@ def get_tickets_for_pteams(
     offset: int = 0,
     limit: int = 100,
 ) -> tuple[int, Sequence[models.Ticket]]:
-    query = (
-        db.query(models.Ticket)
-        .options(joinedload(models.Ticket.ticket_status))
-        .filter(
-            models.Ticket.dependency.has(
-                models.Dependency.service.has(models.Service.pteam_id.in_(pteam_ids))
+    # Get list of service_ids corresponding to specified pteams
+    service_ids = [
+        row[0]
+        for row in db.query(models.Service.service_id)
+        .filter(models.Service.pteam_id.in_(pteam_ids))
+        .all()
+    ]
+    tickets: list[models.Ticket] = []
+    for service_id in service_ids:
+        tickets.extend(
+            get_sorted_tickets_related_to_service_and_package_and_vuln(
+                db=db,
+                service_id=service_id,
+                package_id=None,
+                vuln_id=None,
+                assigned_user_id=user_id if assigned_to_me else None,
             )
         )
-    )
-
-    if assigned_to_me and user_id:
-        query = query.join(models.TicketStatus).filter(
-            models.TicketStatus.assignees.contains([str(user_id)])
-        )
-
-    total_count = query.count()
-    tickets = query.offset(offset).limit(limit).all()
+    # Deduplication, sorting, and pagination
+    tickets = list({t.ticket_id: t for t in tickets}.values())
+    tickets.sort(key=lambda t: (t.ssvc_deployer_priority, t.created_at))
+    total_count = len(tickets)
+    tickets = tickets[offset : offset + limit]
     return total_count, tickets
 
 
