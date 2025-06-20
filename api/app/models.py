@@ -246,7 +246,7 @@ class LangPackage(Package):
 
 
 class OSPackage(Package):
-    source_name: Mapped[str] = mapped_column()
+    source_name: Mapped[str] = mapped_column(nullable=True)
 
     __mapper_args__ = {
         "polymorphic_identity": PackageType.os,
@@ -575,7 +575,7 @@ class Affect(Base):
 
     affected_versions: Mapped[list[str]] = mapped_column(default=[])
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
-    name: Mapped[str] = mapped_column()
+    affected_name: Mapped[str] = mapped_column()
     ecosystem: Mapped[str] = mapped_column()
 
     vuln = relationship("Vuln", back_populates="affects")
