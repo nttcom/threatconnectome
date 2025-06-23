@@ -190,16 +190,16 @@ def get_vulns(
             models.Package,
             or_(
                 # LangPackage: name, ecosystem
-                (
-                    (models.Package.type == models.PackageType.LANG)
-                    & (models.Package.name == models.Affect.affected_name)
-                    & (models.Package.ecosystem == models.Affect.ecosystem)
+                and_(
+                    models.Package.type == models.PackageType.LANG,
+                    models.Package.name == models.Affect.affected_name,
+                    models.Package.ecosystem == models.Affect.ecosystem,
                 ),
                 # OSPackage: source_name, ecosystem
-                (
-                    (models.Package.type == models.PackageType.OS)
-                    & (models.OSPackage.source_name == models.Affect.affected_name)
-                    & (models.Package.ecosystem == models.Affect.ecosystem)
+                and_(
+                    models.Package.type == models.PackageType.OS,
+                    models.OSPackage.source_name == models.Affect.affected_name,
+                    models.Package.ecosystem == models.Affect.ecosystem,
                 ),
             ),
         )
