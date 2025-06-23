@@ -183,7 +183,15 @@ def get_vulns(
                 raise ValueError(f"Invalid CVE ID format: {cve_id}")
 
     # Base query
-    query = select(models.Vuln).join(models.Affect)
+    query = (
+        select(models.Vuln, models.Affect, models.Package)
+        .join(models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id)
+        .join(
+            models.Package,
+            (models.Package.name == models.Affect.affected_name)
+            & (models.Package.ecosystem == models.Affect.ecosystem),
+        )
+    )
 
     # Conditionally join Dependency if package_manager is specified
 
@@ -290,13 +298,22 @@ def get_vulns(
 
     # Pageination
     query = query.distinct().offset(offset).limit(limit)
-    vulns = db.scalars(query).all()
+
+    rows = db.execute(query).all()
+
+    vuln_dict = {}
+    for vuln, affect, package in rows:
+        if vuln.vuln_id not in vuln_dict:
+            vuln_dict[vuln.vuln_id] = {
+                "vuln": vuln,
+                "affects": [],
+            }
+        vuln_dict[vuln.vuln_id]["affects"].append((affect, package))
 
     result = {
         "num_vulns": num_vulns,
-        "vulns": vulns,
+        "vulns": list(vuln_dict.values()),
     }
-
     return result
 
 

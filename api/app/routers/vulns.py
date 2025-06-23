@@ -409,16 +409,18 @@ def get_vulns(
         )
 
     response_vulns = []
-    for vuln in result["vulns"]:
+    for vuln_entry in result["vulns"]:
+        vuln = vuln_entry["vuln"]
+        affects = vuln_entry["affects"]
         vulnerable_packages = [
             schemas.VulnerablePackageResponse(
-                package_id=affect.package_id,
-                name=affect.package.name,
-                ecosystem=affect.package.ecosystem,
+                package_id=package.package_id,
+                name=affect.affected_name,
+                ecosystem=affect.ecosystem,
                 affected_versions=affect.affected_versions,
                 fixed_versions=affect.fixed_versions,
             )
-            for affect in vuln.affects
+            for affect, package in affects
         ]
         response_vulns.append(
             schemas.VulnResponse(
