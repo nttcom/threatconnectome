@@ -1231,12 +1231,12 @@ def apply_service_packages(
             # create new package
             package_family = PackageFamily.from_registry(ecosystem)
             if package_family == PackageFamily.DEBIAN:
-                _package = models.Package(
-                    name=package_name, ecosystem=ecosystem, source_name=source_name
+                _package = models.OSPackage(
+                    name=package_name, ecosystem=ecosystem, source_name=str(line.get("source_name"))
                 )
                 persistence.create_package(db, _package)
             else:
-                _package = models.Package(name=package_name, ecosystem=ecosystem)
+                _package = models.LangPackage(name=package_name, ecosystem=ecosystem)
                 persistence.create_package(db, _package)
 
         if _package:
