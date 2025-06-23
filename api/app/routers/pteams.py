@@ -22,6 +22,7 @@ from app.business.ssvc_business import (
 )
 from app.business.ticket_business import fix_ticket_ssvc_priority
 from app.database import get_db, open_db_session
+from app.detector.package_family import PackageFamily
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
 from app.routers.validators.account_validator import (
@@ -1225,8 +1226,15 @@ def apply_service_packages(
             _package := persistence.get_package_by_name_and_ecosystem(db, package_name, ecosystem)
         ):
             # create new package
-            _package = models.Package(name=package_name, ecosystem=ecosystem)
-            persistence.create_package(db, _package)
+            package_family = PackageFamily.from_registry(ecosystem)
+            if package_family == PackageFamily.DEBIAN:
+                _package = models.OSPackage(
+                    name=package_name, ecosystem=ecosystem, source_name=str(line.get("source_name"))
+                )
+                persistence.create_package(db, _package)
+            else:
+                _package = models.LangPackage(name=package_name, ecosystem=ecosystem)
+                persistence.create_package(db, _package)
 
         if _package:
             for ref in line.get("references", [{}]):
