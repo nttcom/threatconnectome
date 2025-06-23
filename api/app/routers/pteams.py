@@ -1213,9 +1213,6 @@ def apply_service_packages(
         if not (package_name_raw := line.get("package_name")):
             raise ValueError("Missing package name")
         package_name = str(package_name_raw)
-        if (source_name := line.get("source_name")) is None:
-            raise ValueError("Missing source name")
-        source_name = str(source_name)
         if not (ecosystem_raw := line.get("ecosystem")):
             raise ValueError("Missing ecosystem")
         ecosystem = str(ecosystem_raw)
