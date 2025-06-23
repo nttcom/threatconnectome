@@ -193,8 +193,6 @@ def get_vulns(
         )
     )
 
-    # Conditionally join Dependency if package_manager is specified
-
     filters = []
 
     if min_cvss_v3_score is not None:
