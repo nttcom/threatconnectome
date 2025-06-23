@@ -334,7 +334,6 @@ def get_vulns(
     cve_ids: list[str] | None = Query(None),
     package_name: list[str] | None = Query(None),
     ecosystem: list[str] | None = Query(None),
-    package_manager: str | None = Query(None),
     sort_key: schemas.VulnSortKey = Query(schemas.VulnSortKey.CVSS_V3_SCORE_DESC),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -359,7 +358,6 @@ def get_vulns(
     - `cve_ids`: List of CVE IDs to filter by.
     - `package_name`: List of package names to filter by.
     - `ecosystem`: List of ecosystems to filter by.
-    - `package_manager`: Package manager to filter by.
 
     ### Sorting:
     - `sort_key`: Sort key for the results. Default is `CVSS_V3_SCORE_DESC`.
@@ -402,7 +400,6 @@ def get_vulns(
             cve_ids=cve_ids,
             package_name=package_name,
             ecosystem=ecosystem,
-            package_manager=package_manager,
             sort_key=sort_key,
         )
     except ValueError as e:

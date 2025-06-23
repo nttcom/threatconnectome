@@ -103,31 +103,15 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
 def get_vulns_count(
     db: Session,
     filters,
-    package_manager: str | None,
     pteam_id: UUID | str | None,
 ) -> int:
     count_query = select(func.count(models.Vuln.vuln_id.distinct()))
     count_query = count_query.join(
         models.Affect,
-    ).join(models.Package, models.Affect.package_id == models.Package.package_id)
+    )
 
     # Add a JOIN if referencing Dependency
-    if package_manager:
-        count_query = count_query.outerjoin(
-            models.PackageVersion, models.Package.package_id == models.PackageVersion.package_id
-        ).outerjoin(
-            models.Dependency,
-            models.PackageVersion.package_version_id == models.Dependency.package_version_id,
-        )
-        if pteam_id:
-            count_query = count_query.join(
-                models.Service,
-                and_(
-                    models.Service.service_id == models.Dependency.service_id,
-                    models.Service.pteam_id == str(pteam_id),
-                ),
-            )
-    elif pteam_id:
+    if pteam_id:
         count_query = (
             count_query.outerjoin(
                 models.PackageVersion,
@@ -170,7 +154,6 @@ def get_vulns(
     cve_ids: list[str] | None = None,
     package_name: list[str] | None = None,
     ecosystem: list[str] | None = None,
-    package_manager: str | None = None,
     sort_key: schemas.VulnSortKey = schemas.VulnSortKey.CVSS_V3_SCORE_DESC,  # set default sort key
 ) -> dict:
     # Remove duplicates from lists
@@ -200,20 +183,9 @@ def get_vulns(
                 raise ValueError(f"Invalid CVE ID format: {cve_id}")
 
     # Base query
-    query = (
-        select(models.Vuln)
-        .join(models.Affect)
-        .join(models.Package, models.Affect.package_id == models.Package.package_id)
-    )
+    query = select(models.Vuln).join(models.Affect)
 
     # Conditionally join Dependency if package_manager is specified
-    if package_manager:
-        query = query.outerjoin(
-            models.PackageVersion, models.Package.package_id == models.PackageVersion.package_id
-        ).outerjoin(
-            models.Dependency,
-            models.PackageVersion.package_version_id == models.Dependency.package_version_id,
-        )
 
     filters = []
 
@@ -264,48 +236,33 @@ def get_vulns(
     if len(fixed_creator_ids) > 0:
         filters.append(models.Vuln.created_by.in_(fixed_creator_ids))
 
-    # Affect filters
     if package_name:
-        filters.append(models.Affect.package.has(models.Package.name.in_(package_name)))
+        filters.append(models.Affect.affected_name.in_(package_name))
     if ecosystem:
-        filters.append(models.Affect.package.has(models.Package.ecosystem.in_(ecosystem)))
+        filters.append(models.Affect.ecosystem.in_(ecosystem))
 
     # PTeam filter
     if pteam_id:
-        if package_manager:
-            query = query.join(
+        query = (
+            query.outerjoin(
+                models.PackageVersion,
+                models.Package.package_id == models.PackageVersion.package_id,
+            )
+            .join(
+                models.Dependency,
+                models.PackageVersion.package_version_id == models.Dependency.package_version_id,
+            )
+            .join(
                 models.Service,
                 and_(
                     models.Service.service_id == models.Dependency.service_id,
                     models.Service.pteam_id == str(pteam_id),
                 ),
             )
-        else:
-            query = (
-                query.outerjoin(
-                    models.PackageVersion,
-                    models.Package.package_id == models.PackageVersion.package_id,
-                )
-                .join(
-                    models.Dependency,
-                    models.PackageVersion.package_version_id
-                    == models.Dependency.package_version_id,
-                )
-                .join(
-                    models.Service,
-                    and_(
-                        models.Service.service_id == models.Dependency.service_id,
-                        models.Service.pteam_id == str(pteam_id),
-                    ),
-                )
-            )
-
-    # Dependency filters
-    if package_manager:
-        filters.append(models.Dependency.package_manager == package_manager)
+        )
 
     # Count total number of vulnerabilities matching the filters
-    num_vulns = get_vulns_count(db, filters, package_manager, pteam_id)
+    num_vulns = get_vulns_count(db, filters, pteam_id)
 
     if filters:
         query = query.where(and_(*filters))
@@ -442,7 +399,6 @@ def get_packages_summary(
             "package_id": row.package_id,
             "package_name": row.name,
             "ecosystem": row.ecosystem,
-            "package_managers": row.package_managers,
             "ssvc_priority": row.min_ssvc_priority,
             "updated_at": row.max_updated_at,
             "service_ids": row.service_ids,
