@@ -167,15 +167,11 @@ class ActionUpdateRequest(ORMModel):
     recommended: bool | None = None
 
 
-class VulnerablePackageBase(BaseModel):
+class VulnerablePackageResponse(BaseModel):
     affected_name: str
     ecosystem: str
     affected_versions: list[str]
     fixed_versions: list[str]
-
-
-class VulnerablePackageResponse(VulnerablePackageBase):
-    package_ids: list[UUID] = []
 
 
 class VulnBase(BaseModel):
@@ -185,32 +181,25 @@ class VulnBase(BaseModel):
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
+    vulnerable_packages: list[VulnerablePackageResponse] = []
 
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
 
-class VulnResponseBase(VulnBase):
+class VulnResponse(VulnBase):
     vuln_id: UUID
     created_at: datetime
     updated_at: datetime
     created_by: UUID | None = None
 
 
-class VulnResponse(VulnResponseBase):
-    vulnerable_packages: list[VulnerablePackageResponse] = []
-
-
-class VulnsResponse(VulnResponseBase):
-    vulnerable_packages: list[VulnerablePackageBase] = []
-
-
 class VulnsListResponse(BaseModel):
     num_vulns: int
-    vulns: list[VulnsResponse]
+    vulns: list[VulnResponse]
 
 
 class VulnUpdateRequest(VulnBase):
-    vulnerable_packages: list[VulnerablePackageBase] = []
+    pass
 
 
 class PTeamInfo(PTeamEntry):

@@ -17,10 +17,8 @@ NO_SUCH_VULN = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No s
 def _create_vuln_response(db: Session, vuln: models.Vuln) -> schemas.VulnResponse:
     vulnerable_packages_response = []
     for affect in vuln.affects:
-        packages = command.get_related_packages_by_affect(db, affect)
         vulnerable_packages_response.append(
             schemas.VulnerablePackageResponse(
-                package_ids=[UUID(package.package_id) for package in packages],
                 affected_name=affect.affected_name,
                 ecosystem=affect.ecosystem,
                 affected_versions=affect.affected_versions,
@@ -120,10 +118,8 @@ def __handle_create_vuln(
     # create vulnerable_packages_response
     vulnerable_packages_response = []
     for affect in vuln.affects:
-        packages = command.get_related_packages_by_affect(db, affect)
         vulnerable_packages_response.append(
             schemas.VulnerablePackageResponse(
-                package_ids=[UUID(package.package_id) for package in packages],
                 affected_name=affect.affected_name,
                 ecosystem=affect.ecosystem,
                 affected_versions=affect.affected_versions,
@@ -383,7 +379,7 @@ def get_vulns(
             for affect in vuln.affects
         ]
         response_vulns.append(
-            schemas.VulnsResponse(
+            schemas.VulnResponse(
                 vuln_id=vuln.vuln_id,
                 created_at=vuln.created_at,
                 updated_at=vuln.updated_at,
