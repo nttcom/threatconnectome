@@ -223,9 +223,12 @@ def _check_request_fields(request: schemas.VulnUpdateRequest, update_request: di
     for vuln_pkg in request.vulnerable_packages:
         pair = (vuln_pkg.affected_name, vuln_pkg.ecosystem)
         if pair in name_ecosystem_pairs:
+            message = (
+                f"Duplicate package {vuln_pkg.affected_name} in ecosystem {vuln_pkg.ecosystem}"
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Duplicate package {vuln_pkg.affected_name} in ecosystem {vuln_pkg.ecosystem}",
+                detail=message,
             )
         name_ecosystem_pairs.add(pair)
 
