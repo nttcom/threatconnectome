@@ -180,7 +180,6 @@ class TestUpdateVuln:
         assert response.json()["exploitation"] == self.request1["exploitation"]
         assert response.json()["automatable"] == self.request1["automatable"]
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
-        print("testes pkg_resp:", response.json()["vulnerable_packages"])
         pkg_resp = response.json()["vulnerable_packages"][0]
         req_pkg = self.request1["vulnerable_packages"][0]
         assert pkg_resp["affected_name"] == req_pkg["affected_name"]
