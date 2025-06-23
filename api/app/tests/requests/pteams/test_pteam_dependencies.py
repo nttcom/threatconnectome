@@ -36,7 +36,7 @@ class TestGetDependency:
         self.dependency1 = dependencies_response.json()[0]
         self.dependency_id = self.dependency1["dependency_id"]
 
-    def test_it_should_return_dependency_details_when_valid_ids_are_provided(self, testdb):
+    def test_it_should_return_dependency_details_when_valid_ids_are_provided(self):
         # When
         dependency_response = client.get(
             f"/pteams/{self.pteam_id}/dependencies/{self.dependency_id}",
@@ -58,7 +58,7 @@ class TestGetDependency:
         assert data["package_version"] == self.dependency1["package_version"]
         assert data["package_ecosystem"] == self.dependency1["package_ecosystem"]
 
-    def test_it_should_return_404_when_pteam_id_does_not_exist(self, testdb):
+    def test_it_should_return_404_when_pteam_id_does_not_exist(self):
         # Given
         wrong_pteam_id = str(uuid4())
 
@@ -72,7 +72,7 @@ class TestGetDependency:
         assert dependency_response.status_code == 404
         assert dependency_response.json() == {"detail": "No such pteam"}
 
-    def test_it_should_return_404_when_dependency_id_does_not_exist(self, testdb):
+    def test_it_should_return_404_when_dependency_id_does_not_exist(self):
         # Given
         wrong_dependency_id = str(uuid4())
 
