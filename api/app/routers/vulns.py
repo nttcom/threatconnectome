@@ -6,12 +6,39 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.business import package_business, threat_business, ticket_business
+from app.business import threat_business, ticket_business
 from app.database import get_db
 
 router = APIRouter(prefix="/vulns", tags=["vulns"])
 
 NO_SUCH_VULN = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
+
+
+def _create_vuln_response(db: Session, vuln: models.Vuln) -> schemas.VulnResponse:
+    vulnerable_packages_response = []
+    for affect in vuln.affects:
+        vulnerable_packages_response.append(
+            schemas.VulnerablePackageResponse(
+                affected_name=affect.affected_name,
+                ecosystem=affect.ecosystem,
+                affected_versions=affect.affected_versions,
+                fixed_versions=affect.fixed_versions,
+            )
+        )
+
+    return schemas.VulnResponse(
+        vuln_id=UUID(vuln.vuln_id),
+        created_by=UUID(vuln.created_by) if vuln.created_by else None,
+        created_at=vuln.created_at,
+        updated_at=vuln.updated_at,
+        title=vuln.title,
+        cve_id=vuln.cve_id,
+        detail=vuln.detail,
+        exploitation=vuln.exploitation,
+        automatable=vuln.automatable,
+        cvss_v3_score=vuln.cvss_v3_score,
+        vulnerable_packages=vulnerable_packages_response,
+    )
 
 
 @router.put("/{vuln_id}", response_model=schemas.VulnResponse)
@@ -27,16 +54,21 @@ def update_vuln(
     - `cvss_v3_score` : Ranges from 0.0 to 10.0.
     """
     if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
-        vuln_response = __handle_create_vuln(vuln_id, request, current_user, db)
+        vuln = __handle_create_vuln(vuln_id, request, current_user, db)
     else:
-        vuln_response = __handle_update_vuln(vuln, request, current_user, db)
+        vuln = __handle_update_vuln(vuln, request, current_user, db)
+
+    db.refresh(vuln)
+    vuln_response = _create_vuln_response(db, vuln)
+
+    db.commit()
 
     return vuln_response
 
 
 def __handle_create_vuln(
     vuln_id: UUID, request: schemas.VulnUpdateRequest, current_user: models.Account, db: Session
-):
+) -> models.Vuln:
     if vuln_id == UUID(int=0):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create default vuln"
@@ -51,9 +83,6 @@ def __handle_create_vuln(
         )
 
     _check_request_fields(request, update_request)
-
-    # check packages
-    requested_packages = _get_requested_packages(db, request.vulnerable_packages)
 
     # create vuln
     now = datetime.now()
@@ -73,12 +102,13 @@ def __handle_create_vuln(
 
     persistence.create_vuln(db, vuln)
 
-    for package_id, vulnerable_package in requested_packages.items():
+    for vulnerable_package in request.vulnerable_packages:
         affect = models.Affect(
             vuln_id=str(vuln_id),
-            package_id=package_id,
             affected_versions=vulnerable_package.affected_versions,
             fixed_versions=vulnerable_package.fixed_versions,
+            affected_name=vulnerable_package.affected_name,
+            ecosystem=vulnerable_package.ecosystem,
         )
         persistence.create_affect(db, affect)
 
@@ -86,34 +116,19 @@ def __handle_create_vuln(
     for threat in new_threats:
         ticket_business.fix_ticket_by_threat(db, threat)
 
-    db.commit()
-
     # create vulnerable_packages_response
     vulnerable_packages_response = []
-    for package_id, vulnerable_package in requested_packages.items():
+    for affect in vuln.affects:
         vulnerable_packages_response.append(
             schemas.VulnerablePackageResponse(
-                package_id=package_id,
-                name=vulnerable_package.name,
-                ecosystem=vulnerable_package.ecosystem,
-                affected_versions=vulnerable_package.affected_versions,
-                fixed_versions=vulnerable_package.fixed_versions,
+                affected_name=affect.affected_name,
+                ecosystem=affect.ecosystem,
+                affected_versions=affect.affected_versions,
+                fixed_versions=affect.fixed_versions,
             )
         )
 
-    return schemas.VulnResponse(
-        vuln_id=vuln_id,
-        created_by=UUID(vuln.created_by) if vuln.created_by else None,
-        created_at=vuln.created_at,
-        updated_at=vuln.updated_at,
-        title=vuln.title,
-        cve_id=vuln.cve_id,
-        detail=vuln.detail,
-        exploitation=vuln.exploitation,
-        automatable=vuln.automatable,
-        cvss_v3_score=vuln.cvss_v3_score,
-        vulnerable_packages=vulnerable_packages_response,
-    )
+    return vuln
 
 
 def __handle_update_vuln(
@@ -121,7 +136,7 @@ def __handle_update_vuln(
     request: schemas.VulnUpdateRequest,
     current_user: models.Account,
     db: Session,
-):
+) -> models.Vuln:
     if vuln.created_by != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -146,19 +161,18 @@ def __handle_update_vuln(
     if "cvss_v3_score" in update_request.keys():
         vuln.cvss_v3_score = request.cvss_v3_score
     if "vulnerable_packages" in update_request.keys():
-        requested_packages = _get_requested_packages(db, request.vulnerable_packages)
-
-        # update affect
+        affect_keys = {
+            (vulnerable_package.affected_name, vulnerable_package.ecosystem)
+            for vulnerable_package in request.vulnerable_packages
+        }
         for affect in vuln.affects:
-            if affect.package_id not in requested_packages.keys():
-                package = affect.package
+            if (affect.affected_name, affect.ecosystem) not in affect_keys:
                 persistence.delete_affect(db, affect)
-                package_business.fix_package(db, package)
 
-        for package_id, vulnerable_package in requested_packages.items():
+        for vulnerable_package in request.vulnerable_packages:
             if (
-                persisted_affect := persistence.get_affect_by_package_id_and_vuln_id(
-                    db, package_id, vuln.vuln_id
+                persisted_affect := _get_affect_by_affected_name_and_ecosystem(
+                    vuln.affects, vulnerable_package.affected_name, vulnerable_package.ecosystem
                 )
             ) is not None:
                 persisted_affect.affected_versions = vulnerable_package.affected_versions
@@ -166,9 +180,10 @@ def __handle_update_vuln(
             else:
                 new_affect = models.Affect(
                     vuln_id=str(vuln.vuln_id),
-                    package_id=package_id,
                     affected_versions=vulnerable_package.affected_versions,
                     fixed_versions=vulnerable_package.fixed_versions,
+                    affected_name=vulnerable_package.affected_name,
+                    ecosystem=vulnerable_package.ecosystem,
                 )
                 persistence.create_affect(db, new_affect)
 
@@ -179,32 +194,7 @@ def __handle_update_vuln(
     for threat in new_threats:
         ticket_business.fix_ticket_by_threat(db, threat)
 
-    db.commit()
-
-    vulnerable_packages = [
-        schemas.VulnerablePackageResponse(
-            package_id=affect.package_id,
-            name=affect.package.name,
-            ecosystem=affect.package.ecosystem,
-            affected_versions=affect.affected_versions,
-            fixed_versions=affect.fixed_versions,
-        )
-        for affect in vuln.affects
-    ]
-
-    return schemas.VulnResponse(
-        vuln_id=UUID(vuln.vuln_id),
-        created_by=UUID(vuln.created_by) if vuln.created_by else None,
-        created_at=vuln.created_at,
-        updated_at=vuln.updated_at,
-        title=vuln.title,
-        cve_id=vuln.cve_id,
-        detail=vuln.detail,
-        exploitation=vuln.exploitation,
-        automatable=vuln.automatable,
-        cvss_v3_score=vuln.cvss_v3_score,
-        vulnerable_packages=vulnerable_packages,
-    )
+    return vuln
 
 
 def _check_request_fields(request: schemas.VulnUpdateRequest, update_request: dict):
@@ -231,26 +221,22 @@ def _check_request_fields(request: schemas.VulnUpdateRequest, update_request: di
 
     name_ecosystem_pairs = set()
     for vuln_pkg in request.vulnerable_packages:
-        pair = (vuln_pkg.name, vuln_pkg.ecosystem)
+        pair = (vuln_pkg.affected_name, vuln_pkg.ecosystem)
         if pair in name_ecosystem_pairs:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Duplicate package {vuln_pkg.name} in ecosystem {vuln_pkg.ecosystem}",
+                detail=f"Duplicate package {vuln_pkg.affected_name} in ecosystem {vuln_pkg.ecosystem}",
             )
         name_ecosystem_pairs.add(pair)
 
 
-def _get_requested_packages(db: Session, vulnerable_packages: list) -> dict:
-    requested_packages = {}
-    for vuln_pkg in vulnerable_packages:
-        package = persistence.get_package_by_name_and_ecosystem(
-            db, vuln_pkg.name, vuln_pkg.ecosystem
-        )
-        if not package:
-            package = models.Package(name=vuln_pkg.name, ecosystem=vuln_pkg.ecosystem)
-            persistence.create_package(db, package)
-        requested_packages[package.package_id] = vuln_pkg
-    return requested_packages
+def _get_affect_by_affected_name_and_ecosystem(
+    affects: list[models.Affect], affected_name: str, ecosystem: str
+) -> models.Affect | None:
+    for affect in affects:
+        if affect.affected_name == affected_name and affect.ecosystem == ecosystem:
+            return affect
+    return None
 
 
 @router.delete("/{vuln_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -265,13 +251,8 @@ def delete_vuln(
     if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
         raise NO_SUCH_VULN
 
-    packages: list[models.Package] = [affect.package for affect in vuln.affects]
-
     # Delete the vuln and its associated affects
     persistence.delete_vuln(db, vuln)
-
-    for package in packages:
-        package_business.fix_package(db, package)
 
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -289,31 +270,7 @@ def get_vuln(
     if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
         raise NO_SUCH_VULN
 
-    # Fetch vulnerable packages associated with the vuln
-    vulnerable_packages = [
-        schemas.VulnerablePackageResponse(
-            package_id=affect.package_id,
-            name=affect.package.name,
-            ecosystem=affect.package.ecosystem,
-            affected_versions=affect.affected_versions,
-            fixed_versions=affect.fixed_versions,
-        )
-        for affect in vuln.affects
-    ]
-
-    return schemas.VulnResponse(
-        vuln_id=UUID(vuln.vuln_id),
-        created_by=UUID(vuln.created_by) if vuln.created_by else None,
-        created_at=vuln.created_at,
-        updated_at=vuln.updated_at,
-        title=vuln.title,
-        cve_id=vuln.cve_id,
-        detail=vuln.detail,
-        exploitation=vuln.exploitation,
-        automatable=vuln.automatable,
-        cvss_v3_score=vuln.cvss_v3_score,
-        vulnerable_packages=vulnerable_packages,
-    )
+    return _create_vuln_response(db, vuln)
 
 
 @router.get("", response_model=schemas.VulnsListResponse)
@@ -415,9 +372,8 @@ def get_vulns(
     for vuln in result["vulns"]:
         vulnerable_packages = [
             schemas.VulnerablePackageResponse(
-                package_id=affect.package_id,
-                name=affect.package.name,
-                ecosystem=affect.package.ecosystem,
+                affected_name=affect.affected_name,
+                ecosystem=affect.ecosystem,
                 affected_versions=affect.affected_versions,
                 fixed_versions=affect.fixed_versions,
             )
