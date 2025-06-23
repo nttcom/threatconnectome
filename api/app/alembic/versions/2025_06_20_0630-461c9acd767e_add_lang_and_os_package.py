@@ -42,7 +42,8 @@ def upgrade() -> None:
     op.drop_constraint("affect_package_id_fkey", "affect", type_="foreignkey")
     op.drop_column("affect", "package_id")
 
-    connection.execute(sa.text("CREATE TYPE packagetype AS ENUM ('LANG', 'OS', 'PACKAGE')"))
+    package_type = sa.Enum("LANG", "OS", "PACKAGE", name="packagetype")
+    package_type.create(connection)
 
     op.add_column(
         "package",
@@ -84,7 +85,10 @@ def downgrade() -> None:
     op.drop_column("package", "source_name")
     op.drop_column("package", "type")
 
-    op.execute("DROP TYPE IF EXISTS packagetype")
+    connection = op.get_bind()
+
+    package_type = sa.Enum("LANG", "OS", "PACKAGE", name="packagetype")
+    package_type.drop(connection)
 
     op.add_column(
         "affect",
