@@ -414,6 +414,7 @@ def get_packages_summary(
             "package_id": row.package_id,
             "package_name": row.name,
             "ecosystem": row.ecosystem,
+            "package_managers": row.package_managers,
             "ssvc_priority": row.min_ssvc_priority,
             "updated_at": row.max_updated_at,
             "service_ids": row.service_ids,
