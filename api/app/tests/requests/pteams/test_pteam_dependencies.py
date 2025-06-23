@@ -22,62 +22,69 @@ from app.tests.medium.utils import (
 client = TestClient(app)
 
 
-def test_get_dependency(testdb):
-    service_name1 = "test_service1"
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, service_name1, VULN1)
-    pteam_id = ticket_response["pteam_id"]
+class TestGetDependency:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, testdb):
+        # Given
+        service_name1 = "test_service1"
+        ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, service_name1, VULN1)
+        self.pteam_id = ticket_response["pteam_id"]
 
-    dependencies_response = client.get(f"/pteams/{pteam_id}/dependencies", headers=headers(USER1))
-    dependency1 = dependencies_response.json()[0]
-    dependency_id = dependency1["dependency_id"]
+        dependencies_response = client.get(
+            f"/pteams/{self.pteam_id}/dependencies", headers=headers(USER1)
+        )
+        self.dependency1 = dependencies_response.json()[0]
+        self.dependency_id = self.dependency1["dependency_id"]
 
-    dependency_response = client.get(
-        f"/pteams/{pteam_id}/dependencies/{dependency_id}",
-        headers=headers(USER1),
-    )
-    assert dependency_response.status_code == 200
-    data = dependency_response.json()
-    assert data["dependency_id"] == dependency1["dependency_id"]
-    assert data["service_id"] == dependency1["service_id"]
-    assert data["package_version_id"] == dependency1["package_version_id"]
-    assert data["package_id"] == dependency1["package_id"]
-    assert data["package_manager"] == dependency1["package_manager"]
-    assert data["target"] == dependency1["target"]
-    assert data["dependency_mission_impact"] == dependency1["dependency_mission_impact"]
-    assert data["package_name"] == dependency1["package_name"]
-    assert data["package_version"] == dependency1["package_version"]
-    assert data["package_ecosystem"] == dependency1["package_ecosystem"]
+    def test_it_should_return_dependency_details_when_valid_ids_are_provided(self, testdb):
+        # When
+        dependency_response = client.get(
+            f"/pteams/{self.pteam_id}/dependencies/{self.dependency_id}",
+            headers=headers(USER1),
+        )
 
+        # Then
+        assert dependency_response.status_code == 200
+        data = dependency_response.json()
+        assert data["dependency_id"] == self.dependency1["dependency_id"]
+        assert data["service_id"] == self.dependency1["service_id"]
+        assert data["package_version_id"] == self.dependency1["package_version_id"]
+        assert data["package_id"] == self.dependency1["package_id"]
+        assert data["package_manager"] == self.dependency1["package_manager"]
+        assert data["target"] == self.dependency1["target"]
+        assert data["dependency_mission_impact"] == self.dependency1["dependency_mission_impact"]
+        assert data["package_name"] == self.dependency1["package_name"]
+        assert data["package_source_name"] == self.dependency1["package_source_name"]
+        assert data["package_version"] == self.dependency1["package_version"]
+        assert data["package_ecosystem"] == self.dependency1["package_ecosystem"]
 
-def test_get_dependency_with_wrong_pteam_id(testdb):
-    service_name1 = "test_service1"
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, service_name1, VULN1)
-    pteam_id = ticket_response["pteam_id"]
+    def test_it_should_return_404_when_pteam_id_does_not_exist(self, testdb):
+        # Given
+        wrong_pteam_id = str(uuid4())
 
-    dependencies_response = client.get(f"/pteams/{pteam_id}/dependencies", headers=headers(USER1))
-    dependency1 = dependencies_response.json()[0]
-    dependency_id = dependency1["dependency_id"]
+        # When
+        dependency_response = client.get(
+            f"/pteams/{wrong_pteam_id}/dependencies/{self.dependency_id}",
+            headers=headers(USER1),
+        )
 
-    wrong_pteam_id = str(uuid4())
-    dependency_response = client.get(
-        f"/pteams/{wrong_pteam_id}/dependencies/{dependency_id}",
-        headers=headers(USER1),
-    )
-    assert dependency_response.status_code == 404
-    assert dependency_response.json() == {"detail": "No such pteam"}
+        # Then
+        assert dependency_response.status_code == 404
+        assert dependency_response.json() == {"detail": "No such pteam"}
 
+    def test_it_should_return_404_when_dependency_id_does_not_exist(self, testdb):
+        # Given
+        wrong_dependency_id = str(uuid4())
 
-def test_get_dependency_with_wrong_dependency_id(testdb):
-    service_name1 = "test_service1"
-    ticket_response = ticket_utils.create_ticket(testdb, USER1, PTEAM1, service_name1, VULN1)
-    pteam_id = ticket_response["pteam_id"]
-    wrong_dependency_id = str(uuid4())
-    dependency_response = client.get(
-        f"/pteams/{pteam_id}/dependencies/{wrong_dependency_id}",
-        headers=headers(USER1),
-    )
-    assert dependency_response.status_code == 404
-    assert dependency_response.json() == {"detail": "No such dependency"}
+        # When
+        dependency_response = client.get(
+            f"/pteams/{self.pteam_id}/dependencies/{wrong_dependency_id}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert dependency_response.status_code == 404
+        assert dependency_response.json() == {"detail": "No such dependency"}
 
 
 class TestGetDependencies:
@@ -107,7 +114,7 @@ class TestGetDependencies:
         testdb.add(self.service2)
         testdb.flush()
 
-        self.package1 = models.Package(
+        self.package1 = models.LangPackage(
             name="test_package1",
             ecosystem="test_ecosystem1",
         )
@@ -149,6 +156,7 @@ class TestGetDependencies:
                 "target": self.test_target,
                 "dependency_mission_impact": None,
                 "package_name": self.package1.name,
+                "package_source_name": None,
                 "package_version": self.package_version1.version,
                 "package_ecosystem": self.package1.ecosystem,
             },
@@ -161,6 +169,7 @@ class TestGetDependencies:
                 "target": self.test_target,
                 "dependency_mission_impact": None,
                 "package_name": self.package1.name,
+                "package_source_name": None,
                 "package_version": self.package_version1.version,
                 "package_ecosystem": self.package1.ecosystem,
             },
@@ -189,6 +198,7 @@ class TestGetDependencies:
             "target": self.test_target,
             "dependency_mission_impact": None,
             "package_name": self.package1.name,
+            "package_source_name": None,
             "package_version": self.package_version1.version,
             "package_ecosystem": self.package1.ecosystem,
         }
@@ -219,6 +229,7 @@ class TestGetDependencies:
                 "target": self.dependency1.target,
                 "dependency_mission_impact": self.dependency1.dependency_mission_impact,
                 "package_name": self.package1.name,
+                "package_source_name": None,
                 "package_version": self.package_version1.version,
                 "package_ecosystem": self.package1.ecosystem,
             },
@@ -231,6 +242,7 @@ class TestGetDependencies:
                 "target": self.dependency2.target,
                 "dependency_mission_impact": self.dependency2.dependency_mission_impact,
                 "package_name": self.package1.name,
+                "package_source_name": None,
                 "package_version": self.package_version1.version,
                 "package_ecosystem": self.package1.ecosystem,
             },
@@ -268,6 +280,7 @@ class TestGetDependencies:
                 "target": dependency.target,
                 "dependency_mission_impact": dependency.dependency_mission_impact,
                 "package_name": package.name,
+                "package_source_name": None,
                 "package_version": package_version.version,
                 "package_ecosystem": package.ecosystem,
             }
