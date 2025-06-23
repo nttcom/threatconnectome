@@ -106,12 +106,25 @@ def get_vulns_count(
     pteam_id: UUID | str | None,
 ) -> int:
     count_query = select(func.count(models.Vuln.vuln_id.distinct()))
-    count_query = count_query.join(
-        models.Affect,
-    )
+    count_query = count_query.select_from(models.Vuln)
+    count_query = count_query.join(models.Affect)
 
-    # Add a JOIN if referencing Dependency
     if pteam_id:
+        count_query = count_query.join(
+            models.Package,
+            or_(
+                and_(
+                    models.Package.type == models.PackageType.LANG,
+                    models.Package.name == models.Affect.affected_name,
+                    models.Package.ecosystem == models.Affect.ecosystem,
+                ),
+                and_(
+                    models.Package.type == models.PackageType.OS,
+                    models.OSPackage.source_name == models.Affect.affected_name,
+                    models.Package.ecosystem == models.Affect.ecosystem,
+                ),
+            ),
+        )
         count_query = (
             count_query.outerjoin(
                 models.PackageVersion,
@@ -132,6 +145,7 @@ def get_vulns_count(
 
     if filters:
         count_query = count_query.where(and_(*filters))
+
     result = db.scalar(count_query)
     return result if result is not None else 0
 
@@ -185,6 +199,7 @@ def get_vulns(
     # Base query
     query = (
         select(models.Vuln, models.Affect, models.Package)
+        .select_from(models.Vuln)
         .join(models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id)
         .join(
             models.Package,
