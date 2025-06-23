@@ -188,8 +188,20 @@ def get_vulns(
         .join(models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id)
         .join(
             models.Package,
-            (models.Package.name == models.Affect.affected_name)
-            & (models.Package.ecosystem == models.Affect.ecosystem),
+            or_(
+                # LangPackage: name, ecosystem
+                (
+                    (models.Package.type == models.PackageType.LANG)
+                    & (models.Package.name == models.Affect.affected_name)
+                    & (models.Package.ecosystem == models.Affect.ecosystem)
+                ),
+                # OSPackage: source_name, ecosystem
+                (
+                    (models.Package.type == models.PackageType.OS)
+                    & (models.OSPackage.source_name == models.Affect.affected_name)
+                    & (models.Package.ecosystem == models.Affect.ecosystem)
+                ),
+            ),
         )
     )
 
