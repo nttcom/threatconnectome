@@ -58,6 +58,7 @@ def update_vuln(
     else:
         vuln = __handle_update_vuln(vuln, request, current_user, db)
 
+    db.refresh(vuln)
     vuln_response = _create_vuln_response(db, vuln)
 
     db.commit()
@@ -165,7 +166,7 @@ def __handle_update_vuln(
             for vulnerable_package in request.vulnerable_packages
         }
         for affect in vuln.affects:
-            if (affect.affected_name, affect.ecosystem) in affect_keys:
+            if (affect.affected_name, affect.ecosystem) not in affect_keys:
                 persistence.delete_affect(db, affect)
 
         for vulnerable_package in request.vulnerable_packages:
