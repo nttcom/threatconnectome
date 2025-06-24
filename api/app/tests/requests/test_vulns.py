@@ -569,7 +569,7 @@ class TestGetVulns:
 
         # When
         response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
-        print(response.json())
+
         # Then
         assert response.status_code == 200
         response_data = response.json()
