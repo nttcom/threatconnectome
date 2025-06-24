@@ -1774,7 +1774,7 @@ class TestGetVulnActions:
             "cvss_v3_score": 7.5,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
