@@ -171,10 +171,8 @@ def get_vulns(
                 raise ValueError(f"Invalid CVE ID format: {cve_id}")
 
     # Base query
-    query = (
-        select(models.Vuln, models.Affect)
-        .select_from(models.Vuln)
-        .join(models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id)
+    query = select(models.Vuln, models.Affect).join(
+        models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id
     )
 
     filters = []
