@@ -223,9 +223,12 @@ def _check_request_fields(request: schemas.VulnUpdateRequest, update_request: di
     for vuln_pkg in request.vulnerable_packages:
         pair = (vuln_pkg.affected_name, vuln_pkg.ecosystem)
         if pair in name_ecosystem_pairs:
+            message = (
+                f"Duplicate package {vuln_pkg.affected_name} in ecosystem {vuln_pkg.ecosystem}"
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Duplicate package {vuln_pkg.affected_name} in ecosystem {vuln_pkg.ecosystem}",
+                detail=message,
             )
         name_ecosystem_pairs.add(pair)
 
@@ -291,7 +294,6 @@ def get_vulns(
     cve_ids: list[str] | None = Query(None),
     package_name: list[str] | None = Query(None),
     ecosystem: list[str] | None = Query(None),
-    package_manager: str | None = Query(None),
     sort_key: schemas.VulnSortKey = Query(schemas.VulnSortKey.CVSS_V3_SCORE_DESC),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -316,7 +318,6 @@ def get_vulns(
     - `cve_ids`: List of CVE IDs to filter by.
     - `package_name`: List of package names to filter by.
     - `ecosystem`: List of ecosystems to filter by.
-    - `package_manager`: Package manager to filter by.
 
     ### Sorting:
     - `sort_key`: Sort key for the results. Default is `CVSS_V3_SCORE_DESC`.
@@ -359,7 +360,6 @@ def get_vulns(
             cve_ids=cve_ids,
             package_name=package_name,
             ecosystem=ecosystem,
-            package_manager=package_manager,
             sort_key=sort_key,
         )
     except ValueError as e:
@@ -370,6 +370,7 @@ def get_vulns(
 
     response_vulns = []
     for vuln in result["vulns"]:
+        affects = vuln.affects
         vulnerable_packages = [
             schemas.VulnerablePackageResponse(
                 affected_name=affect.affected_name,
@@ -377,7 +378,7 @@ def get_vulns(
                 affected_versions=affect.affected_versions,
                 fixed_versions=affect.fixed_versions,
             )
-            for affect in vuln.affects
+            for affect in affects
         ]
         response_vulns.append(
             schemas.VulnResponse(

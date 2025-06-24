@@ -109,15 +109,18 @@ export function Package() {
     });
   if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
 
+  const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
   const currentPackageDependencies = (serviceDependencies ?? []).filter(
     (dependency) => dependency.package_id === packageId,
   );
-  const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
   const references = currentPackageDependencies.map((dependency) => ({
     dependencyId: dependency.dependency_id,
     target: dependency.target,
     version: dependency.package_version,
     service: serviceDict.service_name,
+    package_name: dependency.package_name,
+    package_source_name: dependency.package_source_name,
+    ecosystem: dependency.package_ecosystem,
   }));
 
   const numSolved = vulnIdsSolved.vuln_ids?.length ?? 0;

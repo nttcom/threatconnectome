@@ -518,6 +518,11 @@ def get_dependencies(
             target=dependency.target,
             dependency_mission_impact=dependency.dependency_mission_impact,
             package_name=dependency.package_version.package.name,
+            package_source_name=(
+                dependency.package_version.package.source_name
+                if isinstance(dependency.package_version.package, models.OSPackage)
+                else None
+            ),
             package_version=dependency.package_version.version,
             package_ecosystem=dependency.package_version.package.ecosystem,
         )
@@ -556,6 +561,11 @@ def get_dependency(
         target=dependency.target,
         dependency_mission_impact=dependency.dependency_mission_impact,
         package_name=dependency.package_version.package.name,
+        package_source_name=(
+            dependency.package_version.package.source_name
+            if isinstance(dependency.package_version.package, models.OSPackage)
+            else None
+        ),
         package_version=dependency.package_version.version,
         package_ecosystem=dependency.package_version.package.ecosystem,
     )
