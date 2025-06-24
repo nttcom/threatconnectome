@@ -267,20 +267,13 @@ def get_vulns(
     # Pageination
     query = query.distinct().offset(offset).limit(limit)
 
-    rows = db.execute(query).all()
-
-    vuln_dict = {}
-    for (vuln,) in rows:
-        if vuln.vuln_id not in vuln_dict:
-            vuln_dict[vuln.vuln_id] = {
-                "vuln": vuln,
-                "affects": [affect for affect in vuln.affects],
-            }
+    vulns = db.scalars(query).all()
 
     result = {
         "num_vulns": num_vulns,
-        "vulns": list(vuln_dict.values()),
+        "vulns": vulns,
     }
+
     return result
 
 
