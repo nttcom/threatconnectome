@@ -310,7 +310,7 @@ class TestUpdateVuln:
         send_alert_to_pteam.assert_called_once()
         send_alert_to_pteam.assert_called_with(alerts[0])
 
-    def test_create_ticket_if_vulnerabilities_muched_by_source_name_when_updating_vuln(
+    def test_create_ticket_if_vulnerabilities_matched_by_source_name_when_updating_vuln(
         self, testdb: Session
     ):
         # Given
@@ -350,4 +350,4 @@ class TestUpdateVuln:
         client.put(f"/vulns/{vuln_id}", headers=headers(USER1), json=request1)
 
         tickets = testdb.scalars(select(models.Ticket)).all()
-        assert len(tickets) > 0
+        assert len(tickets) == 6
