@@ -184,6 +184,45 @@ class TestFixThreatByPackageVersionId:
             select(models.Threat).where(models.Threat.threat_id == threats[0].threat_id)
         ).one_or_none()
 
+    def test_it_should_create_threat_when_version_matched_with_source_name(
+        self, testdb: Session, package1: models.Package, vuln1: models.Vuln
+    ):
+        # Given
+        package2 = models.OSPackage(
+            package_id="test-package-id2",
+            name="TestPackage2",
+            source_name="TestPackageSourceName2",
+            ecosystem="ubuntu",
+        )
+        persistence.create_package(testdb, package2)
+
+        package_version = models.PackageVersion(
+            package_version_id="test-package-version-id",
+            package_id=package2.package_id,
+            version="1.0.0",
+            package=package2,
+        )
+        affect = models.Affect(
+            vuln_id=vuln1.vuln_id,
+            affected_versions=["<=1.0.0"],
+            fixed_versions=[],
+            affected_name=package2.source_name,
+            ecosystem=package2.ecosystem,
+        )
+        persistence.create_package_version(testdb, package_version)
+        persistence.create_affect(testdb, affect)
+
+        # When
+        threats = threat_business.fix_threat_by_package_version_id(
+            testdb, package_version.package_version_id
+        )
+
+        # Then
+        assert len(threats) == 1
+        assert testdb.scalars(
+            select(models.Threat).where(models.Threat.threat_id == threats[0].threat_id)
+        ).one_or_none()
+
     def test_it_should_delete_threat_when_version_unmatched(
         self, testdb: Session, package1: models.Package, vuln1: models.Vuln
     ):
