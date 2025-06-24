@@ -106,41 +106,15 @@ def get_vulns_count(
     pteam_id: UUID | str | None,
 ) -> int:
     count_query = select(func.count(models.Vuln.vuln_id.distinct()))
-    count_query = count_query.select_from(models.Vuln)
-    count_query = count_query.join(models.Affect)
+    count_query = count_query.join(models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id)
 
     if pteam_id:
-        count_query = count_query.join(
-            models.Package,
-            or_(
-                and_(
-                    models.Package.type == models.PackageType.LANG,
-                    models.Package.name == models.Affect.affected_name,
-                    models.Package.ecosystem == models.Affect.ecosystem,
-                ),
-                and_(
-                    models.Package.type == models.PackageType.OS,
-                    models.OSPackage.source_name == models.Affect.affected_name,
-                    models.Package.ecosystem == models.Affect.ecosystem,
-                ),
-            ),
-        )
         count_query = (
-            count_query.outerjoin(
-                models.PackageVersion,
-                models.Package.package_id == models.PackageVersion.package_id,
-            )
-            .join(
-                models.Dependency,
-                models.PackageVersion.package_version_id == models.Dependency.package_version_id,
-            )
-            .join(
-                models.Service,
-                and_(
-                    models.Service.service_id == models.Dependency.service_id,
-                    models.Service.pteam_id == str(pteam_id),
-                ),
-            )
+            count_query.join(models.Threat, models.Threat.vuln_id == models.Vuln.vuln_id)
+            .join(models.Ticket, models.Ticket.threat_id == models.Threat.threat_id)
+            .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
+            .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+            .where(models.Service.pteam_id == str(pteam_id))
         )
 
     if filters:
@@ -198,26 +172,9 @@ def get_vulns(
 
     # Base query
     query = (
-        select(models.Vuln, models.Affect, models.Package)
+        select(models.Vuln, models.Affect)
         .select_from(models.Vuln)
         .join(models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id)
-        .join(
-            models.Package,
-            or_(
-                # LangPackage: name, ecosystem
-                and_(
-                    models.Package.type == models.PackageType.LANG,
-                    models.Package.name == models.Affect.affected_name,
-                    models.Package.ecosystem == models.Affect.ecosystem,
-                ),
-                # OSPackage: source_name, ecosystem
-                and_(
-                    models.Package.type == models.PackageType.OS,
-                    models.OSPackage.source_name == models.Affect.affected_name,
-                    models.Package.ecosystem == models.Affect.ecosystem,
-                ),
-            ),
-        )
     )
 
     filters = []
@@ -277,21 +234,11 @@ def get_vulns(
     # PTeam filter
     if pteam_id:
         query = (
-            query.outerjoin(
-                models.PackageVersion,
-                models.Package.package_id == models.PackageVersion.package_id,
-            )
-            .join(
-                models.Dependency,
-                models.PackageVersion.package_version_id == models.Dependency.package_version_id,
-            )
-            .join(
-                models.Service,
-                and_(
-                    models.Service.service_id == models.Dependency.service_id,
-                    models.Service.pteam_id == str(pteam_id),
-                ),
-            )
+            query.join(models.Threat, models.Threat.vuln_id == models.Vuln.vuln_id)
+            .join(models.Ticket, models.Ticket.threat_id == models.Threat.threat_id)
+            .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
+            .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+            .where(models.Service.pteam_id == str(pteam_id))
         )
 
     # Count total number of vulnerabilities matching the filters
@@ -327,13 +274,12 @@ def get_vulns(
     rows = db.execute(query).all()
 
     vuln_dict = {}
-    for vuln, affect, package in rows:
+    for (vuln,) in rows:
         if vuln.vuln_id not in vuln_dict:
             vuln_dict[vuln.vuln_id] = {
                 "vuln": vuln,
-                "affects": [],
+                "affects": [affect for affect in vuln.affects],
             }
-        vuln_dict[vuln.vuln_id]["affects"].append((affect, package))
 
     result = {
         "num_vulns": num_vulns,
