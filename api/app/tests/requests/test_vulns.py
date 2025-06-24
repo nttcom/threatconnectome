@@ -544,22 +544,6 @@ class TestGetVulns:
         created_times = []
         updated_times = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i <= 4:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
@@ -610,22 +594,6 @@ class TestGetVulns:
         # Given
         number_of_vulns = 5
         for i in range(number_of_vulns):
-            package: models.Package
-            if i <= 4:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{uuid4()}", headers=self.headers_user, json=vuln_request)
 
@@ -645,22 +613,6 @@ class TestGetVulns:
         created_times = []
         updated_times = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i <= 4:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
@@ -700,22 +652,6 @@ class TestGetVulns:
         vuln_ids = []
 
         for i in range(len(scores)):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i, scores[i])
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
@@ -748,22 +684,6 @@ class TestGetVulns:
         vuln_ids = []
 
         for i in range(len(scores)):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i, scores[i])
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
@@ -794,22 +714,6 @@ class TestGetVulns:
         number_of_vulns = 3
         vuln_ids = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
@@ -838,22 +742,6 @@ class TestGetVulns:
         vuln_ids = []
         put_response_data = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             put_response = client.put(
@@ -885,22 +773,6 @@ class TestGetVulns:
         number_of_vulns = 3
         vuln_ids = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             if i == 0:
                 vuln_request: dict[str, Any] = {
@@ -979,22 +851,6 @@ class TestGetVulns:
         vuln_ids = []
         put_response_data = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             put_response = client.put(
@@ -1029,13 +885,6 @@ class TestGetVulns:
             vuln_id = uuid4()
             package: models.Package
             if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-                testdb.add(package)
-                testdb.flush()
                 vuln_request: dict[str, Any] = {
                     "title": f"Example-vuln-{i}",
                     "cve_id": f"CVE-0000-000{i}",
@@ -1053,14 +902,6 @@ class TestGetVulns:
                     ],
                 }
             else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-                testdb.add(package)
-                testdb.flush()
                 vuln_request = {
                     "title": f"Example-vuln-{i}",
                     "cve_id": f"CVE-0000-000{i}",
@@ -1200,22 +1041,6 @@ class TestGetVulns:
         vuln_ids = []
         put_response_data = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             put_response = client.put(
@@ -1249,22 +1074,6 @@ class TestGetVulns:
         number_of_vulns = 3
         vuln_ids = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
@@ -1282,22 +1091,6 @@ class TestGetVulns:
         vuln_ids = []
 
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
@@ -1411,22 +1204,6 @@ class TestGetVulns:
         vuln_ids = []
         put_response_data = []
         for i in range(2):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             if i == 0:
@@ -1468,22 +1245,6 @@ class TestGetVulns:
         number_of_vulns = 3
         vuln_ids = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
@@ -1514,22 +1275,6 @@ class TestGetVulns:
         vuln_ids = []
         put_response_data = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             put_response = client.put(
@@ -1565,22 +1310,6 @@ class TestGetVulns:
         vuln_ids = []
         put_response_data = []
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             put_response = client.put(
@@ -1616,22 +1345,6 @@ class TestGetVulns:
         testdb.commit()
 
         for i, data in enumerate(vulns_data):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i, data["cvss_v3_score"])
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
@@ -1878,22 +1591,6 @@ class TestGetVulns:
         # Given
         number_of_vulns = 5
         for i in range(number_of_vulns):
-            package: models.Package
-            if i == 0:
-                package = models.LangPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    type=models.PackageType.LANG,
-                )
-            else:
-                package = models.OSPackage(
-                    name=f"example-lib-{i}",
-                    ecosystem=f"ecosystem-{i}",
-                    source_name=f"example-lib-{i}",
-                    type=models.PackageType.OS,
-                )
-            testdb.add(package)
-            testdb.flush()
             vuln_request = self.create_vuln_request(i)
             client.put(f"/vulns/{uuid4()}", headers=self.headers_user, json=vuln_request)
 
