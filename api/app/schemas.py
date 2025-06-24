@@ -388,5 +388,6 @@ class DependencyResponse(ORMModel):
     target: str
     dependency_mission_impact: str | None = None
     package_name: str
+    package_source_name: str | None = None
     package_version: str
     package_ecosystem: str
