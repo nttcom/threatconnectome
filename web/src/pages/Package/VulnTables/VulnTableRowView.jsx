@@ -19,8 +19,12 @@ export function VulnTableRowView(props) {
   const [ticketOpen, setTicketOpen] = useState(true);
   const [vulnDrawerOpen, setVulnDrawerOpen] = useState(false);
 
+  const { package_source_name, package_name, ecosystem } = references[0];
   const vulnerable_package = vuln.vulnerable_packages.find(
-    (vulnerable_package) => vulnerable_package.package_id === packageId,
+    (vulnerable_package) =>
+      vulnerable_package.ecosystem === ecosystem &&
+      (vulnerable_package.affected_name === package_source_name ||
+        vulnerable_package.affected_name === package_name),
   );
   const affectedVersions = vulnerable_package.affected_versions;
   const patchedVersions = vulnerable_package.fixed_versions;
