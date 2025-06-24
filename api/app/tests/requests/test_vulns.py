@@ -883,7 +883,6 @@ class TestGetVulns:
         vuln_ids = []
         for i in range(number_of_vulns):
             vuln_id = uuid4()
-            package: models.Package
             if i == 0:
                 vuln_request: dict[str, Any] = {
                     "title": f"Example-vuln-{i}",
