@@ -376,7 +376,7 @@ def get_vulns(
                 affected_versions=affect.affected_versions,
                 fixed_versions=affect.fixed_versions,
             )
-            for affect, package in affects
+            for affect in affects
         ]
         response_vulns.append(
             schemas.VulnResponse(
