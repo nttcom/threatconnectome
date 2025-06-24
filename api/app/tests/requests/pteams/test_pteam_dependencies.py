@@ -118,13 +118,26 @@ class TestGetDependencies:
             name="test_package1",
             ecosystem="test_ecosystem1",
         )
+
+        self.package2 = models.OSPackage(
+            name="test_package2", ecosystem="test_ecosystem2", source_name="test_source_package2"
+        )
+
         persistence.create_package(testdb, self.package1)
+        persistence.create_package(testdb, self.package2)
 
         self.package_version1 = models.PackageVersion(
             package_id=self.package1.package_id,
             version=test_version,
         )
+
+        self.package_version2 = models.PackageVersion(
+            package_id=self.package2.package_id,
+            version=test_version,
+        )
+
         persistence.create_package_version(testdb, self.package_version1)
+        persistence.create_package_version(testdb, self.package_version2)
 
         self.dependency1 = models.Dependency(
             target=self.test_target,
@@ -142,6 +155,16 @@ class TestGetDependencies:
             service=self.service2,
         )
         testdb.add(self.dependency2)
+        testdb.flush()
+
+        self.dependency3 = models.Dependency(
+            target=self.test_target,
+            package_manager="npm",
+            package_version_id=self.package_version2.package_version_id,
+            service=self.service2,
+        )
+
+        testdb.add(self.dependency3)
         testdb.flush()
 
     def test_is_should_return_200_when_dependencies_exist(self):
@@ -172,6 +195,19 @@ class TestGetDependencies:
                 "package_source_name": None,
                 "package_version": self.package_version1.version,
                 "package_ecosystem": self.package1.ecosystem,
+            },
+            {
+                "dependency_id": str(self.dependency3.dependency_id),
+                "service_id": str(self.service2.service_id),
+                "package_version_id": str(self.package_version2.package_version_id),
+                "package_id": str(self.package2.package_id),
+                "package_manager": "npm",
+                "target": self.test_target,
+                "dependency_mission_impact": None,
+                "package_name": self.package2.name,
+                "package_source_name": self.package2.source_name,
+                "package_version": self.package_version2.version,
+                "package_ecosystem": self.package2.ecosystem,
             },
         ]
 
@@ -245,6 +281,19 @@ class TestGetDependencies:
                 "package_source_name": None,
                 "package_version": self.package_version1.version,
                 "package_ecosystem": self.package1.ecosystem,
+            },
+            {
+                "dependency_id": str(self.dependency3.dependency_id),
+                "service_id": str(self.service2.service_id),
+                "package_version_id": str(self.package_version2.package_version_id),
+                "package_id": str(self.package2.package_id),
+                "package_manager": "npm",
+                "target": self.test_target,
+                "dependency_mission_impact": None,
+                "package_name": self.package2.name,
+                "package_source_name": self.package2.source_name,
+                "package_version": self.package_version2.version,
+                "package_ecosystem": self.package2.ecosystem,
             },
         ]
 
