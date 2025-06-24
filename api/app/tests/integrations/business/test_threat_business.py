@@ -52,9 +52,10 @@ class TestFixThreatByVuln:
         )
         affect = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         persistence.create_package_version(testdb, package_version)
         persistence.create_affect(testdb, affect)
@@ -80,9 +81,10 @@ class TestFixThreatByVuln:
         )
         affect = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         threat = models.Threat(
             package_version_id=package_version.package_version_id, vuln_id=vuln1.vuln_id
@@ -116,15 +118,17 @@ class TestFixThreatByVuln:
         )
         affect1 = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         affect2 = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=2.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         threat = models.Threat(
             package_version_id=package_version.package_version_id, vuln_id=vuln1.vuln_id
@@ -161,9 +165,10 @@ class TestFixThreatByPackageVersionId:
         )
         affect = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         persistence.create_package_version(testdb, package_version)
         persistence.create_affect(testdb, affect)
@@ -191,9 +196,10 @@ class TestFixThreatByPackageVersionId:
         )
         affect = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         threat = models.Threat(
             package_version_id=package_version.package_version_id, vuln_id=vuln1.vuln_id
@@ -227,15 +233,17 @@ class TestFixThreatByPackageVersionId:
         )
         affect1 = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         affect2 = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=2.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         threat = models.Threat(
             package_version_id=package_version.package_version_id, vuln_id=vuln1.vuln_id
@@ -297,9 +305,10 @@ class TestDeleteThreatByVulnWhemAllAffectsUnmatch:
         )
         affect = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         threat = models.Threat(
             package_version_id=package_version.package_version_id, vuln_id=vuln1.vuln_id

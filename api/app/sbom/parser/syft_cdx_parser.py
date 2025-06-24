@@ -162,6 +162,7 @@ class SyftCDXParser(SBOMParser):
                 artifacts_key,
                 Artifact(
                     package_name=package_info["pkg_name"],
+                    source_name="",  # TODO: support source_name
                     ecosystem=package_info["ecosystem"],
                     package_manager=package_info["pkg_mgr"],
                 ),
