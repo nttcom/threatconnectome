@@ -146,4 +146,3 @@ def downgrade() -> None:
     op.drop_column("affect", "ecosystem")
     op.drop_column("affect", "affected_name")
     # ### end Alembic commands ###
-    
