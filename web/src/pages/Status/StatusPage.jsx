@@ -40,6 +40,7 @@ import { errorToString } from "../../utils/func";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
 import { PTeamServiceDetails } from "./PTeamServiceDetails";
+import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetailsResponsive";
 import { PTeamServiceTabs } from "./PTeamServiceTabs";
 import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
@@ -466,7 +467,7 @@ export function Status() {
       )}
       <CustomTabPanel value={isActiveUploadMode} index={0}>
         {service && (
-          <PTeamServiceDetails
+          <PTeamServiceDetailsResponsive
             pteamId={pteamId}
             service={service}
             expandService={expandService}
