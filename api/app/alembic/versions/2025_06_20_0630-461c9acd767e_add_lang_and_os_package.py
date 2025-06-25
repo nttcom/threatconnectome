@@ -42,6 +42,19 @@ def upgrade() -> None:
     op.drop_constraint("affect_package_id_fkey", "affect", type_="foreignkey")
     op.drop_column("affect", "package_id")
 
+    connection.execute(
+        sa.text(
+            """
+        DELETE FROM package 
+        WHERE package.package_id NOT IN (
+            SELECT packageversion.package_id
+            FROM dependency
+            JOIN packageversion ON packageversion.package_version_id = dependency.package_version_id
+        ) 
+        """
+        )
+    )
+
     package_type = sa.Enum("LANG", "OS", "PACKAGE", name="packagetype")
     package_type.create(connection)
 
@@ -95,6 +108,20 @@ def downgrade() -> None:
         sa.Column("package_id", sa.VARCHAR(length=36), autoincrement=False, nullable=True),
     )
     connection = op.get_bind()
+    connection.execute(
+        sa.text(
+            """
+            INSERT INTO package (package_id, name, ecosystem)
+            SELECT gen_random_uuid(), a.affected_name, a.ecosystem
+            FROM (
+                SELECT DISTINCT affected_name, ecosystem FROM affect
+            ) AS a
+            LEFT JOIN package p
+            ON a.affected_name = p.name AND a.ecosystem = p.ecosystem
+            WHERE p.package_id IS NULL
+            """
+        )
+    )
     connection.execute(
         sa.text(
             """
