@@ -145,4 +145,4 @@ def downgrade() -> None:
     op.create_index("ix_affect_package_id", "affect", ["package_id"], unique=False)
     op.drop_column("affect", "ecosystem")
     op.drop_column("affect", "affected_name")
-    # ### end Alembic comman
+    # ### end Alembic commands ###
