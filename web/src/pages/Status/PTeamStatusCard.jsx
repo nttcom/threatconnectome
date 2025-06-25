@@ -136,7 +136,16 @@ export function PTeamStatusCard(props) {
         <SSVCPriorityStatusChip displaySSVCPriority={displaySSVCPriority} />
       </TableCell>
       <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
-        <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            display: "block",
+            maxWidth: "100%",
+          }}
+        >
           {packageInfo.package_name}
           {":"}
           {packageInfo.ecosystem}
