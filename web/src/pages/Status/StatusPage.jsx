@@ -23,8 +23,11 @@ import {
   TableContainer,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
+import { is } from "date-fns/locale";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -66,7 +69,7 @@ function SearchField(props) {
             onApply(event.target.value);
           }
         }}
-        sx={{ textTransform: "none", width: "290px" }}
+        sx={{ textTransform: "none", width: { md: "290px", xs: "100%" } }}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
@@ -186,6 +189,9 @@ export function Status() {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pteamId, pteam, serviceId, isActiveAllServicesMode]);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skipByAuth || !pteamId) return <></>;
   if (pteamError)
@@ -274,6 +280,8 @@ export function Status() {
         shape="rounded"
         page={page}
         count={numPages}
+        siblingCount={isMobile ? 0 : 1}
+        boundaryCount={isMobile ? 0 : 1}
         onChange={(event, value) => {
           params.set("page", value);
           navigate(location.pathname + "?" + params.toString());
@@ -475,10 +483,10 @@ export function Status() {
             highestSsvcPriority={pteamServicePackagesSummary.packages[0]?.ssvc_priority ?? "defer"}
           />
         )}
-        <Box display="flex" mt={2}>
+        <Box display="flex" mt={2} flexDirection={isMobile ? "column" : "row"} alignItems="center">
           {filterRow}
           <Box flexGrow={1} />
-          <Box mb={0.5}>
+          <Box mb={0.5} sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
             <SearchField word={searchWord} onApply={handleSearchWord} />
             <IconButton
               id="basic-button"
@@ -495,7 +503,7 @@ export function Status() {
           </Box>
         </Box>
         <TableContainer component={Paper} sx={{ mt: 0.5 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <Table sx={{ minWidth: { md: 650, xs: 320 } }}>
             <TableBody>
               {isActiveAllServicesMode ? (
                 <>
