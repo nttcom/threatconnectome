@@ -142,7 +142,7 @@ class TestUpdateAction:
         assert response.json()["recommended"] == action_update_request["recommended"]
         assert response.json()["vuln_id"] == str(self.vuln_id)
         assert response.json()["action_id"] == str(self.action_id)
-        assert response.json()["created_at"] == self.created_at
+        assert response.json()["created_at"] == self.created_at + "Z"
 
     def test_raise_404_if_action_id_does_not_exist(self):
         # Given
@@ -258,7 +258,7 @@ class TestGetAction:
         assert response.json()["action"] == self.action
         assert response.json()["action_type"] == self.action_type
         assert response.json()["recommended"] == self.recommended
-        assert response.json()["created_at"] == self.created_at
+        assert response.json()["created_at"] == self.created_at + "Z"
 
     def test_raise_404_if_action_id_does_not_exist(self):
         # Given
