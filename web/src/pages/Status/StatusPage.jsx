@@ -27,7 +27,6 @@ import {
   useTheme,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import { is } from "date-fns/locale";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -42,8 +41,8 @@ import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../u
 import { errorToString } from "../../utils/func";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
-import { PTeamServiceDetails } from "./PTeamServiceDetails";
 import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetailsResponsive";
+import { PTeamServiceSelectDialog } from "./PTeamServiceSelectDialog";
 import { PTeamServiceTabs } from "./PTeamServiceTabs";
 import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
@@ -465,14 +464,22 @@ export function Status() {
           label="All Services"
         />
       </Box>
-      {!isActiveAllServicesMode && (
-        <PTeamServiceTabs
-          services={pteam.services}
-          currentServiceId={serviceId}
-          onChangeService={handleChangeService}
-          setIsActiveUploadMode={setIsActiveUploadMode}
-        />
-      )}
+      {!isActiveAllServicesMode &&
+        (isMobile ? (
+          <PTeamServiceSelectDialog
+            services={pteam.services}
+            currentServiceId={serviceId}
+            onChangeService={handleChangeService}
+            setIsActiveUploadMode={setIsActiveUploadMode}
+          />
+        ) : (
+          <PTeamServiceTabs
+            services={pteam.services}
+            currentServiceId={serviceId}
+            onChangeService={handleChangeService}
+            setIsActiveUploadMode={setIsActiveUploadMode}
+          />
+        ))}
       <CustomTabPanel value={isActiveUploadMode} index={0}>
         {service && (
           <PTeamServiceDetailsResponsive
