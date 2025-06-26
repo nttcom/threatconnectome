@@ -32,12 +32,18 @@ export function PTeamServiceDetailsMobile({ pteamId, service, highestSsvcPriorit
   const description = service.description;
   const keywords = service.keywords;
 
-  // ステータスの表示用
   const highestPriorityLabel =
     ssvcPriorityProps[highestSsvcPriority]?.displayName || highestSsvcPriority;
   const systemExposureLabel = systemExposure[service.system_exposure] || service.system_exposure;
   const missionImpactLabel =
     missionImpact[service.service_mission_impact] || service.service_mission_impact;
+
+  const statusItems = [
+    { label: "Highest SSVC Priority", value: highestPriorityLabel },
+    { label: "System Exposure", value: systemExposureLabel },
+    { label: "Mission Impact", value: missionImpactLabel },
+    { label: "Default Safety Impact", value: service.service_safety_impact },
+  ];
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
@@ -64,38 +70,16 @@ export function PTeamServiceDetailsMobile({ pteamId, service, highestSsvcPriorit
               px: 0,
             }}
           >
-            <ListItem disableGutters sx={{ py: 0 }}>
-              <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
-                <Typography variant="body2" sx={{ minWidth: 140, fontWeight: "bold" }}>
-                  Highest SSVC Priority
-                </Typography>
-                <Typography variant="body2">{highestPriorityLabel}</Typography>
-              </Stack>
-            </ListItem>
-            <ListItem disableGutters sx={{ py: 0 }}>
-              <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
-                <Typography variant="body2" sx={{ minWidth: 140, fontWeight: "bold" }}>
-                  System Exposure
-                </Typography>
-                <Typography variant="body2">{systemExposureLabel}</Typography>
-              </Stack>
-            </ListItem>
-            <ListItem disableGutters sx={{ py: 0 }}>
-              <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
-                <Typography variant="body2" sx={{ minWidth: 140, fontWeight: "bold" }}>
-                  Mission Impact
-                </Typography>
-                <Typography variant="body2">{missionImpactLabel}</Typography>
-              </Stack>
-            </ListItem>
-            <ListItem disableGutters sx={{ py: 0 }}>
-              <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
-                <Typography variant="body2" sx={{ minWidth: 140, fontWeight: "bold" }}>
-                  Default Safety Impact
-                </Typography>
-                <Typography variant="body2">{service.service_safety_impact}</Typography>
-              </Stack>
-            </ListItem>
+            {statusItems.map((item) => (
+              <ListItem key={item.label} disableGutters sx={{ py: 0 }}>
+                <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
+                  <Typography variant="body2" sx={{ minWidth: 140, fontWeight: "bold" }}>
+                    {item.label}
+                  </Typography>
+                  <Typography variant="body2">{item.value}</Typography>
+                </Stack>
+              </ListItem>
+            ))}
           </List>
         </CardContent>
       </Card>
