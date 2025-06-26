@@ -1233,13 +1233,15 @@ def apply_service_packages(
         package_manager = str(line.get("package_manager", ""))
 
         if not (
-            _package := persistence.get_package_by_name_and_ecosystem(db, package_name, ecosystem)
+            _package := persistence.get_package_by_name_and_ecosystem_and_source_name(
+                db, package_name, ecosystem, line.get("source_name")
+            )
         ):
             # create new package
             package_family = PackageFamily.from_registry(ecosystem)
             if package_family == PackageFamily.DEBIAN:
                 _package = models.OSPackage(
-                    name=package_name, ecosystem=ecosystem, source_name=str(line.get("source_name"))
+                    name=package_name, ecosystem=ecosystem, source_name=line.get("source_name")
                 )
                 persistence.create_package(db, _package)
             else:

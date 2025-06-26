@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 @dataclass
 class Artifact:
     package_name: str
-    source_name: str
+    source_name: str | None
     ecosystem: str
     package_manager: str
     targets: set[tuple[str, str]] = field(init=False, repr=False, default_factory=set)
