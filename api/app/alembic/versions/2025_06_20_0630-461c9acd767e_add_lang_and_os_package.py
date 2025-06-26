@@ -75,8 +75,17 @@ def upgrade() -> None:
             SELECT 
                 package_id, 
                 ecosystem,
-                (CASE 
-                    WHEN lower(ecosystem) LIKE 'debian%' OR lower(ecosystem) LIKE 'ubuntu%' THEN 'OS'
+                (CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM unnest(ARRAY[
+                            'alma','alpine','amazon','azurelinux','bottlerocket','cbl-mariner',
+                            'centos','chainguard','debian','echo','fedora','minimos','opensuse',
+                            'opensuse-leap','opensuse-tumbleweed','oracle','photon','redhat',
+                            'rocky','slem','sles','ubuntu','wolfi'
+                        ]) AS os_type
+                        WHERE lower(ecosystem) LIKE os_type || '%'
+                    ) THEN 'OS'
                     ELSE 'LANG'
                 END)::packagetype AS package_type
             FROM package
