@@ -16,12 +16,10 @@ import {
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { useGetPTeamServiceThumbnailQuery } from "../../services/tcApi";
+import { usePTeamServiceDetailsData } from "../../hooks/usePTeamServiceDetailsData";
 
 import { PTeamStatusSSVCCards } from "./PTeamStatusSSVCCards";
 import { PTeamServiceDetailsSettings } from "./ServiceDetailsSettings/PTeamServiceDetailsSettings";
-
-const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
 function ServiceIDCopyButton({ ServiceId }) {
   const defaultMessage = "Copy the Service ID";
@@ -69,20 +67,11 @@ ServiceIDCopyButton.propTypes = {
 export function PTeamServiceDetails(props) {
   const { pteamId, service, expandService, onSwitchExpandService, highestSsvcPriority } = props;
 
-  const {
-    data: thumbnail,
-    isError: thumbnailIsError,
-    isLoading: thumbnailIsLoading,
-  } = useGetPTeamServiceThumbnailQuery({
-    pteamId,
-    serviceId: service.service_id,
-  });
-
-  const image =
-    thumbnailIsError || thumbnailIsLoading || !thumbnail ? noImageAvailableUrl : thumbnail;
-  const serviceName = service.service_name;
-  const description = service.description;
-  const keywords = service.keywords;
+  const { image, serviceName, description, keywords } = usePTeamServiceDetailsData(
+    props.pteamId,
+    props.service,
+    props.highestSsvcPriority,
+  );
 
   return (
     <>
