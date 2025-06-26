@@ -190,6 +190,7 @@ export function Status() {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSm = useMediaQuery(theme.breakpoints.down("sm"));
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skipByAuth || !pteamId) return <></>;
@@ -279,8 +280,8 @@ export function Status() {
         shape="rounded"
         page={page}
         count={numPages}
-        siblingCount={isMobile ? 0 : 1}
-        boundaryCount={isMobile ? 0 : 1}
+        siblingCount={isSm ? 0 : undefined}
+        boundaryCount={isSm ? 0 : undefined}
         onChange={(event, value) => {
           params.set("page", value);
           navigate(location.pathname + "?" + params.toString());
@@ -490,9 +491,15 @@ export function Status() {
             highestSsvcPriority={pteamServicePackagesSummary.packages[0]?.ssvc_priority ?? "defer"}
           />
         )}
-        <Box display="flex" mt={2} flexDirection={isMobile ? "column" : "row"} alignItems="center">
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { md: "row", xs: "column" },
+            justifyContent: "space-between",
+            mt: 2,
+          }}
+        >
           {filterRow}
-          <Box flexGrow={1} />
           <Box mb={0.5} sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
             <SearchField word={searchWord} onApply={handleSearchWord} />
             <IconButton
