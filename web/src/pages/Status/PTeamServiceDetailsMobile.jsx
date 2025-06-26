@@ -11,39 +11,14 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 
-import { useGetPTeamServiceThumbnailQuery } from "../../services/tcApi";
-import { ssvcPriorityProps, systemExposure, missionImpact } from "../../utils/const";
+import { usePTeamServiceDetailsData } from "../../hooks/usePTeamServiceDetailsData";
 
-const noImageAvailableUrl = "images/no-image-available-720x480.png";
-
-export function PTeamServiceDetailsMobile({ pteamId, service, highestSsvcPriority }) {
-  const {
-    data: thumbnail,
-    isError: thumbnailIsError,
-    isLoading: thumbnailIsLoading,
-  } = useGetPTeamServiceThumbnailQuery({
-    pteamId,
-    serviceId: service.service_id,
-  });
-
-  const image =
-    thumbnailIsError || thumbnailIsLoading || !thumbnail ? noImageAvailableUrl : thumbnail;
-  const serviceName = service.service_name;
-  const description = service.description;
-  const keywords = service.keywords;
-
-  const highestPriorityLabel =
-    ssvcPriorityProps[highestSsvcPriority]?.displayName || highestSsvcPriority;
-  const systemExposureLabel = systemExposure[service.system_exposure] || service.system_exposure;
-  const missionImpactLabel =
-    missionImpact[service.service_mission_impact] || service.service_mission_impact;
-
-  const statusItems = [
-    { label: "Highest SSVC Priority", value: highestPriorityLabel },
-    { label: "System Exposure", value: systemExposureLabel },
-    { label: "Mission Impact", value: missionImpactLabel },
-    { label: "Default Safety Impact", value: service.service_safety_impact },
-  ];
+export function PTeamServiceDetailsMobile(props) {
+  const { image, serviceName, description, keywords, statusItems } = usePTeamServiceDetailsData(
+    props.pteamId,
+    props.service,
+    props.highestSsvcPriority,
+  );
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
