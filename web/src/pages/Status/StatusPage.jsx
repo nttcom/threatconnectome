@@ -517,7 +517,7 @@ export function Status() {
           </Box>
         </Box>
         <TableContainer component={Paper} sx={{ mt: 0.5 }}>
-          <Table sx={{ minWidth: { md: 650, xs: 320 } }}>
+          <Table sx={{ minWidth: 320 }}>
             <TableBody>
               {isActiveAllServicesMode ? (
                 <>
