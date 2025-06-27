@@ -31,20 +31,35 @@ export function PTeamServiceSelectDialog(props) {
       <Button
         sx={{
           textTransform: "none",
-          justifyContent: "space-between",
           color: "black",
           borderColor: "rgba(0, 0, 0, 0.23)",
           minWidth: "180px",
+          maxWidth: "220px",
           "&:hover": {
             borderColor: "rgba(0, 0, 0, 0.87)",
             backgroundColor: "rgba(0, 0, 0, 0.04)",
           },
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingRight: "12px", // アイコン分の余白
         }}
         variant="outlined"
-        endIcon={<ArrowDropDownIcon sx={{ color: "grey.700" }} />}
         onClick={handleClickOpen}
       >
-        {services.find((s) => s.service_id === currentServiceId)?.service_name || "Select Service"}
+        <Box
+          sx={{
+            flex: 1,
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+            textAlign: "left",
+          }}
+        >
+          {services.find((s) => s.service_id === currentServiceId)?.service_name ||
+            "Select Service"}
+        </Box>
+        <ArrowDropDownIcon sx={{ color: "grey.700", marginLeft: "8px", flexShrink: 0 }} />
       </Button>
       <Dialog fullWidth maxWidth="xs" open={open} onClose={handleClose}>
         <DialogTitle>Select a Service</DialogTitle>
