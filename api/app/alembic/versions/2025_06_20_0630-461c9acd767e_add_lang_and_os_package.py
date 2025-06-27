@@ -189,6 +189,7 @@ def downgrade() -> None:
         ondelete="CASCADE",
     )
 
+    op.alter_column("affect", "package_id", nullable=False)
     op.create_index("ix_affect_package_id", "affect", ["package_id"], unique=False)
     op.drop_column("affect", "ecosystem")
     op.drop_column("affect", "affected_name")
