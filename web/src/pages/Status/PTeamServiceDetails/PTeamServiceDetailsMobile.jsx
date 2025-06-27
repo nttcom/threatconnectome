@@ -12,6 +12,7 @@ import {
 import PropTypes from "prop-types";
 
 import { usePTeamServiceDetailsData } from "../../../hooks/Status/usePTeamServiceDetailsData";
+import { PTeamServiceDetailsSettings } from "../ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 export function PTeamServiceDetailsMobile(props) {
   const { image, serviceName, description, keywords, statusItems } = usePTeamServiceDetailsData(
@@ -21,8 +22,13 @@ export function PTeamServiceDetailsMobile(props) {
   );
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-      <Card sx={{ width: "100%", maxWidth: 400 }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      <Card sx={{ width: "100%", maxWidth: { xs: 320, sm: 400 } }}>
         <CardMedia component="img" image={image} sx={{ aspectRatio: "4 / 3" }} />
         <CardContent>
           <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 1, flexWrap: "wrap" }}>
@@ -30,9 +36,22 @@ export function PTeamServiceDetailsMobile(props) {
               <Chip key={keyword} label={keyword} size="small" />
             ))}
           </Stack>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            {serviceName}
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <Typography
+              variant="h6"
+              noWrap
+              sx={{
+                minWidth: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+              title={serviceName}
+            >
+              {serviceName}
+            </Typography>
+            <PTeamServiceDetailsSettings pteamId={props.pteamId} service={props.service} />
+          </Box>
           <Typography variant="body2" sx={{ mb: 1, wordBreak: "break-all" }}>
             {description}
           </Typography>
