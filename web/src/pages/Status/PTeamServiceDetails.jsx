@@ -16,7 +16,7 @@ import {
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { usePTeamServiceDetailsData } from "../../hooks/usePTeamServiceDetailsData";
+import { usePTeamServiceDetailsData } from "../../hooks/Status/usePTeamServiceDetailsData";
 
 import { PTeamStatusSSVCCards } from "./PTeamStatusSSVCCards";
 import { PTeamServiceDetailsSettings } from "./ServiceDetailsSettings/PTeamServiceDetailsSettings";
