@@ -216,7 +216,6 @@ class PackageVersion(Base):
 
 class Package(Base):
     __tablename__ = "package"
-    __table_args__ = (UniqueConstraint("name", "ecosystem", name="package_name_ecosystem_key"),)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -251,6 +250,14 @@ class OSPackage(Package):
     __mapper_args__ = {
         "polymorphic_identity": PackageType.OS,
     }
+
+
+UniqueConstraint(
+    Package.name,
+    Package.ecosystem,
+    OSPackage.source_name,
+    name="package_name_ecosystem_source_name_key",
+)
 
 
 class Dependency(Base):
@@ -562,6 +569,14 @@ class VulnAction(Base):
 
 class Affect(Base):
     __tablename__ = "affect"
+    __table_args__ = (
+        UniqueConstraint(
+            "vuln_id",
+            "affected_name",
+            "ecosystem",
+            name="affect_vuln_id_affected_name_ecosystem_key",
+        ),
+    )
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

@@ -82,7 +82,7 @@ class TrivyCDXParser(SBOMParser):
                 self.group + "/" + self.name if self.group else self.name
             )  # given by trivy. may include namespace in some case.
 
-            source_name = ""
+            source_name = None
             for key, value in self.properties.items():
                 if "aquasecurity:trivy:SrcName" in key:
                     source_name = value

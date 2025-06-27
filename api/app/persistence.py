@@ -195,6 +195,20 @@ def get_package_by_name_and_ecosystem(
     ).one_or_none()
 
 
+def get_package_by_name_and_ecosystem_and_source_name(
+    db: Session, name: str, ecosystem: str, source_name: str | None
+) -> models.Package | None:
+    return db.scalars(
+        select(models.Package).where(
+            and_(
+                models.Package.name == name,
+                models.Package.ecosystem == ecosystem,
+                models.OSPackage.source_name == source_name,
+            )
+        )
+    ).one_or_none()
+
+
 def create_package(db: Session, package: models.Package) -> None:
     db.add(package)
     db.flush()
