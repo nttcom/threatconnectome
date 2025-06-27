@@ -35,7 +35,6 @@ export function usePTeamServiceDetailsData(pteamId, service, highestSsvcPriority
 
   return {
     image,
-    isLoadingImage: thumbnailIsLoading,
     serviceName: service.service_name,
     description: service.description,
     keywords: service.keywords,
