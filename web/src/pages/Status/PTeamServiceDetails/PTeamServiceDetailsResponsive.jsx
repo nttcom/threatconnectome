@@ -1,6 +1,6 @@
 import { useTheme, useMediaQuery } from "@mui/material";
 
-import { PTeamServiceDetails } from "./PTeamServiceDetails";
+import { PTeamServiceDetails } from "./PTeamServiceDetailsDesktop";
 import { PTeamServiceDetailsMobile } from "./PTeamServiceDetailsMobile";
 
 export function PTeamServiceDetailsResponsive(props) {
