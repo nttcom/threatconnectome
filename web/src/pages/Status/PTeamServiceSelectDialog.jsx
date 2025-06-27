@@ -81,7 +81,19 @@ export function PTeamServiceSelectDialog(props) {
                 key={service.service_id}
                 value={service.service_id}
                 control={<Radio />}
-                label={service.service_name}
+                label={
+                  <Box
+                    sx={{
+                      maxWidth: "100%",
+                      overflow: "hidden",
+                      wordBreak: "break-all",
+                      whiteSpace: "normal",
+                      display: "block",
+                    }}
+                  >
+                    {service.service_name}
+                  </Box>
+                }
               />
             ))}
           </RadioGroup>
