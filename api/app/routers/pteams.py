@@ -1231,12 +1231,15 @@ def apply_service_packages(
         if any(None in {_ref.get("target"), _ref.get("version")} for _ref in _refs):
             raise ValueError("Missing target and|or version")
         package_manager = str(line.get("package_manager", ""))
-
-        if not (
-            _package := persistence.get_package_by_name_and_ecosystem_and_source_name(
-                db, package_name, ecosystem, line.get("source_name")
+        source_name = str(line.get("source_name", ""))
+        if source_name:
+            _package = persistence.get_package_by_name_and_ecosystem_and_source_name(
+                db, package_name, ecosystem, source_name
             )
-        ):
+        else:
+            _package = persistence.get_package_by_name_and_ecosystem(db, package_name, ecosystem)
+
+        if _package is None:
             # create new package
             if ecosystem_analyzer.is_os_ecosystem(ecosystem):
                 _package = models.OSPackage(
