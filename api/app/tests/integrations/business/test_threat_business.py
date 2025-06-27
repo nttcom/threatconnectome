@@ -120,7 +120,7 @@ class TestFixThreatByVuln:
             vuln_id=vuln1.vuln_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
-            affected_name=package1.name,
+            affected_name="unmatched name",
             ecosystem=package1.ecosystem,
         )
         affect2 = models.Affect(
@@ -274,7 +274,7 @@ class TestFixThreatByPackageVersionId:
             vuln_id=vuln1.vuln_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
-            affected_name=package1.name,
+            affected_name="unmatched name",
             ecosystem=package1.ecosystem,
         )
         affect2 = models.Affect(
