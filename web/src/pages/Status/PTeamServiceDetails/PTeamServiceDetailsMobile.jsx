@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 
-import { usePTeamServiceDetailsData } from "../../hooks/Status/usePTeamServiceDetailsData";
+import { usePTeamServiceDetailsData } from "../../../hooks/Status/usePTeamServiceDetailsData";
 
 export function PTeamServiceDetailsMobile(props) {
   const { image, serviceName, description, keywords, statusItems } = usePTeamServiceDetailsData(

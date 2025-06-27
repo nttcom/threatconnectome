@@ -41,7 +41,7 @@ import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../u
 import { errorToString } from "../../utils/func";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
-import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetailsResponsive";
+import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetails/PTeamServiceDetailsResponsive";
 import { PTeamServiceSelectDialog } from "./PTeamServiceSelectDialog";
 import { PTeamServiceTabs } from "./PTeamServiceTabs";
 import { PTeamServicesListModal } from "./PTeamServicesListModal";

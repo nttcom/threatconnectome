@@ -16,10 +16,9 @@ import {
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { usePTeamServiceDetailsData } from "../../hooks/Status/usePTeamServiceDetailsData";
-
-import { PTeamStatusSSVCCards } from "./PTeamStatusSSVCCards";
-import { PTeamServiceDetailsSettings } from "./ServiceDetailsSettings/PTeamServiceDetailsSettings";
+import { usePTeamServiceDetailsData } from "../../../hooks/Status/usePTeamServiceDetailsData";
+import { PTeamStatusSSVCCards } from "../PTeamStatusSSVCCards";
+import { PTeamServiceDetailsSettings } from "../ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 function ServiceIDCopyButton({ ServiceId }) {
   const defaultMessage = "Copy the Service ID";
