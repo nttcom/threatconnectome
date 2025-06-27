@@ -158,7 +158,10 @@ export function PTeamServiceDetailsSettingsView(props) {
 
   return (
     <>
-      <IconButton onClick={handleClickOpen} sx={{ position: "absolute", right: 0, top: 0 }}>
+      <IconButton
+        onClick={handleClickOpen}
+        sx={{ position: { md: "absolute", xs: undefined }, right: 0, top: 0 }}
+      >
         <SettingsIcon />
       </IconButton>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
