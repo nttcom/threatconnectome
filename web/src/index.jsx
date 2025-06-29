@@ -24,6 +24,7 @@ import {
   VulnDetail,
   VulnManagement,
   PTeam,
+  ToDo,
   Vulnerability,
 } from "./pages";
 import { AuthProvider } from "./providers/auth/AuthContext";
@@ -74,6 +75,9 @@ root.render(
                   <Route path="vulns">
                     <Route index element={<VulnManagement />} />
                     <Route path=":vulnId" element={<VulnDetail />} />
+                  </Route>
+                  <Route path="todo">
+                    <Route index element={<ToDo />} />
                   </Route>
                   <Route path="vulnerabilities">
                     <Route index element={<Vulnerability />} />
