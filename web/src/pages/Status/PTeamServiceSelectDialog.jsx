@@ -42,7 +42,7 @@ export function PTeamServiceSelectDialog(props) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          paddingRight: "12px", // アイコン分の余白
+          paddingRight: "12px",
         }}
         variant="outlined"
         onClick={handleClickOpen}
