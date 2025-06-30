@@ -33,7 +33,7 @@ const noImageAvailableUrl = "images/no-image-available-720x480.png";
 function ServiceCard(props) {
   const { pteamId, service, onClickService } = props;
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
   const {
     data: thumbnail,
@@ -56,8 +56,8 @@ function ServiceCard(props) {
         backgroundColor: grey[200],
         "&:hover": { bgcolor: grey[100] },
         display: "flex",
-        flexDirection: isMobile ? "column" : "row",
-        height: isMobile ? "auto" : 200,
+        flexDirection: isMdDown ? "column" : "row",
+        height: isMdDown ? "auto" : 200,
       }}
     >
       <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
@@ -111,7 +111,7 @@ export function PTeamServicesListModal(props) {
   } = useGetPTeamQuery(pteamId, { skip });
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
   if (skip) return <></>;
   if (pteamError)
@@ -167,7 +167,7 @@ export function PTeamServicesListModal(props) {
   };
 
   return (
-    <Dialog open={show} onClose={handleClose} fullWidth maxWidth={isMobile ? "xs" : "md"}>
+    <Dialog open={show} onClose={handleClose} fullWidth maxWidth={isMdDown ? "xs" : "md"}>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           <Typography variant="h6">Selected Package</Typography>
