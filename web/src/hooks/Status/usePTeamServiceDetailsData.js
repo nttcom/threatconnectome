@@ -4,7 +4,6 @@ import { ssvcPriorityProps, systemExposure, missionImpact } from "../../utils/co
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
 export function usePTeamServiceDetailsData(pteamId, service, highestSsvcPriority) {
-  // ① データ取得ロジックを共通化
   const {
     data: thumbnail,
     isError: thumbnailIsError,
