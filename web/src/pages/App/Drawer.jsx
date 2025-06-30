@@ -10,8 +10,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { set } from "date-fns";
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -64,16 +63,16 @@ export function Drawer() {
   // --- Effects for responsive drawer behavior ---
 
   // Auto-open drawer on large screens.
+  // HACK: Use async update to prevent UI freeze from Drawer's race condition.
   useEffect(() => {
-    dispatch(setDrawerOpen(isLargeScreen));
-  }, [isLargeScreen, dispatch]);
+    const timer = setTimeout(() => {
+      dispatch(setDrawerOpen(isLargeScreen));
+    }, 0);
 
-  // Force-close drawer on mobile to prevent a resize bug.
-  useEffect(() => {
-    if (isMobile) {
-      dispatch(setDrawerOpen(false));
-    }
-  }, [isMobile, dispatch]);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isLargeScreen, dispatch]);
 
   const drawerTitle = "Threatconnectome";
 
