@@ -32,7 +32,7 @@ export function VulnTableRowView(props) {
   const actionByFixedVersions = createActionByFixedVersions(
     affectedVersions,
     patchedVersions,
-    vulnerable_package.name,
+    vulnerable_package.affected_name,
   );
 
   return (

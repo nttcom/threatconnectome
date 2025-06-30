@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 
 export function PackageView(props) {
   const { vulnPackage } = props;
-  const nameWithEcosystem = `${vulnPackage.name}:${vulnPackage.ecosystem}`;
+  const nameWithEcosystem = `${vulnPackage.affected_name}:${vulnPackage.ecosystem}`;
   const affectedVersions = vulnPackage?.affected_versions ?? [];
   const fixedVersions = vulnPackage?.fixed_versions ?? [];
 

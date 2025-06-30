@@ -26,7 +26,7 @@ export function getActions(vuln, vulnActions) {
     const action = createActionByFixedVersions(
       vulnerable_package.affected_versions,
       vulnerable_package.fixed_versions,
-      vulnerable_package.name,
+      vulnerable_package.affected_name,
     );
     if (action != null) {
       actionsByFixedVersions.push(action);
