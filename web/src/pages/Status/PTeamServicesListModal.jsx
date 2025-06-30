@@ -10,7 +10,6 @@ import {
   DialogTitle,
   IconButton,
   Typography,
-  CardHeader,
   MenuItem,
   Pagination,
   Select,
@@ -34,7 +33,7 @@ const noImageAvailableUrl = "images/no-image-available-720x480.png";
 function ServiceCard(props) {
   const { pteamId, service, onClickService } = props;
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const {
     data: thumbnail,
@@ -64,7 +63,9 @@ function ServiceCard(props) {
       <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
       <CardContent sx={{ flex: 1, minWidth: 0 }}>
         <Typography
+          gutterBottom
           variant="h5"
+          component="div"
           noWrap
           title={service.service_name}
           sx={(theme) => ({
