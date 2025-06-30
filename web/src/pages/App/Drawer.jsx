@@ -57,8 +57,8 @@ export function Drawer() {
 
   const dispatch = useDispatch();
   const theme = useTheme();
-  const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isLgUp = useMediaQuery(theme.breakpoints.up("lg"));
+  const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
 
   // --- Effects for responsive drawer behavior ---
 
@@ -66,13 +66,13 @@ export function Drawer() {
   // HACK: Use async update to prevent UI freeze from Drawer's race condition.
   useEffect(() => {
     const timer = setTimeout(() => {
-      dispatch(setDrawerOpen(isLargeScreen));
+      dispatch(setDrawerOpen(isLgUp));
     }, 0);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [isLargeScreen, dispatch]);
+  }, [isLgUp, dispatch]);
 
   const drawerTitle = "Threatconnectome";
 
@@ -80,7 +80,7 @@ export function Drawer() {
     <MuiDrawer
       anchor="left"
       open={system.drawerOpen}
-      variant={isMobile ? "temporary" : "persistent"}
+      variant={isSmDown ? "temporary" : "persistent"}
       onClose={() => dispatch(setDrawerOpen(false))}
       sx={{
         flexShrink: 0,
