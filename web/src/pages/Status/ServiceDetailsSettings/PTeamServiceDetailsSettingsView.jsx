@@ -14,6 +14,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
@@ -156,6 +158,8 @@ export function PTeamServiceDetailsSettingsView(props) {
       defaultSafetyImpactValue,
     );
 
+  const theme = useTheme();
+  const isSmUp = useMediaQuery(theme.breakpoints.up("sm"));
   return (
     <>
       <IconButton
@@ -282,17 +286,24 @@ export function PTeamServiceDetailsSettingsView(props) {
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               <FormLabel>Default Safety Impact</FormLabel>
-              <ToggleButtonGroup color="primary" value={defaultSafetyImpactValue} exclusive>
-                {safetyImpactList.map((value) => (
-                  <ToggleButton
-                    key={value}
-                    value={value}
-                    onClick={() => setDefaultSafetyImpactValue(value)}
-                  >
-                    {value}
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
+              <Box>
+                <ToggleButtonGroup
+                  orientation={isSmUp ? "horizontal" : "vertical"}
+                  color="primary"
+                  value={defaultSafetyImpactValue}
+                  exclusive
+                >
+                  {safetyImpactList.map((value) => (
+                    <ToggleButton
+                      key={value}
+                      value={value}
+                      onClick={() => setDefaultSafetyImpactValue(value)}
+                    >
+                      {value}
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              </Box>
             </Box>
           </Stack>
         </DialogContent>
