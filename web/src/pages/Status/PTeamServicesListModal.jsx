@@ -61,7 +61,7 @@ function ServiceCard(props) {
       }}
     >
       <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
-      <CardContent sx={{ flex: 1 }}>
+      <CardContent sx={{ flex: 1, minWidth: 0 }}>
         <Typography
           gutterBottom
           variant="h5"
