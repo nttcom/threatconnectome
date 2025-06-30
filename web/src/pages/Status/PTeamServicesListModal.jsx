@@ -110,6 +110,9 @@ export function PTeamServicesListModal(props) {
     isLoading: pteamIsLoading,
   } = useGetPTeamQuery(pteamId, { skip });
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   if (skip) return <></>;
   if (pteamError)
     throw new APIError(errorToString(pteamError), {
@@ -164,7 +167,7 @@ export function PTeamServicesListModal(props) {
   };
 
   return (
-    <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
+    <Dialog open={show} onClose={handleClose} fullWidth maxWidth={isMobile ? "xs" : "md"}>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           <Typography variant="h6">Selected Package</Typography>
