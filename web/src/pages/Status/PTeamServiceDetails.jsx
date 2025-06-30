@@ -110,22 +110,41 @@ export function PTeamServiceDetails(props) {
           <PTeamServiceDetailsSettings pteamId={pteamId} service={service} />
           <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
           <Divider orientation="vertical" variant="middle" flexItem />
-          <CardContent sx={{ flex: 1 }}>
-            <Stack direction="row" spacing={1}>
-              {keywords.map((keyword) => (
-                <Chip key={keyword} label={keyword} size="small" />
-              ))}
-            </Stack>
-            <Typography variant="h5">
-              {serviceName}
-              <ServiceIDCopyButton ServiceId={service.service_id} />
-            </Typography>
-            <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-              {description}
-            </Typography>
-            <Typography variant="caption" color="textSecondary">
-              {`Default safety impact: ${service.service_safety_impact}`}
-            </Typography>
+          <CardContent sx={{ display: "flex", flex: 1, minWidth: 0 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+              <Stack
+                direction="row"
+                spacing={0.5}
+                useFlexGap
+                sx={{ maxWidth: "90%", flexWrap: "wrap" }}
+              >
+                {keywords.map((keyword) => (
+                  <Chip key={keyword} label={keyword} size="small" />
+                ))}
+              </Stack>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Box sx={{ display: "flex", minWidth: 0, maxWidth: "90%" }}>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                    title={serviceName}
+                  >
+                    {serviceName}
+                  </Typography>
+                  <ServiceIDCopyButton ServiceId={service.service_id} />
+                </Box>
+              </Box>
+              <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
+                {description}
+              </Typography>
+              <Typography variant="caption" color="textSecondary">
+                {`Default safety impact: ${service.service_safety_impact}`}
+              </Typography>
+            </Box>
           </CardContent>
         </Card>
         <Box sx={{ mt: 1 }}>

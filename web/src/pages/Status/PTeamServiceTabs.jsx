@@ -23,7 +23,21 @@ export function PTeamServiceTabs(props) {
         {services.map((service) => (
           <Tooltip key={service.service_id} title={service.service_name}>
             <Tab
-              label={service.service_name}
+              label={
+                <span
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                    paddingLeft: "10px",
+                    paddingRight: "10px",
+                  }}
+                >
+                  {service.service_name}
+                </span>
+              }
               onClick={() => {
                 onChangeService(service.service_id);
                 setIsActiveUploadMode(0);
@@ -34,6 +48,8 @@ export function PTeamServiceTabs(props) {
                 borderRadius: "0.5rem 0.5rem 0 0",
                 width: "20%",
                 mt: 1,
+                minWidth: 0,
+                padding: 0,
               }}
             />
           </Tooltip>
