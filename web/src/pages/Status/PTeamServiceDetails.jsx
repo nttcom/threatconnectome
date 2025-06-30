@@ -116,14 +116,23 @@ export function PTeamServiceDetails(props) {
                 direction="row"
                 spacing={0.5}
                 useFlexGap
-                sx={{ maxWidth: "90%", flexWrap: "wrap" }}
+                sx={{
+                  maxWidth: "90%", // Limit width to 90% to avoid overlapping with the absolutely positioned settings button.
+                  flexWrap: "wrap",
+                }}
               >
                 {keywords.map((keyword) => (
                   <Chip key={keyword} label={keyword} size="small" />
                 ))}
               </Stack>
               <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Box sx={{ display: "flex", minWidth: 0, maxWidth: "90%" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    minWidth: 0,
+                    maxWidth: "90%", // Limit width to 90% to avoid overlapping with the absolutely positioned settings button.
+                  }}
+                >
                   <Typography
                     variant="h5"
                     sx={{
