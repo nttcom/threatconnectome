@@ -1,5 +1,5 @@
 import { UploadFile } from "@mui/icons-material";
-import { Tabs, Tab, Tooltip } from "@mui/material";
+import { Tabs, Tab, Tooltip, Box } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useState } from "react";
@@ -24,19 +24,20 @@ export function PTeamServiceTabs(props) {
           <Tooltip key={service.service_id} title={service.service_name}>
             <Tab
               label={
-                <span
-                  style={{
+                <Box
+                  sx={(theme) => ({
                     display: "block",
                     width: "100%",
                     overflow: "hidden",
                     whiteSpace: "nowrap",
                     textOverflow: "ellipsis",
-                    paddingLeft: "10px",
-                    paddingRight: "10px",
-                  }}
+                    paddingLeft: theme.spacing(1),
+                    paddingRight: theme.spacing(1),
+                  })}
+                  component="span"
                 >
                   {service.service_name}
-                </span>
+                </Box>
               }
               onClick={() => {
                 onChangeService(service.service_id);
