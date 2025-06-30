@@ -125,6 +125,7 @@ export function VulnTableRowView(props) {
         serviceId={serviceId}
         servicePackageId={packageId}
         vulnId={vulnId}
+        references={references}
       />
     </>
   );
