@@ -16,6 +16,8 @@ import {
   Select,
   CardMedia,
   CardContent,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
@@ -31,6 +33,8 @@ const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
 function ServiceCard(props) {
   const { pteamId, service, onClickService } = props;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const {
     data: thumbnail,
@@ -53,7 +57,8 @@ function ServiceCard(props) {
         backgroundColor: grey[200],
         "&:hover": { bgcolor: grey[100] },
         display: "flex",
-        height: 200,
+        flexDirection: isMobile ? "column" : "row",
+        height: isMobile ? "auto" : 200,
       }}
     >
       <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
