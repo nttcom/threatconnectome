@@ -115,7 +115,7 @@ export function PTeamStatusCard(props) {
     compareSSVCPriority(displaySSVCPriority, pteam.alert_ssvc_priority) <= 0;
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
   return (
     <TableRow
@@ -159,7 +159,7 @@ export function PTeamStatusCard(props) {
       <TableCell
         align="right"
         style={{ width: "30%" }}
-        sx={{ display: isMobile ? "none" : undefined }}
+        sx={{ display: isMdDown ? "none" : undefined }}
       >
         <Box display="flex" flexDirection="column">
           <Box display="flex" flexDirection="row" justifyContent="space-between">

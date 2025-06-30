@@ -189,8 +189,8 @@ export function Status() {
   }, [pteamId, pteam, serviceId, isActiveAllServicesMode]);
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isSm = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skipByAuth || !pteamId) return <></>;
@@ -280,8 +280,8 @@ export function Status() {
         shape="rounded"
         page={page}
         count={numPages}
-        siblingCount={isSm ? 0 : undefined}
-        boundaryCount={isSm ? 0 : undefined}
+        siblingCount={isSmDown ? 0 : undefined}
+        boundaryCount={isSmDown ? 0 : undefined}
         onChange={(event, value) => {
           params.set("page", value);
           navigate(location.pathname + "?" + params.toString());
@@ -466,7 +466,7 @@ export function Status() {
         />
       </Box>
       {!isActiveAllServicesMode &&
-        (isMobile ? (
+        (isMdDown ? (
           <PTeamServiceSelectDialog
             services={pteam.services}
             currentServiceId={serviceId}
