@@ -33,7 +33,10 @@ export function VulnDetailView(props) {
             {vuln.vulnerable_packages
               .filter((_, index) => (showAllPackages ? true : index === 0))
               .map((vulnPackage) => (
-                <PackageView key={vulnPackage.package_id} vulnPackage={vulnPackage} />
+                <PackageView
+                  key={vulnPackage.affected_name + vulnPackage.ecosystem}
+                  vulnPackage={vulnPackage}
+                />
               ))}
             {/* hide or more button if needed */}
             {vuln.vulnerable_packages.length > 1 && (
