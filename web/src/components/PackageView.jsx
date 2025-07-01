@@ -10,7 +10,12 @@ export function PackageView(props) {
   const fixedVersions = vulnPackage?.fixed_versions ?? [];
 
   return (
-    <Card key={vulnPackage.package_id} variant="outlined" display="flex" sx={{ m: 1, p: 2 }}>
+    <Card
+      key={vulnPackage.affected_name + vulnPackage.ecosystem}
+      variant="outlined"
+      display="flex"
+      sx={{ m: 1, p: 2 }}
+    >
       {/* Title -- package name */}
       <Typography variant="h5">{nameWithEcosystem}</Typography>
       <Box display="flex" flexDirection="row" justifyContent="center">
