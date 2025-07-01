@@ -35,3 +35,14 @@ export function getActions(vuln, vulnActions) {
 
   return [...actionsByFixedVersions, ...vulnActions];
 }
+
+export function findMatchedVulnPackage(vulnerable_packages, currentPackage) {
+  const { package_source_name, package_name, ecosystem } = currentPackage;
+  return vulnerable_packages.find(
+    (vulnerable_package) =>
+      vulnerable_package.ecosystem === ecosystem &&
+      (package_source_name != null
+        ? vulnerable_package.affected_name === package_source_name
+        : vulnerable_package.affected_name === package_name),
+  );
+}
