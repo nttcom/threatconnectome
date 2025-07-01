@@ -9,7 +9,7 @@ import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetDependenciesQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { ssvcPriorityProps } from "../../../utils/const.js";
-import { errorToString , searchWorstSSVC } from "../../../utils/func";
+import { errorToString, searchWorstSSVC } from "../../../utils/func";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../../utils/vulnUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 
