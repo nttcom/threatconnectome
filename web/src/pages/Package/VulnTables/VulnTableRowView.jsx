@@ -5,10 +5,11 @@ import { Button, Collapse, IconButton, TableCell, TableRow } from "@mui/material
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { ssvcPriorityProps } from "../../../utils/const.js";
-import { searchWorstSSVC } from "../../../utils/func.js";
-import { useGetDependenciesQuery } from "../../../services/tcApi";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
+import { useGetDependenciesQuery } from "../../../services/tcApi";
+import { APIError } from "../../../utils/APIError";
+import { ssvcPriorityProps } from "../../../utils/const.js";
+import { errorToString , searchWorstSSVC } from "../../../utils/func";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../../utils/vulnUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 
