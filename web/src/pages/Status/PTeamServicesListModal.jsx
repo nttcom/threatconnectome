@@ -57,8 +57,21 @@ function ServiceCard(props) {
       }}
     >
       <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
-      <CardContent sx={{ flex: 1 }}>
-        <CardHeader title={service.service_name} sx={{ px: 0 }}></CardHeader>
+      <CardContent sx={{ flex: 1, minWidth: 0 }}>
+        <Typography
+          variant="h5"
+          noWrap
+          title={service.service_name}
+          sx={(theme) => ({
+            width: "100%",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "block",
+            p: theme.spacing(0, 0, 1, 0),
+          })}
+        >
+          {service.service_name}
+        </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
           {service.description}
         </Typography>
