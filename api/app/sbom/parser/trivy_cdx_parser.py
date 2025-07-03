@@ -196,6 +196,17 @@ class TrivyCDXParser(SBOMParser):
                 continue  # maybe directory or image
             if not (package_info := component.to_package_info(components_map)):
                 continue  # omit not packages
+
+            package_info["pkg_name"] = (
+                package_info["pkg_name"].lower() if package_info["pkg_name"] else ""
+            )
+            package_info["ecosystem"] = (
+                package_info["ecosystem"].lower() if package_info["ecosystem"] else ""
+            )
+            package_info["pkg_mgr"] = (
+                package_info["pkg_mgr"].lower() if package_info["pkg_mgr"] else ""
+            )
+
             artifacts_key = (
                 f"{package_info['pkg_name']}:{package_info['ecosystem']}:{package_info['pkg_mgr']}"
             )
