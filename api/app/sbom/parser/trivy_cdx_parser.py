@@ -200,6 +200,9 @@ class TrivyCDXParser(SBOMParser):
             package_info["pkg_name"] = (
                 package_info["pkg_name"].lower() if package_info["pkg_name"] else ""
             )
+            package_info["source_name"] = (
+                package_info["source_name"].lower() if package_info["source_name"] else ""
+            )
             package_info["ecosystem"] = (
                 package_info["ecosystem"].lower() if package_info["ecosystem"] else ""
             )
