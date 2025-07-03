@@ -1,13 +1,17 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 import PropTypes from "prop-types";
 
 import { sortedSSVCPriorities } from "../../utils/const";
 
 import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
+import { VulnCardList } from "./VulnCardList/VulnCardList";
 import { VulnTable } from "./VulnTables/VulnTable";
 
 export function PTeamVulnsPerPackage(props) {
   const { pteamId, service, packageId, references, vulnIds, ticketCounts } = props;
+
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
   if (vulnIds === undefined || ticketCounts === undefined) {
     return <>Loading...</>;
@@ -29,13 +33,23 @@ export function PTeamVulnsPerPackage(props) {
         Default safety impact: {service.service_safety_impact}
       </Typography>
       <Box sx={{ my: 2 }}>
-        <VulnTable
-          pteamId={pteamId}
-          serviceId={service.service_id}
-          packageId={packageId}
-          vulnIds={vulnIds}
-          references={references}
-        />
+        {isMdDown ? (
+          <VulnCardList
+            pteamId={pteamId}
+            serviceId={service.service_id}
+            packageId={packageId}
+            vulnIds={vulnIds}
+            references={references}
+          />
+        ) : (
+          <VulnTable
+            pteamId={pteamId}
+            serviceId={service.service_id}
+            packageId={packageId}
+            vulnIds={vulnIds}
+            references={references}
+          />
+        )}
       </Box>
     </>
   );
