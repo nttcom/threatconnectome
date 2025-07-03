@@ -1412,6 +1412,32 @@ class TestPostUploadSBOMFileCycloneDX:
             }
             assert created_dependencies == expected_dependencies
 
+            new_vuln_id = uuid4()
+            request_vuln = {
+                "title": "Example vuln",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This vuln is example.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.8,
+                "vulnerable_packages": [
+                    {
+                        "affected_name": "pyjwt",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+            client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=request_vuln)
+
+            response_tickets = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?assigned_to_me=false",
+                headers=headers(USER1),
+            )
+            assert response_tickets.status_code == 200
+            assert any(ticket["vuln_id"] == str(new_vuln_id) for ticket in response_tickets.json())
+
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
         @staticmethod
         def gen_base_json(target_name: str) -> dict:
