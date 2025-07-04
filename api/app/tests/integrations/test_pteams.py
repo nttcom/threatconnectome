@@ -1306,6 +1306,43 @@ class TestPostUploadSBOMFileCycloneDX:
                 ),
             ] == caplog.record_tuples
 
+        @pytest.mark.parametrize(
+            "purl, expected_pkg_name",
+            [
+                ("pkg:npm/%40nextui-org/button@2.0.26", "@nextui-org/button"),
+                ("pkg:npm/@nextui-org/button@2.0.26", "@nextui-org/button"),
+            ],
+        )
+        def test_purl_escape_and_decode(self, testdb, purl, expected_pkg_name):
+            target_name = "sample target1"
+            service_name = "sample service1"
+            ApplicationParam = TestPostUploadSBOMFileCycloneDX.Common.ApplicationParam
+            LibraryParam = TestPostUploadSBOMFileCycloneDX.Common.LibraryParam
+            application_param = ApplicationParam(
+                name="web/package-lock.json",
+                type="application",
+                trivy_type="npm",
+                trivy_class="lang-pkgs",
+            )
+            library_param = LibraryParam(
+                purl=purl,
+                name="button",
+                group="@nextui-org",
+                version="2.0.26",
+                properties=None,
+            )
+            components_dict = {application_param: [library_param]}
+            sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
+
+            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, None)
+
+            services = self.get_services()
+            service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+            assert service1
+
+            dependencies = self.get_service_dependencies(service1["service_id"])
+            assert any(dep["package_name"] == expected_pkg_name for dep in dependencies)
+
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
         @staticmethod
         def gen_base_json(target_name: str) -> dict:
