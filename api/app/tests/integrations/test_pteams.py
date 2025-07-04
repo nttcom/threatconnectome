@@ -1392,12 +1392,16 @@ class TestPostUploadSBOMFileCycloneDX:
             )
 
             # Then
-            ## dependenciesを取得して、ちゃんとpackageが作成されていることを確認
+            ## Retrieve dependencies and verify that packages are created correctly
             services = self.get_services()
             service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+
+            if service1 is None:
+                error_msg = f"Service '{service_name}' not found in pteam {self.pteam1.pteam_id}"
+                raise ValueError(error_msg)
+
             dependencies = self.get_service_dependencies(service1["service_id"])
 
-            # 特定の重要なパッケージが存在することを確認
             matching_packages = [
                 d
                 for d in dependencies
