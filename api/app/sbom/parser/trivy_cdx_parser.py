@@ -80,12 +80,12 @@ class TrivyCDXParser(SBOMParser):
                 return None
             pkg_name = (
                 self.group + "/" + self.name if self.group else self.name
-            )  # given by trivy. may include namespace in some case.
+            ).lower()  # given by trivy. may include namespace in some case.
 
             source_name = None
             for key, value in self.properties.items():
                 if "aquasecurity:trivy:SrcName" in key:
-                    source_name = value
+                    source_name = str(value).lower()
                     break
 
             pkg_info = self.purl.type
@@ -100,9 +100,9 @@ class TrivyCDXParser(SBOMParser):
                         if isinstance(self.purl.qualifiers, dict)
                         else ""
                     )
-                    pkg_info = self._fix_distro(distro) if distro else ""
+                    pkg_info = str(self._fix_distro(distro) if distro else "").lower()
                 else:
-                    pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
+                    pkg_mgr = str(mgr.properties.get("aquasecurity:trivy:Type", "")).lower()
 
             return {
                 "pkg_name": pkg_name,
@@ -196,19 +196,6 @@ class TrivyCDXParser(SBOMParser):
                 continue  # maybe directory or image
             if not (package_info := component.to_package_info(components_map)):
                 continue  # omit not packages
-
-            package_info["pkg_name"] = (
-                package_info["pkg_name"].lower() if package_info["pkg_name"] else ""
-            )
-            package_info["source_name"] = (
-                package_info["source_name"].lower() if package_info["source_name"] else ""
-            )
-            package_info["ecosystem"] = (
-                package_info["ecosystem"].lower() if package_info["ecosystem"] else ""
-            )
-            package_info["pkg_mgr"] = (
-                package_info["pkg_mgr"].lower() if package_info["pkg_mgr"] else ""
-            )
 
             artifacts_key = (
                 f"{package_info['pkg_name']}:{package_info['ecosystem']}:{package_info['pkg_mgr']}"
