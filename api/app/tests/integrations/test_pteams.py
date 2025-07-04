@@ -680,7 +680,7 @@ class TestPostUploadSBOMFileCycloneDX:
             response = client.get(
                 f"/pteams/{self.pteam1.pteam_id}/dependencies",
                 headers=headers(USER1),
-                params={"service_id": str(service_id)},
+                params={"service_id": str(service_id), "limit": 10000},
             )
             return response.json()
 
@@ -1305,6 +1305,114 @@ class TestPostUploadSBOMFileCycloneDX:
                     f"Failed uploading SBOM as a service: {service_name}",
                 ),
             ] == caplog.record_tuples
+
+        @pytest.mark.parametrize(
+            "upload_file_name, expected_package_name, expected_package_ecosystem, "
+            "expected_package_source_name",
+            [
+                # AlmaLinux
+                ("almalinux.json", "libacl", "alma-9.6", "acl"),
+                # Alpine Linux
+                ("alpine.json", "alpine-baselayout", "3.22.0", None),
+                # Amazon Linux
+                (
+                    "amazonlinux.json",
+                    "audit-libs",
+                    "amazon-2023.7.20250609+(Amazon+Linux)",
+                    "audit",
+                ),
+                # Azure Linux
+                ("azurelinux.json", "SymCrypt-OpenSSL", "azurelinux-3.0", "SymCrypt-OpenSSL"),
+                # CBL-Mariner
+                ("cbl-mariner.json", "bzip2-libs", "cbl-mariner-2.0", "bzip2"),
+                # CentOS
+                # Original: distro=centos-7.9.2009, becomes centos-7 via _fix_distro()
+                ("centos.json", "audit-libs", "centos-7", "audit"),
+                # Chainguard
+                ("chainguard.json", "tzdata", "20230201", None),
+                # Debian
+                # Original: distro=debian-12.11, becomes debian-12 via _fix_distro()
+                ("debian.json", "adduser", "debian-12", "adduser"),
+                # Fedora
+                ("fedora.json", "audit-libs", "fedora-42", "audit"),
+                # openSUSE Leap
+                ("opensuse-leap.json", "aaa_base", "opensuse-leap-15.6", "aaa_base"),
+                # openSUSE Tumbleweed
+                (
+                    "opensuse-tumbleweed.json",
+                    "aaa_base",
+                    "opensuse-tumbleweed-20250630",
+                    "aaa_base",
+                ),
+                # Oracle Linux
+                ("oracle.json", "alternatives", "oracle-9.6", "chkconfig"),
+                # Photon OS
+                ("photon.json", "bzip2-libs", "photon-5.0", "bzip2"),
+                #  Red Hat Enterprise Linux
+                ("redhat.json", "alternatives", "redhat-9.6", "chkconfig"),
+                # Rocky Linux
+                ("rocky.json", "alternatives", "rocky-9.3", "chkconfig"),
+                # SUSE Linux Enterprise Micro
+                (
+                    "slem.json",
+                    "NetworkManager-branding-SLE",
+                    "slem-5.5",
+                    "NetworkManager-branding-SLE",
+                ),
+                # SUSE Linux Enterprise Server
+                ("sles.json", "aaa_base", "sles-15.7", "aaa_base"),
+                # Ubuntu
+                ("ubuntu.json", "base-files", "ubuntu-24.04", "base-files"),
+                # Wolfi
+                ("wolfi.json", "ca-certificates-bundle", "20230201", None),
+            ],
+        )
+        def test_uploaded_sbom_should_register_correct_packages_for_various_os_types_duplicate(
+            self,
+            testdb: Session,
+            upload_file_name: str,
+            expected_package_name: str,
+            expected_package_ecosystem: str,
+            expected_package_source_name: str,
+        ) -> None:
+            # Given
+            sbom_file = (
+                Path(__file__).resolve().parent.parent
+                / "common"
+                / "upload_test"
+                / "os_package"
+                / upload_file_name
+            )
+
+            with open(sbom_file, "r") as sbom:
+                sbom_json = json.load(sbom)
+
+            # When
+            service_name = "Service1 name"
+            bg_create_tags_from_sbom_json(
+                sbom_json, self.pteam1.pteam_id, service_name, upload_file_name
+            )
+
+            # Then
+            ## Retrieve dependencies and verify that packages are created correctly
+            services = self.get_services()
+            service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+
+            if service1 is None:
+                error_msg = f"Service '{service_name}' not found in pteam {self.pteam1.pteam_id}"
+                raise ValueError(error_msg)
+
+            dependencies = self.get_service_dependencies(service1["service_id"])
+
+            matching_packages = [
+                d
+                for d in dependencies
+                if d["package_name"] == expected_package_name
+                and d["package_ecosystem"] == expected_package_ecosystem
+                and d["package_source_name"] == expected_package_source_name
+            ]
+
+            assert len(matching_packages) > 0
 
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
         @staticmethod
