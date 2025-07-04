@@ -94,8 +94,9 @@ class TrivyCDXParser(SBOMParser):
 
             if self.targets:
                 mgr = self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
-
-                if is_os_purl(self.purl):
+                if not mgr:
+                    pass
+                elif is_os_purl(self.purl):
                     distro = (
                         self.purl.qualifiers.get("distro")
                         if isinstance(self.purl.qualifiers, dict)

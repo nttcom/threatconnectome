@@ -1325,11 +1325,13 @@ class TestPostUploadSBOMFileCycloneDX:
                 ("azurelinux.json", "SymCrypt-OpenSSL", "azurelinux-3.0", "SymCrypt-OpenSSL"),
                 # CBL-Mariner
                 ("cbl-mariner.json", "bzip2-libs", "cbl-mariner-2.0", "bzip2"),
-                # CentOS In the original file, distro=centos-7.9.2009, but it becomes the following due to _fix_distro() function
+                # CentOS
+                # Original: distro=centos-7.9.2009, becomes centos-7 via _fix_distro()
                 ("centos.json", "audit-libs", "centos-7", "audit"),
                 # Chainguard
                 ("chainguard.json", "tzdata", "20230201", None),
-                # Debian In the original file, distro=debian-12.11, but it becomes the following due to _fix_distro() function
+                # Debian
+                # Original: distro=debian-12.11, becomes debian-12 via _fix_distro()
                 ("debian.json", "adduser", "debian-12", "adduser"),
                 # Fedora
                 ("fedora.json", "audit-libs", "fedora-42", "audit"),
