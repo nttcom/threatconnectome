@@ -1406,62 +1406,6 @@ class TestPostUploadSBOMFileCycloneDX:
                 and d["package_source_name"] == expected_package_source_name
             ]
 
-            # Print detailed diagnostic information if package not found
-            if len(matching_packages) == 0:
-                # Check which criteria match individually
-                name_matches = [
-                    d for d in dependencies if d["package_name"] == expected_package_name
-                ]
-                eco_matches = [
-                    d for d in dependencies if d["package_ecosystem"] == expected_package_ecosystem
-                ]
-                source_matches = [
-                    d
-                    for d in dependencies
-                    if d["package_source_name"] == expected_package_source_name
-                ]
-
-                print("Search criteria:")
-                print(f"  package_name: {expected_package_name} " f"({len(name_matches)} matches)")
-                print(f"  ecosystem: {expected_package_ecosystem} " f"({len(eco_matches)} matches)")
-                print(
-                    f"  source_name: {expected_package_source_name} "
-                    f"({len(source_matches)} matches)"
-                )
-
-                # Show packages matching package_name only
-                if name_matches:
-                    print(f"\nPackages matching package_name '{expected_package_name}':")
-                    for dep in name_matches:
-                        print(f"  - {dep['package_name']}")
-                        print(f"    ecosystem: {dep['package_ecosystem']}")
-                        print(f"    source_name: {dep['package_source_name']}")
-
-                # Show packages matching ecosystem only
-                if eco_matches and len(eco_matches) < 10:  # Only show if not too many
-                    print(f"\nPackages matching ecosystem '{expected_package_ecosystem}':")
-                    for dep in eco_matches:
-                        print(f"  - {dep['package_name']}")
-                        print(f"    ecosystem: {dep['package_ecosystem']}")
-                        print(f"    source_name: {dep['package_source_name']}")
-
-                # Show packages matching source_name only
-                if source_matches and len(source_matches) < 10:  # Only show if not too many
-                    print(f"\nPackages matching source_name '{expected_package_source_name}':")
-                    for dep in source_matches:
-                        print(f"  - {dep['package_name']}")
-                        print(f"    ecosystem: {dep['package_ecosystem']}")
-                        print(f"    source_name: {dep['package_source_name']}")
-
-                # Show all packages
-                print(f"\nAll packages ({len(dependencies)} total):")
-                # Sort dependencies by package_name before displaying
-                sorted_deps = sorted(dependencies, key=lambda x: x["package_name"])
-                for dep in sorted_deps:
-                    print(f"  - {dep['package_name']}")
-                    print(f"    ecosystem: {dep['package_ecosystem']}")
-                    print(f"    source_name: {dep['package_source_name']}")
-
             assert len(matching_packages) > 0
 
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
