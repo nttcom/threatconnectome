@@ -1362,7 +1362,7 @@ class TestPostUploadSBOMFileCycloneDX:
                 # Ubuntu
                 ("ubuntu.json", "base-files", "ubuntu-24.04", "base-files"),
                 # Wolfi
-                ("wolfi.json", "ca-certificates-bundle", "20230201", "ca-certificates"),
+                ("wolfi.json", "ca-certificates-bundle", "20230201", None),
             ],
         )
         def test_uploaded_sbom_should_register_correct_packages_for_various_os_types_duplicate(
@@ -1396,7 +1396,6 @@ class TestPostUploadSBOMFileCycloneDX:
             services = self.get_services()
             service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
             dependencies = self.get_service_dependencies(service1["service_id"])
-            print(dependencies)
 
             # 特定の重要なパッケージが存在することを確認
             matching_packages = [

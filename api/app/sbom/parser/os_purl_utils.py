@@ -64,18 +64,18 @@ OS_TYPE_PURL_TYPES = {
     # pkg:rpm/suse/bash-sh@4.4-150400.27.3.2?arch=x86_64&distro=sles-15.7
     "sles": "rpm",
     # Other distributions
-    # コンテナイメージが公開されていない？
-    "bottlerocket": "",
+    # Official GitHub documentation mentions the use of RPM
+    "bottlerocket": "rpm",
     # trivy image --format cyclonedx --output cbl-mariner.json mcr.microsoft.com/cbl-mariner/base/core:2.0
     # pkg:rpm/cbl-mariner/bzip2-libs@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0
     "cbl-mariner": "rpm",
     # trivy image --format cyclonedx  --output chainguard.json chainguard/static
     # pkg:apk/wolfi/tzdata@2025b-r1?arch=x86_64&distro=20230201
     "chainguard": "apk",
-    # echoってそもそもなに？
-    "echo": "",
-    # minimosってそもそもなに？
-    "minimos": "",
+    # Echo is a Debian-based container image
+    "echo": "deb",
+    # Minimos SBOM is the same as Alpine
+    "minimos": "apk",
     # trivy image --format cyclonedx --output photon.json photon:latest
     # pkg:rpm/photon/ca-certificates-pki@20230315-6.ph5?arch=x86_64&distro=photon-5.0
     "photon": "rpm",

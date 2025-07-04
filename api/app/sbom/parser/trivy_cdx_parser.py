@@ -101,7 +101,7 @@ class TrivyCDXParser(SBOMParser):
                         if isinstance(self.purl.qualifiers, dict)
                         else ""
                     )
-                    pkg_info = self._fix_distro(distro) if distro else ""
+                    pkg_info = self._fix_distro(distro) if distro else self.purl.type
                 else:
                     pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
 
