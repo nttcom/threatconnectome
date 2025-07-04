@@ -612,6 +612,15 @@ class TestPostUploadSBOMFileCycloneDX:
                     ret["bom-ref"] = str(uuid4())
                 return ret
 
+        @dataclass(frozen=True, kw_only=True)
+        class DependencyParamsToCheck:
+            package_name: str
+            package_source_name: str | None
+            ecosystem: str
+            package_manager: str
+            target: str
+            version: str
+
         @staticmethod
         def gen_sbom_json(
             base_json: dict,
@@ -927,20 +936,11 @@ class TestPostUploadSBOMFileCycloneDX:
             ) > now - timedelta(seconds=30)
             assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
 
-            @dataclass(frozen=True, kw_only=True)
-            class DependencyParamsToCheck:
-                package_name: str
-                package_source_name: str | None
-                ecosystem: str
-                package_manager: str
-                target: str
-                version: str
-
             created_dependencies = set()
             for dependency in self.get_service_dependencies(service1["service_id"]):
                 if package_version := self.get_package(testdb, dependency["package_version_id"]):
                     created_dependencies.add(
-                        DependencyParamsToCheck(
+                        self.DependencyParamsToCheck(
                             package_name=package_version.package.name,
                             package_source_name=dependency["package_source_name"],
                             ecosystem=package_version.package.ecosystem,
@@ -951,7 +951,7 @@ class TestPostUploadSBOMFileCycloneDX:
                     )
 
             expected_dependencies = {
-                DependencyParamsToCheck(**expected_dependency_param)
+                self.DependencyParamsToCheck(**expected_dependency_param)
                 for expected_dependency_param in expected_dependency_params
             }
             assert created_dependencies == expected_dependencies
@@ -1305,6 +1305,138 @@ class TestPostUploadSBOMFileCycloneDX:
                     f"Failed uploading SBOM as a service: {service_name}",
                 ),
             ] == caplog.record_tuples
+
+        def test_package_name_and_ecosystem_are_lowercased_and_matched(self, testdb):
+            service_name = "case-insensitive service"
+            target_name = "sample target1"
+            component_params = [
+                (
+                    {
+                        "name": "PyJWT",
+                        "type": "application",
+                        "trivy_type": "pypi",
+                        "trivy_class": "lang-pkgs",
+                    },
+                    [
+                        {
+                            "purl": "pkg:pypi/PyJWT@1.5.3",
+                            "name": "PyJWT",
+                            "group": None,
+                            "version": "1.5.3",
+                            "properties": None,
+                        }
+                    ],
+                ),
+                (
+                    {
+                        "name": "github.com/opencontainers/image-spec",
+                        "type": "application",
+                        "trivy_type": "golang",
+                        "trivy_class": "lang-pkgs",
+                    },
+                    [
+                        {
+                            "purl": "pkg:golang/GitHub.com/OpenContainers/Image-Spec@v1.1.0-rc3",
+                            "name": "github.com/opencontainers/image-spec",
+                            "group": None,
+                            "version": "v1.1.0-rc3",
+                            "properties": None,
+                        }
+                    ],
+                ),
+            ]
+            expected_dependency_params = [
+                {
+                    "package_name": "pyjwt",
+                    "package_source_name": None,
+                    "ecosystem": "pypi",
+                    "package_manager": "pypi",
+                    "target": "PyJWT",
+                    "version": "1.5.3",
+                },
+                {
+                    "package_name": "pyjwt",
+                    "package_source_name": None,
+                    "ecosystem": "pypi",
+                    "package_manager": "pypi",
+                    "target": "sample target1",
+                    "version": "1.5.3",
+                },
+                {
+                    "package_name": "github.com/opencontainers/image-spec",
+                    "package_source_name": None,
+                    "ecosystem": "golang",
+                    "package_manager": "golang",
+                    "target": "github.com/opencontainers/image-spec",
+                    "version": "v1.1.0-rc3",
+                },
+                {
+                    "package_name": "github.com/opencontainers/image-spec",
+                    "package_source_name": None,
+                    "ecosystem": "golang",
+                    "package_manager": "golang",
+                    "target": "sample target1",
+                    "version": "v1.1.0-rc3",
+                },
+            ]
+            components_dict = {
+                self.ApplicationParam(**application_param): [
+                    self.LibraryParam(**library_param) for library_param in library_params
+                ]
+                for application_param, library_params in component_params
+            }
+            sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
+            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, None)
+
+            services = self.get_services()
+            service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+            assert service1
+
+            created_dependencies = set()
+            for dependency in self.get_service_dependencies(service1["service_id"]):
+                if package_version := self.get_package(testdb, dependency["package_version_id"]):
+                    created_dependencies.add(
+                        self.DependencyParamsToCheck(
+                            package_name=package_version.package.name,
+                            package_source_name=dependency["package_source_name"],
+                            ecosystem=package_version.package.ecosystem,
+                            package_manager=dependency["package_manager"],
+                            target=dependency["target"],
+                            version=package_version.version,
+                        )
+                    )
+
+            expected_dependencies = {
+                self.DependencyParamsToCheck(**expected_dependency_param)
+                for expected_dependency_param in expected_dependency_params
+            }
+            assert created_dependencies == expected_dependencies
+
+            new_vuln_id = uuid4()
+            request_vuln = {
+                "title": "Example vuln",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This vuln is example.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.8,
+                "vulnerable_packages": [
+                    {
+                        "affected_name": "pyjwt",
+                        "ecosystem": "pypi",
+                        "affected_versions": ["<2.0.0"],
+                        "fixed_versions": ["2.0.0"],
+                    }
+                ],
+            }
+            client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=request_vuln)
+
+            response_tickets = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?assigned_to_me=false",
+                headers=headers(USER1),
+            )
+            assert response_tickets.status_code == 200
+            assert any(ticket["vuln_id"] == str(new_vuln_id) for ticket in response_tickets.json())
 
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
         @staticmethod
