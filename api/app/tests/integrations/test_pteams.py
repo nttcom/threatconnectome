@@ -1313,7 +1313,9 @@ class TestPostUploadSBOMFileCycloneDX:
                 ("pkg:npm/@nextui-org/button@2.0.26", "@nextui-org/button"),
             ],
         )
-        def test_purl_escape_and_decode(self, testdb, purl, expected_pkg_name):
+        def test_purl_name_is_correctly_unescaped_from_encoded(
+            self, testdb, purl, expected_pkg_name
+        ):
             target_name = "sample target1"
             service_name = "sample service1"
             ApplicationParam = TestPostUploadSBOMFileCycloneDX.Common.ApplicationParam
