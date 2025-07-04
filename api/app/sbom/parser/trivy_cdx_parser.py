@@ -80,12 +80,12 @@ class TrivyCDXParser(SBOMParser):
                 return None
             pkg_name = (
                 self.group + "/" + self.name if self.group else self.name
-            ).lower()  # given by trivy. may include namespace in some case.
+            ).casefold()  # given by trivy. may include namespace in some case.
 
             source_name = None
             for key, value in self.properties.items():
                 if "aquasecurity:trivy:SrcName" in key:
-                    source_name = str(value).lower()
+                    source_name = str(value).casefold()
                     break
 
             pkg_info = self.purl.type
@@ -100,9 +100,9 @@ class TrivyCDXParser(SBOMParser):
                         if isinstance(self.purl.qualifiers, dict)
                         else ""
                     )
-                    pkg_info = str(self._fix_distro(distro) if distro else "").lower()
+                    pkg_info = str(self._fix_distro(distro) if distro else "").casefold()
                 else:
-                    pkg_mgr = str(mgr.properties.get("aquasecurity:trivy:Type", "")).lower()
+                    pkg_mgr = str(mgr.properties.get("aquasecurity:trivy:Type", "")).casefold()
 
             return {
                 "pkg_name": pkg_name,
