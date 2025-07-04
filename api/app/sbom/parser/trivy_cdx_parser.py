@@ -10,6 +10,7 @@ from packageurl import PackageURL
 
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.debug_info_outputer import error_message
+from app.sbom.parser.os_purl_utils import is_os_purl
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
     SBOM,
@@ -90,11 +91,11 @@ class TrivyCDXParser(SBOMParser):
 
             pkg_info = self.purl.type
             pkg_mgr = ""
+
             if self.targets:
                 mgr = self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
-                if not mgr:
-                    pass
-                elif mgr.trivy_class == "os-pkgs":
+
+                if is_os_purl(self.purl):
                     distro = (
                         self.purl.qualifiers.get("distro")
                         if isinstance(self.purl.qualifiers, dict)

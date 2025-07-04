@@ -680,7 +680,7 @@ class TestPostUploadSBOMFileCycloneDX:
             response = client.get(
                 f"/pteams/{self.pteam1.pteam_id}/dependencies",
                 headers=headers(USER1),
-                params={"service_id": str(service_id)},
+                params={"service_id": str(service_id), "limit": 10000},
             )
             return response.json()
 
@@ -1305,6 +1305,165 @@ class TestPostUploadSBOMFileCycloneDX:
                     f"Failed uploading SBOM as a service: {service_name}",
                 ),
             ] == caplog.record_tuples
+
+        @pytest.mark.parametrize(
+            "upload_file_name, expected_package_name, expected_package_ecosystem, "
+            "expected_package_source_name",
+            [
+                # AlmaLinux
+                ("almalinux.json", "libacl", "alma-9.6", "acl"),
+                # Alpine Linux
+                ("alpine.json", "alpine-baselayout", "3.22.0", None),
+                # Amazon Linux
+                (
+                    "amazonlinux.json",
+                    "audit-libs",
+                    "amazon-2023.7.20250609+(Amazon+Linux)",
+                    "audit",
+                ),
+                # Azure Linux
+                ("azurelinux.json", "SymCrypt-OpenSSL", "azurelinux-3.0", "SymCrypt-OpenSSL"),
+                # CBL-Mariner
+                ("cbl-mariner.json", "bzip2-libs", "cbl-mariner-2.0", "bzip2"),
+                # CentOS In the original file, distro=centos-7.9.2009, but it becomes the following due to _fix_distro() function
+                ("centos.json", "audit-libs", "centos-7", "audit"),
+                # Chainguard
+                ("chainguard.json", "tzdata", "20230201", None),
+                # Debian In the original file, distro=debian-12.11, but it becomes the following due to _fix_distro() function
+                ("debian.json", "adduser", "debian-12", "adduser"),
+                # Fedora
+                ("fedora.json", "audit-libs", "fedora-42", "audit"),
+                # openSUSE Leap
+                ("opensuse-leap.json", "aaa_base", "opensuse-leap-15.6", "aaa_base"),
+                # openSUSE Tumbleweed
+                (
+                    "opensuse-tumbleweed.json",
+                    "aaa_base",
+                    "opensuse-tumbleweed-20250630",
+                    "aaa_base",
+                ),
+                # Oracle Linux
+                ("oracle.json", "alternatives", "oracle-9.6", "chkconfig"),
+                # Photon OS
+                ("photon.json", "bzip2-libs", "photon-5.0", "bzip2"),
+                #  Red Hat Enterprise Linux
+                ("redhat.json", "alternatives", "redhat-9.6", "chkconfig"),
+                # Rocky Linux
+                ("rocky.json", "alternatives", "rocky-9.3", "chkconfig"),
+                # SUSE Linux Enterprise Micro
+                (
+                    "slem.json",
+                    "NetworkManager-branding-SLE",
+                    "slem-5.5",
+                    "NetworkManager-branding-SLE",
+                ),
+                # SUSE Linux Enterprise Server
+                ("sles.json", "aaa_base", "sles-15.7", "aaa_base"),
+                # Ubuntu
+                ("ubuntu.json", "base-files", "ubuntu-24.04", "base-files"),
+                # Wolfi
+                ("wolfi.json", "ca-certificates-bundle", "20230201", "ca-certificates"),
+            ],
+        )
+        def test_uploaded_sbom_should_register_correct_packages_for_various_os_types_duplicate(
+            self,
+            testdb: Session,
+            upload_file_name: str,
+            expected_package_name: str,
+            expected_package_ecosystem: str,
+            expected_package_source_name: str,
+        ) -> None:
+            # Given
+            sbom_file = (
+                Path(__file__).resolve().parent.parent
+                / "common"
+                / "upload_test"
+                / "os_package"
+                / upload_file_name
+            )
+
+            with open(sbom_file, "r") as sbom:
+                sbom_json = json.load(sbom)
+
+            # When
+            service_name = "Service1 name"
+            bg_create_tags_from_sbom_json(
+                sbom_json, self.pteam1.pteam_id, service_name, upload_file_name
+            )
+
+            # Then
+            ## dependenciesを取得して、ちゃんとpackageが作成されていることを確認
+            services = self.get_services()
+            service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
+            dependencies = self.get_service_dependencies(service1["service_id"])
+            print(dependencies)
+
+            # 特定の重要なパッケージが存在することを確認
+            matching_packages = [
+                d
+                for d in dependencies
+                if d["package_name"] == expected_package_name
+                and d["package_ecosystem"] == expected_package_ecosystem
+                and d["package_source_name"] == expected_package_source_name
+            ]
+
+            # Print detailed diagnostic information if package not found
+            if len(matching_packages) == 0:
+                # Check which criteria match individually
+                name_matches = [
+                    d for d in dependencies if d["package_name"] == expected_package_name
+                ]
+                eco_matches = [
+                    d for d in dependencies if d["package_ecosystem"] == expected_package_ecosystem
+                ]
+                source_matches = [
+                    d
+                    for d in dependencies
+                    if d["package_source_name"] == expected_package_source_name
+                ]
+
+                print("Search criteria:")
+                print(f"  package_name: {expected_package_name} " f"({len(name_matches)} matches)")
+                print(f"  ecosystem: {expected_package_ecosystem} " f"({len(eco_matches)} matches)")
+                print(
+                    f"  source_name: {expected_package_source_name} "
+                    f"({len(source_matches)} matches)"
+                )
+
+                # Show packages matching package_name only
+                if name_matches:
+                    print(f"\nPackages matching package_name '{expected_package_name}':")
+                    for dep in name_matches:
+                        print(f"  - {dep['package_name']}")
+                        print(f"    ecosystem: {dep['package_ecosystem']}")
+                        print(f"    source_name: {dep['package_source_name']}")
+
+                # Show packages matching ecosystem only
+                if eco_matches and len(eco_matches) < 10:  # Only show if not too many
+                    print(f"\nPackages matching ecosystem '{expected_package_ecosystem}':")
+                    for dep in eco_matches:
+                        print(f"  - {dep['package_name']}")
+                        print(f"    ecosystem: {dep['package_ecosystem']}")
+                        print(f"    source_name: {dep['package_source_name']}")
+
+                # Show packages matching source_name only
+                if source_matches and len(source_matches) < 10:  # Only show if not too many
+                    print(f"\nPackages matching source_name '{expected_package_source_name}':")
+                    for dep in source_matches:
+                        print(f"  - {dep['package_name']}")
+                        print(f"    ecosystem: {dep['package_ecosystem']}")
+                        print(f"    source_name: {dep['package_source_name']}")
+
+                # Show all packages
+                print(f"\nAll packages ({len(dependencies)} total):")
+                # Sort dependencies by package_name before displaying
+                sorted_deps = sorted(dependencies, key=lambda x: x["package_name"])
+                for dep in sorted_deps:
+                    print(f"  - {dep['package_name']}")
+                    print(f"    ecosystem: {dep['package_ecosystem']}")
+                    print(f"    source_name: {dep['package_source_name']}")
+
+            assert len(matching_packages) > 0
 
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
         @staticmethod
