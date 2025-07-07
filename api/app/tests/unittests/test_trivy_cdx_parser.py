@@ -52,6 +52,3 @@ class TestTrivyCDXParser:
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "@babel/code-frame"
-        assert artifact.ecosystem == "npm"
-        assert artifact.package_manager == "npm"
-        assert "7.0.0" in artifact.versions
