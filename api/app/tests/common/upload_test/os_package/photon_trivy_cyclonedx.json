@@ -1,0 +1,2311 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:24b133b9-146f-4658-9410-58aeefa4c8b0",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-07-03T02:38:38+00:00",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "group": "aquasecurity",
+          "name": "trivy",
+          "version": "0.63.0"
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:oci/photon@sha256%3A78bda000e685333f76711f1fc283aafb457de5761b42c2cce12f614ea2a9b19c?arch=amd64&repository_url=index.docker.io%2Flibrary%2Fphoton",
+      "type": "container",
+      "name": "photon:latest",
+      "purl": "pkg:oci/photon@sha256%3A78bda000e685333f76711f1fc283aafb457de5761b42c2cce12f614ea2a9b19c?arch=amd64&repository_url=index.docker.io%2Flibrary%2Fphoton",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:ImageID",
+          "value": "sha256:5cb0232658b7798b6d0bc93f5d30ee71c572441556f5c1edc437308a4d9cc953"
+        },
+        {
+          "name": "aquasecurity:trivy:Labels:build-date",
+          "value": "20250629"
+        },
+        {
+          "name": "aquasecurity:trivy:Labels:name",
+          "value": "Photon OS x86_64/5.0 Base Image"
+        },
+        {
+          "name": "aquasecurity:trivy:Labels:vendor",
+          "value": "VMware"
+        },
+        {
+          "name": "aquasecurity:trivy:RepoDigest",
+          "value": "photon@sha256:78bda000e685333f76711f1fc283aafb457de5761b42c2cce12f614ea2a9b19c"
+        },
+        {
+          "name": "aquasecurity:trivy:RepoTag",
+          "value": "photon:latest"
+        },
+        {
+          "name": "aquasecurity:trivy:SchemaVersion",
+          "value": "2"
+        },
+        {
+          "name": "aquasecurity:trivy:Size",
+          "value": "40916480"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "b8325e58-0b51-4c07-8ffb-23ed5bd124b4",
+      "type": "operating-system",
+      "name": "photon",
+      "version": "5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:Class",
+          "value": "os-pkgs"
+        },
+        {
+          "name": "aquasecurity:trivy:Type",
+          "value": "photon"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "bash",
+      "version": "5.2-7.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "4deb089138f0ad4dfb47ae9e7c21254b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause AND BSD-4-Clause-UC AND Latex2e AND OFL-1.1 AND GPL-3.0-or-later WITH Bison-exception-2.2 AND LGPL-2.1-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND FSFAP AND GFDL-1.3-or-later AND GPL-3.0-only AND GPL-3.0-or-later WITH Texinfo-exception AND CC-BY-SA-4.0 AND GPL-3.0-or-later AND NTP AND FSFULLR AND GFDL-1.1-or-later AND GPL-1.0-or-later AND FSFUL AND GPL-2.0-or-later AND GFDL-1.3-only AND HPND"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "bash@5.2-7.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "bash"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/bzip2-libs@1.0.8-7.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "bzip2-libs",
+      "version": "1.0.8-7.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "0ed8a02b13e6aa6aa8cacee58b3dc67e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "OFL-1.1 AND GPL-1.0-or-later WITH PS-or-PDF-font-exception-20170817 AND bzip2-1.0.6 AND BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/bzip2-libs@1.0.8-7.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "bzip2-libs@1.0.8-7.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "bzip2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.0.8"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/ca-certificates-pki@20230315-6.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "ca-certificates-pki",
+      "version": "20230315-6.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "42367c40c957690ad606f429f2041d4c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT AND GPL-2.0-or-later"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/ca-certificates-pki@20230315-6.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ca-certificates-pki@20230315-6.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ca-certificates"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "20230315"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/ca-certificates@20230315-6.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "ca-certificates",
+      "version": "20230315-6.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "0da47ffd3dae6879e15e6f49892250c8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT AND GPL-2.0-or-later"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/ca-certificates@20230315-6.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ca-certificates@20230315-6.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ca-certificates"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "20230315"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/curl-libs@8.12.0-1.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "curl-libs",
+      "version": "8.12.0-1.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "b6639df10f5e9fbd4e0968e77e41d0ea"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "(curl AND ISC) AND MIT AND X11 AND curl AND BSD-3-Clause AND GPL-2.0-or-later WITH Autoconf-exception-generic AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND ISC AND BSD-4-Clause-UC AND GPL-2.0-or-later WITH Libtool-exception AND GPL-1.0-or-later AND FSFUL AND GPL-2.0-or-later AND FSFULLR AND FSFULLRWD AND GPL-2.0-only"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/curl-libs@8.12.0-1.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "curl-libs@8.12.0-1.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "curl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.12.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/curl@8.12.0-1.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "curl",
+      "version": "8.12.0-1.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "ca6110ea1ee807963c2645e6d3435da0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "(curl AND ISC) AND MIT AND X11 AND curl AND BSD-3-Clause AND GPL-2.0-or-later WITH Autoconf-exception-generic AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND ISC AND BSD-4-Clause-UC AND GPL-2.0-or-later WITH Libtool-exception AND GPL-1.0-or-later AND FSFUL AND GPL-2.0-or-later AND FSFULLR AND FSFULLRWD AND GPL-2.0-only"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/curl@8.12.0-1.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "curl@8.12.0-1.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "curl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.12.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/e2fsprogs-libs@1.46.5-5.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "e2fsprogs-libs",
+      "version": "1.46.5-5.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c7a68b32ab468be3b3b856060e134219"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause AND LGPL-2.0-only AND GPL-3.0-or-later WITH Libtool-exception AND GPL-2.0-or-later WITH Libtool-exception AND GPL-3.0-or-later WITH Autoconf-exception-2.0 AND LGPL-2.1-or-later AND BSD-4.3TAHOE AND 0BSD AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND Latex2e-translated-notice AND NTP-0 AND GPL-2.0-or-later WITH Autoconf-exception-generic AND GPL-1.0-or-later WITH Autoconf-exception-macro AND Apache-2.0 AND LGPL-2.0-or-later AND LGPL-3.0-only AND FSFAP AND GPL-2.0-only AND MIT AND ISC AND GPL-3.0-or-later AND NTP AND BSD-4-Clause AND FSFULLR AND LGPL-2.1-only AND GPL-2.0-or-later WITH Texinfo-exception AND Kazlib AND GPL-1.0-or-later AND FSFUL AND GPL-2.0-or-later AND FSFULLRWD AND HPND-export-US-modify"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/e2fsprogs-libs@1.46.5-5.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "e2fsprogs-libs@1.46.5-5.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "e2fsprogs"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.46.5"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/elfutils-libelf@0.189-6.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "elfutils-libelf",
+      "version": "0.189-6.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "a337b714426d649d38552e78006b543e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause AND BSD-3-Clause AND GPL-3.0-or-later WITH Bison-exception-2.2 AND LGPL-2.1-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND GPL-2.0-or-later WITH Autoconf-exception-generic AND LGPL-3.0-only AND FSFAP AND GPL-2.0-only AND GPL-3.0-only AND GPL-3.0-or-later AND FSFULLR AND (LGPL-3.0-or-later OR GPL-2.0-or-later) AND X11 AND LGPL-3.0-or-later AND GPL-1.0-or-later AND FSFUL AND GPL-2.0-or-later AND FSFULLRWD AND GFDL-1.3-only"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/elfutils-libelf@0.189-6.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "elfutils-libelf@0.189-6.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "elfutils"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.189"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/expat-libs@2.7.1-2.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "expat-libs",
+      "version": "2.7.1-2.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "d98cec811179b28d46e36f878519052e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT AND X11 AND GPL-2.0-or-later WITH Autoconf-exception-generic AND BSD-3-Clause AND GFDL-1.1-only AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND Apache-2.0 AND GPL-2.0-or-later WITH Libtool-exception AND GPL-3.0-or-later WITH Autoconf-exception-macro AND FSFAP AND GPL-2.0-only AND FSFUL AND CC0-1.0 AND FSFULLR AND FSFULLRWD AND GPL-2.0-or-later"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/expat-libs@2.7.1-2.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "expat-libs@2.7.1-2.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "expat"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.7.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/filesystem@1.1-7.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "filesystem",
+      "version": "1.1-7.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "14b8782f36aefeb6d3452a0694872a44"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/filesystem@1.1-7.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "filesystem@1.1-7.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "filesystem"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "glibc-libs",
+      "version": "2.36-18.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "45f5bbacc676a18826eacd9be5e17245"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "SunPro AND Spencer-94 AND BSD-3-Clause AND LGPL-2.0-only AND GPL-3.0-or-later WITH GCC-exception-2.0 AND LGPL-2.1-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND LGPL-2.0-or-later AND FSFAP AND GPL-2.0-only AND CMU-Mach AND Inner-Net-2.0 AND GPL-3.0-or-later WITH Texinfo-exception AND ISC AND Unicode-DFS-2015 AND GPL-3.0-or-later AND BSL-1.0 AND LGPL-2.1-only AND GFDL-1.1-or-later AND Unlicense AND X11 AND (AFL-2.0 OR LGPL-2.0-or-later) AND LGPL-3.0-or-later AND MIT-CMU AND GPL-1.0-or-later AND FSFUL AND GPL-2.0-or-later AND GFDL-1.3-only AND HPND"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "glibc-libs@2.36-18.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "glibc"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "18.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.36"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "glibc",
+      "version": "2.36-18.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "4b180a9ae57ff199d575db7f98756968"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "SunPro AND Spencer-94 AND BSD-3-Clause AND LGPL-2.0-only AND GPL-3.0-or-later WITH GCC-exception-2.0 AND LGPL-2.1-or-later AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND LGPL-2.0-or-later AND FSFAP AND GPL-2.0-only AND CMU-Mach AND Inner-Net-2.0 AND GPL-3.0-or-later WITH Texinfo-exception AND ISC AND Unicode-DFS-2015 AND GPL-3.0-or-later AND BSL-1.0 AND LGPL-2.1-only AND GFDL-1.1-or-later AND Unlicense AND X11 AND (AFL-2.0 OR LGPL-2.0-or-later) AND LGPL-3.0-or-later AND MIT-CMU AND GPL-1.0-or-later AND FSFUL AND GPL-2.0-or-later AND GFDL-1.3-only AND HPND"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "glibc@2.36-18.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "glibc"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "18.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.36"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/gpg-pubkey@66fd4949-4803fe57?arch=None&distro=photon-5.0",
+      "type": "library",
+      "name": "gpg-pubkey",
+      "version": "66fd4949-4803fe57",
+      "licenses": [
+        {
+          "license": {
+            "name": "pubkey"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/gpg-pubkey@66fd4949-4803fe57?arch=None&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "gpg-pubkey@66fd4949-4803fe57."
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/gpg-pubkey@8a6a826d-596882ca?arch=None&distro=photon-5.0",
+      "type": "library",
+      "name": "gpg-pubkey",
+      "version": "8a6a826d-596882ca",
+      "licenses": [
+        {
+          "license": {
+            "name": "pubkey"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/gpg-pubkey@8a6a826d-596882ca?arch=None&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "gpg-pubkey@8a6a826d-596882ca."
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/krb5@1.20.2-6.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "krb5",
+      "version": "1.20.2-6.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "ba8627f454927c75731461a3518e848f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "HPND-sell-variant AND HPND-export-US-modify AND FSFUL AND BSD-2-Clause AND MIT-CMU AND BSD-3-Clause AND BSD-2-Clause-first-lines AND FSFULLRWD AND OpenVision AND HPND-export-US AND X11 AND (BSD-2-Clause OR GPL-2.0-or-later) AND CMU-Mach-nodoc AND RSA-MD AND GPL-1.0-or-later AND (GPL-2.0-or-later WITH Autoconf-exception-macro) AND HPND-export-US-acknowledgement AND BSD-4-Clause-UC AND BSD-4.3TAHOE AND BSD-3-Clause-flex AND NTP AND Brian-Gladman-2-Clause AND MIT AND HPND AND CC-BY-SA-3.0 AND OLDAP-2.8 AND HPND-export2-US AND BSD-4-Clause AND ISC AND (GPL-3.0-or-later WITH Autoconf-exception-2.0) AND (GPL-2.0-or-later WITH Autoconf-exception-generic) AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (GPL-3.0-or-later WITH Autoconf-exception-generic-3.0)"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/krb5@1.20.2-6.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "krb5@1.20.2-6.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "krb5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.20.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/libcap@2.66-4.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "libcap",
+      "version": "2.66-4.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "cfa5880dfea5896b192e9bc11fefe1b7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0 AND (BSD-3-Clause OR GPL-2.0-or-later) AND ((BSD-3-Clause OR GPL-2.0-only)) AND BSD-3-Clause AND (BSD-3-Clause OR LGPL-2.0-or-later) AND GPL-1.0-or-later AND GPL-2.0-only"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/libcap@2.66-4.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libcap@2.66-4.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libcap"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.66"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/libgcc@12.2.0-8.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "libgcc",
+      "version": "12.2.0-8.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "f65984a9c751277df9633671db439c37"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause AND SunPro AND BSD-3-Clause AND MPEG-SSG AND GPL-2.0-or-later WITH Libtool-exception AND GPL-3.0-or-later WITH Autoconf-exception-macro AND GPL-3.0-or-later WITH GCC-exception-2.0 AND CC-PDDC AND GPL-3.0-or-later WITH Autoconf-exception-2.0 AND BSD-4.3RENO AND LGPL-2.1-or-later AND BSD-4.3TAHOE AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND LGPL-2.0-or-later WITH GCC-exception-2.0 AND FSFAP-no-warranty-disclaimer AND GPL-2.0-or-later WITH GNU-compiler-exception AND MPL-2.0 AND GPL-2.0-or-later WITH Autoconf-exception-generic AND Zlib AND Apache-2.0 AND MIT-testregex AND LGPL-2.0-or-later AND (BSD-3-Clause OR GPL-2.0-only) AND FSFAP AND LGPL-3.0-only AND GFDL-1.3-or-later AND bzip2-1.0.6 AND GPL-2.0-only AND Spencer-86 AND (MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later) AND CC-BY-SA-3.0 AND GPL-3.0-only AND MIT AND AGPL-3.0-or-later AND curl AND ISC AND GPL-3.0-or-later WITH Texinfo-exception AND Unicode-DFS-2015 AND CC-BY-SA-4.0 AND LPD-document AND GPL-3.0-or-later AND (NCSA OR MIT) AND BSL-1.0 AND Apache-2.0 WITH LLVM-exception AND FSFULLR AND GFDL-1.1-or-later AND GFDL-1.2-or-later AND GPL-2.0-or-later WITH Bison-exception-1.24 AND LGPL-2.1-only AND GPL-3.0-only WITH GCC-exception-3.1 AND X11 AND (AFL-2.0 OR LGPL-2.0-or-later) AND GPL-2.0-or-later WITH GNAT-exception AND LGPL-3.0-or-later AND NCSA AND GPL-1.0-or-later AND FSFUL AND GPL-2.0-or-later AND GPL-2.0-or-later WITH GCC-exception-2.0 AND FSFULLRWD AND GPL-3.0-or-later WITH GCC-exception-3.1 AND GPL-1.0-or-later WITH Autoconf-exception-generic AND GFDL-1.3-only AND IJG"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/libgcc@12.2.0-8.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libgcc@12.2.0-8.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gcc"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "8.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "12.2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/libsolv@0.7.22-7.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "libsolv",
+      "version": "0.7.22-7.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "a588089b82ed59760cdae35037d714a9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause AND MIT AND BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/libsolv@0.7.22-7.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libsolv@0.7.22-7.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libsolv"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.7.22"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/libssh2@1.11.0-4.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "libssh2",
+      "version": "1.11.0-4.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "a9382519ab1132d3ea8fefa997e51868"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "ISC AND MIT AND FSFUL AND GPL-2.0-or-later AND BSD-2-Clause AND FSFULLRWD AND BSD-3-Clause AND (GPL-1.0-or-later WITH Autoconf-exception-generic) AND X11 AND (GPL-2.0-or-later WITH Autoconf-exception-generic) AND GPL-2.0-only AND (GPL-3.0-or-later WITH Autoconf-exception-generic-3.0) AND FSFULLR AND (GPL-2.0-or-later WITH Libtool-exception) AND SSH-short"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/libssh2@1.11.0-4.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libssh2@1.11.0-4.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libssh2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.11.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/libxcrypt@4.4.36-3.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "libxcrypt",
+      "version": "4.4.36-3.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "9e3189e6c475326bd9e233ce8d218c9f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPL-2.1"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/libxcrypt@4.4.36-3.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libxcrypt@4.4.36-3.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libxcrypt"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.4.36"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/lua-libs@5.4.6-3.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "lua-libs",
+      "version": "5.4.6-3.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "09ec8d847e1ed50a3aab6e3f61e28a3e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/lua-libs@5.4.6-3.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "lua-libs@5.4.6-3.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "lua"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.4.6"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/ncurses-libs@6.4-5.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "ncurses-libs",
+      "version": "6.4-5.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c020a919f944722c5a2d5e659b6e28df"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT AND X11 AND BSD-3-Clause AND BSD-4-Clause-UC AND HPND-Markus-Kuhn AND X11-distribute-modifications-variant AND GPL-2.0-only AND FSFUL AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND HPND"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/ncurses-libs@6.4-5.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ncurses-libs@6.4-5.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ncurses"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "6.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/nspr@4.33-3.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "nspr",
+      "version": "4.33-3.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "ad3fdf4d327f6204217623009ab80b12"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MPL-2.0 AND BSD-3-Clause AND ISC AND (MPL-2.0 OR GPL-2.0-only) AND NTP AND FSFUL AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND dtoa AND Beerware AND HPND"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/nspr@4.33-3.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "nspr@4.33-3.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "nspr"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.33"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/nss-libs@3.78-11.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "nss-libs",
+      "version": "3.78-11.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "86a49d61b8b187c9ad3e6ebb00fc2a27"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause AND LGPL-2.1-or-later AND CC0-1.0 AND blessing AND MPL-2.0 AND Zlib AND Apache-2.0 AND GPL-2.0-only AND (MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later) AND MPL-1.0 AND (BSD-3-Clause OR GPL-1.0-or-later) AND MIT AND Vim AND BSD-3-Clause-No-Nuclear-Warranty AND (MPL-2.0 OR GPL-2.0-only) AND (GPL-2.0-only OR LGPL-2.1-only OR MPL-1.1) AND LGPL-2.1-only AND GPL-1.0-or-later AND GPL-2.0-or-later"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/nss-libs@3.78-11.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "nss-libs@3.78-11.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "nss"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "11.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.78"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "openssl-libs",
+      "version": "3.0.16-3.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5907fb34833008da65fab323fc397deb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause AND (OpenSSL OR BSD-3-Clause OR GPL-1.0-or-later) AND BSD-3-Clause AND (GPL-1.0-or-later OR Artistic-1.0) AND (OpenSSL OR BSD-2-Clause) AND CC0-1.0 AND OpenSSL AND BSD-Source-Code AND Apache-2.0 AND (OpenSSL OR BSD-2-Clause) AND (GPL-1.0-or-later OR Artistic-1.0-Perl) AND (GPL-2.0-or-later OR LGPL-2.1-or-later OR MPL-1.1 OR BSD-3-Clause) AND GPL-1.0-only AND (OpenSSL OR BSD-3-Clause) AND snprintf AND (GPL-1.0-or-later OR Artistic-1.0) AND (Artistic-1.0-Perl OR GPL-1.0-or-later) AND (OpenSSL OR BSD-3-Clause OR GPL-1.0-or-later OR GPL-2.0-only) AND (OpenSSL OR BSD-3-Clause) AND Artistic-1.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "openssl-libs@3.0.16-3.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "openssl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0.16"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/photon-release@5.0-6.ph5?arch=noarch&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "photon-release",
+      "version": "5.0-6.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "fe37f8a50eb14962146fdd16f716310b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0 OR GPL-2.0-only"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/photon-release@5.0-6.ph5?arch=noarch&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "photon-release@5.0-6.ph5.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "photon-release"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/photon-repos@5.0-5.ph5?arch=noarch&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "photon-repos",
+      "version": "5.0-5.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "d72ae1491c6719804c676f8c74e2861b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/photon-repos@5.0-5.ph5?arch=noarch&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "photon-repos@5.0-5.ph5.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "photon-repos"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/popt@1.16-7.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "popt",
+      "version": "1.16-7.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "3c212b620fab1419e1b796180607c9cd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "X11 AND GPL-2.0-or-later WITH Autoconf-exception-generic AND GPL-2.0-or-later WITH Libtool-exception AND LGPL-2.0-or-later AND (GPL-1.0-or-later AND LGPL-2.0-or-later) AND GPL-1.0-or-later AND FSFUL AND FSFULLR AND FSFULLRWD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/popt@1.16-7.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "popt@1.16-7.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "popt"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.16"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/readline@8.2-4.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "readline",
+      "version": "8.2-4.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "df16cdef8d30ec61fc1d362164c52c4c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GFDL-1.3-only AND (GPL-3.0-or-later WITH Texinfo-exception) AND Latex2e AND HPND-Markus-Kuhn AND GPL-3.0-or-later AND FSFUL AND GFDL-1.3-or-later AND GPL-2.0-or-later AND CC-BY-SA-4.0 AND BSD-3-Clause AND GPL-3.0-only AND GPL-1.0-or-later AND Latex2e-translated-notice AND OFL-1.1 AND (GPL-3.0-or-later WITH Autoconf-exception-generic-3.0) AND GFDL-1.1-or-later AND FSFULLR AND NTP"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/readline@8.2-4.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "readline@8.2-4.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "readline"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/rpm-libs@4.18.2-6.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "rpm-libs",
+      "version": "4.18.2-6.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5e48c5a799b4f14fc29586a1e848252e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "FSFUL AND GPL-2.0-or-later AND FSFULLRWD AND BSD-3-Clause AND X11 AND CC-BY-2.5 AND GPL-3.0-only AND FSFULLR AND (GPL-2.0-or-later WITH Libtool-exception) AND CC0-1.0 AND GPL-1.0-or-later AND FSFAP AND Apache-1.0 AND LGPL-2.0-only AND LGPL-2.1-or-later AND MIT AND (GPL-2.0-only OR MIT) AND (GPL-1.0-or-later OR LGPL-2.0-or-later) AND LGPL-2.0-or-later AND OpenSSL AND ((GPL-2.0-only OR LGPL-2.0-only)) AND (GPL-2.0-or-later WITH Autoconf-exception-generic) AND GPL-2.0-only AND (GPL-3.0-or-later WITH Autoconf-exception-generic-3.0)"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/rpm-libs@4.18.2-6.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "rpm-libs@4.18.2-6.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "rpm"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.18.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/sqlite-libs@3.43.2-4.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "sqlite-libs",
+      "version": "3.43.2-4.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "6ca00bd07895cd78067f7619816b4b69"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "X11 AND GPL-2.0-or-later WITH Autoconf-exception-generic AND GPL-3.0-or-later WITH Libtool-exception AND GPL-2.0-or-later WITH Libtool-exception AND FSFAP AND GPL-3.0-or-later AND FSFUL AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND FSFULLR AND FSFULLRWD AND blessing"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/sqlite-libs@3.43.2-4.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "sqlite-libs@3.43.2-4.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "sqlite"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.43.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/tdnf-cli-libs@3.5.11-1.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "tdnf-cli-libs",
+      "version": "3.5.11-1.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "ccd501988390e052f72adcea484aab80"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPL-2.1-only AND LGPL-2.1-or-later AND GPL-2.0-only AND BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/tdnf-cli-libs@3.5.11-1.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "tdnf-cli-libs@3.5.11-1.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "tdnf"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.5.11"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/tdnf@3.5.11-1.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "tdnf",
+      "version": "3.5.11-1.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "9ecbc172e39a87484123a88417640df8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPL-2.1-only AND LGPL-2.1-or-later AND GPL-2.0-only AND BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/tdnf@3.5.11-1.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "tdnf@3.5.11-1.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "tdnf"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.5.11"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/toybox@0.8.9-6.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "toybox",
+      "version": "0.8.9-6.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "4081a2b665c716865dff985e92a992c5"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause AND Unlicense AND GPL-3.0-only AND (BSD-3-Clause OR GPL-1.0-or-later) AND BSD-3-Clause AND Apache-2.0 AND LGPL-2.0-or-later AND GPL-2.0-only AND GPL-2.0-or-later AND CC0-1.0 AND 0BSD AND GPL-2.0-or-later WITH Bison-exception-1.24"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/toybox@0.8.9-6.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "toybox@0.8.9-6.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "toybox"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.8.9"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/xz-libs@5.4.0-5.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "xz-libs",
+      "version": "5.4.0-5.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5d8f7498db63efac0334bca491a21d87"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPL-3.0-only AND MIT AND X11 AND GPL-2.0-or-later WITH Autoconf-exception-generic AND BSD-3-Clause AND GPL-3.0-or-later WITH Autoconf-exception-generic-3.0 AND GPL-2.0-or-later WITH Libtool-exception AND GPL-3.0-or-later WITH Autoconf-exception-2.0 AND FSFAP AND GPL-3.0-or-later AND GPL-2.0-only AND FSFUL AND GPL-2.0-or-later AND FSFULLR AND FSFULLRWD AND LGPL-2.1-or-later AND LGPL-2.1-only"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/xz-libs@5.4.0-5.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "xz-libs@5.4.0-5.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "xz"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.4.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "zlib",
+      "version": "1.2.13-4.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "9648219edc383c5d97a40fc763ea0bb8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPL-2.0-or-later WITH GNAT-exception AND Zlib AND LPD-document AND GPL-1.0-or-later AND BSL-1.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "zlib@1.2.13-4.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "zlib"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.2.13"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/photon/zstd-libs@1.5.5-4.ph5?arch=x86_64&distro=photon-5.0",
+      "type": "library",
+      "supplier": {
+        "name": "VMware, Inc."
+      },
+      "name": "zstd-libs",
+      "version": "1.5.5-4.ph5",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "dea07be66d571b7bc084d7040d5f8cf0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause AND MIT AND GPL-2.0-or-later WITH Autoconf-exception-generic AND BSD-3-Clause AND (GPL-2.0-only OR BSD-3-Clause) AND Zlib AND (GPL-2.0-or-later AND BSD-3-Clause) AND (MIT OR CC0-1.0) AND LPD-document AND (BSD-3-Clause OR GPL-2.0-only) AND GPL-3.0-or-later AND GPL-2.0-only AND CC0-1.0 AND (GPL-2.0-or-later OR BSD-3-Clause) AND (GPL-2.0-or-later OR BSD-3-Clause)"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/photon/zstd-libs@1.5.5-4.ph5?arch=x86_64&distro=photon-5.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:bfc04f7803d6ff480027df90f7a39a94b7985e5da415a518edc6337753473775"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:8448683fd5fb8663180725e71cd89bd3542d6a07b7400b3f77ca146b9a3a96b5"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "zstd-libs@1.5.5-4.ph5.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "photon"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "zstd"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.ph5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.5.5"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "b8325e58-0b51-4c07-8ffb-23ed5bd124b4",
+      "dependsOn": [
+        "pkg:rpm/photon/curl@8.12.0-1.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/gpg-pubkey@66fd4949-4803fe57?arch=None&distro=photon-5.0",
+        "pkg:rpm/photon/gpg-pubkey@8a6a826d-596882ca?arch=None&distro=photon-5.0",
+        "pkg:rpm/photon/photon-repos@5.0-5.ph5?arch=noarch&distro=photon-5.0",
+        "pkg:rpm/photon/tdnf@3.5.11-1.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:oci/photon@sha256%3A78bda000e685333f76711f1fc283aafb457de5761b42c2cce12f614ea2a9b19c?arch=amd64&repository_url=index.docker.io%2Flibrary%2Fphoton",
+      "dependsOn": [
+        "b8325e58-0b51-4c07-8ffb-23ed5bd124b4"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/ncurses-libs@6.4-5.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/readline@8.2-4.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/toybox@0.8.9-6.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/bzip2-libs@1.0.8-7.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/ca-certificates-pki@20230315-6.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/photon/ca-certificates@20230315-6.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/ca-certificates-pki@20230315-6.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/curl-libs@8.12.0-1.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/ca-certificates-pki@20230315-6.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/krb5@1.20.2-6.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/libssh2@1.11.0-4.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zstd-libs@1.5.5-4.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/curl@8.12.0-1.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/ca-certificates@20230315-6.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/curl-libs@8.12.0-1.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/krb5@1.20.2-6.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/libssh2@1.11.0-4.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zstd-libs@1.5.5-4.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/e2fsprogs-libs@1.46.5-5.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/elfutils-libelf@0.189-6.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bzip2-libs@1.0.8-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zstd-libs@1.5.5-4.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/expat-libs@2.7.1-2.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/filesystem@1.1-7.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/filesystem@1.1-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/gpg-pubkey@66fd4949-4803fe57?arch=None&distro=photon-5.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/photon/gpg-pubkey@8a6a826d-596882ca?arch=None&distro=photon-5.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/photon/krb5@1.20.2-6.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/e2fsprogs-libs@1.46.5-5.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/libcap@2.66-4.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/libgcc@12.2.0-8.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/libsolv@0.7.22-7.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/expat-libs@2.7.1-2.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/rpm-libs@4.18.2-6.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/libssh2@1.11.0-4.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/libxcrypt@4.4.36-3.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/lua-libs@5.4.6-3.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/ncurses-libs@6.4-5.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/nspr@4.33-3.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/nss-libs@3.78-11.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/nspr@4.33-3.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/sqlite-libs@3.43.2-4.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/photon-release@5.0-6.ph5?arch=noarch&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/photon-repos@5.0-5.ph5?arch=noarch&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/photon-release@5.0-6.ph5?arch=noarch&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/popt@1.16-7.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/readline@8.2-4.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/ncurses-libs@6.4-5.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/rpm-libs@4.18.2-6.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/bzip2-libs@1.0.8-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/elfutils-libelf@0.189-6.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/libcap@2.66-4.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/libgcc@12.2.0-8.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/lua-libs@5.4.6-3.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/nss-libs@3.78-11.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/popt@1.16-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/sqlite-libs@3.43.2-4.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/xz-libs@5.4.0-5.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zstd-libs@1.5.5-4.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/sqlite-libs@3.43.2-4.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/tdnf-cli-libs@3.5.11-1.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/tdnf@3.5.11-1.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/curl-libs@8.12.0-1.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/libsolv@0.7.22-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/popt@1.16-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/rpm-libs@4.18.2-6.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/sqlite-libs@3.43.2-4.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/tdnf-cli-libs@3.5.11-1.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/toybox@0.8.9-6.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/bash@5.2-7.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/libxcrypt@4.4.36-3.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/openssl-libs@3.0.16-3.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/xz-libs@5.4.0-5.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/zlib@1.2.13-4.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/photon/zstd-libs@1.5.5-4.ph5?arch=x86_64&distro=photon-5.0",
+      "dependsOn": [
+        "pkg:rpm/photon/glibc-libs@2.36-18.ph5?arch=x86_64&distro=photon-5.0",
+        "pkg:rpm/photon/glibc@2.36-18.ph5?arch=x86_64&distro=photon-5.0"
+      ]
+    }
+  ],
+  "vulnerabilities": []
+}
