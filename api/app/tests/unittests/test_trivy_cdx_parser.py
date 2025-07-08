@@ -52,3 +52,51 @@ class TestTrivyCDXParser:
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "@babel/code-frame"
+
+    def make_sbom_pyjwt(self):
+        return {
+            "metadata": {
+                "component": {
+                    "bom-ref": "root-app",
+                    "type": "application",
+                    "name": "sample target1",
+                }
+            },
+            "components": [
+                {
+                    "bom-ref": "app1",
+                    "type": "application",
+                    "name": "APP1",
+                    "properties": [
+                        {"name": "aquasecurity:trivy:Type", "value": "pipenv"},
+                        {"name": "aquasecurity:trivy:Class", "value": "lang-pkgs"},
+                    ],
+                },
+                {
+                    "bom-ref": "lib1",
+                    "type": "library",
+                    "name": "PyJWT",
+                    "version": "1.5.3",
+                    "purl": "pkg:pypi/PyJWT@1.5.3",
+                },
+            ],
+            "dependencies": [
+                {"ref": "root-app", "dependsOn": ["app1"]},
+                {"ref": "app1", "dependsOn": ["lib1"]},
+            ],
+        }
+
+    def test_it_should_lowercase_package_name_and_ecosystem_from_sbom_pyjwt(self):
+        sbom = self.make_sbom_pyjwt()
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.5",
+            tool_name="trivy",
+            tool_version="0.52.0",
+        )
+        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
+        assert len(artifacts) == 1
+        artifact = artifacts[0]
+        # package name and ecosystem name are lowercased
+        assert artifact.package_name == "pyjwt"
+        assert artifact.ecosystem == "pypi"
