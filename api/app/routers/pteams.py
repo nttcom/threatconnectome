@@ -1292,6 +1292,7 @@ def apply_service_packages(
             db, package_version_id
         )
         for threat in threats:
+            db.refresh(threat.package_version)
             ticket_business.fix_ticket_by_threat(db, threat)
     db.flush()
 
