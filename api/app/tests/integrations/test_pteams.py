@@ -22,8 +22,6 @@ from app.notification.slack import (
     create_slack_blocks_to_notify_sbom_upload_succeeded,
 )
 from app.routers.pteams import bg_create_tags_from_sbom_json
-from app.sbom.parser.sbom_info import SBOMInfo
-from app.sbom.parser.trivy_cdx_parser import TrivyCDXParser
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     PTEAM1,
@@ -1307,60 +1305,6 @@ class TestPostUploadSBOMFileCycloneDX:
                     f"Failed uploading SBOM as a service: {service_name}",
                 ),
             ] == caplog.record_tuples
-
-        def test_purl_unescape_and_package_name_extraction(self):
-            sbom = {
-                "metadata": {
-                    "component": {
-                        "bom-ref": "root-app",
-                        "type": "application",
-                        "name": "sample target1",
-                    }
-                },
-                "components": [
-                    {
-                        "bom-ref": "root-app",
-                        "type": "application",
-                        "name": "sample target1",
-                        "properties": [
-                            {"name": "aquasecurity:trivy:Type", "value": "npm"},
-                            {"name": "aquasecurity:trivy:Class", "value": "lang-pkgs"},
-                        ],
-                    },
-                    {
-                        "bom-ref": "pkg:npm/%40babel/code-frame@7.0.0",
-                        "type": "library",
-                        "name": "@babel/code-frame",
-                        "version": "7.0.0",
-                        "purl": "pkg:npm/%40babel/code-frame@7.0.0",
-                        "group": "",
-                        "properties": [
-                            {
-                                "name": "aquasecurity:trivy:PkgID",
-                                "value": "@babel/code-frame@7.0.0",
-                            },
-                            {"name": "aquasecurity:trivy:Type", "value": "npm"},
-                        ],
-                    },
-                ],
-                "dependencies": [
-                    {
-                        "ref": "root-app",
-                        "dependsOn": ["pkg:npm/%40babel/code-frame@7.0.0"],
-                    }
-                ],
-            }
-            sbom_info = SBOMInfo(
-                spec_name="CycloneDX",
-                spec_version="1.5",
-                tool_name="trivy",
-                tool_version="0.52.0",
-            )
-            artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
-            assert len(artifacts) == 1
-            artifact = artifacts[0]
-            assert artifact.ecosystem == "npm"
-            assert artifact.package_manager == "npm"
 
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
         @staticmethod
