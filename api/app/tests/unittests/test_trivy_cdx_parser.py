@@ -16,18 +16,18 @@ class TestTrivyCDXParser:
                 {
                     "bom-ref": "app1",
                     "type": "application",
-                    "name": "PyJWT",  # uppercase
+                    "name": "APP1",
                     "properties": [
-                        {"name": "aquasecurity:trivy:Type", "value": "pypi"},
+                        {"name": "aquasecurity:trivy:Type", "value": "pipenv"},
                         {"name": "aquasecurity:trivy:Class", "value": "lang-pkgs"},
                     ],
                 },
                 {
                     "bom-ref": "lib1",
                     "type": "library",
-                    "name": "PyJWT",
+                    "name": "pyjwt",
                     "version": "1.5.3",
-                    "purl": "pkg:pypi/pyjwt@1.5.3",  # lowercase
+                    "purl": "pkg:pypi/PyJWT@1.5.3",
                 },
             ],
             "dependencies": [
