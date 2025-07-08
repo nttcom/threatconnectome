@@ -989,7 +989,7 @@ class TestPostUploadSBOMFileCycloneDX:
                             ],
                         ),
                     ],
-                    1,  # expected
+                    2,  # expected
                 ),
                 # test case 2: Not detect vulnerabilities without package_source_name
                 (
@@ -1066,15 +1066,23 @@ class TestPostUploadSBOMFileCycloneDX:
             assert response_tickets.status_code == 200
             assert len(response_tickets.json()) == expected_params
 
-            if expected_params == 1:
+            if expected_params == 2:
                 assert response_tickets.json()[0]["vuln_id"] == str(new_vuln_id)
+                assert response_tickets.json()[1]["vuln_id"] == str(new_vuln_id)
                 now = datetime.now()
                 datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
                 assert datetime.strptime(
                     response_tickets.json()[0]["created_at"], datetime_format
                 ) > now - timedelta(seconds=30)
+                assert datetime.strptime(
+                    response_tickets.json()[1]["created_at"], datetime_format
+                ) > now - timedelta(seconds=30)
                 assert (
                     datetime.strptime(response_tickets.json()[0]["created_at"], datetime_format)
+                    < now
+                )
+                assert (
+                    datetime.strptime(response_tickets.json()[1]["created_at"], datetime_format)
                     < now
                 )
 
