@@ -92,19 +92,18 @@ class TrivyCDXParser(SBOMParser):
             pkg_info = self.purl.type
             pkg_mgr = ""
 
-            if self.targets:
-                mgr = self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
-                if not mgr:
-                    pass
-                elif is_os_purl(self.purl):
-                    distro = (
-                        self.purl.qualifiers.get("distro")
-                        if isinstance(self.purl.qualifiers, dict)
-                        else ""
-                    )
-                    pkg_info = self._fix_distro(distro) if distro else self.purl.type
-                else:
-                    pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
+            if is_os_purl(self.purl):
+                distro = (
+                    self.purl.qualifiers.get("distro")
+                    if isinstance(self.purl.qualifiers, dict)
+                    else ""
+                )
+                pkg_info = self._fix_distro(distro) if distro else self.purl.type
+
+            elif self.targets and (
+                mgr := self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
+            ):
+                pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
 
             return {
                 "pkg_name": pkg_name,
