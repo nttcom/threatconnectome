@@ -1,3 +1,4 @@
+import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import { Box, Typography, Chip, Button, Divider } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
@@ -111,7 +112,12 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
       </Typography>
       <Divider sx={{ my: 1 }} />
       <Box mt={1} align="right">
-        <Button variant="outlined" size="small" onClick={() => setDrawerOpen(true)}>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<KeyboardDoubleArrowLeftIcon />}
+          onClick={() => setDrawerOpen(true)}
+        >
           Details
         </Button>
       </Box>
