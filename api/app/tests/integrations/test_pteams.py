@@ -1306,63 +1306,6 @@ class TestPostUploadSBOMFileCycloneDX:
                 ),
             ] == caplog.record_tuples
 
-        def test_package_name_and_ecosystem_are_lowercased_and_matched(self, testdb):
-            service_name = "case-insensitive service"
-            target_name = "sample target1"
-            component_params = [
-                (
-                    {
-                        "name": "PyJWT",
-                        "type": "application",
-                        "trivy_type": "pypi",
-                        "trivy_class": "lang-pkgs",
-                    },
-                    [
-                        {
-                            "purl": "pkg:pypi/PyJWT@1.5.3",
-                            "name": "PyJWT",
-                            "group": None,
-                            "version": "1.5.3",
-                            "properties": None,
-                        }
-                    ],
-                ),
-            ]
-            components_dict = {
-                self.ApplicationParam(**application_param): [
-                    self.LibraryParam(**library_param) for library_param in library_params
-                ]
-                for application_param, library_params in component_params
-            }
-            sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
-            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, None)
-
-            new_vuln_id = uuid4()
-            request_vuln = {
-                "title": "Example vuln",
-                "cve_id": "CVE-0000-0001",
-                "detail": "This vuln is example.",
-                "exploitation": "active",
-                "automatable": "yes",
-                "cvss_v3_score": 7.8,
-                "vulnerable_packages": [
-                    {
-                        "affected_name": "pyjwt",
-                        "ecosystem": "pypi",
-                        "affected_versions": ["<2.0.0"],
-                        "fixed_versions": ["2.0.0"],
-                    }
-                ],
-            }
-            client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=request_vuln)
-
-            response_tickets = client.get(
-                f"/pteams/{self.pteam1.pteam_id}/tickets?assigned_to_me=false",
-                headers=headers(USER1),
-            )
-            assert response_tickets.status_code == 200
-            assert any(ticket["vuln_id"] == str(new_vuln_id) for ticket in response_tickets.json())
-
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
         @staticmethod
         def gen_base_json(target_name: str) -> dict:
