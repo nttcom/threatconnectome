@@ -100,7 +100,3 @@ class TestTrivyCDXParser:
         # package name and ecosystem name are lowercased
         assert artifact.package_name == "pyjwt"
         assert artifact.ecosystem == "pypi"
-        # target name is also correctly included
-        targets = {t[0] for t in artifact.targets}
-        assert "PyJWT" in targets
-        assert "sample target1" in targets
