@@ -5,19 +5,18 @@ import { useState } from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
-  useGetPTeamMembersQuery,
-  useGetVulnActionsQuery,
   useGetTicketsQuery,
   useGetVulnQuery,
   useGetDependenciesQuery,
 } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
-import { ssvcPriorityProps } from "../../../utils/const";
+import { ssvcPriorityProps, sortedSSVCPriorities } from "../../../utils/const";
 import { errorToString, searchWorstSSVC } from "../../../utils/func";
-import { findMatchedVulnPackage, createActionByFixedVersions } from "../../../utils/vulnUtils";
+import { findMatchedVulnPackage } from "../../../utils/vulnUtils";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
+import { SSVCPriorityCountChip } from "../SSVCPriorityCountChip";
 
-export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) {
+export function VulnCard({ pteamId, serviceId, packageId, vulnId }) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   const skipByPTeamId = pteamId === undefined;
   const skipByServiceId = serviceId === undefined;
@@ -78,10 +77,27 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
   const worstPriority = searchWorstSSVC(tickets);
   const priorityColor = ssvcPriorityProps[worstPriority]?.style.bgcolor ?? "grey.300";
 
+  const ssvcCounts = {};
+  sortedSSVCPriorities.forEach((priority) => {
+    ssvcCounts[priority] = tickets.filter((t) => t.ssvc_deployer_priority === priority).length;
+  });
+
   return (
     <Box>
+      <Box display="flex" alignItems="center" mb={1}>
+        {sortedSSVCPriorities.map((priority) =>
+          ssvcCounts[priority] > 0 ? (
+            <SSVCPriorityCountChip
+              key={priority}
+              ssvcPriority={priority}
+              count={ssvcCounts[priority]}
+              outerSx={{ mr: "6px" }}
+            />
+          ) : null,
+        )}
+      </Box>
       <Box display="flex" alignItems="center">
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="h6" gutterBottom sx={{ wordBreak: "break-all" }}>
           {vuln.title}
         </Typography>
       </Box>
