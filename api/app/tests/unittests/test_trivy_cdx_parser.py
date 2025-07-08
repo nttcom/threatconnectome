@@ -75,7 +75,7 @@ class TestTrivyCDXParser:
                 {
                     "bom-ref": "lib1",
                     "type": "library",
-                    "name": "pyjwt",
+                    "name": "PyJWT",
                     "version": "1.5.3",
                     "purl": "pkg:pypi/PyJWT@1.5.3",
                 },
