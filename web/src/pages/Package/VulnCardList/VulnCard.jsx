@@ -111,7 +111,7 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
           : "-"}
       </Typography>
       <Divider sx={{ my: 1 }} />
-      <Box mt={1} align="right">
+      <Box mt={1} sx={{ textAlign: "right" }}>
         <Button
           variant="outlined"
           size="small"
