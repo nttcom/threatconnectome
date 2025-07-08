@@ -38,7 +38,6 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     { skip: skipByAuth || skipByPTeamId || skipByServiceId || skipByVulnId || skipBypackageId },
   );
 
-  // 依存パッケージ情報取得
   const offset = 0;
   const limit = 10000;
   const {
@@ -50,7 +49,6 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     { skip: skipByAuth || skipByPTeamId || skipByServiceId },
   );
 
-  // Drawer用
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   if (skipByAuth || skipByPTeamId || skipByServiceId || skipByVulnId || skipBypackageId)
@@ -63,7 +61,6 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
   if (serviceDependenciesIsLoading) return <>Loading Dependencies...</>;
 
-  // パッケージ情報
   const currentPackageDependencies = (serviceDependencies ?? []).filter(
     (dependency) => dependency.package_id === packageId,
   );
@@ -73,40 +70,25 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     ecosystem: currentPackageDependencies[0]?.package_ecosystem,
   };
 
-  // 脆弱性パッケージ情報
   const vulnerable_package = findMatchedVulnPackage(vuln.vulnerable_packages, currentPackage);
   const affectedVersions = vulnerable_package?.affected_versions ?? [];
   const patchedVersions = vulnerable_package?.fixed_versions ?? [];
 
-  // SSVC優先度
   const worstPriority = searchWorstSSVC(tickets);
   const priorityColor = ssvcPriorityProps[worstPriority]?.style.bgcolor ?? "grey.300";
 
   return (
     <Box>
-      <Box display="flex" alignItems="center" mb={1}>
-        <Box
-          sx={{
-            width: 8,
-            height: 48,
-            bgcolor: priorityColor,
-            borderRadius: 1,
-            mr: 2,
-          }}
-        />
+      <Box display="flex" alignItems="center">
         <Typography variant="h6" gutterBottom>
           {vuln.title}
         </Typography>
       </Box>
-      <Typography variant="body2" color="textSecondary" gutterBottom>
-        最終更新: {vuln.updated_at}
+      <Typography variant="body2" gutterBottom color="text.secondary">
+        Ticket qty: {tickets.length}
       </Typography>
-      <Typography variant="body2" gutterBottom>
-        チケット数: <Chip label={tickets.length} size="small" color="primary" />
-      </Typography>
-      <Typography variant="body2" gutterBottom>
-        影響バージョン:
-        <br />
+      <Typography variant="body2" gutterBottom color="text.secondary">
+        Affected version:
         {affectedVersions.length > 0
           ? affectedVersions.map((ver, i) => (
               <span key={ver}>
@@ -116,9 +98,8 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
             ))
           : "-"}
       </Typography>
-      <Typography variant="body2" gutterBottom>
-        修正バージョン:
-        <br />
+      <Typography variant="body2" gutterBottom color="text.secondary">
+        Patched version:
         {patchedVersions.length > 0
           ? patchedVersions.map((ver, i) => (
               <span key={ver}>
@@ -129,9 +110,9 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
           : "-"}
       </Typography>
       <Divider sx={{ my: 1 }} />
-      <Box mt={1}>
+      <Box mt={1} align="right">
         <Button variant="outlined" size="small" onClick={() => setDrawerOpen(true)}>
-          詳細を見る
+          Details
         </Button>
       </Box>
       <VulnerabilityDrawer
