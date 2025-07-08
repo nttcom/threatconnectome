@@ -73,4 +73,3 @@ class TestOsPurlUtils:
 
         # Then
         assert result is False
-        assert result is False
