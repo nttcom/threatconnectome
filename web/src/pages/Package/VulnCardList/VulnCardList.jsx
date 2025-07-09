@@ -1,25 +1,22 @@
-import { Card, CardContent, Box } from "@mui/material";
+import { Card, CardContent, Box, Stack } from "@mui/material";
 import PropTypes from "prop-types";
 
 import { VulnCard } from "./VulnCard";
 
 export function VulnCardList({ pteamId, serviceId, packageId, vulnIds, references }) {
   return (
-    <Box>
+    <Stack spacing={2}>
       {vulnIds.map((vulnId) => (
-        <Card key={vulnId} sx={{ mb: 2 }}>
-          <CardContent sx={{ p: 2 }}>
-            <VulnCard
-              pteamId={pteamId}
-              serviceId={serviceId}
-              packageId={packageId}
-              vulnId={vulnId}
-              references={references}
-            />
-          </CardContent>
-        </Card>
+        <VulnCard
+          key={vulnId}
+          pteamId={pteamId}
+          serviceId={serviceId}
+          packageId={packageId}
+          vulnId={vulnId}
+          references={references}
+        />
       ))}
-    </Box>
+    </Stack>
   );
 }
 VulnCardList.propTypes = {

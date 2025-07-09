@@ -1,5 +1,5 @@
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
-import { Box, Typography, Chip, Button, Divider } from "@mui/material";
+import { Box, Typography, Button, Divider, Card, CardContent } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
@@ -80,72 +80,74 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
   });
 
   return (
-    <Box>
-      <Box display="flex" alignItems="center" mb={1}>
-        {sortedSSVCPriorities.map((priority) =>
-          ssvcCounts[priority] > 0 ? (
-            <SSVCPriorityCountChip
-              key={priority}
-              ssvcPriority={priority}
-              count={ssvcCounts[priority]}
-              outerSx={{ mr: "6px" }}
-            />
-          ) : null,
-        )}
-      </Box>
-      <Box display="flex" alignItems="center">
-        <Typography variant="h6" gutterBottom sx={{ wordBreak: "break-all" }}>
-          {vuln.title}
+    <Card variant="outlined" key={vulnId}>
+      <CardContent sx={{ p: 2 }}>
+        <Box display="flex" alignItems="center" mb={1}>
+          {sortedSSVCPriorities.map((priority) =>
+            ssvcCounts[priority] > 0 ? (
+              <SSVCPriorityCountChip
+                key={priority}
+                ssvcPriority={priority}
+                count={ssvcCounts[priority]}
+                outerSx={{ mr: "6px" }}
+              />
+            ) : null,
+          )}
+        </Box>
+        <Box display="flex" alignItems="center">
+          <Typography variant="h6" gutterBottom sx={{ wordBreak: "break-all" }}>
+            {vuln.title}
+          </Typography>
+        </Box>
+        <Typography variant="body2" gutterBottom color="text.secondary">
+          Ticket qty: {tickets.length}
         </Typography>
-      </Box>
-      <Typography variant="body2" gutterBottom color="text.secondary">
-        Ticket qty: {tickets.length}
-      </Typography>
-      <Typography variant="body2" gutterBottom color="text.secondary">
-        Affected version:
-        {affectedVersions.length > 0
-          ? affectedVersions.map((ver, i) => (
-              <span key={ver}>
-                {ver}
-                {i + 1 !== affectedVersions.length && <br />}
-              </span>
-            ))
-          : "-"}
-      </Typography>
-      <Typography variant="body2" gutterBottom color="text.secondary">
-        Patched version:
-        {patchedVersions.length > 0
-          ? patchedVersions.map((ver, i) => (
-              <span key={ver}>
-                {ver}
-                {i + 1 !== patchedVersions.length && <br />}
-              </span>
-            ))
-          : "-"}
-      </Typography>
-      <Divider sx={{ my: 1 }} />
-      <Box mt={1} sx={{ textAlign: "right" }}>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<KeyboardDoubleArrowLeftIcon />}
-          onClick={() => setDrawerOpen(true)}
-        >
-          Details
-        </Button>
-      </Box>
-      <VulnerabilityDrawer
-        open={drawerOpen}
-        setOpen={setDrawerOpen}
-        pteamId={pteamId}
-        serviceId={serviceId}
-        servicePackageId={packageId}
-        vulnId={vulnId}
-        currentPackage={currentPackage}
-        tickets={tickets}
-        references={references}
-      />
-    </Box>
+        <Typography variant="body2" gutterBottom color="text.secondary">
+          Affected version:
+          {affectedVersions.length > 0
+            ? affectedVersions.map((ver, i) => (
+                <span key={ver}>
+                  {ver}
+                  {i + 1 !== affectedVersions.length && <br />}
+                </span>
+              ))
+            : "-"}
+        </Typography>
+        <Typography variant="body2" gutterBottom color="text.secondary">
+          Patched version:
+          {patchedVersions.length > 0
+            ? patchedVersions.map((ver, i) => (
+                <span key={ver}>
+                  {ver}
+                  {i + 1 !== patchedVersions.length && <br />}
+                </span>
+              ))
+            : "-"}
+        </Typography>
+        <Divider sx={{ my: 1 }} />
+        <Box mt={1} sx={{ textAlign: "right" }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<KeyboardDoubleArrowLeftIcon />}
+            onClick={() => setDrawerOpen(true)}
+          >
+            Details
+          </Button>
+        </Box>
+        <VulnerabilityDrawer
+          open={drawerOpen}
+          setOpen={setDrawerOpen}
+          pteamId={pteamId}
+          serviceId={serviceId}
+          servicePackageId={packageId}
+          vulnId={vulnId}
+          currentPackage={currentPackage}
+          tickets={tickets}
+          references={references}
+        />
+      </CardContent>
+    </Card>
   );
 }
 VulnCard.propTypes = {
