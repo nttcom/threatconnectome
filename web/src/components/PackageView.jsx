@@ -66,7 +66,7 @@ export function PackageView(props) {
               </Box>
             ))
           ) : (
-            <Box alignItems="center" display="flex" flexDirection="row">
+            <Box sx={{ display: "flex", alignItems: "center" }}>
               <RecommendIcon sx={{ fontSize: 32, color: green[500] }} />
               <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
                 -

@@ -1,4 +1,4 @@
-import { Card, CardContent, Box, Stack } from "@mui/material";
+import { Stack } from "@mui/material";
 import PropTypes from "prop-types";
 
 import { VulnCard } from "./VulnCard";
