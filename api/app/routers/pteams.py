@@ -1083,7 +1083,7 @@ def bg_create_tags_from_sbom_json(
     #   functions for background tasks should be divided to another source file.
 
     log = logging.getLogger(__name__)
-    log.info(f"Start SBOM uploade as a service: {service_name}")
+    log.info(f"Start SBOM upload as a service: {service_name}")
 
     with open_db_session() as db:
         if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
