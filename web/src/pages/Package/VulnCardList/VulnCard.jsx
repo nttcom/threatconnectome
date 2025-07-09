@@ -10,13 +10,13 @@ import {
   useGetDependenciesQuery,
 } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
-import { ssvcPriorityProps, sortedSSVCPriorities } from "../../../utils/const";
-import { errorToString, searchWorstSSVC } from "../../../utils/func";
+import { sortedSSVCPriorities } from "../../../utils/const";
+import { errorToString } from "../../../utils/func";
 import { findMatchedVulnPackage } from "../../../utils/vulnUtils";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 import { SSVCPriorityCountChip } from "../SSVCPriorityCountChip";
 
-export function VulnCard({ pteamId, serviceId, packageId, vulnId }) {
+export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   const skipByPTeamId = pteamId === undefined;
   const skipByServiceId = serviceId === undefined;
@@ -73,9 +73,6 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId }) {
   const vulnerable_package = findMatchedVulnPackage(vuln.vulnerable_packages, currentPackage);
   const affectedVersions = vulnerable_package?.affected_versions ?? [];
   const patchedVersions = vulnerable_package?.fixed_versions ?? [];
-
-  const worstPriority = searchWorstSSVC(tickets);
-  const priorityColor = ssvcPriorityProps[worstPriority]?.style.bgcolor ?? "grey.300";
 
   const ssvcCounts = {};
   sortedSSVCPriorities.forEach((priority) => {
@@ -145,6 +142,8 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId }) {
         servicePackageId={packageId}
         vulnId={vulnId}
         currentPackage={currentPackage}
+        tickets={tickets}
+        references={references}
       />
     </Box>
   );
