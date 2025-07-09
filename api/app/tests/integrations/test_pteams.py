@@ -1289,7 +1289,7 @@ class TestPostUploadSBOMFileCycloneDX:
                 sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
             assert [
-                ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),
+                ("app.routers.pteams", INFO, f"Start SBOM upload as a service: {service_name}"),
                 ("app.routers.pteams", INFO, f"SBOM uploaded as a service: {service_name}"),
             ] == caplog.record_tuples
 
@@ -1306,7 +1306,7 @@ class TestPostUploadSBOMFileCycloneDX:
                 sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
             assert [
-                ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),
+                ("app.routers.pteams", INFO, f"Start SBOM upload as a service: {service_name}"),
                 (
                     "app.routers.pteams",
                     ERROR,
