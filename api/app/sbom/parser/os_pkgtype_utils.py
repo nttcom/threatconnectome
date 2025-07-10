@@ -10,11 +10,11 @@ We officially support only OS package types for Alpine Linux, Ubuntu, and Rocky 
 OS package types:
 - Alpine Linux: alpine
 - Chainguard: wolfi
-- Minimos: 
+- Minimos:
 - Wolfi: wolfi
 - Debian: debian
 - Ubuntu: ubuntu
-- Echo: 
+- Echo:
 - Alma Linux: alma
 - Amazon: amazon
 - AzureLinux: azurelinux
