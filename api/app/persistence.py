@@ -185,16 +185,6 @@ def get_package_by_id(db: Session, package_id: UUID | str) -> models.Package | N
     ).one_or_none()
 
 
-def get_package_by_name_and_ecosystem(
-    db: Session, name: str, ecosystem: str
-) -> models.Package | None:
-    return db.scalars(
-        select(models.Package).where(
-            and_(models.Package.name == name, models.Package.ecosystem == ecosystem)
-        )
-    ).one_or_none()
-
-
 def get_package_by_name_and_ecosystem_and_source_name(
     db: Session, name: str, ecosystem: str, source_name: str | None
 ) -> models.Package | None:
