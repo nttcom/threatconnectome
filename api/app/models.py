@@ -225,6 +225,7 @@ class Package(Base):
     package_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column()
     ecosystem: Mapped[str] = mapped_column()
+    vuln_matching_ecosystem: Mapped[str] = mapped_column()
 
     type: Mapped[PackageType] = mapped_column()
 
