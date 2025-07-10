@@ -901,6 +901,52 @@ class TestPostUploadSBOMFileCycloneDX:
                         },
                     ],
                 ),
+                # test case 5: os-pkgs alpine
+                (
+                    "sample service1",
+                    [  # input
+                        (
+                            {  # application
+                                "name": "alpine",
+                                "type": "operating-system",
+                                "trivy_type": "alpine",
+                                "trivy_class": "os-pkgs",
+                            },
+                            [  # libraries
+                                {
+                                    "purl": (
+                                        "pkg:apk/alpine/libssl3@3.5.0-r0?arch=x86_64&distro=3.22.0"
+                                    ),
+                                    "name": "libssl3",
+                                    "group": None,
+                                    "version": "3.5.0-r0",
+                                    "properties": [
+                                        {"name": "aquasecurity:trivy:SrcName", "value": "openssl"},
+                                        {"name": "aquasecurity:trivy:PkgType", "value": "alpine"},
+                                    ],
+                                },
+                            ],
+                        ),
+                    ],
+                    [  # expected
+                        {
+                            "package_name": "libssl3",
+                            "package_source_name": "openssl",
+                            "ecosystem": "alpine-3.22.0",
+                            "package_manager": "",
+                            "target": "alpine",
+                            "version": "3.5.0-r0",
+                        },
+                        {
+                            "package_name": "libssl3",
+                            "package_source_name": "openssl",
+                            "ecosystem": "alpine-3.22.0",
+                            "package_manager": "",
+                            "target": "sample target1",  # scan root
+                            "version": "3.5.0-r0",
+                        },
+                    ],
+                ),
             ],
         )
         def test_dependencies_should_ralated_to_expected_package(
