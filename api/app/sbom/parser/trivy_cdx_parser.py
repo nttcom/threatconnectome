@@ -10,6 +10,10 @@ from packageurl import PackageURL
 
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.debug_info_outputer import error_message
+from app.sbom.parser.os_pkgtype_utils import (
+    OS_PACKAGE_TYPES_USING_TYPE_AND_DISTRO_AS_ECOSYSTEM,
+    is_os_pkgtype,
+)
 from app.sbom.parser.os_purl_utils import is_os_purl
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
@@ -91,14 +95,28 @@ class TrivyCDXParser(SBOMParser):
 
             ecosystem = str(self.purl.type).casefold()
             pkg_mgr = ""
+            pkg_type = self.properties.get("aquasecurity:trivy:PkgType", "")
 
-            if is_os_purl(self.purl):
-                distro = (
-                    self.purl.qualifiers.get("distro")
-                    if isinstance(self.purl.qualifiers, dict)
-                    else ""
-                )
-                ecosystem = str(self._fix_distro(distro) if distro else self.purl.type).casefold()
+            if is_os_pkgtype(pkg_type) or is_os_purl(self.purl):
+                if pkg_type in OS_PACKAGE_TYPES_USING_TYPE_AND_DISTRO_AS_ECOSYSTEM:
+                    # For these OS types, we use pkg_type+distro as the ecosystem
+                    distro = (
+                        self.purl.qualifiers.get("distro")
+                        if isinstance(self.purl.qualifiers, dict)
+                        else ""
+                    )
+                    ecosystem = str(
+                        (pkg_type + "-" + self._fix_distro(distro)) if distro else self.purl.type
+                    ).casefold()
+                else:
+                    distro = (
+                        self.purl.qualifiers.get("distro")
+                        if isinstance(self.purl.qualifiers, dict)
+                        else ""
+                    )
+                    ecosystem = str(
+                        self._fix_distro(distro) if distro else self.purl.type
+                    ).casefold()
 
             elif self.targets and (
                 mgr := self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
