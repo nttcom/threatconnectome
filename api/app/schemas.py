@@ -328,11 +328,18 @@ class TicketResponse(ORMModel):
     ticket_id: UUID
     vuln_id: UUID
     dependency_id: UUID
+    service_id: UUID
+    pteam_id: UUID
     created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     ticket_safety_impact: SafetyImpactEnum | None
     ticket_safety_impact_change_reason: str | None
     ticket_status: TicketStatusResponse
+
+
+class TicketListResponse(BaseModel):
+    total: int
+    tickets: list[TicketResponse]
 
 
 class TicketUpdateRequest(ORMModel):

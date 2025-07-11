@@ -433,3 +433,73 @@ def get_related_affects_by_package(db: Session, package: models.Package) -> Sequ
             )
         )
     ).all()
+
+
+def get_tickets_for_pteams(
+    db: Session,
+    pteam_ids: list[UUID],
+    assigned_to_me: bool = False,
+    user_id: UUID | None = None,
+    offset: int = 0,
+    limit: int = 100,
+    order: str = "desc",
+) -> tuple[int, Sequence[models.Ticket]]:
+    # Get list of service_ids corresponding to specified pteams
+    service_ids = [
+        row[0]
+        for row in db.query(models.Service.service_id)
+        .filter(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
+        .all()
+    ]
+    tickets: list[models.Ticket] = []
+    for service_id in service_ids:
+        tickets.extend(
+            get_sorted_tickets_related_to_service_and_package_and_vuln(
+                db=db,
+                service_id=service_id,
+                package_id=None,
+                vuln_id=None,
+                assigned_user_id=user_id if assigned_to_me else None,
+            )
+        )
+    # SSVC優先度の定義
+    SSVC_PRIORITY_ORDER = {
+        "immediate": 0,
+        "out-of-cycle": 1,
+        "scheduled": 2,
+        "defer": 3,
+    }
+    reverse = order == "desc"
+    # Deduplication, sorting, and pagination
+    tickets = list({ticket.ticket_id: ticket for ticket in tickets}.values())
+    tickets.sort(
+        key=lambda ticket: SSVC_PRIORITY_ORDER.get(
+            (
+                str(ticket.ssvc_deployer_priority)
+                if ticket.ssvc_deployer_priority is not None
+                else "unknown"
+            ),
+            99,
+        ),
+        reverse=reverse,
+    )
+    total_count = len(tickets)
+    tickets = tickets[offset : offset + limit]
+    return total_count, tickets
+
+
+def validate_pteam_ids(
+    db: Session,
+    pteam_ids: list[UUID],
+    user_pteam_ids: set[UUID],
+) -> None:
+    str_pteam_ids = [str(pid) for pid in pteam_ids]
+    db_pteams = db.query(models.PTeam).filter(models.PTeam.pteam_id.in_(str_pteam_ids)).all()
+    found_pteam_ids = {str(pteam.pteam_id) for pteam in db_pteams}
+    not_found = set(str(pid) for pid in pteam_ids) - found_pteam_ids
+    if not_found:
+        raise ValueError(f"Specified pteam_id(s) do not exist: {not_found}")
+
+    not_belong = set(str(pid) for pid in pteam_ids) - set(str(pid) for pid in user_pteam_ids)
+    if not_belong:
+        raise ValueError(f"Specified pteam_id(s) not belonging to the user: {not_belong}")
