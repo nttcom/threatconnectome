@@ -434,6 +434,7 @@ def get_related_affects_by_package(db: Session, package: models.Package) -> Sequ
         )
     ).all()
 
+
 def get_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],
