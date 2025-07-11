@@ -25,6 +25,10 @@ export function TicketTableRow(props) {
     (reference) => reference.dependencyId === ticket.dependency_id,
   )[0].target;
 
+  const packageManager = references.filter(
+    (reference) => reference.dependencyId === ticket.dependency_id,
+  )[0].package_manager;
+
   return (
     <TableRow>
       <Tooltip arrow placement="bottom-end" title={target}>
@@ -39,6 +43,15 @@ export function TicketTableRow(props) {
           {target}
         </TableCell>
       </Tooltip>
+      <TableCell
+        align="center"
+        sx={{
+          whiteSpace: "normal",
+          wordBreak: "break-all",
+        }}
+      >
+        {packageManager}
+      </TableCell>
       <TableCell>
         <SafetyImpactSelector pteamId={pteamId} ticket={ticket} />
       </TableCell>
