@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -32,7 +32,7 @@ def ticket_to_response(ticket: models.Ticket):
 
 @router.get("", response_model=schemas.TicketListResponse)
 def get_tickets(
-    assigned_to_me: bool = Query(False),
+    assigned_to_me: bool = Query(False, alias="my_tasks"),
     pteam_ids: list[UUID] | None = Query(None),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -48,7 +48,10 @@ def get_tickets(
     if not pteam_ids:
         pteam_ids = list(user_pteam_ids)
 
-    validate_pteam_ids(db, pteam_ids, user_pteam_ids)
+    try:
+        validate_pteam_ids(db, pteam_ids, user_pteam_ids)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     total_count, tickets = get_tickets_for_pteams(
         db=db,

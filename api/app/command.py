@@ -470,7 +470,7 @@ def get_tickets_for_pteams(
     service_ids = [
         row[0]
         for row in db.query(models.Service.service_id)
-        .filter(models.Service.pteam_id.in_(pteam_ids))
+        .filter(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
         .all()
     ]
     tickets: list[models.Ticket] = []
