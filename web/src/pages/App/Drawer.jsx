@@ -10,8 +10,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { set } from "date-fns";
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -58,22 +57,22 @@ export function Drawer() {
 
   const dispatch = useDispatch();
   const theme = useTheme();
-  const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isLgUp = useMediaQuery(theme.breakpoints.up("lg"));
+  const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
 
   // --- Effects for responsive drawer behavior ---
 
   // Auto-open drawer on large screens.
+  // HACK: Use async update to prevent UI freeze from Drawer's race condition.
   useEffect(() => {
-    dispatch(setDrawerOpen(isLargeScreen));
-  }, [isLargeScreen, dispatch]);
+    const timer = setTimeout(() => {
+      dispatch(setDrawerOpen(isLgUp));
+    }, 0);
 
-  // Force-close drawer on mobile to prevent a resize bug.
-  useEffect(() => {
-    if (isMobile) {
-      dispatch(setDrawerOpen(false));
-    }
-  }, [isMobile, dispatch]);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isLgUp, dispatch]);
 
   const drawerTitle = "Threatconnectome";
 
@@ -81,7 +80,7 @@ export function Drawer() {
     <MuiDrawer
       anchor="left"
       open={system.drawerOpen}
-      variant={isMobile ? "temporary" : "persistent"}
+      variant={isSmDown ? "temporary" : "persistent"}
       onClose={() => dispatch(setDrawerOpen(false))}
       sx={{
         flexShrink: 0,

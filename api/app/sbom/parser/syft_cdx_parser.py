@@ -97,14 +97,14 @@ class SyftCDXParser(SBOMParser):
                 return None
             pkg_name = (
                 self.group + "/" + self.name if self.group else self.name
-            )  # given by syft. may include namespace in some case.
+            ).casefold()  # given by syft. may include namespace in some case.
             distro = (
                 self.purl.qualifiers.get("distro")
                 if self.purl and isinstance(self.purl.qualifiers, dict)
                 else None
             )
-            pkg_info = distro if distro else self.purl.type
-            pkg_mgr = self.mgr_info.name if self.mgr_info else ""
+            pkg_info = str(distro).casefold() if distro else str(self.purl.type).casefold()
+            pkg_mgr = (self.mgr_info.name).casefold() if self.mgr_info else ""
 
             return {"pkg_name": pkg_name, "ecosystem": pkg_info, "pkg_mgr": pkg_mgr}
 
@@ -162,6 +162,7 @@ class SyftCDXParser(SBOMParser):
                 artifacts_key,
                 Artifact(
                     package_name=package_info["pkg_name"],
+                    source_name=None,  # TODO: support source_name
                     ecosystem=package_info["ecosystem"],
                     package_manager=package_info["pkg_mgr"],
                 ),

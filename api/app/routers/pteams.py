@@ -22,6 +22,7 @@ from app.business.ssvc_business import (
 )
 from app.business.ticket_business import fix_ticket_ssvc_priority
 from app.database import get_db, open_db_session
+from app.detector import ecosystem_analyzer
 from app.notification.alert import notify_sbom_upload_ended
 from app.notification.slack import validate_slack_webhook_url
 from app.routers.validators.account_validator import (
@@ -517,6 +518,11 @@ def get_dependencies(
             target=dependency.target,
             dependency_mission_impact=dependency.dependency_mission_impact,
             package_name=dependency.package_version.package.name,
+            package_source_name=(
+                dependency.package_version.package.source_name
+                if isinstance(dependency.package_version.package, models.OSPackage)
+                else None
+            ),
             package_version=dependency.package_version.version,
             package_ecosystem=dependency.package_version.package.ecosystem,
         )
@@ -555,6 +561,11 @@ def get_dependency(
         target=dependency.target,
         dependency_mission_impact=dependency.dependency_mission_impact,
         package_name=dependency.package_version.package.name,
+        package_source_name=(
+            dependency.package_version.package.source_name
+            if isinstance(dependency.package_version.package, models.OSPackage)
+            else None
+        ),
         package_version=dependency.package_version.version,
         package_ecosystem=dependency.package_version.package.ecosystem,
     )
@@ -1072,7 +1083,7 @@ def bg_create_tags_from_sbom_json(
     #   functions for background tasks should be divided to another source file.
 
     log = logging.getLogger(__name__)
-    log.info(f"Start SBOM uploade as a service: {service_name}")
+    log.info(f"Start SBOM upload as a service: {service_name}")
 
     with open_db_session() as db:
         if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
@@ -1222,11 +1233,19 @@ def apply_service_packages(
         package_manager = str(line.get("package_manager", ""))
 
         if not (
-            _package := persistence.get_package_by_name_and_ecosystem(db, package_name, ecosystem)
+            _package := persistence.get_package_by_name_and_ecosystem_and_source_name(
+                db, package_name, ecosystem, line.get("source_name")
+            )
         ):
             # create new package
-            _package = models.Package(name=package_name, ecosystem=ecosystem)
-            persistence.create_package(db, _package)
+            if ecosystem_analyzer.is_os_ecosystem(ecosystem):
+                _package = models.OSPackage(
+                    name=package_name, ecosystem=ecosystem, source_name=line.get("source_name")
+                )
+                persistence.create_package(db, _package)
+            else:
+                _package = models.LangPackage(name=package_name, ecosystem=ecosystem)
+                persistence.create_package(db, _package)
 
         if _package:
             for ref in line.get("references", [{}]):
@@ -1273,6 +1292,7 @@ def apply_service_packages(
             db, package_version_id
         )
         for threat in threats:
+            db.refresh(threat.package_version)
             ticket_business.fix_ticket_by_threat(db, threat)
     db.flush()
 

@@ -250,8 +250,8 @@ class TestDeleteUserSideEffects:
         accept_pteam_invitation(USER2, invitation1.invitation_id)
         accept_pteam_invitation(USER1, invitation2.invitation_id)
 
-        package1 = persistence.get_package_by_name_and_ecosystem(
-            testdb, refs1[0]["package_name"], refs1[0]["ecosystem"]
+        package1 = persistence.get_package_by_name_and_ecosystem_and_source_name(
+            testdb, refs1[0]["package_name"], refs1[0]["ecosystem"], None
         )
 
         # Setup ticket status with actionlog
@@ -264,8 +264,8 @@ class TestDeleteUserSideEffects:
         )
         self.ticket1 = tickets1[0]
 
-        package2 = persistence.get_package_by_name_and_ecosystem(
-            testdb, refs2[0]["package_name"], refs2[0]["ecosystem"]
+        package2 = persistence.get_package_by_name_and_ecosystem_and_source_name(
+            testdb, refs2[0]["package_name"], refs2[0]["ecosystem"], None
         )
 
         tickets2 = get_tickets_related_to_vuln_package(

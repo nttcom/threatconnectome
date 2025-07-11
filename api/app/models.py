@@ -53,6 +53,12 @@ class ActionType(str, enum.Enum):
     rejection = "rejection"
 
 
+class PackageType(str, enum.Enum):
+    LANG = "lang"
+    OS = "os"
+    PACKAGE = "package"
+
+
 class VulnStatusType(str, enum.Enum):
     alerted = "alerted"
     acknowledged = "acknowledged"
@@ -211,7 +217,6 @@ class PackageVersion(Base):
 
 class Package(Base):
     __tablename__ = "package"
-    __table_args__ = (UniqueConstraint("name", "ecosystem", name="package_name_ecosystem_key"),)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -222,10 +227,38 @@ class Package(Base):
     name: Mapped[str] = mapped_column()
     ecosystem: Mapped[str] = mapped_column()
 
+    type: Mapped[PackageType] = mapped_column()
+
+    __mapper_args__ = {
+        "polymorphic_on": type,
+        "polymorphic_identity": PackageType.PACKAGE,
+    }
+
     package_versions = relationship(
         "PackageVersion", back_populates="package", cascade="all, delete-orphan"
     )
-    affects = relationship("Affect", back_populates="package")
+
+
+class LangPackage(Package):
+    __mapper_args__ = {
+        "polymorphic_identity": PackageType.LANG,
+    }
+
+
+class OSPackage(Package):
+    source_name: Mapped[str] = mapped_column(nullable=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": PackageType.OS,
+    }
+
+
+UniqueConstraint(
+    Package.name,
+    Package.ecosystem,
+    OSPackage.source_name,
+    name="package_name_ecosystem_source_name_key",
+)
 
 
 class Dependency(Base):
@@ -537,6 +570,14 @@ class VulnAction(Base):
 
 class Affect(Base):
     __tablename__ = "affect"
+    __table_args__ = (
+        UniqueConstraint(
+            "vuln_id",
+            "affected_name",
+            "ecosystem",
+            name="affect_vuln_id_affected_name_ecosystem_key",
+        ),
+    )
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -547,14 +588,13 @@ class Affect(Base):
     vuln_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
     )
-    package_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("package.package_id", ondelete="CASCADE"), index=True
-    )
+
     affected_versions: Mapped[list[str]] = mapped_column(default=[])
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
+    affected_name: Mapped[str] = mapped_column()
+    ecosystem: Mapped[str] = mapped_column()
 
     vuln = relationship("Vuln", back_populates="affects")
-    package = relationship("Package", back_populates="affects")
 
 
 class ActionLog(Base):

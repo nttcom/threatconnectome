@@ -5,9 +5,12 @@ import { Button, Collapse, IconButton, TableCell, TableRow } from "@mui/material
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
+import { useGetDependenciesQuery } from "../../../services/tcApi";
+import { APIError } from "../../../utils/APIError";
 import { ssvcPriorityProps } from "../../../utils/const.js";
-import { searchWorstSSVC } from "../../../utils/func.js";
-import { createActionByFixedVersions } from "../../../utils/vulnUtils.js";
+import { errorToString, searchWorstSSVC } from "../../../utils/func";
+import { createActionByFixedVersions, findMatchedVulnPackage } from "../../../utils/vulnUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 
 import { TicketTable } from "./TicketTable.jsx";
@@ -18,16 +21,41 @@ export function VulnTableRowView(props) {
     props;
   const [ticketOpen, setTicketOpen] = useState(true);
   const [vulnDrawerOpen, setVulnDrawerOpen] = useState(false);
+  const skip = useSkipUntilAuthUserIsReady();
+  const getDependenciesReady = !skip && pteamId && serviceId;
 
-  const vulnerable_package = vuln.vulnerable_packages.find(
-    (vulnerable_package) => vulnerable_package.package_id === packageId,
+  const offset = 0;
+  const limit = 10000;
+  const {
+    data: serviceDependencies,
+    error: serviceDependenciesError,
+    isLoading: serviceDependenciesIsLoading,
+  } = useGetDependenciesQuery(
+    { pteamId, serviceId, offset, limit },
+    { skip: !getDependenciesReady },
   );
+
+  if (skip) return <></>;
+  if (serviceDependenciesError)
+    throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
+  if (serviceDependenciesIsLoading) return <>Now loading Service Dependencies...</>;
+  const currentPackageDependencies = (serviceDependencies ?? []).filter(
+    (dependency) => dependency.package_id === packageId,
+  );
+  const currentPackage = {
+    package_name: currentPackageDependencies[0].package_name,
+    package_source_name: currentPackageDependencies[0].package_source_name,
+    ecosystem: currentPackageDependencies[0].package_ecosystem,
+  };
+
+  // Get the matched vulnerable package from vulnerable_packages and currentPackage
+  const vulnerable_package = findMatchedVulnPackage(vuln.vulnerable_packages, currentPackage);
   const affectedVersions = vulnerable_package.affected_versions;
   const patchedVersions = vulnerable_package.fixed_versions;
   const actionByFixedVersions = createActionByFixedVersions(
     affectedVersions,
     patchedVersions,
-    vulnerable_package.name,
+    vulnerable_package.affected_name,
   );
 
   return (
@@ -120,6 +148,7 @@ export function VulnTableRowView(props) {
         serviceId={serviceId}
         servicePackageId={packageId}
         vulnId={vulnId}
+        currentPackage={currentPackage}
       />
     </>
   );
