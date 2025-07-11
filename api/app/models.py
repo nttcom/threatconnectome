@@ -2,7 +2,18 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
+from sqlalchemy import (
+    ARRAY,
+    JSON,
+    ForeignKey,
+    LargeBinary,
+    String,
+    Text,
+    UniqueConstraint,
+    case,
+    func,
+)
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
@@ -221,6 +232,44 @@ class Package(Base):
         super().__init__(*args, **kwargs)
         if not self.package_id:
             self.package_id = str(uuid.uuid4())
+
+    @hybrid_property
+    def vuln_matching_ecosystem(self) -> str:
+        """
+        Returns the ecosystem string for vulnerability matching.
+        If the ecosystem starts with "alpine-",
+        it change the value to include only the minor version.
+        Example: "alpine-3.22.0" → "alpine-3.22"
+        For other ecosystems, returns the original value.
+        """
+        if self.ecosystem and self.ecosystem.startswith("alpine-"):
+            parts = self.ecosystem.split("-")
+            if len(parts) == 2:
+                version = parts[1].split(".")
+                if len(version) >= 2:
+                    return f"alpine-{version[0]}.{version[1]}"
+        return self.ecosystem
+
+    @vuln_matching_ecosystem.expression
+    def vuln_matching_ecosystem_for_sql_query(cls):
+        """
+        SQL expression for vuln_matching_ecosystem.
+        If the ecosystem starts with 'alpine-', returns only up to the minor version
+        (e.g., 'alpine-3.22.0' → 'alpine-3.22').
+        Otherwise, returns the original ecosystem value.
+        """
+        return case(
+            (
+                cls.ecosystem.like("alpine-%"),
+                func.concat(
+                    "alpine-",
+                    func.split_part(func.split_part(cls.ecosystem, "-", 2), ".", 1),
+                    ".",
+                    func.split_part(func.split_part(cls.ecosystem, "-", 2), ".", 2),
+                ),
+            ),
+            else_=cls.ecosystem,
+        )
 
     package_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column()
