@@ -68,6 +68,7 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     package_name: currentPackageDependencies[0]?.package_name,
     package_source_name: currentPackageDependencies[0]?.package_source_name,
     ecosystem: currentPackageDependencies[0]?.package_ecosystem,
+    vuln_matching_ecosystem: currentPackageDependencies[0]?.vuln_matching_ecosystem,
   };
 
   const vulnerable_package = findMatchedVulnPackage(vuln.vulnerable_packages, currentPackage);
