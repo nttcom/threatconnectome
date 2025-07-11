@@ -6,11 +6,15 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { setDrawerOpen } from "../../slices/system";
 import { LocationReader } from "../../utils/LocationReader";
 import { drawerWidth, drawerParams } from "../../utils/const";
 
@@ -51,13 +55,33 @@ export function Drawer() {
     navigate("/?" + queryParams);
   };
 
+  const dispatch = useDispatch();
+  const theme = useTheme();
+  const isLgUp = useMediaQuery(theme.breakpoints.up("lg"));
+  const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
+
+  // --- Effects for responsive drawer behavior ---
+
+  // Auto-open drawer on large screens.
+  // HACK: Use async update to prevent UI freeze from Drawer's race condition.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(setDrawerOpen(isLgUp));
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isLgUp, dispatch]);
+
   const drawerTitle = "Threatconnectome";
 
   return (
     <MuiDrawer
       anchor="left"
       open={system.drawerOpen}
-      variant="persistent"
+      variant={isSmDown ? "temporary" : "persistent"}
+      onClose={() => dispatch(setDrawerOpen(false))}
       sx={{
         flexShrink: 0,
         "& .MuiDrawer-paper": {

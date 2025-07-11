@@ -59,6 +59,10 @@ allow_list = [
     b"alpine 3.16",
     b"alpine 3.17",
     b"alpine 3.18",
+    b"alpine 3.19",
+    b"alpine 3.20",
+    b"alpine 3.21",
+    b"alpine 3.22",
     # b"alpine 3.2",
     # b"alpine 3.3",
     # b"alpine 3.4",
@@ -106,8 +110,8 @@ allow_list = [
     # b"openSUSE Leap 42.3",
     b"pip::GitHub Security Advisory pip",
     # b"pub::GitHub Security Advisory Pub",
-    # b"rocky 8",
-    # b"rocky 9",
+    b"rocky 8",
+    b"rocky 9",
     b"rubygems::GitHub Security Advisory RubyGems",
     b"rubygems::Ruby Advisory Database",
     # b"swift::GitHub Security Advisory Swift",
@@ -137,6 +141,7 @@ allow_list = [
     b"ubuntu 22.04",
     # b"ubuntu 22.10",
     # b"ubuntu 23.04",
+    b"ubuntu 24.04",
     # b"wolfi",
 ]
 
@@ -362,7 +367,7 @@ def convert_vuln_to_checkable_data(vuln: dict) -> dict:
     sorted_vulnerable_packages = sorted(
         vuln["vulnerable_packages"],
         key=lambda vulnerable_package: (
-            vulnerable_package["name"],
+            vulnerable_package["affected_name"],
             vulnerable_package["ecosystem"],
         ),
     )
@@ -373,7 +378,7 @@ def convert_vuln_to_checkable_data(vuln: dict) -> dict:
         "cvss_v3_score": vuln["cvss_v3_score"],
         "vulnerable_packages": [
             {
-                "name": vulnerable_package["name"],
+                "affected_name": vulnerable_package["affected_name"],
                 "ecosystem": vulnerable_package["ecosystem"],
                 "affected_versions": sorted(vulnerable_package["affected_versions"]),
                 "fixed_versions": sorted(vulnerable_package["fixed_versions"]),
@@ -494,7 +499,7 @@ def main() -> None:
                 vulnerable_packages = []
                 for key, value in trivy_vuln_content["affects"].items():
                     vulnerable_package = {
-                        "name": key[0],
+                        "affected_name": key[0],
                         "ecosystem": key[1],
                         "affected_versions": sorted(list(value["affected_versions"])),
                         "fixed_versions": sorted(list(value["fixed_versions"])),
@@ -504,7 +509,7 @@ def main() -> None:
                 sorted_vulnerable_packages = sorted(
                     vulnerable_packages,
                     key=lambda vulnerable_package: (
-                        vulnerable_package["name"],
+                        vulnerable_package["affected_name"],
                         vulnerable_package["ecosystem"],
                     ),
                 )

@@ -10,6 +10,7 @@ from packageurl import PackageURL
 
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.debug_info_outputer import error_message
+from app.sbom.parser.os_purl_utils import is_os_purl
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
     SBOM,
@@ -80,24 +81,36 @@ class TrivyCDXParser(SBOMParser):
                 return None
             pkg_name = (
                 self.group + "/" + self.name if self.group else self.name
-            )  # given by trivy. may include namespace in some case.
-            pkg_info = self.purl.type
-            pkg_mgr = ""
-            if self.targets:
-                mgr = self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
-                if not mgr:
-                    pass
-                elif mgr.trivy_class == "os-pkgs":
-                    distro = (
-                        self.purl.qualifiers.get("distro")
-                        if isinstance(self.purl.qualifiers, dict)
-                        else ""
-                    )
-                    pkg_info = self._fix_distro(distro) if distro else ""
-                else:
-                    pkg_mgr = mgr.properties.get("aquasecurity:trivy:Type", "")
+            ).casefold()  # given by trivy. may include namespace in some case.
 
-            return {"pkg_name": pkg_name, "ecosystem": pkg_info, "pkg_mgr": pkg_mgr}
+            source_name = None
+            for key, value in self.properties.items():
+                if "aquasecurity:trivy:SrcName" in key:
+                    source_name = str(value).casefold()
+                    break
+
+            ecosystem = str(self.purl.type).casefold()
+            pkg_mgr = ""
+
+            if is_os_purl(self.purl):
+                distro = (
+                    self.purl.qualifiers.get("distro")
+                    if isinstance(self.purl.qualifiers, dict)
+                    else ""
+                )
+                ecosystem = str(self._fix_distro(distro) if distro else self.purl.type).casefold()
+
+            elif self.targets and (
+                mgr := self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
+            ):
+                pkg_mgr = str(mgr.properties.get("aquasecurity:trivy:Type", "")).casefold()
+
+            return {
+                "pkg_name": pkg_name,
+                "source_name": source_name,
+                "ecosystem": ecosystem,
+                "pkg_mgr": pkg_mgr,
+            }
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
@@ -184,6 +197,7 @@ class TrivyCDXParser(SBOMParser):
                 continue  # maybe directory or image
             if not (package_info := component.to_package_info(components_map)):
                 continue  # omit not packages
+
             artifacts_key = (
                 f"{package_info['pkg_name']}:{package_info['ecosystem']}:{package_info['pkg_mgr']}"
             )
@@ -191,6 +205,7 @@ class TrivyCDXParser(SBOMParser):
                 artifacts_key,
                 Artifact(
                     package_name=package_info["pkg_name"],
+                    source_name=package_info["source_name"],
                     ecosystem=package_info["ecosystem"],
                     package_manager=package_info["pkg_mgr"],
                 ),

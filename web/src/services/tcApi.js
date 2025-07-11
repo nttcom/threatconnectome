@@ -334,27 +334,6 @@ export const tcApi = createApi({
       ],
     }),
 
-    /* Vuln */
-    getVuln: builder.query({
-      query: (vulnId) => `/vulns/${vulnId}`,
-      providesTags: (result, error, vulnId) => [{ type: "Vuln", id: `${vulnId}` }],
-    }),
-
-    /* Vuln Action */
-    getVulnActions: builder.query({
-      query: (vulnId) => ({
-        url: `vulns/${vulnId}/actions`,
-        method: "GET",
-      }),
-      providesTags: (result, error, arg) => [
-        ...(result?.reduce(
-          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
-          [],
-        ) ?? []),
-        { type: "VulnAction", id: "ALL" },
-      ],
-    }),
-
     /* User */
     getUserMe: builder.query({
       query: () => "users/me",
@@ -409,6 +388,25 @@ export const tcApi = createApi({
         { type: "Service", id: "ALL" },
       ],
     }),
+    getVuln: builder.query({
+      query: (vulnId) => `/vulns/${vulnId}`,
+      providesTags: (result, error, vulnId) => [{ type: "Vuln", id: `${vulnId}` }],
+    }),
+
+    /* Vuln Action */
+    getVulnActions: builder.query({
+      query: (vulnId) => ({
+        url: `vulns/${vulnId}/actions`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        ...(result?.reduce(
+          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
+          [],
+        ) ?? []),
+        { type: "VulnAction", id: "ALL" },
+      ],
+    }),
 
     /* External */
     checkMail: builder.mutation({
@@ -452,10 +450,10 @@ export const {
   useGetTicketsQuery,
   useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
-  useGetVulnQuery,
-  useGetVulnActionsQuery,
   useGetUserMeQuery,
   useGetVulnsQuery,
+  useGetVulnQuery,
+  useGetVulnActionsQuery,
   useTryLoginMutation,
   useCreateUserMutation,
   useUpdateUserMutation,

@@ -1,5 +1,7 @@
 import copy
+import json
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
@@ -11,6 +13,7 @@ from sqlalchemy.orm import Session
 from app import models, persistence
 from app.business import ticket_business
 from app.main import app
+from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import PTEAM1, USER1
 from app.tests.medium.utils import (
     create_pteam,
@@ -34,7 +37,7 @@ class TestUpdateVuln:
             "cvss_v3_score": 7.8,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
@@ -91,9 +94,10 @@ class TestUpdateVuln:
 
         self.affect1 = models.Affect(
             vuln_id=self.vuln1.vuln_id,
-            package_id=self.package1.package_id,
             affected_versions=["<2.0.0"],
             fixed_versions=["2.0.0"],
+            affected_name=self.package1.name,
+            ecosystem=self.package1.ecosystem,
         )
 
         testdb.add(self.affect1)
@@ -112,7 +116,7 @@ class TestUpdateVuln:
         # Given
         new_vuln_id = uuid4()
         new_package = models.Package(
-            name=self.request1["vulnerable_packages"][0]["name"],
+            name=self.request1["vulnerable_packages"][0]["affected_name"],
             ecosystem=self.request1["vulnerable_packages"][0]["ecosystem"],
         )
         testdb.add(new_package)
@@ -156,7 +160,7 @@ class TestUpdateVuln:
             <= current_time + timedelta(seconds=10)
         )
 
-    def test_create_package_if_given_vuln_id_is_new_and_package_does_not_exists(
+    def test_not_create_package_if_given_vuln_id_is_new_and_package_does_not_exists(
         self, testdb: Session
     ):
         # Given
@@ -168,14 +172,12 @@ class TestUpdateVuln:
         # Then
         package = testdb.scalars(
             select(models.Package).where(
-                models.Package.name == self.request1["vulnerable_packages"][0]["name"]
+                models.Package.name == self.request1["vulnerable_packages"][0]["affected_name"]
             )
         ).one_or_none()
 
         assert response.status_code == 200
-        assert package is not None
-        assert self.request1["vulnerable_packages"][0]["name"] == package.name
-        assert self.request1["vulnerable_packages"][0]["ecosystem"] == package.ecosystem
+        assert package is None
 
     def test_update_vuln_if_given_vuln_id_is_exists(self, testdb: Session, update_setup):
         # Given
@@ -226,13 +228,15 @@ class TestUpdateVuln:
         request: dict[str, Any] = {
             "vulnerable_packages": [
                 {
-                    "name": "example-lib2",
+                    "affected_name": "example-lib2",
                     "ecosystem": "npm",
                     "affected_versions": ["<1.0.0"],
                     "fixed_versions": ["1.0.0"],
                 }
             ],
         }
+        before_affected_versions = self.affect1.affected_versions
+        before_fixed_versions = self.affect1.fixed_versions
 
         # When
         response = client.put(f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=request)
@@ -244,8 +248,8 @@ class TestUpdateVuln:
 
         assert response.status_code == 200
         assert vuln is not None
-        assert self.affect1.affected_versions != vuln.affects[0].affected_versions
-        assert self.affect1.fixed_versions != vuln.affects[0].fixed_versions
+        assert before_affected_versions != vuln.affects[0].affected_versions
+        assert before_fixed_versions != vuln.affects[0].fixed_versions
 
     def test_recalculate_ssvc_when_updating_vuln(self, testdb: Session, update_setup):
         # Given
@@ -305,3 +309,45 @@ class TestUpdateVuln:
 
         send_alert_to_pteam.assert_called_once()
         send_alert_to_pteam.assert_called_with(alerts[0])
+
+    def test_create_ticket_if_vulnerabilities_matched_by_source_name_when_updating_vuln(
+        self, testdb: Session
+    ):
+        # Given
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        service_name1 = "test_service1"
+        upload_file_name = "trivy-ubuntu2004.cdx.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+
+        bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name1, upload_file_name)
+
+        # source_name in purl:
+        #   "pkg:deb/ubuntu/gcc-10-base@10.5.0-1ubuntu1~20.04?arch=arm64&distro=ubuntu-20.04"
+        source_name = "gcc-10"
+
+        request1: dict[str, Any] = {
+            "title": "Example vuln",
+            "cve_id": "CVE-0000-0001",
+            "detail": "This vuln is example.",
+            "cvss_v3_score": 7.8,
+            "vulnerable_packages": [
+                {
+                    "affected_name": source_name,
+                    "ecosystem": "ubuntu-20.04",
+                    "affected_versions": ["<=10.5.0-1ubuntu1~20.040"],
+                    "fixed_versions": ["10.5.0-1ubuntu2~20.040"],
+                }
+            ],
+        }
+
+        # When
+        vuln_id = str(uuid4())
+        client.put(f"/vulns/{vuln_id}", headers=headers(USER1), json=request1)
+
+        tickets = testdb.scalars(select(models.Ticket)).all()
+        assert len(tickets) == 6
