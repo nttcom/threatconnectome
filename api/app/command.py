@@ -429,7 +429,7 @@ def get_related_affects_by_package(db: Session, package: models.Package) -> Sequ
     return db.scalars(
         select(models.Affect).where(
             and_(
-                models.Affect.ecosystem == str(package.ecosystem),
+                models.Affect.ecosystem == str(package.vuln_matching_ecosystem_for_sql_query),
                 or_(*affected_name_condition),
             )
         )
