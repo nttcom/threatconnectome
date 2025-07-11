@@ -25,8 +25,9 @@ export function TicketTableRow(props) {
     (reference) => reference.dependencyId === ticket.dependency_id,
   )[0].target;
 
-  // TODO: Replace mock packageManager with actual data.
-  const packageManager = "pipenv";
+  const packageManager = references.filter(
+    (reference) => reference.dependencyId === ticket.dependency_id,
+  )[0].package_manager;
 
   return (
     <TableRow>

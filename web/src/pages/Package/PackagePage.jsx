@@ -120,6 +120,7 @@ export function Package() {
     service: serviceDict.service_name,
     package_name: dependency.package_name,
     package_source_name: dependency.package_source_name,
+    package_manager: dependency.package_manager,
     ecosystem: dependency.package_ecosystem,
   }));
 
@@ -130,10 +131,6 @@ export function Package() {
 
   // CodeBlock is not implemented
   const visibleCodeBlock = false;
-
-  // TODO: tagName and tagRepository are mock data. Replace with actual data logic.
-  const packageName = "setuptools";
-  const packageEcosystem = "pypi";
 
   return (
     <>
@@ -154,9 +151,9 @@ export function Package() {
           </Box>
           <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              {packageName}
+              {currentPackageDependencies[0].package_name}
             </Typography>
-            <Chip label={packageEcosystem} sx={{ ml: 1 }} />
+            <Chip label={currentPackageDependencies[0].package_ecosystem} sx={{ ml: 1 }} />
           </Box>
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{packageId}</UUIDTypography>
