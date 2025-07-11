@@ -46,6 +46,7 @@ export function VulnTableRowView(props) {
     package_name: currentPackageDependencies[0].package_name,
     package_source_name: currentPackageDependencies[0].package_source_name,
     ecosystem: currentPackageDependencies[0].package_ecosystem,
+    vuln_matching_ecosystem: currentPackageDependencies[0].vuln_matching_ecosystem,
   };
 
   // Get the matched vulnerable package from vulnerable_packages and currentPackage
@@ -149,6 +150,8 @@ export function VulnTableRowView(props) {
         servicePackageId={packageId}
         vulnId={vulnId}
         currentPackage={currentPackage}
+        tickets={tickets}
+        references={references}
       />
     </>
   );
