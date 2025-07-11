@@ -57,6 +57,7 @@ class TestGetDependency:
         assert data["package_source_name"] == self.dependency1["package_source_name"]
         assert data["package_version"] == self.dependency1["package_version"]
         assert data["package_ecosystem"] == self.dependency1["package_ecosystem"]
+        assert data["vuln_matching_ecosystem"] == self.dependency1["vuln_matching_ecosystem"]
 
     def test_it_should_return_404_when_pteam_id_does_not_exist(self):
         # Given
@@ -182,6 +183,7 @@ class TestGetDependencies:
                 "package_source_name": None,
                 "package_version": self.package_version1.version,
                 "package_ecosystem": self.package1.ecosystem,
+                "vuln_matching_ecosystem": self.package1.vuln_matching_ecosystem,
             },
             {
                 "dependency_id": str(self.dependency2.dependency_id),
@@ -195,6 +197,7 @@ class TestGetDependencies:
                 "package_source_name": None,
                 "package_version": self.package_version1.version,
                 "package_ecosystem": self.package1.ecosystem,
+                "vuln_matching_ecosystem": self.package1.vuln_matching_ecosystem,
             },
             {
                 "dependency_id": str(self.dependency3.dependency_id),
@@ -208,6 +211,7 @@ class TestGetDependencies:
                 "package_source_name": self.package2.source_name,
                 "package_version": self.package_version2.version,
                 "package_ecosystem": self.package2.ecosystem,
+                "vuln_matching_ecosystem": self.package2.vuln_matching_ecosystem,
             },
         ]
 
@@ -237,6 +241,7 @@ class TestGetDependencies:
             "package_source_name": None,
             "package_version": self.package_version1.version,
             "package_ecosystem": self.package1.ecosystem,
+            "vuln_matching_ecosystem": self.package1.vuln_matching_ecosystem,
         }
 
         # When
@@ -268,6 +273,7 @@ class TestGetDependencies:
                 "package_source_name": None,
                 "package_version": self.package_version1.version,
                 "package_ecosystem": self.package1.ecosystem,
+                "vuln_matching_ecosystem": self.package1.vuln_matching_ecosystem,
             },
             {
                 "dependency_id": str(self.dependency2.dependency_id),
@@ -281,6 +287,7 @@ class TestGetDependencies:
                 "package_source_name": None,
                 "package_version": self.package_version1.version,
                 "package_ecosystem": self.package1.ecosystem,
+                "vuln_matching_ecosystem": self.package1.vuln_matching_ecosystem,
             },
             {
                 "dependency_id": str(self.dependency3.dependency_id),
@@ -294,6 +301,7 @@ class TestGetDependencies:
                 "package_source_name": self.package2.source_name,
                 "package_version": self.package_version2.version,
                 "package_ecosystem": self.package2.ecosystem,
+                "vuln_matching_ecosystem": self.package2.vuln_matching_ecosystem,
             },
         ]
 
@@ -332,6 +340,7 @@ class TestGetDependencies:
                 "package_source_name": None,
                 "package_version": package_version.version,
                 "package_ecosystem": package.ecosystem,
+                "vuln_matching_ecosystem": package.vuln_matching_ecosystem,
             }
             expected_dependencies.append(expected_dependency)
 
