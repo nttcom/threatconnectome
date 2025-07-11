@@ -392,7 +392,9 @@ def get_packages_summary(
 
 
 def get_related_packages_by_affect(db: Session, affect: models.Affect) -> Sequence[models.Package]:
-    query = select(models.Package).where(models.Package.ecosystem == str(affect.ecosystem))
+    query = select(models.Package).where(
+        models.Package.vuln_matching_ecosystem_for_sql_query == str(affect.ecosystem)
+    )
 
     conditions = [
         and_(
@@ -416,7 +418,6 @@ def get_related_packages_by_affect(db: Session, affect: models.Affect) -> Sequen
 
 
 def get_related_affects_by_package(db: Session, package: models.Package) -> Sequence[models.Affect]:
-
     if isinstance(package, models.OSPackage):
         if package.source_name is not None:
             affected_name_condition = [models.Affect.affected_name == str(package.source_name)]
