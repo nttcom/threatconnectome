@@ -260,7 +260,15 @@ class Package(Base):
         """
         return case(
             (
-                cls.ecosystem.like("alpine-%"),
+                # Beginning with "alpine-", split in two by "-", split in three by "."
+                cls.ecosystem.like("alpine-%")
+                & (func.array_length(func.string_to_array(cls.ecosystem, "-"), 1) == 2)
+                & (
+                    func.array_length(
+                        func.string_to_array(func.split_part(cls.ecosystem, "-", 2), "."), 1
+                    )
+                    == 3
+                ),
                 func.concat(
                     "alpine-",
                     func.split_part(func.split_part(cls.ecosystem, "-", 2), ".", 1),
