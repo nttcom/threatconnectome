@@ -47,3 +47,14 @@ class SupabaseAuthModule(AuthModule):
         user_data = self.supabase.auth.get_user(token.credentials)
         user = user_data.model_dump().get("user")
         return user.get("id"), user.get("email")
+
+    def delete_user(self, uid):
+        url = os.getenv("SUPABASE_URL")
+        if url is None:
+            raise Exception(f"Unsupported SUPABASE_URL: {url}")
+        key = os.getenv("SERVICE_ROLE_KEY")
+        if key is None:
+            raise Exception(f"Unsupported SERVICE_ROLE_KEY: {key}")
+
+        supabase1 = create_client(url, key)
+        supabase1.auth.admin.delete_user(uid)

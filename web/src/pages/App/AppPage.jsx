@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
@@ -40,13 +40,16 @@ export function App() {
     dispatch(setRedirectedFrom({ from: location.pathname, search: location.search }));
   }, [dispatch, location.pathname, location.search]);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
     <>
       <Box flexGrow={1}>
         <AppBar />
       </Box>
       <Drawer />
-      <Main open={system.drawerOpen}>
+      <Main open={!isMobile && system.drawerOpen}>
         <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" m={1}>
           <Box display="flex" flexDirection="column" flexGrow={1} maxWidth={mainMaxWidth}>
             <ErrorBoundary FallbackComponent={AppFallback} resetKeys={[location.pathname]}>

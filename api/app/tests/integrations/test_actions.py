@@ -81,7 +81,7 @@ class TestCreateAction:
             "cvss_v3_score": 7.8,
             "vulnerable_packages": [
                 {
-                    "name": "axios",
+                    "affected_name": "axios",
                     "ecosystem": "npm",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": [],
@@ -280,7 +280,7 @@ class TestDeleteAction:
             "cvss_v3_score": 7.8,
             "vulnerable_packages": [
                 {
-                    "name": "axios",
+                    "affected_name": "axios",
                     "ecosystem": "npm",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": [],

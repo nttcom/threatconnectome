@@ -721,9 +721,10 @@ class TestGetTickets:
 
             affect1 = models.Affect(
                 vuln_id=self.vuln1.vuln_id,
-                package_id=self.package1.package_id,
                 affected_versions=["<=1.0.0"],
                 fixed_versions=["2.0.0"],
+                affected_name=self.package1.name,
+                ecosystem=self.package1.ecosystem,
             )
             persistence.create_affect(testdb, affect1)
 
@@ -917,7 +918,7 @@ class TestGetTickets:
                 "cvss_v3_score": 7.5,
                 "vulnerable_packages": [
                     {
-                        "name": self.package1.name,
+                        "affected_name": self.package1.name,
                         "ecosystem": self.package1.ecosystem,
                         "affected_versions": ["<=1.0.0"],
                         "fixed_versions": ["2.0.0"],
@@ -1132,9 +1133,10 @@ class TestGetTicket:
         persistence.create_vuln(testdb, self.vuln1)
         affect1 = models.Affect(
             vuln_id=self.vuln1.vuln_id,
-            package_id=self.package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=["2.0.0"],
+            affected_name=self.package1.name,
+            ecosystem=self.package1.ecosystem,
         )
         persistence.create_affect(testdb, affect1)
         self.threat1 = models.Threat(
@@ -1268,9 +1270,10 @@ class TestPutTicket:
         persistence.create_vuln(testdb, self.vuln1)
         affect1 = models.Affect(
             vuln_id=self.vuln1.vuln_id,
-            package_id=self.package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=["2.0.0"],
+            affected_name=self.package1.name,
+            ecosystem=self.package1.ecosystem,
         )
         persistence.create_affect(testdb, affect1)
         self.threat1 = models.Threat(

@@ -45,7 +45,7 @@ export function AssigneesSelector(props) {
   if (!pteamId || !serviceId || !vulnId || !packageId || !ticketId || !members) return <></>;
 
   return (
-    <FormControl sx={{ width: 200 }} size="small">
+    <FormControl sx={{ width: 160 }} size="small">
       <Select
         multiple
         displayEmpty

@@ -39,31 +39,6 @@ sudo apt-get install trivy
 
 For users of other OS, please refer to `https://aquasecurity.github.io/trivy/v0.31.3/getting-started/installation/`
 
-## :low_brightness: Osv-Scanner Installation
-
-Please run the commands below to install OSV-Scanner on Ubuntu:
-
-```bash
-sudo apt install golang-go
-go install github.com/google/osv-scanner/cmd/osv-scanner@latest
-```
-
-If setting up PATH, please add the following in `.profile`:
-
-```bash
-export GOPATH=$HOME/go
-export GOBIN=$GOPATH/bin
-export PATH=$PATH:$GOBIN
-```
-
-For users of other OS, please refer to `https://github.com/google/osv-scanner`
-
-OSV-Scanner command example:
-
-```bash
-osv-scanner -r --json threatconnectome > osv-result.json
-```
-
 ## :triangular_flag_on_post: Procedures for sbom registration
 
 1. Run a full scan on all directories

@@ -1,4 +1,14 @@
-import { Box, Chip, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
+import {
+  Box,
+  Chip,
+  Stack,
+  TableCell,
+  TableRow,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { grey, yellow, amber } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
@@ -56,6 +66,7 @@ LineWithTooltip.propTypes = {
 
 function StatusRatioGraph(props) {
   const { counts, displaySSVCPriority } = props;
+
   if (displaySSVCPriority === "empty") return "";
   const keys = ["completed", "scheduled", "acknowledged", "alerted"];
   const total = keys.reduce((ret, key) => ret + (counts[key] ?? 0), 0);
@@ -103,6 +114,9 @@ export function PTeamStatusCard(props) {
     pteam.alert_ssvc_priority !== "defer" && // disable highlight if threshold is "defer"
     compareSSVCPriority(displaySSVCPriority, pteam.alert_ssvc_priority) <= 0;
 
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
+
   return (
     <TableRow
       onClick={onHandleClick}
@@ -122,7 +136,16 @@ export function PTeamStatusCard(props) {
         <SSVCPriorityStatusChip displaySSVCPriority={displaySSVCPriority} />
       </TableCell>
       <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
-        <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            display: "block",
+            maxWidth: "100%",
+          }}
+        >
           {packageInfo.package_name}
           {":"}
           {packageInfo.ecosystem}
@@ -133,7 +156,11 @@ export function PTeamStatusCard(props) {
             .sort((a, b) => a.service_name.localeCompare(b.service_name))
             .map((service) => <Chip key={service.service_id} label={service.service_name} />)}
       </TableCell>
-      <TableCell align="right" style={{ width: "30%" }}>
+      <TableCell
+        align="right"
+        style={{ width: "30%" }}
+        sx={{ display: isMdDown ? "none" : undefined }}
+      >
         <Box display="flex" flexDirection="column">
           <Box display="flex" flexDirection="row" justifyContent="space-between">
             <Typography

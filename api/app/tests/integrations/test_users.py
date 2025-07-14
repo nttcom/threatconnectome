@@ -23,6 +23,7 @@ from app.tests.medium.utils import (
     get_tickets_related_to_vuln_package,
     headers,
     invite_to_pteam,
+    judge_whether_firebase_or_supabase,
     set_ticket_status,
     upload_pteam_packages,
 )
@@ -73,7 +74,7 @@ class TestDeleteUser:
 
         return deleted_pteam
 
-    def test_user_can_delete_themselves(self, user_setup, testdb: Session):
+    def test_user_can_delete_themselves(self, user_setup, testdb: Session, mocker):
         user1 = user_setup["user1"]
         user2 = user_setup["user2"]
         pteam1 = user_setup["pteam1"]
@@ -86,8 +87,16 @@ class TestDeleteUser:
         )
 
         # Check if the user can delete themselves.
+        module = judge_whether_firebase_or_supabase()
+        delete_user = mocker.patch.object(
+            module,
+            "delete_user",
+        )
+
         delete_response = client.delete("/users/me", headers=headers(USER1))
         assert delete_response.status_code == 204
+
+        delete_user.assert_called_once()
 
         # Confirmation after user deletion.
         deleted_user, action_logs = self._get_user_deleted(user1, testdb)
@@ -95,7 +104,9 @@ class TestDeleteUser:
         for log in action_logs:
             assert log.user_id is None
 
-    def test_user_deletes_last_admin_and_pteam_is_deleted(self, user_setup, testdb: Session):
+    def test_user_deletes_last_admin_and_pteam_is_deleted(
+        self, user_setup, testdb: Session, mocker
+    ):
         user1 = user_setup["user1"]
         user2 = user_setup["user2"]
         pteam1 = user_setup["pteam1"]
@@ -107,8 +118,16 @@ class TestDeleteUser:
         )
 
         # Check if the user can delete themselves.
+        module = judge_whether_firebase_or_supabase()
+        delete_user = mocker.patch.object(
+            module,
+            "delete_user",
+        )
+
         delete_response = client.delete("/users/me", headers=headers(USER1))
         assert delete_response.status_code == 204
+
+        delete_user.assert_called_once()
 
         # Confirmation after user deletion.
         deleted_user, action_logs = self._get_user_deleted(user1, testdb)
@@ -120,7 +139,7 @@ class TestDeleteUser:
         deleted_pteam = self._get_pteam_deleted(pteam1, testdb)
         assert deleted_pteam is None
 
-    def test_delete_user_if_user_is_not_last_admin(self, user_setup, testdb: Session):
+    def test_delete_user_if_user_is_not_last_admin(self, user_setup, testdb: Session, mocker):
         user1 = user_setup["user1"]
         user2 = user_setup["user2"]
         pteam1 = user_setup["pteam1"]
@@ -132,8 +151,16 @@ class TestDeleteUser:
             json={"is_admin": True},
         )
 
+        module = judge_whether_firebase_or_supabase()
+        delete_user = mocker.patch.object(
+            module,
+            "delete_user",
+        )
+
         delete_response = client.delete("/users/me", headers=headers(USER1))
         assert delete_response.status_code == 204
+
+        delete_user.assert_called_once()
 
         # Confirmation after user deletion.
         deleted_user, action_logs = self._get_user_deleted(user1, testdb)
@@ -145,7 +172,7 @@ class TestDeleteUser:
         existing_pteam = self._get_pteam_not_deleted(pteam1, testdb)
         assert existing_pteam is not None
 
-    def test_delete_user_if_user_is_not_admin(self, user_setup, testdb: Session):
+    def test_delete_user_if_user_is_not_admin(self, user_setup, testdb: Session, mocker):
         user2 = user_setup["user2"]
         pteam1 = user_setup["pteam1"]
 
@@ -156,8 +183,16 @@ class TestDeleteUser:
             json={"is_admin": False},
         )
 
+        module = judge_whether_firebase_or_supabase()
+        delete_user = mocker.patch.object(
+            module,
+            "delete_user",
+        )
+
         delete_response = client.delete("/users/me", headers=headers(USER2))
         assert delete_response.status_code == 204
+
+        delete_user.assert_called_once()
 
         # Confirmation after deleting user2, who is not an admin.
         deleted_user, action_logs = self._get_user_deleted(user2, testdb)
@@ -215,8 +250,8 @@ class TestDeleteUserSideEffects:
         accept_pteam_invitation(USER2, invitation1.invitation_id)
         accept_pteam_invitation(USER1, invitation2.invitation_id)
 
-        package1 = persistence.get_package_by_name_and_ecosystem(
-            testdb, refs1[0]["package_name"], refs1[0]["ecosystem"]
+        package1 = persistence.get_package_by_name_and_ecosystem_and_source_name(
+            testdb, refs1[0]["package_name"], refs1[0]["ecosystem"], None
         )
 
         # Setup ticket status with actionlog
@@ -229,8 +264,8 @@ class TestDeleteUserSideEffects:
         )
         self.ticket1 = tickets1[0]
 
-        package2 = persistence.get_package_by_name_and_ecosystem(
-            testdb, refs2[0]["package_name"], refs2[0]["ecosystem"]
+        package2 = persistence.get_package_by_name_and_ecosystem_and_source_name(
+            testdb, refs2[0]["package_name"], refs2[0]["ecosystem"], None
         )
 
         tickets2 = get_tickets_related_to_vuln_package(
@@ -299,8 +334,14 @@ class TestDeleteUserSideEffects:
         )
 
     @staticmethod
-    def delete_user_me(user) -> None:
+    def delete_user_me(user, mocker) -> None:
+        module = judge_whether_firebase_or_supabase()
+        delete_user = mocker.patch.object(
+            module,
+            "delete_user",
+        )
         response = client.delete("/users/me", headers=headers(user))
+        delete_user.assert_called_once()
         if response.status_code != 204:
             raise HTTPError(response)
 
@@ -314,24 +355,24 @@ class TestDeleteUserSideEffects:
     @staticmethod
     def update_pteam_member(
         operate_user, user_id, pteam_id, is_admin: bool
-    ) -> schemas.PTeamMemberResponse:
+    ) -> schemas.PTeamMemberUpdateResponse:
         request = {"is_admin": is_admin}
         response = client.put(
             f"/pteams/{pteam_id}/members/{user_id}", headers=headers(operate_user), json=request
         )
         if response.status_code != 200:
             raise HTTPError(response)
-        return schemas.PTeamMemberResponse(**response.json())
+        return schemas.PTeamMemberUpdateResponse(**response.json())
 
-    def test_cannot_get_user_after_deleted(self, testdb):
-        self.delete_user_me(USER1)
+    def test_cannot_get_user_after_deleted(self, mocker):
+        self.delete_user_me(USER1, mocker)
         with pytest.raises(HTTPError, match="404: Not Found: No such user"):
             self.get_users_me(USER1)
 
-    def test_user_id_of_deleted_users_actionlog_should_be_none(self, testdb):
+    def test_user_id_of_deleted_users_actionlog_should_be_none(self, testdb, mocker):
         # Make user2 admin to prevent deletion of pteam1
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
-        self.delete_user_me(USER1)
+        self.delete_user_me(USER1, mocker)
 
         # Check user_id of deleted user's actionlog
         db_actionlog = testdb.scalars(
@@ -342,8 +383,8 @@ class TestDeleteUserSideEffects:
         assert db_actionlog.user_id is None
         assert db_actionlog.email == ""
 
-    def test_user_id_of_not_deleted_users_actionlog_should_be_kept(self, testdb):
-        self.delete_user_me(USER1)
+    def test_user_id_of_not_deleted_users_actionlog_should_be_kept(self, testdb, mocker):
+        self.delete_user_me(USER1, mocker)
 
         # Check user_id of non-deleted user's actionlog
         db_actionlog = testdb.scalars(
@@ -353,10 +394,10 @@ class TestDeleteUserSideEffects:
         ).one()
         assert db_actionlog.user_id == str(self.user2.user_id)
 
-    def test_created_by_of_deleted_users_vuln_should_be_none(self, testdb):
+    def test_created_by_of_deleted_users_vuln_should_be_none(self, testdb, mocker):
         # Make user2 admin to prevent deletion of pteam1
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
-        self.delete_user_me(USER1)
+        self.delete_user_me(USER1, mocker)
 
         # Check created_by of deleted user's vuln
         db_vuln = testdb.scalars(
@@ -364,8 +405,8 @@ class TestDeleteUserSideEffects:
         ).one()
         assert db_vuln.created_by is None
 
-    def test_created_by_of_not_deleted_users_vuln_should_be_kept(self, testdb):
-        self.delete_user_me(USER1)
+    def test_created_by_of_not_deleted_users_vuln_should_be_kept(self, testdb, mocker):
+        self.delete_user_me(USER1, mocker)
 
         # Check created_by of non-deleted user's vuln
         db_vuln = testdb.scalars(
@@ -373,9 +414,9 @@ class TestDeleteUserSideEffects:
         ).one()
         assert db_vuln.created_by == str(self.vuln2.created_by)
 
-    def test_pteam_invitations_from_deleted_users_should_be_none(self, testdb):
+    def test_pteam_invitations_from_deleted_users_should_be_none(self, testdb, mocker):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
-        self.delete_user_me(USER1)
+        self.delete_user_me(USER1, mocker)
 
         db_invitation = testdb.scalars(
             select(models.PTeamInvitation).where(
@@ -384,9 +425,9 @@ class TestDeleteUserSideEffects:
         ).one_or_none()
         assert db_invitation is None
 
-    def test_pteam_invitations_from_not_deleted_users_should_be_kept(self, testdb):
+    def test_pteam_invitations_from_not_deleted_users_should_be_kept(self, testdb, mocker):
         invite_to_pteam(USER2, self.pteam2.pteam_id)
-        self.delete_user_me(USER1)
+        self.delete_user_me(USER1, mocker)
 
         db_invitation = testdb.scalars(
             select(models.PTeamInvitation).where(
@@ -395,9 +436,9 @@ class TestDeleteUserSideEffects:
         ).one_or_none()
         assert db_invitation is not None
 
-    def test_ticketstatus_of_deleted_users_should_be_none(self, testdb):
+    def test_ticketstatus_of_deleted_users_should_be_none(self, testdb, mocker):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
-        self.delete_user_me(USER1)
+        self.delete_user_me(USER1, mocker)
 
         # Check user_id of deleted user's ticketstatus
         db_ticketstatus = testdb.scalars(
@@ -407,9 +448,9 @@ class TestDeleteUserSideEffects:
         ).one_or_none()
         assert db_ticketstatus is None
 
-    def test_ticketstatus_of_not_deleted_users_should_be_none(self, testdb):
+    def test_ticketstatus_of_not_deleted_users_should_be_none(self, testdb, mocker):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
-        self.delete_user_me(USER1)
+        self.delete_user_me(USER1, mocker)
 
         # Check user_id of deleted user's ticketstatus
         db_ticketstatus = testdb.scalars(
@@ -423,7 +464,7 @@ class TestDeleteUserSideEffects:
         reason="process of excluding deleted users' user_id from TicketStatus "
         "assignees is not implemented."
     )
-    def test_ticketstatus_assignees_should_not_include_deleted_user(self, testdb):
+    def test_ticketstatus_assignees_should_not_include_deleted_user(self, testdb, mocker):
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
 
         status_request = {
@@ -438,7 +479,7 @@ class TestDeleteUserSideEffects:
             status_request,
         )
 
-        self.delete_user_me(USER1)
+        self.delete_user_me(USER1, mocker)
 
         db_ticketstatus = testdb.scalars(
             select(models.TicketStatus).where(
@@ -471,8 +512,8 @@ class TestDeleteUserSideEffects:
 
         assert str(self.user1.user_id) in db_ticketstatus.assignees
 
-    def test_pteamaccountrole_should_be_deleted_when_user_is_deleted(self, testdb):
-        self.delete_user_me(USER1)
+    def test_pteamaccountrole_should_be_deleted_when_user_is_deleted(self, testdb, mocker):
+        self.delete_user_me(USER1, mocker)
 
         db_pteam_role = testdb.scalars(
             select(models.PTeamAccountRole).where(
@@ -482,8 +523,8 @@ class TestDeleteUserSideEffects:
 
         assert db_pteam_role is None
 
-    def test_pteamaccountrole_should_not_be_deleted_when_user_is_not_deleted(self, testdb):
-        self.delete_user_me(USER1)
+    def test_pteamaccountrole_should_not_be_deleted_when_user_is_not_deleted(self, testdb, mocker):
+        self.delete_user_me(USER1, mocker)
 
         db_pteam_role = testdb.scalars(
             select(models.PTeamAccountRole).where(

@@ -128,7 +128,7 @@ class TestFixPackage:
             is not None
         )
 
-    def test_it_should_not_delete_package_and_delete_package_version_when_has_affect(
+    def test_it_should_delete_package_and_delete_package_version_when_related_affect(
         self,
         testdb: Session,
         package1: models.Package,
@@ -144,9 +144,10 @@ class TestFixPackage:
 
         affect = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         testdb.add(affect)
         testdb.flush()
@@ -165,5 +166,5 @@ class TestFixPackage:
             testdb.execute(
                 select(models.Package).where(models.Package.package_id == package1.package_id)
             ).first()
-            is not None
+            is None
         )
