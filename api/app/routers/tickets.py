@@ -5,8 +5,9 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.auth.account import get_current_user
-from app.command import get_tickets_for_pteams, validate_pteam_ids
+from app.command import get_tickets_for_pteams
 from app.database import get_db
+from app.persistence import validate_pteam_ids
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
