@@ -3,11 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app import models, schemas
+from app import command, database, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.command import get_sorted_paginated_tickets_for_pteams
-from app.database import get_db
-from app.persistence import validate_pteam_ids
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
@@ -39,7 +36,7 @@ def get_tickets(
     limit: int = Query(100, ge=1, le=1000),
     order: str = Query("desc", pattern="^(asc|desc)$"),
     current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(database.get_db),
 ):
     """
     Get paginated tickets related to the pteams the current user belongs to.
@@ -50,13 +47,13 @@ def get_tickets(
         pteam_ids = list(user_pteam_ids)
 
     try:
-        validate_pteam_ids(db, pteam_ids, current_user)
+        persistence.validate_pteam_ids(db, pteam_ids, current_user)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
     user_id = UUID(current_user.user_id) if assigned_to_me and current_user.user_id else None
 
-    total_count, tickets = get_sorted_paginated_tickets_for_pteams(
+    total_count, tickets = command.get_sorted_paginated_tickets_for_pteams(
         db=db,
         pteam_ids=pteam_ids,
         user_id=user_id,
