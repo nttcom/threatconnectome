@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.auth.account import get_current_user
-from app.command import get_tickets_for_pteams
+from app.command import get_sorted_paginated_tickets_for_pteams
 from app.database import get_db
 from app.persistence import validate_pteam_ids
 
@@ -54,11 +54,12 @@ def get_tickets(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    total_count, tickets = get_tickets_for_pteams(
+    user_id = UUID(current_user.user_id) if assigned_to_me and current_user.user_id else None
+
+    total_count, tickets = get_sorted_paginated_tickets_for_pteams(
         db=db,
         pteam_ids=pteam_ids,
-        assigned_to_me=assigned_to_me,
-        user_id=UUID(current_user.user_id) if current_user.user_id else None,
+        user_id=user_id,
         offset=offset,
         limit=limit,
         order=order,

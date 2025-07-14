@@ -435,40 +435,63 @@ def get_related_affects_by_package(db: Session, package: models.Package) -> Sequ
     ).all()
 
 
-def get_tickets_for_pteams(
+SSVC_PRIORITY_ORDER = {
+    "immediate": 0,
+    "out-of-cycle": 1,
+    "scheduled": 2,
+    "defer": 3,
+}
+
+
+def get_tickets_by_pteam_ids(
     db: Session,
     pteam_ids: list[UUID],
-    assigned_to_me: bool = False,
     user_id: UUID | None = None,
-    offset: int = 0,
-    limit: int = 100,
-    order: str = "desc",
-) -> tuple[int, Sequence[models.Ticket]]:
-    # Get list of service_ids corresponding to specified pteams
+) -> Sequence[models.Ticket]:
     service_ids = [
         row[0]
         for row in db.query(models.Service.service_id)
         .filter(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
         .all()
     ]
-    tickets: list[models.Ticket] = []
-    for service_id in service_ids:
-        tickets.extend(
-            get_sorted_tickets_related_to_service_and_package_and_vuln(
-                db=db,
-                service_id=service_id,
-                package_id=None,
-                vuln_id=None,
-                assigned_user_id=user_id if assigned_to_me else None,
-            )
+    if not service_ids:
+        return []
+
+    select_stmt = (
+        select(models.Ticket)
+        .join(
+            models.Dependency,
+            models.Dependency.dependency_id == models.Ticket.dependency_id,
         )
-    # SSVC優先度の定義
-    SSVC_PRIORITY_ORDER = {
-        "immediate": 0,
-        "out-of-cycle": 1,
-        "scheduled": 2,
-        "defer": 3,
-    }
+        .where(models.Dependency.service_id.in_(service_ids))
+    )
+
+    if user_id is not None:
+        select_stmt = select_stmt.join(
+            models.TicketStatus,
+            and_(
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                func.array_position(models.TicketStatus.assignees, str(user_id)).isnot(None),
+            ),
+        )
+
+    return db.scalars(select_stmt).unique().all()
+
+
+def get_sorted_paginated_tickets_for_pteams(
+    db: Session,
+    pteam_ids: list[UUID],
+    user_id: UUID | None = None,
+    offset: int = 0,
+    limit: int = 100,
+    order: str = "desc",
+) -> tuple[int, Sequence[models.Ticket]]:
+    tickets = get_tickets_by_pteam_ids(
+        db=db,
+        pteam_ids=pteam_ids,
+        user_id=user_id,
+    )
+
     reverse = order == "desc"
     # Deduplication, sorting, and pagination
     tickets = list({ticket.ticket_id: ticket for ticket in tickets}.values())
