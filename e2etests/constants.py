@@ -63,19 +63,19 @@ PACKAGE3 = {
     "package_manager": "npm",
 }
 VULNPACKAGE1 = {
-    "name": PACKAGE1["package_name"],
+    "affected_name": PACKAGE1["package_name"],
     "ecosystem": PACKAGE1["ecosystem"],
     "affected_versions": ["<2.0"],
     "fixed_versions": ["2.0"],
 }
 VULNPACKAGE2 = {
-    "name": PACKAGE2["package_name"],
+    "affected_name": PACKAGE2["package_name"],
     "ecosystem": PACKAGE2["ecosystem"],
     "affected_versions": ["<2.0"],
     "fixed_versions": ["2.0"],
 }
 VULNPACKAGE3 = {
-    "name": PACKAGE3["package_name"],
+    "affected_name": PACKAGE3["package_name"],
     "ecosystem": PACKAGE3["ecosystem"],
     "affected_versions": ["<2.0"],
     "fixed_versions": ["2.0"],
