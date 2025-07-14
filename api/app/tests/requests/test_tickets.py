@@ -156,7 +156,7 @@ class TestGetTickets:
         assert self.ticket_response2["ticket_id"] in ticket_ids
 
     def test_it_should_get_my_tasks(self):
-        response = client.get("/tickets?my_tasks=true", headers=headers(USER1))
+        response = client.get("/tickets?assigned_to_me=true", headers=headers(USER1))
         assert response.status_code == 200
         data = response.json()
         assert data["total"] == 1
