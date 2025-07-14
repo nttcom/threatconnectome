@@ -486,20 +486,3 @@ def get_tickets_for_pteams(
     total_count = len(tickets)
     tickets = tickets[offset : offset + limit]
     return total_count, tickets
-
-
-def validate_pteam_ids(
-    db: Session,
-    pteam_ids: list[UUID],
-    user_pteam_ids: set[UUID],
-) -> None:
-    str_pteam_ids = [str(pid) for pid in pteam_ids]
-    db_pteams = db.query(models.PTeam).filter(models.PTeam.pteam_id.in_(str_pteam_ids)).all()
-    found_pteam_ids = {str(pteam.pteam_id) for pteam in db_pteams}
-    not_found = set(str(pid) for pid in pteam_ids) - found_pteam_ids
-    if not_found:
-        raise ValueError(f"Specified pteam_id(s) do not exist: {not_found}")
-
-    not_belong = set(str(pid) for pid in pteam_ids) - set(str(pid) for pid in user_pteam_ids)
-    if not_belong:
-        raise ValueError(f"Specified pteam_id(s) not belonging to the user: {not_belong}")
