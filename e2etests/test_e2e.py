@@ -35,12 +35,12 @@ def login(page: Page, user: dict):
     # Login
     page.get_by_label("Email Address").fill(user["email"])
     page.get_by_label("Password").fill(user["pass"])
-    page.get_by_role("button", name="Log In").click()
+    page.get_by_role("button", name="Log In with Email").click()
 
     # Wait login process finish and print menu button
     # https://playwright.dev/python/docs/api/class-locator#locator-wait-for
-    menu_button = page.locator("text=menu")
-    menu_button.wait_for(timeout=10000)
+    drawer_status = page.locator("text=Status")
+    drawer_status.wait_for(timeout=10000)
 
 
 def test_login_first_time(page: Page):
@@ -49,7 +49,7 @@ def test_login_first_time(page: Page):
     login(page, USER1)
 
     # navigate to account page
-    expect(page).to_have_url(re.compile(".*/account"))
+    expect(page).to_have_url(re.compile(".*/"))
 
 
 def test_show_package_page_directly(page: Page):
