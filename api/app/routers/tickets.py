@@ -50,7 +50,7 @@ def get_tickets(
         pteam_ids = list(user_pteam_ids)
 
     try:
-        validate_pteam_ids(db, pteam_ids, user_pteam_ids)
+        validate_pteam_ids(db, pteam_ids, current_user)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

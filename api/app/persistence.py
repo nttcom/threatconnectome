@@ -301,7 +301,6 @@ def get_ticket_by_threat_id_and_dependency_id(
 def validate_pteam_ids(
     db: Session,
     pteam_ids: list[UUID],
-    user_pteam_ids: set[UUID],
     user: models.Account,
 ) -> None:
     str_pteam_ids = [str(pid) for pid in pteam_ids]
@@ -309,11 +308,11 @@ def validate_pteam_ids(
     found_pteam_ids = {str(pteam.pteam_id) for pteam in db_pteams}
     not_found = set(str(pid) for pid in pteam_ids) - found_pteam_ids
     if not_found:
-        raise ValueError(f"Specified pteam_id(s) do not exist: {not_found}")
+        raise ValueError(f"Specified pteam_ids do not exist: {not_found}")
 
     not_belong = [pteam.pteam_id for pteam in db_pteams if not check_pteam_membership(pteam, user)]
     if not_belong:
-        raise ValueError(f"Specified pteam_id(s) not belonging to the user: {not_belong}")
+        raise ValueError(f"Specified pteam_ids not belonging to the user: {not_belong}")
 
 
 ### TicketStatus
