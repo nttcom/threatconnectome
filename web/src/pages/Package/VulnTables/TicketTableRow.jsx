@@ -21,13 +21,12 @@ export function TicketTableRow(props) {
     ticket,
   } = props;
 
-  const target = references.filter(
+  const matchedReference = references.find(
     (reference) => reference.dependencyId === ticket.dependency_id,
-  )[0].target;
+  );
 
-  const packageManager = references.filter(
-    (reference) => reference.dependencyId === ticket.dependency_id,
-  )[0].package_manager;
+  const target = matchedReference?.target || "";
+  const packageManager = matchedReference?.package_manager || "";
 
   return (
     <TableRow>
