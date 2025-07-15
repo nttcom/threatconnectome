@@ -80,6 +80,7 @@ def test_show_package_page_directly(page: Page):
 
     # goto tag page directly
     params = urlencode({"pteamId": pteam1["pteam_id"], "serviceId": service_id})
+    # packages[0] is PACKAGE2 because sort by package name and ecosystem
     path = "/packages/" + packages[0]["package_id"]
     url = urljoin(base_url, path) + "?" + params
     page.goto(url)
