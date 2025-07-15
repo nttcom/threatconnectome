@@ -4,13 +4,12 @@ import {
   Button,
   FormControlLabel,
   Select,
-  TableContainer,
   Typography,
   MenuItem,
   Pagination,
-  Paper,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -50,6 +49,9 @@ export function VulnManagement() {
     error: vulnsError,
     isLoading: vulnsIsLoading,
   } = useGetVulnsQuery(getVulnsParams, { skip, refetchOnMountOrArgChange: true });
+
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
   if (skip) return <>Now loading auth token...</>;
   if (vulnsError)
@@ -99,6 +101,8 @@ export function VulnManagement() {
         shape="rounded"
         page={page}
         count={pageMax}
+        siblingCount={isMdDown ? 1 : undefined}
+        boundaryCount={isMdDown ? 0 : undefined}
         onChange={(event, value) => setPage(value)}
       />
       <Select
