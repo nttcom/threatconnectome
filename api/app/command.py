@@ -446,7 +446,7 @@ SSVC_PRIORITY_ORDER = {
 def get_tickets_by_pteam_ids(
     db: Session,
     pteam_ids: list[UUID],
-    user_id: UUID | None = None,
+    assigned_user_id: UUID | None = None,
 ) -> Sequence[models.Ticket]:
     select_stmt = (
         select(models.Ticket)
@@ -455,12 +455,14 @@ def get_tickets_by_pteam_ids(
         .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
     )
 
-    if user_id is not None:
+    if assigned_user_id is not None:
         select_stmt = select_stmt.join(
             models.TicketStatus,
             and_(
                 models.TicketStatus.ticket_id == models.Ticket.ticket_id,
-                func.array_position(models.TicketStatus.assignees, str(user_id)).isnot(None),
+                func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(
+                    None
+                ),
             ),
         )
 
@@ -470,7 +472,7 @@ def get_tickets_by_pteam_ids(
 def get_sorted_paginated_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],
-    user_id: UUID | None = None,
+    assigned_user_id: UUID | None = None,
     offset: int = 0,
     limit: int = 100,
     order: str = "desc",
@@ -478,7 +480,7 @@ def get_sorted_paginated_tickets_for_pteams(
     tickets = get_tickets_by_pteam_ids(
         db=db,
         pteam_ids=pteam_ids,
-        user_id=user_id,
+        assigned_user_id=assigned_user_id,
     )
 
     reverse = order == "desc"

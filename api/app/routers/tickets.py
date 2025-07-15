@@ -51,12 +51,14 @@ def get_tickets(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    user_id = UUID(current_user.user_id) if assigned_to_me and current_user.user_id else None
+    assigned_user_id = (
+        UUID(current_user.user_id) if assigned_to_me and current_user.user_id else None
+    )
 
     total_count, tickets = command.get_sorted_paginated_tickets_for_pteams(
         db=db,
         pteam_ids=pteam_ids,
-        user_id=user_id,
+        assigned_user_id=assigned_user_id,
         offset=offset,
         limit=limit,
         order=order,
