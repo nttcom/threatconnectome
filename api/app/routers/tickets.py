@@ -34,7 +34,6 @@ def get_tickets(
     pteam_ids: list[UUID] | None = Query(None),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    order: str = Query("desc", pattern="^(asc|desc)$"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(database.get_db),
 ):
@@ -61,7 +60,6 @@ def get_tickets(
         assigned_user_id=assigned_user_id,
         offset=offset,
         limit=limit,
-        order=order,
     )
 
     return schemas.TicketListResponse(

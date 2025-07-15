@@ -435,21 +435,12 @@ def get_related_affects_by_package(db: Session, package: models.Package) -> Sequ
     ).all()
 
 
-SSVC_PRIORITY_ORDER = {
-    "immediate": 0,
-    "out-of-cycle": 1,
-    "scheduled": 2,
-    "defer": 3,
-}
-
-
 def get_sorted_paginated_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],
     assigned_user_id: UUID | None = None,
     offset: int = 0,
     limit: int = 100,
-    order: str = "desc",
 ) -> tuple[int, Sequence[models.Ticket]]:
 
     select_stmt = (
@@ -468,18 +459,6 @@ def get_sorted_paginated_tickets_for_pteams(
                     None
                 ),
             ),
-        )
-
-    # sort order
-    if order == "asc":
-        select_stmt = select_stmt.order_by(
-            models.Ticket.ssvc_deployer_priority.asc().nullslast(),
-            models.Ticket.created_at.asc(),
-        )
-    else:
-        select_stmt = select_stmt.order_by(
-            models.Ticket.ssvc_deployer_priority.desc().nullslast(),
-            models.Ticket.created_at.desc(),
         )
 
     # pagination
