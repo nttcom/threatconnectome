@@ -8,6 +8,7 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  Box,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useEffect } from "react";
@@ -101,8 +102,14 @@ export function Drawer() {
           {drawerTitle}
         </Typography>
       </DrawerHeader>
-      <List>
-        <>
+      <Box
+        onClick={() => {
+          if (isSmDown) {
+            dispatch(setDrawerOpen(false));
+          }
+        }}
+      >
+        <List>
           <StyledListItemButton
             onClick={() => navigate("/?" + queryParams)}
             selected={locationReader.isStatusPage()}
@@ -121,19 +128,19 @@ export function Drawer() {
             </StyledListItemIcon>
             <ListItemText>Team</ListItemText>
           </StyledListItemButton>
-        </>
-        {/* Vulns */}
-        <StyledListItemButton
-          onClick={() => navigate("/vulns?" + queryParams)}
-          selected={locationReader.isVulnsPage()}
-        >
-          <StyledListItemIcon>
-            <TopicIcon />
-          </StyledListItemIcon>
-          <ListItemText>Vulns</ListItemText>
-        </StyledListItemButton>
-        {/* Vulnerabilities -- not listed on drawer, currently */}
-      </List>
+          {/* Vulns */}
+          <StyledListItemButton
+            onClick={() => navigate("/vulns?" + queryParams)}
+            selected={locationReader.isVulnsPage()}
+          >
+            <StyledListItemIcon>
+              <TopicIcon />
+            </StyledListItemIcon>
+            <ListItemText>Vulns</ListItemText>
+          </StyledListItemButton>
+          {/* Vulnerabilities -- not listed on drawer, currently */}
+        </List>
+      </Box>
     </MuiDrawer>
   );
 }
