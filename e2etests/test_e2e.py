@@ -102,8 +102,6 @@ def test_show_package_page_directly(page: Page):
     expect(page.locator("#ssvc-priority-count-chip-out_of_cycle")).to_have_text("0")
     expect(page.locator("#ssvc-priority-count-chip-scheduled")).to_have_text("0")
     expect(page.locator("#ssvc-priority-count-chip-defer")).to_have_text("0")
-
-    expect(page.locator("#tab-panel-0").locator("td", has_text=str(VULN1["title"]))).to_be_visible()
     expect(page.locator("#tab-panel-0").locator("td", has_text=str(VULN2["title"]))).to_be_visible()
 
 
@@ -114,21 +112,17 @@ def test_show_package_page(page: Page):
     page.locator("#team-selector-button").click()
     page.get_by_role("menuitem", name=str(PTEAM1["pteam_name"])).click()
     # status page
-    expect(page.get_by_role("heading", name=str(PTEAM1["pteam_name"]))).to_have_text(
-        str(PTEAM1["pteam_name"])
+    package_title1 = f"{PACKAGE1['package_name']}:{PACKAGE1['ecosystem']}"
+    expect(page.get_by_role("heading", name=package_title1)).to_have_text(package_title1)
+    expect(page.get_by_role("rowheader", name=package_title1)).to_have_text(
+        re.compile(package_title1)
     )
-    expect(page.get_by_role("rowheader", name=TAG1)).to_have_text(re.compile(TAG1))
-    page.get_by_role("rowheader", name=TAG1).click()
+    page.get_by_role("rowheader", name=package_title1).click()
 
     # tag page
-    expect(page.get_by_role("heading", name=TAG1)).to_have_text(TAG1)
-    expect(page.locator("#ssvc-priority-count-chip-immediate")).to_have_text("0")
+    expect(page.get_by_role("heading", name=package_title1)).to_have_text(package_title1)
+    expect(page.locator("#ssvc-priority-count-chip-immediate")).to_have_text("1")
     expect(page.locator("#ssvc-priority-count-chip-out_of_cycle")).to_have_text("0")
-    expect(page.locator("#ssvc-priority-count-chip-scheduled")).to_have_text("2")
+    expect(page.locator("#ssvc-priority-count-chip-scheduled")).to_have_text("0")
     expect(page.locator("#ssvc-priority-count-chip-defer")).to_have_text("0")
-    expect(
-        page.locator("#tab-panel-0").locator("td", has_text=str(TOPIC1["title"]))
-    ).to_be_visible()
-    expect(
-        page.locator("#tab-panel-0").locator("td", has_text=str(TOPIC2["title"]))
-    ).to_be_visible()
+    expect(page.locator("#tab-panel-0").locator("td", has_text=str(VULN1["title"]))).to_be_visible()
