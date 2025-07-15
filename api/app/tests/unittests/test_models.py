@@ -12,6 +12,11 @@ class TestVulnMatchingEcosystem:
             ("alpine-test-3.22.0", "alpine-test-3.22.0"),
             ("alpine", "alpine"),
             ("ubuntu-20.04", "ubuntu-20.04"),
+            ("rocky-9.3", "rocky-9"),
+            ("rocky-8.7", "rocky-8"),
+            ("rocky-9", "rocky-9"),
+            ("rocky", "rocky"),
+            ("rocky-test-9.3", "rocky-test-9.3"),
         ],
     )
     def test_it_should_return_expected_value_for_os_package(self, ecosystem: str, expected: str):
