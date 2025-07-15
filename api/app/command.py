@@ -443,11 +443,15 @@ SSVC_PRIORITY_ORDER = {
 }
 
 
-def get_tickets_by_pteam_ids(
+def get_sorted_paginated_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],
     assigned_user_id: UUID | None = None,
-) -> Sequence[models.Ticket]:
+    offset: int = 0,
+    limit: int = 100,
+    order: str = "desc",
+) -> tuple[int, Sequence[models.Ticket]]:
+
     select_stmt = (
         select(models.Ticket)
         .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
@@ -466,37 +470,40 @@ def get_tickets_by_pteam_ids(
             ),
         )
 
-    return db.scalars(select_stmt).unique().all()
+    # sort order
+    if order == "asc":
+        select_stmt = select_stmt.order_by(
+            models.Ticket.ssvc_deployer_priority.asc().nullslast(),
+            models.Ticket.created_at.asc(),
+        )
+    else:
+        select_stmt = select_stmt.order_by(
+            models.Ticket.ssvc_deployer_priority.desc().nullslast(),
+            models.Ticket.created_at.desc(),
+        )
 
+    # pagination
+    select_stmt = select_stmt.offset(offset).limit(limit)
 
-def get_sorted_paginated_tickets_for_pteams(
-    db: Session,
-    pteam_ids: list[UUID],
-    assigned_user_id: UUID | None = None,
-    offset: int = 0,
-    limit: int = 100,
-    order: str = "desc",
-) -> tuple[int, Sequence[models.Ticket]]:
-    tickets = get_tickets_by_pteam_ids(
-        db=db,
-        pteam_ids=pteam_ids,
-        assigned_user_id=assigned_user_id,
+    tickets = db.scalars(select_stmt).unique().all()
+
+    # Count the total number of tickets
+    count_stmt = (
+        select(func.count(models.Ticket.ticket_id.distinct()))
+        .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
+        .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+        .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
     )
-
-    reverse = order == "desc"
-    # Deduplication, sorting, and pagination
-    tickets = list({ticket.ticket_id: ticket for ticket in tickets}.values())
-    tickets.sort(
-        key=lambda ticket: SSVC_PRIORITY_ORDER.get(
-            (
-                str(ticket.ssvc_deployer_priority)
-                if ticket.ssvc_deployer_priority is not None
-                else "unknown"
+    if assigned_user_id is not None:
+        count_stmt = count_stmt.join(
+            models.TicketStatus,
+            and_(
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(
+                    None
+                ),
             ),
-            99,
-        ),
-        reverse=reverse,
-    )
-    total_count = len(tickets)
-    tickets = tickets[offset : offset + limit]
+        )
+    total_count = db.scalar(count_stmt) or 0
+
     return total_count, tickets
