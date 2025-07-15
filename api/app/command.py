@@ -448,22 +448,11 @@ def get_tickets_by_pteam_ids(
     pteam_ids: list[UUID],
     user_id: UUID | None = None,
 ) -> Sequence[models.Ticket]:
-    service_ids = [
-        row[0]
-        for row in db.query(models.Service.service_id)
-        .filter(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
-        .all()
-    ]
-    if not service_ids:
-        return []
-
     select_stmt = (
         select(models.Ticket)
-        .join(
-            models.Dependency,
-            models.Dependency.dependency_id == models.Ticket.dependency_id,
-        )
-        .where(models.Dependency.service_id.in_(service_ids))
+        .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
+        .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+        .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
     )
 
     if user_id is not None:
