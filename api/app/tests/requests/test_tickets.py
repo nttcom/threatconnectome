@@ -190,6 +190,30 @@ class TestGetTickets:
             ]:
                 assert field in ticket
 
+    def test_it_should_not_get_tickets_for_other_pteams(self, testdb):
+        # Setup: create a third pteam and ticket
+        PTEAM3 = {
+            "pteam_name": "pteam charlie",
+            "contact_info": "charlie@ml.com",
+            "alert_slack": {"enable": True, "webhook_url": ""},
+            "alert_ssvc_priority": "scheduled",
+            "alert_mail": {"enable": False, "address": "charlie@ml.com"},
+        }
+        user3 = create_user(USER3)
+        pteam3 = create_pteam(USER3, PTEAM3)
+        vuln3 = create_vuln(USER3, VULN3)
+        ticket_response4 = self._create_ticket_with_threat(testdb, user3, pteam3, "service4", vuln3)
+
+        # Try to get tickets for pteam3 (not a member)
+        response = client.get(
+            f"/tickets?pteam_ids={pteam3.pteam_id}",
+            headers=headers(USER1),
+        )
+        # Should not return the ticket for pteam3
+        data = response.json()
+        ticket_ids = {t["ticket_id"] for t in data.get("tickets", [])}
+        assert ticket_response4["ticket_id"] not in ticket_ids
+
     def test_it_should_get_my_tasks(self):
         response = client.get("/tickets?assigned_to_me=true", headers=headers(USER1))
         assert response.status_code == 200
