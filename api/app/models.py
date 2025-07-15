@@ -237,11 +237,13 @@ class Package(Base):
     def vuln_matching_ecosystem(self) -> str:
         """
         Returns the ecosystem string for vulnerability matching.
-        If the ecosystem starts with "alpine-",
+        If the ecosystem starts with "alpine-" or "rocky-",
         it change the value to include only the minor version.
         Example: "alpine-3.22.0" → "alpine-3.22", "rocky-9.3" → "rocky-9"
         For other ecosystems, returns the original value.
         """
+        if not self.ecosystem:
+            return self.ecosystem
         if self.ecosystem and self.ecosystem.startswith("alpine-"):
             parts = self.ecosystem.split("-")
             if len(parts) == 2:
@@ -260,7 +262,7 @@ class Package(Base):
     def vuln_matching_ecosystem_for_sql_query(cls):
         """
         SQL expression for vuln_matching_ecosystem.
-        If the ecosystem starts with 'alpine-', returns only up to the minor version
+        If the ecosystem starts with 'alpine-' or "rocky-", returns only up to the minor version
         (e.g., 'alpine-3.22.0' → 'alpine-3.22').
         If the ecosystem starts with 'rocky-', returns only the major version
         (e.g., 'rocky-9.3' → 'rocky-9').
@@ -292,7 +294,7 @@ class Package(Base):
                     func.array_length(
                         func.string_to_array(func.split_part(cls.ecosystem, "-", 2), "."), 1
                     )
-                    >= 1
+                    > 1
                 ),
                 func.concat(
                     "rocky-",
