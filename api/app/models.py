@@ -239,7 +239,7 @@ class Package(Base):
         Returns the ecosystem string for vulnerability matching.
         If the ecosystem starts with "alpine-",
         it change the value to include only the minor version.
-        Example: "alpine-3.22.0" → "alpine-3.22"
+        Example: "alpine-3.22.0" → "alpine-3.22", "rocky-9.3" → "rocky-9"
         For other ecosystems, returns the original value.
         """
         if self.ecosystem and self.ecosystem.startswith("alpine-"):
@@ -248,6 +248,12 @@ class Package(Base):
                 version = parts[1].split(".")
                 if len(version) >= 2:
                     return f"alpine-{version[0]}.{version[1]}"
+        elif self.ecosystem.startswith("rocky-"):
+            parts = self.ecosystem.split("-")
+            if len(parts) == 2:
+                version = parts[1].split(".")
+                if len(version) >= 1:
+                    return f"rocky-{version[0]}"
         return self.ecosystem
 
     @vuln_matching_ecosystem.expression
@@ -256,6 +262,8 @@ class Package(Base):
         SQL expression for vuln_matching_ecosystem.
         If the ecosystem starts with 'alpine-', returns only up to the minor version
         (e.g., 'alpine-3.22.0' → 'alpine-3.22').
+        If the ecosystem starts with 'rocky-', returns only the major version
+        (e.g., 'rocky-9.3' → 'rocky-9').
         Otherwise, returns the original ecosystem value.
         """
         return case(
@@ -274,6 +282,21 @@ class Package(Base):
                     func.split_part(func.split_part(cls.ecosystem, "-", 2), ".", 1),
                     ".",
                     func.split_part(func.split_part(cls.ecosystem, "-", 2), ".", 2),
+                ),
+            ),
+            (
+                # rocky-: "rocky-x.y" → "rocky-x"
+                cls.ecosystem.like("rocky-%")
+                & (func.array_length(func.string_to_array(cls.ecosystem, "-"), 1) == 2)
+                & (
+                    func.array_length(
+                        func.string_to_array(func.split_part(cls.ecosystem, "-", 2), "."), 1
+                    )
+                    >= 1
+                ),
+                func.concat(
+                    "rocky-",
+                    func.split_part(func.split_part(cls.ecosystem, "-", 2), ".", 1),
                 ),
             ),
             else_=cls.ecosystem,
