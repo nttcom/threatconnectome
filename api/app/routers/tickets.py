@@ -30,7 +30,7 @@ def ticket_to_response(ticket: models.Ticket):
 
 @router.get("", response_model=schemas.TicketListResponse)
 def get_tickets(
-    assigned_to_me: bool = Query(False, alias="assigned_to_me"),
+    assigned_to_me: bool = Query(False),
     pteam_ids: list[UUID] | None = Query(None),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
