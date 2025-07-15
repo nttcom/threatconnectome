@@ -245,7 +245,7 @@ class Package(Base):
         """
         if not self.ecosystem:
             return self.ecosystem
-        if self.ecosystem and self.ecosystem.startswith("alpine-"):
+        if self.ecosystem.startswith("alpine-"):
             parts = self.ecosystem.split("-")
             if len(parts) == 2:
                 version = parts[1].split(".")
