@@ -152,9 +152,43 @@ class TestGetTickets:
         data = response.json()
         assert data["total"] == 2
         assert len(data["tickets"]) == 2
-        ticket_ids = {t["ticket_id"] for t in data["tickets"]}
-        assert self.ticket_response1["ticket_id"] in ticket_ids
-        assert self.ticket_response2["ticket_id"] in ticket_ids
+
+        # Expected set of ticket IDs
+        expected_ticket_ids = {
+            self.ticket_response1["ticket_id"],
+            self.ticket_response2["ticket_id"],
+        }
+        actual_ticket_ids = {t["ticket_id"] for t in data["tickets"]}
+        assert actual_ticket_ids == expected_ticket_ids
+
+        # Expected ticket information
+        expected_tickets = {
+            self.ticket_response1["ticket_id"]: {
+                "pteam_id": self.ticket_response1["pteam_id"],
+                "vuln_id": self.ticket_response1["vuln_id"],
+            },
+            self.ticket_response2["ticket_id"]: {
+                "pteam_id": self.ticket_response2["pteam_id"],
+                "vuln_id": self.ticket_response2["vuln_id"],
+            },
+        }
+
+        for ticket in data["tickets"]:
+            assert ticket["ticket_id"] in expected_tickets
+            expected = expected_tickets[ticket["ticket_id"]]
+            assert ticket["pteam_id"] == expected["pteam_id"]
+            assert ticket["vuln_id"] == expected["vuln_id"]
+            for field in [
+                "ticket_id",
+                "vuln_id",
+                "dependency_id",
+                "service_id",
+                "pteam_id",
+                "created_at",
+                "ssvc_deployer_priority",
+                "ticket_status",
+            ]:
+                assert field in ticket
 
     def test_it_should_get_my_tasks(self):
         response = client.get("/tickets?assigned_to_me=true", headers=headers(USER1))
