@@ -120,8 +120,11 @@ export function Package() {
     service: serviceDict.service_name,
     package_name: dependency.package_name,
     package_source_name: dependency.package_source_name,
+    package_manager: dependency.package_manager,
     ecosystem: dependency.package_ecosystem,
   }));
+
+  const firstPackageDependency = currentPackageDependencies[0];
 
   const numSolved = vulnIdsSolved.vuln_ids?.length ?? 0;
   const numUnsolved = vulnIdsUnSolved.vuln_ids?.length ?? 0;
@@ -150,10 +153,9 @@ export function Package() {
           </Box>
           <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              {currentPackageDependencies[0].package_name +
-                ":" +
-                currentPackageDependencies[0].package_ecosystem}
+              {firstPackageDependency.package_name}
             </Typography>
+            <Chip label={firstPackageDependency.package_ecosystem} sx={{ ml: 1 }} />
           </Box>
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{packageId}</UUIDTypography>
