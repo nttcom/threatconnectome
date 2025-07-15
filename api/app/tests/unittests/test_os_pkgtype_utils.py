@@ -6,9 +6,7 @@ This module tests the functionality for identifying OS-related package types.
 
 import pytest
 
-from app.sbom.parser.os_pkgtype_utils import (
-    is_os_pkgtype,
-)
+from app.sbom.parser.trivy_cdx_parser import TrivyCDXParser
 
 
 class TestOsPkgtypeUtils:
@@ -18,7 +16,7 @@ class TestOsPkgtypeUtils:
         input_value = None
 
         # When
-        result = is_os_pkgtype(input_value)
+        result = TrivyCDXParser.CDXComponent._is_os_pkgtype(input_value)
 
         # Then
         assert result is False
@@ -35,7 +33,7 @@ class TestOsPkgtypeUtils:
         # Given - pkg_type from parametrize
 
         # When
-        result = is_os_pkgtype(pkg_type)
+        result = TrivyCDXParser.CDXComponent._is_os_pkgtype(pkg_type)
 
         # Then
         assert result is True
@@ -57,7 +55,7 @@ class TestOsPkgtypeUtils:
         # Given - pkg_type from parametrize
 
         # When
-        result = is_os_pkgtype(pkg_type)
+        result = TrivyCDXParser.CDXComponent._is_os_pkgtype(pkg_type)
 
         # Then
         assert result is False
