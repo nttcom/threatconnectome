@@ -13,6 +13,7 @@ from app.tests.medium.constants import (
     USER3,
     VULN1,
     VULN2,
+    VULN3,
 )
 from app.tests.medium.utils import (
     accept_pteam_invitation,
@@ -205,24 +206,16 @@ class TestGetTickets:
             "alert_ssvc_priority": "scheduled",
             "alert_mail": {"enable": False, "address": "charlie@ml.com"},
         }
-        VULN3 = {
-            "vuln_id": str(uuid4()),
-            "cve_id": "CVE-0000-0003",
-            "title": "Test Vulnerability3",
-            "detail": "This is a test vulnerability.",
-            "exploitation": "none",
-            "automatable": "no",
-            "cvss_v3_score": 2.0,
-            "vulnerable_packages": [],
-        }
         user3 = create_user(USER3)
         pteam3 = create_pteam(USER3, PTEAM3)
         vuln3 = create_vuln(USER3, VULN3)
         ticket_response4 = self._create_ticket_with_threat(testdb, user3, pteam3, "service4", vuln3)
 
-        # Retrieve tickets by specifying two pteam_ids (self.pteam1, pteam2)
-        params = [("pteam_ids", str(self.pteam1.pteam_id)), ("pteam_ids", str(pteam2.pteam_id))]
-        response = client.get("/tickets", headers=headers(USER1), params=params)
+        # Get tickets by specifying two pteam_ids (self.pteam1, pteam2)
+        response = client.get(
+            f"/tickets?pteam_ids={self.pteam1.pteam_id}&pteam_ids={pteam2.pteam_id}",
+            headers=headers(USER1),
+        )
         assert response.status_code == 200
         data = response.json()
         ticket_ids = {t["ticket_id"] for t in data["tickets"]}
