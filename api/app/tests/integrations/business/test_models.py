@@ -8,17 +8,17 @@ from app import models, persistence
 
 class TestVulnMatchingEcosystemForSqlQuery:
     @pytest.mark.parametrize(
-        "ecosystem, package_type, expected",
+        "ecosystem, expected",
         [
-            ("alpine-3.22.0", "OS", "alpine-3.22"),
-            ("alpine-3", "OS", "alpine-3"),
-            ("alpine-test-3.22.0", "OS", "alpine-test-3.22.0"),
-            ("alpine", "OS", "alpine"),
-            ("ubuntu-20.04", "OS", "ubuntu-20.04"),
+            ("alpine-3.22.0", "alpine-3.22"),
+            ("alpine-3", "alpine-3"),
+            ("alpine-test-3.22.0", "alpine-test-3.22.0"),
+            ("alpine", "alpine"),
+            ("ubuntu-20.04", "ubuntu-20.04"),
         ],
     )
     def test_it_should_return_expected_value_for_os_package(
-        self, testdb, ecosystem: str, package_type: str, expected: str
+        self, testdb, ecosystem: str, expected: str
     ):
         # Given
         os_package = models.OSPackage(
@@ -34,14 +34,14 @@ class TestVulnMatchingEcosystemForSqlQuery:
         assert vuln_matching_ecosystem == expected
 
     @pytest.mark.parametrize(
-        "ecosystem, package_type, expected",
+        "ecosystem, expected",
         [
-            ("npm", "LANG", "npm"),
-            ("pypi", "LANG", "pypi"),
+            ("npm", "npm"),
+            ("pypi", "pypi"),
         ],
     )
     def test_it_should_return_expected_value_for_lang_package(
-        self, testdb, ecosystem: str, package_type: str, expected: str
+        self, testdb, ecosystem: str, expected: str
     ):
         # Given
         lang_package = models.LangPackage(name="test_package", ecosystem=ecosystem)
