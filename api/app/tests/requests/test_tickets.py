@@ -146,7 +146,7 @@ class TestGetTickets:
         assert response.status_code == 200
         return response.json()["access_token"]
 
-    def test_it_should_get_all_tickets(self):
+    def test_it_should_return_all_ticket_related_pteam_user_belongs(self):
         response = client.get("/tickets", headers=headers(USER1))
         assert response.status_code == 200
         data = response.json()
