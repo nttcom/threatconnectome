@@ -250,7 +250,7 @@ class Package(Base):
                     return f"alpine-{version[0]}.{version[1]}"
         return self.ecosystem
 
-    @vuln_matching_ecosystem.expression
+    @vuln_matching_ecosystem.inplace.expression
     def vuln_matching_ecosystem_for_sql_query(cls):
         """
         SQL expression for vuln_matching_ecosystem.

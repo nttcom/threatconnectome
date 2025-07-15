@@ -393,7 +393,7 @@ def get_packages_summary(
 
 def get_related_packages_by_affect(db: Session, affect: models.Affect) -> Sequence[models.Package]:
     query = select(models.Package).where(
-        models.Package.vuln_matching_ecosystem_for_sql_query == str(affect.ecosystem)
+        models.Package.vuln_matching_ecosystem == str(affect.ecosystem)
     )
 
     conditions = [
