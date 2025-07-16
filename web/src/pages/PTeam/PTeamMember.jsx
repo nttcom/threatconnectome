@@ -63,7 +63,6 @@ export function PTeamMember(props) {
                     noWrap
                   >
                     {member.email}
-                    fasdfasfasfasdfasdfasfasfdasdfasdfasdfafasdfasdfasdffasdfasdfasdfasdfasfd
                   </Typography>
                 </Box>
                 <PTeamMemberMenu
@@ -74,18 +73,22 @@ export function PTeamMember(props) {
                 />
               </Box>
               <UUIDTypography>{member.user_id}</UUIDTypography>
-              <Box display="flex" alignItems="center" mt={1}>
+              <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+                <Typography variant="body2">Experience in SecOps:</Typography>
                 <Avatar
                   variant="rounded"
+                  sizes="small"
                   sx={{
                     bgcolor: experienceColors[member.years],
                     color: "black",
-                    mr: 1,
+                    ml: 1,
+                    width: 30,
+                    height: 30,
+                    fontSize: 18,
                   }}
                 >
                   {member.years}+
                 </Avatar>
-                <Typography variant="body2">SecOps経験年数</Typography>
               </Box>
             </Paper>
           ))}
