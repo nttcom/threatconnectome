@@ -102,21 +102,23 @@ export function PTeamInviteModal(props) {
               </Box>
             ) : (
               <Grid container alignItems="center">
-                <Grid item p={1} xs={6} sm={6}>
-                  <DateTimePicker
-                    format="yyyy/MM/dd HH:mm"
-                    label="Expiration Date (future date)"
-                    mask="____/__/__ __:__"
-                    minDateTime={now}
-                    value={expiration}
-                    onChange={(newDate) => setExpiration(newDate)}
-                    renderInput={(params) => (
-                      <TextField fullWidth margin="dense" required {...params} />
-                    )}
-                  />
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ p: 1 }}>
+                    <DateTimePicker
+                      format="yyyy/MM/dd HH:mm"
+                      label="Expiration Date (future date)"
+                      mask="____/__/__ __:__"
+                      minDateTime={now}
+                      value={expiration}
+                      onChange={(newDate) => setExpiration(newDate)}
+                      renderInput={(params) => (
+                        <TextField fullWidth margin="dense" required {...params} />
+                      )}
+                    />
+                  </Box>
                 </Grid>
-                <Grid item p={1} xs={6} sm={6}>
-                  <Box display="flex" flexDirection="column" justifyContent="center">
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" flexDirection="column" justifyContent="center" sx={{ p: 1 }}>
                     <Typography>Max uses: {maxUses || "unlimited"}</Typography>
                     <Box mx={1}>
                       <Slider
