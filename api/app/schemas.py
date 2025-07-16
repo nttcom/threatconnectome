@@ -398,3 +398,4 @@ class DependencyResponse(ORMModel):
     package_source_name: str | None = None
     package_version: str
     package_ecosystem: str
+    vuln_matching_ecosystem: str

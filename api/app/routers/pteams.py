@@ -525,6 +525,7 @@ def get_dependencies(
             ),
             package_version=dependency.package_version.version,
             package_ecosystem=dependency.package_version.package.ecosystem,
+            vuln_matching_ecosystem=dependency.package_version.package.vuln_matching_ecosystem,
         )
         dependency_responses.append(dependency_response)
 
@@ -568,6 +569,7 @@ def get_dependency(
         ),
         package_version=dependency.package_version.version,
         package_ecosystem=dependency.package_version.package.ecosystem,
+        vuln_matching_ecosystem=dependency.package_version.package.vuln_matching_ecosystem,
     )
 
 

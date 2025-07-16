@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+from typing import Any
 from urllib.parse import urljoin
 from uuid import UUID
 
@@ -61,45 +62,32 @@ def create_pteam(user: dict, pteam: dict):
     return response.json()
 
 
-def create_topic(
+def create_vuln(
     user: dict,
-    topic: dict,
-    actions: list[dict] | None = None,
-    zone_names: list[str] | None = None,
-):
-    request = {**topic}
-    if actions is not None:
-        request.update({"actions": actions})
-    if zone_names is not None:
-        request.update({"zone_names": zone_names})
-    del request["topic_id"]
-
-    response = requests.post(
-        f'{api_url}/topics/{topic["topic_id"]}', headers=headers(user), json=request
-    )
+    vuln: dict,
+) -> dict:
+    response = requests.put(f'{api_url}/vulns/{vuln["vuln_id"]}', headers=headers(user), json=vuln)
 
     if response.status_code != 200:
         raise HTTPError(response)
     return response.json()
 
 
-def upload_pteam_tags(
+def upload_pteam_packages(
     user: dict,
     pteam_id: UUID | str,
-    service: str,
-    ext_tags: dict[str, list[tuple[str, str]]],  # {tag: [(target, version), ...]}
-    force_mode: bool = True,
-) -> dict:
-    params = {"service": service, "force_mode": str(force_mode)}
+    service_name: str,
+    ext_packages: list[dict[str, Any]],
+) -> list:
+    params = {"service": service_name}
     with tempfile.NamedTemporaryFile(mode="w+t", suffix=".jsonl") as tfile:
-        for tag_name, etags in ext_tags.items():
-            assert all(len(etag) == 2 and None not in etag for etag in etags)  # check test code
-            refs = [{"target": etag[0], "version": etag[1]} for etag in etags]
-            tfile.writelines(json.dumps({"tag_name": tag_name, "references": refs}) + "\n")
+        for ext_package in ext_packages:
+            tfile.writelines(json.dumps(ext_package) + "\n")
         tfile.flush()
+        tfile.seek(0)
         with open(tfile.name, "rb") as bfile:
             response = requests.post(
-                f"{api_url}/pteams/{pteam_id}/upload_tags_file",
+                f"{api_url}/pteams/{pteam_id}/upload_packages_file",
                 headers=file_upload_headers(user),
                 params=params,
                 files={"file": bfile},

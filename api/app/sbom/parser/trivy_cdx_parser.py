@@ -17,6 +17,58 @@ from app.sbom.parser.sbom_parser import (
     SBOMParser,
 )
 
+"""
+We officially support only OS package types for Alpine Linux, Ubuntu, and Rocky Linux.
+OS package types:
+- Alpine Linux: alpine
+- Chainguard: wolfi
+- Minimos:
+- Wolfi: wolfi
+- Debian: debian
+- Ubuntu: ubuntu
+- Echo:
+- Alma Linux: alma
+- Amazon: amazon
+- AzureLinux: azurelinux
+- CentOS: centos
+- Fedora: fedora
+- Oracle: oracle
+- RedHat: redhat
+- Rocky: rocky
+- openSUSE-leap: opensuse-leap
+- openSUSE-tumbleweed: opensuse-tumbleweed
+- SLEM: slem
+- SLES: sles
+- Bottlerocket: bottlerocket
+- CBL-Mariner: cbl-mariner
+- Photon: photon
+"""
+OS_PACKAGE_TYPES = [
+    "alpine",
+    "ubuntu",
+    "rocky",
+    "wolfi",
+    "debian",
+    "alma",
+    "amazon",
+    "azurelinux",
+    "centos",
+    "fedora",
+    "oracle",
+    "redhat",
+    "opensuse-leap",
+    "opensuse-tumbleweed",
+    "slem",
+    "sles",
+    "bottlerocket",
+    "cbl-mariner",
+    "photon",
+]
+
+# OS types that combine pkg_type and distro when treated as ecosystem
+# Example: "alpine" is formatted as "alpine+distro" instead of just "distro"
+OS_PACKAGE_TYPES_USING_TYPE_AND_DISTRO_AS_ECOSYSTEM = ["alpine"]
+
 
 class TrivyCDXParser(SBOMParser):
     @dataclass
@@ -76,6 +128,27 @@ class TrivyCDXParser(SBOMParser):
                     return mgr_candidate
             return components_map.get(refs[0])
 
+        @staticmethod
+        def _is_os_pkgtype(pkg_type: str | None) -> bool:
+            """
+            Determines whether a package type string represents an OS package.
+
+            Args:
+                pkg_type: Package type string to evaluate
+
+            Returns:
+                True if the package type is an OS package type, False otherwise
+
+            Notes:
+                - Returns True if pkg_type is in OS_PACKAGE_TYPES
+                - Returns False if pkg_type is None
+            """
+            if not pkg_type:
+                return False
+
+            # Check if the package type matches any known OS package type
+            return pkg_type in OS_PACKAGE_TYPES
+
         def to_package_info(self, components_map: dict[str, Any]) -> dict | None:
             if not self.purl:
                 return None
@@ -91,14 +164,28 @@ class TrivyCDXParser(SBOMParser):
 
             ecosystem = str(self.purl.type).casefold()
             pkg_mgr = ""
+            pkg_type = self.properties.get("aquasecurity:trivy:PkgType", "")
 
-            if is_os_purl(self.purl):
-                distro = (
-                    self.purl.qualifiers.get("distro")
-                    if isinstance(self.purl.qualifiers, dict)
-                    else ""
-                )
-                ecosystem = str(self._fix_distro(distro) if distro else self.purl.type).casefold()
+            if self._is_os_pkgtype(pkg_type) or is_os_purl(self.purl):
+                if pkg_type in OS_PACKAGE_TYPES_USING_TYPE_AND_DISTRO_AS_ECOSYSTEM:
+                    # For these OS types, we use pkg_type+distro as the ecosystem
+                    distro = (
+                        self.purl.qualifiers.get("distro")
+                        if isinstance(self.purl.qualifiers, dict)
+                        else ""
+                    )
+                    ecosystem = str(
+                        (pkg_type + "-" + self._fix_distro(distro)) if distro else self.purl.type
+                    ).casefold()
+                else:
+                    distro = (
+                        self.purl.qualifiers.get("distro")
+                        if isinstance(self.purl.qualifiers, dict)
+                        else ""
+                    )
+                    ecosystem = str(
+                        self._fix_distro(distro) if distro else self.purl.type
+                    ).casefold()
 
             elif self.targets and (
                 mgr := self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
