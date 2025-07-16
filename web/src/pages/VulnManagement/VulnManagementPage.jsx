@@ -20,6 +20,7 @@ import { useGetVulnsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
+import { VulnManagementCardList } from "./VulnManagementCardList";
 import { VulnManagementTable } from "./VulnManagementTable";
 import { VulnSearchModal } from "./VulnSearchModal";
 
@@ -149,7 +150,12 @@ export function VulnManagement() {
           </Button>
         </Box>
       </Box>
-      <VulnManagementTable vulns={vulnsList.vulns} />
+      {isMdDown ? (
+        <VulnManagementCardList vulns={vulnsList.vulns} />
+      ) : (
+        <VulnManagementTable vulns={vulnsList.vulns} />
+      )}
+      {/* <VulnManagementTable vulns={vulnsList.vulns} /> */}
       {filterRow}
       <VulnSearchModal show={searchMenuOpen} onSearch={handleSearch} onCancel={handleCancel} />
     </>
