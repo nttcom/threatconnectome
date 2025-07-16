@@ -18,7 +18,7 @@ export function VulnSSVCElement(props) {
   const valueDescription = filterValue.valueDescription;
 
   return (
-    <Grid key={title} item xs={6}>
+    <Grid key={title} item xs={12} md={6}>
       <Card variant="outlined" sx={{ p: 3, height: "100%" }}>
         <Box
           sx={{
