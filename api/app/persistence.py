@@ -5,7 +5,6 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from app import models
-from app.routers.validators.account_validator import check_pteam_membership
 
 ### Account
 
@@ -298,21 +297,9 @@ def get_ticket_by_threat_id_and_dependency_id(
     ).one_or_none()
 
 
-def validate_pteam_ids(
-    db: Session,
-    pteam_ids: list[UUID],
-    user: models.Account,
-) -> None:
+def get_pteams_by_ids(db: Session, pteam_ids: list[UUID]):
     str_pteam_ids = [str(pid) for pid in pteam_ids]
-    db_pteams = db.query(models.PTeam).filter(models.PTeam.pteam_id.in_(str_pteam_ids)).all()
-    found_pteam_ids = {str(pteam.pteam_id) for pteam in db_pteams}
-    not_found = set(str(pid) for pid in pteam_ids) - found_pteam_ids
-    if not_found:
-        raise ValueError(f"Specified pteam_ids do not exist: {not_found}")
-
-    not_belong = [pteam.pteam_id for pteam in db_pteams if not check_pteam_membership(pteam, user)]
-    if not_belong:
-        raise ValueError(f"Specified pteam_ids not belonging to the user: {not_belong}")
+    return db.query(models.PTeam).filter(models.PTeam.pteam_id.in_(str_pteam_ids)).all()
 
 
 ### TicketStatus

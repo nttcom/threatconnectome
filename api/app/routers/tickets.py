@@ -45,10 +45,24 @@ def get_tickets(
     if not pteam_ids:
         pteam_ids = list(user_pteam_ids)
 
-    try:
-        persistence.validate_pteam_ids(db, pteam_ids, current_user)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    db_pteams = persistence.get_pteams_by_ids(db, pteam_ids)
+    found_pteam_ids = {str(pteam.pteam_id) for pteam in db_pteams}
+    not_found = set(str(pid) for pid in pteam_ids) - found_pteam_ids
+    if not_found:
+        raise HTTPException(
+            status_code=400, detail=f"Specified pteam_ids do not exist: {not_found}"
+        )
+
+    def check_pteam_membership(pteam, user):
+        return any(str(role.pteam_id) == str(pteam.pteam_id) for role in user.pteam_roles)
+
+    not_belong = [
+        pteam.pteam_id for pteam in db_pteams if not check_pteam_membership(pteam, current_user)
+    ]
+    if not_belong:
+        raise HTTPException(
+            status_code=400, detail=f"Specified pteam_ids not belonging to the user: {not_belong}"
+        )
 
     assigned_user_id = (
         UUID(current_user.user_id) if assigned_to_me and current_user.user_id else None
