@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -5,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from app import models
 from app.main import app
+from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import (
     PTEAM1,
     PTEAM2,
@@ -73,42 +76,47 @@ class TestGetTickets:
 
     @staticmethod
     def _create_ticket_with_threat(testdb, user, pteam, service_name, vuln):
-        service = models.Service(
-            pteam_id=str(pteam.pteam_id),
-            service_name=service_name,
+        # 1. Load the SBOM file and create service, dependency, and package from it.
+        upload_file_name = "trivy-ubuntu2004.cdx.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
         )
-        testdb.add(service)
-        testdb.flush()
+        with open(sbom_file, "r") as sbom:
+            sbom_json = json.load(sbom)
+        bg_create_tags_from_sbom_json(sbom_json, pteam.pteam_id, service_name, upload_file_name)
 
-        package = models.Package(
-            name=f"testpkg_{service_name}",
-            ecosystem="pypi",
+        # 2. Retrieve service, dependency, and package_version from the database.
+        service = (
+            testdb.query(models.Service)
+            .filter_by(pteam_id=str(pteam.pteam_id), service_name=service_name)
+            .one()
         )
-        testdb.add(package)
-        testdb.flush()
+        dependency = (
+            testdb.query(models.Dependency).filter_by(service_id=service.service_id).first()
+        )
+        package_version = (
+            testdb.query(models.PackageVersion)
+            .filter_by(package_version_id=dependency.package_version_id)
+            .one()
+        )
 
-        package_version = models.PackageVersion(
-            version="1.0.0",
-            package_id=package.package_id,
+        # 3. Find or create Threat, then create Ticket and TicketStatus.
+        threat = (
+            testdb.query(models.Threat)
+            .filter_by(
+                package_version_id=package_version.package_version_id,
+                vuln_id=str(vuln.vuln_id),
+            )
+            .first()
         )
-        testdb.add(package_version)
-        testdb.flush()
 
-        dependency = models.Dependency(
-            service_id=service.service_id,
-            package_version_id=package_version.package_version_id,
-            target="default",
-            package_manager="pip",
-        )
-        testdb.add(dependency)
-        testdb.flush()
-
-        threat = models.Threat(
-            package_version_id=package_version.package_version_id,
-            vuln_id=vuln.vuln_id,
-        )
-        testdb.add(threat)
-        testdb.flush()
+        if not threat:
+            threat = models.Threat(
+                package_version_id=package_version.package_version_id,
+                vuln_id=vuln.vuln_id,
+            )
+            testdb.add(threat)
+            testdb.flush()
 
         ticket = models.Ticket(
             threat_id=threat.threat_id,
