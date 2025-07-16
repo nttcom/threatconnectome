@@ -50,12 +50,10 @@ export function App() {
       </Box>
       <Drawer />
       <Main open={!isMobile && system.drawerOpen}>
-        <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" m={1}>
-          <Box display="flex" flexDirection="column" flexGrow={1} maxWidth={mainMaxWidth}>
-            <ErrorBoundary FallbackComponent={AppFallback} resetKeys={[location.pathname]}>
-              <OutletWithCheckedParams />
-            </ErrorBoundary>
-          </Box>
+        <Box sx={{ maxWidth: mainMaxWidth, width: "100%" }}>
+          <ErrorBoundary FallbackComponent={AppFallback} resetKeys={[location.pathname]}>
+            <OutletWithCheckedParams />
+          </ErrorBoundary>
         </Box>
       </Main>
     </>
