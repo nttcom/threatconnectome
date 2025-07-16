@@ -61,16 +61,19 @@ export function PTeamMember(props) {
                       textOverflow: "ellipsis",
                     }}
                     noWrap
+                    title={member.email}
                   >
                     {member.email}
                   </Typography>
                 </Box>
-                <PTeamMemberMenu
-                  pteamId={pteamId}
-                  memberUserId={member.user_id}
-                  userEmail={member.email}
-                  isTargetMemberAdmin={member.is_admin}
-                />
+                <Box>
+                  <PTeamMemberMenu
+                    pteamId={pteamId}
+                    memberUserId={member.user_id}
+                    userEmail={member.email}
+                    isTargetMemberAdmin={member.is_admin}
+                  />
+                </Box>
               </Box>
               <UUIDTypography>{member.user_id}</UUIDTypography>
               <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
