@@ -19,6 +19,8 @@ export function VulnManagementCardList({ vulns }) {
               : vuln.cvss_v3_score;
 
           const cvss = cvssConvertToName(cvssScore);
+          const cveId = vuln.cve_id === null ? "No Known CVE" : vuln.cve_id;
+
           return (
             <Card
               key={vuln.vuln_id}
@@ -31,19 +33,13 @@ export function VulnManagementCardList({ vulns }) {
               onClick={() => window.location.assign(`/vulns/${vuln.vuln_id}`)}
             >
               <CardContent>
-                <Chip
-                  label={vuln.cve_id === null ? "No Known CVE" : vuln.cve_id}
-                  size="small"
-                  sx={{ borderRadius: 0.5 }}
-                />
-                <Box display="flex" alignItems="center" mb={1}>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ overflowWrap: "anywhere", fontWeight: "bold" }}
-                  >
-                    {vuln.title}
-                  </Typography>
-                </Box>
+                <Chip label={cveId} size="small" sx={{ borderRadius: 0.5, mr: 1 }} />
+                <Typography
+                  variant="subtitle1"
+                  sx={{ overflowWrap: "anywhere", fontWeight: "bold" }}
+                >
+                  {vuln.title}
+                </Typography>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <UpdateIcon sx={{ mr: 1 }} />
                   <FormattedDateTimeWithTooltip utcString={vuln.updated_at} />
