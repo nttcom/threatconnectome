@@ -3,7 +3,7 @@ import {
   MoreVert as MoreVertIcon,
   PersonOff as PersonOffIcon,
 } from "@mui/icons-material";
-import { Button, Dialog, DialogContent, Menu, MenuItem } from "@mui/material";
+import { Dialog, DialogContent, IconButton, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
@@ -62,7 +62,7 @@ export function PTeamMemberMenu(props) {
 
   return (
     <>
-      <Button
+      <IconButton
         id={`pteam-member-button-${memberUserId}`}
         aria-controls={open ? `pteam-member-menu-${memberUserId}` : undefined}
         aria-haspopup="true"
@@ -70,7 +70,7 @@ export function PTeamMemberMenu(props) {
         onClick={handleClick}
       >
         <MoreVertIcon sx={{ color: "gray" }} />
-      </Button>
+      </IconButton>
       <Menu
         id={`pteam-member-menu-${memberUserId}`}
         aria-labelledby={`pteam-member-button-${memberUserId}`}
