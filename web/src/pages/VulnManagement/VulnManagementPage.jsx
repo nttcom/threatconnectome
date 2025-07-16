@@ -155,7 +155,6 @@ export function VulnManagement() {
       ) : (
         <VulnManagementTable vulns={vulnsList.vulns} />
       )}
-      {/* <VulnManagementTable vulns={vulnsList.vulns} /> */}
       {filterRow}
       <VulnSearchModal show={searchMenuOpen} onSearch={handleSearch} onCancel={handleCancel} />
     </>
