@@ -4,7 +4,8 @@ import { drawerWidth } from "../../utils/const";
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
   ({ theme, open }) => ({
-    flexGrow: 1,
+    display: "flex",
+    justifyContent: "center",
     padding: theme.spacing(1),
     transition: theme.transitions.create("margin", {
       duration: theme.transitions.duration.leavingScreen,
