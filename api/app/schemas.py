@@ -347,6 +347,11 @@ class TicketUpdateRequest(ORMModel):
     ticket_safety_impact_change_reason: str | None = None
 
 
+class TicketOrder(str, Enum):
+    ASC = "asc"
+    DESC = "desc"
+
+
 class PTeamPackagesSummary(ORMModel):
     class PTeamPackageSummary(ORMModel):
         package_id: UUID

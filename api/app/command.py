@@ -451,7 +451,7 @@ def get_sorted_paginated_tickets_for_pteams(
     assigned_user_id: UUID | None = None,
     offset: int = 0,
     limit: int = 100,
-    order: str = "desc",
+    sort_key: schemas.TicketOrder = schemas.TicketOrder.DESC,
 ) -> tuple[int, Sequence[models.Ticket]]:
 
     select_stmt = (
@@ -479,7 +479,7 @@ def get_sorted_paginated_tickets_for_pteams(
         else_=None,
     )
 
-    if order == "desc":
+    if sort_key == schemas.TicketOrder.DESC:
         select_stmt = select_stmt.order_by(priority_case.desc().nullslast())
     else:
         select_stmt = select_stmt.order_by(priority_case.asc().nullslast())
