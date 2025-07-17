@@ -5,6 +5,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     and_,
+    case,
     delete,
     false,
     func,
@@ -436,12 +437,21 @@ def get_related_affects_by_package(db: Session, package: models.Package) -> Sequ
     ).all()
 
 
+SSVC_PRIORITY_ORDER = {
+    "immediate": 3,
+    "out-of-cycle": 2,
+    "scheduled": 1,
+    "defer": 0,
+}
+
+
 def get_sorted_paginated_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],
     assigned_user_id: UUID | None = None,
     offset: int = 0,
     limit: int = 100,
+    order: str = "desc",
 ) -> tuple[int, Sequence[models.Ticket]]:
 
     select_stmt = (
@@ -461,6 +471,18 @@ def get_sorted_paginated_tickets_for_pteams(
                 ),
             ),
         )
+
+    # sort by SSVC priority
+    priority_case = case(
+        value=models.Ticket.ssvc_deployer_priority,
+        whens={k: v for k, v in SSVC_PRIORITY_ORDER.items()},
+        else_=None,
+    )
+
+    if order == "desc":
+        select_stmt = select_stmt.order_by(priority_case.desc().nullslast())
+    else:
+        select_stmt = select_stmt.order_by(priority_case.asc().nullslast())
 
     # pagination
     select_stmt = select_stmt.offset(offset).limit(limit)
