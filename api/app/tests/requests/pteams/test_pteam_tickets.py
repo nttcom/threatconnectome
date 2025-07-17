@@ -271,7 +271,7 @@ class TestTicketStatus:
                 "vuln_status": models.VulnStatusType.scheduled.value,
                 "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
-                "scheduled_at": "2345-06-07T08:09:10",
+                "scheduled_at": "2345-06-07T08:09:10Z",
             }
             set_response = self._set_ticket_status(
                 self.pteam1.pteam_id, self.ticket_id1, status_request
@@ -330,7 +330,7 @@ class TestTicketStatus:
                 "vuln_status": models.VulnStatusType.scheduled.value,
                 "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
-                "scheduled_at": "2345-06-07T08:09:10",
+                "scheduled_at": "2345-06-07T08:09:10Z",
             }
             url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
             user1_access_token = self._get_access_token(USER1)
@@ -423,22 +423,22 @@ class TestTicketStatus:
             [
                 (
                     models.VulnStatusType.acknowledged.value,
-                    "2000-01-01T00:00:00",
+                    "2000-01-01T00:00:00Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
                 (
                     models.VulnStatusType.acknowledged.value,
-                    "2345-06-07T08:09:10",
+                    "2345-06-07T08:09:10Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
                 (
                     models.VulnStatusType.completed.value,
-                    "2000-01-01T00:00:00",
+                    "2000-01-01T00:00:00Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
                 (
                     models.VulnStatusType.completed.value,
-                    "2345-06-07T08:09:10",
+                    "2345-06-07T08:09:10Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
             ],
@@ -471,7 +471,7 @@ class TestTicketStatus:
                 (
                     models.VulnStatusType.scheduled.value,
                     True,
-                    "2000-01-01T00:00:00",
+                    "2000-01-01T00:00:00Z",
                     "If status is scheduled, schduled_at must be a future time",
                 ),
             ],
@@ -501,7 +501,7 @@ class TestTicketStatus:
                     None,
                     200,
                 ),
-                (models.VulnStatusType.scheduled.value, True, "2345-06-07T08:09:10", 200),
+                (models.VulnStatusType.scheduled.value, True, "2345-06-07T08:09:10Z", 200),
                 (models.VulnStatusType.completed.value, False, None, 200),
                 (models.VulnStatusType.completed.value, True, None, 200),
             ],
@@ -557,7 +557,7 @@ class TestTicketStatus:
             # a value to reset None.
 
             previous_vuln_status = models.VulnStatusType.scheduled.value
-            previous_scheduled_at = "2345-06-07T08:09:10"
+            previous_scheduled_at = "2345-06-07T08:09:10Z"
             previous_response = self.common_setup_for_set_ticket_status(
                 previous_vuln_status, True, previous_scheduled_at
             )
@@ -579,7 +579,7 @@ class TestTicketStatus:
                 ),
                 (
                     None,
-                    "2000-01-01T00:00:00",
+                    "2000-01-01T00:00:00Z",
                     "If status is scheduled, schduled_at must be a future time",
                 ),
             ],
@@ -595,7 +595,7 @@ class TestTicketStatus:
             # future time or None.
 
             previous_vuln_status = models.VulnStatusType.scheduled.value
-            previous_scheduled_at = "2345-06-07T08:09:10"
+            previous_scheduled_at = "2345-06-07T08:09:10Z"
             previous_response = self.common_setup_for_set_ticket_status(
                 previous_vuln_status, True, previous_scheduled_at
             )
@@ -640,7 +640,7 @@ class TestTicketStatus:
             # a value to reset None.
 
             previous_vuln_status = models.VulnStatusType.scheduled.value
-            previous_scheduled_at = "2345-06-07T08:09:10"
+            previous_scheduled_at = "2345-06-07T08:09:10Z"
             previous_response = self.common_setup_for_set_ticket_status(
                 previous_vuln_status, True, previous_scheduled_at
             )
@@ -690,6 +690,13 @@ class TestTicketStatus:
 
             data = response.json()
             assert data["assignees"] == [str(self.user1.user_id)]
+
+        def test_it_should_return_400_when_there_is_no_time_zone_in_scheduled_at_time(self):
+            vuln_status = models.VulnStatusType.scheduled.value
+            scheduled_at = "2345-06-07T08:09:10"  # without time zone
+            response = self.common_setup_for_set_ticket_status(vuln_status, True, scheduled_at)
+            assert response.status_code == 400
+            assert response.json()["detail"] == "Unwise expiration (grant timezone)"
 
 
 class TestGetTickets:
@@ -782,7 +789,9 @@ class TestGetTickets:
                 "ticket_id": str(db_ticket1.ticket_id),
                 "vuln_id": str(self.vuln1.vuln_id),
                 "dependency_id": str(self.dependency1.dependency_id),
-                "created_at": datetime.isoformat(db_ticket1.created_at) + "Z",  # check later
+                "created_at": datetime.isoformat(db_ticket1.created_at).replace(
+                    "+00:00", "Z"
+                ),  # check later
                 "ssvc_deployer_priority": (
                     None
                     if db_ticket1.ssvc_deployer_priority is None
@@ -799,7 +808,9 @@ class TestGetTickets:
                     "ticket_id": str(db_ticket1.ticket_id),
                     "vuln_status": models.VulnStatusType.alerted.value,
                     "user_id": None,
-                    "created_at": datetime.isoformat(db_status1.created_at),  # check later
+                    "created_at": datetime.isoformat(db_status1.created_at).replace(
+                        "+00:00", "Z"
+                    ),  # check later
                     "assignees": [],
                     "note": None,
                     "scheduled_at": None,
@@ -1206,7 +1217,7 @@ class TestGetTicket:
             else self.ticket1.ssvc_deployer_priority.value
         )
         assert data["ticket_status"]["status_id"] == self.ticket_status1.status_id
-        assert data["created_at"] == self.ticket1.created_at.isoformat() + "Z"
+        assert data["created_at"] == self.ticket1.created_at.isoformat().replace("+00:00", "Z")
 
     def test_it_should_return_404_when_wrong_ticket_id(self):
         user1_access_token = self._get_access_token(USER1)
@@ -1343,7 +1354,7 @@ class TestPutTicket:
         assert data["ticket_id"] == str(self.ticket1.ticket_id)
         assert data["vuln_id"] == str(self.vuln1.vuln_id)
         assert data["dependency_id"] == str(self.dependency1.dependency_id)
-        assert data["created_at"] == self.ticket1.created_at.isoformat() + "Z"
+        assert data["created_at"] == self.ticket1.created_at.isoformat().replace("+00:00", "Z")
         assert data["ssvc_deployer_priority"] == models.VulnStatusType.scheduled.value
         assert data["ticket_safety_impact"] == request["ticket_safety_impact"]
         assert (
@@ -1354,7 +1365,9 @@ class TestPutTicket:
         assert data["ticket_status"]["ticket_id"] == str(self.ticket1.ticket_id)
         assert data["ticket_status"]["vuln_status"] == models.VulnStatusType.alerted.value
         assert data["ticket_status"]["user_id"] is None
-        assert data["ticket_status"]["created_at"] == self.ticket_status1.created_at.isoformat()
+        assert data["ticket_status"][
+            "created_at"
+        ] == self.ticket_status1.created_at.isoformat().replace("+00:00", "Z")
         assert data["ticket_status"]["assignees"] == []
         assert data["ticket_status"]["note"] is None
         assert data["ticket_status"]["scheduled_at"] is None

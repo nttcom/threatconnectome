@@ -16,7 +16,6 @@ client = TestClient(app)
 
 
 class TestCreateAction:
-
     @pytest.fixture(autouse=True)
     def common_setup(self, testdb: Session):
         # Create a user
@@ -94,7 +93,6 @@ class TestCreateAction:
 
 
 class TestUpdateAction:
-
     @pytest.fixture(autouse=True)
     def common_setup(self, testdb: Session):
         # Create a user
@@ -142,7 +140,7 @@ class TestUpdateAction:
         assert response.json()["recommended"] == action_update_request["recommended"]
         assert response.json()["vuln_id"] == str(self.vuln_id)
         assert response.json()["action_id"] == str(self.action_id)
-        assert response.json()["created_at"] == self.created_at + "Z"
+        assert response.json()["created_at"] == self.created_at
 
     def test_raise_404_if_action_id_does_not_exist(self):
         # Given
@@ -215,7 +213,6 @@ class TestUpdateAction:
 
 
 class TestGetAction:
-
     @pytest.fixture(autouse=True)
     def common_setup(self, testdb: Session):
         # Create a user
@@ -258,7 +255,7 @@ class TestGetAction:
         assert response.json()["action"] == self.action
         assert response.json()["action_type"] == self.action_type
         assert response.json()["recommended"] == self.recommended
-        assert response.json()["created_at"] == self.created_at + "Z"
+        assert response.json()["created_at"] == self.created_at
 
     def test_raise_404_if_action_id_does_not_exist(self):
         # Given
@@ -276,7 +273,6 @@ class TestGetAction:
 
 
 class TestDeleteAction:
-
     @pytest.fixture(autouse=True)
     def common_setup(self, testdb: Session):
         # Create a user

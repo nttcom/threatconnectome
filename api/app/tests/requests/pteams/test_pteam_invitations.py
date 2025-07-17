@@ -30,7 +30,7 @@ def test_admin_can_create_invitation():
     pteam1 = create_pteam(USER1, PTEAM1)  # master have ADMIN
 
     request = {
-        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
+        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0, tzinfo=timezone.utc)),
         "limit_count": 1,
     }
     response = client.post(
@@ -53,7 +53,7 @@ def test_it_should_return_403_when_not_admin_create_invitation():
 
     # try without admin
     request = {
-        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
+        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0, tzinfo=timezone.utc)),
         "limit_count": 1,
     }
     response = client.post(
@@ -71,7 +71,7 @@ def test_it_should_return_403_not_member_create_invitation():
 
     # user2 is ADMIN of another pteam.
     request = {
-        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
+        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0, tzinfo=timezone.utc)),
         "limit_count": 1,
     }
     response = client.post(
@@ -81,13 +81,29 @@ def test_it_should_return_403_not_member_create_invitation():
     assert response.reason_phrase == "Forbidden"
 
 
+def test_it_should_return_400_when_there_is_no_time_zone_in_expiration_time():
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)  # master have ADMIN
+
+    # user2 is ADMIN of another pteam.
+    request = {
+        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
+        "limit_count": 1,
+    }
+    response = client.post(
+        f"/pteams/{pteam1.pteam_id}/invitation", headers=headers(USER1), json=request
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Unwise expiration (grant timezone)"
+
+
 def test_create_invitation__wrong_params():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
 
     # wrong limit
     request = {
-        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
+        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0, tzinfo=timezone.utc)),
         "limit_count": 0,  # out of limit
     }
     response = client.post(
@@ -98,7 +114,7 @@ def test_create_invitation__wrong_params():
 
     # past date
     request = {
-        "expiration": str(datetime(2000, 1, 1, 0, 0, 0, 0)),  # past date
+        "expiration": str(datetime(2000, 1, 1, 0, 0, 0, 0, tzinfo=timezone.utc)),  # past date
         "limit_count": 1,
     }
     response = client.post(
