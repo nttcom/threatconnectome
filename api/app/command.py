@@ -480,26 +480,34 @@ def get_sorted_paginated_tickets_for_pteams(
     )
 
     # sort_keyに応じてorder_byを分岐
-    if sort_key == schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY:
-        select_stmt = select_stmt.order_by(
-            priority_case.asc().nullslast(), models.Ticket.created_at.asc()
+    sortkey2orderby: dict[schemas.TicketSortKey, list] = {
+        schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY: [
+            priority_case.asc().nullslast(),
+            models.Ticket.created_at.desc(),
+        ],
+        schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC: [
+            priority_case.desc().nullslast(),
+            models.Ticket.created_at.desc(),
+        ],
+        schemas.TicketSortKey.CREATED_AT: [
+            models.Ticket.created_at.asc(),
+            priority_case.desc().nullslast(),
+        ],
+        schemas.TicketSortKey.CREATED_AT_DESC: [
+            models.Ticket.created_at.desc(),
+            priority_case.desc().nullslast(),
+        ],
+    }
+
+    select_stmt = select_stmt.order_by(
+        *sortkey2orderby.get(
+            sort_key,
+            [
+                priority_case.desc().nullslast(),
+                models.Ticket.created_at.desc(),
+            ],
         )
-    elif sort_key == schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC:
-        select_stmt = select_stmt.order_by(
-            priority_case.desc().nullslast(), models.Ticket.created_at.desc()
-        )
-    elif sort_key == schemas.TicketSortKey.CREATED_AT:
-        select_stmt = select_stmt.order_by(
-            models.Ticket.created_at.asc(), priority_case.asc().nullslast()
-        )
-    elif sort_key == schemas.TicketSortKey.CREATED_AT_DESC:
-        select_stmt = select_stmt.order_by(
-            models.Ticket.created_at.desc(), priority_case.desc().nullslast()
-        )
-    else:
-        select_stmt = select_stmt.order_by(
-            priority_case.desc().nullslast(), models.Ticket.created_at.desc()
-        )
+    )
 
     # pagination
     select_stmt = select_stmt.offset(offset).limit(limit)
