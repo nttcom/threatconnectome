@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Sequence
 from uuid import UUID
 
@@ -32,7 +32,7 @@ def expire_pteam_invitations(db: Session) -> None:
     db.execute(
         delete(models.PTeamInvitation).where(
             or_(
-                models.PTeamInvitation.expiration < datetime.now(),
+                models.PTeamInvitation.expiration < datetime.now(timezone.utc),
                 and_(
                     models.PTeamInvitation.limit_count.is_not(None),
                     models.PTeamInvitation.limit_count <= models.PTeamInvitation.used_count,

@@ -85,7 +85,7 @@ def __handle_create_vuln(
     _check_request_fields(request, update_request)
 
     # create vuln
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
 
     vuln = models.Vuln(
         vuln_id=str(vuln_id),
@@ -187,7 +187,7 @@ def __handle_update_vuln(
                 )
                 persistence.create_affect(db, new_affect)
 
-    vuln.updated_at = datetime.now()
+    vuln.updated_at = datetime.now(timezone.utc)
     db.flush()
 
     new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
@@ -276,7 +276,7 @@ def get_vuln(
     # Fetch vulnerable packages associated with the vuln
     vulnerable_packages = [
         schemas.VulnerablePackageResponse(
-            affected_name=affect.affect_name,
+            affected_name=affect.affected_name,
             ecosystem=affect.ecosystem,
             affected_versions=affect.affected_versions,
             fixed_versions=affect.fixed_versions,
