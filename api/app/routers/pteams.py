@@ -30,7 +30,7 @@ from app.routers.validators.account_validator import (
     check_pteam_membership,
 )
 from app.sbom.sbom_analyzer import sbom_json_to_artifact_json_lines
-from app.utility import unicode_tool, timezone_tool
+from app.utility import timezone_tool, unicode_tool
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
 
