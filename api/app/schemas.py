@@ -347,9 +347,11 @@ class TicketUpdateRequest(ORMModel):
     ticket_safety_impact_change_reason: str | None = None
 
 
-class TicketOrder(str, Enum):
-    ASC = "asc"
-    DESC = "desc"
+class TicketSortKey(str, Enum):
+    SSVC_DEPLOYER_PRIORITY = "ssvc_deployer_priority"
+    SSVC_DEPLOYER_PRIORITY_DESC = "ssvc_deployer_priority_desc"
+    CREATED_AT = "created_at"
+    CREATED_AT_DESC = "created_at_desc"
 
 
 class PTeamPackagesSummary(ORMModel):

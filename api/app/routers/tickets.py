@@ -35,7 +35,7 @@ def get_tickets(
     pteam_ids: list[UUID] | None = Query(None),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    sort_key: schemas.TicketOrder = Query(schemas.TicketOrder.DESC),
+    sort_key: schemas.TicketSortKey = Query(schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(database.get_db),
 ):

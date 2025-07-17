@@ -451,7 +451,7 @@ def get_sorted_paginated_tickets_for_pteams(
     assigned_user_id: UUID | None = None,
     offset: int = 0,
     limit: int = 100,
-    sort_key: schemas.TicketOrder = schemas.TicketOrder.DESC,
+    sort_key: schemas.TicketSortKey = schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC,
 ) -> tuple[int, Sequence[models.Ticket]]:
 
     select_stmt = (
@@ -479,10 +479,27 @@ def get_sorted_paginated_tickets_for_pteams(
         else_=None,
     )
 
-    if sort_key == schemas.TicketOrder.DESC:
-        select_stmt = select_stmt.order_by(priority_case.desc().nullslast())
+    # sort_keyに応じてorder_byを分岐
+    if sort_key == schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY:
+        select_stmt = select_stmt.order_by(
+            priority_case.asc().nullslast(), models.Ticket.created_at.asc()
+        )
+    elif sort_key == schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC:
+        select_stmt = select_stmt.order_by(
+            priority_case.desc().nullslast(), models.Ticket.created_at.desc()
+        )
+    elif sort_key == schemas.TicketSortKey.CREATED_AT:
+        select_stmt = select_stmt.order_by(
+            models.Ticket.created_at.asc(), priority_case.asc().nullslast()
+        )
+    elif sort_key == schemas.TicketSortKey.CREATED_AT_DESC:
+        select_stmt = select_stmt.order_by(
+            models.Ticket.created_at.desc(), priority_case.desc().nullslast()
+        )
     else:
-        select_stmt = select_stmt.order_by(priority_case.asc().nullslast())
+        select_stmt = select_stmt.order_by(
+            priority_case.desc().nullslast(), models.Ticket.created_at.desc()
+        )
 
     # pagination
     select_stmt = select_stmt.offset(offset).limit(limit)
