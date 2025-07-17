@@ -438,10 +438,10 @@ def get_related_affects_by_package(db: Session, package: models.Package) -> Sequ
 
 
 SSVC_PRIORITY_ORDER = {
-    "immediate": 3,
-    "out-of-cycle": 2,
-    "scheduled": 1,
-    "defer": 0,
+    "IMMEDIATE": 3,
+    "OUT_OF_CYCLE": 2,
+    "SCHEDULED": 1,
+    "DEFER": 0,
 }
 
 
@@ -474,8 +474,8 @@ def get_sorted_paginated_tickets_for_pteams(
 
     # sort by SSVC priority
     priority_case = case(
+        SSVC_PRIORITY_ORDER,
         value=models.Ticket.ssvc_deployer_priority,
-        whens={k: v for k, v in SSVC_PRIORITY_ORDER.items()},
         else_=None,
     )
 
