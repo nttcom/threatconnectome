@@ -8,7 +8,7 @@ import { useState } from "react";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { PackageView } from "../../components/PackageView";
-import { utcStringToLocalDate } from "../../utils/func"
+import { utcStringToLocalDate } from "../../utils/func";
 
 import { VulnCVSSCard } from "./VulnCVSSCard";
 import { VulnSSVCCards } from "./VulnSSVCCards";
