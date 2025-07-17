@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     ARRAY,
@@ -459,7 +459,7 @@ class Ticket(Base):
     __tablename__ = "ticket"
 
     def __init__(self, *args, **kwargs) -> None:
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         super().__init__(*args, **kwargs)
         if not self.ticket_id:
             self.ticket_id = str(uuid.uuid4())
@@ -488,7 +488,7 @@ class TicketStatus(Base):
     __tablename__ = "ticketstatus"
 
     def __init__(self, *args, **kwargs) -> None:
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         super().__init__(*args, **kwargs)
         if not self.status_id:
             self.status_id = str(uuid.uuid4())
@@ -521,7 +521,7 @@ class Alert(Base):
     __tablename__ = "alert"
 
     def __init__(self, *args, **kwargs) -> None:
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         super().__init__(*args, **kwargs)
         if not self.alert_id:
             self.alert_id = str(uuid.uuid4())
