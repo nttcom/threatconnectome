@@ -9,7 +9,7 @@ export function FormattedDateTimeWithTooltip(props) {
 
   try {
     if (!utcString) throw new Error("empty string");
-    const localDate = utcStringToLocalDate(utcString);
+    const localDate = new Date(utcString);
     const tipTitle = localDate.toISOString();
     const formattedDate = format(localDate, formatString);
     return (

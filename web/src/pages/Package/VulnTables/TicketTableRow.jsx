@@ -1,6 +1,7 @@
 import { Box, TableCell, TableRow, Tooltip } from "@mui/material";
 import PropTypes from "prop-types";
 
+import { utcStringToLocalDate } from "../../../utils/func.js";
 import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip.jsx";
 import { WarningTooltip } from "../WarningTooltip.jsx";
 
@@ -27,6 +28,7 @@ export function TicketTableRow(props) {
 
   const target = matchedReference?.target || "";
   const packageManager = matchedReference?.package_manager || "";
+  console.log(ticket.ticket_status.scheduled_at)
 
   return (
     <TableRow>
@@ -71,7 +73,7 @@ export function TicketTableRow(props) {
           )}
         </Box>
       </TableCell>
-      <TableCell>{ticket.ticket_status.scheduled_at}</TableCell>
+      <TableCell>{utcStringToLocalDate(ticket.ticket_status.scheduled_at)}</TableCell>
       <TableCell>
         <AssigneesSelector
           key={ticket.ticket_status.assignees.join("")}

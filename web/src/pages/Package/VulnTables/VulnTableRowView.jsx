@@ -9,7 +9,7 @@ import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetDependenciesQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { ssvcPriorityProps } from "../../../utils/const.js";
-import { errorToString, searchWorstSSVC } from "../../../utils/func";
+import { errorToString, searchWorstSSVC, utcStringToLocalDate } from "../../../utils/func";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../../utils/vulnUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 
@@ -76,7 +76,7 @@ export function VulnTableRowView(props) {
           {tickets.length}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {vuln.updated_at}
+          {utcStringToLocalDate(vuln.updated_at)}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
           {affectedVersions.map((affectedVersion, index) =>
