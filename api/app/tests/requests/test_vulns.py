@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.main import app
-from app.persistence import get_package_by_name_and_ecosystem
 from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import PTEAM1, USER1, USER2
 from app.tests.medium.utils import (
@@ -33,7 +32,6 @@ class TestUpdateVuln:
         )
         testdb.add(package)
         testdb.flush()
-        self.expected_package_id = str(package.package_id)
         self.request1 = {
             "title": "Example vuln",
             "cve_id": "CVE-0000-0001",
@@ -43,13 +41,13 @@ class TestUpdateVuln:
             "cvss_v3_score": 7.8,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
                 },
                 {
-                    "name": "@nextui-org/button",
+                    "affected_name": "@nextui-org/button",
                     "ecosystem": "npm",
                     "affected_versions": ["<2.0.26"],
                     "fixed_versions": ["2.0.26"],
@@ -92,9 +90,10 @@ class TestUpdateVuln:
 
         self.affect1 = models.Affect(
             vuln_id=self.vuln1.vuln_id,
-            package_id=self.package1.package_id,
             affected_versions=["<2.0.0"],
             fixed_versions=["2.0.0"],
+            affected_name=self.package1.name,
+            ecosystem=self.package1.ecosystem,
         )
 
         testdb.add(self.affect1)
@@ -121,11 +120,10 @@ class TestUpdateVuln:
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
         pkg_resp = response.json()["vulnerable_packages"][0]
         req_pkg = self.request1["vulnerable_packages"][0]
-        assert pkg_resp["name"] == req_pkg["name"]
+        assert pkg_resp["affected_name"] == req_pkg["affected_name"]
         assert pkg_resp["ecosystem"] == req_pkg["ecosystem"]
         assert pkg_resp["affected_versions"] == req_pkg["affected_versions"]
         assert pkg_resp["fixed_versions"] == req_pkg["fixed_versions"]
-        assert pkg_resp["package_id"] == self.expected_package_id
 
         assert (
             current_time - timedelta(seconds=10)
@@ -148,7 +146,7 @@ class TestUpdateVuln:
             "cvss_v3_score": 7.8,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
@@ -183,11 +181,10 @@ class TestUpdateVuln:
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
         pkg_resp = response.json()["vulnerable_packages"][0]
         req_pkg = self.request1["vulnerable_packages"][0]
-        assert pkg_resp["name"] == req_pkg["name"]
+        assert pkg_resp["affected_name"] == req_pkg["affected_name"]
         assert pkg_resp["ecosystem"] == req_pkg["ecosystem"]
         assert pkg_resp["affected_versions"] == req_pkg["affected_versions"]
         assert pkg_resp["fixed_versions"] == req_pkg["fixed_versions"]
-        assert pkg_resp["package_id"] == self.expected_package_id
 
         assert (
             created_time - timedelta(seconds=10)
@@ -224,7 +221,7 @@ class TestUpdateVuln:
             "cvss_v3_score": 7.8,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
@@ -254,7 +251,7 @@ class TestUpdateVuln:
             "cvss_v3_score": 7.8,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
@@ -281,13 +278,13 @@ class TestUpdateVuln:
             "detail": "This vuln is example.",
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
                 },
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<3.0.0"],
                     "fixed_versions": ["3.0.0"],
@@ -315,7 +312,7 @@ class TestUpdateVuln:
             "cvss_v3_score": 9999.9999,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
@@ -363,7 +360,7 @@ class TestUpdateVuln:
             "cvss_v3_score": 7.8,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
@@ -431,7 +428,6 @@ class TestGetVuln:
         )
         testdb.add(package)
         testdb.flush()
-        self.expected_package_id = str(package.package_id)
         self.request1 = {
             "title": "Example vuln",
             "cve_id": "CVE-0000-0001",
@@ -441,7 +437,7 @@ class TestGetVuln:
             "cvss_v3_score": 7.8,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
@@ -474,11 +470,10 @@ class TestGetVuln:
         assert response.json()["cvss_v3_score"] == self.request1["cvss_v3_score"]
         pkg_resp = response.json()["vulnerable_packages"][0]
         req_pkg = self.request1["vulnerable_packages"][0]
-        assert pkg_resp["name"] == req_pkg["name"]
+        assert pkg_resp["affected_name"] == req_pkg["affected_name"]
         assert pkg_resp["ecosystem"] == req_pkg["ecosystem"]
         assert pkg_resp["affected_versions"] == req_pkg["affected_versions"]
         assert pkg_resp["fixed_versions"] == req_pkg["fixed_versions"]
-        assert pkg_resp["package_id"] == self.expected_package_id
 
         assert (
             self.created_time - timedelta(seconds=10)
@@ -521,7 +516,7 @@ class TestGetVulns:
             "cvss_v3_score": cvss_v3_score,
             "vulnerable_packages": [
                 {
-                    "name": f"example-lib-{index}",
+                    "affected_name": f"example-lib-{index}",
                     "ecosystem": f"ecosystem-{index}",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
@@ -541,14 +536,10 @@ class TestGetVulns:
         assert actual_vuln["cvss_v3_score"] == expected_request["cvss_v3_score"]
         pkg_resp = actual_vuln["vulnerable_packages"][0]
         req_pkg = expected_request["vulnerable_packages"][0]
-        assert pkg_resp["name"] == req_pkg["name"]
+        assert pkg_resp["affected_name"] == req_pkg["affected_name"]
         assert pkg_resp["ecosystem"] == req_pkg["ecosystem"]
         assert pkg_resp["affected_versions"] == req_pkg["affected_versions"]
         assert pkg_resp["fixed_versions"] == req_pkg["fixed_versions"]
-        # get package_id from DB and compare it.
-        package = get_package_by_name_and_ecosystem(testdb, req_pkg["name"], req_pkg["ecosystem"])
-        assert package is not None
-        assert pkg_resp["package_id"] == str(package.package_id)
 
     def test_it_should_return_200_and_vulns_list(self, testdb: Session):
         # Given
@@ -807,7 +798,7 @@ class TestGetVulns:
                     "cvss_v3_score": 7.5,
                     "vulnerable_packages": [
                         {
-                            "name": f"example-lib-{i}",
+                            "affected_name": f"example-lib-{i}",
                             "ecosystem": f"ecosystem-{i}",
                             "affected_versions": ["<2.0.0"],
                             "fixed_versions": ["2.0.0"],
@@ -824,7 +815,7 @@ class TestGetVulns:
                     "cvss_v3_score": 7.5,
                     "vulnerable_packages": [
                         {
-                            "name": f"example-lib-{i}",
+                            "affected_name": f"example-lib-{i}",
                             "ecosystem": f"ecosystem-{i}",
                             "affected_versions": ["<2.0.0"],
                             "fixed_versions": ["2.0.0"],
@@ -855,7 +846,7 @@ class TestGetVulns:
                 assert vuln["exploitation"] == "active"
                 assert vuln["automatable"] == "yes"
                 assert vuln["cvss_v3_score"] == 7.5
-                assert vuln["vulnerable_packages"][0]["name"] == "example-lib-0"
+                assert vuln["vulnerable_packages"][0]["affected_name"] == "example-lib-0"
                 assert vuln["vulnerable_packages"][0]["ecosystem"] == "ecosystem-0"
                 assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
                 assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
@@ -916,7 +907,7 @@ class TestGetVulns:
                     "cvss_v3_score": 7.5,
                     "vulnerable_packages": [
                         {
-                            "name": f"example-lib-{i}",
+                            "affected_name": f"example-lib-{i}",
                             "ecosystem": f"ecosystem-{i}",
                             "affected_versions": ["<2.0.0"],
                             "fixed_versions": ["2.0.0"],
@@ -933,7 +924,7 @@ class TestGetVulns:
                     "cvss_v3_score": 7.5,
                     "vulnerable_packages": [
                         {
-                            "name": f"example-lib-{i}",
+                            "affected_name": f"example-lib-{i}",
                             "ecosystem": f"ecosystem-{i}",
                             "affected_versions": ["<2.0.0"],
                             "fixed_versions": ["2.0.0"],
@@ -965,7 +956,7 @@ class TestGetVulns:
                 assert vuln["exploitation"] == "active"
                 assert vuln["automatable"] == "yes"
                 assert vuln["cvss_v3_score"] == 7.5
-                assert vuln["vulnerable_packages"][0]["name"] == "example-lib-0"
+                assert vuln["vulnerable_packages"][0]["affected_name"] == "example-lib-0"
                 assert vuln["vulnerable_packages"][0]["ecosystem"] == "ecosystem-0"
                 assert vuln["vulnerable_packages"][0]["affected_versions"] == ["<2.0.0"]
                 assert vuln["vulnerable_packages"][0]["fixed_versions"] == ["2.0.0"]
@@ -1011,7 +1002,7 @@ class TestGetVulns:
             "cvss_v3_score": 7.5,
             "vulnerable_packages": [
                 {
-                    "name": package_name,
+                    "affected_name": package_name,
                     "ecosystem": ecosystem,
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
@@ -1031,7 +1022,7 @@ class TestGetVulns:
             "cvss_v3_score": 5.0,
             "vulnerable_packages": [
                 {
-                    "name": "other-lib",
+                    "affected_name": "other-lib",
                     "ecosystem": "other-eco",
                     "affected_versions": ["<1.0.0"],
                     "fixed_versions": ["1.0.0"],
@@ -1307,7 +1298,7 @@ class TestGetVulns:
 
         # When
         response = client.get(
-            f"/vulns?package_name={put_response_data[0]['vulnerable_packages'][0]['name']}",
+            f"/vulns?package_name={put_response_data[0]['vulnerable_packages'][0]['affected_name']}",
             headers=self.headers_user,
         )
 
@@ -1361,115 +1352,14 @@ class TestGetVulns:
                 testdb,
             )
 
-    def test_it_should_filter_by_package_manager(self, testdb: Session):
-        # Given
-        package_manager = "package-manager-0"
-        number_of_vulns = 2
-        vuln_ids = []
-
-        for i in range(number_of_vulns):
-            vuln_id = uuid4()
-            vuln_request = self.create_vuln_request(i)
-            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
-            vuln_ids.append(vuln_id)
-
-            if i == 0:  # Get the package_id of the first record
-                response_data = response.json()
-                # Get the package_id from the database
-                package = testdb.execute(
-                    text(
-                        """
-                        SELECT package_id FROM package
-                        WHERE name = 'example-lib-0' AND ecosystem = 'ecosystem-0';
-                        """
-                    )
-                ).fetchone()
-
-                if package:
-                    package_id = package._mapping["package_id"]
-                else:
-                    raise ValueError("package_id could not be determined.")
-
-        if not package_id:
-            raise ValueError("package_id could not be determined.")
-
-        pteam_id = uuid4()
-        testdb.execute(
-            text(
-                f"""
-                INSERT INTO pteam (pteam_id, pteam_name, contact_info)
-                VALUES ('{pteam_id}', 'example-pteam', 'contact@example.com');
-                """
-            )
-        )
-
-        service_id = uuid4()
-        testdb.execute(
-            text(
-                f"""
-                INSERT INTO service (service_id, pteam_id, service_name)
-                VALUES ('{service_id}', '{pteam_id}', 'example-service');
-                """
-            )
-        )
-
-        # Add a dependency with the specified package_manager
-        package_version_id = uuid4()
-        dependency_id = uuid4()
-
-        testdb.execute(
-            text(
-                f"""
-            INSERT INTO packageversion (package_version_id, package_id, version)
-            VALUES ('{package_version_id}', '{package_id}', '1.0.0');
-            """
-            )
-        )
-        testdb.execute(
-            text(
-                f"""
-                INSERT INTO dependency (
-                    dependency_id, service_id, package_version_id, target, package_manager
-                )
-                VALUES (
-                '{dependency_id}',
-                '{service_id}',
-                '{package_version_id}',
-                'target',
-                '{package_manager}'
-                );
-                """
-            )
-        )
-
-        # When
-        response = client.get(
-            f"/vulns?package_manager={package_manager}", headers=self.headers_user
-        )
-
-        # Then
-        assert response.status_code == 200
-        response_data = response.json()
-        assert len(response_data["vulns"]) == 1
-        assert response_data["num_vulns"] == 1
-
-        # Check the details of each vuln
-        for i, vuln in enumerate(response_data["vulns"]):
-            self.assert_vuln_response(
-                vuln,
-                vuln_ids[i],
-                self.create_vuln_request(i),
-                testdb,
-            )
-
     # Test sort_key
     def setup_vulns(self, testdb: Session, vulns_data):
         testdb.execute(text("DELETE FROM vuln"))
         testdb.commit()
 
-        for data in vulns_data:
+        for i, data in enumerate(vulns_data):
             vuln_id = uuid4()
-            vuln_request = self.create_vuln_request(len(vulns_data), data["cvss_v3_score"])
+            vuln_request = self.create_vuln_request(i, data["cvss_v3_score"])
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             testdb.execute(
                 text(
@@ -1743,7 +1633,7 @@ class TestDeleteVuln:
             "cvss_v3_score": 7.5,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],
@@ -1792,7 +1682,7 @@ class TestGetVulnActions:
             "cvss_v3_score": 7.5,
             "vulnerable_packages": [
                 {
-                    "name": "example-lib",
+                    "affected_name": "example-lib",
                     "ecosystem": "pypi",
                     "affected_versions": ["<2.0.0"],
                     "fixed_versions": ["2.0.0"],

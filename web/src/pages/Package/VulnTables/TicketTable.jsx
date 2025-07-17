@@ -9,6 +9,9 @@ export function TicketTable(props) {
       <TableHead>
         <TableRow>
           <TableCell sx={{ fontWeight: "bold" }}>Target</TableCell>
+          <TableCell align="center" sx={{ fontWeight: "bold" }}>
+            Package manager
+          </TableCell>
           <TableCell sx={{ fontWeight: "bold" }}>Safety Impact</TableCell>
           <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
           <TableCell sx={{ fontWeight: "bold" }}>Due date</TableCell>

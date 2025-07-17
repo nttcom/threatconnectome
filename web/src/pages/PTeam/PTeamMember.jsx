@@ -53,7 +53,7 @@ export function PTeamMember(props) {
                     >
                       <TableCell align="left" style={{ width: "30%" }}>
                         <Box display="flex" flexDirection="row">
-                          {checkAdmin(member, pteamId) && <StarIcon color="warning" />}
+                          {member.is_admin && <StarIcon color="warning" />}
                           <Typography>{member.email}</Typography>
                         </Box>
                         <UUIDTypography>{member.user_id}</UUIDTypography>
@@ -77,7 +77,7 @@ export function PTeamMember(props) {
                           pteamId={pteamId}
                           memberUserId={member.user_id}
                           userEmail={member.email}
-                          isTargetMemberAdmin={checkAdmin(member, pteamId)}
+                          isTargetMemberAdmin={member.is_admin}
                         />
                       </TableCell>
                     </TableRow>

@@ -6,11 +6,16 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
+  useMediaQuery,
+  useTheme,
+  Box,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { setDrawerOpen } from "../../slices/system";
 import { LocationReader } from "../../utils/LocationReader";
 import { drawerWidth, drawerParams } from "../../utils/const";
 
@@ -51,13 +56,33 @@ export function Drawer() {
     navigate("/?" + queryParams);
   };
 
+  const dispatch = useDispatch();
+  const theme = useTheme();
+  const isLgUp = useMediaQuery(theme.breakpoints.up("lg"));
+  const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
+
+  // --- Effects for responsive drawer behavior ---
+
+  // Auto-open drawer on large screens.
+  // HACK: Use async update to prevent UI freeze from Drawer's race condition.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(setDrawerOpen(isLgUp));
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isLgUp, dispatch]);
+
   const drawerTitle = "Threatconnectome";
 
   return (
     <MuiDrawer
       anchor="left"
       open={system.drawerOpen}
-      variant="persistent"
+      variant={isSmDown ? "temporary" : "persistent"}
+      onClose={() => dispatch(setDrawerOpen(false))}
       sx={{
         flexShrink: 0,
         "& .MuiDrawer-paper": {
@@ -77,8 +102,14 @@ export function Drawer() {
           {drawerTitle}
         </Typography>
       </DrawerHeader>
-      <List>
-        <>
+      <Box
+        onClick={() => {
+          if (isSmDown) {
+            dispatch(setDrawerOpen(false));
+          }
+        }}
+      >
+        <List>
           <StyledListItemButton
             onClick={() => navigate("/?" + queryParams)}
             selected={locationReader.isStatusPage()}
@@ -97,19 +128,19 @@ export function Drawer() {
             </StyledListItemIcon>
             <ListItemText>Team</ListItemText>
           </StyledListItemButton>
-        </>
-        {/* Vulns */}
-        <StyledListItemButton
-          onClick={() => navigate("/vulns?" + queryParams)}
-          selected={locationReader.isVulnsPage()}
-        >
-          <StyledListItemIcon>
-            <TopicIcon />
-          </StyledListItemIcon>
-          <ListItemText>Vulns</ListItemText>
-        </StyledListItemButton>
-        {/* Vulnerabilities -- not listed on drawer, currently */}
-      </List>
+          {/* Vulns */}
+          <StyledListItemButton
+            onClick={() => navigate("/vulns?" + queryParams)}
+            selected={locationReader.isVulnsPage()}
+          >
+            <StyledListItemIcon>
+              <TopicIcon />
+            </StyledListItemIcon>
+            <ListItemText>Vulns</ListItemText>
+          </StyledListItemButton>
+          {/* Vulnerabilities -- not listed on drawer, currently */}
+        </List>
+      </Box>
     </MuiDrawer>
   );
 }

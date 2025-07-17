@@ -21,9 +21,12 @@ export function TicketTableRow(props) {
     ticket,
   } = props;
 
-  const target = references.filter(
+  const matchedReference = references.find(
     (reference) => reference.dependencyId === ticket.dependency_id,
-  )[0].target;
+  );
+
+  const target = matchedReference?.target || "";
+  const packageManager = matchedReference?.package_manager || "";
 
   return (
     <TableRow>
@@ -39,6 +42,15 @@ export function TicketTableRow(props) {
           {target}
         </TableCell>
       </Tooltip>
+      <TableCell
+        align="center"
+        sx={{
+          whiteSpace: "normal",
+          wordBreak: "break-all",
+        }}
+      >
+        {packageManager}
+      </TableCell>
       <TableCell>
         <SafetyImpactSelector pteamId={pteamId} ticket={ticket} />
       </TableCell>
