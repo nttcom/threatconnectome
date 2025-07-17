@@ -246,7 +246,7 @@ class TestGetTickets:
     def test_it_should_filter_by_pteam_ids(self):
         dummy_pteam_id = str(uuid4())
         response = client.get(f"/tickets?pteam_ids={dummy_pteam_id}", headers=headers(USER1))
-        assert response.status_code in (400, 422)
+        assert response.status_code == 400
 
         response2 = client.get(f"/tickets?pteam_ids={self.pteam1.pteam_id}", headers=headers(USER1))
         assert response2.status_code == 200
