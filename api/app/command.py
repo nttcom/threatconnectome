@@ -487,7 +487,7 @@ def get_sorted_paginated_tickets_for_pteams(
     # pagination
     select_stmt = select_stmt.offset(offset).limit(limit)
 
-    tickets = db.scalars(select_stmt).unique().all()
+    tickets = db.scalars(select_stmt).all()
 
     # Count the total number of tickets
     count_stmt = (
