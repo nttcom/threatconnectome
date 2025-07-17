@@ -1,10 +1,11 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app import command, database, models, persistence, schemas
 from app.auth.account import get_current_user
+from app.routers.validators.account_validator import check_pteam_membership
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
@@ -41,8 +42,8 @@ def get_tickets(
     Get paginated tickets related to the pteams the current user belongs to.
     """
 
-    user_pteam_ids = {UUID(str(role.pteam_id)) for role in current_user.pteam_roles}
     if not pteam_ids:
+        user_pteam_ids = {UUID(str(role.pteam_id)) for role in current_user.pteam_roles}
         pteam_ids = list(user_pteam_ids)
 
     db_pteams = persistence.get_pteams_by_ids(db, pteam_ids)
@@ -50,18 +51,17 @@ def get_tickets(
     not_found = set(str(pid) for pid in pteam_ids) - found_pteam_ids
     if not_found:
         raise HTTPException(
-            status_code=400, detail=f"Specified pteam_ids do not exist: {not_found}"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Specified pteam_ids do not exist: {not_found}",
         )
-
-    def check_pteam_membership(pteam, user):
-        return any(str(role.pteam_id) == str(pteam.pteam_id) for role in user.pteam_roles)
 
     not_belong = [
         pteam.pteam_id for pteam in db_pteams if not check_pteam_membership(pteam, current_user)
     ]
     if not_belong:
         raise HTTPException(
-            status_code=400, detail=f"Specified pteam_ids not belonging to the user: {not_belong}"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Specified pteam_ids not belonging to the user: {not_belong}",
         )
 
     assigned_user_id = (
