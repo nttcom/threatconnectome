@@ -426,7 +426,6 @@ class TestGetTickets:
         assert response.status_code == 200
         data = response.json()
         tickets = data["tickets"]
-        print(tickets)
 
         # created_at descending, if equal then SSVC priority descending
         sorted_tickets = sorted(
