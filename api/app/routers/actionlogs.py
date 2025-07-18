@@ -21,7 +21,7 @@ def get_logs(
     """
     logs = persistence.get_action_logs_by_user_id(db, current_user.user_id)
 
-    return sorted(logs, key=lambda l: l.executed_at, reverse=True):
+    return sorted(logs, key=lambda l: l.executed_at, reverse=True)
 
 
 @router.post("", response_model=schemas.ActionLogResponse)

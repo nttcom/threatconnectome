@@ -791,9 +791,7 @@ class TestGetTickets:
                 "dependency_id": str(self.dependency1.dependency_id),
                 "service_id": str(self.service1.service_id),
                 "pteam_id": str(self.pteam1.pteam_id),
-                "created_at": datetime.isoformat(db_ticket1.created_at).replace(
-                    "+00:00", "Z"
-                ),  
+                "created_at": datetime.isoformat(db_ticket1.created_at).replace("+00:00", "Z"),
                 "ssvc_deployer_priority": (
                     None
                     if db_ticket1.ssvc_deployer_priority is None
