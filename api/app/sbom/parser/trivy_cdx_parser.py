@@ -207,8 +207,8 @@ class TrivyCDXParser(SBOMParser):
             self,
             components_map: dict[str, Any],
             dependencies: dict[str, set[str]],
-            current_refs: set[str] = set(),
-            target_names: list[tuple[str, int]] = [],
+            current_refs: set[str],
+            target_names: list[tuple[str, int]],
         ) -> list[tuple[str, int]]:
             for ref, dependsOn in dependencies.items():
                 if ref in current_refs:
@@ -237,7 +237,7 @@ class TrivyCDXParser(SBOMParser):
             Determines the name of the target component that is closest (least depth)
             to the current component in the dependency graph.
             """
-            target_names = self._recursive_get_target_name(components_map, dependencies)
+            target_names = self._recursive_get_target_name(components_map, dependencies, set(), [])
             return min(target_names, key=lambda x: x[1])[0]
 
     @classmethod
