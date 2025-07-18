@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -56,7 +56,7 @@ def create_ticket_internal(
     threat: models.Threat,
     dependency: models.Dependency,
 ) -> models.Ticket:
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
 
     ticket = models.Ticket(
         threat_id=threat.threat_id,
@@ -109,7 +109,7 @@ def fix_ticket_ssvc_priority(
     ticket.ssvc_deployer_priority = fixed_priority
     # omit flush -- should be flushed in create_alert
     if ticket_meets_condition_to_create_alert(ticket):
-        now = now or datetime.now()
+        now = now or datetime.now(timezone.utc)
         alert = models.Alert(
             ticket_id=ticket.ticket_id,
             alerted_at=now,

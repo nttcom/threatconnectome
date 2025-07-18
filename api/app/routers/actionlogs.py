@@ -20,14 +20,8 @@ def get_logs(
     Get actionlogs of pteams the user belongs to.
     """
     logs = persistence.get_action_logs_by_user_id(db, current_user.user_id)
-    result = []
-    for log in sorted(logs, key=lambda l: l.executed_at, reverse=True):
-        if log.created_at:
-            log.created_at = log.created_at.astimezone(timezone.utc)
-        if log.executed_at:
-            log.executed_at = log.executed_at.astimezone(timezone.utc)
-        result.append(log.__dict__)
-    return result
+
+    return sorted(logs, key=lambda l: l.executed_at, reverse=True)
 
 
 @router.post("", response_model=schemas.ActionLogResponse)
@@ -67,7 +61,7 @@ def create_log(
         if not vuln_action or vuln_action.vuln_id != str(data.vuln_id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid action id")
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     log = models.ActionLog(
         action_id=data.action_id,
         vuln_id=data.vuln_id,
@@ -102,4 +96,12 @@ def get_vuln_logs(
     if vuln is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
     rows = persistence.get_vuln_logs_by_user_id(db, vuln_id, current_user.user_id)
-    return sorted(rows, key=lambda x: x.executed_at, reverse=True)
+    result = []
+    for log in sorted(rows, key=lambda l: l.executed_at, reverse=True):
+        original_log = log.__dict__.copy()
+        if log.created_at:
+            original_log["created_at"] = log.created_at
+        if log.executed_at:
+            original_log["executed_at"] = log.executed_at
+        result.append(original_log)
+    return result

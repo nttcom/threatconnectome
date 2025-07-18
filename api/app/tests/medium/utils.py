@@ -1,7 +1,7 @@
 import json
 import os
 import tempfile
-from datetime import datetime
+from datetime import datetime, timezone
 from hashlib import sha256
 from io import DEFAULT_BUFFER_SIZE, BytesIO
 from pathlib import Path
@@ -61,7 +61,7 @@ def invite_to_pteam(
     pteam_id: UUID | str,
 ) -> schemas.PTeamInvitationResponse:
     request = {
-        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0)),
+        "expiration": str(datetime(3000, 1, 1, 0, 0, 0, 0, tzinfo=timezone.utc)),
         "limit_count": 1,
     }
 
