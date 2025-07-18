@@ -166,3 +166,97 @@ class TestTrivyCDXParser:
         assert artifact.package_manager == ""
         assert len(artifact.targets) == 1
         assert list(artifact.targets)[0] == ("ubuntu", "1:4.4.10-10ubuntu4")
+
+    def test_it_should_create_target_with_closest_dependency(self):
+        sbom = {
+            "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
+            "bomFormat": "CycloneDX",
+            "specVersion": "1.5",
+            "serialNumber": "urn:uuid:5bf250f0-d1be-4c1a-96dc-5f6e62c28cb2",
+            "version": 1,
+            "metadata": {
+                "timestamp": "2024-07-01T00:00:00+09:00",
+                "tools": [{"vendor": "aquasecurity", "name": "trivy", "version": "0.52.0"}],
+                "component": {
+                    "bom-ref": "test0_ref",
+                    "type": "application",
+                    "name": "sample target1",
+                    "properties": [{"name": "aquasecurity:trivy:SchemaVersion", "value": "2"}],
+                },
+            },
+            "components": [
+                {
+                    "name": "test1_name",
+                    "type": "operating-system",
+                    "properties": [
+                        {"name": "aquasecurity:trivy:Type", "value": "ubuntu"},
+                        {"name": "aquasecurity:trivy:Class", "value": "os-pkgs"},
+                    ],
+                    "bom-ref": "test1_ref",
+                },
+                {
+                    "name": "test2_name",
+                    "type": "operating-system",
+                    "properties": [
+                        {"name": "aquasecurity:trivy:Type", "value": "ubuntu"},
+                        {"name": "aquasecurity:trivy:Class", "value": "os-pkgs"},
+                    ],
+                    "bom-ref": "test2_ref",
+                },
+                {
+                    "bom-ref": "test3_ref",
+                    "purl": "pkg:deb/ubuntu/test3_name@1:4.4.10-10ubuntu4?distro=ubuntu-20.04",
+                    "name": "test3_name",
+                    "version": "1:4.4.10-10ubuntu4",
+                    "type": "library",
+                    "properties": [{"name": "aquasecurity:trivy:SrcName", "value": "libxcrypt"}],
+                },
+                {
+                    "bom-ref": "test4_ref",
+                    "purl": "pkg:deb/ubuntu/test4_name@1:4.4.10-10ubuntu4?distro=ubuntu-20.04",
+                    "name": "test4_name",
+                    "version": "1:4.4.10-10ubuntu4",
+                    "type": "library",
+                    "properties": [{"name": "aquasecurity:trivy:SrcName", "value": "libxcrypt"}],
+                },
+            ],
+            "dependencies": [
+                {
+                    "ref": "test0_ref",
+                    "dependsOn": ["test1_ref"],
+                },
+                {
+                    "ref": "test1_ref",
+                    "dependsOn": ["test3_ref"],
+                },
+                {
+                    "ref": "test3_ref",
+                    "dependsOn": ["test4_ref"],
+                },
+                {
+                    "ref": "test2_ref",
+                    "dependsOn": ["test4_ref"],
+                },
+            ],
+        }
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.5",
+            tool_name="trivy",
+            tool_version="0.52.0",
+        )
+        parser = TrivyCDXParser()
+        artifacts = parser.parse_sbom(sbom, sbom_info)
+        assert len(artifacts) == 2
+
+        artifact3 = artifacts[0]
+        assert artifact3.package_name == "test3_name"
+        assert artifact3.package_manager == ""
+        assert len(artifact3.targets) == 1
+        assert list(artifact3.targets)[0] == ("test1_name", "1:4.4.10-10ubuntu4")
+
+        artifact4 = artifacts[1]
+        assert artifact4.package_name == "test4_name"
+        assert artifact4.package_manager == ""
+        assert len(artifact4.targets) == 1
+        assert list(artifact4.targets)[0] == ("test2_name", "1:4.4.10-10ubuntu4")
