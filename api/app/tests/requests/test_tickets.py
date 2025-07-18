@@ -31,6 +31,13 @@ from app.tests.medium.utils import (
 
 client = TestClient(app)
 
+SSVC_PRIORITY_ORDER = {
+    "immediate": 4,
+    "out_of_cycle": 3,
+    "scheduled": 2,
+    "defer": 1,
+}
+
 
 @pytest.fixture(scope="function", autouse=True)
 def ticket_setup(testdb):
@@ -340,7 +347,7 @@ class TestGetTickets:
         sorted_tickets = sorted(
             tickets,
             key=lambda t: (
-                t["ssvc_deployer_priority"],
+                SSVC_PRIORITY_ORDER.get(t["ssvc_deployer_priority"], 99),
                 -datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
             ),
         )
@@ -368,7 +375,7 @@ class TestGetTickets:
         sorted_tickets = sorted(
             tickets,
             key=lambda t: (
-                ord(t["ssvc_deployer_priority"][0]),
+                -SSVC_PRIORITY_ORDER.get(t["ssvc_deployer_priority"]),
                 -datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
             ),
         )
@@ -397,7 +404,7 @@ class TestGetTickets:
             tickets,
             key=lambda t: (
                 datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")),
-                -ord(t["ssvc_deployer_priority"][0]),
+                -SSVC_PRIORITY_ORDER.get(t["ssvc_deployer_priority"]),
             ),
         )
         assert tickets == sorted_tickets
@@ -419,13 +426,14 @@ class TestGetTickets:
         assert response.status_code == 200
         data = response.json()
         tickets = data["tickets"]
+        print(tickets)
 
         # created_at descending, if equal then SSVC priority descending
         sorted_tickets = sorted(
             tickets,
             key=lambda t: (
                 -datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
-                -ord(t["ssvc_deployer_priority"][0]),
+                -SSVC_PRIORITY_ORDER.get(t["ssvc_deployer_priority"]),
             ),
         )
         assert tickets == sorted_tickets
