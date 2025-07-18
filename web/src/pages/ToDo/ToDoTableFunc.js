@@ -5,7 +5,7 @@ import { tcApi } from "../../services/tcApi";
 
 async function fetchTicketsForPteams(dispatch, pteamIds, myTasks) {
   const ticketPromises = pteamIds.map((pteamId) =>
-    dispatch(tcApi.endpoints.getTickets.initiate({ pteamId, assignedToMe: myTasks })).unwrap(),
+    dispatch(tcApi.endpoints.getPteamTickets.initiate({ pteamId, assignedToMe: myTasks })).unwrap(),
   );
   const ticketsResults = await Promise.all(ticketPromises);
   return ticketsResults.flatMap((tickets, idx) =>

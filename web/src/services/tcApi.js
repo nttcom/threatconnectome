@@ -300,7 +300,7 @@ export const tcApi = createApi({
     }),
 
     /* Ticket */
-    getTickets: builder.query({
+    getPteamTickets: builder.query({
       query: ({ pteamId, serviceId, vulnId, packageId, assignedToMe }) => ({
         url: `pteams/${pteamId}/tickets`,
         method: "GET",
@@ -458,7 +458,7 @@ export const {
   useDeletePTeamServiceThumbnailMutation,
   useGetPTeamPackagesSummaryQuery,
   useUploadSBOMFileMutation,
-  useGetTicketsQuery,
+  useGetPteamTicketsQuery,
   useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
   useGetUserMeQuery,
