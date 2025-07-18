@@ -1,10 +1,11 @@
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import (
     and_,
+    case,
     delete,
     false,
     func,
@@ -32,7 +33,7 @@ def expire_pteam_invitations(db: Session) -> None:
     db.execute(
         delete(models.PTeamInvitation).where(
             or_(
-                models.PTeamInvitation.expiration < datetime.now(),
+                models.PTeamInvitation.expiration < datetime.now(timezone.utc),
                 and_(
                     models.PTeamInvitation.limit_count.is_not(None),
                     models.PTeamInvitation.limit_count <= models.PTeamInvitation.used_count,
@@ -434,3 +435,102 @@ def get_related_affects_by_package(db: Session, package: models.Package) -> Sequ
             )
         )
     ).all()
+
+
+SSVC_PRIORITY_ORDER = {
+    "IMMEDIATE": 3,
+    "OUT_OF_CYCLE": 2,
+    "SCHEDULED": 1,
+    "DEFER": 0,
+}
+
+
+def get_sorted_paginated_tickets_for_pteams(
+    db: Session,
+    pteam_ids: list[UUID],
+    assigned_user_id: UUID | None = None,
+    offset: int = 0,
+    limit: int = 100,
+    sort_key: schemas.TicketSortKey = schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC,
+) -> tuple[int, Sequence[models.Ticket]]:
+
+    select_stmt = (
+        select(models.Ticket)
+        .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
+        .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+        .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
+    )
+
+    if assigned_user_id is not None:
+        select_stmt = select_stmt.join(
+            models.TicketStatus,
+            and_(
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(
+                    None
+                ),
+            ),
+        )
+
+    # sort by SSVC priority
+    priority_case = case(
+        SSVC_PRIORITY_ORDER,
+        value=models.Ticket.ssvc_deployer_priority,
+        else_=None,
+    )
+
+    # sort
+    sortkey2orderby: dict[schemas.TicketSortKey, list] = {
+        schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY: [
+            priority_case.asc().nullslast(),
+            models.Ticket.created_at.desc(),
+        ],
+        schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC: [
+            priority_case.desc().nullslast(),
+            models.Ticket.created_at.desc(),
+        ],
+        schemas.TicketSortKey.CREATED_AT: [
+            models.Ticket.created_at.asc(),
+            priority_case.desc().nullslast(),
+        ],
+        schemas.TicketSortKey.CREATED_AT_DESC: [
+            models.Ticket.created_at.desc(),
+            priority_case.desc().nullslast(),
+        ],
+    }
+
+    select_stmt = select_stmt.order_by(
+        *sortkey2orderby.get(
+            sort_key,
+            [
+                priority_case.desc().nullslast(),
+                models.Ticket.created_at.desc(),
+            ],
+        )
+    )
+
+    # pagination
+    select_stmt = select_stmt.offset(offset).limit(limit)
+
+    tickets = db.scalars(select_stmt).all()
+
+    # Count the total number of tickets
+    count_stmt = (
+        select(func.count(models.Ticket.ticket_id.distinct()))
+        .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
+        .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+        .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
+    )
+    if assigned_user_id is not None:
+        count_stmt = count_stmt.join(
+            models.TicketStatus,
+            and_(
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(
+                    None
+                ),
+            ),
+        )
+    total_count = db.scalar(count_stmt) or 0
+
+    return total_count, tickets

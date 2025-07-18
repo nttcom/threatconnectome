@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -108,7 +108,7 @@ class TestActionLog:
 
     class TestCreate(Common):
         def test_create_log(self):
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             actionlog1 = create_actionlog(
                 USER1,
                 self.action1.action_id,
@@ -138,7 +138,7 @@ class TestActionLog:
             assert actionlog1.created_at > now
 
         def test_create_log_without_action_id(self):
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             actionlog = create_actionlog(
                 USER1,
                 None,  # action_id = None
@@ -308,7 +308,7 @@ class TestActionLog:
                 self.vuln1.vuln_id,
                 self.package_version1.package_id,
             )[0]
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             yesterday = now - timedelta(days=1)
 
             actionlog1 = create_actionlog(
@@ -350,7 +350,7 @@ class TestActionLog:
             assert data[1]["ticket_id"] == ticket2["ticket_id"]
 
         def test_get_logs_members_only(self, testdb):
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             before = now - timedelta(days=1)
 
             actionlog1 = create_actionlog(
@@ -530,7 +530,7 @@ class TestGetVulnLogs:
         ticket = self.ticket1
 
         # create two action logs
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         yesterday = now - timedelta(days=1)
 
         actionlog1 = create_actionlog(
@@ -592,7 +592,7 @@ class TestGetVulnLogs:
             self.pteam1.pteam_id,
             self.service1["service_id"],
             self.ticket1["ticket_id"],
-            datetime.now(),
+            datetime.now(timezone.utc),
         )
 
         other_action_data = {
@@ -613,7 +613,7 @@ class TestGetVulnLogs:
             self.pteam1.pteam_id,
             self.service1["service_id"],
             self.ticket1["ticket_id"],
-            datetime.now(),
+            datetime.now(timezone.utc),
         )
 
         response = client.get(f"/actionlogs/vulns/{self.vuln1.vuln_id}", headers=headers(USER1))
