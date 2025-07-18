@@ -12,12 +12,6 @@ from app.routers.validators.account_validator import check_pteam_membership
 router = APIRouter(prefix="/actionlogs", tags=["actionlogs"])
 
 
-def to_utc(dt):
-    if isinstance(dt, str):
-        dt = datetime.fromisoformat(dt.replace("Z", "+00:00"))
-    return dt.astimezone(timezone.utc)
-
-
 @router.get("", response_model=list[schemas.ActionLogResponse])
 def get_logs(
     current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
@@ -30,9 +24,9 @@ def get_logs(
     for log in sorted(logs, key=lambda l: l.executed_at, reverse=True):
         original_log = log.__dict__.copy()  # to avoid modifying the DB log
         if log.created_at:
-            original_log["created_at"] = to_utc(log.created_at)
+            original_log["created_at"] = log.created_at
         if log.executed_at:
-            original_log["executed_at"] = to_utc(log.executed_at)
+            original_log["executed_at"] = log.executed_at
         result.append(original_log)
     return result
 
@@ -113,8 +107,8 @@ def get_vuln_logs(
     for log in sorted(rows, key=lambda l: l.executed_at, reverse=True):
         original_log = log.__dict__.copy()
         if log.created_at:
-            original_log["created_at"] = to_utc(log.created_at)
+            original_log["created_at"] = log.created_at
         if log.executed_at:
-            original_log["executed_at"] = to_utc(log.executed_at)
+            original_log["executed_at"] = log.executed_at
         result.append(original_log)
     return result

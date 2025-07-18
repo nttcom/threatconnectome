@@ -162,17 +162,7 @@ def get_pteam_services(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    return [
-        {
-            **service.__dict__,
-            "sbom_uploaded_at": (
-                service.sbom_uploaded_at.astimezone(timezone.utc)
-                if service.sbom_uploaded_at
-                else None
-            ),
-        }
-        for service in sorted(pteam.services, key=lambda x: x.service_name)
-    ]
+    return sorted(pteam.services, key=lambda x: x.service_name)
 
 
 @router.put("/{pteam_id}/services/{service_id}", response_model=schemas.PTeamServiceUpdateResponse)
@@ -478,10 +468,6 @@ def get_pteam_packages_summary(
 
     packages_summary = command.get_packages_summary(db, pteam_id, service_id)
 
-    for pkg in packages_summary:
-        if pkg.get("updated_at"):
-            pkg["updated_at"] = pkg["updated_at"].astimezone(timezone.utc)
-
     ssvc_priority_count = _count_ssvc_priority_from_summary(packages_summary)
 
     return {
@@ -712,15 +698,7 @@ def get_ticket_status(
     if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
         raise NO_SUCH_TICKET
 
-    return {
-        **ticket.ticket_status.__dict__,
-        "created_at": ticket.ticket_status.created_at.astimezone(timezone.utc),
-        "scheduled_at": (
-            ticket.ticket_status.scheduled_at.astimezone(timezone.utc)
-            if ticket.ticket_status.scheduled_at
-            else None
-        ),
-    }
+    return ticket.ticket_status
 
 
 @router.put(
@@ -867,15 +845,7 @@ def set_ticket_status(
 
     db.commit()
 
-    return {
-        **ticket.ticket_status.__dict__,
-        "created_at": ticket.ticket_status.created_at.astimezone(timezone.utc),
-        "scheduled_at": (
-            ticket.ticket_status.scheduled_at.astimezone(timezone.utc)
-            if ticket.ticket_status.scheduled_at
-            else None
-        ),
-    }
+    return ticket.ticket_status
 
 
 @router.get(
@@ -922,7 +892,7 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
             "ticket_id": ticket.ticket_id,
             "vuln_id": ticket.threat.vuln_id,
             "dependency_id": ticket.dependency_id,
-            "created_at": ticket.created_at.astimezone(timezone.utc),
+            "created_at": ticket.created_at,
             "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
             "ticket_safety_impact": ticket.ticket_safety_impact,
             "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
@@ -961,7 +931,6 @@ def get_ticket(
         "ticket_id": ticket.ticket_id,
         "vuln_id": vuln_id,
         "dependency_id": ticket.dependency_id,
-        # "created_at": ticket.created_at.astimezone(timezone.utc),
         "created_at": ticket.created_at,
         "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
         "ticket_safety_impact": ticket.ticket_safety_impact,
@@ -1032,7 +1001,7 @@ def update_ticket_safety_impact(
         "ticket_id": ticket.ticket_id,
         "vuln_id": vuln_id,
         "dependency_id": ticket.dependency_id,
-        "created_at": ticket.created_at.astimezone(timezone.utc),
+        "created_at": ticket.created_at,
         "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
         "ticket_safety_impact": ticket.ticket_safety_impact,
         "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
@@ -1585,7 +1554,6 @@ def create_invitation(
 
     ret = {
         **invitation.__dict__,  # cannot get after db.commit() without refresh
-        "expiration": invitation.expiration.astimezone(timezone.utc),
     }
 
     db.commit()
@@ -1611,8 +1579,7 @@ def list_invitations(
     # do not commit within GET method
 
     return [
-        {**invitation.__dict__, "expiration": invitation.expiration.astimezone(timezone.utc)}
-        for invitation in persistence.get_pteam_invitations(db, pteam_id)
+        {**invitation.__dict__} for invitation in persistence.get_pteam_invitations(db, pteam_id)
     ]
 
 
