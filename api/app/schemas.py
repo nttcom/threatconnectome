@@ -167,15 +167,11 @@ class ActionUpdateRequest(ORMModel):
     recommended: bool | None = None
 
 
-class VulnerablePackageBase(BaseModel):
-    name: str
+class VulnerablePackageResponse(BaseModel):
+    affected_name: str
     ecosystem: str
     affected_versions: list[str]
     fixed_versions: list[str]
-
-
-class VulnerablePackageResponse(VulnerablePackageBase):
-    package_id: UUID
 
 
 class VulnBase(BaseModel):
@@ -185,6 +181,7 @@ class VulnBase(BaseModel):
     exploitation: ExploitationEnum | None = None
     automatable: AutomatableEnum | None = None
     cvss_v3_score: float | None = None
+    vulnerable_packages: list[VulnerablePackageResponse] = []
 
     _validate_cve_id = field_validator("cve_id", mode="before")(validate_cve_id)
 
@@ -194,7 +191,6 @@ class VulnResponse(VulnBase):
     created_at: datetime
     updated_at: datetime
     created_by: UUID | None = None
-    vulnerable_packages: list[VulnerablePackageResponse] = []
 
 
 class VulnsListResponse(BaseModel):
@@ -203,7 +199,7 @@ class VulnsListResponse(BaseModel):
 
 
 class VulnUpdateRequest(VulnBase):
-    vulnerable_packages: list[VulnerablePackageBase] = []
+    pass
 
 
 class PTeamInfo(PTeamEntry):
@@ -332,6 +328,8 @@ class TicketResponse(ORMModel):
     ticket_id: UUID
     vuln_id: UUID
     dependency_id: UUID
+    service_id: UUID
+    pteam_id: UUID
     created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     ticket_safety_impact: SafetyImpactEnum | None
@@ -339,9 +337,21 @@ class TicketResponse(ORMModel):
     ticket_status: TicketStatusResponse
 
 
+class TicketListResponse(BaseModel):
+    total: int
+    tickets: list[TicketResponse]
+
+
 class TicketUpdateRequest(ORMModel):
     ticket_safety_impact: SafetyImpactEnum | None = None
     ticket_safety_impact_change_reason: str | None = None
+
+
+class TicketSortKey(str, Enum):
+    SSVC_DEPLOYER_PRIORITY = "ssvc_deployer_priority"
+    SSVC_DEPLOYER_PRIORITY_DESC = "ssvc_deployer_priority_desc"
+    CREATED_AT = "created_at"
+    CREATED_AT_DESC = "created_at_desc"
 
 
 class PTeamPackagesSummary(ORMModel):
@@ -392,5 +402,7 @@ class DependencyResponse(ORMModel):
     target: str
     dependency_mission_impact: str | None = None
     package_name: str
+    package_source_name: str | None = None
     package_version: str
     package_ecosystem: str
+    vuln_matching_ecosystem: str

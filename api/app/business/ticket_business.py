@@ -9,7 +9,7 @@ from app.ssvc import ssvc_calculator
 
 
 def fix_ticket_by_threat(db: Session, threat: models.Threat):
-    need_ticket = _check_need_ticket(threat)
+    need_ticket = _check_need_ticket(db, threat)
     for dependency in threat.package_version.dependencies:
         if ticket := persistence.get_ticket_by_threat_id_and_dependency_id(
             db, threat.threat_id, dependency.dependency_id
@@ -24,14 +24,14 @@ def fix_ticket_by_threat(db: Session, threat: models.Threat):
                 create_ticket_internal(db, threat, dependency)
 
 
-def _check_need_ticket(threat: models.Threat) -> bool:
-    return _check_has_fixed_version(threat) or len(threat.vuln.vuln_actions) > 0
+def _check_need_ticket(db: Session, threat: models.Threat) -> bool:
+    return _check_has_fixed_version(db, threat) or len(threat.vuln.vuln_actions) > 0
 
 
-def _check_has_fixed_version(threat: models.Threat) -> bool:
+def _check_has_fixed_version(db: Session, threat: models.Threat) -> bool:
     for affect in threat.vuln.affects:
         matched_package_version_ids: set[str] = (
-            vulnerability_detector.detect_vulnerability_by_affect(affect)
+            vulnerability_detector.detect_vulnerability_by_affect(db, affect)
         )
         if threat.package_version.package_version_id in matched_package_version_ids:
             if len(affect.fixed_versions) > 0:

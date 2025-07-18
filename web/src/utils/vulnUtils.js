@@ -2,7 +2,10 @@ export const createActionByFixedVersions = (affectedVersions, fixedVersions, pac
   const action = {
     // Create action_id to make it common processing with manual registration action
     // This action_id is only used on the UI
-    action_id: self.crypto.randomUUID(),
+    action_id:
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2),
     action_type: "elimination",
     recommended: true,
   };
@@ -26,7 +29,7 @@ export function getActions(vuln, vulnActions) {
     const action = createActionByFixedVersions(
       vulnerable_package.affected_versions,
       vulnerable_package.fixed_versions,
-      vulnerable_package.name,
+      vulnerable_package.affected_name,
     );
     if (action != null) {
       actionsByFixedVersions.push(action);
@@ -34,4 +37,15 @@ export function getActions(vuln, vulnActions) {
   });
 
   return [...actionsByFixedVersions, ...vulnActions];
+}
+
+export function findMatchedVulnPackage(vulnerable_packages, currentPackage) {
+  const { package_source_name, package_name, vuln_matching_ecosystem } = currentPackage;
+  return vulnerable_packages.find(
+    (vulnerable_package) =>
+      vulnerable_package.ecosystem === vuln_matching_ecosystem &&
+      (package_source_name != null
+        ? vulnerable_package.affected_name === package_source_name
+        : vulnerable_package.affected_name === package_name),
+  );
 }

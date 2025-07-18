@@ -2,7 +2,18 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ARRAY, JSON, ForeignKey, LargeBinary, String, Text, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    ForeignKey,
+    LargeBinary,
+    String,
+    Text,
+    UniqueConstraint,
+    case,
+    func,
+)
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
 from sqlalchemy.sql.functions import current_timestamp
 from typing_extensions import Annotated
@@ -50,6 +61,12 @@ class ActionType(str, enum.Enum):
     acceptance = "acceptance"
     detection = "detection"
     rejection = "rejection"
+
+
+class PackageType(str, enum.Enum):
+    LANG = "lang"
+    OS = "os"
+    PACKAGE = "package"
 
 
 class VulnStatusType(str, enum.Enum):
@@ -210,21 +227,120 @@ class PackageVersion(Base):
 
 class Package(Base):
     __tablename__ = "package"
-    __table_args__ = (UniqueConstraint("name", "ecosystem", name="package_name_ecosystem_key"),)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if not self.package_id:
             self.package_id = str(uuid.uuid4())
 
+    @hybrid_property
+    def vuln_matching_ecosystem(self) -> str:
+        """
+        Returns the ecosystem string for vulnerability matching.
+        If the ecosystem starts with "alpine-",
+        it change the value to include only the minor version.
+        If it starts with "rocky-", it keeps only the major version.
+        Example: "alpine-3.22.0" → "alpine-3.22", "rocky-9.3" → "rocky-9"
+        For other ecosystems, returns the original value.
+        """
+        if not self.ecosystem:
+            return self.ecosystem
+        if self.ecosystem.startswith("alpine-"):
+            parts = self.ecosystem.split("-")
+            if len(parts) == 2:
+                version = parts[1].split(".")
+                if len(version) >= 2:
+                    return f"alpine-{version[0]}.{version[1]}"
+        elif self.ecosystem.startswith("rocky-"):
+            parts = self.ecosystem.split("-")
+            if len(parts) == 2:
+                version = parts[1].split(".")
+                if len(version) >= 1:
+                    return f"rocky-{version[0]}"
+        return self.ecosystem
+
+    @vuln_matching_ecosystem.inplace.expression
+    def vuln_matching_ecosystem_for_sql_query(cls):
+        """
+        SQL expression for vuln_matching_ecosystem.
+        If the ecosystem starts with 'alpine-', returns only up to the minor version
+        (e.g., 'alpine-3.22.0' → 'alpine-3.22').
+        If the ecosystem starts with 'rocky-', returns only the major version
+        (e.g., 'rocky-9.3' → 'rocky-9').
+        Otherwise, returns the original ecosystem value.
+        """
+        return case(
+            (
+                # Beginning with "alpine-", split in two by "-", split in three by "."
+                cls.ecosystem.like("alpine-%")
+                & (func.array_length(func.string_to_array(cls.ecosystem, "-"), 1) == 2)
+                & (
+                    func.array_length(
+                        func.string_to_array(func.split_part(cls.ecosystem, "-", 2), "."), 1
+                    )
+                    == 3
+                ),
+                func.concat(
+                    "alpine-",
+                    func.split_part(func.split_part(cls.ecosystem, "-", 2), ".", 1),
+                    ".",
+                    func.split_part(func.split_part(cls.ecosystem, "-", 2), ".", 2),
+                ),
+            ),
+            (
+                # rocky-: "rocky-x.y" → "rocky-x"
+                cls.ecosystem.like("rocky-%")
+                & (func.array_length(func.string_to_array(cls.ecosystem, "-"), 1) == 2)
+                & (
+                    func.array_length(
+                        func.string_to_array(func.split_part(cls.ecosystem, "-", 2), "."), 1
+                    )
+                    > 1
+                ),
+                func.concat(
+                    "rocky-",
+                    func.split_part(func.split_part(cls.ecosystem, "-", 2), ".", 1),
+                ),
+            ),
+            else_=cls.ecosystem,
+        )
+
     package_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column()
     ecosystem: Mapped[str] = mapped_column()
 
+    type: Mapped[PackageType] = mapped_column()
+
+    __mapper_args__ = {
+        "polymorphic_on": type,
+        "polymorphic_identity": PackageType.PACKAGE,
+    }
+
     package_versions = relationship(
         "PackageVersion", back_populates="package", cascade="all, delete-orphan"
     )
-    affects = relationship("Affect", back_populates="package")
+
+
+class LangPackage(Package):
+    __mapper_args__ = {
+        "polymorphic_identity": PackageType.LANG,
+    }
+
+
+class OSPackage(Package):
+    source_name: Mapped[str] = mapped_column(nullable=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": PackageType.OS,
+    }
+
+
+UniqueConstraint(
+    Package.name,
+    Package.ecosystem,
+    OSPackage.source_name,
+    name="package_name_ecosystem_source_name_key",
+)
 
 
 class Dependency(Base):
@@ -536,6 +652,14 @@ class VulnAction(Base):
 
 class Affect(Base):
     __tablename__ = "affect"
+    __table_args__ = (
+        UniqueConstraint(
+            "vuln_id",
+            "affected_name",
+            "ecosystem",
+            name="affect_vuln_id_affected_name_ecosystem_key",
+        ),
+    )
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -546,14 +670,13 @@ class Affect(Base):
     vuln_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
     )
-    package_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("package.package_id", ondelete="CASCADE"), index=True
-    )
+
     affected_versions: Mapped[list[str]] = mapped_column(default=[])
     fixed_versions: Mapped[list[str]] = mapped_column(default=[])
+    affected_name: Mapped[str] = mapped_column()
+    ecosystem: Mapped[str] = mapped_column()
 
     vuln = relationship("Vuln", back_populates="affects")
-    package = relationship("Package", back_populates="affects")
 
 
 class ActionLog(Base):

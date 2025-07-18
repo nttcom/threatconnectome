@@ -85,9 +85,10 @@ class TestFixTicketByThreat:
 
         affect = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=["2.0.0"],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         persistence.create_affect(testdb, affect)
 
@@ -133,9 +134,10 @@ class TestFixTicketByThreat:
 
         affect = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         persistence.create_affect(testdb, affect)
 
@@ -192,9 +194,10 @@ class TestFixTicketByThreat:
 
         affect = models.Affect(
             vuln_id=vuln1.vuln_id,
-            package_id=package1.package_id,
             affected_versions=["<=1.0.0"],
             fixed_versions=[],
+            affected_name=package1.name,
+            ecosystem=package1.ecosystem,
         )
         persistence.create_affect(testdb, affect)
 

@@ -5,6 +5,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     and_,
+    case,
     delete,
     false,
     func,
@@ -103,51 +104,23 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
 def get_vulns_count(
     db: Session,
     filters,
-    package_manager: str | None,
     pteam_id: UUID | str | None,
 ) -> int:
     count_query = select(func.count(models.Vuln.vuln_id.distinct()))
-    count_query = count_query.join(
-        models.Affect,
-    ).join(models.Package, models.Affect.package_id == models.Package.package_id)
+    count_query = count_query.join(models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id)
 
-    # Add a JOIN if referencing Dependency
-    if package_manager:
-        count_query = count_query.outerjoin(
-            models.PackageVersion, models.Package.package_id == models.PackageVersion.package_id
-        ).outerjoin(
-            models.Dependency,
-            models.PackageVersion.package_version_id == models.Dependency.package_version_id,
-        )
-        if pteam_id:
-            count_query = count_query.join(
-                models.Service,
-                and_(
-                    models.Service.service_id == models.Dependency.service_id,
-                    models.Service.pteam_id == str(pteam_id),
-                ),
-            )
-    elif pteam_id:
+    if pteam_id:
         count_query = (
-            count_query.outerjoin(
-                models.PackageVersion,
-                models.Package.package_id == models.PackageVersion.package_id,
-            )
-            .join(
-                models.Dependency,
-                models.PackageVersion.package_version_id == models.Dependency.package_version_id,
-            )
-            .join(
-                models.Service,
-                and_(
-                    models.Service.service_id == models.Dependency.service_id,
-                    models.Service.pteam_id == str(pteam_id),
-                ),
-            )
+            count_query.join(models.Threat, models.Threat.vuln_id == models.Vuln.vuln_id)
+            .join(models.Ticket, models.Ticket.threat_id == models.Threat.threat_id)
+            .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
+            .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+            .where(models.Service.pteam_id == str(pteam_id))
         )
 
     if filters:
         count_query = count_query.where(and_(*filters))
+
     result = db.scalar(count_query)
     return result if result is not None else 0
 
@@ -170,7 +143,6 @@ def get_vulns(
     cve_ids: list[str] | None = None,
     package_name: list[str] | None = None,
     ecosystem: list[str] | None = None,
-    package_manager: str | None = None,
     sort_key: schemas.VulnSortKey = schemas.VulnSortKey.CVSS_V3_SCORE_DESC,  # set default sort key
 ) -> dict:
     # Remove duplicates from lists
@@ -200,20 +172,7 @@ def get_vulns(
                 raise ValueError(f"Invalid CVE ID format: {cve_id}")
 
     # Base query
-    query = (
-        select(models.Vuln)
-        .join(models.Affect)
-        .join(models.Package, models.Affect.package_id == models.Package.package_id)
-    )
-
-    # Conditionally join Dependency if package_manager is specified
-    if package_manager:
-        query = query.outerjoin(
-            models.PackageVersion, models.Package.package_id == models.PackageVersion.package_id
-        ).outerjoin(
-            models.Dependency,
-            models.PackageVersion.package_version_id == models.Dependency.package_version_id,
-        )
+    query = select(models.Vuln).join(models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id)
 
     filters = []
 
@@ -264,48 +223,23 @@ def get_vulns(
     if len(fixed_creator_ids) > 0:
         filters.append(models.Vuln.created_by.in_(fixed_creator_ids))
 
-    # Affect filters
     if package_name:
-        filters.append(models.Affect.package.has(models.Package.name.in_(package_name)))
+        filters.append(models.Affect.affected_name.in_(package_name))
     if ecosystem:
-        filters.append(models.Affect.package.has(models.Package.ecosystem.in_(ecosystem)))
+        filters.append(models.Affect.ecosystem.in_(ecosystem))
 
     # PTeam filter
     if pteam_id:
-        if package_manager:
-            query = query.join(
-                models.Service,
-                and_(
-                    models.Service.service_id == models.Dependency.service_id,
-                    models.Service.pteam_id == str(pteam_id),
-                ),
-            )
-        else:
-            query = (
-                query.outerjoin(
-                    models.PackageVersion,
-                    models.Package.package_id == models.PackageVersion.package_id,
-                )
-                .join(
-                    models.Dependency,
-                    models.PackageVersion.package_version_id
-                    == models.Dependency.package_version_id,
-                )
-                .join(
-                    models.Service,
-                    and_(
-                        models.Service.service_id == models.Dependency.service_id,
-                        models.Service.pteam_id == str(pteam_id),
-                    ),
-                )
-            )
-
-    # Dependency filters
-    if package_manager:
-        filters.append(models.Dependency.package_manager == package_manager)
+        query = (
+            query.join(models.Threat, models.Threat.vuln_id == models.Vuln.vuln_id)
+            .join(models.Ticket, models.Ticket.threat_id == models.Threat.threat_id)
+            .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
+            .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+            .where(models.Service.pteam_id == str(pteam_id))
+        )
 
     # Count total number of vulnerabilities matching the filters
-    num_vulns = get_vulns_count(db, filters, package_manager, pteam_id)
+    num_vulns = get_vulns_count(db, filters, pteam_id)
 
     if filters:
         query = query.where(and_(*filters))
@@ -333,6 +267,7 @@ def get_vulns(
 
     # Pageination
     query = query.distinct().offset(offset).limit(limit)
+
     vulns = db.scalars(query).all()
 
     result = {
@@ -455,3 +390,147 @@ def get_packages_summary(
     ]
 
     return summary
+
+
+def get_related_packages_by_affect(db: Session, affect: models.Affect) -> Sequence[models.Package]:
+    query = select(models.Package).where(
+        models.Package.vuln_matching_ecosystem == str(affect.ecosystem)
+    )
+
+    conditions = [
+        and_(
+            models.Package.type != models.PackageType.OS,
+            models.Package.name == str(affect.affected_name),
+        ),
+        and_(
+            models.Package.type == models.PackageType.OS,
+            models.OSPackage.source_name.isnot(None),
+            models.OSPackage.source_name == str(affect.affected_name),
+        ),
+        and_(
+            models.Package.type == models.PackageType.OS,
+            models.OSPackage.source_name.is_(None),
+            models.Package.name == str(affect.affected_name),
+        ),
+    ]
+
+    query = query.where(or_(*conditions))
+    return db.scalars(query).all()
+
+
+def get_related_affects_by_package(db: Session, package: models.Package) -> Sequence[models.Affect]:
+    if isinstance(package, models.OSPackage):
+        if package.source_name is not None:
+            affected_name_condition = [models.Affect.affected_name == str(package.source_name)]
+        else:
+            affected_name_condition = [models.Affect.affected_name == str(package.name)]
+    else:
+        affected_name_condition = [models.Affect.affected_name == str(package.name)]
+
+    return db.scalars(
+        select(models.Affect).where(
+            and_(
+                models.Affect.ecosystem == str(package.vuln_matching_ecosystem),
+                or_(*affected_name_condition),
+            )
+        )
+    ).all()
+
+
+SSVC_PRIORITY_ORDER = {
+    "IMMEDIATE": 3,
+    "OUT_OF_CYCLE": 2,
+    "SCHEDULED": 1,
+    "DEFER": 0,
+}
+
+
+def get_sorted_paginated_tickets_for_pteams(
+    db: Session,
+    pteam_ids: list[UUID],
+    assigned_user_id: UUID | None = None,
+    offset: int = 0,
+    limit: int = 100,
+    sort_key: schemas.TicketSortKey = schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC,
+) -> tuple[int, Sequence[models.Ticket]]:
+
+    select_stmt = (
+        select(models.Ticket)
+        .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
+        .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+        .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
+    )
+
+    if assigned_user_id is not None:
+        select_stmt = select_stmt.join(
+            models.TicketStatus,
+            and_(
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(
+                    None
+                ),
+            ),
+        )
+
+    # sort by SSVC priority
+    priority_case = case(
+        SSVC_PRIORITY_ORDER,
+        value=models.Ticket.ssvc_deployer_priority,
+        else_=None,
+    )
+
+    # sort
+    sortkey2orderby: dict[schemas.TicketSortKey, list] = {
+        schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY: [
+            priority_case.asc().nullslast(),
+            models.Ticket.created_at.desc(),
+        ],
+        schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC: [
+            priority_case.desc().nullslast(),
+            models.Ticket.created_at.desc(),
+        ],
+        schemas.TicketSortKey.CREATED_AT: [
+            models.Ticket.created_at.asc(),
+            priority_case.desc().nullslast(),
+        ],
+        schemas.TicketSortKey.CREATED_AT_DESC: [
+            models.Ticket.created_at.desc(),
+            priority_case.desc().nullslast(),
+        ],
+    }
+
+    select_stmt = select_stmt.order_by(
+        *sortkey2orderby.get(
+            sort_key,
+            [
+                priority_case.desc().nullslast(),
+                models.Ticket.created_at.desc(),
+            ],
+        )
+    )
+
+    # pagination
+    select_stmt = select_stmt.offset(offset).limit(limit)
+
+    tickets = db.scalars(select_stmt).all()
+
+    # Count the total number of tickets
+    count_stmt = (
+        select(func.count(models.Ticket.ticket_id.distinct()))
+        .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
+        .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+        .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
+    )
+    if assigned_user_id is not None:
+        count_stmt = count_stmt.join(
+            models.TicketStatus,
+            and_(
+                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
+                func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(
+                    None
+                ),
+            ),
+        )
+    total_count = db.scalar(count_stmt) or 0
+
+    return total_count, tickets

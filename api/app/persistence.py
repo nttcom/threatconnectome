@@ -91,20 +91,6 @@ def get_vuln_logs_by_user_id(
 
 
 ### Affect
-def get_affect_by_package_id(db: Session, package_id: UUID | str) -> Sequence[models.Affect]:
-    return db.scalars(
-        select(models.Affect).where(models.Affect.package_id == str(package_id))
-    ).all()
-
-
-def get_affect_by_package_id_and_vuln_id(
-    db: Session, package_id: UUID | str, vuln_id: UUID | str
-) -> models.Affect | None:
-    return db.scalars(
-        select(models.Affect).where(
-            models.Affect.package_id == str(package_id), models.Affect.vuln_id == str(vuln_id)
-        )
-    ).one_or_none()
 
 
 def create_affect(db: Session, affect: models.Affect) -> None:
@@ -199,12 +185,16 @@ def get_package_by_id(db: Session, package_id: UUID | str) -> models.Package | N
     ).one_or_none()
 
 
-def get_package_by_name_and_ecosystem(
-    db: Session, name: str, ecosystem: str
+def get_package_by_name_and_ecosystem_and_source_name(
+    db: Session, name: str, ecosystem: str, source_name: str | None
 ) -> models.Package | None:
     return db.scalars(
         select(models.Package).where(
-            and_(models.Package.name == name, models.Package.ecosystem == ecosystem)
+            and_(
+                models.Package.name == name,
+                models.Package.ecosystem == ecosystem,
+                models.OSPackage.source_name == source_name,
+            )
         )
     ).one_or_none()
 
@@ -305,6 +295,11 @@ def get_ticket_by_threat_id_and_dependency_id(
             models.Ticket.dependency_id == str(dependency_id),
         )
     ).one_or_none()
+
+
+def get_pteams_by_ids(db: Session, pteam_ids: list[UUID]):
+    str_pteam_ids = [str(pid) for pid in pteam_ids]
+    return db.query(models.PTeam).filter(models.PTeam.pteam_id.in_(str_pteam_ids)).all()
 
 
 ### TicketStatus

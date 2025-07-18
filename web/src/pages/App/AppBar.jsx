@@ -1,5 +1,13 @@
 import { Menu as MenuIcon } from "@mui/icons-material";
-import { AppBar as MuiAppBar, Box, Divider, IconButton, Toolbar } from "@mui/material";
+import {
+  AppBar as MuiAppBar,
+  Box,
+  Divider,
+  IconButton,
+  Toolbar,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
@@ -37,10 +45,12 @@ export function AppBar() {
   const system = useSelector((state) => state.system);
 
   const handleDrawerOpen = () => dispatch(setDrawerOpen(!system.drawerOpen));
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
     <>
-      <StyledAppBar open={system.drawerOpen} position="fixed">
+      <StyledAppBar open={!isMobile && system.drawerOpen} position="fixed">
         <Toolbar>
           <IconButton
             aria-label="menu"

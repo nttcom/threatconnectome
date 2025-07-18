@@ -23,6 +23,8 @@ import {
   TableContainer,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
@@ -39,7 +41,8 @@ import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../u
 import { errorToString } from "../../utils/func";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
-import { PTeamServiceDetails } from "./PTeamServiceDetails";
+import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetails/PTeamServiceDetailsResponsive";
+import { PTeamServiceSelectDialog } from "./PTeamServiceSelectDialog";
 import { PTeamServiceTabs } from "./PTeamServiceTabs";
 import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
@@ -65,7 +68,7 @@ function SearchField(props) {
             onApply(event.target.value);
           }
         }}
-        sx={{ textTransform: "none", width: "290px" }}
+        sx={{ textTransform: "none", width: { md: "290px", xs: "100%" } }}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
@@ -185,6 +188,10 @@ export function Status() {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pteamId, pteam, serviceId, isActiveAllServicesMode]);
 
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
+
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skipByAuth || !pteamId) return <></>;
   if (pteamError)
@@ -273,6 +280,8 @@ export function Status() {
         shape="rounded"
         page={page}
         count={numPages}
+        siblingCount={isSmDown ? 0 : undefined}
+        boundaryCount={isSmDown ? 0 : undefined}
         onChange={(event, value) => {
           params.set("page", value);
           navigate(location.pathname + "?" + params.toString());
@@ -456,17 +465,25 @@ export function Status() {
           label="All Services"
         />
       </Box>
-      {!isActiveAllServicesMode && (
-        <PTeamServiceTabs
-          services={pteam.services}
-          currentServiceId={serviceId}
-          onChangeService={handleChangeService}
-          setIsActiveUploadMode={setIsActiveUploadMode}
-        />
-      )}
+      {!isActiveAllServicesMode &&
+        (isMdDown ? (
+          <PTeamServiceSelectDialog
+            services={pteam.services}
+            currentServiceId={serviceId}
+            onChangeService={handleChangeService}
+            setIsActiveUploadMode={setIsActiveUploadMode}
+          />
+        ) : (
+          <PTeamServiceTabs
+            services={pteam.services}
+            currentServiceId={serviceId}
+            onChangeService={handleChangeService}
+            setIsActiveUploadMode={setIsActiveUploadMode}
+          />
+        ))}
       <CustomTabPanel value={isActiveUploadMode} index={0}>
         {service && (
-          <PTeamServiceDetails
+          <PTeamServiceDetailsResponsive
             pteamId={pteamId}
             service={service}
             expandService={expandService}
@@ -474,10 +491,16 @@ export function Status() {
             highestSsvcPriority={pteamServicePackagesSummary.packages[0]?.ssvc_priority ?? "defer"}
           />
         )}
-        <Box display="flex" mt={2}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { md: "row", xs: "column" },
+            justifyContent: "space-between",
+            mt: 2,
+          }}
+        >
           {filterRow}
-          <Box flexGrow={1} />
-          <Box mb={0.5}>
+          <Box mb={0.5} sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
             <SearchField word={searchWord} onApply={handleSearchWord} />
             <IconButton
               id="basic-button"
@@ -494,7 +517,7 @@ export function Status() {
           </Box>
         </Box>
         <TableContainer component={Paper} sx={{ mt: 0.5 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <Table sx={{ minWidth: 320 }} aria-label="simple table">
             <TableBody>
               {isActiveAllServicesMode ? (
                 <>

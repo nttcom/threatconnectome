@@ -566,6 +566,7 @@ class TestPostUploadSBOMFileCycloneDX:
             name: str | None
             group: str | None
             version: str | None
+            properties: str | None
 
             def to_dict(self) -> dict:
                 ret = {}
@@ -580,6 +581,9 @@ class TestPostUploadSBOMFileCycloneDX:
                     ret["version"] = self.version
                 if ret:  # fill type only if not-empty
                     ret["type"] = "library"
+                if self.properties is not None:
+                    ret["properties"] = self.properties
+
                 return ret
 
         @dataclass(frozen=True, kw_only=True)
@@ -654,12 +658,11 @@ class TestPostUploadSBOMFileCycloneDX:
                 },
             )
             library_param = self.LibraryParam(
-                **{
-                    "purl": "pkg:pypi/cryptography@39.0.2",
-                    "name": "cryptography",
-                    "group": None,
-                    "version": "39.0.2",
-                },
+                purl="pkg:pypi/cryptography@39.0.2",
+                name="cryptography",
+                group=None,
+                version="39.0.2",
+                properties=None,
             )
             components_dict = {application_param: [library_param]}
             # gen normal sbom
@@ -746,6 +749,7 @@ class TestPostUploadSBOMFileCycloneDX:
                                     "name": "cryptography",
                                     "group": None,
                                     "version": "39.0.2",
+                                    "properties": None,
                                 },
                             ],
                         ),
@@ -753,6 +757,7 @@ class TestPostUploadSBOMFileCycloneDX:
                     [  # expected
                         {
                             "package_name": "cryptography",
+                            "package_source_name": None,
                             "ecosystem": "pypi",
                             "package_manager": "pipenv",
                             "target": "threatconnectome/api/Pipfile.lock",
@@ -760,6 +765,7 @@ class TestPostUploadSBOMFileCycloneDX:
                         },
                         {
                             "package_name": "cryptography",
+                            "package_source_name": None,
                             "ecosystem": "pypi",
                             "package_manager": "pipenv",
                             "target": "sample target1",  # scan root
@@ -787,6 +793,9 @@ class TestPostUploadSBOMFileCycloneDX:
                                     "name": "libcrypt1",
                                     "group": None,
                                     "version": "1:4.4.10-10ubuntu4",
+                                    "properties": [
+                                        {"name": "aquasecurity:trivy:SrcName", "value": "libxcrypt"}
+                                    ],
                                 },
                             ],
                         ),
@@ -794,6 +803,7 @@ class TestPostUploadSBOMFileCycloneDX:
                     [  # expected
                         {
                             "package_name": "libcrypt1",
+                            "package_source_name": "libxcrypt",
                             "ecosystem": "ubuntu-20.04",
                             "package_manager": "",
                             "target": "ubuntu",
@@ -801,6 +811,7 @@ class TestPostUploadSBOMFileCycloneDX:
                         },
                         {
                             "package_name": "libcrypt1",
+                            "package_source_name": "libxcrypt",
                             "ecosystem": "ubuntu-20.04",
                             "package_manager": "",
                             "target": "sample target1",  # scan root
@@ -825,6 +836,7 @@ class TestPostUploadSBOMFileCycloneDX:
                                     "name": "button",
                                     "group": "@nextui-org",
                                     "version": "2.0.26",
+                                    "properties": None,
                                 },
                             ],
                         ),
@@ -832,6 +844,7 @@ class TestPostUploadSBOMFileCycloneDX:
                     [  # expected
                         {
                             "package_name": "@nextui-org/button",
+                            "package_source_name": None,
                             "ecosystem": "npm",
                             "package_manager": "npm",
                             "target": "web/package-lock.json",
@@ -839,6 +852,7 @@ class TestPostUploadSBOMFileCycloneDX:
                         },
                         {
                             "package_name": "@nextui-org/button",
+                            "package_source_name": None,
                             "ecosystem": "npm",
                             "package_manager": "npm",
                             "target": "sample target1",  # scan root
@@ -863,6 +877,7 @@ class TestPostUploadSBOMFileCycloneDX:
                                     "name": "@nextui-org/button",
                                     "group": None,
                                     "version": "2.0.26",
+                                    "properties": None,
                                 },
                             ],
                         ),
@@ -870,6 +885,7 @@ class TestPostUploadSBOMFileCycloneDX:
                     [  # expected
                         {
                             "package_name": "@nextui-org/button",
+                            "package_source_name": None,
                             "ecosystem": "npm",
                             "package_manager": "npm",
                             "target": "web/package-lock.json",
@@ -877,10 +893,57 @@ class TestPostUploadSBOMFileCycloneDX:
                         },
                         {
                             "package_name": "@nextui-org/button",
+                            "package_source_name": None,
                             "ecosystem": "npm",
                             "package_manager": "npm",
                             "target": "sample target1",  # scan root
                             "version": "2.0.26",
+                        },
+                    ],
+                ),
+                # test case 5: os-pkgs alpine
+                (
+                    "sample service1",
+                    [  # input
+                        (
+                            {  # application
+                                "name": "alpine",
+                                "type": "operating-system",
+                                "trivy_type": "alpine",
+                                "trivy_class": "os-pkgs",
+                            },
+                            [  # libraries
+                                {
+                                    "purl": (
+                                        "pkg:apk/alpine/libssl3@3.5.0-r0?arch=x86_64&distro=3.22.0"
+                                    ),
+                                    "name": "libssl3",
+                                    "group": None,
+                                    "version": "3.5.0-r0",
+                                    "properties": [
+                                        {"name": "aquasecurity:trivy:SrcName", "value": "openssl"},
+                                        {"name": "aquasecurity:trivy:PkgType", "value": "alpine"},
+                                    ],
+                                },
+                            ],
+                        ),
+                    ],
+                    [  # expected
+                        {
+                            "package_name": "libssl3",
+                            "package_source_name": "openssl",
+                            "ecosystem": "alpine-3.22.0",
+                            "package_manager": "",
+                            "target": "alpine",
+                            "version": "3.5.0-r0",
+                        },
+                        {
+                            "package_name": "libssl3",
+                            "package_source_name": "openssl",
+                            "ecosystem": "alpine-3.22.0",
+                            "package_manager": "",
+                            "target": "sample target1",  # scan root
+                            "version": "3.5.0-r0",
                         },
                     ],
                 ),
@@ -913,6 +976,7 @@ class TestPostUploadSBOMFileCycloneDX:
             @dataclass(frozen=True, kw_only=True)
             class DependencyParamsToCheck:
                 package_name: str
+                package_source_name: str | None
                 ecosystem: str
                 package_manager: str
                 target: str
@@ -924,6 +988,7 @@ class TestPostUploadSBOMFileCycloneDX:
                     created_dependencies.add(
                         DependencyParamsToCheck(
                             package_name=package_version.package.name,
+                            package_source_name=dependency["package_source_name"],
                             ecosystem=package_version.package.ecosystem,
                             package_manager=dependency["package_manager"],
                             target=dependency["target"],
@@ -936,6 +1001,136 @@ class TestPostUploadSBOMFileCycloneDX:
                 for expected_dependency_param in expected_dependency_params
             }
             assert created_dependencies == expected_dependencies
+
+        @pytest.mark.parametrize(
+            "component_params, expected_params",
+            # Note: components_params: list[tuple[ApplicationParam, list[LibraryParam]]]
+            [
+                # test case 1: detect vulnerabilities with package_source_name
+                (
+                    [  # input
+                        (
+                            {  # application
+                                "name": "ubuntu",
+                                "type": "operating-system",
+                                "trivy_type": "ubuntu",
+                                "trivy_class": "os-pkgs",
+                            },
+                            [  # libraries
+                                {
+                                    "purl": (
+                                        "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4"
+                                        "?distro=ubuntu-20.04"
+                                    ),
+                                    "name": "libcrypt1",
+                                    "group": None,
+                                    "version": "1:4.4.10-10ubuntu4",
+                                    "properties": [
+                                        {
+                                            "name": "aquasecurity:trivy:SrcName",
+                                            "value": "libxcrypt",
+                                        }
+                                    ],
+                                },
+                            ],
+                        ),
+                    ],
+                    2,  # expected
+                ),
+                # test case 2: Not detect vulnerabilities without package_source_name
+                (
+                    [  # input
+                        (
+                            {  # application
+                                "name": "ubuntu",
+                                "type": "operating-system",
+                                "trivy_type": "ubuntu",
+                                "trivy_class": "os-pkgs",
+                            },
+                            [  # libraries
+                                {
+                                    "purl": (
+                                        "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4"
+                                        "?distro=ubuntu-20.04"
+                                    ),
+                                    "name": "libcrypt1",
+                                    "group": None,
+                                    "version": "1:4.4.10-10ubuntu4",
+                                    "properties": None,
+                                },
+                            ],
+                        ),
+                    ],
+                    0,  # expected
+                ),
+            ],
+        )
+        def test_ticket_is_created_when_vulnerability_is_detected_in_package_source_name(
+            self, testdb, component_params, expected_params
+        ):
+            # Given
+            target_name = "sample target1"
+            service_name = "sample service1"
+            components_dict = {
+                self.ApplicationParam(**application_param): [
+                    self.LibraryParam(**library_param) for library_param in library_params
+                ]
+                for application_param, library_params in component_params
+            }
+            sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
+
+            # register vuln
+            new_vuln_id = uuid4()
+            request_vuln = {
+                "title": "Example vuln",
+                "cve_id": "CVE-0000-0001",
+                "detail": "This vuln is example.",
+                "exploitation": "active",
+                "automatable": "yes",
+                "cvss_v3_score": 7.8,
+                "vulnerable_packages": [
+                    {
+                        "affected_name": "libxcrypt",
+                        "ecosystem": "ubuntu-20.04",
+                        "affected_versions": ["<1:5.4.10-10ubuntu4"],
+                        "fixed_versions": ["1:5.4.10-10ubuntu4"],
+                    }
+                ],
+            }
+            client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=request_vuln)
+
+            # register package
+            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, None)
+
+            # When
+            response_tickets = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?assigned_to_me=false",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response_tickets.status_code == 200
+            assert len(response_tickets.json()) == expected_params
+
+            if expected_params == 2:
+                assert response_tickets.json()[0]["vuln_id"] == str(new_vuln_id)
+                assert response_tickets.json()[1]["vuln_id"] == str(new_vuln_id)
+                now = datetime.now()
+                datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
+                assert datetime.strptime(
+                    response_tickets.json()[0]["created_at"], datetime_format
+                ) > now - timedelta(seconds=30)
+                assert datetime.strptime(
+                    response_tickets.json()[1]["created_at"], datetime_format
+                ) > now - timedelta(seconds=30)
+                assert (
+                    datetime.strptime(response_tickets.json()[0]["created_at"], datetime_format)
+                    < now
+                )
+                assert (
+                    datetime.strptime(response_tickets.json()[1]["created_at"], datetime_format)
+                    < now
+                )
 
         @pytest.mark.parametrize(
             "enable_slack, expected_notify",
@@ -1140,7 +1335,7 @@ class TestPostUploadSBOMFileCycloneDX:
                 sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
             assert [
-                ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),
+                ("app.routers.pteams", INFO, f"Start SBOM upload as a service: {service_name}"),
                 ("app.routers.pteams", INFO, f"SBOM uploaded as a service: {service_name}"),
             ] == caplog.record_tuples
 
@@ -1157,7 +1352,7 @@ class TestPostUploadSBOMFileCycloneDX:
                 sbom_json, self.pteam1.pteam_id, service_name, upload_filename
             )
             assert [
-                ("app.routers.pteams", INFO, f"Start SBOM uploade as a service: {service_name}"),
+                ("app.routers.pteams", INFO, f"Start SBOM upload as a service: {service_name}"),
                 (
                     "app.routers.pteams",
                     ERROR,

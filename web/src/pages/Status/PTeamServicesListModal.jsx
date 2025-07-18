@@ -10,12 +10,13 @@ import {
   DialogTitle,
   IconButton,
   Typography,
-  CardHeader,
   MenuItem,
   Pagination,
   Select,
   CardMedia,
   CardContent,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
@@ -31,6 +32,8 @@ const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
 function ServiceCard(props) {
   const { pteamId, service, onClickService } = props;
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
   const {
     data: thumbnail,
@@ -53,12 +56,28 @@ function ServiceCard(props) {
         backgroundColor: grey[200],
         "&:hover": { bgcolor: grey[100] },
         display: "flex",
-        height: 200,
+        flexDirection: isMdDown ? "column" : "row",
+        height: isMdDown ? "auto" : 200,
       }}
     >
       <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
-      <CardContent sx={{ flex: 1 }}>
-        <CardHeader title={service.service_name} sx={{ px: 0 }}></CardHeader>
+      <CardContent sx={{ flex: 1, minWidth: 0 }}>
+        <Typography
+          gutterBottom
+          variant="h5"
+          component="div"
+          noWrap
+          title={service.service_name}
+          sx={(theme) => ({
+            width: "100%",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "block",
+            p: theme.spacing(0, 0, 1, 0),
+          })}
+        >
+          {service.service_name}
+        </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
           {service.description}
         </Typography>
@@ -90,6 +109,9 @@ export function PTeamServicesListModal(props) {
     error: pteamError,
     isLoading: pteamIsLoading,
   } = useGetPTeamQuery(pteamId, { skip });
+
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
   if (skip) return <></>;
   if (pteamError)
@@ -145,7 +167,7 @@ export function PTeamServicesListModal(props) {
   };
 
   return (
-    <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
+    <Dialog open={show} onClose={handleClose} fullWidth maxWidth={isMdDown ? "xs" : "md"}>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           <Typography variant="h6">Selected Package</Typography>
