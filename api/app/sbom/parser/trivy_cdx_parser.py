@@ -217,12 +217,13 @@ class TrivyCDXParser(SBOMParser):
                     continue
 
                 if not (target_component := components_map.get(ref)):
-                    raise ValueError(f"Missing dependency: {ref}")
+                    # Not found if ref is metadata
+                    continue
                 if target_component.type not in {"library"}:
                     # https://cyclonedx.org/docs/1.5/json/#components_items_type
                     target_names.append((target_component.name or "", len(current_refs)))
 
-                self._recursive_get_target_name(
+                target_component._recursive_get_target_name(
                     components_map, dependencies, current_refs | {ref}, target_names
                 )
 
@@ -351,7 +352,6 @@ class TrivyCDXParser(SBOMParser):
             )
             artifacts_map[artifacts_key] = artifact
             target_name = component._get_target_name(components_map, dependencies)
-            print("testes target_name:", target_name)
             new_target = (target_name, component.version)
             if new_target in artifact.targets:
                 error_message("conflicted target:", artifacts_key, new_target)
