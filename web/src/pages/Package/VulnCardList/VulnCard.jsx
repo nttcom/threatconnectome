@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
-  useGetTicketsQuery,
+  useGetPteamTicketsQuery,
   useGetVulnQuery,
   useGetDependenciesQuery,
 } from "../../../services/tcApi";
@@ -33,7 +33,7 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     data: tickets,
     error: ticketsError,
     isLoading: ticketsIsLoading,
-  } = useGetTicketsQuery(
+  } = useGetPteamTicketsQuery(
     { pteamId, serviceId, vulnId, packageId },
     { skip: skipByAuth || skipByPTeamId || skipByServiceId || skipByVulnId || skipBypackageId },
   );
@@ -55,7 +55,7 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     return null;
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
   if (vulnIsLoading) return <>Loading Vulnerability...</>;
-  if (ticketsError) throw new APIError(errorToString(ticketsError), { api: "getTickets" });
+  if (ticketsError) throw new APIError(errorToString(ticketsError), { api: "getPteamTickets" });
   if (ticketsIsLoading) return <>Loading Tickets...</>;
   if (serviceDependenciesError)
     throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
