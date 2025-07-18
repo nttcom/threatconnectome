@@ -231,8 +231,9 @@ class TestGetTickets:
         ticket3 = ticket_setup["ticket3"]
 
         response = client.get(
-            f"/tickets?pteam_ids={pteam3.pteam_id}",
+            "/tickets",
             headers=headers(USER1),
+            params={"pteam_ids": str(pteam3.pteam_id)},
         )
         data = response.json()
         ticket_ids = {t["ticket_id"] for t in data.get("tickets", [])}
@@ -241,7 +242,9 @@ class TestGetTickets:
     def test_it_should_get_my_tasks(self, ticket_setup):
         ticket1 = ticket_setup["ticket1"]
 
-        response = client.get("/tickets?assigned_to_me=true", headers=headers(USER1))
+        response = client.get(
+            "/tickets?", headers=headers(USER1), params={"assigned_to_me": "true"}
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["total"] == 1
@@ -252,13 +255,15 @@ class TestGetTickets:
         pteam2 = ticket_setup["pteam2"]
         invitation = invite_to_pteam(USER2, pteam2.pteam_id)
         accept_pteam_invitation(USER1, invitation.invitation_id)
-        response = client.get("/tickets?offset=0&limit=1", headers=headers(USER1))
+        response = client.get("/tickets?", headers=headers(USER1), params={"offset": 0, "limit": 1})
         assert response.status_code == 200
         data = response.json()
         assert data["total"] == 2
         assert len(data["tickets"]) == 1
 
-        response2 = client.get("/tickets?offset=1&limit=1", headers=headers(USER1))
+        response2 = client.get(
+            "/tickets?", headers=headers(USER1), params={"offset": 1, "limit": 1}
+        )
         assert response2.status_code == 200
         data2 = response2.json()
         assert data2["total"] == 2
@@ -271,10 +276,14 @@ class TestGetTickets:
         accept_pteam_invitation(USER1, invitation.invitation_id)
 
         dummy_pteam_id = str(uuid4())
-        response = client.get(f"/tickets?pteam_ids={dummy_pteam_id}", headers=headers(USER1))
+        response = client.get(
+            "/tickets?", headers=headers(USER1), params={"pteam_ids": dummy_pteam_id}
+        )
         assert response.status_code == 400
 
-        response2 = client.get(f"/tickets?pteam_ids={pteam1.pteam_id}", headers=headers(USER1))
+        response2 = client.get(
+            "/tickets?", headers=headers(USER1), params={"pteam_ids": pteam1.pteam_id}
+        )
         assert response2.status_code == 200
         data2 = response2.json()
         assert data2["total"] == 1
@@ -292,8 +301,9 @@ class TestGetTickets:
         accept_pteam_invitation(USER1, invitation.invitation_id)
 
         response = client.get(
-            f"/tickets?pteam_ids={ticket_setup['pteam1'].pteam_id}&pteam_ids={pteam2.pteam_id}",
+            "/tickets",
             headers=headers(USER1),
+            params={"pteam_ids": [str(ticket_setup["pteam1"].pteam_id), str(pteam2.pteam_id)]},
         )
         assert response.status_code == 200
         data = response.json()
