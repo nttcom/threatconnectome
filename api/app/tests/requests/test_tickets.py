@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import uuid4
 
 import pytest
@@ -340,13 +341,7 @@ class TestGetTickets:
             tickets,
             key=lambda t: (
                 t["ssvc_deployer_priority"],
-                -int(
-                    t["created_at"]
-                    .replace("-", "")
-                    .replace(":", "")
-                    .replace("T", "")
-                    .replace("Z", "")
-                ),
+                -datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
             ),
         )
         assert tickets == sorted_tickets
@@ -373,14 +368,8 @@ class TestGetTickets:
         sorted_tickets = sorted(
             tickets,
             key=lambda t: (
-                -ord(t["ssvc_deployer_priority"][0]),
-                -int(
-                    t["created_at"]
-                    .replace("-", "")
-                    .replace(":", "")
-                    .replace("T", "")
-                    .replace("Z", "")
-                ),
+                ord(t["ssvc_deployer_priority"][0]),
+                -datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
             ),
         )
         assert tickets == sorted_tickets
@@ -405,7 +394,11 @@ class TestGetTickets:
 
         # created_at ascending, if equal then SSVC priority descending
         sorted_tickets = sorted(
-            tickets, key=lambda t: (t["created_at"], -ord(t["ssvc_deployer_priority"][0]))
+            tickets,
+            key=lambda t: (
+                datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")),
+                -ord(t["ssvc_deployer_priority"][0]),
+            ),
         )
         assert tickets == sorted_tickets
 
@@ -431,13 +424,7 @@ class TestGetTickets:
         sorted_tickets = sorted(
             tickets,
             key=lambda t: (
-                -int(
-                    t["created_at"]
-                    .replace("-", "")
-                    .replace(":", "")
-                    .replace("T", "")
-                    .replace("Z", "")
-                ),
+                -datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
                 -ord(t["ssvc_deployer_priority"][0]),
             ),
         )
