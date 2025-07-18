@@ -20,15 +20,8 @@ def get_logs(
     Get actionlogs of pteams the user belongs to.
     """
     logs = persistence.get_action_logs_by_user_id(db, current_user.user_id)
-    result = []
-    for log in sorted(logs, key=lambda l: l.executed_at, reverse=True):
-        original_log = log.__dict__.copy()  # to avoid modifying the DB log
-        if log.created_at:
-            original_log["created_at"] = log.created_at
-        if log.executed_at:
-            original_log["executed_at"] = log.executed_at
-        result.append(original_log)
-    return result
+
+    return sorted(logs, key=lambda l: l.executed_at, reverse=True):
 
 
 @router.post("", response_model=schemas.ActionLogResponse)
