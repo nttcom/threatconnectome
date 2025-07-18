@@ -3,7 +3,6 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    ARRAY,
     JSON,
     ForeignKey,
     LargeBinary,
@@ -13,6 +12,7 @@ from sqlalchemy import (
     case,
     func,
 )
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, relationship
 from sqlalchemy.sql.functions import current_timestamp

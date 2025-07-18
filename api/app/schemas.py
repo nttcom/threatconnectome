@@ -328,6 +328,8 @@ class TicketResponse(ORMModel):
     ticket_id: UUID
     vuln_id: UUID
     dependency_id: UUID
+    service_id: UUID
+    pteam_id: UUID
     created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     ticket_safety_impact: SafetyImpactEnum | None
@@ -335,9 +337,21 @@ class TicketResponse(ORMModel):
     ticket_status: TicketStatusResponse
 
 
+class TicketListResponse(BaseModel):
+    total: int
+    tickets: list[TicketResponse]
+
+
 class TicketUpdateRequest(ORMModel):
     ticket_safety_impact: SafetyImpactEnum | None = None
     ticket_safety_impact_change_reason: str | None = None
+
+
+class TicketSortKey(str, Enum):
+    SSVC_DEPLOYER_PRIORITY = "ssvc_deployer_priority"
+    SSVC_DEPLOYER_PRIORITY_DESC = "ssvc_deployer_priority_desc"
+    CREATED_AT = "created_at"
+    CREATED_AT_DESC = "created_at_desc"
 
 
 class PTeamPackagesSummary(ORMModel):
