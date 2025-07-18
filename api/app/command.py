@@ -479,7 +479,7 @@ def get_sorted_paginated_tickets_for_pteams(
         else_=None,
     )
 
-    # sort_keyに応じてorder_byを分岐
+    # sort
     sortkey2orderby: dict[schemas.TicketSortKey, list] = {
         schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY: [
             priority_case.asc().nullslast(),
