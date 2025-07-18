@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy import (
     ARRAY,
     JSON,
+    DateTime,
     ForeignKey,
     LargeBinary,
     String,
@@ -408,7 +409,7 @@ class Service(Base):
     service_safety_impact: Mapped[SafetyImpactEnum] = mapped_column(
         server_default=SafetyImpactEnum.NEGLIGIBLE
     )
-    sbom_uploaded_at: Mapped[datetime | None]
+    sbom_uploaded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     description: Mapped[str | None]
     keywords: Mapped[list[Str255]] = mapped_column(server_default="{}")
 
@@ -473,7 +474,9 @@ class Ticket(Base):
     dependency_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
     )
-    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
     ticket_safety_impact: Mapped[SafetyImpactEnum | None] = mapped_column(nullable=True)
     ticket_safety_impact_change_reason: Mapped[str | None] = mapped_column(nullable=True)
     ssvc_deployer_priority: Mapped[SSVCDeployerPriorityEnum | None] = mapped_column(nullable=True)
@@ -506,8 +509,10 @@ class TicketStatus(Base):
     note: Mapped[str | None]
     logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
     assignees: Mapped[list[StrUUID]] = mapped_column(default=[])
-    scheduled_at: Mapped[datetime | None]
-    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
 
     action_logs = relationship(
         "ActionLog",
@@ -532,7 +537,9 @@ class Alert(Base):
     ticket_id: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("ticket.ticket_id", ondelete="SET NULL"), index=True, nullable=True
     )
-    alerted_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    alerted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
     alert_content: Mapped[str | None] = mapped_column(nullable=True)  # WORKAROUND
 
     ticket = relationship("Ticket", back_populates="alerts")
@@ -621,8 +628,12 @@ class Vuln(Base):
     created_by: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("account.user_id", ondelete="SET NULL"), index=True, nullable=True
     )
-    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-    updated_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
     exploitation: Mapped[ExploitationEnum] = mapped_column(server_default=ExploitationEnum.NONE)
     automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.NO)
     cvss_v3_score: Mapped[float | None] = mapped_column(server_default=None, nullable=True)
@@ -647,7 +658,9 @@ class VulnAction(Base):
     action: Mapped[str]
     action_type: Mapped[ActionType] = mapped_column(default=ActionType.elimination)
     recommended: Mapped[bool] = mapped_column(default=False)
-    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
 
 
 class Affect(Base):
@@ -708,8 +721,12 @@ class ActionLog(Base):
         ForeignKey("ticket.ticket_id", ondelete="SET NULL"), index=True
     )
     email: Mapped[Str255]  # snapshot: don't set ForeignKey.
-    executed_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
-    created_at: Mapped[datetime] = mapped_column(server_default=current_timestamp())
+    executed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
 
     executed_by = relationship("Account", back_populates="action_logs")
 
@@ -729,7 +746,7 @@ class PTeamInvitation(Base):
     user_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("account.user_id", ondelete="CASCADE"), index=True
     )
-    expiration: Mapped[datetime]
+    expiration: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     limit_count: Mapped[int | None]  # None for unlimited
     used_count: Mapped[int] = mapped_column(server_default="0")
 
