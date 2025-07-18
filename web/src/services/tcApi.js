@@ -300,15 +300,34 @@ export const tcApi = createApi({
     }),
 
     /* Ticket */
+    getTickets: builder.query({
+      query: ({ assignedToMe, pteamIds, offset, limit, sortKey }) => ({
+        url: "tickets",
+        method: "GET",
+        params: {
+          assigned_to_me: assignedToMe,
+          pteam_ids: pteamIds,
+          offset,
+          limit,
+          sort_key: sortKey,
+        },
+      }),
+      providesTags: (result, error, arg) => [
+        ...(result?.tickets?.map((ticket) => ({ type: "Ticket", id: ticket.ticket_id })) ?? []),
+        { type: "Service", id: "ALL" },
+        { type: "Ticket", id: "ALL" },
+        { type: "TicketStatus", id: "ALL" },
+        { type: "Threat", id: "ALL" },
+      ],
+    }),
     getPteamTickets: builder.query({
-      query: ({ pteamId, serviceId, vulnId, packageId, assignedToMe }) => ({
+      query: ({ pteamId, serviceId, vulnId, packageId }) => ({
         url: `pteams/${pteamId}/tickets`,
         method: "GET",
         params: {
           service_id: serviceId,
           vuln_id: vulnId,
           package_id: packageId,
-          assigned_to_me: assignedToMe ? "true" : undefined,
         },
       }),
       providesTags: (result, error, arg) => [
@@ -458,6 +477,7 @@ export const {
   useDeletePTeamServiceThumbnailMutation,
   useGetPTeamPackagesSummaryQuery,
   useUploadSBOMFileMutation,
+  useGetTicketsQuery,
   useGetPteamTicketsQuery,
   useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
