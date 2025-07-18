@@ -1,4 +1,3 @@
-import copy
 import re
 from dataclasses import dataclass, field
 from typing import (
@@ -96,6 +95,27 @@ class TrivyCDXParser(SBOMParser):
                 raise ValueError("Warning: Missing name")
             self.purl = PackageURL.from_string(self.raw_purl) if self.raw_purl else None
             self.trivy_class = self.properties.get("aquasecurity:trivy:Class")
+
+        @staticmethod
+        def _create_components_map(raw_components) -> dict[str, "TrivyCDXParser.CDXComponent"]:
+            components_map: dict[str, TrivyCDXParser.CDXComponent] = {}
+            for data in raw_components:
+                if not data:
+                    continue
+                try:
+                    components_map[data["bom-ref"]] = TrivyCDXParser.CDXComponent(
+                        bom_ref=data.get("bom-ref"),
+                        type=data.get("type"),
+                        group=data.get("group"),
+                        name=data.get("name"),
+                        version=data.get("version"),
+                        raw_purl=data.get("purl"),
+                        properties={x["name"]: x["value"] for x in data.get("properties", [])},
+                    )
+                except ValueError as err:
+                    error_message(err)
+                    error_message("Dopped component:", data)
+            return components_map
 
         @staticmethod
         def _fix_distro(distro: str) -> str:
@@ -239,7 +259,7 @@ class TrivyCDXParser(SBOMParser):
             to the current component in the dependency graph.
             """
             target_names = self._recursive_get_target_name(components_map, dependencies, set(), [])
-            return min(target_names, key=lambda x: x[1])[0]
+            return min(target_names, key=lambda x: x[1])[0] if target_names else ""
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
@@ -263,33 +283,11 @@ class TrivyCDXParser(SBOMParser):
         raw_components = sbom.get("components", [])
 
         # parse components
-        components_map: dict[str, TrivyCDXParser.CDXComponent] = {}
-        for data in raw_components:
-            if not data:
-                continue
-            try:
-                components_map[data["bom-ref"]] = TrivyCDXParser.CDXComponent(
-                    bom_ref=data.get("bom-ref"),
-                    type=data.get("type"),
-                    group=data.get("group"),
-                    name=data.get("name"),
-                    version=data.get("version"),
-                    raw_purl=data.get("purl"),
-                    properties={x["name"]: x["value"] for x in data.get("properties", [])},
-                )
-            except ValueError as err:
-                error_message(err)
-                error_message("Dopped component:", data)
-
-        merged_components_map = copy.deepcopy(components_map)
-        merged_components_map[meta_component.get("bom-ref", "")] = TrivyCDXParser.CDXComponent(
-            bom_ref=meta_component.get("bom-ref", ""),
-            type=meta_component.get("type", ""),
-            group=meta_component.get("group", ""),
-            name=meta_component.get("name", ""),
-            version=meta_component.get("version", ""),
-            raw_purl=meta_component.get("purl", ""),
-            properties={x["name"]: x["value"] for x in meta_component.get("properties", [])},
+        components_map: dict[str, TrivyCDXParser.CDXComponent] = (
+            TrivyCDXParser.CDXComponent._create_components_map(raw_components)
+        )
+        merged_components_map: dict[str, TrivyCDXParser.CDXComponent] = (
+            TrivyCDXParser.CDXComponent._create_components_map([meta_component, *raw_components])
         )
 
         # parse dependencies
