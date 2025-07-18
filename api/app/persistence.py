@@ -297,6 +297,11 @@ def get_ticket_by_threat_id_and_dependency_id(
     ).one_or_none()
 
 
+def get_pteams_by_ids(db: Session, pteam_ids: list[UUID]):
+    str_pteam_ids = [str(pid) for pid in pteam_ids]
+    return db.query(models.PTeam).filter(models.PTeam.pteam_id.in_(str_pteam_ids)).all()
+
+
 ### TicketStatus
 
 
