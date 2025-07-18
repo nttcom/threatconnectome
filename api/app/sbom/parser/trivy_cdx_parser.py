@@ -1,3 +1,4 @@
+import copy
 import re
 from dataclasses import dataclass, field
 from typing import (
@@ -149,7 +150,10 @@ class TrivyCDXParser(SBOMParser):
             # Check if the package type matches any known OS package type
             return pkg_type in OS_PACKAGE_TYPES
 
-        def to_package_info(self, components_map: dict[str, Any]) -> dict | None:
+        def to_package_info(
+            self,
+            merged_components_map: dict[str, Any],
+        ) -> dict | None:
             if not self.purl:
                 return None
             pkg_name = (
@@ -188,7 +192,7 @@ class TrivyCDXParser(SBOMParser):
                     ).casefold()
 
             elif self.targets and (
-                mgr := self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
+                mgr := self._find_pkg_mgr(merged_components_map, [t.ref for t in self.targets])
             ):
                 pkg_mgr = str(mgr.properties.get("aquasecurity:trivy:Type", "")).casefold()
 
@@ -198,6 +202,43 @@ class TrivyCDXParser(SBOMParser):
                 "ecosystem": ecosystem,
                 "pkg_mgr": pkg_mgr,
             }
+
+        def _recursive_get_target_name(
+            self,
+            components_map: dict[str, Any],
+            dependencies: dict[str, set[str]],
+            current_refs: set[str] = set(),
+            target_names: list[tuple[str, int]] = [],
+        ) -> list[tuple[str, int]]:
+            for ref, dependsOn in dependencies.items():
+                if ref in current_refs:
+                    continue
+                if self.bom_ref not in dependsOn:
+                    continue
+
+                if not (target_component := components_map.get(ref)):
+                    raise ValueError(f"Missing dependency: {ref}")
+                if target_component.type not in {"library"}:
+                    # https://cyclonedx.org/docs/1.5/json/#components_items_type
+                    target_names.append((target_component.name or "", len(current_refs)))
+
+                self._recursive_get_target_name(
+                    components_map, dependencies, current_refs | {ref}, target_names
+                )
+
+            return target_names
+
+        def _get_target_name(
+            self,
+            components_map: dict[str, Any],
+            dependencies: dict[str, set[str]],
+        ) -> str:
+            """
+            Determines the name of the target component that is closest (least depth)
+            to the current component in the dependency graph.
+            """
+            target_names = self._recursive_get_target_name(components_map, dependencies)
+            return min(target_names, key=lambda x: x[1])[0]
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
@@ -222,7 +263,7 @@ class TrivyCDXParser(SBOMParser):
 
         # parse components
         components_map: dict[str, TrivyCDXParser.CDXComponent] = {}
-        for data in [meta_component, *raw_components]:
+        for data in raw_components:
             if not data:
                 continue
             try:
@@ -238,6 +279,17 @@ class TrivyCDXParser(SBOMParser):
             except ValueError as err:
                 error_message(err)
                 error_message("Dopped component:", data)
+
+        merged_components_map = copy.deepcopy(components_map)
+        merged_components_map[meta_component.get("bom-ref", "")] = TrivyCDXParser.CDXComponent(
+            bom_ref=meta_component.get("bom-ref", ""),
+            type=meta_component.get("type", ""),
+            group=meta_component.get("group", ""),
+            name=meta_component.get("name", ""),
+            version=meta_component.get("version", ""),
+            raw_purl=meta_component.get("purl", ""),
+            properties={x["name"]: x["value"] for x in meta_component.get("properties", [])},
+        )
 
         # parse dependencies
         dependencies: dict[str, set[str]] = {}
@@ -261,7 +313,7 @@ class TrivyCDXParser(SBOMParser):
 
         # fill component.targets using dependencies
         for dep_ref in dependencies:
-            if not (target_component := components_map.get(dep_ref)):
+            if not (target_component := merged_components_map.get(dep_ref)):
                 raise ValueError(f"Missing dependency: {dep_ref}")
             if target_component.type in {"library"}:
                 # https://cyclonedx.org/docs/1.5/json/#components_items_type
@@ -273,7 +325,7 @@ class TrivyCDXParser(SBOMParser):
             for pkg_ref in _recursive_get(dep_ref, set()):
                 if pkg_ref == dep_ref:  # cross-reference
                     continue
-                if not (pkg_component := components_map.get(pkg_ref)):
+                if not (pkg_component := merged_components_map.get(pkg_ref)):
                     raise ValueError(f"Missing component: {pkg_ref}")
                 pkg_component.targets |= {TrivyCDXParser.CDXComponent.Target(dep_ref, target_name)}
 
@@ -282,7 +334,7 @@ class TrivyCDXParser(SBOMParser):
         for component in components_map.values():
             if not component.version:
                 continue  # maybe directory or image
-            if not (package_info := component.to_package_info(components_map)):
+            if not (package_info := component.to_package_info(merged_components_map)):
                 continue  # omit not packages
 
             artifacts_key = (
@@ -298,12 +350,13 @@ class TrivyCDXParser(SBOMParser):
                 ),
             )
             artifacts_map[artifacts_key] = artifact
-            for _target_ref, target_name in component.targets:
-                new_target = (target_name, component.version)
-                if new_target in artifact.targets:
-                    error_message("conflicted target:", artifacts_key, new_target)
-                else:
-                    artifact.targets.add(new_target)
+            target_name = component._get_target_name(components_map, dependencies)
+            print("testes target_name:", target_name)
+            new_target = (target_name, component.version)
+            if new_target in artifact.targets:
+                error_message("conflicted target:", artifacts_key, new_target)
+            else:
+                artifact.targets.add(new_target)
             artifact.versions.add(component.version)
 
         return list(artifacts_map.values())

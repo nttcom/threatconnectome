@@ -48,7 +48,8 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
+        parser = TrivyCDXParser()
+        artifacts = parser.parse_sbom(sbom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "@babel/code-frame"
@@ -94,9 +95,74 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
+        parser = TrivyCDXParser()
+        artifacts = parser.parse_sbom(sbom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         # package name and ecosystem name are lowercased
         assert artifact.package_name == "pyjwt"
         assert artifact.ecosystem == "pypi"
+
+    def test_it_should_create_target_without_metadata(self):
+        sbom = {
+            "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
+            "bomFormat": "CycloneDX",
+            "specVersion": "1.5",
+            "serialNumber": "urn:uuid:5bf250f0-d1be-4c1a-96dc-5f6e62c28cb2",
+            "version": 1,
+            "metadata": {
+                "timestamp": "2024-07-01T00:00:00+09:00",
+                "tools": [{"vendor": "aquasecurity", "name": "trivy", "version": "0.52.0"}],
+                "component": {
+                    "bom-ref": "73c936da-ca45-4ffd-a64b-2a78409d6b07",
+                    "type": "application",
+                    "name": "sample target1",
+                    "properties": [{"name": "aquasecurity:trivy:SchemaVersion", "value": "2"}],
+                },
+            },
+            "components": [
+                {
+                    "name": "ubuntu",
+                    "type": "operating-system",
+                    "properties": [
+                        {"name": "aquasecurity:trivy:Type", "value": "ubuntu"},
+                        {"name": "aquasecurity:trivy:Class", "value": "os-pkgs"},
+                    ],
+                    "bom-ref": "aa04ac83-6d82-4ccc-9fb9-2dfe8545ca41",
+                },
+                {
+                    "bom-ref": "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4?distro=ubuntu-20.04",
+                    "purl": "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4?distro=ubuntu-20.04",
+                    "name": "libcrypt1",
+                    "version": "1:4.4.10-10ubuntu4",
+                    "type": "library",
+                    "properties": [{"name": "aquasecurity:trivy:SrcName", "value": "libxcrypt"}],
+                },
+            ],
+            "dependencies": [
+                {
+                    "ref": "aa04ac83-6d82-4ccc-9fb9-2dfe8545ca41",
+                    "dependsOn": [
+                        "pkg:deb/ubuntu/libcrypt1@1:4.4.10-10ubuntu4?distro=ubuntu-20.04"
+                    ],
+                },
+                {
+                    "ref": "73c936da-ca45-4ffd-a64b-2a78409d6b07",
+                    "dependsOn": ["aa04ac83-6d82-4ccc-9fb9-2dfe8545ca41"],
+                },
+            ],
+        }
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.5",
+            tool_name="trivy",
+            tool_version="0.52.0",
+        )
+        parser = TrivyCDXParser()
+        artifacts = parser.parse_sbom(sbom, sbom_info)
+        assert len(artifacts) == 1
+        artifact = artifacts[0]
+        assert artifact.package_name == "libcrypt1"
+        assert artifact.package_manager == ""
+        assert len(artifact.targets) == 1
+        assert list(artifact.targets)[0] == ("ubuntu", "1:4.4.10-10ubuntu4")
