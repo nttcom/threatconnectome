@@ -13,7 +13,17 @@ import { ToDoTable } from "./ToDoTable";
 export function ToDo() {
   const [myTasks, setMyTasks] = useState(() => {
     const saved = localStorage.getItem("myTasks");
-    return saved === null ? true : saved === "true";
+
+    switch (saved) {
+      case null:
+        return true;
+      case "true":
+        return true;
+      case "false":
+        return false;
+      default:
+        return true;
+    }
   });
 
   useEffect(() => {
@@ -32,13 +42,14 @@ export function ToDo() {
     throw new APIError(errorToString(userMeError), {
       api: "getUserMe",
     });
+
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   const pteamIds = userMe?.pteam_roles.map((role) => role.pteam.pteam_id) ?? [];
 
   return (
     <>
       <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-        <Android12Switch checked={myTasks} onChange={(e) => setMyTasks(e.target.checked)} />
+        <Android12Switch checked={myTasks} onChange={(event) => setMyTasks(event.target.checked)} />
         <Typography>My tasks</Typography>
       </Box>
 

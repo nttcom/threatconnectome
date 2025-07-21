@@ -1,5 +1,8 @@
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
+import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
+import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 import {
   Card,
   Chip,
@@ -10,8 +13,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  MenuItem,
-  Select,
   Stack,
   Tab,
   Tabs,
@@ -21,12 +22,10 @@ import {
 import Box from "@mui/material/Box";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
-import { useGetPTeamMembersQuery } from "../../services/tcApi.js";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { PackageView } from "../../components/PackageView";
-import { createActionByFixedVersions } from "../../utils/vulnUtils.js";
+import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -51,35 +50,38 @@ CustomTabPanel.propTypes = {
 };
 
 export function ToDoDrawer(props) {
-  const { open, setOpen, row, service, dependency, vuln, vulnActions, bgcolor } = props;
+  const {
+    open,
+    setOpen,
+    row,
+    pteam_name,
+    service_name,
+    pteamMembers,
+    serviceDependency,
+    vuln,
+    vulnActions,
+    bgcolor,
+  } = props;
   const [value, setValue] = useState(0);
-  const skipByAuth = useSkipUntilAuthUserIsReady();
-  const packageId = dependency?.package_id;
-  const matchedVulnPackage = vuln?.vulnerable_packages.find((pkg) => pkg.package_id === packageId);
-  const affectedVersions = matchedVulnPackage?.affected_versions ?? [];
-  const patchedVersions = matchedVulnPackage?.fixed_versions ?? [];
+
+  const currentPackage = {
+    package_name: serviceDependency.package_name,
+    package_source_name: serviceDependency.package_source_name,
+    vuln_matching_ecosystem: serviceDependency.vuln_matching_ecosystem,
+  };
+  const vulnerable_package = findMatchedVulnPackage(vuln.vulnerable_packages, currentPackage);
+  const affectedVersions = vulnerable_package?.affected_versions ?? [];
+  const patchedVersions = vulnerable_package?.fixed_versions ?? [];
   const actionByFixedVersions = createActionByFixedVersions(
     affectedVersions,
     patchedVersions,
-    matchedVulnPackage?.name ?? "",
+    vulnerable_package?.affected_name,
   );
+
   const actions = [actionByFixedVersions, ...(Array.isArray(vulnActions) ? vulnActions : [])];
-  const {
-    data: members,
-    error: membersError,
-    isLoading: membersIsLoading,
-  } = useGetPTeamMembersQuery(row?.pteam_id, { skip: skipByAuth });
 
-  const memberList = Array.isArray(members) ? members : members ? Object.values(members) : [];
-
-  const handleChange = (event, newValue) => {
+  const handleChange = (newValue) => {
     setValue(newValue);
-  };
-  const handleAssigneesChange = (event) => {
-    const {
-      target: { value },
-    } = event;
-    setAssignees(typeof value === "string" ? value.split(",") : value);
   };
 
   return (
@@ -129,7 +131,7 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 Team
               </Typography>
-              <Typography>{row?.team || "-"}</Typography>
+              <Typography>{pteam_name || "-"}</Typography>
               <IconButton size="small">
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
@@ -138,7 +140,7 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 Service
               </Typography>
-              <Typography>{service?.service_name || "-"}</Typography>
+              <Typography>{service_name || "-"}</Typography>
               <IconButton size="small">
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
@@ -148,8 +150,8 @@ export function ToDoDrawer(props) {
                 Package
               </Typography>
               <Typography>
-                {matchedVulnPackage
-                  ? `${matchedVulnPackage.name} : ${matchedVulnPackage.ecosystem}`
+                {vulnerable_package
+                  ? `${vulnerable_package.affected_name} : ${vulnerable_package.ecosystem}`
                   : "-"}
               </Typography>
               <IconButton size="small">
@@ -160,19 +162,22 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 Target
               </Typography>
-              <Typography>{dependency?.target || "-"}</Typography>
+              <Typography>{serviceDependency.target || "-"}</Typography>
             </Box>
             <Box sx={{ display: "flex" }}>
               <Typography variant="h6" sx={{ width: 170 }}>
                 Safety Impact
               </Typography>
               <FormControl sx={{ width: 130 }} size="small" variant="standard">
-                <Select defaultValue="Negligible">
-                  <MenuItem value="Negligible">Negligible</MenuItem>
-                  <MenuItem value="Marginal">Marginal</MenuItem>
-                  <MenuItem value="Critical">Critical</MenuItem>
-                  <MenuItem value="Catastrophic">Catastrophic</MenuItem>
-                </Select>
+                <SafetyImpactSelector
+                  pteamId={row.pteam_id}
+                  ticket={{
+                    ticket_id: row.ticket_id,
+                    ticket_safety_impact: row.ticket_safety_impact || null,
+                    ticket_safety_impact_change_reason:
+                      row.ticket_safety_impact_change_reason || null,
+                  }}
+                />
               </FormControl>
             </Box>
             <Box sx={{ display: "flex" }}>
@@ -180,12 +185,16 @@ export function ToDoDrawer(props) {
                 Status
               </Typography>
               <FormControl sx={{ width: 130 }} size="small" variant="standard">
-                <Select defaultValue="Alerted">
-                  <MenuItem value="Alerted">Alerted</MenuItem>
-                  <MenuItem value="Acknowledged">Acknowledged</MenuItem>
-                  <MenuItem value="Scheduled">Scheduled</MenuItem>
-                  <MenuItem value="Completed">Completed</MenuItem>
-                </Select>
+                <VulnStatusSelector
+                  pteamId={row.pteam_id}
+                  serviceId={row.service_id}
+                  vulnId={row.vuln_id}
+                  packageId={serviceDependency.package_id}
+                  ticketId={row.ticket_id}
+                  currentStatus={row.ticket_status}
+                  actionByFixedVersions={actionByFixedVersions}
+                  vulnActions={vulnActions}
+                />
               </FormControl>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -199,17 +208,20 @@ export function ToDoDrawer(props) {
                 Assignees
               </Typography>
               <FormControl sx={{ width: 200 }} size="small" variant="standard">
-                <Select
-                  defaultValue={row?.assignee ? row.assignee.split(",").map((s) => s.trim()) : []}
-                  multiple
-                  onChange={handleAssigneesChange}
-                >
-                  {memberList.map((member) => (
-                    <MenuItem key={member.email} value={member.email}>
-                      {member.email}
-                    </MenuItem>
-                  ))}
-                </Select>
+                <AssigneesSelector
+                  key={row.assignee || ""}
+                  pteamId={row.pteam_id}
+                  serviceId={row.service_id}
+                  vulnId={row.vuln_id}
+                  packageId={serviceDependency.package_id}
+                  ticketId={row.ticket_id}
+                  currentAssigneeIds={
+                    row.assignee && row.assignee !== "-"
+                      ? row.assignee.split(",").map((id) => id.trim())
+                      : []
+                  }
+                  members={pteamMembers}
+                />
               </FormControl>
             </Box>
           </Stack>
@@ -222,8 +234,8 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                 Package
               </Typography>
-              {matchedVulnPackage ? (
-                <PackageView vulnPackage={matchedVulnPackage} />
+              {vulnerable_package ? (
+                <PackageView vulnPackage={vulnerable_package} />
               ) : (
                 <Typography color="text.secondary">No package data</Typography>
               )}
@@ -285,8 +297,11 @@ ToDoDrawer.propTypes = {
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
   row: PropTypes.object.isRequired,
-  service: PropTypes.object,
-  dependency: PropTypes.object,
+  pteam_name: PropTypes.string,
+  service_name: PropTypes.string,
+  pteamMembers: PropTypes.object,
+  assigneeEmails: PropTypes.array,
+  serviceDependency: PropTypes.object.isRequired,
   vuln: PropTypes.object,
   vulnActions: PropTypes.array,
   bgcolor: PropTypes.string.isRequired,

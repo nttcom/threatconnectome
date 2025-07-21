@@ -4,20 +4,21 @@ import Box from "@mui/material/Box";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
+  useGetPTeamQuery,
+  useGetPTeamServicesQuery,
+  useGetPTeamMembersQuery,
   useGetVulnQuery,
   useGetVulnActionsQuery,
   useGetDependencyQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
-
 import { ToDoDrawer } from "./ToDoDrawer";
-import { de } from "date-fns/locale";
 
 function SimpleCell(value = "") {
   return (
@@ -28,12 +29,28 @@ function SimpleCell(value = "") {
 }
 
 export function ToDoTableRow(props) {
-  const { row, bgcolor, ssvc, vuln_id, serviceMap } = props;
+  const { row, ssvcPriority, vuln_id } = props;
+  const Icon = ssvcPriority.icon;
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const skip = useSkipUntilAuthUserIsReady();
   const skipDependency = !row.dependency_id;
 
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(row.pteam_id, { skip });
+  const {
+    data: pteamService,
+    error: pteamServiceError,
+    isLoading: pteamServiceIsLoading,
+  } = useGetPTeamServicesQuery(row.pteam_id, { skip });
+  const {
+    data: pteamMembers,
+    error: pteamMembersError,
+    isLoading: pteamMembersIsLoading,
+  } = useGetPTeamMembersQuery(row.pteam_id, { skip });
   const {
     data: vuln,
     error: vulnError,
@@ -45,50 +62,74 @@ export function ToDoTableRow(props) {
     isLoading: vulnActionsIsLoading,
   } = useGetVulnActionsQuery(vuln_id, { skip });
   const {
-    data: dependency,
-    error: dependencyError,
-    isLoading: dependencyIsLoading,
+    data: serviceDependency,
+    error: serviceDependencyError,
+    isLoading: serviceDependencyIsLoading,
   } = useGetDependencyQuery(
     { pteamId: row.pteam_id, dependencyId: row.dependency_id },
     { skip: skipDependency },
   );
-  console.log("ToDoTableRow dependency", dependency);
+
+  const getUserEmail = (userId) => {
+    return pteamMembers?.[userId]?.email || "";
+  };
+
+  const assigneeEmails = useMemo(() => {
+    if (!row.assignee || row.assignee === "-") return "-";
+
+    const assigneeIds = row.assignee.split(",").map((id) => id.trim());
+    const emails = assigneeIds.map((userId) => getUserEmail(userId));
+    return emails.join(", ");
+  }, [row.assignee, pteamMembers]);
+
+  const pteam_name = pteam?.pteam_name || "";
+  const matched_service = pteamService?.find?.((service) => service.service_id === row.service_id);
+  const service_name = matched_service?.service_name || "-";
+
+  const handleRowClick = () => {
+    const packageId = serviceDependency.package_id;
+    navigate(`/packages/${packageId}?pteamId=${row.pteam_id}&serviceId=${row.service_id}`);
+  };
+
   if (skip) return SimpleCell("");
+
+  if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
+  if (pteamServiceError)
+    throw new APIError(errorToString(pteamServiceError), { api: "getPTeamServices" });
+  if (pteamMembersError)
+    throw new APIError(errorToString(pteamMembersError), { api: "getPTeamMembers" });
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
   if (vulnActionsError)
     throw new APIError(errorToString(vulnActionsError), { api: "getVulnActions" });
-  // if (dependencyError) throw new APIError(errorToString(dependencyError), { api: "getDependency" });
+  if (serviceDependencyError)
+    throw new APIError(errorToString(serviceDependencyError), { api: "getServiceDependencies" });
+
+  if (pteamIsLoading) return SimpleCell("Now loading PTeam...");
+  if (pteamServiceIsLoading) return SimpleCell("Now loading PTeam Services...");
+  if (pteamMembersIsLoading) return SimpleCell("Now loading PTeam Members...");
   if (vulnIsLoading) return SimpleCell("Now loading Vulnerability...");
   if (vulnActionsIsLoading) return SimpleCell("Now loading VulnActions...");
-  if (dependencyIsLoading) return SimpleCell("Now loading Dependency...");
-
-  const serviceId = dependency?.service_id;
-  const service = serviceMap.get(row.pteam_id + ":" + serviceId);
-  console.log("ToDoTableRow service", service);
-
-  const handleRowClick = () => {
-    const packageId = dependency.package_id;
-    const pteamId = row.pteam_id;
-    const serviceId = dependency.service_id || row.pteam?.services?.[0]?.service_id;
-    navigate(`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`);
-  };
+  if (serviceDependencyIsLoading) return SimpleCell("Now loading Service Dependencies...");
 
   return (
     <>
       <TableRow hover sx={{ cursor: "pointer" }} onClick={handleRowClick}>
         <TableCell>{vuln?.cve_id || "-"}</TableCell>
-        <TableCell>{row.team}</TableCell>
-        <TableCell>{service?.service_name || "-"}</TableCell>
+        <TableCell>{pteam_name || "-"}</TableCell>
+        <TableCell>{service_name || "-"}</TableCell>
         <TableCell>{row.dueDate}</TableCell>
         <TableCell>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography sx={{ pl: 0.5 }}>
-              {row.assignee === "-"
+              {assigneeEmails === "-"
                 ? "-"
                 : (() => {
-                    const assignees = row.assignee.split(",").filter(Boolean);
-                    const first = assignees[0];
-                    const restCount = assignees.length - 1;
+                    const emails = assigneeEmails
+                      .split(",")
+                      .map((email) => email.trim())
+                      .filter(Boolean);
+                    const first = emails[0];
+                    const restCount = emails.length - 1;
                     return restCount > 0 ? `${first} +${restCount}` : first;
                   })()}
             </Typography>
@@ -96,11 +137,21 @@ export function ToDoTableRow(props) {
         </TableCell>
         <TableCell
           sx={{
-            bgcolor: bgcolor,
+            bgcolor: ssvcPriority.style.bgcolor,
             color: "white",
+            padding: 0,
           }}
         >
-          {ssvc}
+          <Button
+            component="div"
+            startIcon={<Icon />}
+            sx={{
+              color: "white",
+              justifyContent: "center",
+            }}
+          >
+            {ssvcPriority.displayName.toUpperCase()}
+          </Button>
         </TableCell>
         <TableCell align="right">
           <Button
@@ -108,7 +159,7 @@ export function ToDoTableRow(props) {
             startIcon={<KeyboardDoubleArrowLeftIcon />}
             size="small"
             onClick={(e) => {
-              e.stopPropagation(); // これを追加
+              e.stopPropagation();
               setOpen(true);
             }}
           >
@@ -120,11 +171,14 @@ export function ToDoTableRow(props) {
         open={open}
         setOpen={setOpen}
         row={row}
-        service={service}
-        dependency={dependency}
+        pteam_name={pteam_name}
+        service_name={service_name}
+        pteamMembers={pteamMembers}
+        assigneeEmails={assigneeEmails}
+        serviceDependency={serviceDependency}
         vuln={vuln}
         vulnActions={vulnActions}
-        bgcolor={bgcolor}
+        bgcolor={ssvcPriority.style.bgcolor}
       />
     </>
   );
@@ -132,8 +186,10 @@ export function ToDoTableRow(props) {
 
 ToDoTableRow.propTypes = {
   row: PropTypes.object.isRequired,
-  bgcolor: PropTypes.string.isRequired,
-  ssvc: PropTypes.string.isRequired,
+  ssvcPriority: PropTypes.shape({
+    icon: PropTypes.elementType.isRequired,
+    displayName: PropTypes.string.isRequired,
+    style: PropTypes.object.isRequired,
+  }).isRequired,
   vuln_id: PropTypes.string,
-  serviceMap: PropTypes.object.isRequired,
 };

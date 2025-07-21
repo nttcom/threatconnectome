@@ -179,6 +179,14 @@ export const tcApi = createApi({
     }),
 
     /* PTeam Service */
+    getPTeamServices: builder.query({
+      query: (pteamId) => `pteams/${pteamId}/services`,
+      providesTags: (result, error, pteamId) => [
+        ...(result?.map((service) => ({ type: "Service", id: service.service_id })) ?? []),
+        { type: "Service", id: "ALL" },
+        { type: "PTeam", id: pteamId },
+      ],
+    }),
     updatePTeamService: builder.mutation({
       query: ({ pteamId, serviceId, data }) => ({
         url: `pteams/${pteamId}/services/${serviceId}`,
@@ -307,16 +315,17 @@ export const tcApi = createApi({
         params: {
           assigned_to_me: assignedToMe,
           pteam_ids: pteamIds,
-          offset,
-          limit,
+          offset: offset,
+          limit: limit,
           sort_key: sortKey,
         },
       }),
       providesTags: (result, error, arg) => [
         ...(result?.tickets?.map((ticket) => ({ type: "Ticket", id: ticket.ticket_id })) ?? []),
+        ...(result?.tickets?.map((ticket) => ({ type: "TicketStatus", id: ticket.ticket_id })) ??
+          []),
         { type: "Service", id: "ALL" },
         { type: "Ticket", id: "ALL" },
-        { type: "TicketStatus", id: "ALL" },
         { type: "Threat", id: "ALL" },
       ],
     }),
@@ -472,6 +481,7 @@ export const {
   useDeletePTeamServiceMutation,
   useGetPTeamVulnIdsTiedToServicePackageQuery,
   useGetPTeamTicketCountsTiedToServicePackageQuery,
+  useGetPTeamServicesQuery,
   useGetPTeamServiceThumbnailQuery,
   useUpdatePTeamServiceThumbnailMutation,
   useDeletePTeamServiceThumbnailMutation,
