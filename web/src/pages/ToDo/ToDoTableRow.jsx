@@ -88,6 +88,10 @@ export function ToDoTableRow(props) {
   const service_name = matched_service?.service_name || "-";
 
   const handleRowClick = () => {
+    if (!serviceDependency) {
+      console.warn("Service dependency information is not available.");
+      return;
+    }
     const packageId = serviceDependency.package_id;
     navigate(`/packages/${packageId}?pteamId=${row.pteam_id}&serviceId=${row.service_id}`);
   };
