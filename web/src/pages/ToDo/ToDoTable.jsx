@@ -9,7 +9,6 @@ import TableRow from "@mui/material/TableRow";
 import PropTypes from "prop-types";
 import { useState, useMemo, useEffect } from "react";
 
-
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetTicketsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
@@ -43,9 +42,8 @@ export function ToDoTable({ myTasks, pteamIds }) {
     assignedToMe: myTasks,
   });
 
-  const allTickets = tickets?.tickets ?? [];
-
   const rows = useMemo(() => {
+    const allTickets = tickets?.tickets ?? [];
     return allTickets.map((ticket) => ({
       ticket_id: ticket.ticket_id,
       vuln_id: ticket.vuln_id || "-",
@@ -72,7 +70,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
       ticket_safety_impact_change_reason: ticket.ticket_safety_impact_change_reason,
       ticket_status: ticket.ticket_status,
     }));
-  }, [allTickets]);
+  }, [tickets]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);

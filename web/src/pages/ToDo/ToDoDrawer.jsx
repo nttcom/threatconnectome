@@ -80,7 +80,7 @@ export function ToDoDrawer(props) {
 
   const actions = [actionByFixedVersions, ...(Array.isArray(vulnActions) ? vulnActions : [])];
 
-  const handleChange = (newValue) => {
+  const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 

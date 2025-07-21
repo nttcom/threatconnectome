@@ -71,12 +71,12 @@ export function ToDoTableRow(props) {
     { skip: skipDependency },
   );
 
-  const getUserEmail = (userId) => {
-    return pteamMembers?.[userId]?.email || "";
-  };
-
   const assigneeEmails = useMemo(() => {
     if (!row.assignee || row.assignee === "-") return "-";
+
+    const getUserEmail = (userId) => {
+      return pteamMembers?.[userId]?.email || "";
+    };
 
     const assigneeIds = row.assignee.split(",").map((id) => id.trim());
     const emails = assigneeIds.map((userId) => getUserEmail(userId));
