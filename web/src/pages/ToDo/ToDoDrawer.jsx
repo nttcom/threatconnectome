@@ -1,8 +1,5 @@
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
-import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
-import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 import {
   Card,
   Chip,
@@ -26,6 +23,9 @@ import { useState } from "react";
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { PackageView } from "../../components/PackageView";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
+import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
+import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
+import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
