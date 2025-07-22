@@ -15,6 +15,7 @@ import Box from "@mui/material/Box";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
 import { utcStringToLocalDate } from "../../utils/func";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
@@ -22,27 +23,6 @@ import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector
 import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 
-function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
-
-CustomTabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
-};
 
 export function ToDoDrawer(props) {
   const {
