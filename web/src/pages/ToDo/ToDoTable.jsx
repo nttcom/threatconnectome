@@ -47,7 +47,6 @@ export function ToDoTable({ myTasks, pteamIds }) {
     return allTickets.map((ticket) => ({
       ticket_id: ticket.ticket_id,
       vuln_id: ticket.vuln_id || "-",
-      cve_id: "-",
       service_id: ticket.service_id,
       dueDate: ticket.ticket_status?.scheduled_at
         ? new Date(ticket.ticket_status.scheduled_at).toLocaleString(undefined, {
@@ -63,7 +62,6 @@ export function ToDoTable({ myTasks, pteamIds }) {
         ? ticket.ticket_status.assignees.join(", ")
         : "-",
       ssvc: ticket.ssvc_deployer_priority,
-      package_id: "-",
       pteam_id: ticket.pteam_id,
       dependency_id: ticket.dependency_id,
       ticket_safety_impact: ticket.ticket_safety_impact,
