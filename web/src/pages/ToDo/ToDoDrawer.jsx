@@ -54,8 +54,8 @@ export function ToDoDrawer(props) {
     open,
     setOpen,
     row,
-    pteam_name,
-    service_name,
+    pteamName,
+    serviceName,
     pteamMembers,
     serviceDependency,
     vuln,
@@ -69,13 +69,13 @@ export function ToDoDrawer(props) {
     package_source_name: serviceDependency.package_source_name,
     vuln_matching_ecosystem: serviceDependency.vuln_matching_ecosystem,
   };
-  const vulnerable_package = findMatchedVulnPackage(vuln.vulnerable_packages, currentPackage);
-  const affectedVersions = vulnerable_package?.affected_versions ?? [];
-  const patchedVersions = vulnerable_package?.fixed_versions ?? [];
+  const vulnerablePackage = findMatchedVulnPackage(vuln.vulnerable_packages, currentPackage);
+  const affectedVersions = vulnerablePackage?.affected_versions ?? [];
+  const patchedVersions = vulnerablePackage?.fixed_versions ?? [];
   const actionByFixedVersions = createActionByFixedVersions(
     affectedVersions,
     patchedVersions,
-    vulnerable_package?.affected_name,
+    vulnerablePackage?.affected_name,
   );
 
   const actions = [actionByFixedVersions, ...(Array.isArray(vulnActions) ? vulnActions : [])];
@@ -131,7 +131,7 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 Team
               </Typography>
-              <Typography>{pteam_name || "-"}</Typography>
+              <Typography>{pteamName || "-"}</Typography>
               <IconButton size="small">
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
@@ -140,7 +140,7 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 Service
               </Typography>
-              <Typography>{service_name || "-"}</Typography>
+              <Typography>{serviceName || "-"}</Typography>
               <IconButton size="small">
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
@@ -150,8 +150,8 @@ export function ToDoDrawer(props) {
                 Package
               </Typography>
               <Typography>
-                {vulnerable_package
-                  ? `${vulnerable_package.affected_name} : ${vulnerable_package.ecosystem}`
+                {vulnerablePackage
+                  ? `${vulnerablePackage.affected_name} : ${vulnerablePackage.ecosystem}`
                   : "-"}
               </Typography>
               <IconButton size="small">
@@ -234,8 +234,8 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                 Package
               </Typography>
-              {vulnerable_package ? (
-                <PackageView vulnPackage={vulnerable_package} />
+              {vulnerablePackage ? (
+                <PackageView vulnPackage={vulnerablePackage} />
               ) : (
                 <Typography color="text.secondary">No package data</Typography>
               )}
@@ -297,8 +297,8 @@ ToDoDrawer.propTypes = {
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
   row: PropTypes.object.isRequired,
-  pteam_name: PropTypes.string,
-  service_name: PropTypes.string,
+  pteamName: PropTypes.string,
+  serviceName: PropTypes.string,
   pteamMembers: PropTypes.object,
   assigneeEmails: PropTypes.string,
   serviceDependency: PropTypes.object.isRequired,

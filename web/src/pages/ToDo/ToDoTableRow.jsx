@@ -83,9 +83,9 @@ export function ToDoTableRow(props) {
     return emails.join(", ");
   }, [row.assignee, pteamMembers]);
 
-  const pteam_name = pteam?.pteam_name || "";
-  const matched_service = pteamServices?.find?.((service) => service.service_id === row.service_id);
-  const service_name = matched_service?.service_name || "-";
+  const pteamName = pteam?.pteam_name || "";
+  const matchedService = pteamServices?.find?.((service) => service.service_id === row.service_id);
+  const serviceName = matchedService?.service_name || "-";
 
   const handleRowClick = () => {
     if (!serviceDependency) {
@@ -120,8 +120,8 @@ export function ToDoTableRow(props) {
     <>
       <TableRow hover sx={{ cursor: "pointer" }} onClick={handleRowClick}>
         <TableCell>{vuln?.cve_id || "-"}</TableCell>
-        <TableCell>{pteam_name || "-"}</TableCell>
-        <TableCell>{service_name || "-"}</TableCell>
+        <TableCell>{pteamName || "-"}</TableCell>
+        <TableCell>{serviceName || "-"}</TableCell>
         <TableCell>{row.dueDate}</TableCell>
         <TableCell>
           <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -176,8 +176,8 @@ export function ToDoTableRow(props) {
         open={open}
         setOpen={setOpen}
         row={row}
-        pteam_name={pteam_name}
-        service_name={service_name}
+        pteamName={pteamName}
+        serviceName={serviceName}
         pteamMembers={pteamMembers}
         assigneeEmails={assigneeEmails}
         serviceDependency={serviceDependency}
