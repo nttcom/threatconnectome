@@ -8,6 +8,7 @@ import { useState } from "react";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { PackageView } from "../../components/PackageView";
+import { utcStringToLocalDate } from "../../utils/func";
 
 import { VulnCVSSCard } from "./VulnCVSSCard";
 import { VulnSSVCCards } from "./VulnSSVCCards";
@@ -137,7 +138,7 @@ export function VulnDetailView(props) {
             </Box>
             <Box display="flex" flexDirection="column" sx={{ mt: 1 }}>
               <Typography sx={{ fontWeight: "bold" }}>Last Updated</Typography>
-              <Typography>{vuln.updated_at}</Typography>
+              <Typography>{utcStringToLocalDate(vuln.updated_at)}</Typography>
             </Box>
             <Box display="flex" flexDirection="column" sx={{ mt: 1 }}>
               <Typography sx={{ fontWeight: "bold" }}>Vuln ID</Typography>

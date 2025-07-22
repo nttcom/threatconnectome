@@ -1,7 +1,7 @@
 import io
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from hashlib import sha256
 from io import DEFAULT_BUFFER_SIZE, BytesIO
 from uuid import UUID
@@ -30,7 +30,7 @@ from app.routers.validators.account_validator import (
     check_pteam_membership,
 )
 from app.sbom.sbom_analyzer import sbom_json_to_artifact_json_lines
-from app.utility.unicode_tool import count_full_width_and_half_width_characters
+from app.utility import timezone_tool, unicode_tool
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
 
@@ -141,7 +141,7 @@ def force_calculate_ssvc_priority(
     if not check_pteam_admin_authority(db, pteam, current_user):
         raise NOT_HAVE_AUTH
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     for service in pteam.services:
         for dependency in service.dependencies:
             for ticket in dependency.tickets:
@@ -254,7 +254,7 @@ def update_pteam_service(
             service.description = None
         elif description := data.description.strip():
             if (
-                count_full_width_and_half_width_characters(description)
+                unicode_tool.count_full_width_and_half_width_characters(description)
                 > max_description_length_in_half
             ):
                 raise error_too_long_description
@@ -266,7 +266,8 @@ def update_pteam_service(
         if len(fixed_words) > max_keywords:
             raise error_too_many_keywords
         if any(
-            count_full_width_and_half_width_characters(fixed_word) > max_keyword_length_in_half
+            unicode_tool.count_full_width_and_half_width_characters(fixed_word)
+            > max_keyword_length_in_half
             for fixed_word in fixed_words
         ):
             raise error_too_long_keyword
@@ -274,7 +275,7 @@ def update_pteam_service(
     if data.service_name is not None:
         update_service_name = data.service_name.strip()
         if (
-            count_full_width_and_half_width_characters(update_service_name)
+            unicode_tool.count_full_width_and_half_width_characters(update_service_name)
             > max_service_name_length_in_half
         ):
             raise error_too_long_service_name
@@ -306,7 +307,7 @@ def update_pteam_service(
         db.flush()
         for dependency in service.dependencies:
             for ticket in dependency.tickets:
-                ticket_business.fix_ticket_ssvc_priority(db, ticket, now=datetime.now())
+                ticket_business.fix_ticket_ssvc_priority(db, ticket, now=datetime.now(timezone.utc))
 
     db.commit()
 
@@ -746,9 +747,12 @@ def set_ticket_status(
         # user cannot set alerted
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
 
-    now = datetime.now()
-    if data.scheduled_at:
-        data_scheduled_at = data.scheduled_at.replace(tzinfo=None)
+    now = datetime.now(timezone.utc)
+    if data.scheduled_at and data.scheduled_at.tzinfo is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unwise expiration (grant timezone)",
+        )
 
     if data.vuln_status == models.VulnStatusType.scheduled or (
         "vuln_status" not in update_data.keys()
@@ -766,7 +770,7 @@ def set_ticket_status(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="If status is scheduled, unable to reset schduled_at",
                 )
-            elif data_scheduled_at < now:
+            elif data.scheduled_at < now:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="If status is scheduled, schduled_at must be a future time",
@@ -829,10 +833,12 @@ def set_ticket_status(
         if data.scheduled_at is None:
             ticket.ticket_status.scheduled_at = None
         elif (
-            data_scheduled_at > now
+            data.scheduled_at > now
             and ticket.ticket_status.vuln_status == models.VulnStatusType.scheduled
         ):
-            ticket.ticket_status.scheduled_at = data.scheduled_at
+            ticket.ticket_status.scheduled_at = timezone_tool.convert_to_utc_timezone(
+                data.scheduled_at
+            )
 
     # set last updated by
     ticket.ticket_status.user_id = current_user.user_id
@@ -970,7 +976,9 @@ def update_ticket_safety_impact(
             ticket_safety_impact_change_reason := data.ticket_safety_impact_change_reason.strip()
         ):
             if (
-                count_full_width_and_half_width_characters(ticket_safety_impact_change_reason)
+                unicode_tool.count_full_width_and_half_width_characters(
+                    ticket_safety_impact_change_reason
+                )
                 > max_reason_safety_impact_length_in_half
             ):
                 raise HTTPException(
@@ -1112,7 +1120,7 @@ def bg_create_tags_from_sbom_json(
             log.error(f"Failed uploading SBOM as a service: {service_name}")
             return
 
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         service.sbom_uploaded_at = now
 
         db.commit()
@@ -1211,7 +1219,7 @@ def upload_pteam_packages_file(
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     service_model.sbom_uploaded_at = now
 
     db.commit()
@@ -1534,12 +1542,19 @@ def create_invitation(
             detail="Unwise limit_count (give Null for unlimited)",
         )
 
+    if request.expiration.tzinfo is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unwise expiration (grant timezone)",
+        )
+
     command.expire_pteam_invitations(db)
 
     invitation = models.PTeamInvitation(
-        **request.model_dump(),
         pteam_id=str(pteam_id),
         user_id=current_user.user_id,
+        limit_count=request.limit_count,
+        expiration=timezone_tool.convert_to_utc_timezone(request.expiration),
     )
     persistence.create_pteam_invitation(db, invitation)
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -28,7 +28,7 @@ def create_action(
     if not (vuln := persistence.get_vuln_by_id(db, request.vuln_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No such vuln")
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     action = models.VulnAction(
         # vuln_id will be filled at appending to vuln.vuln_actions
         action=request.action,
@@ -59,7 +59,10 @@ def get_action(
     if not (action := persistence.get_action_by_id(db, action_id)):
         raise NO_SUCH_ACTION
 
-    return action
+    action_dict = {c.key: getattr(action, c.key) for c in action.__table__.columns}
+    action_dict["created_at"] = action.created_at
+
+    return schemas.ActionResponse(**action_dict)
 
 
 @router.put("/{action_id}", response_model=schemas.ActionResponse)
@@ -76,34 +79,32 @@ def update_action(
         raise NO_SUCH_ACTION
 
     update_data = data.model_dump(exclude_unset=True)
-    if "action" in update_data.keys() and data.action is None:
+    if "action" in update_data and data.action is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot specify None for action",
         )
-    if "action_type" in update_data.keys() and data.action_type is None:
+    if "action_type" in update_data and data.action_type is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot specify None for action_type",
         )
-    if "recommended" in update_data.keys() and data.recommended is None:
+    if "recommended" in update_data and data.recommended is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot specify None for recommended",
         )
 
     for key, value in data:
-        if value is None:
-            continue
-        else:
+        if value is not None:
             setattr(action, key, value)
-
-    # Note:
-    #   do not try auto close topic because core of action should be immutable
 
     db.commit()
 
-    return action
+    action_dict = {c.key: getattr(action, c.key) for c in action.__table__.columns}
+
+    action_dict["created_at"] = action.created_at
+    return schemas.ActionResponse(**action_dict)
 
 
 @router.delete("/{action_id}", status_code=status.HTTP_204_NO_CONTENT)

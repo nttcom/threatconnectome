@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from logging import ERROR, INFO
 from pathlib import Path
 from uuid import UUID, uuid4
@@ -966,12 +966,11 @@ class TestPostUploadSBOMFileCycloneDX:
             services = self.get_services()
             service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
             assert service1
-            now = datetime.now()
-            datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
-            assert datetime.strptime(
-                service1["sbom_uploaded_at"], datetime_format
+            now = datetime.now(timezone.utc)
+            assert datetime.fromisoformat(
+                service1["sbom_uploaded_at"].replace("Z", "+00:00")
             ) > now - timedelta(seconds=30)
-            assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
+            assert datetime.fromisoformat(service1["sbom_uploaded_at"].replace("Z", "+00:00")) < now
 
             @dataclass(frozen=True, kw_only=True)
             class DependencyParamsToCheck:
@@ -1115,20 +1114,24 @@ class TestPostUploadSBOMFileCycloneDX:
             if expected_params == 2:
                 assert response_tickets.json()[0]["vuln_id"] == str(new_vuln_id)
                 assert response_tickets.json()[1]["vuln_id"] == str(new_vuln_id)
-                now = datetime.now()
-                datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
-                assert datetime.strptime(
-                    response_tickets.json()[0]["created_at"], datetime_format
+                now = datetime.now(timezone.utc)
+                assert datetime.fromisoformat(
+                    response_tickets.json()[0]["created_at"].replace("Z", "+00:00")
                 ) > now - timedelta(seconds=30)
-                assert datetime.strptime(
-                    response_tickets.json()[1]["created_at"], datetime_format
+                assert datetime.fromisoformat(
+                    response_tickets.json()[1]["created_at"].replace("Z", "+00:00")
                 ) > now - timedelta(seconds=30)
+
                 assert (
-                    datetime.strptime(response_tickets.json()[0]["created_at"], datetime_format)
+                    datetime.fromisoformat(
+                        response_tickets.json()[0]["created_at"].replace("Z", "+00:00")
+                    )
                     < now
                 )
                 assert (
-                    datetime.strptime(response_tickets.json()[1]["created_at"], datetime_format)
+                    datetime.fromisoformat(
+                        response_tickets.json()[1]["created_at"].replace("Z", "+00:00")
+                    )
                     < now
                 )
 
@@ -1414,12 +1417,11 @@ class TestPostUploadPackagesFile:
         services = response.json().get("services", {})
         service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
         assert service1
-        now = datetime.now()
-        datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
-        assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) > now - timedelta(
-            seconds=30
-        )
-        assert datetime.strptime(service1["sbom_uploaded_at"], datetime_format) < now
+        now = datetime.now(timezone.utc)
+        assert datetime.fromisoformat(
+            service1["sbom_uploaded_at"].replace("Z", "+00:00")
+        ) > now - timedelta(seconds=30)
+        assert datetime.fromisoformat(service1["sbom_uploaded_at"].replace("Z", "+00:00")) < now
 
 
 class TestDeletePteam:

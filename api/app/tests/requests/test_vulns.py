@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
@@ -103,7 +103,7 @@ class TestUpdateVuln:
     def test_return_VulnResponse_when_create_vuln_successfully(self):
         # Given
         new_vuln_id = uuid4()
-        current_time = datetime.now()
+        current_time = datetime.now(timezone.utc)
 
         # When
         response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=self.request1)
@@ -127,12 +127,12 @@ class TestUpdateVuln:
 
         assert (
             current_time - timedelta(seconds=10)
-            <= datetime.fromisoformat(response.json()["created_at"])
+            <= datetime.fromisoformat(response.json()["created_at"].replace("Z", "+00:00"))
             <= current_time + timedelta(seconds=10)
         )
         assert (
             current_time - timedelta(seconds=10)
-            <= datetime.fromisoformat(response.json()["updated_at"])
+            <= datetime.fromisoformat(response.json()["updated_at"].replace("Z", "+00:00"))
             <= current_time + timedelta(seconds=10)
         )
 
@@ -162,8 +162,8 @@ class TestUpdateVuln:
 
     def test_return_VulnResponse_when_update_vuln_successfully(self, update_setup):
         # Given
-        created_time = self.vuln1.created_at
-        current_time = datetime.now()
+        created_time = self.vuln1.created_at.replace(tzinfo=timezone.utc)
+        current_time = datetime.now(timezone.utc)
         # When
         response = client.put(
             f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=self.request1
@@ -188,12 +188,12 @@ class TestUpdateVuln:
 
         assert (
             created_time - timedelta(seconds=10)
-            <= datetime.fromisoformat(response.json()["created_at"])
+            <= datetime.fromisoformat(response.json()["created_at"].replace("Z", "+00:00"))
             <= created_time + timedelta(seconds=10)
         )
         assert (
             current_time - timedelta(seconds=10)
-            <= datetime.fromisoformat(response.json()["updated_at"])
+            <= datetime.fromisoformat(response.json()["updated_at"].replace("Z", "+00:00"))
             <= current_time + timedelta(seconds=10)
         )
 
@@ -448,8 +448,12 @@ class TestGetVuln:
         response = client.put(
             f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.request1
         )
-        self.created_time = datetime.fromisoformat(response.json()["created_at"])
-        self.updated_time = datetime.fromisoformat(response.json()["updated_at"])
+        self.created_time = datetime.fromisoformat(
+            response.json()["created_at"].replace("Z", "+00:00")
+        )
+        self.updated_time = datetime.fromisoformat(
+            response.json()["updated_at"].replace("Z", "+00:00")
+        )
 
     def test_it_should_return_200_when_vuln_id_is_correctly_registered(self):
         # When
@@ -473,12 +477,12 @@ class TestGetVuln:
 
         assert (
             self.created_time - timedelta(seconds=10)
-            <= datetime.fromisoformat(response.json()["created_at"])
+            <= datetime.fromisoformat(response.json()["created_at"].replace("Z", "+00:00"))
             <= self.created_time + timedelta(seconds=10)
         )
         assert (
             self.updated_time - timedelta(seconds=10)
-            <= datetime.fromisoformat(response.json()["updated_at"])
+            <= datetime.fromisoformat(response.json()["updated_at"].replace("Z", "+00:00"))
             <= self.updated_time + timedelta(seconds=10)
         )
 
@@ -548,8 +552,12 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            created_times.append(datetime.fromisoformat(response.json()["created_at"]))
-            updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
+            created_times.append(
+                datetime.fromisoformat(response.json()["created_at"].replace("Z", "+00:00"))
+            )
+            updated_times.append(
+                datetime.fromisoformat(response.json()["updated_at"].replace("Z", "+00:00"))
+            )
 
         # When
         response = client.get("/vulns?offset=0&limit=100", headers=self.headers_user)
@@ -571,12 +579,12 @@ class TestGetVulns:
             )
             assert (
                 created_times[i] - timedelta(seconds=10)
-                <= datetime.fromisoformat(vuln["created_at"])
+                <= datetime.fromisoformat(vuln["created_at"].replace("Z", "+00:00"))
                 <= created_times[i] + timedelta(seconds=10)
             )
             assert (
                 updated_times[i] - timedelta(seconds=10)
-                <= datetime.fromisoformat(vuln["updated_at"])
+                <= datetime.fromisoformat(vuln["updated_at"].replace("Z", "+00:00"))
                 <= updated_times[i] + timedelta(seconds=10)
             )
 
@@ -617,8 +625,12 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i)
             response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
             vuln_ids.append(vuln_id)
-            created_times.append(datetime.fromisoformat(response.json()["created_at"]))
-            updated_times.append(datetime.fromisoformat(response.json()["updated_at"]))
+            created_times.append(
+                datetime.fromisoformat(response.json()["created_at"].replace("Z", "+00:00"))
+            )
+            updated_times.append(
+                datetime.fromisoformat(response.json()["updated_at"].replace("Z", "+00:00"))
+            )
 
         # When
         response = client.get("/vulns?offset=1&limit=4", headers=self.headers_user)
@@ -640,7 +652,9 @@ class TestGetVulns:
             )
         assert (
             created_times[3] - timedelta(seconds=10)
-            <= datetime.fromisoformat(response_data["vulns"][0]["created_at"])
+            <= datetime.fromisoformat(
+                response_data["vulns"][0]["created_at"].replace("Z", "+00:00")
+            )
             <= created_times[3] + timedelta(seconds=10)
         )
 
@@ -1362,9 +1376,9 @@ class TestGetVulns:
     # A1
     def test_it_should_sort_by_cvss_v3_score_ascending(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00"},
-            {"cvss_v3_score": 3.0, "updated_at": "2025-01-01T00:00:00"},
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00Z"},
+            {"cvss_v3_score": 3.0, "updated_at": "2025-01-01T00:00:00Z"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
@@ -1375,9 +1389,9 @@ class TestGetVulns:
     # A2
     def test_it_should_sort_by_cvss_v3_score_with_null(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": 3.0, "updated_at": "2025-01-02T00:00:00"},
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00"},
-            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 3.0, "updated_at": "2025-01-02T00:00:00Z"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00Z"},
+            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
@@ -1390,16 +1404,16 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
-            {"cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00Z"},
+            {"cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
-            "2024-01-01T00:00:00",
-            "2023-01-01T00:00:00",
+            "2024-01-01T00:00:00Z",
+            "2023-01-01T00:00:00Z",
         ]
 
     # A4
@@ -1407,10 +1421,10 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
-            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00"},
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00Z"},
+            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00Z"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00Z"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
@@ -1420,17 +1434,17 @@ class TestGetVulns:
         assert [
             vuln["updated_at"] for vuln in response_data["vulns"] if vuln["cvss_v3_score"] == 5.0
         ] == [
-            "2025-01-02T00:00:00",
-            "2023-01-01T00:00:00",
+            "2025-01-02T00:00:00Z",
+            "2023-01-01T00:00:00Z",
         ]
 
     # B: sortkey is CVSS_V3_SCORE_DESC
     # B1
     def test_it_should_sort_by_cvss_v3_score_descending(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
-            {"cvss_v3_score": 3.0, "updated_at": "2025-01-03T00:00:00"},
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00Z"},
+            {"cvss_v3_score": 3.0, "updated_at": "2025-01-03T00:00:00Z"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
@@ -1441,9 +1455,9 @@ class TestGetVulns:
     # B2
     def test_it_should_sort_by_cvss_v3_score_descending_with_null(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
-            {"cvss_v3_score": None, "updated_at": "2025-01-03T00:00:00"},
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00Z"},
+            {"cvss_v3_score": None, "updated_at": "2025-01-03T00:00:00Z"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
@@ -1456,16 +1470,16 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2022-01-01T00:00:00"},
-            {"cvss_v3_score": 8.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2022-01-01T00:00:00Z"},
+            {"cvss_v3_score": 8.0, "updated_at": "2023-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
-            "2023-01-01T00:00:00",
-            "2022-01-01T00:00:00",
+            "2023-01-01T00:00:00Z",
+            "2022-01-01T00:00:00Z",
         ]
 
     # B4
@@ -1473,10 +1487,10 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00"},
-            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00"},
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00Z"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-03T00:00:00Z"},
+            {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00Z"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
@@ -1486,26 +1500,26 @@ class TestGetVulns:
         assert [
             vuln["updated_at"] for vuln in response_data["vulns"] if vuln["cvss_v3_score"] == 5.0
         ] == [
-            "2025-01-02T00:00:00",
-            "2023-01-01T00:00:00",
+            "2025-01-02T00:00:00Z",
+            "2023-01-01T00:00:00Z",
         ]
 
     # C: sortkey isUPDATED_AT
     # C1
     def test_it_should_sort_by_updated_at_ascending(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00"},
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00"},
-            {"cvss_v3_score": 3.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00Z"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00Z"},
+            {"cvss_v3_score": 3.0, "updated_at": "2023-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
-            "2023-01-01T00:00:00",
-            "2024-01-01T00:00:00",
-            "2025-01-01T00:00:00",
+            "2023-01-01T00:00:00Z",
+            "2024-01-01T00:00:00Z",
+            "2025-01-01T00:00:00Z",
         ]
 
     # C2
@@ -1513,9 +1527,9 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00"},
-            {"cvss_v3_score": 3.0, "updated_at": "2024-01-01T00:00:00"},
-            {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00Z"},
+            {"cvss_v3_score": 3.0, "updated_at": "2024-01-01T00:00:00Z"},
+            {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
@@ -1528,9 +1542,9 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2023-01-01T00:00:00"},
-            {"cvss_v3_score": 3.0, "updated_at": "2022-01-01T00:00:00"},
-            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2023-01-01T00:00:00Z"},
+            {"cvss_v3_score": 3.0, "updated_at": "2022-01-01T00:00:00Z"},
+            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
@@ -1542,18 +1556,18 @@ class TestGetVulns:
     # D1
     def test_it_should_sort_by_updated_at_descending(self, testdb: Session):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2022-01-01T00:00:00"},
-            {"cvss_v3_score": 3.0, "updated_at": "2023-01-01T00:00:00"},
-            {"cvss_v3_score": 5.0, "updated_at": "2021-01-01T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2022-01-01T00:00:00Z"},
+            {"cvss_v3_score": 3.0, "updated_at": "2023-01-01T00:00:00Z"},
+            {"cvss_v3_score": 5.0, "updated_at": "2021-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
-            "2023-01-01T00:00:00",
-            "2022-01-01T00:00:00",
-            "2021-01-01T00:00:00",
+            "2023-01-01T00:00:00Z",
+            "2022-01-01T00:00:00Z",
+            "2021-01-01T00:00:00Z",
         ]
 
     # D2
@@ -1561,9 +1575,9 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00"},
-            {"cvss_v3_score": 3.0, "updated_at": "2025-01-01T00:00:00"},
-            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00Z"},
+            {"cvss_v3_score": 3.0, "updated_at": "2025-01-01T00:00:00Z"},
+            {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
@@ -1576,9 +1590,9 @@ class TestGetVulns:
         self, testdb: Session
     ):
         vulns_data = [
-            {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00"},
-            {"cvss_v3_score": 3.0, "updated_at": "2024-01-01T00:00:00"},
-            {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00"},
+            {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00Z"},
+            {"cvss_v3_score": 3.0, "updated_at": "2024-01-01T00:00:00Z"},
+            {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
         response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
@@ -1706,8 +1720,8 @@ class TestGetVulnActions:
         assert actions[0]["action_type"] == action_request["action_type"]
         assert actions[0]["recommended"] == action_request["recommended"]
 
-        now = datetime.now()
-        created_at = datetime.fromisoformat(actions[0]["created_at"])
+        now = datetime.now(timezone.utc)
+        created_at = datetime.fromisoformat(actions[0]["created_at"].replace("Z", "+00:00"))
         assert created_at > now - timedelta(seconds=30)
         assert created_at < now
 

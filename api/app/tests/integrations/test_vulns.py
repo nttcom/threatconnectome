@@ -1,6 +1,6 @@
 import copy
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -61,8 +61,8 @@ class TestUpdateVuln:
             detail="Vuln1 detail",
             cve_id="CVE-0000-0001",
             created_by=str(self.user1.user_id),
-            created_at=datetime(2025, 4, 15, 12, 0, 0),
-            updated_at=datetime(2025, 4, 15, 12, 0, 0),
+            created_at=datetime(2025, 4, 15, 12, 0, 0, tzinfo=timezone.utc),
+            updated_at=datetime(2025, 4, 15, 12, 0, 0, tzinfo=timezone.utc),
             cvss_v3_score=8.0,
             exploitation="none",
             automatable="no",
@@ -122,7 +122,7 @@ class TestUpdateVuln:
         testdb.add(new_package)
         testdb.commit()
 
-        current_time = datetime.now()
+        current_time = datetime.now(timezone.utc)
 
         # When
         response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=self.request1)
@@ -182,7 +182,7 @@ class TestUpdateVuln:
     def test_update_vuln_if_given_vuln_id_is_exists(self, testdb: Session, update_setup):
         # Given
         created_time = self.vuln1.created_at
-        current_time = datetime.now()
+        current_time = datetime.now(timezone.utc)
 
         # When
         response = client.put(

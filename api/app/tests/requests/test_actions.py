@@ -16,7 +16,6 @@ client = TestClient(app)
 
 
 class TestCreateAction:
-
     @pytest.fixture(autouse=True)
     def common_setup(self, testdb: Session):
         # Create a user
@@ -94,7 +93,6 @@ class TestCreateAction:
 
 
 class TestUpdateAction:
-
     @pytest.fixture(autouse=True)
     def common_setup(self, testdb: Session):
         # Create a user
@@ -215,7 +213,6 @@ class TestUpdateAction:
 
 
 class TestGetAction:
-
     @pytest.fixture(autouse=True)
     def common_setup(self, testdb: Session):
         # Create a user
@@ -276,7 +273,6 @@ class TestGetAction:
 
 
 class TestDeleteAction:
-
     @pytest.fixture(autouse=True)
     def common_setup(self, testdb: Session):
         # Create a user
