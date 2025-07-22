@@ -2,6 +2,7 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { Card, CardContent, Chip, Box, Typography, Stack } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 
 import { cvssProps } from "../../utils/const";
 import { cvssConvertToName } from "../../utils/func";
@@ -9,6 +10,7 @@ import { cvssConvertToName } from "../../utils/func";
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 
 export function VulnManagementCardList({ vulns }) {
+  const navigate = useNavigate();
   return (
     <Stack spacing={2} sx={{ mt: 1 }}>
       {vulns?.length > 0 ? (
@@ -30,7 +32,7 @@ export function VulnManagementCardList({ vulns }) {
                 cursor: "pointer",
                 "&:hover": { bgcolor: grey[100] },
               }}
-              onClick={() => window.location.assign(`/vulns/${vuln.vuln_id}`)}
+              onClick={() => navigate(`/vulns/${vuln.vuln_id}`)}
             >
               <CardContent>
                 <Chip label={cveId} size="small" sx={{ borderRadius: 0.5, mr: 1 }} />
