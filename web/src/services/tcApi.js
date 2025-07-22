@@ -322,10 +322,9 @@ export const tcApi = createApi({
       }),
       providesTags: (result, error, arg) => [
         ...(result?.tickets?.map((ticket) => ({ type: "Ticket", id: ticket.ticket_id })) ?? []),
-        ...(result?.tickets?.map((ticket) => ({ type: "TicketStatus", id: ticket.ticket_id })) ??
-          []),
         { type: "Service", id: "ALL" },
         { type: "Ticket", id: "ALL" },
+        { type: "TicketStatus", id: "ALL" },
         { type: "Threat", id: "ALL" },
       ],
     }),
