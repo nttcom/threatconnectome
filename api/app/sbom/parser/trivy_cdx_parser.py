@@ -215,7 +215,11 @@ class TrivyCDXParser(SBOMParser):
                     continue
                 if self.bom_ref not in dependsOn:
                     continue
-                if ref == meta_component["bom-ref"]:
+                if (
+                    meta_component
+                    and "bom-ref" in meta_component
+                    and ref == meta_component["bom-ref"]
+                ):
                     continue
 
                 if not (target_component := components_map.get(ref)):
@@ -313,9 +317,6 @@ class TrivyCDXParser(SBOMParser):
             if target_component.type in {"library"}:
                 # https://cyclonedx.org/docs/1.5/json/#components_items_type
                 continue  # omit pkg to pkg dependencies
-            # FIXME: should omit scan root? e.g. contaner, rootfs, etc
-            # if dep_ref == meta_component["bom-ref"]:
-            #     continue  # omit scan root
             target_name = target_component.name or ""
             for pkg_ref in _recursive_get(dep_ref, set()):
                 if pkg_ref == dep_ref:  # cross-reference
@@ -327,7 +328,11 @@ class TrivyCDXParser(SBOMParser):
         # convert components to artifacts
         artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
         for component in components_map.values():
-            if component.bom_ref == meta_component["bom-ref"]:
+            if (
+                meta_component
+                and "bom-ref" in meta_component
+                and component.bom_ref == meta_component["bom-ref"]
+            ):
                 continue
             if not component.version:
                 continue  # maybe directory or image
