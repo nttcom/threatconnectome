@@ -76,18 +76,14 @@ export function ToDoTableRow(props) {
     const assigneeIds = row.assignee.map((id) => id.trim());
     const emails = assigneeIds.map((userId) => getUserEmail(userId));
 
-    if (emails.join(", ") === "-") {
-      return "-";
-    } else {
-      const emailList = emails
-        .join(", ")
-        .split(",")
-        .map((email) => email.trim())
-        .filter(Boolean);
-      const first = emailList[0];
-      const restCount = emailList.length - 1;
-      return restCount > 0 ? `${first} +${restCount}` : first;
-    }
+    const emailList = emails
+      .join(", ")
+      .split(",")
+      .map((email) => email.trim())
+      .filter(Boolean);
+    const first = emailList[0];
+    const restCount = emailList.length - 1;
+    return restCount > 0 ? `${first} +${restCount}` : first;
   }, [row.assignee, pteamMembers]);
 
   const pteamName = pteam?.pteam_name || "";
