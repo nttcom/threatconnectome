@@ -17,7 +17,7 @@ import {
   useGetDependencyQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
-import { errorToString , utcStringToLocalDate } from "../../utils/func";
+import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoDrawer } from "./ToDoDrawer";
 
@@ -184,7 +184,6 @@ export function ToDoTableRow(props) {
         pteamName={pteamName}
         serviceName={serviceName}
         pteamMembers={pteamMembers}
-        assigneeEmails={assigneeEmails}
         serviceDependency={serviceDependency}
         vuln={vuln}
         vulnActions={vulnActions}
