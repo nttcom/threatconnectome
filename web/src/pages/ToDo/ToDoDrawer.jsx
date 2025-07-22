@@ -1,15 +1,10 @@
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
-  Card,
   Chip,
   Drawer,
   FormControl,
   IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Stack,
   Tab,
   Tabs,
@@ -20,14 +15,12 @@ import Box from "@mui/material/Box";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { ActionTypeIcon } from "../../components/ActionTypeIcon";
-import { PackageView } from "../../components/PackageView";
+import { utcStringToLocalDate } from "../../utils/func";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
 import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
-import { utcStringToLocalDate } from "../../utils/func";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -245,7 +238,7 @@ export function ToDoDrawer(props) {
               vuln={vuln}
               vulnActions={vulnActions}
               currentPackage={currentPackage}
-            />   
+            />
           </Stack>
         </CustomTabPanel>
       </Box>

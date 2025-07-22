@@ -17,10 +17,9 @@ import {
   useGetDependencyQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
-import { errorToString } from "../../utils/func";
+import { errorToString , utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoDrawer } from "./ToDoDrawer";
-import { utcStringToLocalDate } from "../../utils/func";
 
 function SimpleCell(value = "") {
   return (
