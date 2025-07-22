@@ -307,7 +307,6 @@ ToDoDrawer.propTypes = {
   pteamName: PropTypes.string,
   serviceName: PropTypes.string,
   pteamMembers: PropTypes.object,
-  assigneeEmails: PropTypes.string,
   serviceDependency: PropTypes.object.isRequired,
   vuln: PropTypes.object,
   vulnActions: PropTypes.array,
