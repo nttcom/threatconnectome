@@ -42,6 +42,7 @@ export function ToDoDrawer(props) {
   const currentPackage = {
     package_name: serviceDependency.package_name,
     package_source_name: serviceDependency.package_source_name,
+    package_ecosystem: serviceDependency.package_ecosystem,
     vuln_matching_ecosystem: serviceDependency.vuln_matching_ecosystem,
   };
   const vulnerablePackage = findMatchedVulnPackage(vuln.vulnerable_packages, currentPackage);
@@ -152,8 +153,8 @@ export function ToDoDrawer(props) {
                 Package
               </Typography>
               <Typography>
-                {vulnerablePackage
-                  ? `${vulnerablePackage.affected_name} : ${vulnerablePackage.ecosystem}`
+                {currentPackage
+                  ? `${currentPackage.package_name} : ${currentPackage.package_ecosystem}`
                   : "-"}
               </Typography>
               <IconButton size="small" onClick={handlePackageClick}>
