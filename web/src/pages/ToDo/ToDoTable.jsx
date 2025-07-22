@@ -17,14 +17,6 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
-function SimpleCell(value = "") {
-  return (
-    <TableRow>
-      <TableCell>{value}</TableCell>
-    </TableRow>
-  );
-}
-
 export function ToDoTable({ myTasks, pteamIds }) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -87,10 +79,10 @@ export function ToDoTable({ myTasks, pteamIds }) {
     setPage(0);
   }, [myTasks]);
 
-  if (skip) return SimpleCell("");
+  if (skip) return <></>;
 
   if (ticketsError) throw new APIError(errorToString(ticketsError), { api: "getTickets" });
-  if (ticketsIsLoading) return SimpleCell("Now loading Tickets...");
+  if (ticketsIsLoading) return <>Now loading Tickets...</>;
 
   return (
     <Paper sx={{ width: "100%" }} variant="outlined">
