@@ -189,8 +189,8 @@ class TestTrivyCDXParser:
                     "name": "test1_name",
                     "type": "operating-system",
                     "properties": [
-                        {"name": "aquasecurity:trivy:Type", "value": "ubuntu"},
-                        {"name": "aquasecurity:trivy:Class", "value": "os-pkgs"},
+                        {"name": "aquasecurity:trivy:Type", "value": "pipenv"},
+                        {"name": "aquasecurity:trivy:Class", "value": "lang-pkgs"},
                     ],
                     "bom-ref": "test1_ref",
                 },
@@ -198,24 +198,24 @@ class TestTrivyCDXParser:
                     "name": "test2_name",
                     "type": "operating-system",
                     "properties": [
-                        {"name": "aquasecurity:trivy:Type", "value": "ubuntu"},
-                        {"name": "aquasecurity:trivy:Class", "value": "os-pkgs"},
+                        {"name": "aquasecurity:trivy:Type", "value": "pipenv"},
+                        {"name": "aquasecurity:trivy:Class", "value": "lang-pkgs"},
                     ],
                     "bom-ref": "test2_ref",
                 },
                 {
                     "bom-ref": "test3_ref",
-                    "purl": "pkg:deb/ubuntu/test3_name@1:4.4.10-10ubuntu4?distro=ubuntu-20.04",
+                    "purl": "pkg:pypi/cryptography@39.0.2",
                     "name": "test3_name",
-                    "version": "1:4.4.10-10ubuntu4",
+                    "version": "39.0.2",
                     "type": "library",
                     "properties": [{"name": "aquasecurity:trivy:SrcName", "value": "libxcrypt"}],
                 },
                 {
                     "bom-ref": "test4_ref",
-                    "purl": "pkg:deb/ubuntu/test4_name@1:4.4.10-10ubuntu4?distro=ubuntu-20.04",
+                    "purl": "pkg:pypi/cryptography@39.0.2",
                     "name": "test4_name",
-                    "version": "1:4.4.10-10ubuntu4",
+                    "version": "39.0.2",
                     "type": "library",
                     "properties": [{"name": "aquasecurity:trivy:SrcName", "value": "libxcrypt"}],
                 },
@@ -251,12 +251,12 @@ class TestTrivyCDXParser:
 
         artifact3 = artifacts[0]
         assert artifact3.package_name == "test3_name"
-        assert artifact3.package_manager == ""
+        assert artifact3.package_manager == "pipenv"
         assert len(artifact3.targets) == 1
-        assert list(artifact3.targets)[0] == ("test1_name", "1:4.4.10-10ubuntu4")
+        assert list(artifact3.targets)[0] == ("test1_name", "39.0.2")
 
         artifact4 = artifacts[1]
         assert artifact4.package_name == "test4_name"
-        assert artifact4.package_manager == ""
+        assert artifact4.package_manager == "pipenv"
         assert len(artifact4.targets) == 1
-        assert list(artifact4.targets)[0] == ("test2_name", "1:4.4.10-10ubuntu4")
+        assert list(artifact4.targets)[0] == ("test2_name", "39.0.2")
