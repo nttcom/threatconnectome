@@ -61,7 +61,7 @@ export function ToDoDrawer(props) {
     serviceDependency,
     vuln,
     vulnActions,
-    bgcolor,
+    ssvcPriority,
   } = props;
   const [value, setValue] = useState(0);
 
@@ -113,7 +113,10 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 SSVC
               </Typography>
-              <Chip label={row?.ssvc || "-"} sx={{ backgroundColor: bgcolor, color: "#fff" }} />
+              <Chip
+                label={row?.ssvc || "-"}
+                sx={{ backgroundColor: ssvcPriority.style.bgcolor, color: "#fff" }}
+              />
             </Box>
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <Typography variant="h6" sx={{ width: 170 }}>
@@ -310,5 +313,9 @@ ToDoDrawer.propTypes = {
   serviceDependency: PropTypes.object.isRequired,
   vuln: PropTypes.object,
   vulnActions: PropTypes.array,
-  bgcolor: PropTypes.string.isRequired,
+  ssvcPriority: PropTypes.shape({
+    icon: PropTypes.elementType.isRequired,
+    displayName: PropTypes.string.isRequired,
+    style: PropTypes.object.isRequired,
+  }).isRequired,
 };

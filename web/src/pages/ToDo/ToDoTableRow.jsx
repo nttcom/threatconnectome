@@ -190,7 +190,7 @@ export function ToDoTableRow(props) {
         serviceDependency={serviceDependency}
         vuln={vuln}
         vulnActions={vulnActions}
-        bgcolor={ssvcPriority.style.bgcolor}
+        ssvcPriority={ssvcPriority}
       />
     </>
   );
