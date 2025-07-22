@@ -125,7 +125,7 @@ export function ToDoTableRow(props) {
         <TableCell>
           {(() => {
             if (!row?.dueDate || row.dueDate === "-") return "-";
-            return utcStringToLocalDate(row.dueDate);
+            return utcStringToLocalDate(row.dueDate) || "-";
           })()}
         </TableCell>
         <TableCell>

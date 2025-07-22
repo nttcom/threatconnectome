@@ -42,16 +42,8 @@ export function ToDoTable({ myTasks, pteamIds }) {
       service_id: ticket.service_id,
       dueDate: ticket.ticket_status?.scheduled_at
         ? (() => {
-            const localDate = utcStringToLocalDate(ticket.ticket_status.scheduled_at);
-            if (!localDate || isNaN(localDate.getTime())) return "-";
-            return localDate.toLocaleString(undefined, {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            });
+            const formattedDate = utcStringToLocalDate(ticket.ticket_status.scheduled_at);
+            return formattedDate || "-";
           })()
         : "-",
       assignee: ticket.ticket_status?.assignees?.length
