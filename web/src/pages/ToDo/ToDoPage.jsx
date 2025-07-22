@@ -1,6 +1,6 @@
 import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
-import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
@@ -11,24 +11,11 @@ import { errorToString } from "../../utils/func";
 import { ToDoTable } from "./ToDoTable";
 
 export function ToDo() {
-  const [myTasks, setMyTasks] = useState(() => {
-    const saved = localStorage.getItem("myTasks");
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    switch (saved) {
-      case null:
-        return true;
-      case "true":
-        return true;
-      case "false":
-        return false;
-      default:
-        return true;
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem("myTasks", myTasks);
-  }, [myTasks]);
+  const params = new URLSearchParams(location.search);
+  const myTasks = params.get("mytasks") === "off" ? false : true;
 
   const skip = useSkipUntilAuthUserIsReady();
   const {
@@ -46,10 +33,22 @@ export function ToDo() {
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   const pteamIds = userMe?.pteam_roles.map((role) => role.pteam.pteam_id) ?? [];
 
+  const handleMyTasksChange = (event) => {
+    const newParams = new URLSearchParams(location.search);
+
+    if (event.target.checked) {
+      newParams.delete("mytasks");
+    } else {
+      newParams.set("mytasks", "off");
+    }
+
+    navigate(location.pathname + "?" + newParams.toString());
+  };
+
   return (
     <>
       <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-        <Android12Switch checked={myTasks} onChange={(event) => setMyTasks(event.target.checked)} />
+        <Android12Switch checked={myTasks} onChange={handleMyTasksChange} />
         <Typography>My tasks</Typography>
       </Box>
 
