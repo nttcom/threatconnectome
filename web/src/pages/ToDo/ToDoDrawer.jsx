@@ -26,6 +26,7 @@ import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
 import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
+import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 import { utcStringToLocalDate } from "../../utils/func";
 
 function CustomTabPanel(props) {
@@ -240,62 +241,11 @@ export function ToDoDrawer(props) {
         {/* vuln */}
         <CustomTabPanel value={value} index={1}>
           <Stack spacing={1}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                Package
-              </Typography>
-              {vulnerablePackage ? (
-                <PackageView vulnPackage={vulnerablePackage} />
-              ) : (
-                <Typography color="text.secondary">No package data</Typography>
-              )}
-            </Box>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                Mitigations
-              </Typography>
-              <Card variant="outlined" sx={{ m: 1, p: 2 }}>
-                <List>
-                  {actions.length === 0 ? (
-                    <ListItem>
-                      <ListItemText primary={"No data"} />
-                    </ListItem>
-                  ) : (
-                    actions
-                      .filter((action) => action)
-                      .map((action) => (
-                        <ListItem key={action.action_id}>
-                          <ListItemIcon>
-                            <ActionTypeIcon
-                              actionType={action.action_type}
-                              disabled={!action.recommended}
-                            />
-                          </ListItemIcon>
-                          <ListItemText primary={action.action} />
-                        </ListItem>
-                      ))
-                  )}
-                </List>
-              </Card>
-            </Box>
-            <Box>
-              <Typography variant="h6" sx={{ width: 170 }}>
-                CVE ID
-              </Typography>
-              {vuln?.cve_id === null ? (
-                <Typography sx={{ margin: 1 }}>No Known CVE</Typography>
-              ) : (
-                <Box>{vuln?.cve_id && <Chip label={vuln.cve_id} sx={{ m: 1 }} />}</Box>
-              )}
-            </Box>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                Detail
-              </Typography>
-              <Card variant="outlined" sx={{ m: 1, p: 2 }}>
-                <Typography variant="body1">{vuln?.detail}</Typography>
-              </Card>
-            </Box>
+            <VulnerabilityView
+              vuln={vuln}
+              vulnActions={vulnActions}
+              currentPackage={currentPackage}
+            />   
           </Stack>
         </CustomTabPanel>
       </Box>
