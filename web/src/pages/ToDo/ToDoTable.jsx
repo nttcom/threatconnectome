@@ -46,9 +46,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
             return formattedDate || "-";
           })()
         : "-",
-      assignee: ticket.ticket_status?.assignees?.length
-        ? ticket.ticket_status.assignees
-        : "-",
+      assignee: ticket.ticket_status?.assignees?.length ? ticket.ticket_status.assignees : "-",
       ssvc: ticket.ssvc_deployer_priority,
       pteam_id: ticket.pteam_id,
       dependency_id: ticket.dependency_id,

@@ -75,11 +75,12 @@ export function ToDoTableRow(props) {
     };
     const assigneeIds = row.assignee.map((id) => id.trim());
     const emails = assigneeIds.map((userId) => getUserEmail(userId));
-    
+
     if (emails.join(", ") === "-") {
       return "-";
     } else {
-      const emailList = emails.join(", ")
+      const emailList = emails
+        .join(", ")
         .split(",")
         .map((email) => email.trim())
         .filter(Boolean);
@@ -131,9 +132,7 @@ export function ToDoTableRow(props) {
         <TableCell>{row?.dueDate || "-"}</TableCell>
         <TableCell>
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Typography sx={{ pl: 0.5 }}>
-              {assigneeEmails}
-            </Typography>
+            <Typography sx={{ pl: 0.5 }}>{assigneeEmails}</Typography>
           </Box>
         </TableCell>
         <TableCell

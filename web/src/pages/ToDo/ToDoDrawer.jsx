@@ -219,9 +219,7 @@ export function ToDoDrawer(props) {
                   packageId={serviceDependency.package_id}
                   ticketId={row.ticket_id}
                   currentAssigneeIds={
-                    row.assignee && row.assignee !== "-"
-                      ? row.assignee.map((id) => id.trim())
-                      : []
+                    row.assignee && row.assignee !== "-" ? row.assignee.map((id) => id.trim()) : []
                   }
                   members={pteamMembers}
                 />
