@@ -3,6 +3,7 @@ import {
   Avatar,
   Box,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -37,13 +38,9 @@ export function PTeamMember(props) {
         {pteamId && <PTeamInviteModal pteamId={pteamId} text="Add member" />}
       </Box>
       {isMdDown ? (
-        <>
+        <Stack spacing={2}>
           {filteredMembers.map((member) => (
-            <Paper
-              key={member.user_id}
-              variant="outlined"
-              sx={{ boxSizing: "border-box", mb: 2, p: 2, width: "100%" }}
-            >
+            <Paper key={member.user_id} variant="outlined" sx={{ p: 2, width: "100%" }}>
               <Box
                 sx={{
                   display: "flex",
@@ -95,7 +92,7 @@ export function PTeamMember(props) {
               </Box>
             </Paper>
           ))}
-        </>
+        </Stack>
       ) : (
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="memberTable">
