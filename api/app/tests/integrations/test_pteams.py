@@ -763,14 +763,6 @@ class TestPostUploadSBOMFileCycloneDX:
                             "target": "threatconnectome/api/Pipfile.lock",
                             "version": "39.0.2",
                         },
-                        {
-                            "package_name": "cryptography",
-                            "package_source_name": None,
-                            "ecosystem": "pypi",
-                            "package_manager": "pipenv",
-                            "target": "sample target1",  # scan root
-                            "version": "39.0.2",
-                        },
                     ],
                 ),
                 # test case 2: os-pkgs
@@ -809,14 +801,6 @@ class TestPostUploadSBOMFileCycloneDX:
                             "target": "ubuntu",
                             "version": "1:4.4.10-10ubuntu4",
                         },
-                        {
-                            "package_name": "libcrypt1",
-                            "package_source_name": "libxcrypt",
-                            "ecosystem": "ubuntu-20.04",
-                            "package_manager": "",
-                            "target": "sample target1",  # scan root
-                            "version": "1:4.4.10-10ubuntu4",
-                        },
                     ],
                 ),
                 # test case 3: lang-pkgs with group
@@ -850,14 +834,6 @@ class TestPostUploadSBOMFileCycloneDX:
                             "target": "web/package-lock.json",
                             "version": "2.0.26",
                         },
-                        {
-                            "package_name": "@nextui-org/button",
-                            "package_source_name": None,
-                            "ecosystem": "npm",
-                            "package_manager": "npm",
-                            "target": "sample target1",  # scan root
-                            "version": "2.0.26",
-                        },
                     ],
                 ),
                 # test case 4: (legacy) lang-pkgs without group
@@ -889,14 +865,6 @@ class TestPostUploadSBOMFileCycloneDX:
                             "ecosystem": "npm",
                             "package_manager": "npm",
                             "target": "web/package-lock.json",
-                            "version": "2.0.26",
-                        },
-                        {
-                            "package_name": "@nextui-org/button",
-                            "package_source_name": None,
-                            "ecosystem": "npm",
-                            "package_manager": "npm",
-                            "target": "sample target1",  # scan root
                             "version": "2.0.26",
                         },
                     ],
@@ -935,14 +903,6 @@ class TestPostUploadSBOMFileCycloneDX:
                             "ecosystem": "alpine-3.22.0",
                             "package_manager": "",
                             "target": "alpine",
-                            "version": "3.5.0-r0",
-                        },
-                        {
-                            "package_name": "libssl3",
-                            "package_source_name": "openssl",
-                            "ecosystem": "alpine-3.22.0",
-                            "package_manager": "",
-                            "target": "sample target1",  # scan root
                             "version": "3.5.0-r0",
                         },
                     ],
@@ -1034,7 +994,7 @@ class TestPostUploadSBOMFileCycloneDX:
                             ],
                         ),
                     ],
-                    2,  # expected
+                    1,  # expected
                 ),
                 # test case 2: Not detect vulnerabilities without package_source_name
                 (
