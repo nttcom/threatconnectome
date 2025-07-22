@@ -47,7 +47,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
           })()
         : "-",
       assignee: ticket.ticket_status?.assignees?.length
-        ? ticket.ticket_status.assignees.join(", ")
+        ? ticket.ticket_status.assignees
         : "-",
       ssvc: ticket.ssvc_deployer_priority,
       pteam_id: ticket.pteam_id,

@@ -220,7 +220,7 @@ export function ToDoDrawer(props) {
                   ticketId={row.ticket_id}
                   currentAssigneeIds={
                     row.assignee && row.assignee !== "-"
-                      ? row.assignee.split(",").map((id) => id.trim())
+                      ? row.assignee.map((id) => id.trim())
                       : []
                   }
                   members={pteamMembers}

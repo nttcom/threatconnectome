@@ -73,8 +73,7 @@ export function ToDoTableRow(props) {
     const getUserEmail = (userId) => {
       return pteamMembers?.[userId]?.email || "";
     };
-
-    const assigneeIds = row.assignee.split(",").map((id) => id.trim());
+    const assigneeIds = row.assignee.map((id) => id.trim());
     const emails = assigneeIds.map((userId) => getUserEmail(userId));
     
     if (emails.join(", ") === "-") {
