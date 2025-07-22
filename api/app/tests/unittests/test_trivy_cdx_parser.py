@@ -48,8 +48,7 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        parser = TrivyCDXParser()
-        artifacts = parser.parse_sbom(sbom, sbom_info)
+        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "@babel/code-frame"
@@ -95,8 +94,7 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        parser = TrivyCDXParser()
-        artifacts = parser.parse_sbom(sbom, sbom_info)
+        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         # package name and ecosystem name are lowercased
@@ -158,8 +156,7 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        parser = TrivyCDXParser()
-        artifacts = parser.parse_sbom(sbom, sbom_info)
+        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "libcrypt1"
@@ -245,8 +242,7 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        parser = TrivyCDXParser()
-        artifacts = parser.parse_sbom(sbom, sbom_info)
+        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
         assert len(artifacts) == 2
 
         artifact3 = artifacts[0]
