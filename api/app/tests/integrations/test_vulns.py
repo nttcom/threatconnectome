@@ -350,4 +350,4 @@ class TestUpdateVuln:
         client.put(f"/vulns/{vuln_id}", headers=headers(USER1), json=request1)
 
         tickets = testdb.scalars(select(models.Ticket)).all()
-        assert len(tickets) == 6
+        assert len(tickets) == 3
