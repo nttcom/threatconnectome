@@ -13,7 +13,7 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetTicketsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { ssvcPriorityProps } from "../../utils/const";
-import { errorToString } from "../../utils/func";
+import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
@@ -49,14 +49,18 @@ export function ToDoTable({ myTasks, pteamIds }) {
       vuln_id: ticket.vuln_id || "-",
       service_id: ticket.service_id,
       dueDate: ticket.ticket_status?.scheduled_at
-        ? new Date(ticket.ticket_status.scheduled_at).toLocaleString(undefined, {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          })
+        ? (() => {
+            const localDate = utcStringToLocalDate(ticket.ticket_status.scheduled_at);
+            if (!localDate || isNaN(localDate.getTime())) return "-";
+            return localDate.toLocaleString(undefined, {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+          })()
         : "-",
       assignee: ticket.ticket_status?.assignees?.length
         ? ticket.ticket_status.assignees.join(", ")
