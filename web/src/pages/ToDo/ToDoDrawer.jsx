@@ -24,7 +24,6 @@ import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector
 import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 
-
 export function ToDoDrawer(props) {
   const {
     open,
@@ -205,12 +204,7 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 Due date
               </Typography>
-              <Typography>
-                {(() => {
-                  if (!row?.dueDate || row.dueDate === "-") return "-";
-                  return utcStringToLocalDate(row.dueDate) || "-";
-                })()}
-              </Typography>
+              <Typography>{row?.dueDate || "-"}</Typography>
             </Box>
             <Box sx={{ display: "flex" }}>
               <Typography variant="h6" sx={{ width: 170 }}>

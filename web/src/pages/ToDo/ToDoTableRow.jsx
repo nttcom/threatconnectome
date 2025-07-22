@@ -118,12 +118,7 @@ export function ToDoTableRow(props) {
         <TableCell>{vuln?.cve_id || "-"}</TableCell>
         <TableCell>{pteamName || "-"}</TableCell>
         <TableCell>{serviceName || "-"}</TableCell>
-        <TableCell>
-          {(() => {
-            if (!row?.dueDate || row.dueDate === "-") return "-";
-            return utcStringToLocalDate(row.dueDate) || "-";
-          })()}
-        </TableCell>
+        <TableCell>{row?.dueDate || "-"}</TableCell>
         <TableCell>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography sx={{ pl: 0.5 }}>
