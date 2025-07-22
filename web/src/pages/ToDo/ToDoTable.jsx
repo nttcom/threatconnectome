@@ -102,21 +102,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
             </TableHead>
             <TableBody>
               {rows.map((row, idx) => {
-                let ssvcPriority = ssvcPriorityProps["defer"];
-                switch (row.ssvc) {
-                  case "immediate":
-                    ssvcPriority = ssvcPriorityProps["immediate"];
-                    break;
-                  case "out_of_cycle":
-                    ssvcPriority = ssvcPriorityProps["out_of_cycle"];
-                    break;
-                  case "scheduled":
-                    ssvcPriority = ssvcPriorityProps["scheduled"];
-                    break;
-                  case "defer":
-                    ssvcPriority = ssvcPriorityProps["defer"];
-                    break;
-                }
+                const ssvcPriority = ssvcPriorityProps[row.ssvc] || ssvcPriorityProps["defer"];
                 return (
                   <ToDoTableRow
                     key={`${row.ticket_id}-${idx}`}
