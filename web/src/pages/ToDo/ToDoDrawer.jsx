@@ -26,6 +26,7 @@ import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
 import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
+import { utcStringToLocalDate } from "../../utils/func";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -201,7 +202,13 @@ export function ToDoDrawer(props) {
               <Typography variant="h6" sx={{ width: 170 }}>
                 Due date
               </Typography>
-              <Typography>{row?.dueDate}</Typography>
+              <Typography>
+                {(() => {
+                  if (!row?.dueDate || row.dueDate === "-") return "-";
+                  const localDate = utcStringToLocalDate(row.dueDate);
+                  return localDate.toLocaleString();
+                })()}
+              </Typography>
             </Box>
             <Box sx={{ display: "flex" }}>
               <Typography variant="h6" sx={{ width: 170 }}>

@@ -20,6 +20,7 @@ import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
 import { ToDoDrawer } from "./ToDoDrawer";
+import { utcStringToLocalDate } from "../../utils/func";
 
 function SimpleCell(value = "") {
   return (
@@ -122,7 +123,13 @@ export function ToDoTableRow(props) {
         <TableCell>{vuln?.cve_id || "-"}</TableCell>
         <TableCell>{pteamName || "-"}</TableCell>
         <TableCell>{serviceName || "-"}</TableCell>
-        <TableCell>{row.dueDate}</TableCell>
+        <TableCell>
+          {(() => {
+            if (!row?.dueDate || row.dueDate === "-") return "-";
+            const localDate = utcStringToLocalDate(row.dueDate);
+            return localDate.toLocaleString();
+          })()}
+        </TableCell>
         <TableCell>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography sx={{ pl: 0.5 }}>
