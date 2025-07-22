@@ -17,7 +17,7 @@ import {
   useGetDependencyQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
-import { errorToString, utcStringToLocalDate } from "../../utils/func";
+import { errorToString } from "../../utils/func";
 
 import { ToDoDrawer } from "./ToDoDrawer";
 
