@@ -35,7 +35,6 @@ export function ToDoTableRow(props) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const skip = useSkipUntilAuthUserIsReady();
-  const skipDependency = !row.dependency_id;
 
   const {
     data: pteam,
@@ -66,10 +65,7 @@ export function ToDoTableRow(props) {
     data: serviceDependency,
     error: serviceDependencyError,
     isLoading: serviceDependencyIsLoading,
-  } = useGetDependencyQuery(
-    { pteamId: row.pteam_id, dependencyId: row.dependency_id },
-    { skip: skipDependency },
-  );
+  } = useGetDependencyQuery({ pteamId: row.pteam_id, dependencyId: row.dependency_id }, { skip });
 
   const assigneeEmails = useMemo(() => {
     if (!row.assignee || row.assignee === "-") return "-";
