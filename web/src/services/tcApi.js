@@ -184,7 +184,6 @@ export const tcApi = createApi({
       providesTags: (result, error, pteamId) => [
         ...(result?.map((service) => ({ type: "Service", id: service.service_id })) ?? []),
         { type: "Service", id: "ALL" },
-        { type: "PTeam", id: pteamId },
       ],
     }),
     updatePTeamService: builder.mutation({
@@ -203,7 +202,9 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/services/${serviceId}`,
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [
+        ...(result?.map((service) => ({ type: "Service", id: service.service_id })) ?? []),
+        { type: "Service", id: "ALL" }],
     }),
 
     /* PTeam  */
