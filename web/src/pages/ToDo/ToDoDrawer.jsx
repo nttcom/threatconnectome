@@ -80,7 +80,7 @@ export function ToDoDrawer(props) {
 
   const actions = [actionByFixedVersions, ...(Array.isArray(vulnActions) ? vulnActions : [])];
 
-  const handleChange = (event, newValue) => {
+  const handleTabChange = (event, newValue) => {
     setValue(newValue);
   };
 
@@ -100,7 +100,7 @@ export function ToDoDrawer(props) {
           </Typography>
         </Box>
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
-          <Tabs value={value} onChange={handleChange}>
+          <Tabs value={value} onChange={handleTabChange}>
             <Tab label="Ticket" />
             <Tab label="Vuln" />
           </Tabs>
