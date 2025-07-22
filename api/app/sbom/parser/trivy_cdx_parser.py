@@ -151,7 +151,7 @@ class TrivyCDXParser(SBOMParser):
 
         def to_package_info(
             self,
-            merged_components_map: dict[str, Any],
+            components_map: dict[str, Any],
         ) -> dict | None:
             if not self.purl:
                 return None
@@ -191,7 +191,7 @@ class TrivyCDXParser(SBOMParser):
                     ).casefold()
 
             elif self.targets and (
-                mgr := self._find_pkg_mgr(merged_components_map, [t.ref for t in self.targets])
+                mgr := self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
             ):
                 pkg_mgr = str(mgr.properties.get("aquasecurity:trivy:Type", "")).casefold()
 
