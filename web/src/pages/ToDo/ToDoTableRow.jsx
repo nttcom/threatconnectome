@@ -43,9 +43,9 @@ export function ToDoTableRow(props) {
     isLoading: pteamIsLoading,
   } = useGetPTeamQuery(row.pteam_id, { skip });
   const {
-    data: pteamService,
-    error: pteamServiceError,
-    isLoading: pteamServiceIsLoading,
+    data: pteamServices,
+    error: pteamServicesError,
+    isLoading: pteamServicesIsLoading,
   } = useGetPTeamServicesQuery(row.pteam_id, { skip });
   const {
     data: pteamMembers,
@@ -84,7 +84,7 @@ export function ToDoTableRow(props) {
   }, [row.assignee, pteamMembers]);
 
   const pteam_name = pteam?.pteam_name || "";
-  const matched_service = pteamService?.find?.((service) => service.service_id === row.service_id);
+  const matched_service = pteamServices?.find?.((service) => service.service_id === row.service_id);
   const service_name = matched_service?.service_name || "-";
 
   const handleRowClick = () => {
@@ -99,8 +99,8 @@ export function ToDoTableRow(props) {
   if (skip) return SimpleCell("");
 
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
-  if (pteamServiceError)
-    throw new APIError(errorToString(pteamServiceError), { api: "getPTeamServices" });
+  if (pteamServicesError)
+    throw new APIError(errorToString(pteamServicesError), { api: "getPTeamServices" });
   if (pteamMembersError)
     throw new APIError(errorToString(pteamMembersError), { api: "getPTeamMembers" });
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
@@ -110,7 +110,7 @@ export function ToDoTableRow(props) {
     throw new APIError(errorToString(serviceDependencyError), { api: "getServiceDependencies" });
 
   if (pteamIsLoading) return SimpleCell("Now loading PTeam...");
-  if (pteamServiceIsLoading) return SimpleCell("Now loading PTeam Services...");
+  if (pteamServicesIsLoading) return SimpleCell("Now loading PTeam Services...");
   if (pteamMembersIsLoading) return SimpleCell("Now loading PTeam Members...");
   if (vulnIsLoading) return SimpleCell("Now loading Vulnerability...");
   if (vulnActionsIsLoading) return SimpleCell("Now loading VulnActions...");
