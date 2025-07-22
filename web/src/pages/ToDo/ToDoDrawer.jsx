@@ -202,8 +202,7 @@ export function ToDoDrawer(props) {
               <Typography>
                 {(() => {
                   if (!row?.dueDate || row.dueDate === "-") return "-";
-                  const localDate = utcStringToLocalDate(row.dueDate);
-                  return localDate.toLocaleString();
+                  return utcStringToLocalDate(row.dueDate);
                 })()}
               </Typography>
             </Box>
