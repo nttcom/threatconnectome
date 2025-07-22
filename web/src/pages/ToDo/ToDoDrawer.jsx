@@ -14,6 +14,7 @@ import {
 import Box from "@mui/material/Box";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
 import { utcStringToLocalDate } from "../../utils/func";
@@ -38,6 +39,7 @@ export function ToDoDrawer(props) {
     ssvcPriority,
   } = props;
   const [value, setValue] = useState(0);
+  const navigate = useNavigate();
 
   const currentPackage = {
     package_name: serviceDependency.package_name,
@@ -55,6 +57,32 @@ export function ToDoDrawer(props) {
 
   const handleTabChange = (event, newValue) => {
     setValue(newValue);
+  };
+
+  const handleCVEClick = () => {
+    if (vuln?.vuln_id) {
+      navigate(`/vulns/${vuln.vuln_id}?pteamId=${row.pteam_id}&serviceId=${row.service_id}`);
+    }
+  };
+
+  const handleTeamClick = () => {
+    if (row?.pteam_id) {
+      navigate(`/pteam?pteamId=${row.pteam_id}&serviceId=${row.service_id}`);
+    }
+  };
+
+  const handleServiceClick = () => {
+    if (row?.pteam_id && row?.service_id) {
+      navigate(`/?pteamId=${row.pteam_id}&serviceId=${row.service_id}`);
+    }
+  };
+
+  const handlePackageClick = () => {
+    if (row?.pteam_id && row?.service_id && serviceDependency?.package_id) {
+      navigate(
+        `/packages/${serviceDependency.package_id}?pteamId=${row.pteam_id}&serviceId=${row.service_id}`,
+      );
+    }
   };
 
   return (
@@ -99,7 +127,7 @@ export function ToDoDrawer(props) {
               ) : (
                 <Typography>{vuln?.cve_id || "-"}</Typography>
               )}
-              <IconButton size="small">
+              <IconButton size="small" onClick={handleCVEClick}>
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
             </Box>
@@ -108,7 +136,7 @@ export function ToDoDrawer(props) {
                 Team
               </Typography>
               <Typography>{pteamName || "-"}</Typography>
-              <IconButton size="small">
+              <IconButton size="small" onClick={handleTeamClick}>
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
             </Box>
@@ -117,7 +145,7 @@ export function ToDoDrawer(props) {
                 Service
               </Typography>
               <Typography>{serviceName || "-"}</Typography>
-              <IconButton size="small">
+              <IconButton size="small" onClick={handleServiceClick}>
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
             </Box>
@@ -130,7 +158,7 @@ export function ToDoDrawer(props) {
                   ? `${vulnerablePackage.affected_name} : ${vulnerablePackage.ecosystem}`
                   : "-"}
               </Typography>
-              <IconButton size="small">
+              <IconButton size="small" onClick={handlePackageClick}>
                 <OpenInNewIcon color="primary" fontSize="small" />
               </IconButton>
             </Box>
