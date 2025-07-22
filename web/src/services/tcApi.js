@@ -204,7 +204,8 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => [
         ...(result?.map((service) => ({ type: "Service", id: service.service_id })) ?? []),
-        { type: "Service", id: "ALL" }],
+        { type: "Service", id: "ALL" },
+      ],
     }),
 
     /* PTeam  */
