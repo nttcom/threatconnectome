@@ -212,7 +212,6 @@ export function ToDoDrawer(props) {
               </Typography>
               <FormControl sx={{ width: 200 }} size="small" variant="standard">
                 <AssigneesSelector
-                  key={row.assignee || ""}
                   pteamId={row.pteam_id}
                   serviceId={row.service_id}
                   vulnId={row.vuln_id}

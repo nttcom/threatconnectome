@@ -35,6 +35,8 @@ export function ToDoTable({ myTasks, pteamIds }) {
   });
 
   const rows = useMemo(() => {
+    const hasAssignees = (ticketStatus) => ticketStatus?.assignees?.length > 0;
+
     const allTickets = tickets?.tickets ?? [];
     return allTickets.map((ticket) => ({
       ticket_id: ticket.ticket_id,
@@ -46,7 +48,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
             return formattedDate || "-";
           })()
         : "-",
-      assignee: ticket.ticket_status?.assignees?.length ? ticket.ticket_status.assignees : "-",
+      assignee: hasAssignees(ticket.ticket_status) ? ticket.ticket_status.assignees : "-",
       ssvc: ticket.ssvc_deployer_priority,
       pteam_id: ticket.pteam_id,
       dependency_id: ticket.dependency_id,
@@ -95,7 +97,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
                 const ssvcPriority = ssvcPriorityProps[row.ssvc] || ssvcPriorityProps["defer"];
                 return (
                   <ToDoTableRow
-                    key={`${row.ticket_id}-${idx}`}
+                    key={row.ticket_id}
                     row={row}
                     ssvcPriority={ssvcPriority}
                     vuln_id={row.vuln_id}
