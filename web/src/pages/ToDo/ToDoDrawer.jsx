@@ -73,8 +73,6 @@ export function ToDoDrawer(props) {
     vulnerablePackage?.affected_name,
   );
 
-  const actions = [actionByFixedVersions, ...(Array.isArray(vulnActions) ? vulnActions : [])];
-
   const handleTabChange = (event, newValue) => {
     setValue(newValue);
   };
