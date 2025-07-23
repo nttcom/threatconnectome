@@ -48,7 +48,8 @@ def get_tickets(
 
     ### Filtering:
     - `assigned_to_me`: Filter tickets assigned to the current user.
-    - `pteam_ids`: List of pteam IDs to filter tickets. If not provided, uses all pteams the user belongs to.
+    - `pteam_ids`: List of pteam IDs to filter tickets.
+      If not provided, uses all pteams the user belongs to.
     - `exclude_statuses`: List of vulnerability statuses to exclude from results.
     - `cve_ids`: List of CVE IDs to filter tickets by.
 
