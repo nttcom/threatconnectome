@@ -452,6 +452,7 @@ def get_sorted_paginated_tickets_for_pteams(
     offset: int = 0,
     limit: int = 100,
     sort_key: schemas.TicketSortKey = schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC,
+    exclude_statuses: list[models.VulnStatusType] | None = None,
 ) -> tuple[int, Sequence[models.Ticket]]:
 
     select_stmt = (
@@ -461,16 +462,17 @@ def get_sorted_paginated_tickets_for_pteams(
         .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
     )
 
+    ticket_status_join_conditions = [models.TicketStatus.ticket_id == models.Ticket.ticket_id]
     if assigned_user_id is not None:
-        select_stmt = select_stmt.join(
-            models.TicketStatus,
-            and_(
-                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
-                func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(
-                    None
-                ),
-            ),
+        ticket_status_join_conditions.append(
+            func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(None)
         )
+    if exclude_statuses:
+        ticket_status_join_conditions.append(
+            models.TicketStatus.vuln_status.notin_(exclude_statuses)
+        )
+
+    select_stmt = select_stmt.join(models.TicketStatus, and_(*ticket_status_join_conditions))
 
     # sort by SSVC priority
     priority_case = case(
@@ -519,18 +521,9 @@ def get_sorted_paginated_tickets_for_pteams(
         select(func.count(models.Ticket.ticket_id.distinct()))
         .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
         .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+        .join(models.TicketStatus, and_(*ticket_status_join_conditions))
         .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
     )
-    if assigned_user_id is not None:
-        count_stmt = count_stmt.join(
-            models.TicketStatus,
-            and_(
-                models.TicketStatus.ticket_id == models.Ticket.ticket_id,
-                func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(
-                    None
-                ),
-            ),
-        )
     total_count = db.scalar(count_stmt) or 0
 
     return total_count, tickets

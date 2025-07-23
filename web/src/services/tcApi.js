@@ -311,7 +311,7 @@ export const tcApi = createApi({
 
     /* Ticket */
     getTickets: builder.query({
-      query: ({ assignedToMe, pteamIds, offset, limit, sortKey }) => ({
+      query: ({ assignedToMe, pteamIds, offset, limit, sortKey, excludeStatuses }) => ({
         url: "tickets",
         method: "GET",
         params: {
@@ -320,6 +320,7 @@ export const tcApi = createApi({
           offset: offset,
           limit: limit,
           sort_key: sortKey,
+          exclude_statuses: excludeStatuses,
         },
       }),
       providesTags: (result, error, arg) => [

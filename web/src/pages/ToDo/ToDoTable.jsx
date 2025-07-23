@@ -32,6 +32,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
     limit: rowsPerPage,
     sortKey: "ssvc_deployer_priority_desc",
     assignedToMe: myTasks,
+    excludeStatuses: ["completed"],
   });
 
   const rows = useMemo(() => {
