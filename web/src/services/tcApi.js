@@ -70,7 +70,16 @@ export const tcApi = createApi({
       }),
       providesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
-
+    getDependency: builder.query({
+      query: ({ pteamId, dependencyId }) => ({
+        url: `pteams/${pteamId}/dependencies/${dependencyId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, arg) => [
+        { type: "Service", id: "ALL" },
+        { type: "Dependency", id: arg.dependencyId },
+      ],
+    }),
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
@@ -170,6 +179,13 @@ export const tcApi = createApi({
     }),
 
     /* PTeam Service */
+    getPTeamServices: builder.query({
+      query: (pteamId) => `pteams/${pteamId}/services`,
+      providesTags: (result, error, pteamId) => [
+        ...(result?.map((service) => ({ type: "Service", id: service.service_id })) ?? []),
+        { type: "Service", id: "ALL" },
+      ],
+    }),
     updatePTeamService: builder.mutation({
       query: ({ pteamId, serviceId, data }) => ({
         url: `pteams/${pteamId}/services/${serviceId}`,
@@ -186,7 +202,10 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/services/${serviceId}`,
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [
+        ...(result?.map((service) => ({ type: "Service", id: service.service_id })) ?? []),
+        { type: "Service", id: "ALL" },
+      ],
     }),
 
     /* PTeam  */
@@ -292,6 +311,26 @@ export const tcApi = createApi({
 
     /* Ticket */
     getTickets: builder.query({
+      query: ({ assignedToMe, pteamIds, offset, limit, sortKey }) => ({
+        url: "tickets",
+        method: "GET",
+        params: {
+          assigned_to_me: assignedToMe,
+          pteam_ids: pteamIds,
+          offset: offset,
+          limit: limit,
+          sort_key: sortKey,
+        },
+      }),
+      providesTags: (result, error, arg) => [
+        ...(result?.tickets?.map((ticket) => ({ type: "Ticket", id: ticket.ticket_id })) ?? []),
+        { type: "Service", id: "ALL" },
+        { type: "Ticket", id: "ALL" },
+        { type: "TicketStatus", id: "ALL" },
+        { type: "Threat", id: "ALL" },
+      ],
+    }),
+    getPteamTickets: builder.query({
       query: ({ pteamId, serviceId, vulnId, packageId }) => ({
         url: `pteams/${pteamId}/tickets`,
         method: "GET",
@@ -429,6 +468,7 @@ export const tcApi = createApi({
 export const {
   useCreateActionLogMutation,
   useGetDependenciesQuery,
+  useGetDependencyQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
@@ -442,12 +482,14 @@ export const {
   useDeletePTeamServiceMutation,
   useGetPTeamVulnIdsTiedToServicePackageQuery,
   useGetPTeamTicketCountsTiedToServicePackageQuery,
+  useGetPTeamServicesQuery,
   useGetPTeamServiceThumbnailQuery,
   useUpdatePTeamServiceThumbnailMutation,
   useDeletePTeamServiceThumbnailMutation,
   useGetPTeamPackagesSummaryQuery,
   useUploadSBOMFileMutation,
   useGetTicketsQuery,
+  useGetPteamTicketsQuery,
   useUpdateTicketSafetyImpactMutation,
   useUpdateTicketStatusMutation,
   useGetUserMeQuery,

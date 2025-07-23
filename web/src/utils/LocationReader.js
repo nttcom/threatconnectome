@@ -19,6 +19,10 @@ export class LocationReader {
     return this.location.pathname.includes("/vulns");
   }
 
+  isToDoPage() {
+    return this.location.pathname === "/todo";
+  }
+
   getPTeamId() {
     const params = new URLSearchParams(this.location.search);
     return params.get("pteamId");
