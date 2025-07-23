@@ -453,7 +453,16 @@ def get_sorted_paginated_tickets_for_pteams(
     limit: int = 100,
     sort_key: schemas.TicketSortKey = schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC,
     exclude_statuses: list[models.VulnStatusType] | None = None,
+    cve_ids: list[str] | None = None,
 ) -> tuple[int, Sequence[models.Ticket]]:
+
+    fixed_cve_ids: set[str | None] = set()
+    if cve_ids is not None:
+        for cve_id in cve_ids:
+            if re.match(schemas.CVE_PATTERN, cve_id):
+                fixed_cve_ids.add(cve_id)
+            else:
+                raise ValueError(f"Invalid CVE ID format: {cve_id}")
 
     select_stmt = (
         select(models.Ticket)
@@ -467,12 +476,27 @@ def get_sorted_paginated_tickets_for_pteams(
         ticket_status_join_conditions.append(
             func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(None)
         )
+
     if exclude_statuses:
         ticket_status_join_conditions.append(
             models.TicketStatus.vuln_status.notin_(exclude_statuses)
         )
 
     select_stmt = select_stmt.join(models.TicketStatus, and_(*ticket_status_join_conditions))
+
+    # Prepare filters list
+    filters = []
+
+    # CVE ID filtering - join with Threat and Vuln tables if needed
+    if len(fixed_cve_ids) > 0:
+        select_stmt = select_stmt.join(
+            models.Threat, models.Threat.threat_id == models.Ticket.threat_id
+        ).join(models.Vuln, models.Vuln.vuln_id == models.Threat.vuln_id)
+        filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
+
+    # Apply filters if any
+    if filters:
+        select_stmt = select_stmt.where(and_(*filters))
 
     # sort by SSVC priority
     priority_case = case(
@@ -524,6 +548,17 @@ def get_sorted_paginated_tickets_for_pteams(
         .join(models.TicketStatus, and_(*ticket_status_join_conditions))
         .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
     )
+
+    # CVE ID filtering for count query
+    if len(fixed_cve_ids) > 0:
+        count_stmt = count_stmt.join(
+            models.Threat, models.Threat.threat_id == models.Ticket.threat_id
+        ).join(models.Vuln, models.Vuln.vuln_id == models.Threat.vuln_id)
+
+    # Apply filters to count query if any
+    if filters:
+        count_stmt = count_stmt.where(and_(*filters))
+
     total_count = db.scalar(count_stmt) or 0
 
     return total_count, tickets
