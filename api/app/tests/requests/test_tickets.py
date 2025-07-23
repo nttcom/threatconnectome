@@ -436,3 +436,38 @@ class TestGetTickets:
             ),
         )
         assert tickets == sorted_tickets
+
+    def test_it_should_exclude_tickets_with_excluded_statuses(self, ticket_setup):
+        pteam1 = ticket_setup["pteam1"]
+        pteam2 = ticket_setup["pteam2"]
+        invitation = invite_to_pteam(USER2, pteam2.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
+
+        set_ticket_status(
+            USER1,
+            pteam1.pteam_id,
+            ticket_setup["ticket1"]["ticket_id"],
+            {
+                "vuln_status": "completed",
+                "assignees": [str(ticket_setup["user1"].user_id)],
+                "note": "",
+                "scheduled_at": None,
+            },
+        )
+
+        response = client.get(
+            "/tickets",
+            headers=headers(USER1),
+            params={
+                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id)],
+                "exclude_statuses": ["completed"],
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["total"] == 1
+        assert len(data["tickets"]) == 1
+        assert data["tickets"][0]["ticket_id"] == ticket_setup["ticket2"]["ticket_id"]
+
+        assert data["tickets"][0]["ticket_status"]["vuln_status"] != "completed"

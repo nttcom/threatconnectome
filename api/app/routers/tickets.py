@@ -36,6 +36,7 @@ def get_tickets(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     sort_key: schemas.TicketSortKey = Query(schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC),
+    exclude_statuses: list[models.VulnStatusType] | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(database.get_db),
 ):
@@ -76,6 +77,7 @@ def get_tickets(
         offset=offset,
         limit=limit,
         sort_key=sort_key,
+        exclude_statuses=exclude_statuses,
     )
 
     return schemas.TicketListResponse(
