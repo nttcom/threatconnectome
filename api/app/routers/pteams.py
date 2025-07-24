@@ -483,8 +483,9 @@ def get_pteam_packages_summary(
 def get_dependencies(
     pteam_id: UUID,
     offset: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=10000),
+    limit: int = Query(100, ge=1, le=1000),
     service_id: UUID | None = Query(None),
+    package_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -504,9 +505,20 @@ def get_dependencies(
         for service in pteam.services:
             dependencies.extend(service.dependencies)
 
-    dependencies.sort(key=lambda x: x.dependency_id)
+    filtered_dependencies = dependencies
+    if package_id:
+        if not persistence.get_package_by_id(db, package_id):
+            raise NO_SUCH_PACKAGE
 
-    paginated_dependencies = dependencies[offset : offset + limit]
+        filtered_dependencies = [
+            depenenecy
+            for depenenecy in dependencies
+            if str(depenenecy.package_version.package_id) == str(package_id)
+        ]
+
+    filtered_dependencies.sort(key=lambda x: x.dependency_id)
+
+    paginated_dependencies = filtered_dependencies[offset : offset + limit]
 
     dependency_responses = []
     for dependency in paginated_dependencies:
