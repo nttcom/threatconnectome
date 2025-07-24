@@ -468,24 +468,20 @@ def get_sorted_paginated_tickets_for_pteams(
         select(models.Ticket)
         .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
         .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+        .join(models.TicketStatus, models.TicketStatus.ticket_id == models.Ticket.ticket_id)
         .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
     )
 
-    ticket_status_join_conditions = [models.TicketStatus.ticket_id == models.Ticket.ticket_id]
+    # Prepare filters list
+    filters = []
+
     if assigned_user_id is not None:
-        ticket_status_join_conditions.append(
+        filters.append(
             func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(None)
         )
 
     if exclude_statuses:
-        ticket_status_join_conditions.append(
-            models.TicketStatus.vuln_status.notin_(exclude_statuses)
-        )
-
-    select_stmt = select_stmt.join(models.TicketStatus, and_(*ticket_status_join_conditions))
-
-    # Prepare filters list
-    filters = []
+        filters.append(models.TicketStatus.vuln_status.notin_(exclude_statuses))
 
     # CVE ID filtering - join with Threat and Vuln tables if needed
     if len(fixed_cve_ids) > 0:
@@ -545,7 +541,7 @@ def get_sorted_paginated_tickets_for_pteams(
         select(func.count(models.Ticket.ticket_id.distinct()))
         .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
         .join(models.Service, models.Service.service_id == models.Dependency.service_id)
-        .join(models.TicketStatus, and_(*ticket_status_join_conditions))
+        .join(models.TicketStatus, models.TicketStatus.ticket_id == models.Ticket.ticket_id)
         .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
     )
 
