@@ -39,7 +39,7 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
   );
 
   const offset = 0;
-  const limit = 10000;
+  const limit = 1000;
   const {
     data: serviceDependencies,
     error: serviceDependenciesError,
