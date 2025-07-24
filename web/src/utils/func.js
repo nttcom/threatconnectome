@@ -19,7 +19,7 @@ export const calcTimestampDiff = (timestamp) => {
   }
 };
 
-export const utcStringToLocalDate = (utcString,includeTimezone) => {
+export const utcStringToLocalDate = (utcString, includeTimezone) => {
   if (!utcString) return null;
   const date = new Date(utcString);
   const year = date.getFullYear();
@@ -28,8 +28,8 @@ export const utcStringToLocalDate = (utcString,includeTimezone) => {
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
   const seconds = String(date.getSeconds()).padStart(2, "0");
-  
-  if (includeTimezone){
+
+  if (includeTimezone) {
     const offsetMinutes = date.getTimezoneOffset();
     const absOffset = Math.abs(offsetMinutes);
     const offsetSign = offsetMinutes <= 0 ? "+" : "-";
