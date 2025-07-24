@@ -254,6 +254,49 @@ class TestGetDependencies:
         assert response.status_code == 200
         assert response.json()[0] == expected_dependency
 
+    def test_it_should_return_200_when_package_id_is_specified(self):
+        # Given
+        expected_dependency1 = {
+            "dependency_id": str(self.dependency1.dependency_id),
+            "service_id": str(self.service1.service_id),
+            "package_version_id": str(self.package_version1.package_version_id),
+            "package_id": str(self.package1.package_id),
+            "package_manager": "npm",
+            "target": self.test_target,
+            "dependency_mission_impact": None,
+            "package_name": self.package1.name,
+            "package_source_name": None,
+            "package_version": self.package_version1.version,
+            "package_ecosystem": self.package1.ecosystem,
+            "vuln_matching_ecosystem": self.package1.vuln_matching_ecosystem,
+        }
+
+        expected_dependency2 = {
+            "dependency_id": str(self.dependency2.dependency_id),
+            "service_id": str(self.service2.service_id),
+            "package_version_id": str(self.package_version1.package_version_id),
+            "package_id": str(self.package1.package_id),
+            "package_manager": "npm",
+            "target": self.test_target,
+            "dependency_mission_impact": None,
+            "package_name": self.package1.name,
+            "package_source_name": None,
+            "package_version": self.package_version1.version,
+            "package_ecosystem": self.package1.ecosystem,
+            "vuln_matching_ecosystem": self.package1.vuln_matching_ecosystem,
+        }
+
+        # When
+        response = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/dependencies?package_id={self.package1.package_id}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 200
+        assert expected_dependency1 in response.json()
+        assert expected_dependency2 in response.json()
+
     def test_it_should_paginate_response_when_dependencies_exceed_limit(self, testdb: Session):
         # Given
         number_of_additional_deps = 8
@@ -391,6 +434,20 @@ class TestGetDependencies:
         # Then
         assert response.status_code == 404
         assert response.json()["detail"] == "No such service"
+
+    def test_it_should_return_404_when_package_id_does_not_exist(self):
+        # Given
+        wrong_package_id = str(uuid4())
+
+        # When
+        response = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/dependencies?package_id={wrong_package_id}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such package"
 
     def test_it_should_return_404_when_pteam_id_does_not_exist(self):
         # Given

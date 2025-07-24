@@ -254,5 +254,6 @@ class TestTrivyCDXParser:
         artifact4 = artifacts[1]
         assert artifact4.package_name == "test4_name"
         assert artifact4.package_manager == "pipenv"
-        assert len(artifact4.targets) == 1
-        assert list(artifact4.targets)[0] == ("test2_name", "39.0.2")
+        assert len(artifact4.targets) == 2
+        assert list(artifact4.targets)[0] in {("test1_name", "39.0.2"), ("test2_name", "39.0.2")}
+        assert list(artifact4.targets)[1] in {("test1_name", "39.0.2"), ("test2_name", "39.0.2")}
