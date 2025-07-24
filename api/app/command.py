@@ -546,7 +546,7 @@ def get_sorted_paginated_tickets_for_pteams(
     )
 
     # CVE ID filtering for count query
-    if len(fixed_cve_ids) > 0:
+    if fixed_cve_ids:
         count_stmt = count_stmt.join(
             models.Threat, models.Threat.threat_id == models.Ticket.threat_id
         ).join(models.Vuln, models.Vuln.vuln_id == models.Threat.vuln_id)
