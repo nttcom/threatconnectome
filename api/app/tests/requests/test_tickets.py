@@ -471,3 +471,77 @@ class TestGetTickets:
         assert data["tickets"][0]["ticket_id"] == ticket_setup["ticket2"]["ticket_id"]
 
         assert data["tickets"][0]["ticket_status"]["vuln_status"] != "completed"
+
+    @pytest.mark.parametrize(
+        "cve_ids, expected_tickets, expected_count",
+        [
+            # Filter by single CVE ID - VULN1
+            (["CVE-0000-0001"], ["ticket1"], 1),
+            # Filter by multiple CVE IDs - both exist
+            (["CVE-0000-0001", "CVE-0000-0002"], ["ticket1", "ticket2"], 2),
+            # Filter by non-existent CVE ID
+            (["CVE-9999-9999"], [], 0),
+        ],
+    )
+    def test_it_should_filter_by_cve_ids(
+        self, ticket_setup, cve_ids, expected_tickets, expected_count
+    ):
+        # Given
+        pteam1 = ticket_setup["pteam1"]
+        pteam2 = ticket_setup["pteam2"]
+        invitation = invite_to_pteam(USER2, pteam2.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
+
+        # When
+        response = client.get(
+            "/tickets",
+            headers=headers(USER1),
+            params={
+                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id)],
+                "cve_ids": cve_ids,
+            },
+        )
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["total"] == expected_count
+        assert len(data["tickets"]) == expected_count
+
+        for ticket in data["tickets"]:
+            assert ticket["ticket_id"] in {
+                ticket_setup[key]["ticket_id"] for key in expected_tickets
+            }
+
+    @pytest.mark.parametrize(
+        "cve_ids, expected_error",
+        [
+            (["INVALID-CVE-ID"], "Invalid input: Invalid CVE ID format: INVALID-CVE-ID"),
+            (
+                ["CVE-0000-0001", "INVALID-CVE-ID"],
+                "Invalid input: Invalid CVE ID format: INVALID-CVE-ID",
+            ),
+        ],
+    )
+    def test_it_should_return_400_for_invalid_cve_id_format(
+        self, ticket_setup, cve_ids, expected_error
+    ):
+        # Given
+        pteam1 = ticket_setup["pteam1"]
+        pteam2 = ticket_setup["pteam2"]
+        invitation = invite_to_pteam(USER2, pteam2.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
+        # When
+        response = client.get(
+            "/tickets",
+            headers=headers(USER1),
+            params={
+                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id)],
+                "cve_ids": cve_ids,
+            },
+        )
+        # Then
+        assert response.status_code == 400
+        error_data = response.json()
+        assert error_data["detail"] == expected_error

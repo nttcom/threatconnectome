@@ -453,26 +453,46 @@ def get_sorted_paginated_tickets_for_pteams(
     limit: int = 100,
     sort_key: schemas.TicketSortKey = schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC,
     exclude_statuses: list[models.VulnStatusType] | None = None,
+    cve_ids: list[str] | None = None,
 ) -> tuple[int, Sequence[models.Ticket]]:
+
+    fixed_cve_ids: set[str] = set()
+    if cve_ids is not None:
+        for cve_id in cve_ids:
+            if re.match(schemas.CVE_PATTERN, cve_id):
+                fixed_cve_ids.add(cve_id)
+            else:
+                raise ValueError(f"Invalid CVE ID format: {cve_id}")
 
     select_stmt = (
         select(models.Ticket)
         .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
         .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+        .join(models.TicketStatus, models.TicketStatus.ticket_id == models.Ticket.ticket_id)
         .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
     )
 
-    ticket_status_join_conditions = [models.TicketStatus.ticket_id == models.Ticket.ticket_id]
+    # Prepare filters list
+    filters = []
+
     if assigned_user_id is not None:
-        ticket_status_join_conditions.append(
+        filters.append(
             func.array_position(models.TicketStatus.assignees, str(assigned_user_id)).isnot(None)
         )
-    if exclude_statuses:
-        ticket_status_join_conditions.append(
-            models.TicketStatus.vuln_status.notin_(exclude_statuses)
-        )
 
-    select_stmt = select_stmt.join(models.TicketStatus, and_(*ticket_status_join_conditions))
+    if exclude_statuses:
+        filters.append(models.TicketStatus.vuln_status.notin_(exclude_statuses))
+
+    # CVE ID filtering - join with Threat and Vuln tables if needed
+    if fixed_cve_ids:
+        select_stmt = select_stmt.join(
+            models.Threat, models.Threat.threat_id == models.Ticket.threat_id
+        ).join(models.Vuln, models.Vuln.vuln_id == models.Threat.vuln_id)
+        filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
+
+    # Apply filters if any
+    if filters:
+        select_stmt = select_stmt.where(and_(*filters))
 
     # sort by SSVC priority
     priority_case = case(
@@ -521,9 +541,20 @@ def get_sorted_paginated_tickets_for_pteams(
         select(func.count(models.Ticket.ticket_id.distinct()))
         .join(models.Dependency, models.Dependency.dependency_id == models.Ticket.dependency_id)
         .join(models.Service, models.Service.service_id == models.Dependency.service_id)
-        .join(models.TicketStatus, and_(*ticket_status_join_conditions))
+        .join(models.TicketStatus, models.TicketStatus.ticket_id == models.Ticket.ticket_id)
         .where(models.Service.pteam_id.in_([str(pid) for pid in pteam_ids]))
     )
+
+    # CVE ID filtering for count query
+    if fixed_cve_ids:
+        count_stmt = count_stmt.join(
+            models.Threat, models.Threat.threat_id == models.Ticket.threat_id
+        ).join(models.Vuln, models.Vuln.vuln_id == models.Threat.vuln_id)
+
+    # Apply filters to count query if any
+    if filters:
+        count_stmt = count_stmt.where(and_(*filters))
+
     total_count = db.scalar(count_stmt) or 0
 
     return total_count, tickets
