@@ -511,9 +511,9 @@ def get_dependencies(
             raise NO_SUCH_PACKAGE
 
         filtered_dependencies = [
-            depenenecy
-            for depenenecy in dependencies
-            if str(depenenecy.package_version.package_id) == str(package_id)
+            dependency
+            for dependency in dependencies
+            if str(dependency.package_version.package_id) == str(package_id)
         ]
 
     filtered_dependencies.sort(key=lambda x: x.dependency_id)
