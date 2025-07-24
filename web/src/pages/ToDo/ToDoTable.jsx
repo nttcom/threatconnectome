@@ -109,7 +109,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={[10, 20, 50, 100]}
           component="div"
           count={tickets?.total ?? 0}
           rowsPerPage={rowsPerPage}
