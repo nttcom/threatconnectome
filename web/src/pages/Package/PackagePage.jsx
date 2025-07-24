@@ -34,7 +34,7 @@ export function Package() {
   const getVulnIdsReady = getPTeamReady && serviceId && packageId;
 
   const offset = 0;
-  const limit = 10000;
+  const limit = 1000;
   const {
     data: serviceDependencies,
     error: serviceDependenciesError,
