@@ -456,7 +456,7 @@ def get_sorted_paginated_tickets_for_pteams(
     cve_ids: list[str] | None = None,
 ) -> tuple[int, Sequence[models.Ticket]]:
 
-    fixed_cve_ids: set[str | None] = set()
+    fixed_cve_ids: set[str] = set()
     if cve_ids is not None:
         for cve_id in cve_ids:
             if re.match(schemas.CVE_PATTERN, cve_id):
@@ -484,7 +484,7 @@ def get_sorted_paginated_tickets_for_pteams(
         filters.append(models.TicketStatus.vuln_status.notin_(exclude_statuses))
 
     # CVE ID filtering - join with Threat and Vuln tables if needed
-    if len(fixed_cve_ids) > 0:
+    if fixed_cve_ids:
         select_stmt = select_stmt.join(
             models.Threat, models.Threat.threat_id == models.Ticket.threat_id
         ).join(models.Vuln, models.Vuln.vuln_id == models.Threat.vuln_id)
