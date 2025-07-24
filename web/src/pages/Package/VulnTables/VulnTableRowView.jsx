@@ -76,7 +76,7 @@ export function VulnTableRowView(props) {
           {tickets.length}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
-          {utcStringToLocalDate(vuln.updated_at)}
+          {utcStringToLocalDate(vuln.updated_at, false)}
         </TableCell>
         <TableCell align="center" sx={{ bgcolor: "grey.50" }}>
           {affectedVersions.map((affectedVersion, index) =>

@@ -19,7 +19,7 @@ export const calcTimestampDiff = (timestamp) => {
   }
 };
 
-export const utcStringToLocalDate = (utcString) => {
+export const utcStringToLocalDate = (utcString, includeTimezone) => {
   if (!utcString) return null;
   const date = new Date(utcString);
   const year = date.getFullYear();
@@ -28,7 +28,18 @@ export const utcStringToLocalDate = (utcString) => {
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
   const seconds = String(date.getSeconds()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+
+  if (!includeTimezone) {
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  }
+
+  const offsetMinutes = date.getTimezoneOffset();
+  const absOffset = Math.abs(offsetMinutes);
+  const offsetSign = offsetMinutes <= 0 ? "+" : "-";
+  const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, "0");
+  const offsetMins = String(absOffset % 60).padStart(2, "0");
+  const offsetStr = `${offsetSign}${offsetHours}:${offsetMins}`;
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetStr}`;
 };
 
 export const errorToString = (error) => {

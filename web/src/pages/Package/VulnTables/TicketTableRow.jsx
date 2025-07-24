@@ -72,7 +72,7 @@ export function TicketTableRow(props) {
           )}
         </Box>
       </TableCell>
-      <TableCell>{utcStringToLocalDate(ticket.ticket_status.scheduled_at)}</TableCell>
+      <TableCell>{utcStringToLocalDate(ticket.ticket_status.scheduled_at, false)}</TableCell>
       <TableCell>
         <AssigneesSelector
           key={ticket.ticket_status.assignees.join("")}

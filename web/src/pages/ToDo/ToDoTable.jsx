@@ -45,7 +45,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
       service_id: ticket.service_id,
       dueDate: ticket.ticket_status?.scheduled_at
         ? (() => {
-            const formattedDate = utcStringToLocalDate(ticket.ticket_status.scheduled_at);
+            const formattedDate = utcStringToLocalDate(ticket.ticket_status.scheduled_at, false);
             return formattedDate || "-";
           })()
         : "-",
