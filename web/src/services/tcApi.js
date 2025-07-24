@@ -59,11 +59,12 @@ export const tcApi = createApi({
 
     /* Dependency */
     getDependencies: builder.query({
-      query: ({ pteamId, serviceId, offset, limit }) => ({
+      query: ({ pteamId, serviceId, packageId, offset, limit }) => ({
         url: `pteams/${pteamId}/dependencies`,
         method: "GET",
         params: {
           service_id: serviceId,
+          package_id: packageId,
           offset: offset,
           limit: limit,
         },
