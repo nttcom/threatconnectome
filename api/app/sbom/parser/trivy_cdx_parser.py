@@ -202,54 +202,6 @@ class TrivyCDXParser(SBOMParser):
                 "pkg_mgr": pkg_mgr,
             }
 
-        def _recursive_get_target_name(
-            self,
-            components_map: dict[str, Any],
-            meta_component: dict[str, Any],
-            dependencies: dict[str, set[str]],
-            current_refs: set[str],
-            target_names: list[tuple[str, int]],
-        ) -> list[tuple[str, int]]:
-            for ref, dependsOn in dependencies.items():
-                if ref in current_refs:
-                    continue
-                if self.bom_ref not in dependsOn:
-                    continue
-                if (
-                    meta_component
-                    and "bom-ref" in meta_component
-                    and ref == meta_component["bom-ref"]
-                ):
-                    continue
-
-                if not (target_component := components_map.get(ref)):
-                    continue
-
-                if target_component.type not in {"library"}:
-                    # https://cyclonedx.org/docs/1.5/json/#components_items_type
-                    target_names.append((target_component.name or "", len(current_refs)))
-
-                target_component._recursive_get_target_name(
-                    components_map, meta_component, dependencies, current_refs | {ref}, target_names
-                )
-
-            return target_names
-
-        def _get_target_name(
-            self,
-            components_map: dict[str, Any],
-            meta_component: dict[str, Any],
-            dependencies: dict[str, set[str]],
-        ) -> str:
-            """
-            Determines the name of the target component that is closest (least depth)
-            to the current component in the dependency graph.
-            """
-            target_names = self._recursive_get_target_name(
-                components_map, meta_component, dependencies, set(), []
-            )
-            return min(target_names, key=lambda x: x[1])[0] if target_names else ""
-
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
@@ -352,12 +304,18 @@ class TrivyCDXParser(SBOMParser):
                 ),
             )
             artifacts_map[artifacts_key] = artifact
-            target_name = component._get_target_name(components_map, meta_component, dependencies)
-            new_target = (target_name, component.version)
-            if new_target in artifact.targets:
-                error_message("conflicted target:", artifacts_key, new_target)
-            else:
-                artifact.targets.add(new_target)
+            for _target_ref, target_name in component.targets:
+                if (
+                    meta_component
+                    and "bom-ref" in meta_component
+                    and _target_ref == meta_component["bom-ref"]
+                ):
+                    continue
+                new_target = (target_name, component.version)
+                if new_target in artifact.targets:
+                    error_message("conflicted target:", artifacts_key, new_target)
+                else:
+                    artifact.targets.add(new_target)
             artifact.versions.add(component.version)
 
         return list(artifacts_map.values())
