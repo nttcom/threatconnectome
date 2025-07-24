@@ -138,7 +138,7 @@ export function VulnDetailView(props) {
             </Box>
             <Box display="flex" flexDirection="column" sx={{ mt: 1 }}>
               <Typography sx={{ fontWeight: "bold" }}>Last Updated</Typography>
-              <Typography>{utcStringToLocalDate(vuln.updated_at)}</Typography>
+              <Typography>{utcStringToLocalDate(vuln.updated_at, true)}</Typography>
             </Box>
             <Box display="flex" flexDirection="column" sx={{ mt: 1 }}>
               <Typography sx={{ fontWeight: "bold" }}>Vuln ID</Typography>
