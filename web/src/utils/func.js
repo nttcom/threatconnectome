@@ -32,7 +32,7 @@ export const utcStringToLocalDate = (utcString, includeTimezone) => {
   if (!includeTimezone) {
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   }
-  
+
   const offsetMinutes = date.getTimezoneOffset();
   const absOffset = Math.abs(offsetMinutes);
   const offsetSign = offsetMinutes <= 0 ? "+" : "-";
