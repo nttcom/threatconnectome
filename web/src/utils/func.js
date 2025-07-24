@@ -29,17 +29,17 @@ export const utcStringToLocalDate = (utcString, includeTimezone) => {
   const minutes = String(date.getMinutes()).padStart(2, "0");
   const seconds = String(date.getSeconds()).padStart(2, "0");
 
-  if (includeTimezone) {
-    const offsetMinutes = date.getTimezoneOffset();
-    const absOffset = Math.abs(offsetMinutes);
-    const offsetSign = offsetMinutes <= 0 ? "+" : "-";
-    const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, "0");
-    const offsetMins = String(absOffset % 60).padStart(2, "0");
-    const offsetStr = `${offsetSign}${offsetHours}:${offsetMins}`;
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetStr}`;
+  if (!includeTimezone) {
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   }
-
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  
+  const offsetMinutes = date.getTimezoneOffset();
+  const absOffset = Math.abs(offsetMinutes);
+  const offsetSign = offsetMinutes <= 0 ? "+" : "-";
+  const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, "0");
+  const offsetMins = String(absOffset % 60).padStart(2, "0");
+  const offsetStr = `${offsetSign}${offsetHours}:${offsetMins}`;
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetStr}`;
 };
 
 export const errorToString = (error) => {
