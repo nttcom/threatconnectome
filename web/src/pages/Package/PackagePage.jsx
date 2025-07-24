@@ -40,7 +40,7 @@ export function Package() {
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
   } = useGetDependenciesQuery(
-    { pteamId, serviceId, offset, limit },
+    { pteamId, serviceId, packageId, offset, limit },
     { skip: !getDependenciesReady },
   );
   const {
