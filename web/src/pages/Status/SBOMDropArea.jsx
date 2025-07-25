@@ -86,11 +86,7 @@ function PreUploadModal(props) {
       <DialogActions className={dialogStyle.action_area}>
         <Box>
           <Box sx={{ flex: "1 1 auto" }} />
-          <Button
-            onClick={handleUpload}
-            disabled={!isServiceNameValid}
-            className={dialogStyle.submit_btn}
-          >
+          <Button onClick={handleUpload} className={dialogStyle.submit_btn}>
             Upload
           </Button>
         </Box>
