@@ -116,6 +116,8 @@ export function ToDoTable({ myTasks, pteamIds }) {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          showFirstButton
+          showLastButton
         />
       </>
     </Paper>
