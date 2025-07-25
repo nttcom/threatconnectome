@@ -48,10 +48,6 @@ function PreUploadModal(props) {
     setServiceName(string);
   };
 
-  const isServiceNameValid =
-    serviceName &&
-    countFullWidthAndHalfWidthCharacters(serviceName.trim()) <= maxServiceNameLengthInHalf;
-
   return (
     <Dialog fullWidth open={open} onClose={handleClose}>
       <DialogTitle>
@@ -74,7 +70,7 @@ function PreUploadModal(props) {
             required
             placeholder={`Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`}
             helperText={serviceName ? "" : "This field is required."}
-            error={!isServiceNameValid}
+            error={!serviceName}
             sx={{ mt: 2 }}
           />
           <Box display="flex" flexDirection="row" sx={{ mt: 1, ml: 1 }}>
@@ -86,7 +82,7 @@ function PreUploadModal(props) {
       <DialogActions className={dialogStyle.action_area}>
         <Box>
           <Box sx={{ flex: "1 1 auto" }} />
-          <Button onClick={handleUpload} className={dialogStyle.submit_btn}>
+          <Button onClick={handleUpload} disabled={!serviceName} className={dialogStyle.submit_btn}>
             Upload
           </Button>
         </Box>
