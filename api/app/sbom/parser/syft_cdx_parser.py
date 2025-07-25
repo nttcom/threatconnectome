@@ -98,6 +98,13 @@ class SyftCDXParser(SBOMParser):
             pkg_name = (
                 self.group + "/" + self.name if self.group else self.name
             ).casefold()  # given by syft. may include namespace in some case.
+
+            source_name = None
+            for key, value in self.properties.items():
+                if "syft:metadata:source" in key:
+                    source_name = str(value).casefold()
+                    break
+
             distro = (
                 self.purl.qualifiers.get("distro")
                 if self.purl and isinstance(self.purl.qualifiers, dict)
@@ -106,19 +113,25 @@ class SyftCDXParser(SBOMParser):
             pkg_info = str(distro).casefold() if distro else str(self.purl.type).casefold()
             pkg_mgr = (self.mgr_info.name).casefold() if self.mgr_info else ""
 
-            return {"pkg_name": pkg_name, "ecosystem": pkg_info, "pkg_mgr": pkg_mgr}
+            return {
+                "pkg_name": pkg_name,
+                "source_name": source_name,
+                "ecosystem": pkg_info,
+                "pkg_mgr": pkg_mgr,
+            }
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
-            or sbom_info.spec_version not in {"1.4", "1.5"}
+            or sbom_info.spec_version not in {"1.4", "1.5", "1.6"}
             or sbom_info.tool_name != "syft"
         ):
             raise ValueError(f"Not supported: {sbom_info}")
         actual_parse_func = {
             "1.4": cls.parse_func_1_4,
             "1.5": cls.parse_func_1_4,
+            "1.6": cls.parse_func_1_4,
         }.get(sbom_info.spec_version)
         if not actual_parse_func:
             raise ValueError("Internal error: actual_parse_func not found")
@@ -162,7 +175,7 @@ class SyftCDXParser(SBOMParser):
                 artifacts_key,
                 Artifact(
                     package_name=package_info["pkg_name"],
-                    source_name=None,  # TODO: support source_name
+                    source_name=package_info["source_name"],
                     ecosystem=package_info["ecosystem"],
                     package_manager=package_info["pkg_mgr"],
                 ),
