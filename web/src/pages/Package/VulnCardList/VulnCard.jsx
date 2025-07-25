@@ -45,7 +45,7 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
   } = useGetDependenciesQuery(
-    { pteamId, serviceId, offset, limit },
+    { pteamId, serviceId, packageId, offset, limit },
     { skip: skipByAuth || skipByPTeamId || skipByServiceId },
   );
 
@@ -61,13 +61,10 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
   if (serviceDependenciesIsLoading) return <>Loading Dependencies...</>;
 
-  const currentPackageDependencies = (serviceDependencies ?? []).filter(
-    (dependency) => dependency.package_id === packageId,
-  );
   const currentPackage = {
-    package_name: currentPackageDependencies[0]?.package_name,
-    package_source_name: currentPackageDependencies[0]?.package_source_name,
-    vuln_matching_ecosystem: currentPackageDependencies[0]?.vuln_matching_ecosystem,
+    package_name: serviceDependencies[0]?.package_name,
+    package_source_name: serviceDependencies[0]?.package_source_name,
+    vuln_matching_ecosystem: serviceDependencies[0]?.vuln_matching_ecosystem,
   };
 
   const vulnerable_package = findMatchedVulnPackage(vuln.vulnerable_packages, currentPackage);
