@@ -16,13 +16,15 @@ import { useEffect, useRef, useState } from "react";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { useUploadSBOMFileMutation } from "../../services/tcApi";
-import { errorToString } from "../../utils/func";
+import { maxServiceNameLengthInHalf } from "../../utils/const";
+import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../utils/func";
 
 import { WaitingModal } from "./WaitingModal";
 
 function PreUploadModal(props) {
   const { sbomFile, open, onSetOpen, onCompleted } = props;
   const [serviceName, setServiceName] = useState("");
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleClose = () => {
     setServiceName("");
@@ -31,6 +33,19 @@ function PreUploadModal(props) {
   const handleUpload = () => {
     onCompleted(serviceName); // parent will close me
     setServiceName(""); // reset for next open
+  };
+
+  const handleServiceNameSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxServiceNameLengthInHalf) {
+      enqueueSnackbar(
+        `Too long service name. Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+        },
+      );
+      return;
+    }
+    setServiceName(string);
   };
 
   return (
@@ -51,8 +66,10 @@ function PreUploadModal(props) {
             label="Service name"
             size="small"
             value={serviceName}
-            onChange={(event) => setServiceName(event.target.value)}
+            onChange={(event) => handleServiceNameSetting(event.target.value)}
             required
+            placeholder={`Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`}
+            helperText={serviceName ? "" : "This field is required."}
             error={!serviceName}
             sx={{ mt: 2 }}
           />
