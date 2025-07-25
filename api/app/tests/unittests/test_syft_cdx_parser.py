@@ -100,3 +100,65 @@ class TestSyftCDXParser:
         # package name and ecosystem name are lowercased
         assert artifact.package_name == "pyjwt"
         assert artifact.ecosystem == "pypi"
+
+    def test_it_should_contain_source_name(self):
+        # Given
+        sbom = {
+            "metadata": {
+                "component": {
+                    "bom-ref": "root-app",
+                    "type": "application",
+                    "name": "sample target1",
+                }
+            },
+            "components": [
+                {
+                    "bom-ref": "root-app",
+                    "type": "application",
+                    "name": "sample target1",
+                    "properties": [
+                        {"name": "syft:package:type", "value": "deb"},
+                    ],
+                },
+                {
+                    "bom-ref": (
+                        "pkg:deb/ubuntu/libblkid1@2.34-0.1ubuntu9.6?arch=arm64&distro=ubuntu-20.04&package-id=b294debbb354b902&upstream=util-linux"
+                    ),
+                    "type": "library",
+                    "name": "libblkid1",
+                    "version": "2.34-0.1ubuntu9.6",
+                    "purl": (
+                        "pkg:deb/ubuntu/libblkid1@2.34-0.1ubuntu9.6?arch=arm64&distro=ubuntu-20.04&upstream=util-linux"
+                    ),
+                    "group": "",
+                    "properties": [
+                        {"name": "syft:package:type", "value": "deb"},
+                        {"name": "syft:metadata:source", "value": "util-linux"},
+                    ],
+                },
+            ],
+            "dependencies": [
+                {
+                    "ref": "root-app",
+                    "dependsOn": [
+                        "pkg:deb/ubuntu/libblkid1@2.34-0.1ubuntu9.6?arch=arm64&distro=ubuntu-20.04&package-id=b294debbb354b902&upstream=util-linux"
+                    ],
+                }
+            ],
+        }
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.5",
+            tool_name="syft",
+            tool_version="1.0.0",
+        )
+
+        # When
+        artifacts = SyftCDXParser.parse_sbom(sbom, sbom_info)
+
+        # Then
+        assert len(artifacts) == 1
+        artifact = artifacts[0]
+        assert artifact.package_name == "libblkid1"
+        assert artifact.source_name == "util-linux"
+        assert artifact.ecosystem == "ubuntu-20.04"
