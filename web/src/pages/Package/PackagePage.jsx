@@ -110,10 +110,7 @@ export function Package() {
   if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
 
   const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
-  const currentPackageDependencies = (serviceDependencies ?? []).filter(
-    (dependency) => dependency.package_id === packageId,
-  );
-  const references = currentPackageDependencies.map((dependency) => ({
+  const references = serviceDependencies.map((dependency) => ({
     dependencyId: dependency.dependency_id,
     target: dependency.target,
     version: dependency.package_version,
@@ -124,7 +121,7 @@ export function Package() {
     ecosystem: dependency.package_ecosystem,
   }));
 
-  const firstPackageDependency = currentPackageDependencies[0];
+  const firstPackageDependency = serviceDependencies[0];
 
   const numSolved = vulnIdsSolved.vuln_ids?.length ?? 0;
   const numUnsolved = vulnIdsUnSolved.vuln_ids?.length ?? 0;
