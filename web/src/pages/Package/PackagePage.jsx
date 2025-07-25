@@ -134,7 +134,7 @@ export function Package() {
   return (
     <>
       <Box alignItems="center" display="flex" flexDirection="row" mt={3} mb={2}>
-        <Box display="flex" flexDirection="column" flexGrow={1}>
+        <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
           <Box>
             <Chip
               label={serviceDict.service_name}
