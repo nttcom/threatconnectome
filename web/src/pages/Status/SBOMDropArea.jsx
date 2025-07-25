@@ -16,13 +16,15 @@ import { useEffect, useRef, useState } from "react";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { useUploadSBOMFileMutation } from "../../services/tcApi";
-import { errorToString } from "../../utils/func";
+import { maxServiceNameLengthInHalf } from "../../utils/const";
+import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../utils/func";
 
 import { WaitingModal } from "./WaitingModal";
 
 function PreUploadModal(props) {
   const { sbomFile, open, onSetOpen, onCompleted } = props;
   const [serviceName, setServiceName] = useState("");
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleClose = () => {
     setServiceName("");
@@ -32,6 +34,23 @@ function PreUploadModal(props) {
     onCompleted(serviceName); // parent will close me
     setServiceName(""); // reset for next open
   };
+
+  const handleServiceNameSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxServiceNameLengthInHalf) {
+      enqueueSnackbar(
+        `Too long service name. Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+        },
+      );
+      return;
+    }
+    setServiceName(string);
+  };
+
+  const isServiceNameValid =
+    serviceName &&
+    countFullWidthAndHalfWidthCharacters(serviceName.trim()) <= maxServiceNameLengthInHalf;
 
   return (
     <Dialog fullWidth open={open} onClose={handleClose}>
@@ -51,9 +70,11 @@ function PreUploadModal(props) {
             label="Service name"
             size="small"
             value={serviceName}
-            onChange={(event) => setServiceName(event.target.value)}
+            onChange={(event) => handleServiceNameSetting(event.target.value)}
             required
-            error={!serviceName}
+            placeholder={`Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`}
+            helperText={serviceName ? "" : "This field is required."}
+            error={!isServiceNameValid}
             sx={{ mt: 2 }}
           />
           <Box display="flex" flexDirection="row" sx={{ mt: 1, ml: 1 }}>
@@ -65,7 +86,11 @@ function PreUploadModal(props) {
       <DialogActions className={dialogStyle.action_area}>
         <Box>
           <Box sx={{ flex: "1 1 auto" }} />
-          <Button onClick={handleUpload} disabled={!serviceName} className={dialogStyle.submit_btn}>
+          <Button
+            onClick={handleUpload}
+            disabled={!isServiceNameValid}
+            className={dialogStyle.submit_btn}
+          >
             Upload
           </Button>
         </Box>
