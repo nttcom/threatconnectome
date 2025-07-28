@@ -105,6 +105,9 @@ class SyftCDXParser(SBOMParser):
                     source_name = str(value).casefold()
                     break
 
+            if not source_name and self.purl and isinstance(self.purl.qualifiers, dict):
+                source_name = self.purl.qualifiers.get("upstream")
+
             distro = (
                 self.purl.qualifiers.get("distro")
                 if self.purl and isinstance(self.purl.qualifiers, dict)
