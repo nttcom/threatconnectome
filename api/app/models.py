@@ -374,7 +374,9 @@ class Dependency(Base):
     )
 
     service = relationship("Service", back_populates="dependencies")
-    package_version = relationship("PackageVersion", uselist=False, back_populates="dependencies")
+    package_version = relationship(
+        "PackageVersion", uselist=False, back_populates="dependencies", lazy="joined"
+    )
     tickets = relationship("Ticket", back_populates="dependency", cascade="all, delete-orphan")
 
 
