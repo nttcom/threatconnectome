@@ -1,4 +1,5 @@
-import { Typography } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import { InputAdornment, TextField, Typography, useTheme } from "@mui/material";
 import Box from "@mui/material/Box";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -24,6 +25,9 @@ export function ToDo() {
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
 
+  const theme = useTheme();
+  const isSmDown = theme.breakpoints.down("sm");
+
   if (skip) return <></>;
   if (userMeError)
     throw new APIError(errorToString(userMeError), {
@@ -47,11 +51,26 @@ export function ToDo() {
 
   return (
     <>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+      <Box sx={{ display: "flex", alignItems: "center" }}>
         <Android12Switch checked={myTasks} onChange={handleMyTasksChange} />
         <Typography>My tasks</Typography>
       </Box>
-
+      <Box sx={{ mb: 1 }}>
+        <TextField
+          size="small"
+          type="search"
+          placeholder="Search CVE ID"
+          hiddenLabel
+          fullWidth
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
       <ToDoTable myTasks={myTasks} pteamIds={pteamIds} />
     </>
   );
