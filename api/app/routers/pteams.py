@@ -493,6 +493,9 @@ def get_dependencies(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
+    if package_id:
+        if not persistence.get_package_by_id(db, package_id):
+            raise NO_SUCH_PACKAGE
 
     dependencies = []
     if service_id:
@@ -500,32 +503,21 @@ def get_dependencies(
             service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
         ):
             raise NO_SUCH_SERVICE
-        dependencies = service.dependencies
+        dependencies = _get_dependencies_by_service(db, service, package_id)
     else:
         for service in pteam.services:
-            dependencies.extend(service.dependencies)
+            dependencies.extend(_get_dependencies_by_service(db, service, package_id))
 
-    filtered_dependencies = dependencies
-    if package_id:
-        if not persistence.get_package_by_id(db, package_id):
-            raise NO_SUCH_PACKAGE
+    dependencies.sort(key=lambda x: x.dependency_id)
 
-        filtered_dependencies = [
-            dependency
-            for dependency in dependencies
-            if str(dependency.package_version.package_id) == str(package_id)
-        ]
-
-    filtered_dependencies.sort(key=lambda x: x.dependency_id)
-
-    paginated_dependencies = filtered_dependencies[offset : offset + limit]
+    paginated_dependencies = dependencies[offset : offset + limit]
 
     dependency_responses = []
     for dependency in paginated_dependencies:
         dependency_response = schemas.DependencyResponse(
-            dependency_id=dependency.dependency_id,
+            dependency_id=UUID(dependency.dependency_id),
             service_id=dependency.service.service_id,
-            package_version_id=dependency.package_version_id,
+            package_version_id=UUID(dependency.package_version_id),
             package_id=dependency.package_version.package_id,
             package_manager=dependency.package_manager,
             target=dependency.target,
@@ -543,6 +535,19 @@ def get_dependencies(
         dependency_responses.append(dependency_response)
 
     return dependency_responses
+
+
+def _get_dependencies_by_service(
+    db: Session, service: models.Service, package_id: UUID | None
+) -> list[models.Dependency]:
+    if package_id:
+        return list(
+            persistence.get_dependencies_from_service_id_and_package_id(
+                db, service.service_id, package_id
+            )
+        )
+    else:
+        return service.dependencies
 
 
 @router.get(
