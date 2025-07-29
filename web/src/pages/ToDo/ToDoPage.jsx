@@ -25,8 +25,6 @@ export function ToDo() {
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
 
-  const theme = useTheme();
-
   if (skip) return <></>;
   if (userMeError)
     throw new APIError(errorToString(userMeError), {
