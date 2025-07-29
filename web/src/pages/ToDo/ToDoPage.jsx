@@ -12,59 +12,8 @@ import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
+import { CVESearchField } from "./CVESearchField";
 import { ToDoTable } from "./ToDoTable";
-
-function CVESearchField(props) {
-  const { word, onApply } = props;
-  const [newWord, setNewWord] = useState(word);
-  const { enqueueSnackbar } = useSnackbar();
-
-  const CVE_PATTERN = /^CVE-\d{4}-\d{4,}$/;
-
-  const handleApply = (value) => {
-    const trimmedValue = value.trim();
-
-    if (trimmedValue && !CVE_PATTERN.test(trimmedValue)) {
-      enqueueSnackbar("Invalid CVE ID format. Expected format: CVE-YYYY-NNNN", {
-        variant: "error",
-      });
-      return;
-    }
-
-    onApply(trimmedValue);
-  };
-
-  return (
-    <>
-      <TextField
-        size="small"
-        type="search"
-        placeholder="Search CVE ID"
-        hiddenLabel
-        fullWidth
-        value={newWord}
-        onChange={(event) => setNewWord(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            handleApply(event.target.value);
-          }
-        }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-        }}
-      />
-    </>
-  );
-}
-
-CVESearchField.propTypes = {
-  word: PropTypes.string.isRequired,
-  onApply: PropTypes.func.isRequired,
-};
 
 export function ToDo() {
   const location = useLocation();
@@ -73,6 +22,7 @@ export function ToDo() {
   const params = new URLSearchParams(location.search);
   const myTasks = params.get("mytasks") === "off" ? false : true;
   const cveId = params.get("cve_id")?.trim() ?? "";
+  const [page, setPage] = useState(0);
 
   const skip = useSkipUntilAuthUserIsReady();
   const {
@@ -98,7 +48,7 @@ export function ToDo() {
       newParams.delete("cve_id");
     }
     if (word !== params.get("cve_id")) {
-      newParams.set("page", 1); // reset page
+      setPage(0); // reset page
     }
     navigate(location.pathname + "?" + newParams.toString());
   };
@@ -124,7 +74,13 @@ export function ToDo() {
       <Box sx={{ mb: 1 }}>
         <CVESearchField word={cveId} onApply={handleCVESearch} />
       </Box>
-      <ToDoTable myTasks={myTasks} pteamIds={pteamIds} cveIds={cveId ? [cveId] : []} />
+      <ToDoTable
+        myTasks={myTasks}
+        pteamIds={pteamIds}
+        cveIds={cveId ? [cveId] : []}
+        page={page}
+        setPage={setPage}
+      />
     </>
   );
 }
