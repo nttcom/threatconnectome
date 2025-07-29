@@ -123,20 +123,6 @@ export function ToDo() {
       </Box>
       <Box sx={{ mb: 1 }}>
         <CVESearchField word={cveId} onApply={handleCVESearch} />
-        <TextField
-          size="small"
-          type="search"
-          placeholder="Search CVE ID"
-          hiddenLabel
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
       </Box>
       <ToDoTable myTasks={myTasks} pteamIds={pteamIds} cveIds={cveId ? [cveId] : []} />
     </>
