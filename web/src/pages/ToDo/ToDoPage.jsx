@@ -17,6 +17,10 @@ export function ToDo() {
   const params = new URLSearchParams(location.search);
   const myTasks = params.get("mytasks") === "off" ? false : true;
 
+  // ページング情報をクエリパラメータから取得
+  const page = parseInt(params.get("page")) || 0;
+  const rowsPerPage = parseInt(params.get("perPage")) || 10;
+
   const skip = useSkipUntilAuthUserIsReady();
   const {
     data: userMe,
@@ -33,6 +37,18 @@ export function ToDo() {
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   const pteamIds = userMe?.pteam_roles.map((role) => role.pteam.pteam_id) ?? [];
 
+  const updateParams = (newParams) => {
+    const updatedParams = new URLSearchParams(location.search);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === "") {
+        updatedParams.delete(key);
+      } else {
+        updatedParams.set(key, value);
+      }
+    });
+    navigate(location.pathname + "?" + updatedParams.toString());
+  };
+
   const handleMyTasksChange = (event) => {
     const newParams = new URLSearchParams(location.search);
 
@@ -42,6 +58,7 @@ export function ToDo() {
       newParams.set("mytasks", "off");
     }
 
+    newParams.delete("page");
     navigate(location.pathname + "?" + newParams.toString());
   };
 
@@ -52,7 +69,13 @@ export function ToDo() {
         <Typography>My tasks</Typography>
       </Box>
 
-      <ToDoTable myTasks={myTasks} pteamIds={pteamIds} />
+      <ToDoTable
+        myTasks={myTasks}
+        pteamIds={pteamIds}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        onPageChange={updateParams}
+      />
     </>
   );
 }

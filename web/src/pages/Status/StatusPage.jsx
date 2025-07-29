@@ -329,7 +329,7 @@ export function Status() {
   };
 
   function navigatePackagePage(packageId) {
-    for (let key of ["priorityFilter", "word", "perPage", "page", "allservices"]) {
+    for (let key of ["priorityFilter", "word", "perPage", "page"]) {
       params.delete(key);
     }
     navigate(`/packages/${packageId}?${params.toString()}`);

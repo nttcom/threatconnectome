@@ -17,9 +17,7 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
-export function ToDoTable({ myTasks, pteamIds }) {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+export function ToDoTable({ myTasks, pteamIds, page, rowsPerPage, onPageChange }) {
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
@@ -60,17 +58,20 @@ export function ToDoTable({ myTasks, pteamIds }) {
   }, [tickets]);
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    onPageChange({ page: newPage });
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    onPageChange({
+      perPage: newRowsPerPage,
+      page: 0, // reset page
+    });
   };
 
-  useEffect(() => {
-    setPage(0);
-  }, [myTasks]);
+  // useEffect(() => {
+  //   setPage(0);
+  // }, [myTasks]);
 
   if (skip) return <></>;
 
@@ -127,4 +128,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
 ToDoTable.propTypes = {
   myTasks: PropTypes.bool.isRequired,
   pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+  page: PropTypes.number.isRequired,
+  rowsPerPage: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
 };

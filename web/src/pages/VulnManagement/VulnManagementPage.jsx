@@ -11,7 +11,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import styles from "../../cssModule/button.module.css";
@@ -28,15 +28,18 @@ export function VulnManagement() {
   const perPageItems = [10, 20, 50, 100];
 
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
-  const [checkedPteam, setCheckedPteam] = useState(true);
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(perPageItems[0]);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = new URLSearchParams(useLocation().search);
+  const pteamId = params.get("pteamId");
+  const [checkedPteam, setCheckedPteam] = useState(
+    params.get("related") !== "false" && pteamId ? true : false,
+  );
+  const [page, setPage] = useState(parseInt(params.get("page")) || 1);
+  const [perPage, setPerPage] = useState(parseInt(params.get("perPage")) || perPageItems[0]);
   const [searchConditions, setSearchConditions] = useState({});
 
   const skip = useSkipUntilAuthUserIsReady();
-
-  const params = new URLSearchParams(useLocation().search);
-  const pteamId = params.get("pteamId");
 
   const getVulnsParams = {
     offset: perPage * (page - 1),
@@ -82,8 +85,22 @@ export function VulnManagement() {
 
   const handleSearch = (params) => {
     setSearchMenuOpen(false);
-    setPage(1); // reset page for new search result
-    setSearchConditions(paramsToSearchQuery(params));
+    setPage(1);
+    const query = paramsToSearchQuery(params);
+    setSearchConditions(query);
+
+    const newParams = {
+      page: 1,
+      titleWords: params.titleWords || "",
+      cveIds: params.cveIds || "",
+      vulnIds: params.vulnIds || "",
+      creatorIds: params.creatorIds || "",
+      updatedAfter: params.updatedAfter || "",
+      updatedBefore: params.updatedBefore || "",
+      minCvssV3Score: params.minCvssV3Score ?? "",
+      maxCvssV3Score: params.maxCvssV3Score ?? "",
+    };
+    updateParams(newParams);
   };
 
   const handleCancel = () => {
@@ -92,8 +109,26 @@ export function VulnManagement() {
 
   const handleChangeSwitch = () => {
     if (pteamId) {
-      setCheckedPteam(!checkedPteam);
+      const newCheckedPteam = !checkedPteam;
+      setCheckedPteam(newCheckedPteam);
+      updateParams({
+        related: newCheckedPteam ? "true" : "false",
+        page: 1, // page reset
+      });
+      setPage(1);
     }
+  };
+
+  const updateParams = (newParams) => {
+    const updatedParams = new URLSearchParams(location.search);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === "") {
+        updatedParams.delete(key);
+      } else {
+        updatedParams.set(key, value);
+      }
+    });
+    navigate(location.pathname + "?" + updatedParams.toString());
   };
 
   const filterRow = (
@@ -104,15 +139,20 @@ export function VulnManagement() {
         count={pageMax}
         siblingCount={isMdDown ? 1 : undefined}
         boundaryCount={isMdDown ? 0 : undefined}
-        onChange={(event, value) => setPage(value)}
+        onChange={(event, value) => {
+          setPage(value);
+          updateParams({ page: value });
+        }}
       />
       <Select
         size="small"
         variant="standard"
         value={perPage}
         onChange={(event) => {
-          setPage(1); // reset page for new perPage
-          setPerPage(event.target.value);
+          const newPerPage = event.target.value;
+          setPerPage(newPerPage);
+          setPage(1);
+          updateParams({ perPage: newPerPage, page: 1 });
         }}
       >
         {perPageItems.map((num) => (

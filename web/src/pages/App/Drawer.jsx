@@ -33,6 +33,27 @@ export function Drawer() {
   const locationReader = new LocationReader(location);
   const navigate = useNavigate();
 
+  const preserveToggleParams = (currentParams) => {
+    const newParams = new URLSearchParams(currentParams);
+    for (let key of [
+      "page",
+      "perPage",
+      "word",
+      "priorityFilter",
+      "titleWords",
+      "cveIds",
+      "vulnIds",
+      "creatorIds",
+      "updatedAfter",
+      "updatedBefore",
+      "minCvssV3Score",
+      "maxCvssV3Score",
+    ]) {
+      newParams.delete(key);
+    }
+    return newParams;
+  };
+
   const system = useSelector((state) => state.system);
 
   const StyledListItemIcon = styled(ListItemIcon)({
@@ -52,6 +73,7 @@ export function Drawer() {
   });
 
   const queryParams = new URLSearchParams(location.search).toString();
+  const cleanedQueryParams = preserveToggleParams(location.search).toString();
 
   const handleNavigateTop = () => {
     navigate("/?" + queryParams);
@@ -121,7 +143,7 @@ export function Drawer() {
             <ListItemText>Status</ListItemText>
           </StyledListItemButton>
           <StyledListItemButton
-            onClick={() => navigate("/pteam?" + queryParams)}
+            onClick={() => navigate("/pteam?" + cleanedQueryParams)}
             selected={locationReader.isPTeamPage()}
           >
             <StyledListItemIcon>
@@ -131,7 +153,7 @@ export function Drawer() {
           </StyledListItemButton>
           {/* Vulns */}
           <StyledListItemButton
-            onClick={() => navigate("/vulns?" + queryParams)}
+            onClick={() => navigate("/vulns?" + cleanedQueryParams)}
             selected={locationReader.isVulnsPage()}
           >
             <StyledListItemIcon>
@@ -142,7 +164,7 @@ export function Drawer() {
           {/* Vulnerabilities -- not listed on drawer, currently */}
           {/* ToDo */}
           <StyledListItemButton
-            onClick={() => navigate("/todo?" + queryParams)}
+            onClick={() => navigate("/todo?" + cleanedQueryParams)}
             selected={locationReader.isToDoPage()}
           >
             <StyledListItemIcon>
