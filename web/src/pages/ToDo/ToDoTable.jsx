@@ -17,7 +17,7 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
-export function ToDoTable({ myTasks, pteamIds }) {
+export function ToDoTable({ myTasks, pteamIds, cveIds }) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const skip = useSkipUntilAuthUserIsReady();
@@ -33,6 +33,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
     sortKey: "ssvc_deployer_priority_desc",
     assignedToMe: myTasks,
     excludeStatuses: ["completed"],
+    cveIds: cveIds,
   });
 
   const rows = useMemo(() => {
@@ -127,4 +128,5 @@ export function ToDoTable({ myTasks, pteamIds }) {
 ToDoTable.propTypes = {
   myTasks: PropTypes.bool.isRequired,
   pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+  cveIds: PropTypes.arrayOf(PropTypes.string),
 };
