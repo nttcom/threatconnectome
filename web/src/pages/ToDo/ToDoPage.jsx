@@ -26,7 +26,6 @@ export function ToDo() {
   } = useGetUserMeQuery(undefined, { skip });
 
   const theme = useTheme();
-  const isSmDown = theme.breakpoints.down("sm");
 
   if (skip) return <></>;
   if (userMeError)
