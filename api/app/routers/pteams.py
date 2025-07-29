@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.business import package_business, threat_business, ticket_business
+from app.business import dependency_business, package_business, threat_business, ticket_business
 from app.business.ssvc_business import (
     get_ticket_counts_summary_by_pteam_and_package_id,
     get_ticket_counts_summary_by_service_and_package_id,
@@ -503,10 +503,12 @@ def get_dependencies(
             service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
         ):
             raise NO_SUCH_SERVICE
-        dependencies = _get_dependencies_by_service(db, service, package_id)
+        dependencies = dependency_business.get_dependencies_by_service(db, service, package_id)
     else:
         for service in pteam.services:
-            dependencies.extend(_get_dependencies_by_service(db, service, package_id))
+            dependencies.extend(
+                dependency_business.get_dependencies_by_service(db, service, package_id)
+            )
 
     dependencies.sort(key=lambda x: x.dependency_id)
 
@@ -535,19 +537,6 @@ def get_dependencies(
         dependency_responses.append(dependency_response)
 
     return dependency_responses
-
-
-def _get_dependencies_by_service(
-    db: Session, service: models.Service, package_id: UUID | None
-) -> list[models.Dependency]:
-    if package_id:
-        return list(
-            persistence.get_dependencies_from_service_id_and_package_id(
-                db, service.service_id, package_id
-            )
-        )
-    else:
-        return service.dependencies
 
 
 @router.get(
@@ -627,11 +616,11 @@ def get_vuln_ids_tied_to_service_package(
 
     if service:
         vuln_ids_summary = get_vuln_ids_summary_by_service_and_package_id(
-            service, package_id, related_ticket_status
+            db, service, package_id, related_ticket_status
         )
     else:
         vuln_ids_summary = get_vuln_ids_summary_by_pteam_and_package_id(
-            pteam, package_id, related_ticket_status
+            db, pteam, package_id, related_ticket_status
         )
 
     return {
@@ -679,11 +668,11 @@ def get_ticket_counts_tied_to_service_package(
 
     if service:
         ticket_counts_summary = get_ticket_counts_summary_by_service_and_package_id(
-            service, package_id, related_ticket_status
+            db, service, package_id, related_ticket_status
         )
     else:
         ticket_counts_summary = get_ticket_counts_summary_by_pteam_and_package_id(
-            pteam, package_id, related_ticket_status
+            db, pteam, package_id, related_ticket_status
         )
 
     return {
