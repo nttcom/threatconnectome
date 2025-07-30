@@ -26,7 +26,7 @@ export function ToDoTable({ myTasks, pteamIds, page, rowsPerPage, onPageChange }
     isLoading: ticketsIsLoading,
   } = useGetTicketsQuery({
     pteamIds,
-    offset: page * rowsPerPage,
+    offset: (page - 1) * rowsPerPage,
     limit: rowsPerPage,
     sortKey: "ssvc_deployer_priority_desc",
     assignedToMe: myTasks,
@@ -58,20 +58,16 @@ export function ToDoTable({ myTasks, pteamIds, page, rowsPerPage, onPageChange }
   }, [tickets]);
 
   const handleChangePage = (event, newPage) => {
-    onPageChange({ page: newPage });
+    onPageChange({ page: newPage + 1 });
   };
 
   const handleChangeRowsPerPage = (event) => {
     const newRowsPerPage = parseInt(event.target.value, 10);
     onPageChange({
       perPage: newRowsPerPage,
-      page: 0, // reset page
+      page: 1, // reset page
     });
   };
-
-  // useEffect(() => {
-  //   setPage(0);
-  // }, [myTasks]);
 
   if (skip) return <></>;
 
@@ -114,7 +110,7 @@ export function ToDoTable({ myTasks, pteamIds, page, rowsPerPage, onPageChange }
           component="div"
           count={tickets?.total ?? 0}
           rowsPerPage={rowsPerPage}
-          page={page}
+          page={page - 1}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           showFirstButton

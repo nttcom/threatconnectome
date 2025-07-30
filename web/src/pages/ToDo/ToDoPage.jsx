@@ -18,7 +18,7 @@ export function ToDo() {
   const myTasks = params.get("mytasks") === "off" ? false : true;
 
   // ページング情報をクエリパラメータから取得
-  const page = parseInt(params.get("page")) || 0;
+  const page = parseInt(params.get("page")) || 1;
   const rowsPerPage = parseInt(params.get("perPage")) || 10;
 
   const skip = useSkipUntilAuthUserIsReady();
