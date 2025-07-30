@@ -33,7 +33,7 @@ export function VulnManagement() {
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
   const [checkedPteam, setCheckedPteam] = useState(
-    params.get("related") !== "false" && pteamId ? true : false,
+    params.get("related") !== "off" && pteamId ? true : false,
   );
   const [page, setPage] = useState(parseInt(params.get("page")) || 1);
   const [perPage, setPerPage] = useState(parseInt(params.get("perPage")) || perPageItems[0]);
@@ -112,7 +112,7 @@ export function VulnManagement() {
       const newCheckedPteam = !checkedPteam;
       setCheckedPteam(newCheckedPteam);
       updateParams({
-        related: newCheckedPteam ? "true" : "false",
+        related: newCheckedPteam ? "on" : "off",
         page: 1, // page reset
       });
       setPage(1);
