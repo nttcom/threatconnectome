@@ -70,7 +70,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
 
   useEffect(() => {
     setPage(0);
-  }, [myTasks]);
+  }, [myTasks, setPage]);
 
   if (skip) return <></>;
 
