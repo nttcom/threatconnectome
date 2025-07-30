@@ -48,6 +48,7 @@ export function Drawer() {
       "updatedBefore",
       "minCvssV3Score",
       "maxCvssV3Score",
+      "cveId",
     ]) {
       newParams.delete(key);
     }
