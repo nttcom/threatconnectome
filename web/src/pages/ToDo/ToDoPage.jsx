@@ -52,7 +52,7 @@ export function ToDo() {
     const newParams = new URLSearchParams(location.search);
 
     if (event.target.checked) {
-      newParams.delete("mytasks");
+      newParams.set("mytasks", "on");
     } else {
       newParams.set("mytasks", "off");
     }
