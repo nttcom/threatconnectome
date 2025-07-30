@@ -1,4 +1,15 @@
-import { Box, Divider, Tab, Tabs, Typography, Chip } from "@mui/material";
+import {
+  Box,
+  Divider,
+  Tab,
+  Tabs,
+  Typography,
+  Chip,
+  Tooltip,
+  ClickAwayListener,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
@@ -81,6 +92,18 @@ export function Package() {
     { skip: !getVulnIdsReady },
   );
 
+  const [open, setOpen] = useState(false);
+
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+
+  const handleTooltipOpen = () => {
+    if (!isMdUp) setOpen(true);
+  };
+  const handleTooltipClose = () => {
+    if (!isMdUp) setOpen(false);
+  };
+
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (!getVulnIdsReady) return <></>;
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
@@ -136,17 +159,45 @@ export function Package() {
       <Box alignItems="center" display="flex" flexDirection="row" mt={3} mb={2}>
         <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
           <Box>
-            <Chip
-              label={serviceDict.service_name}
-              variant="outlined"
-              sx={{
-                borderRadius: "2px",
-                border: `1px solid ${grey[700]}`,
-                borderLeft: `5px solid ${grey[700]}`,
-                mr: 1,
-                mb: 1,
-              }}
-            />
+            {isMdUp ? (
+              <Tooltip title={serviceDict.service_name}>
+                <Chip
+                  label={serviceDict.service_name}
+                  variant="outlined"
+                  sx={{
+                    borderRadius: "2px",
+                    border: `1px solid ${grey[700]}`,
+                    borderLeft: `5px solid ${grey[700]}`,
+                    mr: 1,
+                    mb: 1,
+                  }}
+                />
+              </Tooltip>
+            ) : (
+              <ClickAwayListener onClickAway={handleTooltipClose}>
+                <Tooltip
+                  onClose={handleTooltipClose}
+                  open={open}
+                  disableFocusListener
+                  disableHoverListener
+                  disableTouchListener
+                  title={serviceDict.service_name}
+                >
+                  <Chip
+                    label={serviceDict.service_name}
+                    variant="outlined"
+                    sx={{
+                      borderRadius: "2px",
+                      border: `1px solid ${grey[700]}`,
+                      borderLeft: `5px solid ${grey[700]}`,
+                      mr: 1,
+                      mb: 1,
+                    }}
+                    onClick={handleTooltipOpen}
+                  />
+                </Tooltip>
+              </ClickAwayListener>
+            )}
           </Box>
           <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
