@@ -1,8 +1,5 @@
-import SearchIcon from "@mui/icons-material/Search";
-import { InputAdornment, TextField, Typography, useTheme } from "@mui/material";
+import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
-import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
