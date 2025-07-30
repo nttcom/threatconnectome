@@ -72,11 +72,10 @@ export function Drawer() {
     },
   });
 
-  const queryParams = new URLSearchParams(location.search).toString();
   const cleanedQueryParams = preserveToggleParams(location.search).toString();
 
   const handleNavigateTop = () => {
-    navigate("/?" + queryParams);
+    navigate("/?" + cleanedQueryParams);
   };
 
   const dispatch = useDispatch();
@@ -134,7 +133,7 @@ export function Drawer() {
       >
         <List>
           <StyledListItemButton
-            onClick={() => navigate("/?" + queryParams)}
+            onClick={() => navigate("/?" + cleanedQueryParams)}
             selected={locationReader.isStatusPage()}
           >
             <StyledListItemIcon>
