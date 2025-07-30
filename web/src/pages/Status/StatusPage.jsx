@@ -364,7 +364,7 @@ export function Status() {
     }
 
     if (isActiveAllServicesMode) {
-      params.delete("allservices");
+      params.delete("allservices", "off");
       navigate(location.pathname + "?" + params.toString());
     } else {
       params.set("allservices", "on");
