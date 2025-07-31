@@ -129,5 +129,4 @@ ToDoTable.propTypes = {
   rowsPerPage: PropTypes.number.isRequired,
   onPageChange: PropTypes.func.isRequired,
   cveIds: PropTypes.arrayOf(PropTypes.string),
-  // setPage: PropTypes.func.isRequired,
 };
