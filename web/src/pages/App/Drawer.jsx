@@ -50,7 +50,7 @@ export function Drawer() {
       "maxCvssV3Score",
       "cve_id",
     ]) {
-      newParams.delete(key);
+      newParams.delete(key); // Remove all query parameters except toggle button
     }
     return newParams;
   };
