@@ -17,7 +17,7 @@ export function ToDo() {
   const navigate = useNavigate();
 
   const params = new URLSearchParams(location.search);
-  const myTasks = params.get("mytasks") === "off" ? false : true;
+  const myTasks = params.get("mytasks") === "on" || !params.has("mytasks");
   const cveId = params.get("cve_id")?.trim() ?? "";
 
   const page = parseInt(params.get("page")) || 1;
@@ -67,11 +67,7 @@ export function ToDo() {
   const handleMyTasksChange = (event) => {
     const newParams = new URLSearchParams(location.search);
 
-    if (event.target.checked) {
-      newParams.set("mytasks", "on");
-    } else {
-      newParams.set("mytasks", "off");
-    }
+    newParams.set("mytasks", event.target.checked ? "on" : "off");
 
     newParams.delete("page");
     navigate(location.pathname + "?" + newParams.toString());
