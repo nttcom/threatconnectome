@@ -444,18 +444,33 @@ SSVC_PRIORITY_ORDER = {
     "DEFER": 0,
 }
 
+ssvc_priority_case = case(
+    SSVC_PRIORITY_ORDER,
+    value=models.Ticket.ssvc_deployer_priority,
+    else_=None,
+)
+
+ALLOWED_SORT_KEYS = {
+    "ssvc_deployer_priority": ssvc_priority_case,
+    "created_at": models.Ticket.created_at,
+    "scheduled_at": models.TicketStatus.scheduled_at,
+    "cve_id": models.Vuln.cve_id,
+    "package_name": models.Package.name,
+    "pteam_name": models.PTeam.pteam_name,
+    "service_name": models.Service.service_name,
+}
+
 
 def get_sorted_paginated_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],
+    sort_keys: list[str],
     assigned_user_id: UUID | None = None,
     offset: int = 0,
     limit: int = 100,
-    sort_key: schemas.TicketSortKey = schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC,
     exclude_statuses: list[models.VulnStatusType] | None = None,
     cve_ids: list[str] | None = None,
 ) -> tuple[int, Sequence[models.Ticket]]:
-
     fixed_cve_ids: set[str] = set()
     if cve_ids is not None:
         for cve_id in cve_ids:
@@ -483,53 +498,47 @@ def get_sorted_paginated_tickets_for_pteams(
     if exclude_statuses:
         filters.append(models.TicketStatus.vuln_status.notin_(exclude_statuses))
 
-    # CVE ID filtering - join with Threat and Vuln tables if needed
-    if fixed_cve_ids:
+    # join with Threat and Vuln tables if needed
+    if fixed_cve_ids or "cve_id" in sort_keys:
         select_stmt = select_stmt.join(
             models.Threat, models.Threat.threat_id == models.Ticket.threat_id
         ).join(models.Vuln, models.Vuln.vuln_id == models.Threat.vuln_id)
-        filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
+        if fixed_cve_ids:  # CVE ID filtering
+            filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
+
+    # join with PackageVersion and Package tables if needed
+    if "package_name" in sort_keys:
+        select_stmt = select_stmt.join(
+            models.PackageVersion,
+            models.PackageVersion.package_version_id == models.Dependency.package_version_id,
+        ).join(models.Package, models.Package.package_id == models.PackageVersion.package_id)
+
+    # join with PTeam tables if needed
+    if "pteam_name" in sort_keys:
+        select_stmt = select_stmt.join(
+            models.PTeam, models.PTeam.pteam_id == models.Service.pteam_id
+        )
 
     # Apply filters if any
     if filters:
         select_stmt = select_stmt.where(and_(*filters))
 
-    # sort by SSVC priority
-    priority_case = case(
-        SSVC_PRIORITY_ORDER,
-        value=models.Ticket.ssvc_deployer_priority,
-        else_=None,
-    )
-
     # sort
-    sortkey2orderby: dict[schemas.TicketSortKey, list] = {
-        schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY: [
-            priority_case.asc().nullslast(),
-            models.Ticket.created_at.desc(),
-        ],
-        schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC: [
-            priority_case.desc().nullslast(),
-            models.Ticket.created_at.desc(),
-        ],
-        schemas.TicketSortKey.CREATED_AT: [
-            models.Ticket.created_at.asc(),
-            priority_case.desc().nullslast(),
-        ],
-        schemas.TicketSortKey.CREATED_AT_DESC: [
-            models.Ticket.created_at.desc(),
-            priority_case.desc().nullslast(),
-        ],
-    }
+    if sort_keys:
+        sort_columns = []
+        for sort_key in sort_keys:
+            desc = False
+            _key = sort_key
+            if sort_key.startswith("-"):
+                desc = True
+                _key = sort_key[1:]
+            column = ALLOWED_SORT_KEYS.get(_key)
+            if column is not None:
+                sort_columns.append(column.desc().nullslast() if desc else column)
+            else:
+                raise ValueError(f"Invalid sort key: {sort_key}")
 
-    select_stmt = select_stmt.order_by(
-        *sortkey2orderby.get(
-            sort_key,
-            [
-                priority_case.desc().nullslast(),
-                models.Ticket.created_at.desc(),
-            ],
-        )
-    )
+        select_stmt = select_stmt.order_by(*sort_columns)
 
     # pagination
     select_stmt = select_stmt.offset(offset).limit(limit)

@@ -35,7 +35,7 @@ def get_tickets(
     pteam_ids: list[UUID] | None = Query(None),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    sort_key: schemas.TicketSortKey = Query(schemas.TicketSortKey.SSVC_DEPLOYER_PRIORITY_DESC),
+    sort_keys: list = Query(default=[]),
     exclude_statuses: list[models.VulnStatusType] | None = Query(None),
     cve_ids: list[str] | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
@@ -54,12 +54,18 @@ def get_tickets(
     - `cve_ids`: List of CVE IDs to filter tickets by.
 
     ### Sorting:
-    - `sort_key`: Sort key for the results. Default is `SSVC_DEPLOYER_PRIORITY_DESC`.
-      Supported values:
-        - `SSVC_DEPLOYER_PRIORITY`: Sort by SSVC deployer priority (ascending).
-        - `SSVC_DEPLOYER_PRIORITY_DESC`: Sort by SSVC deployer priority (descending).
-        - `CREATED_AT`: Sort by created_at (ascending).
-        - `CREATED_AT_DESC`: Sort by created_at (descending).
+    - `sort_key`: Sort key for the results.
+      - Supported values:
+        - ssvc_deployer_priority
+        - created_at
+        - scheduled_at
+        - cve_id
+        - package_name
+        - pteam_name
+        - service_name
+    - If a minus sign is added, the order is descending. if not, the order is ascending.
+        - Example: -ssvc_deployer_priority, -created_at, -scheduled_at etc.
+
 
     ### Pagination:
     - `offset`: Number of items to skip before starting to collect the result set.
@@ -106,7 +112,7 @@ def get_tickets(
             assigned_user_id=assigned_user_id,
             offset=offset,
             limit=limit,
-            sort_key=sort_key,
+            sort_keys=sort_keys,
             exclude_statuses=exclude_statuses,
             cve_ids=cve_ids,
         )
