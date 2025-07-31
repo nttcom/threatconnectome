@@ -89,6 +89,7 @@ export function ToDoTableRow(props) {
   const pteamName = pteam?.pteam_name || "";
   const matchedService = pteamServices?.find?.((service) => service.service_id === row.service_id);
   const serviceName = matchedService?.service_name || "-";
+  const packageName = serviceDependency?.package_name || "-";
 
   const handleRowClick = () => {
     if (!serviceDependency) {
@@ -125,7 +126,7 @@ export function ToDoTableRow(props) {
         <TableCell>{vuln?.cve_id || "-"}</TableCell>
         <TableCell>{pteamName || "-"}</TableCell>
         <TableCell>{serviceName || "-"}</TableCell>
-        <TableCell>{row?.dueDate || "-"}</TableCell>
+        <TableCell>{packageName}</TableCell>
         <TableCell>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography sx={{ pl: 0.5 }}>{assigneeEmails}</Typography>

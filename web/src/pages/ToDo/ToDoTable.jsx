@@ -87,7 +87,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
                 <TableCell>CVE-ID</TableCell>
                 <TableCell>Team</TableCell>
                 <TableCell>Service</TableCell>
-                <TableCell>Due date</TableCell>
+                <TableCell>Package</TableCell>
                 <TableCell>Assignee</TableCell>
                 <TableCell>SSVC</TableCell>
                 <TableCell />
