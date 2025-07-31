@@ -54,7 +54,7 @@ def get_tickets(
     - `cve_ids`: List of CVE IDs to filter tickets by.
 
     ### Sorting:
-    - `sort_key`: Sort key for the results.
+    - `sort_keys`: Sort key for the results.
       - Supported values:
         - ssvc_deployer_priority
         - created_at
