@@ -433,10 +433,6 @@ class TestGetTickets:
                     t["ssvc_deployer_priority"],
                     99,
                 )
-                - datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
-                float("-inf")
-                if t["ticket_status"]["scheduled_at"] is None
-                else datetime.fromisoformat(t["scheduled_at"].replace("Z", "+00:00")).timestamp(),
             ),
         )
         assert tickets == sorted_tickets
