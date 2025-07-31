@@ -352,7 +352,6 @@ class TestGetTickets:
         # Then
         assert response.status_code == 200
         tickets = response.json()["tickets"]
-        print(tickets)
 
         # SSVC priority ascending
         sorted_tickets = sorted(
@@ -361,7 +360,7 @@ class TestGetTickets:
         )
         assert tickets == sorted_tickets
 
-    def test_it_should_sort_decs(self, ticket_setup):
+    def test_it_should_sort_desc(self, ticket_setup):
         # Given
         pteam1 = ticket_setup["pteam1"]
         pteam2 = ticket_setup["pteam2"]
