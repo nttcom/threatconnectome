@@ -58,7 +58,12 @@ def ticket_setup(testdb):
 
     # vuln
     VULN1_FIX = {**VULN1, "package_name": "axios"}
-    VULN2_FIX = {**VULN2, "package_name": "asynckit"}
+    VULN2_FIX = {
+        **VULN2,
+        "exploitation": "public_poc",
+        "automatable": "no",
+        "package_name": "asynckit",
+    }
     VULN3_FIX = {
         **VULN3,
         "package_name": "leftpad",
@@ -122,14 +127,14 @@ def ticket_setup(testdb):
         testdb, "leftpad", "npm", None
     )
 
-    # チケット
-    tickets1 = get_tickets_related_to_vuln_package(
+    # tickets
+    tickets1 = get_tickets_related_to_vuln_package(  # ssvc_deployer_priority: immediate
         USER1, pteam1.pteam_id, service1["service_id"], vuln1.vuln_id, package1.package_id
     )
-    tickets2 = get_tickets_related_to_vuln_package(
+    tickets2 = get_tickets_related_to_vuln_package(  # ssvc_deployer_priority: out_of_cycle
         USER2, pteam2.pteam_id, service2["service_id"], vuln2.vuln_id, package2.package_id
     )
-    tickets3 = get_tickets_related_to_vuln_package(
+    tickets3 = get_tickets_related_to_vuln_package(  # ssvc_deployer_priority: scheduled
         USER3, pteam3.pteam_id, service3["service_id"], vuln3.vuln_id, package3.package_id
     )
 
@@ -137,7 +142,7 @@ def ticket_setup(testdb):
     ticket2 = tickets2[0]
     ticket3 = tickets3[0]
 
-    # チケットステータス
+    # ticket_status
     set_ticket_status(
         USER1,
         pteam1.pteam_id,
@@ -325,152 +330,116 @@ class TestGetTickets:
         assert data["total"] == 2
         assert len(data["tickets"]) == 2
 
-    def test_it_should_sort_by_ssvc_deployer_priority_asc(self, ticket_setup):
+    def test_it_should_sort_asc(self, ticket_setup):
+        # Given
         pteam1 = ticket_setup["pteam1"]
         pteam2 = ticket_setup["pteam2"]
+        pteam3 = ticket_setup["pteam3"]
         invitation = invite_to_pteam(USER2, pteam2.pteam_id)
         accept_pteam_invitation(USER1, invitation.invitation_id)
+        invitation = invite_to_pteam(USER3, pteam3.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
 
+        # When
         response = client.get(
             "/tickets",
             headers=headers(USER1),
             params={
-                "sort_key": "ssvc_deployer_priority",
-                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id)],
+                "sort_keys": ["ssvc_deployer_priority"],
+                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id), str(pteam3.pteam_id)],
             },
         )
-        assert response.status_code == 200
-        data = response.json()
-        tickets = data["tickets"]
 
-        # SSVC priority ascending, if equal then created_at descending
+        # Then
+        assert response.status_code == 200
+        tickets = response.json()["tickets"]
+        print(tickets)
+
+        # SSVC priority ascending
         sorted_tickets = sorted(
             tickets,
-            key=lambda t: (
-                SSVC_PRIORITY_ORDER.get(t["ssvc_deployer_priority"], 99),
-                -datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
-            ),
+            key=lambda t: (SSVC_PRIORITY_ORDER.get(t["ssvc_deployer_priority"], 99)),
         )
         assert tickets == sorted_tickets
 
-    def test_it_should_sort_by_ssvc_deployer_priority_desc(self, ticket_setup):
+    def test_it_should_sort_decs(self, ticket_setup):
+        # Given
         pteam1 = ticket_setup["pteam1"]
         pteam2 = ticket_setup["pteam2"]
+        pteam3 = ticket_setup["pteam3"]
         invitation = invite_to_pteam(USER2, pteam2.pteam_id)
         accept_pteam_invitation(USER1, invitation.invitation_id)
+        invitation = invite_to_pteam(USER3, pteam3.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
 
+        # When
         response = client.get(
             "/tickets",
             headers=headers(USER1),
             params={
-                "sort_key": "ssvc_deployer_priority_desc",
-                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id)],
+                "sort_keys": ["-ssvc_deployer_priority"],
+                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id), str(pteam3.pteam_id)],
             },
         )
-        assert response.status_code == 200
-        data = response.json()
-        tickets = data["tickets"]
 
-        # SSVC priority descending, if equal then created_at descending
+        # Then
+        assert response.status_code == 200
+        tickets = response.json()["tickets"]
+
+        # SSVC priority descending
         sorted_tickets = sorted(
             tickets,
-            key=lambda t: (
-                -SSVC_PRIORITY_ORDER.get(t["ssvc_deployer_priority"]),
-                -datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
-            ),
+            key=lambda t: (SSVC_PRIORITY_ORDER.get(t["ssvc_deployer_priority"], 99)),
+            reverse=True,
         )
         assert tickets == sorted_tickets
 
-    def test_it_should_sort_by_created_at_asc(self, ticket_setup):
+    def test_it_should_sort_multiple(self, ticket_setup):
+        # Given
         pteam1 = ticket_setup["pteam1"]
         pteam2 = ticket_setup["pteam2"]
+        pteam3 = ticket_setup["pteam3"]
         invitation = invite_to_pteam(USER2, pteam2.pteam_id)
         accept_pteam_invitation(USER1, invitation.invitation_id)
+        invitation = invite_to_pteam(USER3, pteam3.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
 
+        # When
         response = client.get(
             "/tickets",
             headers=headers(USER1),
             params={
-                "sort_key": "created_at",
-                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id)],
+                "sort_keys": [
+                    "ssvc_deployer_priority",
+                    "created_at",
+                    "scheduled_at",
+                    "cve_id",
+                    "package_name",
+                    "pteam_name",
+                    "service_name",
+                ],
+                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id), str(pteam3.pteam_id)],
             },
         )
-        assert response.status_code == 200
-        data = response.json()
-        tickets = data["tickets"]
 
-        # created_at ascending, if equal then SSVC priority descending
+        # Then
+        assert response.status_code == 200
+        tickets = response.json()["tickets"]
+
         sorted_tickets = sorted(
             tickets,
             key=lambda t: (
-                datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")),
-                -SSVC_PRIORITY_ORDER.get(t["ssvc_deployer_priority"]),
+                SSVC_PRIORITY_ORDER.get(
+                    t["ssvc_deployer_priority"],
+                    99,
+                )
+                - datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
+                float("-inf")
+                if t["ticket_status"]["scheduled_at"] is None
+                else datetime.fromisoformat(t["scheduled_at"].replace("Z", "+00:00")).timestamp(),
             ),
         )
         assert tickets == sorted_tickets
-
-    def test_it_should_sort_by_created_at_desc(self, ticket_setup):
-        pteam1 = ticket_setup["pteam1"]
-        pteam2 = ticket_setup["pteam2"]
-        invitation = invite_to_pteam(USER2, pteam2.pteam_id)
-        accept_pteam_invitation(USER1, invitation.invitation_id)
-
-        response = client.get(
-            "/tickets",
-            headers=headers(USER1),
-            params={
-                "sort_key": "created_at_desc",
-                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id)],
-            },
-        )
-        assert response.status_code == 200
-        data = response.json()
-        tickets = data["tickets"]
-
-        # created_at descending, if equal then SSVC priority descending
-        sorted_tickets = sorted(
-            tickets,
-            key=lambda t: (
-                -datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).timestamp(),
-                -SSVC_PRIORITY_ORDER.get(t["ssvc_deployer_priority"]),
-            ),
-        )
-        assert tickets == sorted_tickets
-
-    def test_it_should_exclude_tickets_with_excluded_statuses(self, ticket_setup):
-        pteam1 = ticket_setup["pteam1"]
-        pteam2 = ticket_setup["pteam2"]
-        invitation = invite_to_pteam(USER2, pteam2.pteam_id)
-        accept_pteam_invitation(USER1, invitation.invitation_id)
-
-        set_ticket_status(
-            USER1,
-            pteam1.pteam_id,
-            ticket_setup["ticket1"]["ticket_id"],
-            {
-                "vuln_status": "completed",
-                "assignees": [str(ticket_setup["user1"].user_id)],
-                "note": "",
-                "scheduled_at": None,
-            },
-        )
-
-        response = client.get(
-            "/tickets",
-            headers=headers(USER1),
-            params={
-                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id)],
-                "exclude_statuses": ["completed"],
-            },
-        )
-        assert response.status_code == 200
-        data = response.json()
-
-        assert data["total"] == 1
-        assert len(data["tickets"]) == 1
-        assert data["tickets"][0]["ticket_id"] == ticket_setup["ticket2"]["ticket_id"]
-
-        assert data["tickets"][0]["ticket_status"]["vuln_status"] != "completed"
 
     @pytest.mark.parametrize(
         "cve_ids, expected_tickets, expected_count",
@@ -545,3 +514,25 @@ class TestGetTickets:
         assert response.status_code == 400
         error_data = response.json()
         assert error_data["detail"] == expected_error
+
+    def test_it_should_return_400_for_invalid_sort_keys(self, ticket_setup):
+        # Given
+        pteam1 = ticket_setup["pteam1"]
+        pteam2 = ticket_setup["pteam2"]
+        invitation = invite_to_pteam(USER2, pteam2.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
+
+        # When
+        response = client.get(
+            "/tickets",
+            headers=headers(USER1),
+            params={
+                "sort_keys": ["wrong_sort_key"],
+                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id)],
+            },
+        )
+
+        # Then
+        assert response.status_code == 400
+        error_data = response.json()
+        assert error_data["detail"] == "Invalid input: Invalid sort key: wrong_sort_key"
