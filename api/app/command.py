@@ -499,7 +499,7 @@ def get_sorted_paginated_tickets_for_pteams(
         filters.append(models.TicketStatus.vuln_status.notin_(exclude_statuses))
 
     # join with Threat and Vuln tables if needed
-    if fixed_cve_ids or "cve_id" in sort_keys:
+    if fixed_cve_ids or ("cve_id" in sort_keys):
         select_stmt = select_stmt.join(
             models.Threat, models.Threat.threat_id == models.Ticket.threat_id
         ).join(models.Vuln, models.Vuln.vuln_id == models.Threat.vuln_id)
