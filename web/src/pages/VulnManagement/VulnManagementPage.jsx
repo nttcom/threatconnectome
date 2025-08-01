@@ -23,6 +23,7 @@ import { errorToString } from "../../utils/func";
 import { VulnManagementCardList } from "./VulnManagementCardList";
 import { VulnManagementTable } from "./VulnManagementTable";
 import { VulnSearchModal } from "./VulnSearchModal";
+import { createUpdateParamsFunction } from "../../utils/urlUtils";
 
 export function VulnManagement() {
   const perPageItems = [10, 20, 50, 100];
@@ -151,17 +152,7 @@ export function VulnManagement() {
     }
   };
 
-  const updateParams = (newParams) => {
-    const updatedParams = new URLSearchParams(location.search);
-    Object.entries(newParams).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === "") {
-        updatedParams.delete(key);
-      } else {
-        updatedParams.set(key, value);
-      }
-    });
-    navigate(location.pathname + "?" + updatedParams.toString());
-  };
+  const updateParams = createUpdateParamsFunction(location, navigate);
 
   const filterRow = (
     <Box display="flex" alignItems="center" sx={{ mt: 1 }}>

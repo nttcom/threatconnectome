@@ -14,3 +14,17 @@ export const preserveParams = (currentParams) => {
 
   return newParams;
 };
+
+export const createUpdateParamsFunction = (location, navigate) => {
+  return (newParams) => {
+    const updatedParams = new URLSearchParams(location.search);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === "") {
+        updatedParams.delete(key);
+      } else {
+        updatedParams.set(key, value);
+      }
+    });
+    navigate(location.pathname + "?" + updatedParams.toString());
+  };
+};

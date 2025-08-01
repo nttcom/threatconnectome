@@ -1,6 +1,5 @@
 import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
-import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Android12Switch } from "../../components/Android12Switch";
@@ -11,6 +10,7 @@ import { errorToString } from "../../utils/func";
 
 import { CVESearchField } from "./CVESearchField";
 import { ToDoTable } from "./ToDoTable";
+import { createUpdateParamsFunction } from "../../utils/urlUtils";
 
 export function ToDo() {
   const location = useLocation();
@@ -39,17 +39,7 @@ export function ToDo() {
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   const pteamIds = userMe?.pteam_roles.map((role) => role.pteam.pteam_id) ?? [];
 
-  const updateParams = (newParams) => {
-    const updatedParams = new URLSearchParams(location.search);
-    Object.entries(newParams).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === "") {
-        updatedParams.delete(key);
-      } else {
-        updatedParams.set(key, value);
-      }
-    });
-    navigate(location.pathname + "?" + updatedParams.toString());
-  };
+  const updateParams = createUpdateParamsFunction(location, navigate);
 
   const handleCVESearch = (word) => {
     const newParams = new URLSearchParams(location.search);
