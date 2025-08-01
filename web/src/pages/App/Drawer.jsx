@@ -19,6 +19,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { setDrawerOpen } from "../../slices/system";
 import { LocationReader } from "../../utils/LocationReader";
 import { drawerWidth, drawerParams } from "../../utils/const";
+import { preserveParams } from "../../utils/urlUtils";
 
 const DrawerHeader = styled("div")(({ theme }) => ({
   alignItems: "center",
@@ -51,10 +52,10 @@ export function Drawer() {
     },
   });
 
-  const queryParams = new URLSearchParams(location.search).toString();
+  const cleanedQueryParams = preserveParams(location.search).toString();
 
   const handleNavigateTop = () => {
-    navigate("/?" + queryParams);
+    navigate("/?" + cleanedQueryParams);
   };
 
   const dispatch = useDispatch();
@@ -112,7 +113,7 @@ export function Drawer() {
       >
         <List>
           <StyledListItemButton
-            onClick={() => navigate("/?" + queryParams)}
+            onClick={() => navigate("/?" + cleanedQueryParams)}
             selected={locationReader.isStatusPage()}
           >
             <StyledListItemIcon>
@@ -121,7 +122,7 @@ export function Drawer() {
             <ListItemText>Status</ListItemText>
           </StyledListItemButton>
           <StyledListItemButton
-            onClick={() => navigate("/pteam?" + queryParams)}
+            onClick={() => navigate("/pteam?" + cleanedQueryParams)}
             selected={locationReader.isPTeamPage()}
           >
             <StyledListItemIcon>
@@ -131,7 +132,7 @@ export function Drawer() {
           </StyledListItemButton>
           {/* Vulns */}
           <StyledListItemButton
-            onClick={() => navigate("/vulns?" + queryParams)}
+            onClick={() => navigate("/vulns?" + cleanedQueryParams)}
             selected={locationReader.isVulnsPage()}
           >
             <StyledListItemIcon>
@@ -142,7 +143,7 @@ export function Drawer() {
           {/* Vulnerabilities -- not listed on drawer, currently */}
           {/* ToDo */}
           <StyledListItemButton
-            onClick={() => navigate("/todo?" + queryParams)}
+            onClick={() => navigate("/todo?" + cleanedQueryParams)}
             selected={locationReader.isToDoPage()}
           >
             <StyledListItemIcon>

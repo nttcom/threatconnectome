@@ -1,6 +1,5 @@
 import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
-import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Android12Switch } from "../../components/Android12Switch";
@@ -8,6 +7,7 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
+import { createUpdateParamsFunction } from "../../utils/urlUtils";
 
 import { CVESearchField } from "./CVESearchField";
 import { ToDoTable } from "./ToDoTable";
@@ -17,9 +17,11 @@ export function ToDo() {
   const navigate = useNavigate();
 
   const params = new URLSearchParams(location.search);
-  const myTasks = params.get("mytasks") === "off" ? false : true;
+  const myTasks = params.get("mytasks") === "on" || !params.has("mytasks");
   const cveId = params.get("cve_id")?.trim() ?? "";
-  const [page, setPage] = useState(0);
+
+  const page = parseInt(params.get("page")) || 1;
+  const rowsPerPage = parseInt(params.get("perPage")) || 10;
 
   const skip = useSkipUntilAuthUserIsReady();
   const {
@@ -37,6 +39,8 @@ export function ToDo() {
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
   const pteamIds = userMe?.pteam_roles.map((role) => role.pteam.pteam_id) ?? [];
 
+  const updateParams = createUpdateParamsFunction(location, navigate);
+
   const handleCVESearch = (word) => {
     const newParams = new URLSearchParams(location.search);
     if (word) {
@@ -45,7 +49,7 @@ export function ToDo() {
       newParams.delete("cve_id");
     }
     if (word !== params.get("cve_id")) {
-      setPage(0); // reset page
+      newParams.delete("page"); // reset page
     }
     navigate(location.pathname + "?" + newParams.toString());
   };
@@ -53,12 +57,9 @@ export function ToDo() {
   const handleMyTasksChange = (event) => {
     const newParams = new URLSearchParams(location.search);
 
-    if (event.target.checked) {
-      newParams.delete("mytasks");
-    } else {
-      newParams.set("mytasks", "off");
-    }
+    newParams.set("mytasks", event.target.checked ? "on" : "off");
 
+    newParams.delete("page");
     navigate(location.pathname + "?" + newParams.toString());
   };
 
@@ -76,7 +77,8 @@ export function ToDo() {
         pteamIds={pteamIds}
         cveIds={cveId ? [cveId] : []}
         page={page}
-        setPage={setPage}
+        rowsPerPage={rowsPerPage}
+        onPageChange={updateParams}
       />
     </>
   );

@@ -17,8 +17,7 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
-export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPageChange }) {
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
@@ -27,7 +26,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
     isLoading: ticketsIsLoading,
   } = useGetTicketsQuery({
     pteamIds,
-    offset: page * rowsPerPage,
+    offset: (page - 1) * rowsPerPage,
     limit: rowsPerPage,
     sortKeys: ["-ssvc_deployer_priority", "-created_at"],
     assignedToMe: myTasks,
@@ -60,17 +59,16 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
   }, [tickets]);
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    onPageChange({ page: newPage + 1 });
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    onPageChange({
+      perPage: newRowsPerPage,
+      page: 1, // reset page
+    });
   };
-
-  useEffect(() => {
-    setPage(0);
-  }, [myTasks, setPage]);
 
   if (skip) return <></>;
 
@@ -113,7 +111,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
           component="div"
           count={tickets?.total ?? 0}
           rowsPerPage={rowsPerPage}
-          page={page}
+          page={page - 1}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           showFirstButton
@@ -127,7 +125,8 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
 ToDoTable.propTypes = {
   myTasks: PropTypes.bool.isRequired,
   pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
-  cveIds: PropTypes.arrayOf(PropTypes.string),
   page: PropTypes.number.isRequired,
-  setPage: PropTypes.func.isRequired,
+  rowsPerPage: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
+  cveIds: PropTypes.arrayOf(PropTypes.string),
 };

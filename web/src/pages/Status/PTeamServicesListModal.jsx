@@ -159,7 +159,7 @@ export function PTeamServicesListModal(props) {
   );
 
   const handleNavigatePackage = (serviceId) => {
-    for (let key of ["packageId", "impactFilter", "word", "perPage", "page", "allservices"]) {
+    for (let key of ["packageId", "impactFilter", "word", "perPage", "page"]) {
       params.delete(key);
     }
     params.set("serviceId", serviceId);
