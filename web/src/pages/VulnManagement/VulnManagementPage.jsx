@@ -35,7 +35,61 @@ export function VulnManagement() {
   const checkedPteam = params.get("related") !== "off" && pteamId ? true : false;
   const page = parseInt(params.get("page")) || 1;
   const perPage = parseInt(params.get("perPage")) || perPageItems[0];
-  const [searchConditions, setSearchConditions] = useState({});
+  const getSearchConditionsFromURL = () => {
+    const conditions = {};
+
+    // titleWords
+    const titleWords = params.get("titleWords");
+    if (titleWords) {
+      conditions.title_words = titleWords.split("|");
+    }
+
+    // cveIds
+    const cveIds = params.get("cveIds");
+    if (cveIds) {
+      conditions.cve_ids = cveIds.split("|");
+    }
+
+    // vulnIds
+    const vulnIds = params.get("vulnIds");
+    if (vulnIds) {
+      conditions.vuln_ids = vulnIds.split("|");
+    }
+
+    // creatorIds
+    const creatorIds = params.get("creatorIds");
+    if (creatorIds) {
+      conditions.creator_ids = creatorIds.split("|");
+    }
+
+    // updatedAfter
+    const updatedAfter = params.get("updatedAfter");
+    if (updatedAfter) {
+      conditions.updated_after = updatedAfter;
+    }
+
+    // updatedBefore
+    const updatedBefore = params.get("updatedBefore");
+    if (updatedBefore) {
+      conditions.updated_before = updatedBefore;
+    }
+
+    // minCvssV3Score
+    const minCvssV3Score = params.get("minCvssV3Score");
+    if (minCvssV3Score !== null && minCvssV3Score !== "") {
+      conditions.min_cvss_v3_score = parseFloat(minCvssV3Score);
+    }
+
+    // maxCvssV3Score
+    const maxCvssV3Score = params.get("maxCvssV3Score");
+    if (maxCvssV3Score !== null && maxCvssV3Score !== "") {
+      conditions.max_cvss_v3_score = parseFloat(maxCvssV3Score);
+    }
+
+    return conditions;
+  };
+
+  const searchConditions = getSearchConditionsFromURL();
 
   const skip = useSkipUntilAuthUserIsReady();
 
@@ -64,27 +118,8 @@ export function VulnManagement() {
 
   const pageMax = Math.ceil((vulnsList?.num_vulns ?? 0) / perPage);
 
-  const paramsToSearchQuery = (params) => {
-    const delimiter = "|";
-    let query = {};
-    if (params?.titleWords?.length > 0) query.title_words = params.titleWords.split(delimiter);
-    if (params?.cveIds?.length > 0) query.cve_ids = params.cveIds.split(delimiter);
-    if (params?.vulnIds?.length > 0) query.vuln_ids = params.vulnIds.split(delimiter);
-    if (params?.creatorIds?.length > 0) query.creator_ids = params.creatorIds.split(delimiter);
-    if (params?.updatedAfter) query.updated_after = params.updatedAfter;
-    if (params?.updatedBefore) query.updated_before = params.updatedBefore;
-    if (params?.minCvssV3Score || params?.minCvssV3Score === 0)
-      query.min_cvss_v3_score = params.minCvssV3Score;
-    if (params?.maxCvssV3Score || params?.maxCvssV3Score === 0)
-      query.max_cvss_v3_score = params.maxCvssV3Score;
-
-    return query;
-  };
-
   const handleSearch = (params) => {
     setSearchMenuOpen(false);
-    const query = paramsToSearchQuery(params);
-    setSearchConditions(query);
 
     const newParams = {
       page: 1,
