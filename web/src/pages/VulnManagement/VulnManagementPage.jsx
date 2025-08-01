@@ -32,11 +32,9 @@ export function VulnManagement() {
   const navigate = useNavigate();
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
-  const [checkedPteam, setCheckedPteam] = useState(
-    params.get("related") !== "off" && pteamId ? true : false,
-  );
-  const [page, setPage] = useState(parseInt(params.get("page")) || 1);
-  const [perPage, setPerPage] = useState(parseInt(params.get("perPage")) || perPageItems[0]);
+  const checkedPteam = params.get("related") !== "off" && pteamId ? true : false;
+  const page = parseInt(params.get("page")) || 1;
+  const perPage = parseInt(params.get("perPage")) || perPageItems[0];
   const [searchConditions, setSearchConditions] = useState({});
 
   const skip = useSkipUntilAuthUserIsReady();
@@ -85,7 +83,6 @@ export function VulnManagement() {
 
   const handleSearch = (params) => {
     setSearchMenuOpen(false);
-    setPage(1);
     const query = paramsToSearchQuery(params);
     setSearchConditions(query);
 
@@ -109,13 +106,13 @@ export function VulnManagement() {
 
   const handleChangeSwitch = () => {
     if (pteamId) {
-      const newCheckedPteam = !checkedPteam;
-      setCheckedPteam(newCheckedPteam);
+      const currentCheckedPteam = params.get("related") !== "off";
+      const newCheckedPteam = !currentCheckedPteam;
+
       updateParams({
         related: newCheckedPteam ? "on" : "off",
         page: 1, // page reset
       });
-      setPage(1);
     }
   };
 
@@ -140,7 +137,6 @@ export function VulnManagement() {
         siblingCount={isMdDown ? 1 : undefined}
         boundaryCount={isMdDown ? 0 : undefined}
         onChange={(event, value) => {
-          setPage(value);
           updateParams({ page: value });
         }}
       />
@@ -150,8 +146,6 @@ export function VulnManagement() {
         value={perPage}
         onChange={(event) => {
           const newPerPage = event.target.value;
-          setPerPage(newPerPage);
-          setPage(1);
           updateParams({ perPage: newPerPage, page: 1 });
         }}
       >
