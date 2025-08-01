@@ -35,7 +35,7 @@ def get_tickets(
     pteam_ids: list[UUID] | None = Query(None),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    sort_keys: list = Query(default=[]),
+    sort_keys: list = Query(["-ssvc_deployer_priority", "-created_at"]),
     exclude_statuses: list[models.VulnStatusType] | None = Query(None),
     cve_ids: list[str] | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
