@@ -50,7 +50,7 @@ export function TicketTableRow(props) {
           wordBreak: "break-all",
         }}
       >
-        {packageManager}
+        {packageManager || "-"}
       </TableCell>
       <TableCell>
         <SafetyImpactSelector pteamId={pteamId} ticket={ticket} />
@@ -72,7 +72,7 @@ export function TicketTableRow(props) {
           )}
         </Box>
       </TableCell>
-      <TableCell>{utcStringToLocalDate(ticket.ticket_status.scheduled_at, false)}</TableCell>
+      <TableCell>{utcStringToLocalDate(ticket.ticket_status.scheduled_at, false) || "-"}</TableCell>
       <TableCell>
         <AssigneesSelector
           key={ticket.ticket_status.assignees.join("")}
