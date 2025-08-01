@@ -48,7 +48,7 @@ import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
 import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
 import { SBOMDropArea } from "./SBOMDropArea";
-import { preserveParams } from "../../utils/urlUtils";
+import { preserveMyTasksParam } from "../../utils/urlUtils";
 
 const ssvcPriorityCountMax = 99999;
 
