@@ -15,6 +15,7 @@ import { styled } from "@mui/material/styles";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import { preserveParams } from "../../utils/urlUtils";
 
 import { setDrawerOpen } from "../../slices/system";
 import { LocationReader } from "../../utils/LocationReader";
@@ -32,28 +33,6 @@ export function Drawer() {
   const location = useLocation();
   const locationReader = new LocationReader(location);
   const navigate = useNavigate();
-
-  const preserveToggleParams = (currentParams) => {
-    const newParams = new URLSearchParams(currentParams);
-    for (let key of [
-      "page",
-      "perPage",
-      "word",
-      "priorityFilter",
-      "titleWords",
-      "cveIds",
-      "vulnIds",
-      "creatorIds",
-      "updatedAfter",
-      "updatedBefore",
-      "minCvssV3Score",
-      "maxCvssV3Score",
-      "cve_id",
-    ]) {
-      newParams.delete(key); // Remove all query parameters except toggle button
-    }
-    return newParams;
-  };
 
   const system = useSelector((state) => state.system);
 
@@ -73,7 +52,7 @@ export function Drawer() {
     },
   });
 
-  const cleanedQueryParams = preserveToggleParams(location.search).toString();
+  const cleanedQueryParams = preserveParams(location.search).toString();
 
   const handleNavigateTop = () => {
     navigate("/?" + cleanedQueryParams);
