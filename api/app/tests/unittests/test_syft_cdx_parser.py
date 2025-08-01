@@ -100,3 +100,17 @@ class TestSyftCDXParser:
         # package name and ecosystem name are lowercased
         assert artifact.package_name == "pyjwt"
         assert artifact.ecosystem == "pypi"
+
+    def test_it_should_parse_sbom_with_spec_version_1_6(self):
+        sbom = self.make_sbom_pyjwt()
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.6",
+            tool_name="syft",
+            tool_version="1.0.0",
+        )
+        artifacts = SyftCDXParser.parse_sbom(sbom, sbom_info)
+        assert len(artifacts) == 1
+        artifact = artifacts[0]
+        assert artifact.package_name == "pyjwt"
+        assert artifact.ecosystem == "pypi"
