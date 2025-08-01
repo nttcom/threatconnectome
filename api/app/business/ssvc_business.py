@@ -1,9 +1,13 @@
 from uuid import UUID
 
+from sqlalchemy.orm import Session
+
 from app import models
+from app.business import dependency_business
 
 
 def get_vuln_ids_summary_by_pteam_and_package_id(
+    db: Session,
     pteam: models.PTeam,
     package_id: UUID | str | None,
     related_ticket_status: str | None,
@@ -12,7 +16,7 @@ def get_vuln_ids_summary_by_pteam_and_package_id(
 
     for _service in pteam.services:
         temp_vuln_ids_dict = _get_vuln_ids_dict_by_service(
-            _service, package_id, related_ticket_status
+            db, _service, package_id, related_ticket_status
         )
         for vuln_id, vuln_info in temp_vuln_ids_dict.items():
             if vuln_id not in vuln_ids_dict:
@@ -22,26 +26,29 @@ def get_vuln_ids_summary_by_pteam_and_package_id(
 
 
 def get_vuln_ids_summary_by_service_and_package_id(
+    db: Session,
     service: models.Service,
     package_id: UUID | str | None,
     related_ticket_status: str | None,
 ) -> dict:
-    vuln_ids_dict: dict = _get_vuln_ids_dict_by_service(service, package_id, related_ticket_status)
+    vuln_ids_dict: dict = _get_vuln_ids_dict_by_service(
+        db, service, package_id, related_ticket_status
+    )
 
     return _create_vuln_ids_summary(vuln_ids_dict)
 
 
 def _get_vuln_ids_dict_by_service(
+    db: Session,
     service: models.Service,
     package_id: UUID | str | None,
     related_ticket_status: str | None,
 ) -> dict:
     _completed = models.VulnStatusType.completed
     vuln_ids_dict = {}
+    dependencies = dependency_business.get_dependencies_by_service(db, service, package_id)
 
-    for dependency in service.dependencies:
-        if package_id and dependency.package_version.package_id != str(package_id):
-            continue
+    for dependency in dependencies:
         for ticket in dependency.tickets:
             ssvc_priority = ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
 
@@ -81,6 +88,7 @@ def _create_vuln_ids_summary(vuln_ids_dict: dict) -> dict:
 
 
 def get_ticket_counts_summary_by_pteam_and_package_id(
+    db: Session,
     pteam: models.PTeam,
     package_id: UUID | str | None,
     related_ticket_status: str | None,
@@ -89,7 +97,7 @@ def get_ticket_counts_summary_by_pteam_and_package_id(
 
     for _service in pteam.services:
         temp_ticket_counts_dict: dict = _get_ticket_counts_by_service(
-            _service, package_id, related_ticket_status
+            db, _service, package_id, related_ticket_status
         )
         for ssvc_priority in models.SSVCDeployerPriorityEnum:
             ticket_counts_dict[ssvc_priority.value] += temp_ticket_counts_dict[ssvc_priority.value]
@@ -102,12 +110,13 @@ def get_ticket_counts_summary_by_pteam_and_package_id(
 
 
 def get_ticket_counts_summary_by_service_and_package_id(
+    db: Session,
     service: models.Service,
     package_id: UUID | str | None,
     related_ticket_status: str | None,
 ):
     ticket_counts_dict: dict = _get_ticket_counts_by_service(
-        service, package_id, related_ticket_status
+        db, service, package_id, related_ticket_status
     )
 
     # gen summary
@@ -118,6 +127,7 @@ def get_ticket_counts_summary_by_service_and_package_id(
 
 
 def _get_ticket_counts_by_service(
+    db: Session,
     service: models.Service,
     package_id: UUID | str | None,
     related_ticket_status: str | None,
@@ -126,7 +136,8 @@ def _get_ticket_counts_by_service(
 
     _completed = models.VulnStatusType.completed
 
-    for dependency in service.dependencies:
+    dependencies = dependency_business.get_dependencies_by_service(db, service, package_id)
+    for dependency in dependencies:
         if package_id and dependency.package_version.package_id != str(package_id):
             continue
         for ticket in dependency.tickets:

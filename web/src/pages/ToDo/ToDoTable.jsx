@@ -17,8 +17,7 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
-export function ToDoTable({ myTasks, pteamIds }) {
-  const [page, setPage] = useState(0);
+export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const skip = useSkipUntilAuthUserIsReady();
 
@@ -30,9 +29,10 @@ export function ToDoTable({ myTasks, pteamIds }) {
     pteamIds,
     offset: page * rowsPerPage,
     limit: rowsPerPage,
-    sortKey: "ssvc_deployer_priority_desc",
+    sortKeys: ["-ssvc_deployer_priority", "-created_at"],
     assignedToMe: myTasks,
     excludeStatuses: ["completed"],
+    cveIds: cveIds,
   });
 
   const rows = useMemo(() => {
@@ -70,7 +70,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
 
   useEffect(() => {
     setPage(0);
-  }, [myTasks]);
+  }, [myTasks, setPage]);
 
   if (skip) return <></>;
 
@@ -87,7 +87,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
                 <TableCell>CVE-ID</TableCell>
                 <TableCell>Team</TableCell>
                 <TableCell>Service</TableCell>
-                <TableCell>Due date</TableCell>
+                <TableCell>Package</TableCell>
                 <TableCell>Assignee</TableCell>
                 <TableCell>SSVC</TableCell>
                 <TableCell />
@@ -127,4 +127,7 @@ export function ToDoTable({ myTasks, pteamIds }) {
 ToDoTable.propTypes = {
   myTasks: PropTypes.bool.isRequired,
   pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+  cveIds: PropTypes.arrayOf(PropTypes.string),
+  page: PropTypes.number.isRequired,
+  setPage: PropTypes.func.isRequired,
 };

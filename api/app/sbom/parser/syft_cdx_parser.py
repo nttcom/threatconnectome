@@ -98,6 +98,21 @@ class SyftCDXParser(SBOMParser):
             pkg_name = (
                 self.group + "/" + self.name if self.group else self.name
             ).casefold()  # given by syft. may include namespace in some case.
+
+            source_name = None
+            for key, value in self.properties.items():
+                if "syft:metadata:source" in key:
+                    source_name = str(value).casefold()
+                    break
+
+            if (
+                not source_name
+                and self.purl
+                and isinstance(self.purl.qualifiers, dict)
+                and (upstream := self.purl.qualifiers.get("upstream"))
+            ):
+                source_name = upstream.casefold()
+
             distro = (
                 self.purl.qualifiers.get("distro")
                 if self.purl and isinstance(self.purl.qualifiers, dict)
@@ -106,7 +121,12 @@ class SyftCDXParser(SBOMParser):
             pkg_info = str(distro).casefold() if distro else str(self.purl.type).casefold()
             pkg_mgr = (self.mgr_info.name).casefold() if self.mgr_info else ""
 
-            return {"pkg_name": pkg_name, "ecosystem": pkg_info, "pkg_mgr": pkg_mgr}
+            return {
+                "pkg_name": pkg_name,
+                "source_name": source_name,
+                "ecosystem": pkg_info,
+                "pkg_mgr": pkg_mgr,
+            }
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
@@ -163,7 +183,7 @@ class SyftCDXParser(SBOMParser):
                 artifacts_key,
                 Artifact(
                     package_name=package_info["pkg_name"],
-                    source_name=None,  # TODO: support source_name
+                    source_name=package_info["source_name"],
                     ecosystem=package_info["ecosystem"],
                     package_manager=package_info["pkg_mgr"],
                 ),

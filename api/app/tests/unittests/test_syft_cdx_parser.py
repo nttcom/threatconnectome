@@ -101,6 +101,129 @@ class TestSyftCDXParser:
         assert artifact.package_name == "pyjwt"
         assert artifact.ecosystem == "pypi"
 
+    def test_it_should_contain_source_name(self):
+        # Given
+        sbom = {
+            "metadata": {
+                "component": {
+                    "bom-ref": "root-app",
+                    "type": "application",
+                    "name": "sample target1",
+                }
+            },
+            "components": [
+                {
+                    "bom-ref": "root-app",
+                    "type": "application",
+                    "name": "sample target1",
+                    "properties": [
+                        {"name": "syft:package:type", "value": "deb"},
+                    ],
+                },
+                {
+                    "bom-ref": (
+                        "pkg:deb/ubuntu/libblkid1@2.34-0.1ubuntu9.6?arch=arm64&distro=ubuntu-20.04&package-id=b294debbb354b902&upstream=util-linux"
+                    ),
+                    "type": "library",
+                    "name": "libblkid1",
+                    "version": "2.34-0.1ubuntu9.6",
+                    "purl": (
+                        "pkg:deb/ubuntu/libblkid1@2.34-0.1ubuntu9.6?arch=arm64&distro=ubuntu-20.04&upstream=util-linux"
+                    ),
+                    "group": "",
+                    "properties": [
+                        {"name": "syft:package:type", "value": "deb"},
+                        {"name": "syft:metadata:source", "value": "util-linux"},
+                    ],
+                },
+            ],
+            "dependencies": [
+                {
+                    "ref": "root-app",
+                    "dependsOn": [
+                        "pkg:deb/ubuntu/libblkid1@2.34-0.1ubuntu9.6?arch=arm64&distro=ubuntu-20.04&package-id=b294debbb354b902&upstream=util-linux"
+                    ],
+                }
+            ],
+        }
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.5",
+            tool_name="syft",
+            tool_version="1.0.0",
+        )
+
+        # When
+        artifacts = SyftCDXParser.parse_sbom(sbom, sbom_info)
+
+        # Then
+        assert len(artifacts) == 1
+        artifact = artifacts[0]
+        assert artifact.package_name == "libblkid1"
+        assert artifact.source_name == "util-linux"
+        assert artifact.ecosystem == "ubuntu-20.04"
+
+    def test_it_should_contain_upstream_without_source_name(self):
+        # Given
+        sbom = {
+            "metadata": {
+                "component": {
+                    "bom-ref": "root-app",
+                    "type": "application",
+                    "name": "sample target1",
+                }
+            },
+            "components": [
+                {
+                    "bom-ref": "root-app",
+                    "type": "application",
+                    "name": "sample target1",
+                    "properties": [
+                        {"name": "syft:package:type", "value": "apk"},
+                    ],
+                },
+                {
+                    "bom-ref": (
+                        "pkg:apk/alpine/libcrypto3@3.5.0-r0?arch=aarch64&distro=alpine-3.22.0&package-id=3849f7871790bde3&upstream=openssl"
+                    ),
+                    "type": "library",
+                    "name": "libcrypto3",
+                    "version": "3.5.0-r0",
+                    "purl": (
+                        "pkg:apk/alpine/libcrypto3@3.5.0-r0?arch=aarch64&distro=alpine-3.22.0&upstream=openssl"
+                    ),
+                    "group": "",
+                    "properties": [
+                        {"name": "syft:package:type", "value": "apk"},
+                    ],
+                },
+            ],
+            "dependencies": [
+                {
+                    "ref": "root-app",
+                    "dependsOn": [
+                        "pkg:apk/alpine/libcrypto3@3.5.0-r0?arch=aarch64&distro=alpine-3.22.0&package-id=3849f7871790bde3&upstream=openssl"
+                    ],
+                }
+            ],
+        }
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.5",
+            tool_name="syft",
+            tool_version="1.0.0",
+        )
+
+        # When
+        artifacts = SyftCDXParser.parse_sbom(sbom, sbom_info)
+
+        # Then
+        assert len(artifacts) == 1
+        artifact = artifacts[0]
+        assert artifact.package_name == "libcrypto3"
+        assert artifact.source_name == "openssl"
+        assert artifact.ecosystem == "alpine-3.22.0"
+
     def test_it_should_parse_sbom_with_spec_version_1_6(self):
         sbom = self.make_sbom_pyjwt()
         sbom_info = SBOMInfo(
