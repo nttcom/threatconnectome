@@ -48,6 +48,7 @@ import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
 import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
 import { SBOMDropArea } from "./SBOMDropArea";
+import { preserveParams } from "../../utils/urlUtils";
 
 const ssvcPriorityCountMax = 99999;
 
@@ -181,6 +182,11 @@ export function Status() {
       const newParams = new URLSearchParams();
       newParams.set("pteamId", pteamId);
       newParams.set("serviceId", pteam.services[0].service_id);
+
+      const MytasksParam = preserveMyTasksParam(location.search);
+      for (const [key, value] of MytasksParam) {
+        newParams.set(key, value);
+      }
       navigate(location.pathname + "?" + newParams.toString());
       return;
     }
@@ -317,6 +323,12 @@ export function Status() {
     if (searchWord) {
       newParams.set("word", searchWord);
     }
+
+    const MytasksParam = preserveMyTasksParam(location.search);
+    for (const [key, value] of MytasksParam) {
+      newParams.set(key, value);
+    }
+
     navigate(location.pathname + "?" + newParams.toString());
   };
 

@@ -15,6 +15,17 @@ export const preserveParams = (currentParams) => {
   return newParams;
 };
 
+export const preserveMyTasksParam = (currentParams) => {
+  const newParams = new URLSearchParams();
+  const currentUrlParams = new URLSearchParams(currentParams);
+
+  if (currentUrlParams.has("mytasks")) {
+    newParams.set("mytasks", currentUrlParams.get("mytasks"));
+  }
+
+  return newParams;
+};
+
 export const createUpdateParamsFunction = (location, navigate) => {
   return (newParams) => {
     const updatedParams = new URLSearchParams(location.search);

@@ -10,7 +10,7 @@ import { APIError } from "../../utils/APIError";
 import { LocationReader } from "../../utils/LocationReader";
 import { drawerParams } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-
+import { preserveMyTasksParam } from "../../utils/urlUtils";
 import { PTeamCreateModal } from "./PTeamCreateModal";
 
 function textTrim(selector) {
@@ -59,9 +59,11 @@ export function TeamSelector() {
     setCurrentTeamName(
       userMe.pteam_roles?.find((x) => x.pteam.pteam_id === teamId)?.pteam.pteam_name,
     );
-    const newParams = new URLSearchParams();
-    newParams.set("pteamId", teamId);
-    navigate("/?" + newParams.toString());
+
+    const preservedParams = preserveMyTasksParam(location.search);
+    preservedParams.set("pteamId", teamId);
+
+    navigate("/?" + preservedParams.toString());
   };
 
   return (
