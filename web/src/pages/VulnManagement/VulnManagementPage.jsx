@@ -19,11 +19,11 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetVulnsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
+import { createUpdateParamsFunction } from "../../utils/urlUtils";
 
 import { VulnManagementCardList } from "./VulnManagementCardList";
 import { VulnManagementTable } from "./VulnManagementTable";
 import { VulnSearchModal } from "./VulnSearchModal";
-import { createUpdateParamsFunction } from "../../utils/urlUtils";
 
 export function VulnManagement() {
   const perPageItems = [10, 20, 50, 100];

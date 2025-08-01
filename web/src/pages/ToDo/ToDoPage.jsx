@@ -7,10 +7,10 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
+import { createUpdateParamsFunction } from "../../utils/urlUtils";
 
 import { CVESearchField } from "./CVESearchField";
 import { ToDoTable } from "./ToDoTable";
-import { createUpdateParamsFunction } from "../../utils/urlUtils";
 
 export function ToDo() {
   const location = useLocation();

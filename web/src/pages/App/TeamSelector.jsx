@@ -11,6 +11,7 @@ import { LocationReader } from "../../utils/LocationReader";
 import { drawerParams } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 import { preserveMyTasksParam } from "../../utils/urlUtils";
+
 import { PTeamCreateModal } from "./PTeamCreateModal";
 
 function textTrim(selector) {

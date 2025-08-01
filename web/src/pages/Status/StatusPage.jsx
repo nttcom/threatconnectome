@@ -39,6 +39,7 @@ import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../service
 import { APIError } from "../../utils/APIError";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
+import { preserveMyTasksParam } from "../../utils/urlUtils";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
 import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetails/PTeamServiceDetailsResponsive";
@@ -48,7 +49,6 @@ import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
 import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
 import { SBOMDropArea } from "./SBOMDropArea";
-import { preserveMyTasksParam } from "../../utils/urlUtils";
 
 const ssvcPriorityCountMax = 99999;
 
