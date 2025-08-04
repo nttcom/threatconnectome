@@ -41,7 +41,7 @@ export function VulnManagement() {
   const getVulnsParams = {
     offset: perPage * (page - 1),
     limit: perPage,
-    sort_key: "updated_at_desc",
+    sort_keys: ["-updated_at", "-cvss_v3_score"],
     pteam_id: checkedPteam === true && pteamId ? pteamId : null,
     ...searchConditions,
   };
