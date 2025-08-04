@@ -14,7 +14,7 @@ import {
 import Box from "@mui/material/Box";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
@@ -22,6 +22,7 @@ import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
 import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
+import { preserveParams } from "../../utils/urlUtils";
 
 export function ToDoDrawer(props) {
   const {
@@ -38,6 +39,7 @@ export function ToDoDrawer(props) {
   } = props;
   const [value, setValue] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const currentPackage = {
     package_name: serviceDependency.package_name,
@@ -54,33 +56,48 @@ export function ToDoDrawer(props) {
     vulnerablePackage?.affected_name,
   );
 
+  const createNavigationParams = () => {
+    const newParams = new URLSearchParams();
+    newParams.set("pteamId", row.pteam_id);
+    newParams.set("serviceId", row.service_id);
+
+    const preservedParams = preserveParams(location.search);
+    for (const [key, value] of preservedParams) {
+      newParams.set(key, value);
+    }
+
+    return newParams;
+  };
+
   const handleTabChange = (event, newValue) => {
     setValue(newValue);
   };
 
   const handleCVEClick = () => {
     if (vuln?.vuln_id) {
-      navigate(`/vulns/${vuln.vuln_id}?pteamId=${row.pteam_id}&serviceId=${row.service_id}`);
+      const params = createNavigationParams();
+      navigate(`/vulns/${vuln.vuln_id}?` + params.toString());
     }
   };
 
   const handleTeamClick = () => {
     if (row?.pteam_id) {
-      navigate(`/pteam?pteamId=${row.pteam_id}&serviceId=${row.service_id}`);
+      const params = createNavigationParams();
+      navigate(`/pteam?` + params.toString());
     }
   };
 
   const handleServiceClick = () => {
     if (row?.pteam_id && row?.service_id) {
-      navigate(`/?pteamId=${row.pteam_id}&serviceId=${row.service_id}`);
+      const params = createNavigationParams();
+      navigate(`/?` + params.toString());
     }
   };
 
   const handlePackageClick = () => {
     if (row?.pteam_id && row?.service_id && serviceDependency?.package_id) {
-      navigate(
-        `/packages/${serviceDependency.package_id}?pteamId=${row.pteam_id}&serviceId=${row.service_id}`,
-      );
+      const params = createNavigationParams();
+      navigate(`/packages/${serviceDependency.package_id}?` + params.toString());
     }
   };
 
