@@ -80,6 +80,16 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
     setPage(0);
   };
 
+  const headCells = [
+    { id: "cve", label: "CVE", isSortable: false },
+    { id: "team", label: "Team", isSortable: false },
+    { id: "service", label: "Service", isSortable: false },
+    { id: "package", label: "Package", isSortable: false },
+    { id: "assignee", label: "Assignee", isSortable: false },
+    { id: "ssvc", label: "SSVC", isSortable: true },
+    { id: "actions", label: "", isSortable: false },
+  ];
+
   useEffect(() => {
     setPage(0);
   }, [myTasks, setPage]);
@@ -95,26 +105,29 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>CVE-ID</TableCell>
-                <TableCell>Team</TableCell>
-                <TableCell>Service</TableCell>
-                <TableCell>Package</TableCell>
-                <TableCell>Assignee</TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === "ssvc"}
-                    direction={orderBy === "ssvc" ? order : "asc"}
-                    onClick={(event) => handleRequestSort(event, "ssvc")}
+                {headCells.map((headCell) => (
+                  <TableCell
+                    key={headCell.id}
+                    sortDirection={orderBy === headCell.id ? order : false}
                   >
-                    SSVC
-                    {orderBy === "ssvc" ? (
-                      <Box component="span" sx={visuallyHidden}>
-                        {order === "desc" ? "sorted descending" : "sorted ascending"}
-                      </Box>
-                    ) : null}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell />
+                    {headCell.isSortable ? (
+                      <TableSortLabel
+                        active={orderBy === headCell.id}
+                        direction={orderBy === headCell.id ? order : "asc"}
+                        onClick={(event) => handleRequestSort(event, headCell.id)}
+                      >
+                        {headCell.label}
+                        {orderBy === headCell.id ? (
+                          <Box component="span" sx={visuallyHidden}>
+                            {order === "desc" ? "sorted descending" : "sorted ascending"}
+                          </Box>
+                        ) : null}
+                      </TableSortLabel>
+                    ) : (
+                      headCell.label
+                    )}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
