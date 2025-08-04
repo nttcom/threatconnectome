@@ -28,7 +28,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
     pteamIds,
     offset: (page - 1) * rowsPerPage,
     limit: rowsPerPage,
-    sortKey: "ssvc_deployer_priority_desc",
+    sortKeys: ["-ssvc_deployer_priority", "-created_at"],
     assignedToMe: myTasks,
     excludeStatuses: ["completed"],
     cveIds: cveIds,
