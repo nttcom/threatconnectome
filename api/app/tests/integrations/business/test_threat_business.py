@@ -178,7 +178,7 @@ class TestFixThreatByPackageVersionId:
             select(models.Threat).where(models.Threat.threat_id == threats[0].threat_id)
         ).one_or_none()
 
-    def test_it_should_create_threat_when_version_matched_with_rocky(
+    def test_it_should_create_threat_when_version_matched_with_name_and_not_source_name(
         self, testdb: Session, package1: models.Package, vuln1: models.Vuln
     ):
         # Given
