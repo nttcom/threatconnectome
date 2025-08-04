@@ -6,9 +6,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { cvssProps } from "../../utils/const";
 import { cvssConvertToName } from "../../utils/func";
+import { preserveParams } from "../../utils/urlUtils";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
-import { preserveParams } from "../../utils/urlUtils";
 
 export function VulnManagementCardList({ vulns }) {
   const navigate = useNavigate();

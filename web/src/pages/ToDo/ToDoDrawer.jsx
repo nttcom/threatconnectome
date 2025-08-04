@@ -17,12 +17,12 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
+import { preserveParams } from "../../utils/urlUtils";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
 import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
-import { preserveParams } from "../../utils/urlUtils";
 
 export function ToDoDrawer(props) {
   const {
@@ -83,14 +83,14 @@ export function ToDoDrawer(props) {
   const handleTeamClick = () => {
     if (row?.pteam_id) {
       const params = createNavigationParams();
-      navigate(`/pteam?` + params.toString());
+      navigate("/pteam?" + params.toString());
     }
   };
 
   const handleServiceClick = () => {
     if (row?.pteam_id && row?.service_id) {
       const params = createNavigationParams();
-      navigate(`/?` + params.toString());
+      navigate("/?" + params.toString());
     }
   };
 
