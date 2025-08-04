@@ -329,6 +329,9 @@ def get_vulns(
         - cve_id
     - If a minus sign is added, the order is descending. if not, the order is ascending.
         - Example: -cvss_v3_score, -updated_at, -created_at etc.
+    - If only one sort key is provided, a second default sort key is automatically appended.
+      This ensures deterministic ordering. If the first key is "updated_at" or "-updated_at",
+      "-cvss_v3_score" is appended; otherwise, "-updated_at" is appended.
 
     ### Pagination:
     - `offset`: Number of items to skip before starting to collect the result set.
