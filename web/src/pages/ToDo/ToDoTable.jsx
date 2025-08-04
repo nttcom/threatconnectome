@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -6,6 +7,8 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
+import TableSortLabel from "@mui/material/TableSortLabel";
+import { visuallyHidden } from "@mui/utils";
 import PropTypes from "prop-types";
 import { useState, useMemo, useEffect } from "react";
 
@@ -19,6 +22,9 @@ import { ToDoTableRow } from "./ToDoTableRow";
 
 export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("ssvc");
+
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
@@ -59,6 +65,12 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
     }));
   }, [tickets]);
 
+  const handleRequestSort = (event, property) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -73,7 +85,6 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
   }, [myTasks, setPage]);
 
   if (skip) return <></>;
-
   if (ticketsError) throw new APIError(errorToString(ticketsError), { api: "getTickets" });
   if (ticketsIsLoading) return <>Now loading Tickets...</>;
 
@@ -89,7 +100,20 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
                 <TableCell>Service</TableCell>
                 <TableCell>Package</TableCell>
                 <TableCell>Assignee</TableCell>
-                <TableCell>SSVC</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "ssvc"}
+                    direction={orderBy === "ssvc" ? order : "asc"}
+                    onClick={(event) => handleRequestSort(event, "ssvc")}
+                  >
+                    SSVC
+                    {orderBy === "ssvc" ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === "desc" ? "sorted descending" : "sorted ascending"}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell />
               </TableRow>
             </TableHead>
