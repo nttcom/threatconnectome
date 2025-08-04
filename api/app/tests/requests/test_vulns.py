@@ -1360,17 +1360,32 @@ class TestGetVulns:
         for i, data in enumerate(vulns_data):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i, data["cvss_v3_score"])
+            if "cve_id" in data:
+                vuln_request["cve_id"] = data["cve_id"]
             client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
-            testdb.execute(
-                text(
-                    """
-                    UPDATE vuln
-                    SET updated_at = :updated_at
-                    WHERE vuln_id = :vuln_id
-                    """
-                ),
-                {"vuln_id": str(vuln_id), "updated_at": data["updated_at"]},
-            )
+
+            update_params = {"vuln_id": str(vuln_id)}
+            update_fields = []
+
+            if "updated_at" in data:
+                update_fields.append("updated_at = :updated_at")
+                update_params["updated_at"] = data["updated_at"]
+
+            if "created_at" in data:
+                update_fields.append("created_at = :created_at")
+                update_params["created_at"] = data["created_at"]
+
+            if update_fields:
+                testdb.execute(
+                    text(
+                        f"""
+                        UPDATE vuln
+                        SET {', '.join(update_fields)}
+                        WHERE vuln_id = :vuln_id
+                        """
+                    ),
+                    update_params,
+                )
 
     # A: sortkey is CVSS_V3_SCORE
     # A1
@@ -1381,7 +1396,7 @@ class TestGetVulns:
             {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [3.0, 5.0, 8.0]
@@ -1394,7 +1409,7 @@ class TestGetVulns:
             {"cvss_v3_score": None, "updated_at": "2025-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [None, 3.0, 8.0]
@@ -1408,7 +1423,7 @@ class TestGetVulns:
             {"cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
@@ -1427,7 +1442,7 @@ class TestGetVulns:
             {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=cvss_v3_score", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [None, 5.0, 5.0, 8.0]
@@ -1447,7 +1462,7 @@ class TestGetVulns:
             {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=-cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [8.0, 5.0, 3.0]
@@ -1460,7 +1475,7 @@ class TestGetVulns:
             {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=-cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [8.0, 5.0, None]
@@ -1474,7 +1489,7 @@ class TestGetVulns:
             {"cvss_v3_score": 8.0, "updated_at": "2023-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=-cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
@@ -1493,7 +1508,7 @@ class TestGetVulns:
             {"cvss_v3_score": 5.0, "updated_at": "2025-01-02T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=cvss_v3_score_desc", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=-cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [8.0, 5.0, 5.0, None]
@@ -1513,7 +1528,7 @@ class TestGetVulns:
             {"cvss_v3_score": 3.0, "updated_at": "2023-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=updated_at", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
@@ -1532,7 +1547,7 @@ class TestGetVulns:
             {"cvss_v3_score": 8.0, "updated_at": "2024-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=updated_at", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [8.0, 5.0, 3.0]
@@ -1547,7 +1562,7 @@ class TestGetVulns:
             {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=updated_at", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=updated_at", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [3.0, 8.0, 5.0]
@@ -1561,7 +1576,7 @@ class TestGetVulns:
             {"cvss_v3_score": 5.0, "updated_at": "2021-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=-updated_at", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["updated_at"] for vuln in response_data["vulns"]] == [
@@ -1580,7 +1595,7 @@ class TestGetVulns:
             {"cvss_v3_score": 8.0, "updated_at": "2025-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=-updated_at", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [8.0, 5.0, 3.0]
@@ -1595,10 +1610,236 @@ class TestGetVulns:
             {"cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00Z"},
         ]
         self.setup_vulns(testdb, vulns_data)
-        response = client.get("/vulns?sort_key=updated_at_desc", headers=self.headers_user)
+        response = client.get("/vulns?sort_keys=-updated_at", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [5.0, 8.0, 3.0]
+
+    @pytest.mark.parametrize(
+        "sort_keys,vulns_data,expected_cvss_scores,expected_updated_at,expected_created_at,expected_cve_ids",
+        [
+            # Test case 1: cvss_v3_score ascending, updated_at descending
+            (
+                ["cvss_v3_score", "-updated_at"],
+                [
+                    {  # 3
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-01T00:00:00Z",
+                        "created_at": "2023-01-01T00:00:00Z",
+                        "cve_id": "CVE-2023-0001",
+                    },
+                    {  # 2
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2025-01-01T00:00:00Z",
+                        "created_at": "2023-01-02T00:00:00Z",
+                        "cve_id": "CVE-2023-0002",
+                    },
+                    {  # 1
+                        "cvss_v3_score": 3.0,
+                        "updated_at": "2024-01-01T00:00:00Z",
+                        "created_at": "2023-01-03T00:00:00Z",
+                        "cve_id": "CVE-2023-0003",
+                    },
+                    {  # 4
+                        "cvss_v3_score": 8.0,
+                        "updated_at": "2022-01-01T00:00:00Z",
+                        "created_at": "2023-01-04T00:00:00Z",
+                        "cve_id": "CVE-2023-0004",
+                    },
+                ],
+                [3.0, 5.0, 5.0, 8.0],
+                [
+                    "2024-01-01T00:00:00Z",
+                    "2025-01-01T00:00:00Z",
+                    "2023-01-01T00:00:00Z",
+                    "2022-01-01T00:00:00Z",
+                ],
+                [
+                    "2023-01-03T00:00:00Z",
+                    "2023-01-02T00:00:00Z",
+                    "2023-01-01T00:00:00Z",
+                    "2023-01-04T00:00:00Z",
+                ],
+                ["CVE-2023-0003", "CVE-2023-0002", "CVE-2023-0001", "CVE-2023-0004"],
+            ),
+            # Test case 2: created_at ascending, cvss_v3_score descending
+            (
+                ["created_at", "-cvss_v3_score"],
+                [
+                    {  # 2
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-01T00:00:00Z",
+                        "created_at": "2022-01-02T00:00:00Z",
+                        "cve_id": "CVE-2022-0001",
+                    },
+                    {  # 1
+                        "cvss_v3_score": 8.0,
+                        "updated_at": "2023-01-02T00:00:00Z",
+                        "created_at": "2022-01-01T00:00:00Z",
+                        "cve_id": "CVE-2022-0002",
+                    },
+                    {  # 3
+                        "cvss_v3_score": 3.0,
+                        "updated_at": "2023-01-03T00:00:00Z",
+                        "created_at": "2022-01-02T00:00:00Z",
+                        "cve_id": "CVE-2022-0003",
+                    },
+                    {  # 4
+                        "cvss_v3_score": 7.0,
+                        "updated_at": "2023-01-04T00:00:00Z",
+                        "created_at": "2022-01-03T00:00:00Z",
+                        "cve_id": "CVE-2022-0004",
+                    },
+                ],
+                [8.0, 5.0, 3.0, 7.0],
+                [
+                    "2023-01-02T00:00:00Z",
+                    "2023-01-01T00:00:00Z",
+                    "2023-01-03T00:00:00Z",
+                    "2023-01-04T00:00:00Z",
+                ],
+                [
+                    "2022-01-01T00:00:00Z",
+                    "2022-01-02T00:00:00Z",
+                    "2022-01-02T00:00:00Z",
+                    "2022-01-03T00:00:00Z",
+                ],
+                ["CVE-2022-0002", "CVE-2022-0001", "CVE-2022-0003", "CVE-2022-0004"],
+            ),
+            # Test case 3: cve_id ascending, created_at descending
+            (
+                ["cve_id", "-created_at"],
+                [
+                    {  # 3
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-01T00:00:00Z",
+                        "created_at": "2021-01-01T00:00:00Z",
+                        "cve_id": "CVE-2021-0002",
+                    },
+                    {  # 2
+                        "cvss_v3_score": 8.0,
+                        "updated_at": "2023-01-02T00:00:00Z",
+                        "created_at": "2021-01-02T00:00:00Z",
+                        "cve_id": "CVE-2021-0001",
+                    },
+                    {  # 4
+                        "cvss_v3_score": 3.0,
+                        "updated_at": "2023-01-03T00:00:00Z",
+                        "created_at": "2021-01-03T00:00:00Z",
+                        "cve_id": "CVE-2021-0003",
+                    },
+                    {  # 1
+                        "cvss_v3_score": 7.0,
+                        "updated_at": "2023-01-04T00:00:00Z",
+                        "created_at": "2021-01-04T00:00:00Z",
+                        "cve_id": "CVE-2021-0001",
+                    },
+                ],
+                [7.0, 8.0, 5.0, 3.0],
+                [
+                    "2023-01-04T00:00:00Z",
+                    "2023-01-02T00:00:00Z",
+                    "2023-01-01T00:00:00Z",
+                    "2023-01-03T00:00:00Z",
+                ],
+                [
+                    "2021-01-04T00:00:00Z",
+                    "2021-01-02T00:00:00Z",
+                    "2021-01-01T00:00:00Z",
+                    "2021-01-03T00:00:00Z",
+                ],
+                ["CVE-2021-0001", "CVE-2021-0001", "CVE-2021-0002", "CVE-2021-0003"],
+            ),
+            # Test case 4: updated_at descending, cve_id ascending
+            (
+                ["-updated_at", "cve_id"],
+                [
+                    {  # 4
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-01T00:00:00Z",
+                        "created_at": "2021-01-01T00:00:00Z",
+                        "cve_id": "CVE-2020-0003",
+                    },
+                    {  # 1
+                        "cvss_v3_score": 8.0,
+                        "updated_at": "2023-01-03T00:00:00Z",
+                        "created_at": "2021-01-02T00:00:00Z",
+                        "cve_id": "CVE-2020-0001",
+                    },
+                    {  # 3
+                        "cvss_v3_score": 3.0,
+                        "updated_at": "2023-01-02T00:00:00Z",
+                        "created_at": "2021-01-03T00:00:00Z",
+                        "cve_id": "CVE-2020-0002",
+                    },
+                    {  # 2
+                        "cvss_v3_score": 7.0,
+                        "updated_at": "2023-01-02T00:00:00Z",
+                        "created_at": "2021-01-04T00:00:00Z",
+                        "cve_id": "CVE-2020-0001",
+                    },
+                ],
+                [8.0, 7.0, 3.0, 5.0],
+                [
+                    "2023-01-03T00:00:00Z",
+                    "2023-01-02T00:00:00Z",
+                    "2023-01-02T00:00:00Z",
+                    "2023-01-01T00:00:00Z",
+                ],
+                [
+                    "2021-01-02T00:00:00Z",
+                    "2021-01-04T00:00:00Z",
+                    "2021-01-03T00:00:00Z",
+                    "2021-01-01T00:00:00Z",
+                ],
+                ["CVE-2020-0001", "CVE-2020-0001", "CVE-2020-0002", "CVE-2020-0003"],
+            ),
+        ],
+    )
+    def test_it_should_sort_by_multiple_sort_keys(
+        self,
+        testdb: Session,
+        sort_keys,
+        vulns_data,
+        expected_cvss_scores,
+        expected_updated_at,
+        expected_created_at,
+        expected_cve_ids,
+    ):
+        # Given
+        self.setup_vulns(testdb, vulns_data)
+        sort_keys_param = "&".join([f"sort_keys={key}" for key in sort_keys])
+
+        # When
+        response = client.get(f"/vulns?{sort_keys_param}", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        actual_cvss_scores = [vuln["cvss_v3_score"] for vuln in response_data["vulns"]]
+        actual_updated_at = [vuln["updated_at"] for vuln in response_data["vulns"]]
+        actual_created_at = [vuln["created_at"] for vuln in response_data["vulns"]]
+        actual_cve_ids = [vuln["cve_id"] for vuln in response_data["vulns"]]
+
+        assert actual_cvss_scores == expected_cvss_scores
+        assert actual_updated_at == expected_updated_at
+        assert actual_created_at == expected_created_at
+        assert actual_cve_ids == expected_cve_ids
+
+    # Test for invalid sort_key
+    def test_it_should_return_400_when_invalid_sort_key_is_specified(self, testdb: Session):
+        # Given
+        vulns_data = [
+            {"cvss_v3_score": 5.0, "updated_at": "2023-01-01T00:00:00Z"},
+            {"cvss_v3_score": 3.0, "updated_at": "2023-01-02T00:00:00Z"},
+        ]
+        self.setup_vulns(testdb, vulns_data)
+
+        # When: Request with invalid sort key
+        response = client.get("/vulns?sort_keys=invalid_key", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 400
 
     def test_num_vulns_and_len_vulns_differ_when_limit_is_less_than_total(self, testdb: Session):
         # Given
