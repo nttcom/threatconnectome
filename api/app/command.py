@@ -405,7 +405,10 @@ def get_related_packages_by_affect(db: Session, affect: models.Affect) -> Sequen
         and_(
             models.Package.type == models.PackageType.OS,
             models.OSPackage.source_name.isnot(None),
-            models.OSPackage.source_name == str(affect.affected_name),
+            or_(
+                models.OSPackage.source_name == str(affect.affected_name),
+                models.OSPackage.name == str(affect.affected_name),
+            ),
         ),
         and_(
             models.Package.type == models.PackageType.OS,
@@ -421,7 +424,12 @@ def get_related_packages_by_affect(db: Session, affect: models.Affect) -> Sequen
 def get_related_affects_by_package(db: Session, package: models.Package) -> Sequence[models.Affect]:
     if isinstance(package, models.OSPackage):
         if package.source_name is not None:
-            affected_name_condition = [models.Affect.affected_name == str(package.source_name)]
+            affected_name_condition = [
+                or_(
+                    models.Affect.affected_name == str(package.source_name),
+                    models.Affect.affected_name == str(package.name),
+                )
+            ]
         else:
             affected_name_condition = [models.Affect.affected_name == str(package.name)]
     else:
