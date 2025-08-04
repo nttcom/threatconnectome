@@ -2,15 +2,18 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { Card, CardContent, Chip, Box, Typography, Stack } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { cvssProps } from "../../utils/const";
 import { cvssConvertToName } from "../../utils/func";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
+import { preserveParams } from "../../utils/urlUtils";
 
 export function VulnManagementCardList({ vulns }) {
   const navigate = useNavigate();
+  const location = useLocation();
+
   return (
     <Stack spacing={2} sx={{ mt: 1 }}>
       {vulns?.length > 0 ? (
@@ -23,6 +26,11 @@ export function VulnManagementCardList({ vulns }) {
           const cvss = cvssConvertToName(cvssScore);
           const cveId = vuln.cve_id === null ? "No Known CVE" : vuln.cve_id;
 
+          const handleCardClick = () => {
+            const preservedParams = preserveParams(location.search);
+            navigate(`/vulns/${vuln.vuln_id}?` + preservedParams.toString());
+          };
+
           return (
             <Card
               key={vuln.vuln_id}
@@ -32,7 +40,7 @@ export function VulnManagementCardList({ vulns }) {
                 cursor: "pointer",
                 "&:hover": { bgcolor: grey[100] },
               }}
-              onClick={() => navigate(`/vulns/${vuln.vuln_id}`)}
+              onClick={handleCardClick}
             >
               <CardContent>
                 <Chip label={cveId} size="small" sx={{ borderRadius: 0.5, mr: 1 }} />
