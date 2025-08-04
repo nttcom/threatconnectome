@@ -190,7 +190,7 @@ export function Status() {
 
   useEffect(() => {
     setIsActiveUploadMode(0); // reset upload mode
-  }, [pteamId])
+  }, [pteamId]);
 
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
