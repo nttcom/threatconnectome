@@ -294,7 +294,7 @@ def get_vulns(
     cve_ids: list[str] | None = Query(None),
     package_name: list[str] | None = Query(None),
     ecosystem: list[str] | None = Query(None),
-    sort_key: schemas.VulnSortKey = Query(schemas.VulnSortKey.CVSS_V3_SCORE_DESC),
+    sort_keys: list = Query(["-cvss_v3_score", "-updated_at"]),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -320,12 +320,15 @@ def get_vulns(
     - `ecosystem`: List of ecosystems to filter by.
 
     ### Sorting:
-    - `sort_key`: Sort key for the results. Default is `CVSS_V3_SCORE_DESC`.
-      Supported values:
-        - `CVSS_V3_SCORE`: Sort by CVSS v3 score (ascending).
-        - `CVSS_V3_SCORE_DESC`: Sort by CVSS v3 score (descending).
-        - `UPDATED_AT`: Sort by updated_at (ascending).
-        - `UPDATED_AT_DESC`: Sort by updated_at (descending).
+    - `sort_keys`: Sort key for the results.
+      Default is `["-cvss_v3_score", "-updated_at"]`.
+      - Supported values:
+        - cvss_v3_score
+        - updated_at
+        - created_at
+        - cve_id
+    - If a minus sign is added, the order is descending. if not, the order is ascending.
+        - Example: -cvss_v3_score, -updated_at, -created_at etc.
 
     ### Pagination:
     - `offset`: Number of items to skip before starting to collect the result set.
@@ -360,7 +363,7 @@ def get_vulns(
             cve_ids=cve_ids,
             package_name=package_name,
             ecosystem=ecosystem,
-            sort_key=sort_key,
+            sort_keys=sort_keys,
         )
     except ValueError as e:
         raise HTTPException(
