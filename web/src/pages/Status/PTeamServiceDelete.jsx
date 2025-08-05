@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   Divider,
   List,
   ListItem,
@@ -23,6 +24,7 @@ import { errorToString } from "../../utils/func";
 export function PTeamServiceDelete(props) {
   const { pteamId } = props;
   const [checked, setChecked] = useState([]);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
   const [deletePTeamService] = useDeletePTeamServiceMutation();
@@ -62,27 +64,38 @@ export function PTeamServiceDelete(props) {
   };
 
   const handleDeleteService = async () => {
-    function onSuccess(success) {
-      enqueueSnackbar("Remove service succeeded", { variant: "success" });
-    }
-    function onError(error) {
-      enqueueSnackbar(`Remove service failed: ${errorToString(error)}`, {
+    setIsDeleting(true);
+    try {
+      await Promise.all(
+        checked.map((service) =>
+          deletePTeamService({ pteamId: pteamId, serviceId: service.service_id }).unwrap(),
+        ),
+      );
+
+      const serviceCount = checked.length;
+      const message = serviceCount === 1 ? "Remove service succeeded" : "Remove services succeeded";
+
+      enqueueSnackbar(message, { variant: "success" });
+
+      setChecked([]);
+
+      if (checked.find((service) => service.service_id === serviceId)) {
+        params.delete("serviceId");
+        navigate(location.pathname + "?" + params.toString());
+      }
+    } catch (error) {
+      const serviceCount = checked.length;
+      const failureMessage =
+        serviceCount === 1
+          ? `Remove service failed: ${errorToString(error)}`
+          : `Remove services failed: ${errorToString(error)}`;
+
+      enqueueSnackbar(failureMessage, {
         variant: "error",
       });
+    } finally {
+      setIsDeleting(false);
     }
-    await Promise.all(
-      checked.map((service) =>
-        deletePTeamService({ pteamId: pteamId, serviceId: service.service_id }).unwrap(),
-      ),
-    )
-      .then((success) => {
-        onSuccess(success);
-        if (checked.find((service) => service.service_id === serviceId)) {
-          params.delete("serviceId"); // current selected serviceId is obsoleted!
-          navigate(location.pathname + "?" + params.toString()); // entrust to default behavior
-        }
-      })
-      .catch((error) => onError(error));
   };
 
   return (
@@ -118,8 +131,14 @@ export function PTeamServiceDelete(props) {
       <Divider sx={{ mt: 5 }} />
       <Box display="flex" mt={2}>
         <Box flexGrow={1} />
-        <Button className={styles.delete_bg_btn} onClick={handleDeleteService}>
-          Delete
+        <Button
+          className={isDeleting || checked.length === 0 ? "" : styles.delete_bg_btn}
+          onClick={handleDeleteService}
+          disabled={isDeleting || checked.length === 0}
+          startIcon={isDeleting ? <CircularProgress size={20} /> : null}
+          style={{ textTransform: "none" }}
+        >
+          {isDeleting ? "Deleting..." : "Delete"}
         </Button>
       </Box>
     </Box>
