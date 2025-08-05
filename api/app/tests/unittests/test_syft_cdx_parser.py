@@ -224,6 +224,68 @@ class TestSyftCDXParser:
         assert artifact.source_name == "openssl"
         assert artifact.ecosystem == "alpine-3.22.0"
 
+    def test_it_should_contain_sourceRpm(self):
+        # Given
+        sbom = {
+            "metadata": {
+                "component": {
+                    "bom-ref": "root-app",
+                    "type": "application",
+                    "name": "sample target1",
+                }
+            },
+            "components": [
+                {
+                    "bom-ref": "root-app",
+                    "type": "application",
+                    "name": "sample target1",
+                    "properties": [
+                        {"name": "syft:package:type", "value": "rpm"},
+                    ],
+                },
+                {
+                    "bom-ref": (
+                        "pkg:rpm/rocky/audit-libs@3.0.7-104.el9?arch=x86_64&distro=rocky-9.3&package-id=80083a9ab47023ba&upstream=audit-3.0.7-104.el9.src.rpm"
+                    ),
+                    "type": "library",
+                    "name": "audit-libs",
+                    "version": "3.0.7-104.el9",
+                    "purl": (
+                        "pkg:rpm/rocky/audit-libs@3.0.7-104.el9?arch=x86_64&distro=rocky-9.3&upstream=audit-3.0.7-104.el9.src.rpm"
+                    ),
+                    "group": "",
+                    "properties": [
+                        {"name": "syft:package:type", "value": "rpm"},
+                        {"name": "syft:metadata:sourceRpm", "value": "audit-3.0.7-104.el9.src.rpm"},
+                    ],
+                },
+            ],
+            "dependencies": [
+                {
+                    "ref": "root-app",
+                    "dependsOn": [
+                        "pkg:rpm/rocky/audit-libs@3.0.7-104.el9?arch=x86_64&distro=rocky-9.3&package-id=80083a9ab47023ba&upstream=audit-3.0.7-104.el9.src.rpm"
+                    ],
+                }
+            ],
+        }
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.5",
+            tool_name="syft",
+            tool_version="1.0.0",
+        )
+
+        # When
+        artifacts = SyftCDXParser.parse_sbom(sbom, sbom_info)
+
+        # Then
+        assert len(artifacts) == 1
+        artifact = artifacts[0]
+        assert artifact.package_name == "audit-libs"
+        assert artifact.source_name == "audit"
+        assert artifact.ecosystem == "rocky-9.3"
+
     def test_it_should_parse_sbom_with_spec_version_1_6(self):
         sbom = self.make_sbom_pyjwt()
         sbom_info = SBOMInfo(
