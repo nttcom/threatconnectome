@@ -101,9 +101,15 @@ class SyftCDXParser(SBOMParser):
 
             source_name = None
             for key, value in self.properties.items():
-                if "syft:metadata:source" in key:
+                if key == "syft:metadata:source":
                     source_name = str(value).casefold()
                     break
+                if key == "syft:metadata:sourceRpm":
+                    try:
+                        source_name = self._get_source_name_from_rpm_filename(value).casefold()
+                        break
+                    except ValueError:
+                        continue
 
             if (
                 not source_name
@@ -127,6 +133,27 @@ class SyftCDXParser(SBOMParser):
                 "ecosystem": pkg_info,
                 "pkg_mgr": pkg_mgr,
             }
+
+        @staticmethod
+        def _get_source_name_from_rpm_filename(filename: str) -> str:
+            """
+            Extracts the source package name from a filename formatted as:
+            <name>-<version>-<release>.src.rpm
+            """
+            suffix_removed_filename = filename.removesuffix(".rpm")
+            architecture_index = suffix_removed_filename.rfind(".")
+            if architecture_index == -1:
+                raise ValueError("Unexpected name format: missing '.'")
+
+            release_index = suffix_removed_filename[:architecture_index].rfind("-")
+            if release_index == -1:
+                raise ValueError("Unexpected name format: missing release delimiter '-'")
+
+            version_index = suffix_removed_filename[:release_index].rfind("-")
+            if version_index == -1:
+                raise ValueError("Unexpected name format: missing version delimiter '-'")
+
+            return suffix_removed_filename[:version_index]
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:

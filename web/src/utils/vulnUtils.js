@@ -44,8 +44,7 @@ export function findMatchedVulnPackage(vulnerable_packages, currentPackage) {
   return vulnerable_packages.find(
     (vulnerable_package) =>
       vulnerable_package.ecosystem === vuln_matching_ecosystem &&
-      (package_source_name != null
-        ? vulnerable_package.affected_name === package_source_name
-        : vulnerable_package.affected_name === package_name),
+      (vulnerable_package.affected_name === package_source_name ||
+        vulnerable_package.affected_name === package_name),
   );
 }

@@ -125,6 +125,14 @@ def get_vulns_count(
     return result if result is not None else 0
 
 
+VULNS_SORT_KEYS = {
+    "created_at": models.Vuln.created_at,
+    "cve_id": models.Vuln.cve_id,
+    "updated_at": models.Vuln.updated_at,
+    "cvss_v3_score": models.Vuln.cvss_v3_score,
+}
+
+
 def get_vulns(
     db: Session,
     offset: int,
@@ -143,7 +151,7 @@ def get_vulns(
     cve_ids: list[str] | None = None,
     package_name: list[str] | None = None,
     ecosystem: list[str] | None = None,
-    sort_key: schemas.VulnSortKey = schemas.VulnSortKey.CVSS_V3_SCORE_DESC,  # set default sort key
+    sort_keys: list[str] = ["-cvss_v3_score", "-updated_at"],  # set default sort key
 ) -> dict:
     # Remove duplicates from lists
     fixed_creator_ids = set()
@@ -244,26 +252,34 @@ def get_vulns(
     if filters:
         query = query.where(and_(*filters))
 
-    sortkey2orderby: dict[schemas.VulnSortKey, list] = {
-        schemas.VulnSortKey.CVSS_V3_SCORE: [
-            models.Vuln.cvss_v3_score.nulls_first(),
-            models.Vuln.updated_at.desc(),
-        ],
-        schemas.VulnSortKey.CVSS_V3_SCORE_DESC: [
-            models.Vuln.cvss_v3_score.desc().nullslast(),
-            models.Vuln.updated_at.desc(),
-        ],
-        schemas.VulnSortKey.UPDATED_AT: [
-            models.Vuln.updated_at,
-            models.Vuln.cvss_v3_score.desc().nullslast(),
-        ],
-        schemas.VulnSortKey.UPDATED_AT_DESC: [
-            models.Vuln.updated_at.desc(),
-            models.Vuln.cvss_v3_score.desc().nullslast(),
-        ],
-    }
+    # Set default sort keys if none provided
+    if len(sort_keys) == 1:
+        first_key = sort_keys[0]
+        first_key_name = first_key[1:] if first_key.startswith("-") else first_key
 
-    query = query.order_by(*sortkey2orderby[sort_key])
+        if first_key_name == "updated_at":
+            sort_keys.append("-cvss_v3_score")
+        else:
+            sort_keys.append("-updated_at")
+
+    if sort_keys:
+        sort_columns = []
+        for sort_key in sort_keys:
+            desc = False
+            _key = sort_key
+            if sort_key.startswith("-"):
+                desc = True
+                _key = sort_key[1:]
+            column = VULNS_SORT_KEYS.get(_key)
+            if column is not None:
+                if desc:
+                    sort_columns.append(column.desc().nullslast())
+                else:
+                    sort_columns.append(column.nulls_first())
+            else:
+                raise ValueError(f"Invalid sort key: {sort_key}")
+
+        query = query.order_by(*sort_columns)
 
     # Pageination
     query = query.distinct().offset(offset).limit(limit)
@@ -405,7 +421,10 @@ def get_related_packages_by_affect(db: Session, affect: models.Affect) -> Sequen
         and_(
             models.Package.type == models.PackageType.OS,
             models.OSPackage.source_name.isnot(None),
-            models.OSPackage.source_name == str(affect.affected_name),
+            or_(
+                models.OSPackage.source_name == str(affect.affected_name),
+                models.OSPackage.name == str(affect.affected_name),
+            ),
         ),
         and_(
             models.Package.type == models.PackageType.OS,
@@ -421,7 +440,12 @@ def get_related_packages_by_affect(db: Session, affect: models.Affect) -> Sequen
 def get_related_affects_by_package(db: Session, package: models.Package) -> Sequence[models.Affect]:
     if isinstance(package, models.OSPackage):
         if package.source_name is not None:
-            affected_name_condition = [models.Affect.affected_name == str(package.source_name)]
+            affected_name_condition = [
+                or_(
+                    models.Affect.affected_name == str(package.source_name),
+                    models.Affect.affected_name == str(package.name),
+                )
+            ]
         else:
             affected_name_condition = [models.Affect.affected_name == str(package.name)]
     else:

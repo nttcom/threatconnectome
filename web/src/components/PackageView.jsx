@@ -19,22 +19,34 @@ export function PackageView(props) {
       <Typography variant="h5">{nameWithEcosystem}</Typography>
       <Grid container>
         {/* affected versions */}
-        <Grid item xs={12} md={6} sx={{ display: "flex", alignItems: "center" }}>
+        <Grid
+          item
+          xs={12}
+          md={7}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-start",
+          }}
+        >
           {affectedVersions.length > 0 ? (
             affectedVersions.map((affectedVersion) => (
               <Box
                 key={affectedVersion}
-                sx={{ display: "flex", alignItems: "center", minWidth: 0 }}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  mb: 1,
+                  minWidth: 0,
+                  height: "48px",
+                }}
               >
-                <WarningIcon sx={{ fontSize: 32, color: yellow[900] }} />
+                <WarningIcon sx={{ fontSize: 32, color: yellow[900], mr: 1 }} />
                 <Tooltip title={affectedVersion} placement="right">
                   <Typography
-                    noWrap
                     sx={{
                       fontSize: 32,
-                      mx: 2,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
+                      overflowWrap: "break-word",
                       display: "block",
                     }}
                   >
@@ -53,13 +65,31 @@ export function PackageView(props) {
           )}
         </Grid>
         {/* patched versions */}
-        <Grid item xs={12} md={6} sx={{ display: "flex", alignItems: "center" }}>
+        <Grid
+          item
+          xs={12}
+          md={5}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-start",
+          }}
+        >
           {fixedVersions.length > 0 ? (
             fixedVersions.map((fixedVersion) => (
-              <Box key={fixedVersion} sx={{ display: "flex", alignItems: "center" }}>
-                <RecommendIcon sx={{ fontSize: 32, color: green[500] }} />
+              <Box
+                key={fixedVersion}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  mb: 1,
+                  minWidth: 0,
+                  height: "48px",
+                }}
+              >
+                <RecommendIcon sx={{ fontSize: 32, color: green[500], mr: 1 }} />
                 <Tooltip title={fixedVersion} placement="right">
-                  <Typography noWrap sx={{ fontSize: 32, mx: 2 }}>
+                  <Typography sx={{ fontSize: 32, overflowWrap: "break-word", display: "block" }}>
                     {fixedVersion}
                   </Typography>
                 </Tooltip>

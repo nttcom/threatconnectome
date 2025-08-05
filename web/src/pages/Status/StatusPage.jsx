@@ -39,6 +39,7 @@ import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../service
 import { APIError } from "../../utils/APIError";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
+import { preserveMyTasksParam } from "../../utils/urlUtils";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
 import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetails/PTeamServiceDetailsResponsive";
@@ -181,12 +182,21 @@ export function Status() {
       const newParams = new URLSearchParams();
       newParams.set("pteamId", pteamId);
       newParams.set("serviceId", pteam.services[0].service_id);
+
+      const MytasksParam = preserveMyTasksParam(location.search);
+      for (const [key, value] of MytasksParam) {
+        newParams.set(key, value);
+      }
       navigate(location.pathname + "?" + newParams.toString());
       return;
     }
 
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pteamId, pteam, serviceId, isActiveAllServicesMode]);
+
+  useEffect(() => {
+    setIsActiveUploadMode(0); // reset upload mode
+  }, [pteamId]);
 
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
@@ -317,6 +327,12 @@ export function Status() {
     if (searchWord) {
       newParams.set("word", searchWord);
     }
+
+    const MytasksParam = preserveMyTasksParam(location.search);
+    for (const [key, value] of MytasksParam) {
+      newParams.set(key, value);
+    }
+
     navigate(location.pathname + "?" + newParams.toString());
   };
 
@@ -329,7 +345,7 @@ export function Status() {
   };
 
   function navigatePackagePage(packageId) {
-    for (let key of ["priorityFilter", "word", "perPage", "page", "allservices"]) {
+    for (let key of ["priorityFilter", "word", "perPage", "page"]) {
       params.delete(key);
     }
     navigate(`/packages/${packageId}?${params.toString()}`);
@@ -364,7 +380,7 @@ export function Status() {
     }
 
     if (isActiveAllServicesMode) {
-      params.delete("allservices");
+      params.set("allservices", "off");
       navigate(location.pathname + "?" + params.toString());
     } else {
       params.set("allservices", "on");

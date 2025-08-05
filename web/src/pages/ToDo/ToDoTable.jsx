@@ -10,7 +10,7 @@ import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import { visuallyHidden } from "@mui/utils";
 import PropTypes from "prop-types";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetTicketsQuery } from "../../services/tcApi";
@@ -20,8 +20,7 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
-export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPageChange }) {
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("ssvc");
 
@@ -33,7 +32,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
     isLoading: ticketsIsLoading,
   } = useGetTicketsQuery({
     pteamIds,
-    offset: page * rowsPerPage,
+    offset: (page - 1) * rowsPerPage,
     limit: rowsPerPage,
     sortKeys: ["-ssvc_deployer_priority", "-created_at"],
     assignedToMe: myTasks,
@@ -72,12 +71,15 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
   };
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    onPageChange({ page: newPage + 1 });
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    onPageChange({
+      perPage: newRowsPerPage,
+      page: 1, // reset page
+    });
   };
 
   const headCells = [
@@ -89,10 +91,6 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
     { id: "ssvc", label: "SSVC", isSortable: true },
     { id: "actions", label: "", isSortable: false },
   ];
-
-  useEffect(() => {
-    setPage(0);
-  }, [myTasks, setPage]);
 
   if (skip) return <></>;
   if (ticketsError) throw new APIError(errorToString(ticketsError), { api: "getTickets" });
@@ -150,7 +148,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
           component="div"
           count={tickets?.total ?? 0}
           rowsPerPage={rowsPerPage}
-          page={page}
+          page={page - 1}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           showFirstButton
@@ -164,7 +162,8 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, setPage }) {
 ToDoTable.propTypes = {
   myTasks: PropTypes.bool.isRequired,
   pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
-  cveIds: PropTypes.arrayOf(PropTypes.string),
   page: PropTypes.number.isRequired,
-  setPage: PropTypes.func.isRequired,
+  rowsPerPage: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
+  cveIds: PropTypes.arrayOf(PropTypes.string),
 };
