@@ -101,10 +101,10 @@ class SyftCDXParser(SBOMParser):
 
             source_name = None
             for key, value in self.properties.items():
-                if "syft:metadata:source" == key:
+                if key == "syft:metadata:source":
                     source_name = str(value).casefold()
                     break
-                if "syft:metadata:sourceRpm" == key:
+                if key == "syft:metadata:sourceRpm":
                     try:
                         source_name = self._get_source_name_from_rpm_filename(value).casefold()
                         break
@@ -145,15 +145,15 @@ class SyftCDXParser(SBOMParser):
             if architecture_index == -1:
                 raise ValueError("Unexpected name format: missing '.'")
 
-            release_index = filename[:architecture_index].rfind("-")
+            release_index = suffix_removed_filename[:architecture_index].rfind("-")
             if release_index == -1:
                 raise ValueError("Unexpected name format: missing release delimiter '-'")
 
-            version_index = filename[:release_index].rfind("-")
+            version_index = suffix_removed_filename[:release_index].rfind("-")
             if version_index == -1:
                 raise ValueError("Unexpected name format: missing version delimiter '-'")
 
-            return filename[:version_index]
+            return suffix_removed_filename[:version_index]
 
     @classmethod
     def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
