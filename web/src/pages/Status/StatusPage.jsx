@@ -188,6 +188,10 @@ export function Status() {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [pteamId, pteam, serviceId, isActiveAllServicesMode]);
 
+  useEffect(() => {
+    setIsActiveUploadMode(0); // reset upload mode
+  }, [pteamId]);
+
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
