@@ -1,10 +1,26 @@
+import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
+import FindInPageIcon from "@mui/icons-material/FindInPage";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
+import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import {
+  Avatar,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
   Chip,
   Drawer,
   FormControl,
+  Grid,
   IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Paper,
   Stack,
   Tab,
   Tabs,
@@ -16,6 +32,7 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+// import { AIRiskAnalysis } from "../../components/AIRiskAnalysis.jsx";
 import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
 import { preserveParams } from "../../utils/urlUtils";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
@@ -23,6 +40,8 @@ import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
 import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
+
+import { AIRiskAnalysis } from "./AIRiskAnalysis.jsx";
 
 export function ToDoDrawer(props) {
   const {
@@ -37,6 +56,7 @@ export function ToDoDrawer(props) {
     vulnActions,
     ssvcPriority,
   } = props;
+
   const [value, setValue] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
@@ -120,6 +140,7 @@ export function ToDoDrawer(props) {
           <Tabs value={value} onChange={handleTabChange}>
             <Tab label="Ticket" />
             <Tab label="Vuln" />
+            <Tab label="AI" />
           </Tabs>
         </Box>
         {/* ticket */}
@@ -253,6 +274,11 @@ export function ToDoDrawer(props) {
               currentPackage={currentPackage}
             />
           </Stack>
+        </CustomTabPanel>
+
+        {/* AI */}
+        <CustomTabPanel value={value} index={2}>
+          <AIRiskAnalysis />
         </CustomTabPanel>
       </Box>
     </Drawer>
