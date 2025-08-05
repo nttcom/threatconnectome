@@ -94,7 +94,7 @@ def test_show_package_page_directly(page: Page):
     # package page
     expect(page).to_have_url(re.compile(path))
 
-    package_title = f"{packages[0]['package_name']}:{packages[0]['ecosystem']}"
+    package_title = packages[0]["package_name"]
     heading = page.get_by_role("heading", name=package_title)
     heading.wait_for(timeout=10000)
     expect(heading).to_have_text(package_title)
@@ -113,14 +113,15 @@ def test_show_package_page(page: Page):
     page.locator("#team-selector-button").click()
     page.get_by_role("menuitem", name=str(PTEAM1["pteam_name"])).click()
     # status page
-    package_title1 = f"{PACKAGE1['package_name']}:{PACKAGE1['ecosystem']}"
-    expect(page.get_by_role("heading", name=package_title1)).to_have_text(package_title1)
-    expect(page.get_by_role("rowheader", name=package_title1)).to_have_text(
-        re.compile(package_title1)
+    status_row_titile1 = f"{PACKAGE1['package_name']}:{PACKAGE1['ecosystem']}"
+    expect(page.get_by_role("heading", name=status_row_titile1)).to_have_text(status_row_titile1)
+    expect(page.get_by_role("rowheader", name=status_row_titile1)).to_have_text(
+        re.compile(status_row_titile1)
     )
-    page.get_by_role("rowheader", name=package_title1).click()
+    page.get_by_role("rowheader", name=status_row_titile1).click()
 
     # tag page
+    package_title1 = PACKAGE1["package_name"]
     expect(page.get_by_role("heading", name=package_title1)).to_have_text(package_title1)
     expect(page.locator("#ssvc-priority-count-chip-immediate")).to_have_text("1")
     expect(page.locator("#ssvc-priority-count-chip-out_of_cycle")).to_have_text("0")
