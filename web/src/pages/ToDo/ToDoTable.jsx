@@ -21,8 +21,9 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 import { ToDoTableRow } from "./ToDoTableRow";
 
 export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPageChange }) {
-  const [order, setOrder] = useState("asc");
+  const [orderDirection, setOrderDirection] = useState("asc");
   const [orderBy, setOrderBy] = useState("ssvc");
+  const [sortKey, setSortKey] = useState("-ssvc_deployer_priority");
 
   const skip = useSkipUntilAuthUserIsReady();
 
@@ -34,7 +35,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
     pteamIds,
     offset: (page - 1) * rowsPerPage,
     limit: rowsPerPage,
-    sortKeys: ["-ssvc_deployer_priority", "-created_at"],
+    sortKeys: [sortKey, "-created_at"],
     assignedToMe: myTasks,
     excludeStatuses: ["completed"],
     cveIds: cveIds,
@@ -65,9 +66,16 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
   }, [tickets]);
 
   const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
+    const isAsc = orderBy === property && orderDirection === "asc"; // Determines if the column now in ascending order is clicked again
+    const newDirection = isAsc ? "desc" : "asc";
+    setOrderDirection(newDirection);
     setOrderBy(property);
+
+    if (newDirection === "desc") {
+      setSortKey("-" + property);
+    } else {
+      setSortKey(property);
+    }
   };
 
   const handleChangePage = (event, newPage) => {
@@ -83,13 +91,12 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
   };
 
   const headCells = [
-    { id: "cve", label: "CVE", isSortable: false },
-    { id: "team", label: "Team", isSortable: false },
-    { id: "service", label: "Service", isSortable: false },
-    { id: "package", label: "Package", isSortable: false },
+    { id: "cve_id", label: "CVE", isSortable: true },
+    { id: "pteam_name", label: "Team", isSortable: true },
+    { id: "service_name", label: "Service", isSortable: true },
+    { id: "package_name", label: "Package", isSortable: true },
     { id: "assignee", label: "Assignee", isSortable: false },
-    { id: "ssvc", label: "SSVC", isSortable: true },
-    { id: "actions", label: "", isSortable: false },
+    { id: "ssvc_deployer_priority", label: "SSVC", isSortable: true },
   ];
 
   if (skip) return <></>;
@@ -106,18 +113,18 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
                 {headCells.map((headCell) => (
                   <TableCell
                     key={headCell.id}
-                    sortDirection={orderBy === headCell.id ? order : false}
+                    sortDirection={orderBy === headCell.id ? orderDirection : false}
                   >
                     {headCell.isSortable ? (
                       <TableSortLabel
                         active={orderBy === headCell.id}
-                        direction={orderBy === headCell.id ? order : "asc"}
+                        direction={orderBy === headCell.id ? orderDirection : "asc"}
                         onClick={(event) => handleRequestSort(event, headCell.id)}
                       >
                         {headCell.label}
                         {orderBy === headCell.id ? (
                           <Box component="span" sx={visuallyHidden}>
-                            {order === "desc" ? "sorted descending" : "sorted ascending"}
+                            {orderDirection === "desc" ? "sorted descending" : "sorted ascending"}
                           </Box>
                         ) : null}
                       </TableSortLabel>
