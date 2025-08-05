@@ -22,7 +22,7 @@ export function PackageView(props) {
         <Grid
           item
           xs={12}
-          md={6.5}
+          md={7}
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -68,7 +68,7 @@ export function PackageView(props) {
         <Grid
           item
           xs={12}
-          md={5.5}
+          md={5}
           sx={{
             display: "flex",
             flexDirection: "column",
