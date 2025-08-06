@@ -82,9 +82,10 @@ export function PTeamServiceDelete(props) {
       setChecked([]);
 
       if (wasCurrentServiceDeleted) {
+        const deletedServiceIds = new Set(checked.map((service) => service.service_id));
+
         const remainingServices = services.filter(
-          (service) =>
-            !checked.some((deletedService) => deletedService.service_id === service.service_id),
+          (service) => !deletedServiceIds.has(service.service_id),
         );
 
         if (remainingServices.length > 0) {
