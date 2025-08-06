@@ -16,12 +16,19 @@ import dialogStyle from "../../cssModule/dialog.module.css";
 import { PTeamServiceDelete } from "./PTeamServiceDelete";
 
 export function DeleteServiceIcon(props) {
-  const { pteamId } = props;
+  const { pteamId, onServiceDeleted } = props;
 
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleModalClose = () => {
     setModalOpen(false);
+  };
+
+  const handleServiceDeleted = (deletedServiceIds, wasCurrentServiceDeleted) => {
+    setModalOpen(false);
+    if (onServiceDeleted) {
+      onServiceDeleted(deletedServiceIds, wasCurrentServiceDeleted);
+    }
   };
 
   return (
@@ -49,7 +56,7 @@ export function DeleteServiceIcon(props) {
           </Box>
         </DialogTitle>
         <DialogContent>
-          <PTeamServiceDelete pteamId={pteamId} />
+          <PTeamServiceDelete pteamId={pteamId} onServiceDeleted={handleServiceDeleted} />
         </DialogContent>
       </Dialog>
     </>
@@ -57,4 +64,5 @@ export function DeleteServiceIcon(props) {
 }
 DeleteServiceIcon.propTypes = {
   pteamId: PropTypes.string.isRequired,
+  onServiceDeleted: PropTypes.func,
 };

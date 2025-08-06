@@ -198,6 +198,13 @@ export function Status() {
     setIsActiveUploadMode(0); // reset upload mode
   }, [pteamId]);
 
+  const handleServiceDeleted = (deletedServiceIds, wasCurrentServiceDeleted) => {
+    // If upload mode is active when service deletion occurs, disable upload mode
+    if (isActiveUploadMode === 1) {
+      setIsActiveUploadMode(0);
+    }
+  };
+
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
@@ -473,7 +480,7 @@ export function Status() {
         <Box flexGrow={1} />
       </Box>
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-        <DeleteServiceIcon pteamId={pteamId} />
+        <DeleteServiceIcon pteamId={pteamId} onServiceDeleted={handleServiceDeleted} />
         <FormControlLabel
           control={
             <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />

@@ -22,7 +22,7 @@ import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
 export function PTeamServiceDelete(props) {
-  const { pteamId } = props;
+  const { pteamId, onServiceDeleted } = props;
   const [checked, setChecked] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -93,6 +93,11 @@ export function PTeamServiceDelete(props) {
         }
         navigate(location.pathname + "?" + params.toString());
       }
+
+      if (onServiceDeleted) {
+        onServiceDeleted(deletedServiceIds, wasCurrentServiceDeleted);
+      }
+
       setChecked([]);
     } catch (error) {
       const serviceCount = checked.length;
@@ -163,4 +168,5 @@ export function PTeamServiceDelete(props) {
 }
 PTeamServiceDelete.propTypes = {
   pteamId: PropTypes.string.isRequired,
+  onServiceDeleted: PropTypes.func,
 };
