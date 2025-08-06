@@ -20,10 +20,16 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
-export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPageChange }) {
-  const [orderDirection, setOrderDirection] = useState("asc");
-  const [orderBy, setOrderBy] = useState("-ssvc_deployer_priority");
-
+export function ToDoTable({
+  myTasks,
+  pteamIds,
+  cveIds,
+  page,
+  rowsPerPage,
+  onPageChange,
+  sortKey,
+  sortDirection,
+}) {
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
@@ -34,7 +40,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
     pteamIds,
     offset: (page - 1) * rowsPerPage,
     limit: rowsPerPage,
-    sortKeys: [orderDirection === "asc" ? orderBy : `-${orderBy}`, "-created_at"],
+    sortKeys: [sortDirection === "asc" ? sortKey : `-${sortKey}`, "-created_at"],
     assignedToMe: myTasks,
     excludeStatuses: ["completed"],
     cveIds: cveIds,
@@ -65,10 +71,9 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
   }, [tickets]);
 
   const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && orderDirection === "asc"; // Determines if the column currently in ascending order is clicked again
+    const isAsc = sortKey === property && sortDirection === "asc"; // Determines if the column currently in ascending order is clicked again
     const newDirection = isAsc ? "desc" : "asc";
-    setOrderDirection(newDirection);
-    setOrderBy(property);
+    onPageChange({ sortKey: property, sortDirection: newDirection });
   };
 
   const handleChangePage = (event, newPage) => {
@@ -106,18 +111,18 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
                 {headCells.map((headCell) => (
                   <TableCell
                     key={headCell.id}
-                    sortDirection={orderBy === headCell.id ? orderDirection : false}
+                    sortDirection={sortKey === headCell.id ? sortDirection : false}
                   >
                     {headCell.isSortable ? (
                       <TableSortLabel
-                        active={orderBy === headCell.id}
-                        direction={orderBy === headCell.id ? orderDirection : "asc"}
+                        active={sortKey === headCell.id}
+                        direction={sortKey === headCell.id ? sortDirection : "asc"}
                         onClick={(event) => handleRequestSort(event, headCell.id)}
                       >
                         {headCell.label}
-                        {orderBy === headCell.id ? (
+                        {sortKey === headCell.id ? (
                           <Box component="span" sx={visuallyHidden}>
-                            {orderDirection === "desc" ? "sorted descending" : "sorted ascending"}
+                            {sortDirection === "desc" ? "sorted descending" : "sorted ascending"}
                           </Box>
                         ) : null}
                       </TableSortLabel>
@@ -166,4 +171,6 @@ ToDoTable.propTypes = {
   rowsPerPage: PropTypes.number.isRequired,
   onPageChange: PropTypes.func.isRequired,
   cveIds: PropTypes.arrayOf(PropTypes.string),
+  sortKey: PropTypes.string.isRequired,
+  sortDirection: PropTypes.string.isRequired,
 };
