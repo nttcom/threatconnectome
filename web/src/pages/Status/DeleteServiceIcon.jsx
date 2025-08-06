@@ -24,10 +24,10 @@ export function DeleteServiceIcon(props) {
     setModalOpen(false);
   };
 
-  const handleServiceDeleted = (deletedServiceIds, wasCurrentServiceDeleted) => {
+  const handleServiceDeleted = () => {
     setModalOpen(false);
     if (onServiceDeleted) {
-      onServiceDeleted(deletedServiceIds, wasCurrentServiceDeleted);
+      onServiceDeleted();
     }
   };
 

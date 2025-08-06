@@ -95,7 +95,7 @@ export function PTeamServiceDelete(props) {
       }
 
       if (onServiceDeleted) {
-        onServiceDeleted(deletedServiceIds, wasCurrentServiceDeleted);
+        onServiceDeleted();
       }
 
       setChecked([]);
