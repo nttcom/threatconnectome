@@ -73,9 +73,9 @@ export function ToDoTable({
   const handleRequestSort = (event, property) => {
     const isAsc = sortKey === property && sortDirection === "asc"; // Determines if the column currently in ascending order is clicked again
     const newDirection = isAsc ? "desc" : "asc";
-    if (page >= 2){
-      onPageChange({ sortKey: property, sortDirection: newDirection, page: 1 }) // Reset to first page if sorting changes after page 2.
-    }else{
+    if (page >= 2) {
+      onPageChange({ sortKey: property, sortDirection: newDirection, page: 1 }); // Reset to first page if sorting changes after page 2.
+    } else {
       onPageChange({ sortKey: property, sortDirection: newDirection });
     }
   };
