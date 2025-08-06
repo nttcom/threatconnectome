@@ -124,13 +124,19 @@ export function PTeamServiceDelete(props) {
           const labelId = `checkbox-list-label-${service.service_name}`;
           return (
             <ListItem key={service.service_id} disablePadding>
-              <ListItemButton role={undefined} onClick={handleToggle(service)} dense>
+              <ListItemButton
+                role={undefined}
+                onClick={handleToggle(service)}
+                dense
+                disabled={isDeleting}
+              >
                 <ListItemIcon>
                   <Checkbox
                     edge="start"
                     checked={checked.indexOf(service) !== -1}
                     tabIndex={-1}
                     disableRipple
+                    disabled={isDeleting}
                     inputProps={{ "aria-labelledby": labelId }}
                   />
                 </ListItemIcon>
