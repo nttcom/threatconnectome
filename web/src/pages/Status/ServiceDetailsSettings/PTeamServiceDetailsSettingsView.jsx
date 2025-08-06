@@ -1,4 +1,5 @@
 import { Close as CloseIcon, Settings as SettingsIcon } from "@mui/icons-material";
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import {
   Box,
   Button,
@@ -13,6 +14,7 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -285,7 +287,22 @@ export function PTeamServiceDetailsSettingsView(props) {
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <FormLabel>Default Safety Impact</FormLabel>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <FormLabel>Default Safety Impact</FormLabel>
+                <Tooltip
+                  title={
+                    "It will be applied automatically during SSVC calculations unless a specific Safety Impact is defined for an individual ticket."
+                  }
+                >
+                  <HelpOutlineOutlinedIcon color="action" fontSize="small" />
+                </Tooltip>
+              </Box>
               <Box>
                 <ToggleButtonGroup
                   orientation={isSmUp ? "horizontal" : "vertical"}
