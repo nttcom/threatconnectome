@@ -77,10 +77,21 @@ export function PTeamServiceDelete(props) {
 
       enqueueSnackbar(message, { variant: "success" });
 
+      const wasCurrentServiceDeleted = checked.find((service) => service.service_id === serviceId);
+
       setChecked([]);
 
-      if (checked.find((service) => service.service_id === serviceId)) {
-        params.delete("serviceId");
+      if (wasCurrentServiceDeleted) {
+        const remainingServices = services.filter(
+          (service) =>
+            !checked.some((deletedService) => deletedService.service_id === service.service_id),
+        );
+
+        if (remainingServices.length > 0) {
+          params.set("serviceId", remainingServices[0].service_id);
+        } else {
+          params.delete("serviceId");
+        }
         navigate(location.pathname + "?" + params.toString());
       }
     } catch (error) {
