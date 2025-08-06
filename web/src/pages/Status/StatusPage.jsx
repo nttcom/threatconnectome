@@ -198,7 +198,7 @@ export function Status() {
     setIsActiveUploadMode(0); // reset upload mode
   }, [pteamId]);
 
-  const handleServiceDeleted = (deletedServiceIds, wasCurrentServiceDeleted) => {
+  const handleServiceDeleted = () => {
     // If upload mode is active when service deletion occurs, disable upload mode
     if (isActiveUploadMode === 1) {
       setIsActiveUploadMode(0);
