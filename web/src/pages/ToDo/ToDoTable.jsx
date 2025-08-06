@@ -22,8 +22,7 @@ import { ToDoTableRow } from "./ToDoTableRow";
 
 export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPageChange }) {
   const [orderDirection, setOrderDirection] = useState("asc");
-  const [orderBy, setOrderBy] = useState("ssvc");
-  const [sortKey, setSortKey] = useState("-ssvc_deployer_priority");
+  const [orderBy, setOrderBy] = useState("-ssvc_deployer_priority");
 
   const skip = useSkipUntilAuthUserIsReady();
 
@@ -35,7 +34,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
     pteamIds,
     offset: (page - 1) * rowsPerPage,
     limit: rowsPerPage,
-    sortKeys: [sortKey, "-created_at"],
+    sortKeys: [orderDirection === "asc" ? orderBy : `-${orderBy}`, "-created_at"],
     assignedToMe: myTasks,
     excludeStatuses: ["completed"],
     cveIds: cveIds,
@@ -66,16 +65,10 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
   }, [tickets]);
 
   const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && orderDirection === "asc"; // Determines if the column now in ascending order is clicked again
+    const isAsc = orderBy === property && orderDirection === "asc"; // Determines if the column currently in ascending order is clicked again
     const newDirection = isAsc ? "desc" : "asc";
     setOrderDirection(newDirection);
     setOrderBy(property);
-
-    if (newDirection === "desc") {
-      setSortKey("-" + property);
-    } else {
-      setSortKey(property);
-    }
   };
 
   const handleChangePage = (event, newPage) => {
