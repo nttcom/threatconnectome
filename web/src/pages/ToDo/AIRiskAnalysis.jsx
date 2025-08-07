@@ -14,7 +14,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Chip,
   Grid,
   List,
   ListItem,
@@ -99,7 +98,7 @@ export function AIRiskAnalysis() {
           AI Risk Analysis: CVE-2021-4228 (Log4Shell)
         </Typography>
         {/* Box: 関連情報を横並びに表示するためのコンテナ */}
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
           {/* Typography: 影響を受けるサービスやターゲットといった補足情報を表示 */}
           <Typography variant="body1" color="text.secondary">
             Service: myADV 2023
@@ -107,8 +106,10 @@ export function AIRiskAnalysis() {
           <Typography variant="body1" color="text.secondary">
             Target: ubuntu-20.04
           </Typography>
-          {/* Chip: 深刻度を視覚的に強調するバッジ。色で危険度を伝えます */}
-          <Chip label="Critical 9.8" color="error" variant="filled" />
+          {/* Typography: CVSSスコアをラベル付きのテキストで表示 */}
+          <Typography variant="body1" color="text.secondary">
+            CVSS: 9.8
+          </Typography>
         </Box>
       </Box>
 
@@ -131,7 +132,6 @@ export function AIRiskAnalysis() {
                 Risk Summary
               </Typography>
             </Box>
-
             {/* List: 発生しうる被害の種類を一覧で表示。ユーザーはここで全体像を把握します */}
             <List>
               {/* ListItem: 各被害項目 */}

@@ -140,7 +140,7 @@ export function ToDoDrawer(props) {
           <Tabs value={value} onChange={handleTabChange}>
             <Tab label="Ticket" />
             <Tab label="Vuln" />
-            <Tab label="AI" />
+            <Tab label="Insights" />
           </Tabs>
         </Box>
         {/* ticket */}
