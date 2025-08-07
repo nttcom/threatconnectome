@@ -77,7 +77,7 @@ const analysisBasis = {
 export function AIRiskAnalysis() {
   const [tabValue, setTabValue] = useState(0);
 
-  const handleAITabChange = (event, newValue) => {
+  const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
   return (
@@ -152,7 +152,7 @@ export function AIRiskAnalysis() {
                 value={tabValue}
                 variant="scrollable"
                 scrollButtons="auto"
-                onChange={handleAITabChange}
+                onChange={handleTabChange}
                 aria-label="detailed analysis tabs"
               >
                 <Tab label="Threat Scenarios" />
