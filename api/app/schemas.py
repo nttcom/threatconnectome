@@ -242,8 +242,8 @@ class InsighUpdatetRequest(BaseModel):
     description: str | None = None
     reasoning_logic: str = None
     threat_scenarios: list[ThreatScenarios] | None = None
-    affected_object: list[AffectedObject] = None
-    insight_reference: list[InsightReference] = None
+    affected_objects: list[AffectedObject] = None
+    insight_references: list[InsightReference] = None
 
 
 class PTeamInfo(PTeamEntry):
