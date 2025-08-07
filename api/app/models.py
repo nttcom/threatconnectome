@@ -138,6 +138,14 @@ class SSVCDeployerPriorityEnum(ComparableStringEnum):
     DEFER = "defer"
 
 
+class ImpactCategoryEnum(str, enum.Enum):
+    pass
+
+
+class ObjectCategoryEnum(str, enum.Enum):
+    pass
+
+
 # Base class
 
 StrUUID = Annotated[str, 36]
