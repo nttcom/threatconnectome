@@ -22,6 +22,8 @@ export function ToDo() {
 
   const page = parseInt(params.get("page")) || 1;
   const rowsPerPage = parseInt(params.get("perPage")) || 10;
+  const sortKey = params.get("sortKey") || "ssvc_deployer_priority";
+  const sortDirection = params.get("sortDirection") || "desc";
 
   const skip = useSkipUntilAuthUserIsReady();
   const {
@@ -79,6 +81,8 @@ export function ToDo() {
         page={page}
         rowsPerPage={rowsPerPage}
         onPageChange={updateParams}
+        sortKey={sortKey}
+        sortDirection={sortDirection}
       />
     </>
   );

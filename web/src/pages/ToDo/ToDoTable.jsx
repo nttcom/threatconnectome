@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -6,8 +7,10 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
+import TableSortLabel from "@mui/material/TableSortLabel";
+import { visuallyHidden } from "@mui/utils";
 import PropTypes from "prop-types";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetTicketsQuery } from "../../services/tcApi";
@@ -17,7 +20,16 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
-export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPageChange }) {
+export function ToDoTable({
+  myTasks,
+  pteamIds,
+  cveIds,
+  page,
+  rowsPerPage,
+  onPageChange,
+  sortKey,
+  sortDirection,
+}) {
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
@@ -28,7 +40,7 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
     pteamIds,
     offset: (page - 1) * rowsPerPage,
     limit: rowsPerPage,
-    sortKeys: ["-ssvc_deployer_priority", "-created_at"],
+    sortKeys: [sortDirection === "asc" ? sortKey : `-${sortKey}`, "-created_at"],
     assignedToMe: myTasks,
     excludeStatuses: ["completed"],
     cveIds: cveIds,
@@ -58,6 +70,16 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
     }));
   }, [tickets]);
 
+  const handleRequestSort = (event, property) => {
+    const isAsc = sortKey === property && sortDirection === "asc"; // Determines if the column currently in ascending order is clicked again
+    const newDirection = isAsc ? "desc" : "asc";
+    if (page >= 2) {
+      onPageChange({ sortKey: property, sortDirection: newDirection, page: 1 }); // Reset to first page if sorting changes after page 2.
+    } else {
+      onPageChange({ sortKey: property, sortDirection: newDirection });
+    }
+  };
+
   const handleChangePage = (event, newPage) => {
     onPageChange({ page: newPage + 1 });
   };
@@ -70,8 +92,16 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
     });
   };
 
-  if (skip) return <></>;
+  const headCells = [
+    { id: "cve_id", label: "CVE", isSortable: true },
+    { id: "pteam_name", label: "Team", isSortable: true },
+    { id: "service_name", label: "Service", isSortable: true },
+    { id: "package_name", label: "Package", isSortable: true },
+    { id: "assignee", label: "Assignee", isSortable: false },
+    { id: "ssvc_deployer_priority", label: "SSVC", isSortable: true },
+  ];
 
+  if (skip) return <></>;
   if (ticketsError) throw new APIError(errorToString(ticketsError), { api: "getTickets" });
   if (ticketsIsLoading) return <>Now loading Tickets...</>;
 
@@ -82,13 +112,29 @@ export function ToDoTable({ myTasks, pteamIds, cveIds, page, rowsPerPage, onPage
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>CVE-ID</TableCell>
-                <TableCell>Team</TableCell>
-                <TableCell>Service</TableCell>
-                <TableCell>Package</TableCell>
-                <TableCell>Assignee</TableCell>
-                <TableCell>SSVC</TableCell>
-                <TableCell />
+                {headCells.map((headCell) => (
+                  <TableCell
+                    key={headCell.id}
+                    sortDirection={sortKey === headCell.id ? sortDirection : false}
+                  >
+                    {headCell.isSortable ? (
+                      <TableSortLabel
+                        active={sortKey === headCell.id}
+                        direction={sortKey === headCell.id ? sortDirection : "asc"}
+                        onClick={(event) => handleRequestSort(event, headCell.id)}
+                      >
+                        {headCell.label}
+                        {sortKey === headCell.id ? (
+                          <Box component="span" sx={visuallyHidden}>
+                            {sortDirection === "desc" ? "sorted descending" : "sorted ascending"}
+                          </Box>
+                        ) : null}
+                      </TableSortLabel>
+                    ) : (
+                      headCell.label
+                    )}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -129,4 +175,6 @@ ToDoTable.propTypes = {
   rowsPerPage: PropTypes.number.isRequired,
   onPageChange: PropTypes.func.isRequired,
   cveIds: PropTypes.arrayOf(PropTypes.string),
+  sortKey: PropTypes.string.isRequired,
+  sortDirection: PropTypes.string.isRequired,
 };

@@ -523,7 +523,7 @@ def get_sorted_paginated_tickets_for_pteams(
         filters.append(models.TicketStatus.vuln_status.notin_(exclude_statuses))
 
     # join with Threat and Vuln tables if needed
-    if fixed_cve_ids or ("cve_id" in sort_keys):
+    if fixed_cve_ids or ("cve_id" in sort_keys) or ("-cve_id" in sort_keys):
         select_stmt = select_stmt.join(
             models.Threat, models.Threat.threat_id == models.Ticket.threat_id
         ).join(models.Vuln, models.Vuln.vuln_id == models.Threat.vuln_id)
@@ -531,14 +531,14 @@ def get_sorted_paginated_tickets_for_pteams(
             filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
 
     # join with PackageVersion and Package tables if needed
-    if "package_name" in sort_keys:
+    if ("package_name" in sort_keys) or ("-package_name" in sort_keys):
         select_stmt = select_stmt.join(
             models.PackageVersion,
             models.PackageVersion.package_version_id == models.Dependency.package_version_id,
         ).join(models.Package, models.Package.package_id == models.PackageVersion.package_id)
 
     # join with PTeam tables if needed
-    if "pteam_name" in sort_keys:
+    if ("pteam_name" in sort_keys) or ("-pteam_name" in sort_keys):
         select_stmt = select_stmt.join(
             models.PTeam, models.PTeam.pteam_id == models.Service.pteam_id
         )
