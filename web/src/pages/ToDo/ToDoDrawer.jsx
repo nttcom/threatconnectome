@@ -57,16 +57,10 @@ export function ToDoDrawer(props) {
   );
 
   const createNavigationParams = () => {
-    const newParams = new URLSearchParams();
-    newParams.set("pteamId", row.pteam_id);
-    newParams.set("serviceId", row.service_id);
-
-    const preservedParams = preserveParams(location.search);
-    for (const [key, value] of preservedParams) {
-      newParams.set(key, value);
-    }
-
-    return newParams;
+    const params = preserveParams(location.search);
+    params.set("pteamId", row.pteam_id);
+    params.set("serviceId", row.service_id);
+    return params;
   };
 
   const handleTabChange = (event, newValue) => {
@@ -75,7 +69,7 @@ export function ToDoDrawer(props) {
 
   const handleCVEClick = () => {
     if (vuln?.vuln_id) {
-      const params = createNavigationParams();
+      const params = preserveParams(location.search);
       navigate(`/vulns/${vuln.vuln_id}?` + params.toString());
     }
   };
