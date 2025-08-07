@@ -297,7 +297,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                 <FormLabel>Default Safety Impact</FormLabel>
                 <Tooltip
                   title={
-                    "It will be applied automatically during SSVC calculations unless a specific Safety Impact is defined for an individual ticket."
+                    "Default Safety Impact is applied automatically during SSVC calculations unless a specific Safety Impact is defined for an individual ticket."
                   }
                 >
                   <HelpOutlineOutlinedIcon color="action" fontSize="small" />
