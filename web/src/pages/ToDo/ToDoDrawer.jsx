@@ -24,6 +24,8 @@ import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector
 import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 
+import { AIRiskAnalysis } from "./AIRiskAnalysis.jsx";
+
 export function ToDoDrawer(props) {
   const {
     open,
@@ -37,6 +39,7 @@ export function ToDoDrawer(props) {
     vulnActions,
     ssvcPriority,
   } = props;
+
   const [value, setValue] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
@@ -114,6 +117,7 @@ export function ToDoDrawer(props) {
           <Tabs value={value} onChange={handleTabChange}>
             <Tab label="Ticket" />
             <Tab label="Vuln" />
+            <Tab label="Insights" />
           </Tabs>
         </Box>
         {/* ticket */}
@@ -247,6 +251,11 @@ export function ToDoDrawer(props) {
               currentPackage={currentPackage}
             />
           </Stack>
+        </CustomTabPanel>
+
+        {/* insights */}
+        <CustomTabPanel value={value} index={2}>
+          <AIRiskAnalysis />
         </CustomTabPanel>
       </Box>
     </Drawer>
