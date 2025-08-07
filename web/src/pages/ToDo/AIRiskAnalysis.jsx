@@ -85,7 +85,7 @@ export function AIRiskAnalysis() {
       {/* Header Section */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          AI Risk Analysis: CVE-2021-4228 (Log4Shell)
+          AI Risk Analysis: CVE-2021-44228 (Log4Shell)
         </Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
           <Typography variant="body1" color="text.secondary">
@@ -233,15 +233,3 @@ export function AIRiskAnalysis() {
     </>
   );
 }
-
-AIRiskAnalysis.propTypes = {
-  tabValue: PropTypes.number.isRequired,
-  handleAITabChange: PropTypes.func.isRequired,
-  threatScenarios: PropTypes.arrayOf(
-    PropTypes.shape({
-      icon: PropTypes.element.isRequired,
-      title: PropTypes.string.isRequired,
-      description: PropTypes.string.isRequired,
-    }),
-  ).isRequired,
-};
