@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth.auth_module import get_auth_module
 from app.auth.firebase_auth_module import FirebaseAuthModule
 from app.auth.supabase_auth_module import SupabaseAuthModule
+from app.database import create_session
+from app.models import ObjectCategory
 from app.routers import (
     actionlogs,
     actions,
@@ -65,6 +67,22 @@ def create_app():
 
     # Dependency injection as needed
     app.dependency_overrides[get_auth_module] = lambda: auth_module
+
+    # スタートアップイベント: 初期カテゴリをDBに追加
+    @app.on_event("startup")
+    async def initialize_default_categories():
+        """アプリケーション起動時に初期カテゴリをデータベースに追加"""
+        try:
+            SessionLocal = create_session()
+            session = SessionLocal()
+            try:
+                ObjectCategory.ensure_default_categories(session)
+                logging.info("Default ObjectCategory categories initialized successfully")
+            finally:
+                session.close()
+        except Exception as e:
+            logging.error(f"Failed to initialize default ObjectCategory categories: {e}")
+            # エラーログを記録するが、アプリケーション起動は継続
 
     return app
 
