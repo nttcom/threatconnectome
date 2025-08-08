@@ -71,7 +71,6 @@ def create_app():
     # スタートアップイベント: 初期カテゴリをDBに追加
     @app.on_event("startup")
     async def initialize_default_categories():
-        """アプリケーション起動時に初期カテゴリをデータベースに追加"""
         try:
             SessionLocal = create_session()
             session = SessionLocal()
@@ -82,7 +81,6 @@ def create_app():
                 session.close()
         except Exception as e:
             logging.error(f"Failed to initialize default ObjectCategory categories: {e}")
-            # エラーログを記録するが、アプリケーション起動は継続
 
     return app
 
