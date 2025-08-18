@@ -218,3 +218,41 @@ def get_insight(
         raise NO_SUCH_TICKET
     if not check_pteam_membership(ticket.dependency.service.pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
+    if ticket.insight is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No insight found for this ticket"
+        )
+
+    insight = ticket.insight
+
+    response_data = {
+        "insight_id": UUID(insight.insight_id),
+        "ticket_id": ticket_id,
+        "description": insight.description,
+        "reasoning_and_planing": insight.reasoning_and_planing,
+        "threat_scenarios": [
+            {
+                "impact_category": scenario.impact_category,
+                "title": scenario.title,
+                "description": scenario.description,
+            }
+            for scenario in insight.threat_scenarios
+        ],
+        "affected_objects": [
+            {
+                "object_category": obj.object_category.name,
+                "name": obj.name,
+                "description": obj.description,
+            }
+            for obj in insight.affected_objects
+        ],
+        "insight_references": [
+            {
+                "link_text": ref.link_text,
+                "url": ref.url,
+            }
+            for ref in insight.insight_references
+        ],
+    }
+
+    return schemas.InsightResponse(**response_data)
