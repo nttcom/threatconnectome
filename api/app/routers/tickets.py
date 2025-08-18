@@ -9,6 +9,12 @@ from app.routers.validators.account_validator import check_pteam_membership
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
 
+NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
+NOT_A_PTEAM_MEMBER = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="Not a pteam member",
+)
+
 
 def ticket_to_response(ticket: models.Ticket):
     dependency = ticket.dependency
@@ -126,3 +132,15 @@ def get_tickets(
         total=total_count,
         tickets=[ticket_to_response(ticket) for ticket in tickets],
     )
+
+
+@router.get("/{ticket_id}/insight", response_model=schemas.InsightResponse)
+def get_insight(
+    ticket_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+    if not check_pteam_membership(ticket.dependency.service.pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
