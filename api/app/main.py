@@ -28,17 +28,17 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize default categories in the database
     try:
         SessionLocal = create_session()
-        session = SessionLocal()
+        db = SessionLocal()
         try:
-            ObjectCategory.ensure_default_categories(session)
+            ObjectCategory.ensure_default_categories(db)
             logging.info("Default ObjectCategory categories initialized successfully")
         finally:
-            session.close()
+            db.close()
     except Exception as e:
         logging.error(f"Failed to initialize default ObjectCategory categories: {e}")
-    
+
     yield
-    
+
     # Shutdown: Any cleanup code can go here if needed
 
 
