@@ -592,3 +592,24 @@ class TestCreateInsight:
         response_data.pop("insight_id", None)
         response_data.pop("ticket_id", None)
         assert response_data == insight_request
+
+
+class TestGetInsight:
+    def test_it_should_get_insight(self, ticket_setup):
+        # Given
+        ticket1 = ticket_setup["ticket1"]
+        ticket_id = ticket1["ticket_id"]
+        invitation = invite_to_pteam(USER2, ticket1["pteam_id"])
+        accept_pteam_invitation(USER1, invitation.invitation_id)
+
+        # When
+        response = client.get(
+            f"/tickets/{ticket_id}/insight",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert response_data["insight_id"] is not None
+        assert response_data["ticket_id"] == ticket_id
