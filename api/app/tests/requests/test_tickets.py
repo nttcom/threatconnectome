@@ -530,3 +530,65 @@ class TestGetTickets:
         assert response.status_code == 400
         error_data = response.json()
         assert error_data["detail"] == "Invalid input: Invalid sort key: wrong_sort_key"
+
+
+class TestCreateInsight:
+    def test_it_should_create_insight(self, ticket_setup):
+        # Given
+        ticket1 = ticket_setup["ticket1"]
+        insight_request = {
+            "description": "example insight description",
+            "reasoning_and_planing": "example reasoning and planing",
+            "threat_scenarios": [
+                # {
+                #     "impact_category": "denial_of_control",
+                #     "title": "example threat_scenario title1",
+                #     "description": "example threat_scenario description1",
+                # },
+                # {
+                #     "impact_category": "manipulation_of_view",
+                #     "title": "example threat_scenario title2",
+                #     "description": "example threat_scenario description2",
+                # },
+            ],
+            "affected_objects": [
+                {
+                    "object_category": "person",
+                    "name": "example affected_object name1",
+                    "description": "example affected_object description1",
+                },
+                {
+                    "object_category": "mobile_device",
+                    "name": "example affected_object name2",
+                    "description": "example affected_object description2",
+                },
+            ],
+            "insight_references": [
+                {
+                    "link_text": "example link_text1",
+                    "url": "example url1",
+                },
+                {
+                    "link_text": "example link_text2",
+                    "url": "example url2",
+                },
+            ],
+        }
+
+        # When
+        ticket_id = ticket1["ticket_id"]
+        response = client.post(
+            f"/tickets/{ticket_id}/insight",
+            headers=headers(USER1),
+            json=insight_request,
+        )
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert response_data["insight_id"] is not None
+        assert response_data["ticket_id"] == ticket_id
+
+        response_data.pop("insight_id", None)
+        response_data.pop("ticket_id", None)
+        assert response_data == insight_request

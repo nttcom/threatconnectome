@@ -134,6 +134,80 @@ def get_tickets(
     )
 
 
+@router.post("/{ticket_id}/insight", response_model=schemas.InsightResponse)
+def create_insight(
+    ticket_id: UUID,
+    request: schemas.InsightRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+    if not check_pteam_membership(ticket.dependency.service.pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if ticket.insight is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Insight is not registered for this ticket"
+        )
+    object_categories = persistence.get_object_categories(db)
+    object_category_names = [object_categorie.name for object_categorie in object_categories]
+    for affected_object in request.affected_objects:
+        if affected_object.object_category not in object_category_names:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid object category: {affected_object.object_category}",
+            )
+
+    insight = models.Insight(
+        ticket_id=str(ticket_id),
+        description=request.description,
+        reasoning_and_planing=request.reasoning_and_planing,
+    )
+    persistence.create_insight(db, insight)
+
+    for threat_scenario in request.threat_scenarios:
+        threat_scenario_model = models.ThreatScenario(
+            insight_id=str(insight.insight_id),
+            impact_category=threat_scenario.impact_category,
+            title=threat_scenario.title,
+            description=threat_scenario.description,
+        )
+        persistence.create_threat_scenario(db, threat_scenario_model)
+
+    for affected_object in request.affected_objects:
+        object_category_model = next(
+            (
+                object_category
+                for object_category in object_categories
+                if object_category.name == affected_object.object_category
+            ),
+            None,
+        )
+
+        affected_object_model = models.AffectedObject(
+            insight_id=str(insight.insight_id),
+            object_category=object_category_model,
+            name=affected_object.name,
+            description=affected_object.description,
+        )
+        persistence.create_affected_object(db, affected_object_model)
+
+    for insight_reference in request.insight_references:
+        insight_reference_model = models.InsightReference(
+            insight_id=str(insight.insight_id),
+            link_text=insight_reference.link_text,
+            url=insight_reference.url,
+        )
+        persistence.create_insight_reference(db, insight_reference_model)
+
+    db.commit()
+
+    insight_base = request.model_dump()
+    insight_base["insight_id"] = UUID(insight.insight_id)
+    insight_base["ticket_id"] = ticket_id
+    return schemas.InsightResponse(**insight_base)
+
+
 @router.get("/{ticket_id}/insight", response_model=schemas.InsightResponse)
 def get_insight(
     ticket_id: UUID,

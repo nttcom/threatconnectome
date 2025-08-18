@@ -103,6 +103,35 @@ def delete_affect(db: Session, affect: models.Affect) -> None:
     db.flush()
 
 
+### AffectedObject
+
+
+def create_affected_object(db: Session, affected_object: models.AffectedObject):
+    db.add(affected_object)
+    db.flush()
+
+
+### Insight
+
+
+def create_insight(db: Session, insight: models.Insight):
+    db.add(insight)
+    db.flush()
+
+
+### InsightReference
+
+
+def create_insight_reference(db: Session, insight_reference: models.InsightReference):
+    db.add(insight_reference)
+    db.flush()
+
+
+### ObjectCategory
+def get_object_categories(db: Session) -> Sequence[models.ObjectCategory]:
+    return db.scalars(select(models.ObjectCategory)).all()
+
+
 ### PTeam
 
 
@@ -265,6 +294,14 @@ def get_threat_by_package_version_id_and_vuln_id(
             models.Threat.vuln_id == str(vuln_id),
         )
     ).one_or_none()
+
+
+### ThreatScenario
+
+
+def create_threat_scenario(db: Session, threat_scenario: models.ThreatScenario):
+    db.add(threat_scenario)
+    db.flush()
 
 
 ### Ticket
