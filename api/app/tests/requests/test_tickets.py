@@ -540,16 +540,16 @@ class TestCreateInsight:
             "description": "example insight description",
             "reasoning_and_planing": "example reasoning and planing",
             "threat_scenarios": [
-                # {
-                #     "impact_category": "denial_of_control",
-                #     "title": "example threat_scenario title1",
-                #     "description": "example threat_scenario description1",
-                # },
-                # {
-                #     "impact_category": "manipulation_of_view",
-                #     "title": "example threat_scenario title2",
-                #     "description": "example threat_scenario description2",
-                # },
+                {
+                    "impact_category": "denial_of_control",
+                    "title": "example threat_scenario title1",
+                    "description": "example threat_scenario description1",
+                },
+                {
+                    "impact_category": "manipulation_of_view",
+                    "title": "example threat_scenario title2",
+                    "description": "example threat_scenario description2",
+                },
             ],
             "affected_objects": [
                 {
