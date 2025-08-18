@@ -790,6 +790,13 @@ class Insight(Base):
     description: Mapped[str]
     reasoning_and_planing: Mapped[str]
 
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+
     ticket = relationship("Ticket", back_populates="insight")
     threat_scenarios = relationship(
         "ThreatScenario", back_populates="insight", cascade="all, delete-orphan"

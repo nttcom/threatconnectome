@@ -1,5 +1,6 @@
 import logging
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,8 +23,27 @@ from app.routers import (
 from app.ssvc import deployer_data
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize default categories in the database
+    try:
+        SessionLocal = create_session()
+        session = SessionLocal()
+        try:
+            ObjectCategory.ensure_default_categories(session)
+            logging.info("Default ObjectCategory categories initialized successfully")
+        finally:
+            session.close()
+    except Exception as e:
+        logging.error(f"Failed to initialize default ObjectCategory categories: {e}")
+    
+    yield
+    
+    # Shutdown: Any cleanup code can go here if needed
+
+
 def create_app():
-    app = FastAPI(title="Threatconnectome")
+    app = FastAPI(title="Threatconnectome", lifespan=lifespan)
     origins = [
         "http://localhost:3000",  # dev
         "http://localhost:4173",  # dev: vite preview
@@ -67,20 +87,6 @@ def create_app():
 
     # Dependency injection as needed
     app.dependency_overrides[get_auth_module] = lambda: auth_module
-
-    # スタートアップイベント: 初期カテゴリをDBに追加
-    @app.on_event("startup")
-    async def initialize_default_categories():
-        try:
-            SessionLocal = create_session()
-            session = SessionLocal()
-            try:
-                ObjectCategory.ensure_default_categories(session)
-                logging.info("Default ObjectCategory categories initialized successfully")
-            finally:
-                session.close()
-        except Exception as e:
-            logging.error(f"Failed to initialize default ObjectCategory categories: {e}")
 
     return app
 
