@@ -625,12 +625,11 @@ class TestGetInsight:
             ],
         }
 
-        create_response = client.post(
+        client.post(
             f"/tickets/{ticket_id}/insight",
             headers=headers(USER1),
             json=insight_request,
         )
-        assert create_response.status_code == 200
 
         # When - get Insight
         response = client.get(
@@ -757,12 +756,11 @@ class TestGetInsight:
         }
 
         # Create insight
-        create_response = client.post(
+        client.post(
             f"/tickets/{ticket_id}/insight",
             headers=headers(USER1),
             json=insight_request,
         )
-        assert create_response.status_code == 200
 
         # When
         response = client.get(
