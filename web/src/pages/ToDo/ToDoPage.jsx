@@ -1,4 +1,4 @@
-import { Typography } from "@mui/material";
+import { Typography, useMediaQuery } from "@mui/material";
 import Box from "@mui/material/Box";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -10,11 +10,13 @@ import { errorToString } from "../../utils/func";
 import { createUpdateParamsFunction } from "../../utils/urlUtils";
 
 import { CVESearchField } from "./CVESearchField";
+import VulnerabilityTodoList from "./ToDoMobile";
 import { ToDoTable } from "./ToDoTable";
 
 export function ToDo() {
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md")); // モバイル判定
 
   const params = new URLSearchParams(location.search);
   const myTasks = params.get("mytasks") === "on" || !params.has("mytasks");
@@ -67,23 +69,29 @@ export function ToDo() {
 
   return (
     <>
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        <Android12Switch checked={myTasks} onChange={handleMyTasksChange} />
-        <Typography>My tasks</Typography>
-      </Box>
-      <Box sx={{ mb: 1 }}>
-        <CVESearchField word={cveId} onApply={handleCVESearch} />
-      </Box>
-      <ToDoTable
-        myTasks={myTasks}
-        pteamIds={pteamIds}
-        cveIds={cveId ? [cveId] : []}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        onPageChange={updateParams}
-        sortKey={sortKey}
-        sortDirection={sortDirection}
-      />
+      {isMobile ? (
+        <VulnerabilityTodoList />
+      ) : (
+        <>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Android12Switch checked={myTasks} onChange={handleMyTasksChange} />
+            <Typography>My tasks</Typography>
+          </Box>
+          <Box sx={{ mb: 1 }}>
+            <CVESearchField word={cveId} onApply={handleCVESearch} />
+          </Box>
+          <ToDoTable
+            myTasks={myTasks}
+            pteamIds={pteamIds}
+            cveIds={cveId ? [cveId] : []}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={updateParams}
+            sortKey={sortKey}
+            sortDirection={sortDirection}
+          />
+        </>
+      )}
     </>
   );
 }
