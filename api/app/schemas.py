@@ -235,6 +235,8 @@ class InsightRequest(InsightBase):
 class InsightResponse(InsightBase):
     insight_id: UUID
     ticket_id: UUID
+    created_at: datetime
+    updated_at: datetime
 
 
 class InsighUpdatetRequest(BaseModel):

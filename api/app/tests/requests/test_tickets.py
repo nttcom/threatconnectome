@@ -1,6 +1,8 @@
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
+from dateutil.parser import isoparse
 from fastapi.testclient import TestClient
 
 from app import persistence
@@ -589,8 +591,14 @@ class TestCreateInsight:
         assert response_data["insight_id"] is not None
         assert response_data["ticket_id"] == ticket_id
 
+        now = datetime.now(timezone.utc)
+        assert now - timedelta(seconds=3) <= isoparse(response_data["created_at"]) <= now
+        assert now - timedelta(seconds=3) <= isoparse(response_data["updated_at"]) <= now
+
         response_data.pop("insight_id", None)
         response_data.pop("ticket_id", None)
+        response_data.pop("created_at", None)
+        response_data.pop("updated_at", None)
         assert response_data == insight_request
 
     def test_raise_422_if_ticket_id_does_not_exist(self):

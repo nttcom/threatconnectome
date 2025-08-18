@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -159,10 +160,13 @@ def create_insight(
                 detail=f"Invalid object category: {affected_object.object_category}",
             )
 
+    now = datetime.now(timezone.utc)
     insight = models.Insight(
         ticket_id=str(ticket_id),
         description=request.description,
         reasoning_and_planing=request.reasoning_and_planing,
+        created_at=now,
+        updated_at=now,
     )
     persistence.create_insight(db, insight)
 
@@ -206,4 +210,6 @@ def create_insight(
     insight_base = request.model_dump()
     insight_base["insight_id"] = UUID(insight.insight_id)
     insight_base["ticket_id"] = ticket_id
+    insight_base["created_at"] = now
+    insight_base["updated_at"] = now
     return schemas.InsightResponse(**insight_base)
