@@ -1,9 +1,14 @@
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import DnsOutlinedIcon from "@mui/icons-material/DnsOutlined";
+import FingerprintIcon from "@mui/icons-material/Fingerprint";
+import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import SearchIcon from "@mui/icons-material/Search";
+import SortIcon from "@mui/icons-material/Sort";
 import {
   Box,
   Button,
@@ -12,12 +17,21 @@ import {
   CardContent,
   Chip,
   Divider,
+  Drawer,
   Grid,
   InputAdornment,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+import { useMemo, useState } from "react";
 
 const mockTasks = [
   {
@@ -59,7 +73,39 @@ const getSsvcColorInfo = (ssvc) => {
   }
 };
 
+const sortableKeys = [
+  { key: "cve", label: "CVE", icon: <FingerprintIcon /> },
+  { key: "team", label: "Team", icon: <GroupOutlinedIcon /> },
+  { key: "ssvc", label: "SSVC", icon: <FlagOutlinedIcon /> },
+];
+
 export default function VulnerabilityTodoList() {
+  const [tasks] = useState(mockTasks);
+  const [sortConfig, setSortConfig] = useState({ key: "cve", direction: "ascending" });
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const handleSortKeyChange = (key) => {
+    setSortConfig({ ...sortConfig, key });
+  };
+
+  const handleSortDirectionChange = (event, newDirection) => {
+    if (newDirection !== null) {
+      setSortConfig({ ...sortConfig, direction: newDirection });
+    }
+  };
+
+  const sortedTasks = useMemo(() => {
+    const sortableItems = [...tasks];
+    sortableItems.sort((a, b) => {
+      const comparison = String(a[sortConfig.key]).localeCompare(String(b[sortConfig.key]));
+      return sortConfig.direction === "ascending" ? comparison : -comparison;
+    });
+    return sortableItems;
+  }, [tasks, sortConfig]);
+
+  const currentSortLabel =
+    sortableKeys.find((k) => k.key === sortConfig.key)?.label || sortConfig.key;
+
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Box sx={{ mb: 3 }}>
@@ -76,7 +122,6 @@ export default function VulnerabilityTodoList() {
             ),
             sx: {
               borderRadius: "12px",
-              backdropFilter: "blur(10px)",
               backgroundColor: "background.paper",
               "& fieldset": {
                 borderColor: "rgba(0, 0, 0, 0.2)",
@@ -85,8 +130,75 @@ export default function VulnerabilityTodoList() {
           }}
         />
       </Box>
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <Chip
+          icon={<SortIcon />}
+          label={`${currentSortLabel} (${sortConfig.direction === "ascending" ? "昇順" : "降順"})`}
+          onClick={() => setIsDrawerOpen(true)}
+          clickable
+        />
+      </Box>
+
+      <Drawer
+        anchor="bottom"
+        open={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        PaperProps={{ sx: { borderTopLeftRadius: 16, borderTopRightRadius: 16 } }}
+      >
+        <Box sx={{ p: 2, pb: 3 }}>
+          <Box
+            sx={{
+              width: 40,
+              height: 5,
+              backgroundColor: "grey.300",
+              borderRadius: 3,
+              mx: "auto",
+              mb: 2,
+            }}
+          />
+          <Typography variant="h6" sx={{ textAlign: "center", mb: 2 }}>
+            並び替え
+          </Typography>
+          <ToggleButtonGroup
+            value={sortConfig.direction}
+            exclusive
+            fullWidth
+            onChange={handleSortDirectionChange}
+            sx={{ mb: 2 }}
+          >
+            <ToggleButton value="ascending">
+              <ArrowUpwardIcon sx={{ mr: 1 }} />
+              昇順
+            </ToggleButton>
+            <ToggleButton value="descending">
+              <ArrowDownwardIcon sx={{ mr: 1 }} />
+              降順
+            </ToggleButton>
+          </ToggleButtonGroup>
+          <List>
+            {sortableKeys.map((item) => (
+              <ListItem key={item.key} disablePadding>
+                <ListItemButton
+                  selected={sortConfig.key === item.key}
+                  onClick={() => handleSortKeyChange(item.key)}
+                >
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText primary={item.label} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+          <Box sx={{ textAlign: "center" }}>
+            <Button onClick={() => setIsDrawerOpen(false)} sx={{ mt: 2 }}>
+              Close
+            </Button>
+          </Box>
+        </Box>
+      </Drawer>
+
       <Stack spacing={3}>
-        {mockTasks.map((task) => {
+        {sortedTasks.map((task) => {
           const detailItems = [
             { label: "Team", value: task.team, icon: <GroupOutlinedIcon fontSize="small" /> },
             {
@@ -142,7 +254,7 @@ export default function VulnerabilityTodoList() {
                     }}
                   />
                 </Box>
-                <Divider sx={{ my: 2, borderColor: "rgba(0, 0, 0, 0.1)" }} />{" "}
+                <Divider sx={{ my: 2, borderColor: "rgba(0, 0, 0, 0.1)" }} />
                 <Grid container rowSpacing={2.5} columnSpacing={2}>
                   {detailItems.map((item) => (
                     <Grid item xs={12} sm={6} key={item.label}>
