@@ -204,14 +204,14 @@ class VulnUpdateRequest(VulnBase):
     pass
 
 
-class ThreatScenarios(BaseModel):
+class ThreatScenario(BaseModel):
     impact_category: ImpactCategoryEnum
     title: str
     description: str
 
 
 class AffectedObject(BaseModel):
-    object_category: ObjectCategoryEnum
+    object_category: str
     name: str
     description: str
 
@@ -223,10 +223,10 @@ class InsightReference(BaseModel):
 
 class InsightBase(BaseModel):
     description: str
-    reasoning_logic: str
-    threat_scenarios: list[ThreatScenarios] = []
-    affected_object: list[AffectedObject] = []
-    insight_reference: list[InsightReference] = []
+    reasoning_and_planing: str
+    threat_scenarios: list[ThreatScenario] = []
+    affected_objects: list[AffectedObject] = []
+    insight_references: list[InsightReference] = []
 
 
 class InsightRequest(InsightBase):
@@ -240,8 +240,8 @@ class InsightResponse(InsightBase):
 
 class InsighUpdatetRequest(BaseModel):
     description: str | None = None
-    reasoning_logic: str = None
-    threat_scenarios: list[ThreatScenarios] | None = None
+    reasoning_and_planing: str = None
+    threat_scenarios: list[ThreatScenario] | None = None
     affected_objects: list[AffectedObject] = None
     insight_references: list[InsightReference] = None
 
