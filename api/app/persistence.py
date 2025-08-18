@@ -127,6 +127,11 @@ def create_insight_reference(db: Session, insight_reference: models.InsightRefer
     db.flush()
 
 
+### ObjectCategory
+def get_object_categories(db: Session) -> Sequence[models.ObjectCategory]:
+    return db.scalars(select(models.ObjectCategory)).all()
+
+
 ### PTeam
 
 

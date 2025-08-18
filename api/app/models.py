@@ -140,36 +140,18 @@ class SSVCDeployerPriorityEnum(ComparableStringEnum):
 
 class ImpactCategoryEnum(str, enum.Enum):
     # https://attack.mitre.org/tactics/TA0105/
-    DAMAGE_TO_PROPERTY = "Damage_to_Property"
-    DENIAL_OF_CONTROL = "Denial_of_Control"
-    DENIAL_OF_VIEW = "Denial_of_View"
-    LOSS_OF_AVAILABILITY = "Loss_of_Availability"
-    LOSS_OF_CONTROL = "Loss_of_Control"
-    LOSS_OF_PRODUCTIVITY_AND_REVENUE = "Loss_of_Productivity_and_Revenue"
-    LOSS_OF_PROTECTION = "Loss_of_Protection"
-    LOSS_OF_SAFETY = "Loss_of_Safety"
-    LOSS_OF_VIEW = "Loss_of_View"
-    MANIPULATION_OF_CONTROL = "Manipulation_of_Control"
-    MANIPULATION_OF_VIEW = "Manipulation_of_View"
-    THEFT_OF_OPERATIONAL_INFORMATION = "Theft_of_Operational_Information"
-
-
-class ObjectCategoryEnum(str, enum.Enum):
-    # https://attack.mitre.org/assets/
-    APPLICATION_SERVER = "Application Server"  # A0008
-    CONTROL_SERVER = "Control Server"  # A0007
-    DATA_GATEWAY = "Data Gateway"  # A0009
-    DATA_HISTORIAN = "Data Historian"  # A0006
-    FIELD_IO = "Field I/O"  # A0013
-    HUMAN_MACHINE_INTERFACE = "Human-Machine Interface"  # A0002 - HMI
-    INTELLIGENT_ELECTRONIC_DEVICE = "Intelligent Electronic Device"  # A0005 - IED
-    JUMP_HOST = "Jump Host"  # A0012
-    PROGRAMMABLE_LOGIC_CONTROLLER = "Programmable Logic Controller"  # A0003 - PLC
-    REMOTE_TERMINAL_UNIT = "Remote Terminal Unit"  # A0004 - RTU
-    ROUTERS = "Routers"  # A0014
-    SAFETY_CONTROLLER = "Safety Controller"  # A0010
-    VPN_SERVER = "VPN Server"  # A0011
-    WORKSTATION = "Workstation"  # A0001
+    DAMAGE_TO_PROPERTY = "damage_to_property"
+    DENIAL_OF_CONTROL = "denial_of_control"
+    DENIAL_OF_VIEW = "denial_of_view"
+    LOSS_OF_AVAILABILITY = "loss_of_availability"
+    LOSS_OF_CONTROL = "loss_of_control"
+    LOSS_OF_PRODUCTIVITY_AND_REVENUE = "loss_of_productivity_and_revenue"
+    LOSS_OF_PROTECTION = "loss_of_protection"
+    LOSS_OF_SAFETY = "loss_of_safety"
+    LOSS_OF_VIEW = "loss_of_view"
+    MANIPULATION_OF_CONTROL = "manipulation_of_control"
+    MANIPULATION_OF_VIEW = "manipulation_of_view"
+    THEFT_OF_OPERATIONAL_INFORMATION = "theft_of_operational_information"
 
 
 # Base class
@@ -521,7 +503,9 @@ class Ticket(Base):
     threat = relationship("Threat", uselist=False, back_populates="tickets")
     alerts = relationship("Alert", back_populates="ticket")
     ticket_status = relationship("TicketStatus", uselist=False, cascade="all, delete-orphan")
-    insight = relationship("Insight", back_populates="ticket", uselist=False)
+    insight = relationship(
+        "Insight", uselist=False, back_populates="ticket", cascade="all, delete-orphan"
+    )
 
 
 class TicketStatus(Base):
@@ -580,89 +564,6 @@ class Alert(Base):
     alert_content: Mapped[str | None] = mapped_column(nullable=True)  # WORKAROUND
 
     ticket = relationship("Ticket", back_populates="alerts")
-
-
-class Insight(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.insight_id:
-            self.insight_id = str(uuid.uuid4())
-
-    __tablename__ = "insight"
-
-    insight_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    ticket_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True
-    )
-    description: Mapped[str]
-    reasoning_and_planing: Mapped[str]
-
-    ticket = relationship("Ticket", back_populates="insights")
-    threat_scenarios = relationship(
-        "ThreatScenario", back_populates="insight", cascade="all, delete-orphan"
-    )
-    affected_objects = relationship(
-        "AffectedObject", back_populates="insight", cascade="all, delete-orphan"
-    )
-    insight_references = relationship(
-        "InsightReference", back_populates="insight", cascade="all, delete-orphan"
-    )
-
-
-class ThreatScenario(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.threat_scenario_id:
-            self.threat_scenario_id = str(uuid.uuid4())
-
-    __tablename__ = "threatscenario"
-
-    threat_scenario_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    insight_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
-    )
-    impact_category: Mapped[ImpactCategoryEnum]
-    title: Mapped[Str255]
-    description: Mapped[str]
-
-    insight = relationship("Insight", back_populates="threat_scenarios")
-
-
-class AffectedObject(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.object_id:
-            self.object_id = str(uuid.uuid4())
-
-    __tablename__ = "affectedobject"
-
-    object_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    insight_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
-    )
-    object_category: Mapped[ObjectCategoryEnum]
-    name: Mapped[Str255]
-    description: Mapped[str]
-
-    insight = relationship("Insight", back_populates="affected_objects")
-
-
-class InsightReference(Base):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.insight_reference_id:
-            self.insight_reference_id = str(uuid.uuid4())
-
-    __tablename__ = "insightreference"
-
-    insight_reference_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    insight_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
-    )
-    link_text: Mapped[Str255]
-    url: Mapped[Str255]
-
-    insight = relationship("Insight", back_populates="insight_references")
 
 
 class PTeam(Base):
@@ -872,3 +773,139 @@ class PTeamInvitation(Base):
 
     pteam = relationship("PTeam", back_populates="invitations")
     inviter = relationship("Account", back_populates="pteam_invitations")
+
+
+class Insight(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.insight_id:
+            self.insight_id = str(uuid.uuid4())
+
+    __tablename__ = "insight"
+
+    insight_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    ticket_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True, unique=True
+    )
+    description: Mapped[str]
+    reasoning_and_planing: Mapped[str]
+
+    ticket = relationship("Ticket", back_populates="insight")
+    threat_scenarios = relationship(
+        "ThreatScenario", back_populates="insight", cascade="all, delete-orphan"
+    )
+    affected_objects = relationship(
+        "AffectedObject", back_populates="insight", cascade="all, delete-orphan"
+    )
+    insight_references = relationship(
+        "InsightReference", back_populates="insight", cascade="all, delete-orphan"
+    )
+
+
+class ThreatScenario(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.threat_scenario_id:
+            self.threat_scenario_id = str(uuid.uuid4())
+
+    __tablename__ = "threatscenario"
+
+    threat_scenario_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    insight_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
+    )
+    impact_category: Mapped[ImpactCategoryEnum]
+    title: Mapped[Str255]
+    description: Mapped[str]
+
+    insight = relationship("Insight", back_populates="threat_scenarios")
+
+
+class AffectedObject(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.object_id:
+            self.object_id = str(uuid.uuid4())
+
+    __tablename__ = "affectedobject"
+
+    object_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    insight_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
+    )
+    object_category_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("objectcategory.object_category_id"), index=True
+    )
+    name: Mapped[Str255]
+    description: Mapped[str]
+
+    insight = relationship("Insight", back_populates="affected_objects")
+    object_category = relationship("ObjectCategory")
+
+
+class InsightReference(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.insight_reference_id:
+            self.insight_reference_id = str(uuid.uuid4())
+
+    __tablename__ = "insightreference"
+
+    insight_reference_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    insight_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
+    )
+    link_text: Mapped[Str255]
+    url: Mapped[Str255]
+
+    insight = relationship("Insight", back_populates="insight_references")
+
+
+class ObjectCategory(Base):
+    """
+    Dynamic object category management table.
+    Allows adding/updating categories without code changes.
+    """
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.object_category_id:
+            self.object_category_id = str(uuid.uuid4())
+
+    __tablename__ = "objectcategory"
+
+    DEFAULT_CATEGORIES = [
+        "server",
+        "client_device",
+        "mobile_device",
+        "network_device",
+        "storage",
+        "iot_device",
+        "physical_media",
+        "facility",
+        "person",
+    ]
+
+    object_category_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    name: Mapped[Str255] = mapped_column(unique=True)
+
+    @classmethod
+    def ensure_default_categories(cls, session):
+        """
+        Ensure default categories exist in the database.
+        Call this method when needed to auto-populate categories.
+        """
+        # Check which default categories are missing
+        existing_names = {
+            name
+            for (name,) in session.query(cls.name)
+            .filter(cls.name.in_(cls.DEFAULT_CATEGORIES))
+            .all()
+        }
+        missing_categories = [name for name in cls.DEFAULT_CATEGORIES if name not in existing_names]
+
+        if missing_categories:
+            for category_name in missing_categories:
+                category = cls(name=category_name)
+                session.add(category)
+            session.commit()

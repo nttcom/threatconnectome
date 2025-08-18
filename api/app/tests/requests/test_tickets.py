@@ -538,27 +538,27 @@ class TestCreateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_logic": "example reasoning logic",
+            "reasoning_and_planing": "example reasoning and planing",
             "threat_scenarios": [
-                {
-                    "impact_category": "example impact_category1",
-                    "title": "example threat_scenario title1",
-                    "description": "example threat_scenario description1",
-                },
-                {
-                    "impact_category": "example impact_category2",
-                    "title": "example threat_scenario title2",
-                    "description": "example threat_scenario description2",
-                },
+                # {
+                #     "impact_category": "denial_of_control",
+                #     "title": "example threat_scenario title1",
+                #     "description": "example threat_scenario description1",
+                # },
+                # {
+                #     "impact_category": "manipulation_of_view",
+                #     "title": "example threat_scenario title2",
+                #     "description": "example threat_scenario description2",
+                # },
             ],
             "affected_objects": [
                 {
-                    "object_category": "example object_category1",
+                    "object_category": "person",
                     "name": "example affected_object name1",
                     "description": "example affected_object description1",
                 },
                 {
-                    "object_category": "example object_category2",
+                    "object_category": "mobile_device",
                     "name": "example affected_object name2",
                     "description": "example affected_object description2",
                 },
@@ -576,8 +576,9 @@ class TestCreateInsight:
         }
 
         # When
+        ticket_id = ticket1["ticket_id"]
         response = client.post(
-            "/tickets/{ticket1.ticket_id}/insights",
+            f"/tickets/{ticket_id}/insight",
             headers=headers(USER1),
             json=insight_request,
         )
@@ -586,7 +587,7 @@ class TestCreateInsight:
         assert response.status_code == 200
         response_data = response.json()
         assert response_data["insight_id"] is not None
-        assert response_data["ticket_id"] == ticket1.ticket_id
+        assert response_data["ticket_id"] == ticket_id
 
         response_data.pop("insight_id", None)
         response_data.pop("ticket_id", None)

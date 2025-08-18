@@ -12,7 +12,6 @@ from app.models import (
     ExploitationEnum,
     ImpactCategoryEnum,
     MissionImpactEnum,
-    ObjectCategoryEnum,
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
     SystemExposureEnum,
@@ -204,14 +203,14 @@ class VulnUpdateRequest(VulnBase):
     pass
 
 
-class ThreatScenarios(BaseModel):
+class ThreatScenario(BaseModel):
     impact_category: ImpactCategoryEnum
     title: str
     description: str
 
 
 class AffectedObject(BaseModel):
-    object_category: ObjectCategoryEnum
+    object_category: str
     name: str
     description: str
 
@@ -223,8 +222,8 @@ class InsightReference(BaseModel):
 
 class InsightBase(BaseModel):
     description: str
-    reasoning_logic: str
-    threat_scenarios: list[ThreatScenarios] = []
+    reasoning_and_planing: str
+    threat_scenarios: list[ThreatScenario] = []
     affected_objects: list[AffectedObject] = []
     insight_references: list[InsightReference] = []
 
@@ -240,10 +239,10 @@ class InsightResponse(InsightBase):
 
 class InsighUpdatetRequest(BaseModel):
     description: str | None = None
-    reasoning_logic: str | None = None
-    threat_scenarios: list[ThreatScenarios] | None = None
-    affected_object: list[AffectedObject] | None = None
-    insight_reference: list[InsightReference] | None = None
+    reasoning_and_planing: str | None = None
+    threat_scenarios: list[ThreatScenario] | None = None
+    affected_objects: list[AffectedObject] | None = None
+    insight_references: list[InsightReference] | None = None
 
 
 class PTeamInfo(PTeamEntry):
