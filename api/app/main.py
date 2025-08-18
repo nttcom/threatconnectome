@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import inspect
 
 from app.auth.auth_module import get_auth_module
 from app.auth.firebase_auth_module import FirebaseAuthModule
@@ -26,20 +27,14 @@ from app.ssvc import deployer_data
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize default categories in the database
-    try:
-        SessionLocal = create_session()
-        db = SessionLocal()
-        try:
+    SessionLocal = create_session()
+    with SessionLocal() as db:
+        inspector = inspect(db.bind)
+        if 'objectcategory' in inspector.get_table_names():
             ObjectCategory.ensure_default_categories(db)
             logging.info("Default ObjectCategory categories initialized successfully")
-        finally:
-            db.close()
-    except Exception as e:
-        logging.error(f"Failed to initialize default ObjectCategory categories: {e}")
 
     yield
-
-    # Shutdown: Any cleanup code can go here if needed
 
 
 def create_app():
