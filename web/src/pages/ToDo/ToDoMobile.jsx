@@ -46,22 +46,22 @@ const mockTasks = [
   },
 ];
 
-const getSsvcChipColor = (ssvc) => {
+const getSsvcColorInfo = (ssvc) => {
   switch (ssvc) {
     case "SCHEDULED":
-      return "warning";
+      return { main: "#f57c00", glow: "#ffa726" };
     case "IMMEDIATE":
-      return "error";
+      return { main: "#d32f2f", glow: "#ef5350" };
     case "OUT_OF_CYCLE":
-      return "info";
+      return { main: "#0288d1", glow: "#29b6f6" };
     default:
-      return "default";
+      return { main: "#616161", glow: "#9e9e9e" };
   }
 };
 
 export default function VulnerabilityTodoList() {
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Box sx={{ mb: 3 }}>
         <TextField
           fullWidth
@@ -76,50 +76,49 @@ export default function VulnerabilityTodoList() {
             ),
             sx: {
               borderRadius: "12px",
+              backdropFilter: "blur(10px)",
               backgroundColor: "background.paper",
-              border: "1px solid #e0e0e0",
+              "& fieldset": {
+                borderColor: "rgba(0, 0, 0, 0.2)",
+              },
             },
           }}
         />
       </Box>
-      <Stack spacing={2}>
+      <Stack spacing={3}>
         {mockTasks.map((task) => {
           const detailItems = [
-            {
-              label: "Team",
-              value: task.team,
-              icon: <GroupOutlinedIcon fontSize="small" color="action" />,
-            },
+            { label: "Team", value: task.team, icon: <GroupOutlinedIcon fontSize="small" /> },
             {
               label: "Package",
               value: task.package,
-              icon: <Inventory2OutlinedIcon fontSize="small" color="action" />,
+              icon: <Inventory2OutlinedIcon fontSize="small" />,
             },
             {
               label: "Assignee",
               value: task.assignee,
-              icon: <PersonOutlineIcon fontSize="small" color="action" />,
+              icon: <PersonOutlineIcon fontSize="small" />,
             },
-            {
-              label: "Service",
-              value: task.service,
-              icon: <DnsOutlinedIcon fontSize="small" color="action" />,
-            },
+            { label: "Service", value: task.service, icon: <DnsOutlinedIcon fontSize="small" /> },
           ];
+          const colorInfo = getSsvcColorInfo(task.ssvc);
 
           return (
             <Card
               key={task.cve}
               sx={{
-                backgroundColor: "#ffffff",
-                borderRadius: "16px",
-                boxShadow: "none",
-                border: "2px solid #e0e0e0",
-                transition: "border-color 0.2s ease",
-                "&:hover": { borderColor: "#c0c0c0" },
+                borderRadius: 5,
+                border: "2px solid rgba(0, 0, 0, 0.15)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                cursor: "pointer",
+                transition: "transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out",
+                "&:active:not(:has(button:active))": {
+                  transform: "scale(0.98) translateY(2px)",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                },
               }}
             >
-              <CardContent sx={{ pt: 2, px: 2 }}>
+              <CardContent sx={{ pt: 3, px: 3 }}>
                 <Box
                   sx={{
                     display: "flex",
@@ -130,28 +129,39 @@ export default function VulnerabilityTodoList() {
                     mb: 2,
                   }}
                 >
-                  <Typography variant="h6" component="div" fontWeight={600}>
+                  <Typography variant="h6" component="div" fontWeight={600} color="text.primary">
                     {task.cve}
                   </Typography>
                   <Chip
                     label={task.ssvc}
-                    color={getSsvcChipColor(task.ssvc)}
                     size="small"
-                    variant="filled"
-                    sx={{ fontWeight: 500, flexShrink: 0 }}
+                    sx={{
+                      fontWeight: 600,
+                      color: "#fff",
+                      backgroundColor: colorInfo.main,
+                    }}
                   />
                 </Box>
-                <Divider sx={{ my: 2 }} />
-                <Grid container rowSpacing={2} columnSpacing={2}>
+                <Divider sx={{ my: 2, borderColor: "rgba(0, 0, 0, 0.1)" }} />{" "}
+                <Grid container rowSpacing={2.5} columnSpacing={2}>
                   {detailItems.map((item) => (
                     <Grid item xs={12} sm={6} key={item.label}>
                       <Typography variant="caption" color="text.secondary">
                         {item.label}
                       </Typography>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mt: 0.5,
+                          color: "text.secondary",
+                        }}
+                      >
                         {item.icon}
                         <Typography
                           variant="body2"
+                          color="text.primary"
                           sx={{
                             overflowWrap: "break-word",
                             minWidth: 0,
@@ -164,14 +174,17 @@ export default function VulnerabilityTodoList() {
                   ))}
                 </Grid>
               </CardContent>
-
               <CardActions sx={{ p: 2, justifyContent: "flex-end" }}>
                 <Button
                   size="medium"
                   variant="contained"
-                  color="primary"
                   endIcon={<ChevronRightIcon />}
-                  sx={{ borderRadius: "12px", textTransform: "none", fontWeight: 600, py: 1 }}
+                  sx={{
+                    borderRadius: "12px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    py: 1,
+                  }}
                 >
                   詳細を見る
                 </Button>
