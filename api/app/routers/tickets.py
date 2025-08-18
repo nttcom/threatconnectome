@@ -147,7 +147,8 @@ def create_insight(
         raise NOT_A_PTEAM_MEMBER
     if ticket.insight is not None:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Insight is not registered for this ticket"
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Insight is already registered for this ticket",
         )
     object_categories = persistence.get_object_categories(db)
     object_category_names = [object_categorie.name for object_categorie in object_categories]

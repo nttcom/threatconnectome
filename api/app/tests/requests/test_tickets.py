@@ -655,7 +655,7 @@ class TestCreateInsight:
 
         # Then
         assert response.status_code == 409
-        assert response.json()["detail"] == "Insight is not registered for this ticket"
+        assert response.json()["detail"] == "Insight is already registered for this ticket"
 
     def test_it_should_return_400_when_invalid_object_category(self, ticket_setup):
         # Given
