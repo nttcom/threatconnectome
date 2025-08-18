@@ -239,7 +239,7 @@ class InsightResponse(InsightBase):
     updated_at: datetime
 
 
-class InsighUpdatetRequest(BaseModel):
+class InsightUpdatetRequest(BaseModel):
     description: str | None = None
     reasoning_and_planing: str | None = None
     threat_scenarios: list[ThreatScenario] | None = None
