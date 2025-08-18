@@ -60,15 +60,6 @@ const getSsvcChipColor = (ssvc) => {
 };
 
 export default function VulnerabilityTodoList() {
-  const lineClampStyle = {
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    display: "-webkit-box",
-    WebkitLineClamp: "2",
-    WebkitBoxOrient: "vertical",
-    overflowWrap: "break-word",
-  };
-
   return (
     <Box sx={{ p: 2 }}>
       <Box sx={{ mb: 3 }}>
@@ -159,7 +150,13 @@ export default function VulnerabilityTodoList() {
                       </Typography>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
                         {item.icon}
-                        <Typography variant="body2" sx={lineClampStyle}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            overflowWrap: "break-word",
+                            minWidth: 0,
+                          }}
+                        >
                           {item.value}
                         </Typography>
                       </Box>
