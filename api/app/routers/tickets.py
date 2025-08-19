@@ -151,14 +151,6 @@ def create_insight(
             status_code=status.HTTP_409_CONFLICT,
             detail="Insight is already registered for this ticket",
         )
-    object_categories = persistence.get_object_categories(db)
-    object_category_names = [object_categorie.name for object_categorie in object_categories]
-    for affected_object in request.affected_objects:
-        if affected_object.object_category not in object_category_names:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid object category: {affected_object.object_category}",
-            )
 
     now = datetime.now(timezone.utc)
     insight = models.Insight(
@@ -180,18 +172,9 @@ def create_insight(
         persistence.create_threat_scenario(db, threat_scenario_model)
 
     for affected_object in request.affected_objects:
-        object_category_model = next(
-            (
-                object_category
-                for object_category in object_categories
-                if object_category.name == affected_object.object_category
-            ),
-            None,
-        )
-
         affected_object_model = models.AffectedObject(
             insight_id=str(insight.insight_id),
-            object_category=object_category_model,
+            object_category=affected_object.object_category,
             name=affected_object.name,
             description=affected_object.description,
         )
