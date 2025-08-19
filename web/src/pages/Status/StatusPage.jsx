@@ -351,15 +351,18 @@ export function Status() {
     navigate(location.pathname + "?" + params.toString());
   };
 
-  function navigatePackagePage(packageId) {
+  function navigatePackagePage(targetServiceId, packageId) {
     const preservedParams = preserveParams(location.search);
+    preservedParams.set("serviceId", targetServiceId);
+    if (params.get("page")) {
+      preservedParams.set("page", params.get("page"));
+    }
     navigate(`/packages/${packageId}?${preservedParams.toString()}`);
   }
 
   const handleNavigateServiceList = (packageId, packageName, serviceIds) => {
     if (serviceIds.length === 1) {
-      params.set("serviceId", serviceIds[0]);
-      navigatePackagePage(packageId);
+      navigatePackagePage(serviceIds[0], packageId);
     } else {
       setSelectedPackageInfo({
         packageId: packageId,
@@ -370,7 +373,7 @@ export function Status() {
     }
   };
 
-  const handleNavigatePackage = (packageId) => navigatePackagePage(packageId);
+  const handleNavigatePackage = (packageId) => navigatePackagePage(serviceId, packageId);
 
   const handleAllServices = () => {
     setIsActiveUploadMode(0);
