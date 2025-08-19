@@ -606,7 +606,7 @@ class TestCreateInsight:
         response_data.pop("updated_at", None)
         assert response_data == insight_request
 
-    def test_raise_422_if_ticket_id_does_not_exist(self):
+    def test_raise_404_if_ticket_id_does_not_exist(self):
         # Given
         insight_request = {
             "description": "example insight description",
@@ -614,7 +614,7 @@ class TestCreateInsight:
         }
 
         # When
-        ticket_id = "wrong ticket_id"
+        ticket_id = str(uuid4())
         response = client.post(
             f"/tickets/{ticket_id}/insight",
             headers=headers(USER1),
@@ -622,8 +622,9 @@ class TestCreateInsight:
         )
 
         # Then
-        assert response.status_code == 422
-        assert response.json()["detail"][0]["msg"].startswith("Input should be a valid UUID")
+        assert response.status_code == 404
+        print("testes :", response.json()["detail"])
+        assert response.json()["detail"] == "No such ticket"
 
     def test_it_should_return_403_when_not_pteam_member(self, ticket_setup):
         # Given
