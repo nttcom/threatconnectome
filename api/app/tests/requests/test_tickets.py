@@ -623,7 +623,6 @@ class TestCreateInsight:
 
         # Then
         assert response.status_code == 404
-        print("testes :", response.json()["detail"])
         assert response.json()["detail"] == "No such ticket"
 
     def test_it_should_return_403_when_not_pteam_member(self, ticket_setup):
