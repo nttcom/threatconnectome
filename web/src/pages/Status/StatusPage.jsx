@@ -39,7 +39,7 @@ import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../service
 import { APIError } from "../../utils/APIError";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { preserveMyTasksParam } from "../../utils/urlUtils";
+import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
 import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetails/PTeamServiceDetailsResponsive";
@@ -352,10 +352,8 @@ export function Status() {
   };
 
   function navigatePackagePage(packageId) {
-    for (let key of ["priorityFilter", "word", "perPage", "page"]) {
-      params.delete(key);
-    }
-    navigate(`/packages/${packageId}?${params.toString()}`);
+    const preservedParams = preserveParams(location.search);
+    navigate(`/packages/${packageId}?${preservedParams.toString()}`);
   }
 
   const handleNavigateServiceList = (packageId, packageName, serviceIds) => {
