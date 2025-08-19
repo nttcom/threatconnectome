@@ -12,6 +12,7 @@ from app.models import (
     ExploitationEnum,
     ImpactCategoryEnum,
     MissionImpactEnum,
+    ObjectCategoryEnum,
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
     SystemExposureEnum,
@@ -210,7 +211,7 @@ class ThreatScenario(BaseModel):
 
 
 class AffectedObject(BaseModel):
-    object_category: str
+    object_category: ObjectCategoryEnum
     name: str
     description: str
 
