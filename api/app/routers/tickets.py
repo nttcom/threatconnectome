@@ -235,6 +235,8 @@ def get_insight(
         "ticket_id": ticket_id,
         "description": insight.description,
         "reasoning_and_planing": insight.reasoning_and_planing,
+        "created_at": insight.created_at,
+        "updated_at": insight.updated_at,
         "threat_scenarios": [
             {
                 "impact_category": scenario.impact_category,
