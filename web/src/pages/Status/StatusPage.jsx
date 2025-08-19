@@ -354,9 +354,6 @@ export function Status() {
   function navigatePackagePage(targetServiceId, packageId) {
     const preservedParams = preserveParams(location.search);
     preservedParams.set("serviceId", targetServiceId);
-    if (params.get("page")) {
-      preservedParams.set("page", params.get("page"));
-    }
     navigate(`/packages/${packageId}?${preservedParams.toString()}`);
   }
 
