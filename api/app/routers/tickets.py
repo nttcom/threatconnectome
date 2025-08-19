@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -9,6 +10,12 @@ from app.auth.account import get_current_user
 from app.routers.validators.account_validator import check_pteam_membership
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
+
+NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
+NOT_A_PTEAM_MEMBER = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="Not a pteam member",
+)
 
 NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 NOT_A_PTEAM_MEMBER = HTTPException(
@@ -133,6 +140,68 @@ def get_tickets(
         total=total_count,
         tickets=[ticket_to_response(ticket) for ticket in tickets],
     )
+
+
+@router.post("/{ticket_id}/insight", response_model=schemas.InsightResponse)
+def create_insight(
+    ticket_id: UUID,
+    request: schemas.InsightRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+    if not check_pteam_membership(ticket.dependency.service.pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if ticket.insight is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Insight is already registered for this ticket",
+        )
+
+    now = datetime.now(timezone.utc)
+    insight = models.Insight(
+        ticket_id=str(ticket_id),
+        description=request.description,
+        reasoning_and_planing=request.reasoning_and_planing,
+        created_at=now,
+        updated_at=now,
+    )
+    persistence.create_insight(db, insight)
+
+    for threat_scenario in request.threat_scenarios:
+        threat_scenario_model = models.ThreatScenario(
+            insight_id=str(insight.insight_id),
+            impact_category=threat_scenario.impact_category,
+            title=threat_scenario.title,
+            description=threat_scenario.description,
+        )
+        persistence.create_threat_scenario(db, threat_scenario_model)
+
+    for affected_object in request.affected_objects:
+        affected_object_model = models.AffectedObject(
+            insight_id=str(insight.insight_id),
+            object_category=affected_object.object_category,
+            name=affected_object.name,
+            description=affected_object.description,
+        )
+        persistence.create_affected_object(db, affected_object_model)
+
+    for insight_reference in request.insight_references:
+        insight_reference_model = models.InsightReference(
+            insight_id=str(insight.insight_id),
+            link_text=insight_reference.link_text,
+            url=insight_reference.url,
+        )
+        persistence.create_insight_reference(db, insight_reference_model)
+
+    db.commit()
+
+    insight_base = request.model_dump()
+    insight_base["ticket_id"] = ticket_id
+    insight_base["created_at"] = now
+    insight_base["updated_at"] = now
+    return schemas.InsightResponse(**insight_base)
 
 
 @router.delete("/{ticket_id}/insight", status_code=status.HTTP_204_NO_CONTENT)

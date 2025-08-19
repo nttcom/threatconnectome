@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
@@ -530,6 +531,144 @@ class TestGetTickets:
         assert response.status_code == 400
         error_data = response.json()
         assert error_data["detail"] == "Invalid input: Invalid sort key: wrong_sort_key"
+
+
+class TestCreateInsight:
+    def test_it_should_create_insight(self, ticket_setup):
+        # Given
+        ticket1 = ticket_setup["ticket1"]
+        insight_request = {
+            "description": "example insight description",
+            "reasoning_and_planing": "example reasoning and planing",
+            "threat_scenarios": [
+                {
+                    "impact_category": "denial_of_control",
+                    "title": "example threat_scenario title1",
+                    "description": "example threat_scenario description1",
+                },
+                {
+                    "impact_category": "manipulation_of_view",
+                    "title": "example threat_scenario title2",
+                    "description": "example threat_scenario description2",
+                },
+            ],
+            "affected_objects": [
+                {
+                    "object_category": "person",
+                    "name": "example affected_object name1",
+                    "description": "example affected_object description1",
+                },
+                {
+                    "object_category": "mobile_device",
+                    "name": "example affected_object name2",
+                    "description": "example affected_object description2",
+                },
+            ],
+            "insight_references": [
+                {
+                    "link_text": "example link_text1",
+                    "url": "example url1",
+                },
+                {
+                    "link_text": "example link_text2",
+                    "url": "example url2",
+                },
+            ],
+        }
+
+        # When
+        ticket_id = ticket1["ticket_id"]
+        response = client.post(
+            f"/tickets/{ticket_id}/insight",
+            headers=headers(USER1),
+            json=insight_request,
+        )
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert response_data["ticket_id"] == ticket_id
+
+        now = datetime.now(timezone.utc)
+        assert (
+            now - timedelta(seconds=3)
+            <= datetime.fromisoformat(response_data["created_at"].replace("Z", "+00:00"))
+            <= now
+        )
+        assert (
+            now - timedelta(seconds=3)
+            <= datetime.fromisoformat(response_data["updated_at"].replace("Z", "+00:00"))
+            <= now
+        )
+
+        response_data.pop("ticket_id", None)
+        response_data.pop("created_at", None)
+        response_data.pop("updated_at", None)
+        assert response_data == insight_request
+
+    def test_raise_404_if_ticket_id_does_not_exist(self):
+        # Given
+        insight_request = {
+            "description": "example insight description",
+            "reasoning_and_planing": "example reasoning and planing",
+        }
+
+        # When
+        ticket_id = str(uuid4())
+        response = client.post(
+            f"/tickets/{ticket_id}/insight",
+            headers=headers(USER1),
+            json=insight_request,
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such ticket"
+
+    def test_it_should_return_403_when_not_pteam_member(self, ticket_setup):
+        # Given
+        ticket1 = ticket_setup["ticket1"]
+        insight_request = {
+            "description": "example insight description",
+            "reasoning_and_planing": "example reasoning and planing",
+        }
+
+        # When
+        ticket_id = ticket1["ticket_id"]
+        response = client.post(
+            f"/tickets/{ticket_id}/insight",
+            headers=headers(USER2),
+            json=insight_request,
+        )
+
+        # Then
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Not a pteam member"
+
+    def test_it_should_return_409_when_specified_duplicate_ticlket_id(self, ticket_setup):
+        # Given
+        ticket1 = ticket_setup["ticket1"]
+        insight_request = {
+            "description": "example insight description",
+            "reasoning_and_planing": "example reasoning and planing",
+        }
+        ticket_id = ticket1["ticket_id"]
+        response = client.post(
+            f"/tickets/{ticket_id}/insight",
+            headers=headers(USER1),
+            json=insight_request,
+        )
+
+        # When
+        response = client.post(
+            f"/tickets/{ticket_id}/insight",
+            headers=headers(USER1),
+            json=insight_request,
+        )
+
+        # Then
+        assert response.status_code == 409
+        assert response.json()["detail"] == "Insight is already registered for this ticket"
 
 
 class TestDeleteInsight:
