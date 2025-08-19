@@ -232,7 +232,6 @@ def get_insight(
     insight = ticket.insight
 
     response_data = {
-        "insight_id": UUID(insight.insight_id),
         "ticket_id": ticket_id,
         "description": insight.description,
         "reasoning_and_planing": insight.reasoning_and_planing,
