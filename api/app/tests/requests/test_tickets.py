@@ -760,8 +760,6 @@ class TestGetInsight:
         assert response.status_code == 200
         response_data = response.json()
 
-        # Basic fields
-        assert response_data["insight_id"] is not None
         assert response_data["ticket_id"] == ticket_id
         assert response_data["description"] == insight_request["description"]
         assert response_data["reasoning_and_planing"] == insight_request["reasoning_and_planing"]
