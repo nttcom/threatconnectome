@@ -139,11 +139,31 @@ class SSVCDeployerPriorityEnum(ComparableStringEnum):
 
 
 class ImpactCategoryEnum(str, enum.Enum):
-    pass
+    # https://attack.mitre.org/tactics/TA0105/
+    DAMAGE_TO_PROPERTY = "damage_to_property"
+    DENIAL_OF_CONTROL = "denial_of_control"
+    DENIAL_OF_VIEW = "denial_of_view"
+    LOSS_OF_AVAILABILITY = "loss_of_availability"
+    LOSS_OF_CONTROL = "loss_of_control"
+    LOSS_OF_PRODUCTIVITY_AND_REVENUE = "loss_of_productivity_and_revenue"
+    LOSS_OF_PROTECTION = "loss_of_protection"
+    LOSS_OF_SAFETY = "loss_of_safety"
+    LOSS_OF_VIEW = "loss_of_view"
+    MANIPULATION_OF_CONTROL = "manipulation_of_control"
+    MANIPULATION_OF_VIEW = "manipulation_of_view"
+    THEFT_OF_OPERATIONAL_INFORMATION = "theft_of_operational_information"
 
 
 class ObjectCategoryEnum(str, enum.Enum):
-    pass
+    SERVER = "server"
+    CLIENT_DEVICE = "client_device"
+    MOBILE_DEVICE = "mobile_device"
+    NETWORK_DEVICE = "network_device"
+    STORAGE = "storage"
+    IOT_DEVICE = "iot_device"
+    PHYSICAL_MEDIA = "physical_media"
+    FACILITY = "facility"
+    PERSON = "person"
 
 
 # Base class
@@ -495,6 +515,9 @@ class Ticket(Base):
     threat = relationship("Threat", uselist=False, back_populates="tickets")
     alerts = relationship("Alert", back_populates="ticket")
     ticket_status = relationship("TicketStatus", uselist=False, cascade="all, delete-orphan")
+    insight = relationship(
+        "Insight", uselist=False, back_populates="ticket", cascade="all, delete-orphan"
+    )
 
 
 class TicketStatus(Base):
@@ -762,3 +785,93 @@ class PTeamInvitation(Base):
 
     pteam = relationship("PTeam", back_populates="invitations")
     inviter = relationship("Account", back_populates="pteam_invitations")
+
+
+class Insight(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.insight_id:
+            self.insight_id = str(uuid.uuid4())
+
+    __tablename__ = "insight"
+
+    insight_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    ticket_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True, unique=True
+    )
+    description: Mapped[str]
+    reasoning_and_planing: Mapped[str]
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+
+    ticket = relationship("Ticket", back_populates="insight")
+    threat_scenarios = relationship(
+        "ThreatScenario", back_populates="insight", cascade="all, delete-orphan"
+    )
+    affected_objects = relationship(
+        "AffectedObject", back_populates="insight", cascade="all, delete-orphan"
+    )
+    insight_references = relationship(
+        "InsightReference", back_populates="insight", cascade="all, delete-orphan"
+    )
+
+
+class ThreatScenario(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.threat_scenario_id:
+            self.threat_scenario_id = str(uuid.uuid4())
+
+    __tablename__ = "threatscenario"
+
+    threat_scenario_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    insight_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
+    )
+    impact_category: Mapped[ImpactCategoryEnum]
+    title: Mapped[Str255]
+    description: Mapped[str]
+
+    insight = relationship("Insight", back_populates="threat_scenarios")
+
+
+class AffectedObject(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.object_id:
+            self.object_id = str(uuid.uuid4())
+
+    __tablename__ = "affectedobject"
+
+    object_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    insight_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
+    )
+    object_category: Mapped[ObjectCategoryEnum]
+    name: Mapped[Str255]
+    description: Mapped[str]
+
+    insight = relationship("Insight", back_populates="affected_objects")
+
+
+class InsightReference(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.insight_reference_id:
+            self.insight_reference_id = str(uuid.uuid4())
+
+    __tablename__ = "insightreference"
+
+    insight_reference_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    insight_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
+    )
+    link_text: Mapped[Str255]
+    url: Mapped[Str255]
+
+    insight = relationship("Insight", back_populates="insight_references")
