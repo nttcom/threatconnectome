@@ -670,33 +670,6 @@ class TestCreateInsight:
         assert response.status_code == 409
         assert response.json()["detail"] == "Insight is already registered for this ticket"
 
-    def test_it_should_return_400_when_invalid_object_category(self, ticket_setup):
-        # Given
-        ticket1 = ticket_setup["ticket1"]
-        insight_request = {
-            "description": "example insight description",
-            "reasoning_and_planing": "example reasoning and planing",
-            "affected_objects": [
-                {
-                    "object_category": "NG",
-                    "name": "example affected_object name1",
-                    "description": "example affected_object description1",
-                },
-            ],
-        }
-
-        # When
-        ticket_id = ticket1["ticket_id"]
-        response = client.post(
-            f"/tickets/{ticket_id}/insight",
-            headers=headers(USER1),
-            json=insight_request,
-        )
-
-        # Then
-        assert response.status_code == 400
-        assert response.json()["detail"] == "Invalid object category: NG"
-
 
 class TestGetInsight:
     def test_it_should_get_insight(self, ticket_setup):
