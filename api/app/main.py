@@ -1,16 +1,12 @@
 import logging
 import os
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import inspect
 
 from app.auth.auth_module import get_auth_module
 from app.auth.firebase_auth_module import FirebaseAuthModule
 from app.auth.supabase_auth_module import SupabaseAuthModule
-from app.database import create_session
-from app.models import ObjectCategory
 from app.routers import (
     actionlogs,
     actions,
@@ -24,21 +20,8 @@ from app.routers import (
 from app.ssvc import deployer_data
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup: Initialize default categories in the database
-    SessionLocal = create_session()
-    with SessionLocal() as db:
-        inspector = inspect(db.bind)
-        if 'objectcategory' in inspector.get_table_names():
-            ObjectCategory.ensure_default_categories(db)
-            logging.info("Default ObjectCategory categories initialized successfully")
-
-    yield
-
-
 def create_app():
-    app = FastAPI(title="Threatconnectome", lifespan=lifespan)
+    app = FastAPI(title="Threatconnectome")
     origins = [
         "http://localhost:3000",  # dev
         "http://localhost:4173",  # dev: vite preview
