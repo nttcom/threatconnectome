@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app import command, database, models, persistence, schemas
@@ -8,6 +9,12 @@ from app.auth.account import get_current_user
 from app.routers.validators.account_validator import check_pteam_membership
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
+
+NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
+NOT_A_PTEAM_MEMBER = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="Not a pteam member",
+)
 
 
 def ticket_to_response(ticket: models.Ticket):
@@ -126,3 +133,31 @@ def get_tickets(
         total=total_count,
         tickets=[ticket_to_response(ticket) for ticket in tickets],
     )
+
+
+@router.delete("/{ticket_id}/insight", status_code=status.HTTP_204_NO_CONTENT)
+def delete_insight(
+    ticket_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """
+    Delete an insight by its ID.
+    """
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+
+    if not ticket.insight:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No insight associated with this ticket",
+        )
+
+    if not check_pteam_membership(ticket.dependency.service.pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    persistence.delete_insight(db, ticket.insight)
+
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

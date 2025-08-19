@@ -103,6 +103,12 @@ def delete_affect(db: Session, affect: models.Affect) -> None:
     db.flush()
 
 
+### Insight
+def delete_insight(db: Session, insight: models.Insight) -> None:
+    db.delete(insight)
+    db.flush()
+
+
 ### PTeam
 
 
