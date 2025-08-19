@@ -154,6 +154,18 @@ class ImpactCategoryEnum(str, enum.Enum):
     THEFT_OF_OPERATIONAL_INFORMATION = "theft_of_operational_information"
 
 
+class ObjectCategoryEnum(str, enum.Enum):
+    SERVER = "server"
+    CLIENT_DEVICE = "client_device"
+    MOBILE_DEVICE = "mobile_device"
+    NETWORK_DEVICE = "network_device"
+    STORAGE = "storage"
+    IOT_DEVICE = "iot_device"
+    PHYSICAL_MEDIA = "physical_media"
+    FACILITY = "facility"
+    PERSON = "person"
+
+
 # Base class
 
 StrUUID = Annotated[str, 36]
@@ -840,14 +852,11 @@ class AffectedObject(Base):
     insight_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
     )
-    object_category_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("objectcategory.object_category_id"), index=True
-    )
+    object_category: Mapped[ObjectCategoryEnum]
     name: Mapped[Str255]
     description: Mapped[str]
 
     insight = relationship("Insight", back_populates="affected_objects")
-    object_category = relationship("ObjectCategory")
 
 
 class InsightReference(Base):
@@ -866,53 +875,3 @@ class InsightReference(Base):
     url: Mapped[Str255]
 
     insight = relationship("Insight", back_populates="insight_references")
-
-
-class ObjectCategory(Base):
-    """
-    Dynamic object category management table.
-    Allows adding/updating categories without code changes.
-    """
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.object_category_id:
-            self.object_category_id = str(uuid.uuid4())
-
-    __tablename__ = "objectcategory"
-
-    DEFAULT_CATEGORIES = [
-        "server",
-        "client_device",
-        "mobile_device",
-        "network_device",
-        "storage",
-        "iot_device",
-        "physical_media",
-        "facility",
-        "person",
-    ]
-
-    object_category_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    name: Mapped[Str255] = mapped_column(unique=True)
-
-    @classmethod
-    def ensure_default_categories(cls, session):
-        """
-        Ensure default categories exist in the database.
-        Call this method when needed to auto-populate categories.
-        """
-        # Check which default categories are missing
-        existing_names = {
-            name
-            for (name,) in session.query(cls.name)
-            .filter(cls.name.in_(cls.DEFAULT_CATEGORIES))
-            .all()
-        }
-        missing_categories = [name for name in cls.DEFAULT_CATEGORIES if name not in existing_names]
-
-        if missing_categories:
-            for category_name in missing_categories:
-                category = cls(name=category_name)
-                session.add(category)
-            session.commit()
