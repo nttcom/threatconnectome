@@ -208,7 +208,6 @@ def create_insight(
     db.commit()
 
     insight_base = request.model_dump()
-    insight_base["insight_id"] = UUID(insight.insight_id)
     insight_base["ticket_id"] = ticket_id
     insight_base["created_at"] = now
     insight_base["updated_at"] = now

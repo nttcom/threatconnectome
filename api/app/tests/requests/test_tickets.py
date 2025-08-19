@@ -587,7 +587,6 @@ class TestCreateInsight:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert response_data["insight_id"] is not None
         assert response_data["ticket_id"] == ticket_id
 
         now = datetime.now(timezone.utc)
@@ -602,7 +601,6 @@ class TestCreateInsight:
             <= now
         )
 
-        response_data.pop("insight_id", None)
         response_data.pop("ticket_id", None)
         response_data.pop("created_at", None)
         response_data.pop("updated_at", None)
