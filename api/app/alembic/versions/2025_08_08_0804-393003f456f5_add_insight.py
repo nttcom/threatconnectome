@@ -33,6 +33,12 @@ def upgrade() -> None:
         sa.Column("ticket_id", sa.String(length=36), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("reasoning_and_planing", sa.Text(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+        ),
         sa.ForeignKeyConstraint(["ticket_id"], ["ticket.ticket_id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("insight_id"),
     )

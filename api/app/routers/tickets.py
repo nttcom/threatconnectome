@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -147,7 +148,8 @@ def create_insight(
         raise NOT_A_PTEAM_MEMBER
     if ticket.insight is not None:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Insight is not registered for this ticket"
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Insight is already registered for this ticket",
         )
     object_categories = persistence.get_object_categories(db)
     object_category_names = [object_categorie.name for object_categorie in object_categories]
@@ -158,10 +160,13 @@ def create_insight(
                 detail=f"Invalid object category: {affected_object.object_category}",
             )
 
+    now = datetime.now(timezone.utc)
     insight = models.Insight(
         ticket_id=str(ticket_id),
         description=request.description,
         reasoning_and_planing=request.reasoning_and_planing,
+        created_at=now,
+        updated_at=now,
     )
     persistence.create_insight(db, insight)
 
@@ -203,8 +208,9 @@ def create_insight(
     db.commit()
 
     insight_base = request.model_dump()
-    insight_base["insight_id"] = UUID(insight.insight_id)
     insight_base["ticket_id"] = ticket_id
+    insight_base["created_at"] = now
+    insight_base["updated_at"] = now
     return schemas.InsightResponse(**insight_base)
 
 
