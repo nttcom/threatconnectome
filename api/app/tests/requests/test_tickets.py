@@ -677,7 +677,7 @@ class TestUpdateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planning": "example reasoning and planning",
+            "data_processing_strategy": "example reasoning and planning",
             "threat_scenarios": [
                 {
                     "impact_category": "denial_of_control",
@@ -723,7 +723,7 @@ class TestUpdateInsight:
         self.response_insight = response.json()
         self.update_request = {
             "description": "updated insight description",
-            "reasoning_and_planning": "updated reasoning and planning",
+            "data_processing_strategy": "updated reasoning and planning",
             "threat_scenarios": [
                 {
                     "impact_category": "denial_of_control",
@@ -759,8 +759,8 @@ class TestUpdateInsight:
         updated_insight = response.json()
         assert updated_insight["description"] == self.update_request["description"]
         assert (
-            updated_insight["reasoning_and_planning"]
-            == self.update_request["reasoning_and_planning"]
+            updated_insight["data_processing_strategy"]
+            == self.update_request["data_processing_strategy"]
         )
         assert updated_insight["threat_scenarios"][0] == self.update_request["threat_scenarios"][0]
         assert updated_insight["affected_objects"][0] == self.update_request["affected_objects"][0]
