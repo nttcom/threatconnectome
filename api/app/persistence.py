@@ -132,6 +132,27 @@ def create_insight_reference(db: Session, insight_reference: models.InsightRefer
     db.flush()
 
 
+def delete_insight_reference(db: Session, insight_reference: models.InsightReference) -> None:
+    db.delete(insight_reference)
+    db.flush()
+
+
+### AffectedObject
+
+
+def delete_affected_object(db: Session, affected_object: models.AffectedObject) -> None:
+    db.delete(affected_object)
+    db.flush()
+
+
+### ThreatScenarios
+
+
+def delete_threat_scenario(db: Session, threat_scenario: models.ThreatScenario) -> None:
+    db.delete(threat_scenario)
+    db.flush()
+
+
 ### PTeam
 
 
