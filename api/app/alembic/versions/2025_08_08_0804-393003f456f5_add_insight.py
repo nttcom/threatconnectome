@@ -35,6 +35,8 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("insight_id"),
     )
     op.create_index(op.f("ix_insight_ticket_id"), "insight", ["ticket_id"], unique=True)
+    op.execute("ALTER TABLE insight ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING created_at AT TIME ZONE 'UTC'")
+    op.execute("ALTER TABLE insight ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE USING updated_at AT TIME ZONE 'UTC'")
     op.create_table(
         "affectedobject",
         sa.Column("object_id", sa.String(length=36), nullable=False),
@@ -122,4 +124,5 @@ def downgrade() -> None:
 
     # Drop the enum type
     sa.Enum(name="impactcategoryenum").drop(op.get_bind())
+    sa.Enum(name="objectcategoryenum").drop(op.get_bind())
     # ### end Alembic commands ###
