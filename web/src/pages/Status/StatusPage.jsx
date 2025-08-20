@@ -370,7 +370,8 @@ export function Status() {
     }
   };
 
-  const handleNavigatePackage = (packageId) => navigatePackagePage(serviceId, packageId);
+  const handleNavigatePackage = (targetServiceId, packageId) =>
+    navigatePackagePage(targetServiceId, packageId);
 
   const handleAllServices = () => {
     setIsActiveUploadMode(0);
@@ -572,7 +573,9 @@ export function Status() {
                     >
                       <PTeamStatusCard
                         key={packageInfo.package_id}
-                        onHandleClick={() => handleNavigatePackage(packageInfo.package_id)}
+                        onHandleClick={() =>
+                          handleNavigatePackage(serviceId, packageInfo.package_id)
+                        }
                         pteam={pteam}
                         packageInfo={packageInfo}
                       />
