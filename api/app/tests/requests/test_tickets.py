@@ -539,7 +539,7 @@ class TestCreateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planing": "example reasoning and planing",
+            "reasoning_and_planning": "example reasoning and planning",
             "threat_scenarios": [
                 {
                     "impact_category": "denial_of_control",
@@ -610,7 +610,7 @@ class TestCreateInsight:
         # Given
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planing": "example reasoning and planing",
+            "reasoning_and_planning": "example reasoning and planning",
         }
 
         # When
@@ -630,7 +630,7 @@ class TestCreateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planing": "example reasoning and planing",
+            "reasoning_and_planning": "example reasoning and planning",
         }
 
         # When
@@ -650,7 +650,7 @@ class TestCreateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planing": "example reasoning and planing",
+            "reasoning_and_planning": "example reasoning and planning",
         }
         ticket_id = ticket1["ticket_id"]
         response = client.post(
@@ -677,7 +677,7 @@ class TestDeleteInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planing": "example reasoning and planing",
+            "reasoning_and_planning": "example reasoning and planning",
             "threat_scenarios": [
                 {
                     "impact_category": "denial_of_control",
