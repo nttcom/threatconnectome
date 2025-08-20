@@ -24,7 +24,7 @@ def upgrade() -> None:
         sa.Column("insight_id", sa.String(length=36), nullable=False),
         sa.Column("ticket_id", sa.String(length=36), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("reasoning_and_planing", sa.Text(), nullable=False),
+        sa.Column("reasoning_and_planning", sa.Text(), nullable=False),
         sa.Column(
             "created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
         ),
