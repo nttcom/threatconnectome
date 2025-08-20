@@ -10,8 +10,8 @@ import { errorToString } from "../../utils/func";
 import { createUpdateParamsFunction } from "../../utils/urlUtils";
 
 import { CVESearchField } from "./CVESearchField";
-import VulnerabilityTodoList from "./ToDoMobile";
 import { ToDoTable } from "./ToDoTable";
+import VulnerabilityTodoList from "./VulnerabilityTodoList/VulnerabilityTodoList";
 
 export function ToDo() {
   const location = useLocation();
