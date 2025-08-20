@@ -37,6 +37,55 @@ def ticket_to_response(ticket: models.Ticket):
     )
 
 
+def _create_insight_response(db: Session, insight: models.Insight, ticket_id: UUID):
+    return schemas.InsightResponse(
+        insight_id=UUID(insight.insight_id),
+        ticket_id=ticket_id,
+        description=insight.description,
+        reasoning_and_planning=insight.reasoning_and_planning,
+        created_at=insight.created_at,
+        updated_at=insight.updated_at,
+        threat_scenarios=[
+            schemas.ThreatScenario(
+                impact_category=threat_scenario.impact_category,
+                title=threat_scenario.title,
+                description=threat_scenario.description,
+            )
+            for threat_scenario in insight.threat_scenarios
+        ],
+        affected_objects=[
+            schemas.AffectedObject(
+                object_category=affected_object.object_category,
+                name=affected_object.name,
+                description=affected_object.description,
+            )
+            for affected_object in insight.affected_objects
+        ],
+        insight_references=[
+            schemas.InsightReference(
+                link_text=insight_reference.link_text, url=insight_reference.url
+            )
+            for insight_reference in insight.insight_references
+        ],
+    )
+
+
+def _check_request_fields(request: schemas.InsightUpdatetRequest, update_request: dict):
+    fields_to_check = [
+        "description",
+        "reasoning_and_planning",
+        "threat_scenarios",
+        "affected_objects",
+        "insight_references",
+    ]
+    for field in fields_to_check:
+        if field in update_request.keys() and getattr(request, field) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot specify None for {field}",
+            )
+
+
 @router.get("", response_model=schemas.TicketListResponse)
 def get_tickets(
     assigned_to_me: bool = Query(False),
@@ -136,39 +185,6 @@ def get_tickets(
     )
 
 
-def _create_insight_response(db: Session, insight: models.Insight, ticket_id: UUID):
-    return schemas.InsightResponse(
-        insight_id=UUID(insight.insight_id),
-        ticket_id=ticket_id,
-        description=insight.description,
-        reasoning_and_planning=insight.reasoning_and_planning,
-        created_at=insight.created_at,
-        updated_at=insight.updated_at,
-        threat_scenarios=[
-            schemas.ThreatScenario(
-                impact_category=threat_scenario.impact_category,
-                title=threat_scenario.title,
-                description=threat_scenario.description,
-            )
-            for threat_scenario in insight.threat_scenarios
-        ],
-        affected_objects=[
-            schemas.AffectedObject(
-                object_category=affected_object.object_category,
-                name=affected_object.name,
-                description=affected_object.description,
-            )
-            for affected_object in insight.affected_objects
-        ],
-        insight_references=[
-            schemas.InsightReference(
-                link_text=insight_reference.link_text, url=insight_reference.url
-            )
-            for insight_reference in insight.insight_references
-        ],
-    )
-
-
 @router.post("/{ticket_id}/insight", response_model=schemas.InsightResponse)
 def create_insight(
     ticket_id: UUID,
@@ -250,6 +266,7 @@ def update_insight(
         raise NOT_A_PTEAM_MEMBER
 
     update_request = request.model_dump(exclude_unset=True)
+    _check_request_fields(request, update_request)
     insight = ticket.insight
 
     if "description" in update_request.keys() and request.description is not None:

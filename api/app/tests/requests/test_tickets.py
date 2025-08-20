@@ -791,7 +791,7 @@ class TestUpdateInsight:
         assert response.status_code == 404
         assert response.json()["detail"] == "No such ticket"
 
-    def test_it_should_return_404_When_there_is_no_insight_associated_with_ticket_id(self):
+    def test_it_should_return_404_when_there_is_no_insight_associated_with_ticket_id(self):
         # Given
         client.delete(
             f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER1)
@@ -819,6 +819,26 @@ class TestUpdateInsight:
         # Then
         assert response.status_code == 403
         assert response.json()["detail"] == "Not a pteam member"
+
+    def test_it_should_return_400_when_None_in_the_request(self):
+        # Given
+        invalid_update_request = {
+            "description": None,
+        }
+
+        # When
+        response = client.put(
+            f"/tickets/{self.response_insight['ticket_id']}/insight",
+            headers=headers(USER1),
+            json=invalid_update_request,
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert (
+            response.json()["detail"]
+            == f"Cannot specify None for {next(iter(invalid_update_request))}"
+        )
 
 
 class TestGetInsight:
