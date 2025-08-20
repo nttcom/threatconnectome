@@ -39,7 +39,6 @@ def ticket_to_response(ticket: models.Ticket):
 
 def _create_insight_response(db: Session, insight: models.Insight, ticket_id: UUID):
     return schemas.InsightResponse(
-        insight_id=UUID(insight.insight_id),
         ticket_id=ticket_id,
         description=insight.description,
         reasoning_and_planning=insight.reasoning_and_planning,
