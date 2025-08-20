@@ -883,12 +883,11 @@ class TestDeleteInsight:
 
         # Then
         assert response.status_code == 204
-
-        # Todo: get API created and implemented
-        # delete_insight = client.get(
-        #     f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER1)
-        # )
-        # assert delete_insight is None
+        delete_insight = client.get(
+            f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER1)
+        )
+        assert delete_insight.status_code == 404
+        assert delete_insight.json()["detail"] == "No insight found for this ticket"
 
     def test_it_should_return_404_for_non_existent_ticket(self):
         # Given
