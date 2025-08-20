@@ -231,7 +231,7 @@ def get_insight(
         ],
         "affected_objects": [
             {
-                "object_category": obj.object_category.value,
+                "object_category": obj.object_category,
                 "name": obj.name,
                 "description": obj.description,
             }
