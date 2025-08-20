@@ -800,7 +800,7 @@ class Insight(Base):
         ForeignKey("ticket.ticket_id", ondelete="CASCADE"), index=True, unique=True
     )
     description: Mapped[str]
-    reasoning_and_planning: Mapped[str]
+    data_processing_strategy: Mapped[str]
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=current_timestamp()

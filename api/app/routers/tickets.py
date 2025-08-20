@@ -41,7 +41,7 @@ def _create_insight_response(db: Session, insight: models.Insight, ticket_id: UU
     return schemas.InsightResponse(
         ticket_id=ticket_id,
         description=insight.description,
-        reasoning_and_planning=insight.reasoning_and_planning,
+        data_processing_strategy=insight.data_processing_strategy,
         created_at=insight.created_at,
         updated_at=insight.updated_at,
         threat_scenarios=[
@@ -72,7 +72,7 @@ def _create_insight_response(db: Session, insight: models.Insight, ticket_id: UU
 def _check_request_fields(request: schemas.InsightUpdatetRequest, update_request: dict):
     fields_to_check = [
         "description",
-        "reasoning_and_planning",
+        "data_processing_strategy",
         "threat_scenarios",
         "affected_objects",
         "insight_references",
@@ -205,7 +205,7 @@ def create_insight(
     insight = models.Insight(
         ticket_id=str(ticket_id),
         description=request.description,
-        reasoning_and_planning=request.reasoning_and_planning,
+        data_processing_strategy=request.data_processing_strategy,
         created_at=now,
         updated_at=now,
     )
@@ -270,8 +270,8 @@ def update_insight(
 
     if "description" in update_request.keys() and request.description is not None:
         insight.description = request.description
-    if "reasoning_and_planning" in update_request.keys() and request.reasoning_and_planning:
-        insight.reasoning_and_planning = request.reasoning_and_planning
+    if "data_processing_strategy" in update_request.keys() and request.data_processing_strategy:
+        insight.data_processing_strategy = request.data_processing_strategy
     if "threat_scenarios" in update_request.keys() and request.threat_scenarios:
         for threat_scenario in insight.threat_scenarios:
             persistence.delete_threat_scenario(db, threat_scenario)

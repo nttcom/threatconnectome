@@ -24,7 +24,7 @@ def upgrade() -> None:
         sa.Column("insight_id", sa.String(length=36), nullable=False),
         sa.Column("ticket_id", sa.String(length=36), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("reasoning_and_planning", sa.Text(), nullable=False),
+        sa.Column("data_processing_strategy", sa.Text(), nullable=False),
         sa.Column(
             "created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
         ),
@@ -35,8 +35,12 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("insight_id"),
     )
     op.create_index(op.f("ix_insight_ticket_id"), "insight", ["ticket_id"], unique=True)
-    op.execute("ALTER TABLE insight ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING created_at AT TIME ZONE 'UTC'")
-    op.execute("ALTER TABLE insight ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE USING updated_at AT TIME ZONE 'UTC'")
+    op.execute(
+        "ALTER TABLE insight ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING created_at AT TIME ZONE 'UTC'"
+    )
+    op.execute(
+        "ALTER TABLE insight ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE USING updated_at AT TIME ZONE 'UTC'"
+    )
     op.create_table(
         "affectedobject",
         sa.Column("object_id", sa.String(length=36), nullable=False),
