@@ -17,12 +17,6 @@ NOT_A_PTEAM_MEMBER = HTTPException(
     detail="Not a pteam member",
 )
 
-NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
-NOT_A_PTEAM_MEMBER = HTTPException(
-    status_code=status.HTTP_403_FORBIDDEN,
-    detail="Not a pteam member",
-)
-
 
 def ticket_to_response(ticket: models.Ticket):
     dependency = ticket.dependency
@@ -163,7 +157,7 @@ def create_insight(
     insight = models.Insight(
         ticket_id=str(ticket_id),
         description=request.description,
-        reasoning_and_planing=request.reasoning_and_planing,
+        reasoning_and_planning=request.reasoning_and_planning,
         created_at=now,
         updated_at=now,
     )
