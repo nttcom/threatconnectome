@@ -37,6 +37,55 @@ def ticket_to_response(ticket: models.Ticket):
     )
 
 
+def _create_insight_response(db: Session, insight: models.Insight, ticket_id: UUID):
+    return schemas.InsightResponse(
+        insight_id=UUID(insight.insight_id),
+        ticket_id=ticket_id,
+        description=insight.description,
+        reasoning_and_planning=insight.reasoning_and_planning,
+        created_at=insight.created_at,
+        updated_at=insight.updated_at,
+        threat_scenarios=[
+            schemas.ThreatScenario(
+                impact_category=threat_scenario.impact_category,
+                title=threat_scenario.title,
+                description=threat_scenario.description,
+            )
+            for threat_scenario in insight.threat_scenarios
+        ],
+        affected_objects=[
+            schemas.AffectedObject(
+                object_category=affected_object.object_category,
+                name=affected_object.name,
+                description=affected_object.description,
+            )
+            for affected_object in insight.affected_objects
+        ],
+        insight_references=[
+            schemas.InsightReference(
+                link_text=insight_reference.link_text, url=insight_reference.url
+            )
+            for insight_reference in insight.insight_references
+        ],
+    )
+
+
+def _check_request_fields(request: schemas.InsightUpdatetRequest, update_request: dict):
+    fields_to_check = [
+        "description",
+        "reasoning_and_planning",
+        "threat_scenarios",
+        "affected_objects",
+        "insight_references",
+    ]
+    for field in fields_to_check:
+        if field in update_request.keys() and getattr(request, field) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot specify None for {field}",
+            )
+
+
 @router.get("", response_model=schemas.TicketListResponse)
 def get_tickets(
     assigned_to_me: bool = Query(False),
@@ -190,12 +239,85 @@ def create_insight(
         persistence.create_insight_reference(db, insight_reference_model)
 
     db.commit()
+    db.refresh(insight)
+    response = _create_insight_response(db, insight, ticket_id)
 
-    insight_base = request.model_dump()
-    insight_base["ticket_id"] = ticket_id
-    insight_base["created_at"] = now
-    insight_base["updated_at"] = now
-    return schemas.InsightResponse(**insight_base)
+    return response
+
+
+@router.put("/{ticket_id}/insight", response_model=schemas.InsightResponse)
+def update_insight(
+    ticket_id: UUID,
+    request: schemas.InsightUpdatetRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """ """
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+
+    if not ticket.insight:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No insight associated with this ticket",
+        )
+
+    if not check_pteam_membership(ticket.dependency.service.pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    update_request = request.model_dump(exclude_unset=True)
+    _check_request_fields(request, update_request)
+    insight = ticket.insight
+
+    if "description" in update_request.keys() and request.description is not None:
+        insight.description = request.description
+    if "reasoning_and_planning" in update_request.keys() and request.reasoning_and_planning:
+        insight.reasoning_and_planning = request.reasoning_and_planning
+    if "threat_scenarios" in update_request.keys() and request.threat_scenarios:
+        for threat_scenario in insight.threat_scenarios:
+            persistence.delete_threat_scenario(db, threat_scenario)
+
+        for threat_scenario_request in request.threat_scenarios:
+            threat_scenario_model = models.ThreatScenario(
+                insight_id=str(insight.insight_id),
+                impact_category=threat_scenario_request.impact_category,
+                title=threat_scenario_request.title,
+                description=threat_scenario_request.description,
+            )
+            persistence.create_threat_scenario(db, threat_scenario_model)
+
+    if "affected_objects" in update_request.keys() and request.affected_objects:
+        for affected_object in insight.affected_objects:
+            persistence.delete_affected_object(db, affected_object)
+
+        for affected_object in request.affected_objects:
+            affected_object_model = models.AffectedObject(
+                insight_id=str(insight.insight_id),
+                object_category=affected_object.object_category,
+                name=affected_object.name,
+                description=affected_object.description,
+            )
+            persistence.create_affected_object(db, affected_object_model)
+
+    if "insight_references" in update_request.keys() and request.insight_references:
+        for insight_reference in insight.insight_references:
+            persistence.delete_insight_reference(db, insight_reference)
+
+        for insight_reference_request in request.insight_references:
+            insight_reference_model = models.InsightReference(
+                insight_id=str(insight.insight_id),
+                link_text=insight_reference_request.link_text,
+                url=insight_reference_request.url,
+            )
+            persistence.create_insight_reference(db, insight_reference_model)
+
+    insight.updated_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(insight)
+    response = _create_insight_response(db, insight, ticket_id)
+
+    return response
 
 
 @router.get("/{ticket_id}/insight", response_model=schemas.InsightResponse)
@@ -214,39 +336,9 @@ def get_insight(
         )
 
     insight = ticket.insight
+    response = _create_insight_response(db, insight, ticket_id)
 
-    response_data = {
-        "ticket_id": ticket_id,
-        "description": insight.description,
-        "data_processing_strategy": insight.data_processing_strategy,
-        "created_at": insight.created_at,
-        "updated_at": insight.updated_at,
-        "threat_scenarios": [
-            {
-                "impact_category": scenario.impact_category,
-                "title": scenario.title,
-                "description": scenario.description,
-            }
-            for scenario in insight.threat_scenarios
-        ],
-        "affected_objects": [
-            {
-                "object_category": obj.object_category,
-                "name": obj.name,
-                "description": obj.description,
-            }
-            for obj in insight.affected_objects
-        ],
-        "insight_references": [
-            {
-                "link_text": ref.link_text,
-                "url": ref.url,
-            }
-            for ref in insight.insight_references
-        ],
-    }
-
-    return schemas.InsightResponse(**response_data)
+    return response
 
 
 @router.delete("/{ticket_id}/insight", status_code=status.HTTP_204_NO_CONTENT)
