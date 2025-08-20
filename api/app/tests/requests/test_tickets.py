@@ -752,7 +752,7 @@ class TestDeleteInsight:
 
     def test_it_should_return_404_When_there_is_no_insight_associated_with_ticket_id(self):
         # Given
-        response = client.delete(
+        client.delete(
             f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER1)
         )
 
