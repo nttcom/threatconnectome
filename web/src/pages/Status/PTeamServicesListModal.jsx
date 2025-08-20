@@ -27,6 +27,7 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamServiceThumbnailQuery, useGetPTeamQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
+import { preserveParams } from "../../utils/urlUtils";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
@@ -159,11 +160,9 @@ export function PTeamServicesListModal(props) {
   );
 
   const handleNavigatePackage = (serviceId) => {
-    for (let key of ["packageId", "impactFilter", "word", "perPage", "page"]) {
-      params.delete(key);
-    }
-    params.set("serviceId", serviceId);
-    navigate(`/packages/${packageId}?${params.toString()}`);
+    const preservedParams = preserveParams(location.search);
+    preservedParams.set("serviceId", serviceId);
+    navigate(`/packages/${packageId}?${preservedParams.toString()}`);
   };
 
   return (
