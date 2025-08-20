@@ -671,6 +671,156 @@ class TestCreateInsight:
         assert response.json()["detail"] == "Insight is already registered for this ticket"
 
 
+class TestUpdateInsight:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, ticket_setup):
+        ticket1 = ticket_setup["ticket1"]
+        insight_request = {
+            "description": "example insight description",
+            "reasoning_and_planning": "example reasoning and planning",
+            "threat_scenarios": [
+                {
+                    "impact_category": "denial_of_control",
+                    "title": "example threat_scenario title1",
+                    "description": "example threat_scenario description1",
+                },
+                {
+                    "impact_category": "manipulation_of_view",
+                    "title": "example threat_scenario title2",
+                    "description": "example threat_scenario description2",
+                },
+            ],
+            "affected_objects": [
+                {
+                    "object_category": "person",
+                    "name": "example affected_object name1",
+                    "description": "example affected_object description1",
+                },
+                {
+                    "object_category": "mobile_device",
+                    "name": "example affected_object name2",
+                    "description": "example affected_object description2",
+                },
+            ],
+            "insight_references": [
+                {
+                    "link_text": "example link_text1",
+                    "url": "example url1",
+                },
+                {
+                    "link_text": "example link_text2",
+                    "url": "example url2",
+                },
+            ],
+        }
+
+        response = client.post(
+            f"/tickets/{ticket1['ticket_id']}/insight",
+            headers=headers(USER1),
+            json=insight_request,
+        )
+
+        self.response_insight = response.json()
+        self.update_request = {
+            "description": "updated insight description",
+            "reasoning_and_planning": "updated reasoning and planning",
+            "threat_scenarios": [
+                {
+                    "impact_category": "denial_of_control",
+                    "title": "updated threat_scenario title1",
+                    "description": "updated threat_scenario description1",
+                },
+            ],
+            "affected_objects": [
+                {
+                    "object_category": "person",
+                    "name": "updated affected_object name1",
+                    "description": "updated affected_object description1",
+                },
+            ],
+            "insight_references": [
+                {
+                    "link_text": "updated link_text1",
+                    "url": "updated url1",
+                },
+            ],
+        }
+
+    def test_it_should_return_200_for_update_insight(self):
+        # When
+        response = client.put(
+            f"/tickets/{self.response_insight['ticket_id']}/insight",
+            headers=headers(USER1),
+            json=self.update_request,
+        )
+
+        # Then
+        assert response.status_code == 200
+        updated_insight = response.json()
+        assert updated_insight["description"] == self.update_request["description"]
+        assert (
+            updated_insight["reasoning_and_planning"]
+            == self.update_request["reasoning_and_planning"]
+        )
+        assert updated_insight["threat_scenarios"][0] == self.update_request["threat_scenarios"][0]
+        assert updated_insight["affected_objects"][0] == self.update_request["affected_objects"][0]
+        assert (
+            updated_insight["insight_references"][0] == self.update_request["insight_references"][0]
+        )
+        assert updated_insight["ticket_id"] == self.response_insight["ticket_id"]
+        assert updated_insight["created_at"] == self.response_insight["created_at"]
+        current_time = datetime.now(timezone.utc)
+        assert (
+            current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(updated_insight["updated_at"].replace("Z", "+00:00"))
+            <= current_time + timedelta(seconds=10)
+        )
+
+    def test_it_should_return_404_for_non_existent_ticket(self):
+        # Given
+        non_existent_ticket_id = str(uuid4())
+
+        # When
+        response = client.put(
+            f"/tickets/{non_existent_ticket_id}/insight",
+            headers=headers(USER1),
+            json=self.update_request,
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such ticket"
+
+    def test_it_should_return_404_When_there_is_no_insight_associated_with_ticket_id(self):
+        # Given
+        client.delete(
+            f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER1)
+        )
+
+        # When
+        response = client.put(
+            f"/tickets/{self.response_insight['ticket_id']}/insight",
+            headers=headers(USER1),
+            json=self.update_request,
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No insight associated with this ticket"
+
+    def test_it_should_return_403_for_insight_deletion_by_non_pteam_member(self):
+        # When
+        response = client.put(
+            f"/tickets/{self.response_insight['ticket_id']}/insight",
+            headers=headers(USER2),
+            json=self.update_request,
+        )
+
+        # Then
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Not a pteam member"
+
+
 class TestGetInsight:
     def test_it_should_get_insight(self, ticket_setup):
         # Given
