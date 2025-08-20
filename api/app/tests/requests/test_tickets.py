@@ -539,7 +539,7 @@ class TestCreateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planning": "example reasoning and planning",
+            "data_processing_strategy": "example reasoning and planing",
             "threat_scenarios": [
                 {
                     "impact_category": "denial_of_control",
@@ -610,7 +610,7 @@ class TestCreateInsight:
         # Given
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planning": "example reasoning and planning",
+            "data_processing_strategy": "example reasoning and planing",
         }
 
         # When
@@ -630,7 +630,7 @@ class TestCreateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planning": "example reasoning and planning",
+            "data_processing_strategy": "example reasoning and planing",
         }
 
         # When
@@ -650,7 +650,7 @@ class TestCreateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planning": "example reasoning and planning",
+            "data_processing_strategy": "example reasoning and planing",
         }
         ticket_id = ticket1["ticket_id"]
         response = client.post(
@@ -679,7 +679,7 @@ class TestGetInsight:
 
         insight_request = {
             "description": "Detailed insight description",
-            "reasoning_and_planning": "Comprehensive reasoning and planning",
+            "data_processing_strategy": "Comprehensive reasoning and planning",
             "threat_scenarios": [
                 {
                     "impact_category": "denial_of_control",
@@ -735,7 +735,9 @@ class TestGetInsight:
 
         assert response_data["ticket_id"] == ticket_id
         assert response_data["description"] == insight_request["description"]
-        assert response_data["reasoning_and_planning"] == insight_request["reasoning_and_planning"]
+        assert (
+            response_data["data_processing_strategy"] == insight_request["data_processing_strategy"]
+        )
 
         # Verify threat scenarios
         assert len(response_data["threat_scenarios"]) == 2
@@ -784,7 +786,7 @@ class TestGetInsight:
         # Create insight as USER1 (pteam member)
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planning": "example reasoning and planning",
+            "data_processing_strategy": "example reasoning and planning",
             "threat_scenarios": [],
             "affected_objects": [],
             "insight_references": [],
@@ -830,7 +832,7 @@ class TestDeleteInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planning": "example reasoning and planning",
+            "data_processing_strategy": "example reasoning and planning",
             "threat_scenarios": [
                 {
                     "impact_category": "denial_of_control",

@@ -223,7 +223,7 @@ class InsightReference(BaseModel):
 
 class InsightBase(BaseModel):
     description: str
-    reasoning_and_planning: str
+    data_processing_strategy: str
     threat_scenarios: list[ThreatScenario] = []
     affected_objects: list[AffectedObject] = []
     insight_references: list[InsightReference] = []
@@ -241,7 +241,7 @@ class InsightResponse(InsightBase):
 
 class InsightUpdatetRequest(BaseModel):
     description: str | None = None
-    reasoning_and_planning: str | None = None
+    data_processing_strategy: str | None = None
     threat_scenarios: list[ThreatScenario] | None = None
     affected_objects: list[AffectedObject] | None = None
     insight_references: list[InsightReference] | None = None

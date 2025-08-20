@@ -157,7 +157,7 @@ def create_insight(
     insight = models.Insight(
         ticket_id=str(ticket_id),
         description=request.description,
-        reasoning_and_planning=request.reasoning_and_planning,
+        data_processing_strategy=request.data_processing_strategy,
         created_at=now,
         updated_at=now,
     )
@@ -218,7 +218,7 @@ def get_insight(
     response_data = {
         "ticket_id": ticket_id,
         "description": insight.description,
-        "reasoning_and_planning": insight.reasoning_and_planning,
+        "data_processing_strategy": insight.data_processing_strategy,
         "created_at": insight.created_at,
         "updated_at": insight.updated_at,
         "threat_scenarios": [
