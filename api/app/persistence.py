@@ -119,6 +119,11 @@ def create_insight(db: Session, insight: models.Insight):
     db.flush()
 
 
+def delete_insight(db: Session, insight: models.Insight) -> None:
+    db.delete(insight)
+    db.flush()
+
+
 ### InsightReference
 
 

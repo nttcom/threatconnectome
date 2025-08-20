@@ -539,7 +539,7 @@ class TestCreateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planing": "example reasoning and planing",
+            "reasoning_and_planning": "example reasoning and planning",
             "threat_scenarios": [
                 {
                     "impact_category": "denial_of_control",
@@ -610,7 +610,7 @@ class TestCreateInsight:
         # Given
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planing": "example reasoning and planing",
+            "reasoning_and_planning": "example reasoning and planning",
         }
 
         # When
@@ -630,7 +630,7 @@ class TestCreateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planing": "example reasoning and planing",
+            "reasoning_and_planning": "example reasoning and planning",
         }
 
         # When
@@ -650,7 +650,7 @@ class TestCreateInsight:
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
             "description": "example insight description",
-            "reasoning_and_planing": "example reasoning and planing",
+            "reasoning_and_planning": "example reasoning and planning",
         }
         ticket_id = ticket1["ticket_id"]
         response = client.post(
@@ -822,3 +822,108 @@ class TestGetInsight:
         assert response.status_code == 404
         error_data = response.json()
         assert error_data["detail"] == "No such ticket"
+
+
+class TestDeleteInsight:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self, ticket_setup):
+        ticket1 = ticket_setup["ticket1"]
+        insight_request = {
+            "description": "example insight description",
+            "reasoning_and_planning": "example reasoning and planning",
+            "threat_scenarios": [
+                {
+                    "impact_category": "denial_of_control",
+                    "title": "example threat_scenario title1",
+                    "description": "example threat_scenario description1",
+                },
+                {
+                    "impact_category": "manipulation_of_view",
+                    "title": "example threat_scenario title2",
+                    "description": "example threat_scenario description2",
+                },
+            ],
+            "affected_objects": [
+                {
+                    "object_category": "person",
+                    "name": "example affected_object name1",
+                    "description": "example affected_object description1",
+                },
+                {
+                    "object_category": "mobile_device",
+                    "name": "example affected_object name2",
+                    "description": "example affected_object description2",
+                },
+            ],
+            "insight_references": [
+                {
+                    "link_text": "example link_text1",
+                    "url": "example url1",
+                },
+                {
+                    "link_text": "example link_text2",
+                    "url": "example url2",
+                },
+            ],
+        }
+
+        response = client.post(
+            f"/tickets/{ticket1['ticket_id']}/insight",
+            headers=headers(USER1),
+            json=insight_request,
+        )
+
+        self.response_insight = response.json()
+
+    def test_it_should_return_204_for_delete_insight(self):
+        # When
+        response = client.delete(
+            f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER1)
+        )
+
+        # Then
+        assert response.status_code == 204
+
+        # Todo: get API created and implemented
+        # delete_insight = client.get(
+        #     f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER1)
+        # )
+        # assert delete_insight is None
+
+    def test_it_should_return_404_for_non_existent_ticket(self):
+        # Given
+        non_existent_ticket_id = str(uuid4())
+
+        # When
+        response = client.delete(
+            f"/tickets/{non_existent_ticket_id}/insight", headers=headers(USER1)
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No such ticket"
+
+    def test_it_should_return_404_When_there_is_no_insight_associated_with_ticket_id(self):
+        # Given
+        client.delete(
+            f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER1)
+        )
+
+        # When
+        response = client.delete(
+            f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER1)
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json()["detail"] == "No insight associated with this ticket"
+
+    def test_it_should_return_403_for_insight_deletion_by_non_pteam_member(self):
+        # When
+        response = client.delete(
+            f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER2)
+        )
+
+        # Then
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Not a pteam member"
