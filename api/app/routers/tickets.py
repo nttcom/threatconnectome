@@ -85,7 +85,9 @@ def _check_request_fields(request: schemas.InsightUpdateRequest, update_request:
             )
 
 
-def __handle_create_insight(ticket_id: UUID, request: schemas.InsightRequest, db: Session):
+def __handle_create_insight(
+    ticket_id: UUID, request: schemas.InsightRequest, db: Session
+) -> models.Insight:
     now = datetime.now(timezone.utc)
     insight = models.Insight(
         ticket_id=str(ticket_id),
@@ -177,8 +179,6 @@ def __handle_update_insight(
             persistence.create_insight_reference(db, insight_reference_model)
 
     insight.updated_at = datetime.now(timezone.utc)
-
-    return insight
 
 
 @router.get("", response_model=schemas.TicketListResponse)
@@ -300,7 +300,7 @@ def update_insight(
     if not (insight := ticket.insight):
         insight = __handle_create_insight(ticket_id, request, db)
     else:
-        insight = __handle_update_insight(insight, request, db)
+        __handle_update_insight(insight, request, db)
 
     db.commit()
     db.refresh(insight)
