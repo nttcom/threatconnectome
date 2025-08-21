@@ -645,7 +645,7 @@ class TestCreateInsight:
         assert response.status_code == 403
         assert response.json()["detail"] == "Not a pteam member"
 
-    def test_it_should_return_409_when_specified_duplicate_ticlket_id(self, ticket_setup):
+    def test_it_should_return_409_when_specified_duplicate_ticket_id(self, ticket_setup):
         # Given
         ticket1 = ticket_setup["ticket1"]
         insight_request = {
@@ -1074,7 +1074,7 @@ class TestDeleteInsight:
         assert response.status_code == 404
         assert response.json()["detail"] == "No such ticket"
 
-    def test_it_should_return_404_When_there_is_no_insight_associated_with_ticket_id(self):
+    def test_it_should_return_404_when_there_is_no_insight_associated_with_ticket_id(self):
         # Given
         client.delete(
             f"/tickets/{self.response_insight['ticket_id']}/insight", headers=headers(USER1)
