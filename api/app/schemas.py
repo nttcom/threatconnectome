@@ -229,10 +229,6 @@ class InsightBase(BaseModel):
     insight_references: list[InsightReference] = []
 
 
-class InsightRequest(InsightBase):
-    pass
-
-
 class InsightResponse(InsightBase):
     ticket_id: UUID
     created_at: datetime
