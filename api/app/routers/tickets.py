@@ -69,7 +69,33 @@ def _create_insight_response(db: Session, insight: models.Insight, ticket_id: UU
     )
 
 
-def _check_request_fields(request: schemas.InsightUpdateRequest, update_request: dict):
+def _check_request_fields_for_create(request: schemas.InsightUpdateRequest):
+    """
+    If there are any items not specified in schemas.InsightUpdateRequest,
+    an error will be generated.
+    """
+
+    fields_to_check = [
+        "description",
+        "data_processing_strategy",
+        "threat_scenarios",
+        "affected_objects",
+        "insight_references",
+    ]
+    for field in fields_to_check:
+        if getattr(request, field) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot specify None for {field}",
+            )
+
+
+def _check_request_fields_for_update(request: schemas.InsightUpdateRequest, update_request: dict):
+    """
+    If you explicitly specify None in schemas.InsightUpdateRequest,
+    an error will be generated.
+    """
+
     fields_to_check = [
         "description",
         "data_processing_strategy",
@@ -86,8 +112,10 @@ def _check_request_fields(request: schemas.InsightUpdateRequest, update_request:
 
 
 def __handle_create_insight(
-    ticket_id: UUID, request: schemas.InsightRequest, db: Session
+    ticket_id: UUID, request: schemas.InsightUpdateRequest, db: Session
 ) -> models.Insight:
+    _check_request_fields_for_create(request)
+
     now = datetime.now(timezone.utc)
     insight = models.Insight(
         ticket_id=str(ticket_id),
@@ -98,7 +126,7 @@ def __handle_create_insight(
     )
     persistence.create_insight(db, insight)
 
-    for threat_scenario in request.threat_scenarios:
+    for threat_scenario in request.threat_scenarios or []:
         threat_scenario_model = models.ThreatScenario(
             insight_id=str(insight.insight_id),
             impact_category=threat_scenario.impact_category,
@@ -107,7 +135,7 @@ def __handle_create_insight(
         )
         persistence.create_threat_scenario(db, threat_scenario_model)
 
-    for affected_object in request.affected_objects:
+    for affected_object in request.affected_objects or []:
         affected_object_model = models.AffectedObject(
             insight_id=str(insight.insight_id),
             object_category=affected_object.object_category,
@@ -116,7 +144,7 @@ def __handle_create_insight(
         )
         persistence.create_affected_object(db, affected_object_model)
 
-    for insight_reference in request.insight_references:
+    for insight_reference in request.insight_references or []:
         insight_reference_model = models.InsightReference(
             insight_id=str(insight.insight_id),
             link_text=insight_reference.link_text,
@@ -131,7 +159,7 @@ def __handle_update_insight(
     insight: models.Insight, request: schemas.InsightUpdateRequest, db: Session
 ):
     update_request = request.model_dump(exclude_unset=True)
-    _check_request_fields(request, update_request)
+    _check_request_fields_for_update(request, update_request)
 
     if "description" in update_request.keys() and request.description is not None:
         insight.description = request.description
