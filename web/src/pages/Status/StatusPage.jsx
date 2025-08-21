@@ -39,7 +39,7 @@ import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../service
 import { APIError } from "../../utils/APIError";
 import { noPTeamMessage, sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { preserveMyTasksParam } from "../../utils/urlUtils";
+import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
 import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetails/PTeamServiceDetailsResponsive";
@@ -351,17 +351,15 @@ export function Status() {
     navigate(location.pathname + "?" + params.toString());
   };
 
-  function navigatePackagePage(packageId) {
-    for (let key of ["priorityFilter", "word", "perPage", "page"]) {
-      params.delete(key);
-    }
-    navigate(`/packages/${packageId}?${params.toString()}`);
+  function navigatePackagePage(targetServiceId, packageId) {
+    const preservedParams = preserveParams(location.search);
+    preservedParams.set("serviceId", targetServiceId);
+    navigate(`/packages/${packageId}?${preservedParams.toString()}`);
   }
 
   const handleNavigateServiceList = (packageId, packageName, serviceIds) => {
     if (serviceIds.length === 1) {
-      params.set("serviceId", serviceIds[0]);
-      navigatePackagePage(packageId);
+      navigatePackagePage(serviceIds[0], packageId);
     } else {
       setSelectedPackageInfo({
         packageId: packageId,
@@ -372,7 +370,8 @@ export function Status() {
     }
   };
 
-  const handleNavigatePackage = (packageId) => navigatePackagePage(packageId);
+  const handleNavigatePackage = (targetServiceId, packageId) =>
+    navigatePackagePage(targetServiceId, packageId);
 
   const handleAllServices = () => {
     setIsActiveUploadMode(0);
@@ -574,7 +573,9 @@ export function Status() {
                     >
                       <PTeamStatusCard
                         key={packageInfo.package_id}
-                        onHandleClick={() => handleNavigatePackage(packageInfo.package_id)}
+                        onHandleClick={() =>
+                          handleNavigatePackage(serviceId, packageInfo.package_id)
+                        }
                         pteam={pteam}
                         packageInfo={packageInfo}
                       />
