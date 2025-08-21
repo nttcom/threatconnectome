@@ -69,7 +69,7 @@ def _create_insight_response(db: Session, insight: models.Insight, ticket_id: UU
     )
 
 
-def _check_request_fields(request: schemas.InsightUpdatetRequest, update_request: dict):
+def _check_request_fields(request: schemas.InsightUpdateRequest, update_request: dict):
     fields_to_check = [
         "description",
         "data_processing_strategy",
@@ -247,7 +247,7 @@ def create_insight(
 @router.put("/{ticket_id}/insight", response_model=schemas.InsightResponse)
 def update_insight(
     ticket_id: UUID,
-    request: schemas.InsightUpdatetRequest,
+    request: schemas.InsightUpdateRequest,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(database.get_db),
 ):
@@ -270,9 +270,12 @@ def update_insight(
 
     if "description" in update_request.keys() and request.description is not None:
         insight.description = request.description
-    if "data_processing_strategy" in update_request.keys() and request.data_processing_strategy:
+    if (
+        "data_processing_strategy" in update_request.keys()
+        and request.data_processing_strategy is not None
+    ):
         insight.data_processing_strategy = request.data_processing_strategy
-    if "threat_scenarios" in update_request.keys() and request.threat_scenarios:
+    if "threat_scenarios" in update_request.keys() and request.threat_scenarios is not None:
         for threat_scenario in insight.threat_scenarios:
             persistence.delete_threat_scenario(db, threat_scenario)
 
@@ -285,7 +288,7 @@ def update_insight(
             )
             persistence.create_threat_scenario(db, threat_scenario_model)
 
-    if "affected_objects" in update_request.keys() and request.affected_objects:
+    if "affected_objects" in update_request.keys() and request.affected_objects is not None:
         for affected_object in insight.affected_objects:
             persistence.delete_affected_object(db, affected_object)
 
@@ -298,7 +301,7 @@ def update_insight(
             )
             persistence.create_affected_object(db, affected_object_model)
 
-    if "insight_references" in update_request.keys() and request.insight_references:
+    if "insight_references" in update_request.keys() and request.insight_references is not None:
         for insight_reference in insight.insight_references:
             persistence.delete_insight_reference(db, insight_reference)
 
