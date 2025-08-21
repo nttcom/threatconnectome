@@ -775,7 +775,7 @@ class TestUpdateInsight:
         # Then
         assert response.status_code == 400
         assert response.json()["detail"] == (
-            "All items in schemas.InsightUpdateRequest must be filled in when creating an insight"
+            "No value for required field when creating insight: data_processing_strategy"
         )
 
 
