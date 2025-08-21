@@ -736,7 +736,7 @@ class TestUpdateInsight:
         assert response.status_code == 403
         assert response.json()["detail"] == "Not a pteam member"
 
-    def test_it_should_return_400_when_None_in_the_request(self, update_setup):
+    def test_it_should_return_400_when_None_in_the_request_when_update_insight(self, update_setup):
         # Given
         invalid_update_request = {
             "description": None,
@@ -754,6 +754,28 @@ class TestUpdateInsight:
         assert (
             response.json()["detail"]
             == f"Cannot specify None for {next(iter(invalid_update_request))}"
+        )
+
+    def test_it_should_return_400_when_empty_list_in_the_request_when_create_insight(
+        self, ticket_setup
+    ):
+        # Given
+        ticket1 = ticket_setup["ticket1"]
+        insight_request = {
+            "description": "example insight description",
+        }
+        # When
+        ticket_id = ticket1["ticket_id"]
+        response = client.put(
+            f"/tickets/{ticket_id}/insight",
+            headers=headers(USER1),
+            json=insight_request,
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert response.json()["detail"] == (
+            "All items in schemas.InsightUpdateRequest must be filled in when creating an insight"
         )
 
 

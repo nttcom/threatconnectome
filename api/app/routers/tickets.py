@@ -86,7 +86,10 @@ def _check_request_fields_for_create(request: schemas.InsightUpdateRequest):
         if getattr(request, field) is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Cannot specify None for {field}",
+                detail=(
+                    "All items in schemas.InsightUpdateRequest must be filled in "
+                    "when creating an insight"
+                ),
             )
 
 
