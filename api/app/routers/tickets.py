@@ -353,7 +353,7 @@ def get_insight(
         )
 
     insight = ticket.insight
-    response = _create_insight_response(db, insight, ticket_id)
+    response = _create_insight_response(insight, ticket_id)
 
     return response
 
