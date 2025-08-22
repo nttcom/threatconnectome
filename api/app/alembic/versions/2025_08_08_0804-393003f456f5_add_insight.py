@@ -74,7 +74,7 @@ def upgrade() -> None:
         sa.Column("insight_reference_id", sa.String(length=36), nullable=False),
         sa.Column("insight_id", sa.String(length=36), nullable=False),
         sa.Column("link_text", sa.String(length=255), nullable=False),
-        sa.Column("url", sa.String(length=255), nullable=False),
+        sa.Column("url", sa.String(length=255), nullable=True),
         sa.ForeignKeyConstraint(["insight_id"], ["insight.insight_id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("insight_reference_id"),
     )

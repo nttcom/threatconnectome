@@ -872,6 +872,6 @@ class InsightReference(Base):
         ForeignKey("insight.insight_id", ondelete="CASCADE"), index=True
     )
     link_text: Mapped[Str255]
-    url: Mapped[Str255]
+    url: Mapped[Str255 | None]
 
     insight = relationship("Insight", back_populates="insight_references")
