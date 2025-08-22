@@ -111,6 +111,11 @@ def create_affected_object(db: Session, affected_object: models.AffectedObject):
     db.flush()
 
 
+def delete_affected_object(db: Session, affected_object: models.AffectedObject) -> None:
+    db.delete(affected_object)
+    db.flush()
+
+
 ### Insight
 
 
@@ -134,14 +139,6 @@ def create_insight_reference(db: Session, insight_reference: models.InsightRefer
 
 def delete_insight_reference(db: Session, insight_reference: models.InsightReference) -> None:
     db.delete(insight_reference)
-    db.flush()
-
-
-### AffectedObject
-
-
-def delete_affected_object(db: Session, affected_object: models.AffectedObject) -> None:
-    db.delete(affected_object)
     db.flush()
 
 
