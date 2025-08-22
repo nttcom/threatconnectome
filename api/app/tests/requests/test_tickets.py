@@ -534,127 +534,94 @@ class TestGetTickets:
 
 
 class TestUpdateInsight:
+    CREATE_REQUEST = {
+        "description": "example insight description",
+        "data_processing_strategy": "example reasoning and planning",
+        "threat_scenarios": [
+            {
+                "impact_category": "denial_of_control",
+                "title": "example threat_scenario title1",
+                "description": "example threat_scenario description1",
+            },
+            {
+                "impact_category": "manipulation_of_view",
+                "title": "example threat_scenario title2",
+                "description": "example threat_scenario description2",
+            },
+        ],
+        "affected_objects": [
+            {
+                "object_category": "person",
+                "name": "example affected_object name1",
+                "description": "example affected_object description1",
+            },
+            {
+                "object_category": "mobile_device",
+                "name": "example affected_object name2",
+                "description": "example affected_object description2",
+            },
+        ],
+        "insight_references": [
+            {
+                "link_text": "example link_text1",
+                "url": "example url1",
+            },
+            {
+                "link_text": "example link_text2",
+                "url": None,
+            },
+            {
+                "link_text": "example link_text3",
+            },
+        ],
+    }
+
+    UPDATE_REQUEST = {
+        "description": "updated insight description",
+        "data_processing_strategy": "updated reasoning and planning",
+        "threat_scenarios": [
+            {
+                "impact_category": "denial_of_control",
+                "title": "updated threat_scenario title1",
+                "description": "updated threat_scenario description1",
+            },
+        ],
+        "affected_objects": [
+            {
+                "object_category": "person",
+                "name": "updated affected_object name1",
+                "description": "updated affected_object description1",
+            },
+        ],
+        "insight_references": [
+            {
+                "link_text": "updated link_text1",
+                "url": "updated url1",
+            },
+        ],
+    }
+
     @pytest.fixture(scope="function", autouse=False)
     def update_setup(self, ticket_setup):
         ticket1 = ticket_setup["ticket1"]
-        insight_request = {
-            "description": "example insight description",
-            "data_processing_strategy": "example reasoning and planning",
-            "threat_scenarios": [
-                {
-                    "impact_category": "denial_of_control",
-                    "title": "example threat_scenario title1",
-                    "description": "example threat_scenario description1",
-                },
-                {
-                    "impact_category": "manipulation_of_view",
-                    "title": "example threat_scenario title2",
-                    "description": "example threat_scenario description2",
-                },
-            ],
-            "affected_objects": [
-                {
-                    "object_category": "person",
-                    "name": "example affected_object name1",
-                    "description": "example affected_object description1",
-                },
-                {
-                    "object_category": "mobile_device",
-                    "name": "example affected_object name2",
-                    "description": "example affected_object description2",
-                },
-            ],
-            "insight_references": [
-                {
-                    "link_text": "example link_text1",
-                    "url": "example url1",
-                },
-                {
-                    "link_text": "example link_text2",
-                    "url": "example url2",
-                },
-            ],
-        }
 
         response = client.put(
             f"/tickets/{ticket1['ticket_id']}/insight",
             headers=headers(USER1),
-            json=insight_request,
+            json=self.CREATE_REQUEST,
         )
 
         self.response_insight = response.json()
-        self.update_request = {
-            "description": "updated insight description",
-            "data_processing_strategy": "updated reasoning and planning",
-            "threat_scenarios": [
-                {
-                    "impact_category": "denial_of_control",
-                    "title": "updated threat_scenario title1",
-                    "description": "updated threat_scenario description1",
-                },
-            ],
-            "affected_objects": [
-                {
-                    "object_category": "person",
-                    "name": "updated affected_object name1",
-                    "description": "updated affected_object description1",
-                },
-            ],
-            "insight_references": [
-                {
-                    "link_text": "updated link_text1",
-                    "url": "updated url1",
-                },
-            ],
-        }
 
     def test_return_InsightResponse_when_create_insight_successfully(self, ticket_setup):
         # Given
         ticket1 = ticket_setup["ticket1"]
-        insight_request = {
-            "description": "example insight description",
-            "data_processing_strategy": "example reasoning and planning",
-            "threat_scenarios": [
-                {
-                    "impact_category": "denial_of_control",
-                    "title": "example threat_scenario title1",
-                    "description": "example threat_scenario description1",
-                },
-                {
-                    "impact_category": "manipulation_of_view",
-                    "title": "example threat_scenario title2",
-                    "description": "example threat_scenario description2",
-                },
-            ],
-            "affected_objects": [
-                {
-                    "object_category": "person",
-                    "name": "example affected_object name1",
-                    "description": "example affected_object description1",
-                },
-                {
-                    "object_category": "mobile_device",
-                    "name": "example affected_object name2",
-                    "description": "example affected_object description2",
-                },
-            ],
-            "insight_references": [
-                {
-                    "link_text": "example link_text1",
-                    "url": "example url1",
-                },
-                {
-                    "link_text": "example link_text2",
-                    "url": "example url2",
-                },
-            ],
-        }
         # When
         ticket_id = ticket1["ticket_id"]
         response = client.put(
             f"/tickets/{ticket_id}/insight",
             headers=headers(USER1),
-            json=insight_request,
+            json=self.CREATE_REQUEST,
         )
 
         # Then
@@ -673,32 +640,35 @@ class TestUpdateInsight:
             <= datetime.fromisoformat(response_data["updated_at"].replace("Z", "+00:00"))
             <= now
         )
+        assert "url" in response_data["insight_references"][2]
+        assert response_data["insight_references"][2]["url"] is None
 
         response_data.pop("ticket_id", None)
         response_data.pop("created_at", None)
         response_data.pop("updated_at", None)
-        assert response_data == insight_request
+        response_data["insight_references"][2].pop("url", None)
+        assert response_data == self.CREATE_REQUEST
 
     def test_return_InsightResponse_when_update_insight_successfully(self, update_setup):
         # When
         response = client.put(
             f"/tickets/{self.response_insight['ticket_id']}/insight",
             headers=headers(USER1),
-            json=self.update_request,
+            json=self.UPDATE_REQUEST,
         )
 
         # Then
         assert response.status_code == 200
         updated_insight = response.json()
-        assert updated_insight["description"] == self.update_request["description"]
+        assert updated_insight["description"] == self.UPDATE_REQUEST["description"]
         assert (
             updated_insight["data_processing_strategy"]
-            == self.update_request["data_processing_strategy"]
+            == self.UPDATE_REQUEST["data_processing_strategy"]
         )
-        assert updated_insight["threat_scenarios"][0] == self.update_request["threat_scenarios"][0]
-        assert updated_insight["affected_objects"][0] == self.update_request["affected_objects"][0]
+        assert updated_insight["threat_scenarios"][0] == self.UPDATE_REQUEST["threat_scenarios"][0]
+        assert updated_insight["affected_objects"][0] == self.UPDATE_REQUEST["affected_objects"][0]
         assert (
-            updated_insight["insight_references"][0] == self.update_request["insight_references"][0]
+            updated_insight["insight_references"][0] == self.UPDATE_REQUEST["insight_references"][0]
         )
         assert updated_insight["ticket_id"] == self.response_insight["ticket_id"]
         assert updated_insight["created_at"] == self.response_insight["created_at"]
@@ -717,7 +687,7 @@ class TestUpdateInsight:
         response = client.put(
             f"/tickets/{non_existent_ticket_id}/insight",
             headers=headers(USER1),
-            json=self.update_request,
+            json=self.UPDATE_REQUEST,
         )
 
         # Then
@@ -729,7 +699,7 @@ class TestUpdateInsight:
         response = client.put(
             f"/tickets/{self.response_insight['ticket_id']}/insight",
             headers=headers(USER2),
-            json=self.update_request,
+            json=self.UPDATE_REQUEST,
         )
 
         # Then

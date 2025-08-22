@@ -218,7 +218,7 @@ class AffectedObject(BaseModel):
 
 class InsightReference(BaseModel):
     link_text: str
-    url: str
+    url: str | None = None
 
 
 class InsightBase(BaseModel):
