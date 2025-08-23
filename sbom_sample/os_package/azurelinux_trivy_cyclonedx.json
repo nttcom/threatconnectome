@@ -1,0 +1,4928 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:bee90dce-591c-4376-a46c-b19550cc9fe0",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-07-03T02:39:32+00:00",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "group": "aquasecurity",
+          "name": "trivy",
+          "version": "0.63.0"
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:oci/core@sha256%3A9948138108a3d69f1dae62104599ac03132225c3b7a5ac57b85a214629c8567d?arch=amd64&repository_url=mcr.microsoft.com%2Fazurelinux%2Fbase%2Fcore",
+      "type": "container",
+      "name": "mcr.microsoft.com/azurelinux/base/core:3.0",
+      "purl": "pkg:oci/core@sha256%3A9948138108a3d69f1dae62104599ac03132225c3b7a5ac57b85a214629c8567d?arch=amd64&repository_url=mcr.microsoft.com%2Fazurelinux%2Fbase%2Fcore",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:ImageID",
+          "value": "sha256:27a883137d8d155a3599d19d8dcee1931f91fa27b683bcfa0abed96121e4fb6f"
+        },
+        {
+          "name": "aquasecurity:trivy:RepoDigest",
+          "value": "mcr.microsoft.com/azurelinux/base/core@sha256:9948138108a3d69f1dae62104599ac03132225c3b7a5ac57b85a214629c8567d"
+        },
+        {
+          "name": "aquasecurity:trivy:RepoTag",
+          "value": "mcr.microsoft.com/azurelinux/base/core:3.0"
+        },
+        {
+          "name": "aquasecurity:trivy:SchemaVersion",
+          "value": "2"
+        },
+        {
+          "name": "aquasecurity:trivy:Size",
+          "value": "76366848"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "708aef41-f0ba-4f3e-b38c-355b4aa5e8a2",
+      "type": "operating-system",
+      "name": "azurelinux",
+      "version": "3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:Class",
+          "value": "os-pkgs"
+        },
+        {
+          "name": "aquasecurity:trivy:Type",
+          "value": "azurelinux"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/SymCrypt-OpenSSL@1.8.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "SymCrypt-OpenSSL",
+      "version": "1.8.1-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "d8c5650d1af24e252f30bf09ef62fdff"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/SymCrypt-OpenSSL@1.8.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "SymCrypt-OpenSSL@1.8.1-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "SymCrypt-OpenSSL"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.8.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/SymCrypt@103.8.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "SymCrypt",
+      "version": "103.8.0-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "745aab07e6d920deedd24ffd2be48f65"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/SymCrypt@103.8.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "SymCrypt@103.8.0-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "SymCrypt"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "103.8.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/attr@2.5.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "attr",
+      "version": "2.5.2-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5bd1b5477b9e65a57afb2aa1a6ed8c28"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ AND LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/attr@2.5.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "attr@2.5.2-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "attr"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.5.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/azurelinux-release@3.0-29.azl3?arch=noarch&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "azurelinux-release",
+      "version": "3.0-29.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "bbdeb0daa5ea1b392ee3cbd033cae418"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/azurelinux-release@3.0-29.azl3?arch=noarch&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "azurelinux-release@3.0-29.azl3.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "azurelinux-release"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "29.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/azurelinux-repos-cloud-native@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "azurelinux-repos-cloud-native",
+      "version": "3.0-5.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "d4980507eff6cce3da3cbe027069d8ff"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/azurelinux-repos-cloud-native@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "azurelinux-repos-cloud-native@3.0-5.azl3.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "azurelinux-repos"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/azurelinux-repos-ms-non-oss@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "azurelinux-repos-ms-non-oss",
+      "version": "3.0-5.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "2a030aa60bf951c113c7c564eccc9a34"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/azurelinux-repos-ms-non-oss@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "azurelinux-repos-ms-non-oss@3.0-5.azl3.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "azurelinux-repos"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/azurelinux-repos-ms-oss@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "azurelinux-repos-ms-oss",
+      "version": "3.0-5.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "df5c99b75bd25282658a778994e08247"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/azurelinux-repos-ms-oss@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "azurelinux-repos-ms-oss@3.0-5.azl3.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "azurelinux-repos"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/azurelinux-repos-shared@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "azurelinux-repos-shared",
+      "version": "3.0-5.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c1b1236e971b8cc4b056cc06fe11a799"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/azurelinux-repos-shared@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "azurelinux-repos-shared@3.0-5.azl3.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "azurelinux-repos"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/azurelinux-repos@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "azurelinux-repos",
+      "version": "3.0-5.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "52ffcd24c199dfc755357f5c4ec34c9d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/azurelinux-repos@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "azurelinux-repos@3.0-5.azl3.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "azurelinux-repos"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "bash",
+      "version": "5.2.15-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "34de108b0354bb52eff29a399906c355"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "bash@5.2.15-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "bash"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.2.15"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/bzip2-libs@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "bzip2-libs",
+      "version": "1.0.8-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "1add8f3ad3f8ad3c20f724176910aeae"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/bzip2-libs@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "bzip2-libs@1.0.8-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "bzip2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.0.8"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/bzip2@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "bzip2",
+      "version": "1.0.8-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "13183c414120b55c9eb2db54d6fde15c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/bzip2@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "bzip2@1.0.8-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "bzip2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.0.8"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/ca-certificates-base@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "ca-certificates-base",
+      "version": "1:3.0.0-8.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "61d35917c43b2afa44b6af3b461b3926"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MPLv2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/ca-certificates-base@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ca-certificates-base@3.0.0-8.azl3.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcEpoch",
+          "value": "1"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ca-certificates"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "8.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/ca-certificates-shared@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "ca-certificates-shared",
+      "version": "1:3.0.0-8.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "72b41d4aacdad79c4d7b70afd8d800ed"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MPLv2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/ca-certificates-shared@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ca-certificates-shared@3.0.0-8.azl3.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcEpoch",
+          "value": "1"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ca-certificates"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "8.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/ca-certificates-tools@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "ca-certificates-tools",
+      "version": "1:3.0.0-8.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "a8d4fc1c110bf094d424265dbdbe0307"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MPLv2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/ca-certificates-tools@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ca-certificates-tools@3.0.0-8.azl3.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcEpoch",
+          "value": "1"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ca-certificates"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "8.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/chkconfig@1.25-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "chkconfig",
+      "version": "1.25-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "d747f258195361224db4a2ed2fe3d730"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/chkconfig@1.25-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "chkconfig@1.25-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "chkconfig"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.25"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/core-packages-container@3.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "core-packages-container",
+      "version": "3.0-7.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "542771f2b8197e94ee87285b542233cf"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "ASL 2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/core-packages-container@3.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "core-packages-container@3.0-7.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "core-packages"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/coreutils@9.4-6.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "coreutils",
+      "version": "9.4-6.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "facf3ebc7e5a634085963cb40fb2df97"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/coreutils@9.4-6.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "coreutils@9.4-6.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "coreutils"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "9.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/curl-libs@8.11.1-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "curl-libs",
+      "version": "8.11.1-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "15ed40f3756e5aa7712972177ec1fd4a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "curl"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/curl-libs@8.11.1-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "curl-libs@8.11.1-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "curl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.11.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/curl@8.11.1-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "curl",
+      "version": "8.11.1-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5f9a6ddf134b7aed69a14fcc8391a792"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "curl"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/curl@8.11.1-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "curl@8.11.1-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "curl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.11.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/e2fsprogs-libs@1.47.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "e2fsprogs-libs",
+      "version": "1.47.0-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "20b7d29dea4c0139800ac14242323abb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2 AND LGPLv2 AND BSD AND MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/e2fsprogs-libs@1.47.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "e2fsprogs-libs@1.47.0-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "e2fsprogs"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.47.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/elfutils-libelf@0.189-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "elfutils-libelf",
+      "version": "0.189-4.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5f8058612fb2078e29cb25745b53ce35"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ OR LGPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/elfutils-libelf@0.189-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "elfutils-libelf@0.189-4.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "elfutils"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.189"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/expat-libs@2.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "expat-libs",
+      "version": "2.6.4-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "fb546fc4be8776f17c819343b9e3962d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/expat-libs@2.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "expat-libs@2.6.4-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "expat"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.6.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/expat@2.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "expat",
+      "version": "2.6.4-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "9897c4b228d74557e616ad5be795af9e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/expat@2.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "expat@2.6.4-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "expat"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.6.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/filesystem@1.1-21.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "filesystem",
+      "version": "1.1-21.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "05170e1996eaf4d43899a7f51dc0171b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/filesystem@1.1-21.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "filesystem@1.1-21.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "filesystem"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "21.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/findutils@4.9.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "findutils",
+      "version": "4.9.0-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "f1d6e1cd1459bf168cf1f696a9d3b940"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/findutils@4.9.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "findutils@4.9.0-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "findutils"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.9.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "glibc",
+      "version": "2.38-10.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "485135703bbf75735d554ff21f20cdea"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD AND GPLv2+ AND Inner-Net AND ISC AND LGPLv2+ AND MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "glibc@2.38-10.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "glibc"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "10.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.38"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/gmp@6.3.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "gmp",
+      "version": "6.3.0-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "868ee14a1cec5825ce5d84e22ba88149"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ AND GPLv3+ AND LGPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/gmp@6.3.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "gmp@6.3.0-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gmp"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "6.3.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/gnupg2@2.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "gnupg2",
+      "version": "2.4.4-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "7a68f055f70104968f1b70f9c890ad66"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD and CC0 and GPLv2+ and LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/gnupg2@2.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "gnupg2@2.4.4-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gnupg2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.4.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/gpgme@1.23.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "gpgme",
+      "version": "1.23.2-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "6d22cba955b20d03d7e3aa3d58ee7e67"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+ and LGPLv2+ and MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/gpgme@1.23.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "gpgme@1.23.2-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gpgme"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.23.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/grep@3.11-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "grep",
+      "version": "3.11-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "a9e5e65594c0da1ab6b699d8943fae86"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/grep@3.11-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "grep@3.11-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "grep"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.11"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/gzip@1.13-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "gzip",
+      "version": "1.13-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "2913312c4604e0eaa48d79073015f833"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/gzip@1.13-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "gzip@1.13-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gzip"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.13"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/krb5@1.21.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "krb5",
+      "version": "1.21.3-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "96944ee264f97584d00ce9b90499e2a7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/krb5@1.21.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "krb5@1.21.3-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "krb5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.21.3"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libacl@2.3.1-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libacl",
+      "version": "2.3.1-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "6fe0c12fc0ef73c17442bbaef17e9005"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libacl@2.3.1-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libacl@2.3.1-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "acl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.3.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libarchive@3.7.7-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libarchive",
+      "version": "3.7.7-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "7855f572c28de3e2b44fe78103011f40"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD AND Public Domain AND (ASL 2.0 OR CC0 1.0 OR OpenSSL)"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libarchive@3.7.7-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libarchive@3.7.7-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libarchive"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.7.7"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libassuan@2.5.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libassuan",
+      "version": "2.5.6-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "bef99237ab7c16b36389298d336b7e09"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libassuan@2.5.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libassuan@2.5.6-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libassuan"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.5.6"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libattr@2.5.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libattr",
+      "version": "2.5.2-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "cb678a106b2b89edee8dceb020edf2b8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libattr@2.5.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libattr@2.5.2-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "attr"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.5.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libcap@2.69-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libcap",
+      "version": "2.69-4.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "e468c815521c5f400bae7d3cede94fdd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libcap@2.69-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libcap@2.69-4.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libcap"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.69"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libffi@3.4.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libffi",
+      "version": "3.4.4-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c56d0cb44a3239dc9ada6cd72db4bd29"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libffi@3.4.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libffi@3.4.4-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libffi"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.4.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libgcc@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libgcc",
+      "version": "13.2.0-7.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "62bd7102c14361ec26979c80eb074741"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libgcc@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libgcc@13.2.0-7.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gcc"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "13.2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libgcrypt@1.10.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libgcrypt",
+      "version": "1.10.2-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "cfcca9409b0e872b3e12ed88c856f7cd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ and LGPLv2+ and BSD and MIT and Public Domain"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libgcrypt@1.10.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libgcrypt@1.10.2-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libgcrypt"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.10.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libgpg-error@1.47-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libgpg-error",
+      "version": "1.47-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "9a622e1a4ea7a102e910cafded71355b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libgpg-error@1.47-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libgpg-error@1.47-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libgpg-error"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.47"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libksba@1.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libksba",
+      "version": "1.6.4-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5715ae705b79cdac56ca127cd5b38394"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "(LGPLv3+ or GPLv2+) and GPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libksba@1.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libksba@1.6.4-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libksba"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.6.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libpcre2-16-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libpcre2-16-0",
+      "version": "10.42-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "0c86a3a8ee0a9cef1528de5877f27e2e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libpcre2-16-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libpcre2-16-0@10.42-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "pcre2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "10.42"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libpcre2-32-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libpcre2-32-0",
+      "version": "10.42-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "22c3464ec79d48aa3b9cfb5b017cfdf0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libpcre2-32-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libpcre2-32-0@10.42-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "pcre2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "10.42"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libpcre2-8-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libpcre2-8-0",
+      "version": "10.42-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "55f27435616f007fafac3b17b21d60eb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libpcre2-8-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libpcre2-8-0@10.42-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "pcre2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "10.42"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libpcre2-posix2@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libpcre2-posix2",
+      "version": "10.42-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "39611f8d417a4f124e2991ad8ddf4f7e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libpcre2-posix2@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libpcre2-posix2@10.42-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "pcre2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "10.42"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libselinux@3.6-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libselinux",
+      "version": "3.6-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "dc4e140f70da2f6aa438a5d393dcf825"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Public Domain"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libselinux@3.6-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libselinux@3.6-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libselinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.6"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libsepol@3.6-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libsepol",
+      "version": "3.6-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "b1e2cff9144fb7f68904bd4a0f60bcc3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libsepol@3.6-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libsepol@3.6-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libsepol"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.6"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libsolv@0.7.28-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libsolv",
+      "version": "0.7.28-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "21565636547f80e39bbebc63b202bdb2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libsolv@0.7.28-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libsolv@0.7.28-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libsolv"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.7.28"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libssh2@1.11.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libssh2",
+      "version": "1.11.1-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "fd7c5134c877d87659c1de1390a7d43f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libssh2@1.11.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libssh2@1.11.1-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libssh2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.11.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libstdc%2B%2B@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libstdc++",
+      "version": "13.2.0-7.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "7f25700c4ffcd5a00fff6d9686779b5e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libstdc%2B%2B@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libstdc++@13.2.0-7.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gcc"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "13.2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/libtasn1@4.19.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libtasn1",
+      "version": "4.19.0-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "764fb6da3c8b109fb9e42f630e3c9417"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+ AND LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/libtasn1@4.19.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libtasn1@4.19.0-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libtasn1"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.19.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/lua-libs@5.4.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "lua-libs",
+      "version": "5.4.6-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "9f108f7d2352636bf51c827d798c5a9f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/lua-libs@5.4.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "lua-libs@5.4.6-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "lua"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.4.6"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/ncurses-libs@6.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "ncurses-libs",
+      "version": "6.4-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "b24ce080488995bb80c7083ad83de2c6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/ncurses-libs@6.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ncurses-libs@6.4-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ncurses"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "6.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/newt@0.52.23-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "newt",
+      "version": "0.52.23-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "7d4c762e59666caa67880fc1c324c9a1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/newt@0.52.23-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "newt@0.52.23-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "newt"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.52.23"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/nghttp2@1.61.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "nghttp2",
+      "version": "1.61.0-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "762a5bc1e994903da7edf57eab298bfe"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/nghttp2@1.61.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "nghttp2@1.61.0-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "nghttp2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.61.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/npth@1.6-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "npth",
+      "version": "1.6-4.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "9011080a48271530443ffda8bb33e4a8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/npth@1.6-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "npth@1.6-4.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "npth"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.6"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "openssl-libs",
+      "version": "3.3.3-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "ebc2a9399da6d01de22698abcf85d9c9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "openssl-libs@3.3.3-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "openssl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.3.3"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/openssl@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "openssl",
+      "version": "3.3.3-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "05d798d68d06959c589ad92805d3eab9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/openssl@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "openssl@3.3.3-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "openssl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.3.3"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/p11-kit-trust@0.25.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "p11-kit-trust",
+      "version": "0.25.0-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "9dba441edf33c77d4fac6d18edd8817d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/p11-kit-trust@0.25.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "p11-kit-trust@0.25.0-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "p11-kit"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.25.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/p11-kit@0.25.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "p11-kit",
+      "version": "0.25.0-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "9fee7e582b281379d46fc5f33746b6da"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/p11-kit@0.25.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "p11-kit@0.25.0-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "p11-kit"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.25.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/pcre2-tools@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "pcre2-tools",
+      "version": "10.42-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "3d2994ea5bdc50a5d32229bc3eef10c0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/pcre2-tools@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "pcre2-tools@10.42-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "pcre2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "10.42"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/pcre2@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "pcre2",
+      "version": "10.42-3.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "504404ae89181aac02bbbf72a00228bc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/pcre2@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "pcre2@10.42-3.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "pcre2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "10.42"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/pinentry@1.2.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "pinentry",
+      "version": "1.2.1-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "b58689f1199ee6ea42fc560b6dabce2d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/pinentry@1.2.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "pinentry@1.2.1-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "pinentry"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.2.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/popt@1.19-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "popt",
+      "version": "1.19-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "3ef357819556d37bbb7d4a8179ff3152"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/popt@1.19-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "popt@1.19-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "popt"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.19"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/readline@8.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "readline",
+      "version": "8.2-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c499ca9a0532a7e49599e3b81c6682ee"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/readline@8.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "readline@8.2-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "readline"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/rpm-libs@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "rpm-libs",
+      "version": "4.18.2-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "18eb1501365be6a05f0eaf9f10d75e35"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ AND LGPLv2+ AND BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/rpm-libs@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "rpm-libs@4.18.2-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "rpm"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.18.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/rpm@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "rpm",
+      "version": "4.18.2-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "582939db3cbbfe8c3ebce8987a958f93"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ AND LGPLv2+ AND BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/rpm@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "rpm@4.18.2-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "rpm"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.18.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/sed@4.9-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "sed",
+      "version": "4.9-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "9e77abb2f84c1600b72e8d7e7e092963"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/sed@4.9-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "sed@4.9-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "sed"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.9"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/slang@2.3.3-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "slang",
+      "version": "2.3.3-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "d8350deb13c3a258f21d2ff68f60e6af"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/slang@2.3.3-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "slang@2.3.3-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "slang"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.3.3"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/sqlite-libs@3.44.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "sqlite-libs",
+      "version": "3.44.0-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "2230c3b9bde31a14c4365066ff1e1836"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Public Domain"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/sqlite-libs@3.44.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "sqlite-libs@3.44.0-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "sqlite"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.44.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/tdnf-cli-libs@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "tdnf-cli-libs",
+      "version": "3.5.8-7.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c154d5ec2297ea5e23f199ece10cc42a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2.1 AND GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/tdnf-cli-libs@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "tdnf-cli-libs@3.5.8-7.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "tdnf"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.5.8"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/tdnf-plugin-repogpgcheck@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "tdnf-plugin-repogpgcheck",
+      "version": "3.5.8-7.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "7de511b9725c5ab0d83b3711907a69e1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2.1 AND GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/tdnf-plugin-repogpgcheck@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "tdnf-plugin-repogpgcheck@3.5.8-7.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "tdnf"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.5.8"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/tdnf@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "tdnf",
+      "version": "3.5.8-7.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "1c29a7b2412c687296650d56352bc438"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2.1 AND GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/tdnf@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "tdnf@3.5.8-7.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "tdnf"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.5.8"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/xz-libs@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "xz-libs",
+      "version": "5.4.4-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "e4c587461388ddb49f32b583f00b5c1a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ and GPLv3+ and LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/xz-libs@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "xz-libs@5.4.4-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "xz"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.4.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/xz@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "xz",
+      "version": "5.4.4-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "0e31064c9dce45ba6456df0a1147125a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ and GPLv3+ and LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/xz@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "xz@5.4.4-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "xz"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.4.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "zlib",
+      "version": "1.3.1-1.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "b37c92122e97ce0728a808783ba3ab4d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "zlib"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "zlib@1.3.1-1.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "zlib"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.3.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/azurelinux/zstd-libs@1.5.5-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "zstd-libs",
+      "version": "1.5.5-2.azl3",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c315af9933d38d21cafdd5f1f1ccd10e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause AND GPL-2.0-only"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/azurelinux/zstd-libs@1.5.5-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:d8a65422a582dada1c0c38d67110075369cd32e6bfbc7a7c2e2c491e2f739009"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:12ff10226b498639c637d7f81c12ecbd567494c4b8c26a9180edad4b500ff987"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "zstd-libs@1.5.5-2.azl3.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "azurelinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "zstd"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.azl3"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.5.5"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "708aef41-f0ba-4f3e-b38c-355b4aa5e8a2",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/core-packages-container@3.0-7.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:oci/core@sha256%3A9948138108a3d69f1dae62104599ac03132225c3b7a5ac57b85a214629c8567d?arch=amd64&repository_url=mcr.microsoft.com%2Fazurelinux%2Fbase%2Fcore",
+      "dependsOn": [
+        "708aef41-f0ba-4f3e-b38c-355b4aa5e8a2"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/SymCrypt-OpenSSL@1.8.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/SymCrypt@103.8.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/SymCrypt@103.8.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/attr@2.5.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libattr@2.5.2-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/azurelinux-release@3.0-29.azl3?arch=noarch&distro=azurelinux-3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/azurelinux-repos-cloud-native@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/azurelinux-repos-shared@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/azurelinux-repos-ms-non-oss@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/azurelinux-repos-shared@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/azurelinux-repos-ms-oss@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/azurelinux-repos-shared@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/azurelinux-repos-shared@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/gpgme@1.23.2-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/azurelinux-repos@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/azurelinux-repos-shared@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/readline@8.2-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/bzip2-libs@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/bzip2@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/bzip2-libs@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/ca-certificates-base@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/ca-certificates-shared@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+        "pkg:rpm/azurelinux/ca-certificates-tools@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+        "pkg:rpm/azurelinux/coreutils@9.4-6.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/ca-certificates-shared@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/ca-certificates-tools@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/p11-kit-trust@0.25.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/p11-kit@0.25.0-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/chkconfig@1.25-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libselinux@3.6-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libsepol@3.6-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/newt@0.52.23-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/popt@1.19-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/slang@2.3.3-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/core-packages-container@3.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/SymCrypt-OpenSSL@1.8.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/SymCrypt@103.8.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/azurelinux-release@3.0-29.azl3?arch=noarch&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/azurelinux-repos-cloud-native@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/azurelinux-repos-ms-non-oss@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/azurelinux-repos-ms-oss@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/azurelinux-repos@3.0-5.azl3?arch=noarch&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/bzip2@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/ca-certificates-base@3.0.0-8.azl3?arch=noarch&distro=azurelinux-3.0&epoch=1",
+        "pkg:rpm/azurelinux/curl@8.11.1-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/elfutils-libelf@0.189-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/expat@2.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/filesystem@1.1-21.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/findutils@4.9.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/grep@3.11-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/gzip@1.13-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/ncurses-libs@6.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/readline@8.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/rpm-libs@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/rpm@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/sed@4.9-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/sqlite-libs@3.44.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/tdnf-plugin-repogpgcheck@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/tdnf@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/xz@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/coreutils@9.4-6.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/gmp@6.3.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libacl@2.3.1-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libattr@2.5.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libcap@2.69-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libselinux@3.6-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/curl-libs@8.11.1-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/krb5@1.21.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libssh2@1.11.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/nghttp2@1.61.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zstd-libs@1.5.5-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/curl@8.11.1-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/curl-libs@8.11.1-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/krb5@1.21.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libssh2@1.11.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/e2fsprogs-libs@1.47.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/elfutils-libelf@0.189-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zstd-libs@1.5.5-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/expat-libs@2.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/expat@2.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/expat-libs@2.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/filesystem@1.1-21.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/findutils@4.9.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libselinux@3.6-3.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/filesystem@1.1-21.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/gmp@6.3.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/gnupg2@2.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/bzip2-libs@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libassuan@2.5.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgcrypt@1.10.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgpg-error@1.47-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libksba@1.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/npth@1.6-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/pinentry@1.2.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/readline@8.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/sqlite-libs@3.44.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/gpgme@1.23.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/gnupg2@2.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libassuan@2.5.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgpg-error@1.47-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/grep@3.11-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/gzip@1.13-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/krb5@1.21.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/e2fsprogs-libs@1.47.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libacl@2.3.1-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/attr@2.5.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libattr@2.5.2-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libarchive@3.7.7-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bzip2-libs@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/expat-libs@2.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/xz-libs@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zstd-libs@1.5.5-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libassuan@2.5.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgpg-error@1.47-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libattr@2.5.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libcap@2.69-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgcc@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libffi@3.4.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libgcc@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libgcrypt@1.10.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgpg-error@1.47-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libgpg-error@1.47-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libksba@1.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgpg-error@1.47-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libpcre2-16-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libpcre2-32-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libpcre2-8-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libpcre2-posix2@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libpcre2-8-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libselinux@3.6-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libsepol@3.6-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/pcre2@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libsepol@3.6-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libsolv@0.7.28-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/expat-libs@2.6.4-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/rpm-libs@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zstd-libs@1.5.5-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libssh2@1.11.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libstdc%2B%2B@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgcc@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/libtasn1@4.19.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/lua-libs@5.4.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/ncurses-libs@6.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgcc@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libstdc%2B%2B@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/newt@0.52.23-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/popt@1.19-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/slang@2.3.3-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/nghttp2@1.61.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/npth@1.6-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/openssl@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/p11-kit-trust@0.25.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/chkconfig@1.25-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libtasn1@4.19.0-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/p11-kit@0.25.0-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/p11-kit@0.25.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libffi@3.4.4-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/pcre2-tools@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bzip2-libs@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libpcre2-16-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libpcre2-32-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libpcre2-8-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libpcre2-posix2@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/readline@8.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/pcre2@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/libpcre2-8-0@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libpcre2-posix2@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/pcre2-tools@10.42-3.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/pinentry@1.2.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libassuan@2.5.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgpg-error@1.47-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/ncurses-libs@6.4-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/popt@1.19-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/readline@8.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/ncurses-libs@6.4-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/rpm-libs@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bzip2-libs@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/elfutils-libelf@0.189-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libcap@2.69-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libgcc@13.2.0-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/lua-libs@5.4.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/popt@1.19-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/sqlite-libs@3.44.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/xz-libs@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zstd-libs@1.5.5-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/rpm@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/bzip2-libs@1.0.8-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libarchive@3.7.7-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libcap@2.69-4.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libselinux@3.6-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/lua-libs@5.4.6-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/popt@1.19-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/rpm-libs@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/sqlite-libs@3.44.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/xz-libs@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zstd-libs@1.5.5-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/sed@4.9-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/slang@2.3.3-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/readline@8.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/sqlite-libs@3.44.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/tdnf-cli-libs@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/tdnf-plugin-repogpgcheck@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/gpgme@1.23.2-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/tdnf@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/tdnf@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/curl-libs@8.11.1-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/libsolv@0.7.28-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/openssl-libs@3.3.3-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/rpm-libs@4.18.2-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/sqlite-libs@3.44.0-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/tdnf-cli-libs@3.5.8-7.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/xz-libs@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/xz@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/bash@5.2.15-3.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0",
+        "pkg:rpm/azurelinux/xz-libs@5.4.4-2.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/zlib@1.3.1-1.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/azurelinux/zstd-libs@1.5.5-2.azl3?arch=x86_64&distro=azurelinux-3.0",
+      "dependsOn": [
+        "pkg:rpm/azurelinux/glibc@2.38-10.azl3?arch=x86_64&distro=azurelinux-3.0"
+      ]
+    }
+  ],
+  "vulnerabilities": []
+}

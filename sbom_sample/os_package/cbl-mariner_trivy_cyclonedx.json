@@ -1,0 +1,4335 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:ccfa920f-0651-4a21-880d-015403685778",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-07-03T02:39:27+00:00",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "group": "aquasecurity",
+          "name": "trivy",
+          "version": "0.63.0"
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:oci/core@sha256%3Aed25715f36e04260756ebdd6a662e57f43e5d60f49822be3b0f2e39043145794?arch=amd64&repository_url=mcr.microsoft.com%2Fcbl-mariner%2Fbase%2Fcore",
+      "type": "container",
+      "name": "mcr.microsoft.com/cbl-mariner/base/core:2.0",
+      "purl": "pkg:oci/core@sha256%3Aed25715f36e04260756ebdd6a662e57f43e5d60f49822be3b0f2e39043145794?arch=amd64&repository_url=mcr.microsoft.com%2Fcbl-mariner%2Fbase%2Fcore",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:a0a6ce68d22eb29908ca35845d7524eb8c812aa48f55cda78498f5cf1e2d27ae"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:ImageID",
+          "value": "sha256:8e66dab8ed18853064956cf185f5b0cf9b98e1ee6e3ccadb624a4092edc847a3"
+        },
+        {
+          "name": "aquasecurity:trivy:RepoDigest",
+          "value": "mcr.microsoft.com/cbl-mariner/base/core@sha256:ed25715f36e04260756ebdd6a662e57f43e5d60f49822be3b0f2e39043145794"
+        },
+        {
+          "name": "aquasecurity:trivy:RepoTag",
+          "value": "mcr.microsoft.com/cbl-mariner/base/core:2.0"
+        },
+        {
+          "name": "aquasecurity:trivy:SchemaVersion",
+          "value": "2"
+        },
+        {
+          "name": "aquasecurity:trivy:Size",
+          "value": "69981696"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "21a626ea-f247-44fc-a388-ef7379811efc",
+      "type": "operating-system",
+      "name": "cbl-mariner",
+      "version": "2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:Class",
+          "value": "os-pkgs"
+        },
+        {
+          "name": "aquasecurity:trivy:Type",
+          "value": "cbl-mariner"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "bash",
+      "version": "5.1.8-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "a072b3a088f4495b2c052a56680bddc2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "bash@5.1.8-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "bash"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.1.8"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/bzip2-libs@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "bzip2-libs",
+      "version": "1.0.8-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "f470796787d3c8fbb5bdea488ef5ea32"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/bzip2-libs@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "bzip2-libs@1.0.8-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "bzip2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.0.8"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/bzip2@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "bzip2",
+      "version": "1.0.8-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5c4aed6d8a6797a8835343905f46d64e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/bzip2@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "bzip2@1.0.8-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "bzip2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.0.8"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/ca-certificates-base@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "ca-certificates-base",
+      "version": "1:2.0.0-19.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "3ef150eff7b753f23a786c368a79fb8b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MPLv2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/ca-certificates-base@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ca-certificates-base@2.0.0-19.cm2.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcEpoch",
+          "value": "1"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ca-certificates"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "19.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.0.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/ca-certificates-shared@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "ca-certificates-shared",
+      "version": "1:2.0.0-19.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "e5944a4d661bfb72745223e1bf64df5c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MPLv2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/ca-certificates-shared@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ca-certificates-shared@2.0.0-19.cm2.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcEpoch",
+          "value": "1"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ca-certificates"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "19.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.0.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/ca-certificates-tools@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "ca-certificates-tools",
+      "version": "1:2.0.0-19.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "dd38f1ba63f3ecd2a5381902e39cfdaf"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MPLv2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/ca-certificates-tools@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ca-certificates-tools@2.0.0-19.cm2.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcEpoch",
+          "value": "1"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ca-certificates"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "19.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.0.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/chkconfig@1.20-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "chkconfig",
+      "version": "1.20-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "3c87eb448b7ac98359acbf7ef290b55a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/chkconfig@1.20-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "chkconfig@1.20-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "chkconfig"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.20"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/core-packages-container@2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "core-packages-container",
+      "version": "2.0-8.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "7a8568a145a40ec34f5c7d141023a088"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "ASL 2.0"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/core-packages-container@2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "core-packages-container@2.0-8.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "core-packages"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "8.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/coreutils@8.32-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "coreutils",
+      "version": "8.32-7.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "177c350bf8aafd7b4e089aa16ebbe24c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/coreutils@8.32-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "coreutils@8.32-7.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "coreutils"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.32"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/curl-libs@8.8.0-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "curl-libs",
+      "version": "8.8.0-6.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "869cf070683d0d8903ecbee9421e3227"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "curl"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/curl-libs@8.8.0-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "curl-libs@8.8.0-6.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "curl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.8.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/curl@8.8.0-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "curl",
+      "version": "8.8.0-6.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "2a6e6670df1a38f9d95d5ada8c3cdf35"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "curl"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/curl@8.8.0-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "curl@8.8.0-6.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "curl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.8.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/e2fsprogs-libs@1.46.5-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "e2fsprogs-libs",
+      "version": "1.46.5-3.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "16b149e9bb41964252b5b3cf64903818"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2 AND LGPLv2 AND BSD AND MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/e2fsprogs-libs@1.46.5-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "e2fsprogs-libs@1.46.5-3.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "e2fsprogs"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.46.5"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/elfutils-libelf@0.186-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "elfutils-libelf",
+      "version": "0.186-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "1d6645d93a790963b4b9971abfacac62"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ OR LGPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/elfutils-libelf@0.186-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "elfutils-libelf@0.186-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "elfutils"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.186"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/expat-libs@2.6.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "expat-libs",
+      "version": "2.6.4-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "71c998c4c10bdd1e5038fee9c31aa007"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/expat-libs@2.6.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "expat-libs@2.6.4-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "expat"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.6.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/expat@2.6.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "expat",
+      "version": "2.6.4-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "f7cb9bda41863460388d9c5e67683a14"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/expat@2.6.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "expat@2.6.4-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "expat"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.6.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/filesystem@1.1-20.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "filesystem",
+      "version": "1.1-20.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "1bef763ebffcc71265f9275327967cfc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/filesystem@1.1-20.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "filesystem@1.1-20.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "filesystem"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "20.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/findutils@4.8.0-5.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "findutils",
+      "version": "4.8.0-5.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "43a479fdecfaac8fa32f51a8ad40ec7d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/findutils@4.8.0-5.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "findutils@4.8.0-5.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "findutils"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.8.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "glibc",
+      "version": "2.35-7.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5781e599f04356c6fbb93aa75f3c1d02"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD AND GPLv2+ AND Inner-Net AND ISC AND LGPLv2+ AND MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "glibc@2.35-7.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "glibc"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "7.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.35"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/gmp@6.2.1-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "gmp",
+      "version": "6.2.1-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "1879305b0763cfbab81e8825ff7776eb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ AND GPLv3+ AND LGPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/gmp@6.2.1-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "gmp@6.2.1-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gmp"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "6.2.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/gnupg2@2.4.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "gnupg2",
+      "version": "2.4.0-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "4f725d3e9cfdd36ad6ac870b5fbb532f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD and CC0 and GPLv2+ and LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/gnupg2@2.4.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "gnupg2@2.4.0-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gnupg2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.4.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/gpgme@1.16.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "gpgme",
+      "version": "1.16.0-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "72dff6b9acfd379838b2b83b3e08e5fb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+ and LGPLv2+ and MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/gpgme@1.16.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "gpgme@1.16.0-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gpgme"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.16.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/grep@3.7-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "grep",
+      "version": "3.7-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "d80f605c5ecc0d36a1f024d99735e083"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/grep@3.7-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "grep@3.7-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "grep"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.7"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/gzip@1.12-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "gzip",
+      "version": "1.12-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "3f33b0671c792e8b745acce664b7fb18"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/gzip@1.12-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "gzip@1.12-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gzip"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.12"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/krb5@1.19.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0&epoch=1",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "krb5",
+      "version": "1:1.19.4-3.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "a156464b3d9b844467a8cc5d9e902f11"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/krb5@1.19.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0&epoch=1",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "krb5@1.19.4-3.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcEpoch",
+          "value": "1"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "krb5"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.19.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libarchive@3.6.1-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libarchive",
+      "version": "3.6.1-6.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "05969e7413e1d156a19cbf4c7dce2d97"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD AND Public Domain AND (ASL 2.0 OR CC0 1.0 OR OpenSSL)"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libarchive@3.6.1-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libarchive@3.6.1-6.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libarchive"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "6.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.6.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libassuan@2.5.5-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libassuan",
+      "version": "2.5.5-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "0a756ebdb50a7918c85a9a18337eac08"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libassuan@2.5.5-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libassuan@2.5.5-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libassuan"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.5.5"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libcap@2.60-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libcap",
+      "version": "2.60-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "55b764190f49b0de7287963cd2f08bdd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libcap@2.60-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libcap@2.60-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libcap"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.60"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libffi@3.4.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libffi",
+      "version": "3.4.2-3.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "ea6f91e34abf3eb44011061ec12333cc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libffi@3.4.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libffi@3.4.2-3.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libffi"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.4.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libgcc@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libgcc",
+      "version": "11.2.0-8.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "24242ab922d71feb94ae56dd865e1355"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libgcc@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libgcc@11.2.0-8.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gcc"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "8.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "11.2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libgcrypt@1.10.3-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libgcrypt",
+      "version": "1.10.3-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "41d4ee10abc06b5212c373f0e97afcb9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ and LGPLv2+ and BSD and MIT and Public Domain"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libgcrypt@1.10.3-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libgcrypt@1.10.3-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libgcrypt"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.10.3"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libgpg-error@1.46-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libgpg-error",
+      "version": "1.46-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "42c99e70ecd600b76cfadbebe093dbe6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libgpg-error@1.46-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libgpg-error@1.46-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libgpg-error"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.46"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libksba@1.6.3-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libksba",
+      "version": "1.6.3-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "dd509e5e6b3b0fc0eda09c2703ebd93b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "(LGPLv3+ or GPLv2+) and GPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libksba@1.6.3-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libksba@1.6.3-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libksba"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.6.3"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libselinux@3.2-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libselinux",
+      "version": "3.2-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5349132cc288879e042ece8376b1e682"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Public Domain"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libselinux@3.2-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libselinux@3.2-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libselinux"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libsepol@3.2-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libsepol",
+      "version": "3.2-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5dc4120e21c985fda2ee25d33773b067"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libsepol@3.2-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libsepol@3.2-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libsepol"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libsolv@0.7.24-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libsolv",
+      "version": "0.7.24-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "7050261cdd4cac02fd0730a84cab4758"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libsolv@0.7.24-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libsolv@0.7.24-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libsolv"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.7.24"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libssh2@1.9.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libssh2",
+      "version": "1.9.0-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "bf87d419ad2e8d980e054237e9e2381d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libssh2@1.9.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libssh2@1.9.0-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libssh2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.9.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libstdc%2B%2B@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libstdc++",
+      "version": "11.2.0-8.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "441fbf562074eaf3a1fbb809d26c2638"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libstdc%2B%2B@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libstdc++@11.2.0-8.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "gcc"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "8.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "11.2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/libtasn1@4.19.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "libtasn1",
+      "version": "4.19.0-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "dcc772b383517fff27e2d2fb6597b8eb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+ AND LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/libtasn1@4.19.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "libtasn1@4.19.0-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "libtasn1"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.19.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/lua-libs@5.4.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "lua-libs",
+      "version": "5.4.4-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "82bfcb529129b22d3d7d5ee8289e8814"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/lua-libs@5.4.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "lua-libs@5.4.4-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "lua"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.4.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/mariner-release@2.0-75.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "mariner-release",
+      "version": "2.0-75.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "7940aedacfd6accce9ddb41d0d18c7b6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/mariner-release@2.0-75.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "mariner-release@2.0-75.cm2.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "mariner-release"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "75.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/mariner-repos-extras@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "mariner-repos-extras",
+      "version": "2.0-9.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "71915523a05307ca204fe68572211ad5"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/mariner-repos-extras@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "mariner-repos-extras@2.0-9.cm2.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "mariner-repos"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "9.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/mariner-repos-microsoft@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "mariner-repos-microsoft",
+      "version": "2.0-9.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "524dde069598c4a791d9d210e04b1a96"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/mariner-repos-microsoft@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "mariner-repos-microsoft@2.0-9.cm2.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "mariner-repos"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "9.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/mariner-repos-shared@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "mariner-repos-shared",
+      "version": "2.0-9.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "35af36c30352a4cd131b7c73524dc80a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/mariner-repos-shared@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "mariner-repos-shared@2.0-9.cm2.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "mariner-repos"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "9.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/mariner-repos@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "mariner-repos",
+      "version": "2.0-9.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "ce403d1456e584ba3b6e82953c2e6d88"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/mariner-repos@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "mariner-repos@2.0-9.cm2.noarch"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "mariner-repos"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "9.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/ncurses-libs@6.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "ncurses-libs",
+      "version": "6.4-3.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "0fb029cc057113ad1b342bc773a3ce72"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/ncurses-libs@6.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ncurses-libs@6.4-3.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ncurses"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "6.4"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/newt@0.52.21-5.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "newt",
+      "version": "0.52.21-5.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c3f380969a07bc14c9343fe6cee0de06"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/newt@0.52.21-5.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "newt@0.52.21-5.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "newt"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "5.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.52.21"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/nghttp2@1.57.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "nghttp2",
+      "version": "1.57.0-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "6812cf51e1d57f88384853fc4d5d56bb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/nghttp2@1.57.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "nghttp2@1.57.0-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "nghttp2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.57.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/npth@1.6-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "npth",
+      "version": "1.6-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "d6eafe48b54dd8e46fa05737c550ccc9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/npth@1.6-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "npth@1.6-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "npth"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.6"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "openssl-libs",
+      "version": "1.1.1k-36.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "74078c54181af084aafe1158f1b0caca"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "OpenSSL"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "openssl-libs@1.1.1k-36.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "openssl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "36.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.1.1k"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/openssl@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "openssl",
+      "version": "1.1.1k-36.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "396e8e79fb61f4c0863b45612bf3df41"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "OpenSSL"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/openssl@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "openssl@1.1.1k-36.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "openssl"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "36.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.1.1k"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/p11-kit-trust@0.24.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "p11-kit-trust",
+      "version": "0.24.1-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "30b2398039ddb5c6944dc0ebbbb1c690"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/p11-kit-trust@0.24.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "p11-kit-trust@0.24.1-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "p11-kit"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.24.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/p11-kit@0.24.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "p11-kit",
+      "version": "0.24.1-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "e147c781560f2de266d938dad1f62d47"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/p11-kit@0.24.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "p11-kit@0.24.1-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "p11-kit"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "0.24.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/pcre-libs@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "pcre-libs",
+      "version": "8.45-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "3eab9259243ae9152fe0729885c075a0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/pcre-libs@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "pcre-libs@8.45-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "pcre"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.45"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/pcre@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "pcre",
+      "version": "8.45-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "325f8e2a6fcf5a5928253459d23705bc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/pcre@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "pcre@8.45-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "pcre"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.45"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/pinentry@1.2.0-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "pinentry",
+      "version": "1.2.0-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "597c506be529173cabadfe078b205d11"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/pinentry@1.2.0-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "pinentry@1.2.0-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "pinentry"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.2.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/popt@1.18-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "popt",
+      "version": "1.18-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "d1fc660787da3fb8e3c8a738e4036fe0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/popt@1.18-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "popt@1.18-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "popt"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.18"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/readline@8.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "readline",
+      "version": "8.1-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "99b15087fa766cae504e8d8fecb662f2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/readline@8.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "readline@8.1-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "readline"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "8.1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/rpm-libs@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "rpm-libs",
+      "version": "4.18.0-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "5626150e95f94ce32af6b05ce08a2e86"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ AND LGPLv2+ AND BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/rpm-libs@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "rpm-libs@4.18.0-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "rpm"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.18.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/rpm@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "rpm",
+      "version": "4.18.0-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "32adb731f2ea0cde7edce4030e02b5aa"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ AND LGPLv2+ AND BSD"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/rpm@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "rpm@4.18.0-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "rpm"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.18.0"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/sed@4.8-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "sed",
+      "version": "4.8-3.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "27ed1e7f7a94e00269ee1666ebc5c359"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv3"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/sed@4.8-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "sed@4.8-3.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "sed"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "4.8"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/slang@2.3.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "slang",
+      "version": "2.3.2-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "d4e7b3bae239d4b0d2554f53fed38e28"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/slang@2.3.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "slang@2.3.2-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "slang"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2.3.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/sqlite-libs@3.39.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "sqlite-libs",
+      "version": "3.39.2-3.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "482f59553886607bfc9bca24043a0a25"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Public Domain"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/sqlite-libs@3.39.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "sqlite-libs@3.39.2-3.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "sqlite"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "3.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.39.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/tdnf-cli-libs@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "tdnf-cli-libs",
+      "version": "3.5.2-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "dbcfbee636a8457bcc95eb3f0b663518"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2.1 AND GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/tdnf-cli-libs@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "tdnf-cli-libs@3.5.2-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "tdnf"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.5.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/tdnf-plugin-repogpgcheck@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "tdnf-plugin-repogpgcheck",
+      "version": "3.5.2-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c4cbb89fe7ef40cb024766fee224c6ca"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2.1 AND GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/tdnf-plugin-repogpgcheck@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "tdnf-plugin-repogpgcheck@3.5.2-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "tdnf"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.5.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/tdnf@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "tdnf",
+      "version": "3.5.2-4.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c3ee0c347eb376b39a931d5a915d83cd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "LGPLv2.1 AND GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/tdnf@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "tdnf@3.5.2-4.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "tdnf"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "4.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "3.5.2"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/xz-libs@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "xz-libs",
+      "version": "5.2.5-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "749a3f4eac93f891ee05663f55693ee3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ and GPLv3+ and LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/xz-libs@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "xz-libs@5.2.5-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "xz"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.2.5"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/xz@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "xz",
+      "version": "5.2.5-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "c26c372227134e0c0c9968ab64461fc5"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+ and GPLv3+ and LGPLv2+"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/xz@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "xz@5.2.5-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "xz"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "5.2.5"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "zlib",
+      "version": "1.2.13-2.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "6ad442ff40346f72261f7ff08d74c317"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "zlib"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "zlib@1.2.13-2.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "zlib"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "2.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.2.13"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:rpm/cbl-mariner/zstd-libs@1.5.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "type": "library",
+      "supplier": {
+        "name": "Microsoft Corporation"
+      },
+      "name": "zstd-libs",
+      "version": "1.5.4-1.cm2",
+      "hashes": [
+        {
+          "alg": "MD5",
+          "content": "f98eba3dc067cb138c8e2370fe460574"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD or GPLv2"
+          }
+        }
+      ],
+      "purl": "pkg:rpm/cbl-mariner/zstd-libs@1.5.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:cb744073eaada9e086f635fa3f1f4c25bd4092267839121153cfb85fd3f18b70"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:308a3039fc640e2149e62af5fcee390c55f7c8e7ce7c988a4130f38bab994fe2"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "zstd-libs@1.5.4-1.cm2.x86_64"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "cbl-mariner"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "zstd"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcRelease",
+          "value": "1.cm2"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "1.5.4"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "21a626ea-f247-44fc-a388-ef7379811efc",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/core-packages-container@2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:oci/core@sha256%3Aed25715f36e04260756ebdd6a662e57f43e5d60f49822be3b0f2e39043145794?arch=amd64&repository_url=mcr.microsoft.com%2Fcbl-mariner%2Fbase%2Fcore",
+      "dependsOn": [
+        "21a626ea-f247-44fc-a388-ef7379811efc"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/readline@8.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/bzip2-libs@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/bzip2@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/bzip2-libs@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/ca-certificates-base@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/ca-certificates-shared@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+        "pkg:rpm/cbl-mariner/ca-certificates-tools@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+        "pkg:rpm/cbl-mariner/coreutils@8.32-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/ca-certificates-shared@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/ca-certificates-tools@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/p11-kit-trust@0.24.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/p11-kit@0.24.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/chkconfig@1.20-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libselinux@3.2-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libsepol@3.2-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/newt@0.52.21-5.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/popt@1.18-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/slang@2.3.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/core-packages-container@2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/bzip2@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/ca-certificates-base@2.0.0-19.cm2?arch=noarch&distro=cbl-mariner-2.0&epoch=1",
+        "pkg:rpm/cbl-mariner/curl@8.8.0-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/elfutils-libelf@0.186-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/expat@2.6.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/filesystem@1.1-20.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/findutils@4.8.0-5.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/grep@3.7-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/gzip@1.12-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/mariner-release@2.0-75.cm2?arch=noarch&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/mariner-repos-extras@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/mariner-repos-microsoft@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/mariner-repos@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/ncurses-libs@6.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/readline@8.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/rpm-libs@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/rpm@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/sed@4.8-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/sqlite-libs@3.39.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/tdnf-plugin-repogpgcheck@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/tdnf@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/xz@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/coreutils@8.32-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/gmp@6.2.1-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libcap@2.60-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libselinux@3.2-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/curl-libs@8.8.0-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/krb5@1.19.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0&epoch=1",
+        "pkg:rpm/cbl-mariner/libssh2@1.9.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/nghttp2@1.57.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zstd-libs@1.5.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/curl@8.8.0-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/curl-libs@8.8.0-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/krb5@1.19.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0&epoch=1",
+        "pkg:rpm/cbl-mariner/libssh2@1.9.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/e2fsprogs-libs@1.46.5-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/elfutils-libelf@0.186-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/expat-libs@2.6.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/expat@2.6.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/expat-libs@2.6.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/filesystem@1.1-20.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/findutils@4.8.0-5.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libselinux@3.2-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/filesystem@1.1-20.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/gmp@6.2.1-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/gnupg2@2.4.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/bzip2-libs@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libassuan@2.5.5-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgcrypt@1.10.3-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgpg-error@1.46-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libksba@1.6.3-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/npth@1.6-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/pinentry@1.2.0-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/readline@8.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/sqlite-libs@3.39.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/gpgme@1.16.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/gnupg2@2.4.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libassuan@2.5.5-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgpg-error@1.46-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/grep@3.7-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/pcre-libs@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/pcre@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/gzip@1.12-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/krb5@1.19.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0&epoch=1",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/e2fsprogs-libs@1.46.5-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libarchive@3.6.1-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bzip2-libs@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/expat-libs@2.6.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/xz-libs@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zstd-libs@1.5.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libassuan@2.5.5-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgpg-error@1.46-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libcap@2.60-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgcc@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libffi@3.4.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libgcc@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libgcrypt@1.10.3-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgpg-error@1.46-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libgpg-error@1.46-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libksba@1.6.3-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgpg-error@1.46-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libselinux@3.2-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libsepol@3.2-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/pcre-libs@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libsepol@3.2-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libsolv@0.7.24-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/expat-libs@2.6.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/rpm-libs@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libssh2@1.9.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libstdc%2B%2B@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgcc@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/libtasn1@4.19.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/lua-libs@5.4.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/mariner-release@2.0-75.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/mariner-repos-extras@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/mariner-repos-shared@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/mariner-repos-microsoft@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/mariner-repos-shared@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/mariner-repos-shared@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/gpgme@1.16.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/mariner-repos@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/mariner-repos-shared@2.0-9.cm2?arch=noarch&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/ncurses-libs@6.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgcc@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libstdc%2B%2B@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/newt@0.52.21-5.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/popt@1.18-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/slang@2.3.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/nghttp2@1.57.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/npth@1.6-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/openssl@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgcc@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/p11-kit-trust@0.24.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/chkconfig@1.20-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libtasn1@4.19.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/p11-kit@0.24.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/p11-kit@0.24.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libffi@3.4.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/pcre-libs@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/pcre@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bzip2-libs@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgcc@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libstdc%2B%2B@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/pcre-libs@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/readline@8.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/pinentry@1.2.0-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libassuan@2.5.5-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libcap@2.60-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgpg-error@1.46-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/ncurses-libs@6.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/popt@1.18-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/readline@8.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/ncurses-libs@6.4-3.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/rpm-libs@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bzip2-libs@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/elfutils-libelf@0.186-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libcap@2.60-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libgcc@11.2.0-8.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/lua-libs@5.4.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/popt@1.18-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/sqlite-libs@3.39.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/xz-libs@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zstd-libs@1.5.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/rpm@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/bzip2-libs@1.0.8-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libarchive@3.6.1-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libcap@2.60-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libselinux@3.2-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/lua-libs@5.4.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/popt@1.18-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/rpm-libs@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/sqlite-libs@3.39.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/xz-libs@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zstd-libs@1.5.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/sed@4.8-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/slang@2.3.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/pcre-libs@8.45-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/readline@8.1-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/sqlite-libs@3.39.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/tdnf-cli-libs@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/tdnf-plugin-repogpgcheck@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/gpgme@1.16.0-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/tdnf@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/tdnf@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/curl-libs@8.8.0-6.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/libsolv@0.7.24-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/openssl-libs@1.1.1k-36.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/rpm-libs@4.18.0-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/sqlite-libs@3.39.2-3.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/tdnf-cli-libs@3.5.2-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/xz-libs@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/xz@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/bash@5.1.8-4.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+        "pkg:rpm/cbl-mariner/xz-libs@5.2.5-1.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/zlib@1.2.13-2.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    },
+    {
+      "ref": "pkg:rpm/cbl-mariner/zstd-libs@1.5.4-1.cm2?arch=x86_64&distro=cbl-mariner-2.0",
+      "dependsOn": [
+        "pkg:rpm/cbl-mariner/glibc@2.35-7.cm2?arch=x86_64&distro=cbl-mariner-2.0"
+      ]
+    }
+  ],
+  "vulnerabilities": []
+}
