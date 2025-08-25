@@ -10,7 +10,9 @@ from app.models import (
     ActionType,
     AutomatableEnum,
     ExploitationEnum,
+    ImpactCategoryEnum,
     MissionImpactEnum,
+    ObjectCategoryEnum,
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
     SystemExposureEnum,
@@ -200,6 +202,45 @@ class VulnsListResponse(BaseModel):
 
 class VulnUpdateRequest(VulnBase):
     pass
+
+
+class ThreatScenario(BaseModel):
+    impact_category: ImpactCategoryEnum
+    title: str
+    description: str
+
+
+class AffectedObject(BaseModel):
+    object_category: ObjectCategoryEnum
+    name: str
+    description: str
+
+
+class InsightReference(BaseModel):
+    link_text: str
+    url: str | None = None
+
+
+class InsightBase(BaseModel):
+    description: str
+    data_processing_strategy: str
+    threat_scenarios: list[ThreatScenario] = []
+    affected_objects: list[AffectedObject] = []
+    insight_references: list[InsightReference] = []
+
+
+class InsightResponse(InsightBase):
+    ticket_id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+
+class InsightUpdateRequest(BaseModel):
+    description: str | None = None
+    data_processing_strategy: str | None = None
+    threat_scenarios: list[ThreatScenario] | None = None
+    affected_objects: list[AffectedObject] | None = None
+    insight_references: list[InsightReference] | None = None
 
 
 class PTeamInfo(PTeamEntry):
