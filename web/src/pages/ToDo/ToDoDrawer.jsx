@@ -24,7 +24,7 @@ import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector
 import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 
-import { AIRiskAnalysis } from "./AIRiskAnalysis.jsx";
+import { AIRiskAnalysis } from "./Insights/AIRiskAnalysis.jsx";
 
 export function ToDoDrawer(props) {
   const {
@@ -261,7 +261,13 @@ export function ToDoDrawer(props) {
 
         {/* insights */}
         <CustomTabPanel value={value} index={2}>
-          <AIRiskAnalysis />
+          <AIRiskAnalysis
+            ticketId={row.ticket_id}
+            serviceName={serviceName}
+            ecosystem={serviceDependency.package_ecosystem}
+            cveId={vuln?.cve_id || "No Known CVE"}
+            cvss={vuln?.cvss_v3_score || 0}
+          />
         </CustomTabPanel>
       </Box>
     </Drawer>
