@@ -18,6 +18,7 @@ import {
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
+import { preserveParams } from "../../utils/urlUtils";
 
 import { ToDoDrawer } from "./ToDoDrawer";
 
@@ -97,8 +98,11 @@ export function ToDoTableRow(props) {
       console.warn("Service dependency information is not available.");
       return;
     }
+    const params = preserveParams(location.search);
+    params.set("pteamId", row.pteam_id);
+    params.set("serviceId", row.service_id);
     const packageId = serviceDependency.package_id;
-    navigate(`/packages/${packageId}?pteamId=${row.pteam_id}&serviceId=${row.service_id}`);
+    navigate(`/packages/${packageId}?` + params.toString());
   };
 
   if (skip) return SimpleCell("");
