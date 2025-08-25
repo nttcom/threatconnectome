@@ -81,6 +81,17 @@ export const tcApi = createApi({
         { type: "Dependency", id: arg.dependencyId },
       ],
     }),
+
+    /* Insight  */
+    getInsight: builder.query({
+      query: (ticketId) => `tickets/${ticketId}/insight`,
+      providesTags: (result, error, ticketId) => [
+        { type: "Service", id: "ALL" },
+        { type: "Threat", id: "ALL" },
+        { type: "Ticket", id: "ALL" },
+      ],
+    }),
+
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
@@ -472,6 +483,7 @@ export const {
   useCreateActionLogMutation,
   useGetDependenciesQuery,
   useGetDependencyQuery,
+  useGetInsightQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
