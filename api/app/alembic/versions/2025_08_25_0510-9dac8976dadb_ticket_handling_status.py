@@ -20,7 +20,7 @@ depends_on = None
 def upgrade() -> None:
     connection = op.get_bind()
     ticket_handling_status_type = sa.Enum(
-        "alerted", "acknowledged", "scheduled", "completed", name="tickethandlingstatus"
+        "alerted", "acknowledged", "scheduled", "completed", name="tickethandlingstatustype"
     )
     ticket_handling_status_type.create(connection)
     op.add_column(
@@ -35,7 +35,7 @@ def upgrade() -> None:
         sa.text(
             """
             UPDATE ticketstatus
-            SET ticket_handling_status = vuln_status::text::tickethandlingstatus
+            SET ticket_handling_status = vuln_status::text::tickethandlingstatustype
             """
         )
     )
@@ -74,6 +74,6 @@ def downgrade() -> None:
     op.alter_column("ticketstatus", "vuln_status", nullable=False)
     op.drop_column("ticketstatus", "ticket_handling_status")
     ticket_handling_status = sa.Enum(
-        "alerted", "acknowledged", "scheduled", "completed", name="tickethandlingstatus"
+        "alerted", "acknowledged", "scheduled", "completed", name="tickethandlingstatustype"
     )
     ticket_handling_status.drop(op.get_bind())
