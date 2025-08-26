@@ -231,8 +231,8 @@ export const safetyImpactProps = {
   Negligible: propSafetyImpactNegligible,
 };
 
-export const sortedVulnStatus = ["alerted", "acknowledged", "scheduled", "completed"];
-export const vulnStatusProps = {
+export const sortedTicketHandlingStatus = ["alerted", "acknowledged", "scheduled", "completed"];
+export const ticketHandlingStatusProps = {
   alerted: {
     chipLabel: "alerted",
     chipLabelCapitalized: "Alerted",

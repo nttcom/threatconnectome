@@ -148,7 +148,7 @@ def ticket_setup(testdb):
         pteam1.pteam_id,
         ticket1["ticket_id"],
         {
-            "vuln_status": "acknowledged",
+            "ticket_handling_status": "acknowledged",
             "assignees": [str(user1.user_id)],
             "note": "",
             "scheduled_at": None,
@@ -158,13 +158,23 @@ def ticket_setup(testdb):
         USER2,
         pteam2.pteam_id,
         ticket2["ticket_id"],
-        {"vuln_status": "acknowledged", "assignees": [], "note": "", "scheduled_at": None},
+        {
+            "ticket_handling_status": "acknowledged",
+            "assignees": [],
+            "note": "",
+            "scheduled_at": None,
+        },
     )
     set_ticket_status(
         USER3,
         pteam3.pteam_id,
         ticket3["ticket_id"],
-        {"vuln_status": "acknowledged", "assignees": [], "note": "", "scheduled_at": None},
+        {
+            "ticket_handling_status": "acknowledged",
+            "assignees": [],
+            "note": "",
+            "scheduled_at": None,
+        },
     )
 
     return {

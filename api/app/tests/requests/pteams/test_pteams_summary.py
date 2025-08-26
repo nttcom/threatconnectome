@@ -121,7 +121,7 @@ class TestGetPTeamPackagesSummary:
                 "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
-                    status_type.value: 0 for status_type in list(models.VulnStatusType)
+                    status_type.value: 0 for status_type in list(models.TicketHandlingStatus)
                 },
             }
         ]
@@ -165,7 +165,7 @@ class TestGetPTeamPackagesSummary:
                 "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
-                    status_type.value: 0 for status_type in list(models.VulnStatusType)
+                    status_type.value: 0 for status_type in list(models.TicketHandlingStatus)
                 },
             }
         ]
@@ -217,8 +217,8 @@ class TestGetPTeamPackagesSummary:
                 "ssvc_priority": expected_ssvc_priority.value,
                 "updated_at": datetime.isoformat(vuln1.updated_at),
                 "status_count": {
-                    **{status_type.value: 0 for status_type in list(models.VulnStatusType)},
-                    models.VulnStatusType.alerted.value: 1,  # default status is ALERTED
+                    **{status_type.value: 0 for status_type in list(models.TicketHandlingStatus)},
+                    models.TicketHandlingStatus.alerted.value: 1,  # default status is ALERTED
                 },
             }
         ]
@@ -317,8 +317,8 @@ class TestGetPTeamPackagesSummary:
                 "ssvc_priority": expected_ssvc_priority.value,
                 "updated_at": datetime.isoformat(vuln1.updated_at),
                 "status_count": {
-                    **{status_type.value: 0 for status_type in list(models.VulnStatusType)},
-                    models.VulnStatusType.alerted.value: 2,  # default status is ALERTED
+                    **{status_type.value: 0 for status_type in list(models.TicketHandlingStatus)},
+                    models.TicketHandlingStatus.alerted.value: 2,  # default status is ALERTED
                 },
             }
         ]
@@ -371,7 +371,7 @@ class TestGetPTeamPackagesSummary:
                 "ssvc_priority": None,
                 "updated_at": None,
                 "status_count": {
-                    status_type.value: 0 for status_type in list(models.VulnStatusType)
+                    status_type.value: 0 for status_type in list(models.TicketHandlingStatus)
                 },
             }
         ]
