@@ -22,6 +22,7 @@ email-validator = "*"
 pillow = "*"
 supabase = "*"
 deprecation = "*"
+cyclonedx-python-lib = {extras = ["validation"], version = "*"}
 
 [dev-packages]
 mypy = "*"
