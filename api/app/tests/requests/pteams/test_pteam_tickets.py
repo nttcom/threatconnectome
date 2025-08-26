@@ -43,7 +43,7 @@ class TestGetTicketCountsTiedToServicePackage:
         )
 
         json_data = {
-            "vuln_status": "acknowledged",
+            "ticket_handling_status": "acknowledged",
             "note": "string",
             "assignees": [],
             "scheduled_at": None,
@@ -253,7 +253,7 @@ class TestTicketStatus:
             expected_status = {
                 "status_id": data["status_id"],  # do not check
                 "ticket_id": str(self.ticket_id1),
-                "vuln_status": models.VulnStatusType.alerted.value,
+                "ticket_handling_status": models.TicketHandlingStatusType.alerted.value,
                 "user_id": None,
                 "created_at": data["created_at"],  # check later
                 "assignees": [],
@@ -268,7 +268,7 @@ class TestTicketStatus:
 
         def test_returns_current_status_if_status_created(self):
             status_request = {
-                "vuln_status": models.VulnStatusType.scheduled.value,
+                "ticket_handling_status": models.TicketHandlingStatusType.scheduled.value,
                 "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
                 "scheduled_at": "2345-06-07T08:09:10Z",
@@ -307,12 +307,14 @@ class TestTicketStatus:
             assert data == expected_status
 
     class TestSet(Common):
-        def common_setup_for_set_ticket_status(self, vuln_status, need_scheduled_at, scheduled_at):
+        def common_setup_for_set_ticket_status(
+            self, ticket_handling_status, need_scheduled_at, scheduled_at
+        ):
             status_request = {
                 "assignees": [str(self.user2.user_id)],
             }
-            if vuln_status is not None:
-                status_request["vuln_status"] = vuln_status
+            if ticket_handling_status is not None:
+                status_request["ticket_handling_status"] = ticket_handling_status
             if need_scheduled_at:
                 status_request["scheduled_at"] = scheduled_at
             url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
@@ -327,7 +329,7 @@ class TestTicketStatus:
 
         def test_set_requested_status(self):
             status_request = {
-                "vuln_status": models.VulnStatusType.scheduled.value,
+                "ticket_handling_status": models.TicketHandlingStatusType.scheduled.value,
                 "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
                 "scheduled_at": "2345-06-07T08:09:10Z",
@@ -365,7 +367,7 @@ class TestTicketStatus:
         @pytest.mark.parametrize(
             "field_name, expected_response_detail",
             [
-                ("vuln_status", "Cannot specify None for vuln_status"),
+                ("ticket_handling_status", "Cannot specify None for ticket_handling_status"),
                 ("logging_ids", "Cannot specify None for logging_ids"),
                 ("assignees", "Cannot specify None for assignees"),
             ],
@@ -388,88 +390,92 @@ class TestTicketStatus:
             assert response.json()["detail"] == expected_response_detail
 
         @pytest.mark.parametrize(
-            "vuln_status, scheduled_at, expected_response_detail",
+            "ticket_handling_status, scheduled_at, expected_response_detail",
             [
-                (models.VulnStatusType.alerted.value, None, "Wrong topic status"),
+                (models.TicketHandlingStatusType.alerted.value, None, "Wrong topic status"),
                 (
-                    models.VulnStatusType.alerted.value,
+                    models.TicketHandlingStatusType.alerted.value,
                     None,
                     "Wrong topic status",
                 ),
                 (
-                    models.VulnStatusType.alerted.value,
+                    models.TicketHandlingStatusType.alerted.value,
                     "2000-01-01T00:00:00",
                     "Wrong topic status",
                 ),
                 (
-                    models.VulnStatusType.alerted.value,
+                    models.TicketHandlingStatusType.alerted.value,
                     "2345-06-07T08:09:10",
                     "Wrong topic status",
                 ),
             ],
         )
-        def test_it_should_return_400_when_vuln_status_is_alerted(
+        def test_it_should_return_400_when_ticket_handling_status_is_alerted(
             self,
-            vuln_status,
+            ticket_handling_status,
             scheduled_at,
             expected_response_detail,
         ):
-            response = self.common_setup_for_set_ticket_status(vuln_status, True, scheduled_at)
+            response = self.common_setup_for_set_ticket_status(
+                ticket_handling_status, True, scheduled_at
+            )
             assert response.status_code == 400
             assert response.json()["detail"] == expected_response_detail
 
         @pytest.mark.parametrize(
-            "vuln_status, scheduled_at, expected_response_detail",
+            "ticket_handling_status, scheduled_at, expected_response_detail",
             [
                 (
-                    models.VulnStatusType.acknowledged.value,
+                    models.TicketHandlingStatusType.acknowledged.value,
                     "2000-01-01T00:00:00Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
                 (
-                    models.VulnStatusType.acknowledged.value,
+                    models.TicketHandlingStatusType.acknowledged.value,
                     "2345-06-07T08:09:10Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
                 (
-                    models.VulnStatusType.completed.value,
+                    models.TicketHandlingStatusType.completed.value,
                     "2000-01-01T00:00:00Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
                 (
-                    models.VulnStatusType.completed.value,
+                    models.TicketHandlingStatusType.completed.value,
                     "2345-06-07T08:09:10Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
             ],
         )
-        def test_it_should_return_400_when_vuln_statuss_is_not_scheduled_and_schduled_at_is_time(
+        def test_it_should_return_400_when_handling_status_is_not_scheduled_and_schduled_at_is_time(
             self,
-            vuln_status,
+            ticket_handling_status,
             scheduled_at,
             expected_response_detail,
         ):
-            response = self.common_setup_for_set_ticket_status(vuln_status, True, scheduled_at)
+            response = self.common_setup_for_set_ticket_status(
+                ticket_handling_status, True, scheduled_at
+            )
             assert response.status_code == 400
             assert response.json()["detail"] == expected_response_detail
 
         @pytest.mark.parametrize(
-            "vuln_status, need_scheduled_at, scheduled_at, expected_response_detail",
+            "ticket_handling_status, need_scheduled_at, scheduled_at, expected_response_detail",
             [
                 (
-                    models.VulnStatusType.scheduled.value,
+                    models.TicketHandlingStatusType.scheduled.value,
                     False,
                     None,
                     "If status is scheduled, specify schduled_at",
                 ),
                 (
-                    models.VulnStatusType.scheduled.value,
+                    models.TicketHandlingStatusType.scheduled.value,
                     True,
                     None,
                     "If status is scheduled, unable to reset schduled_at",
                 ),
                 (
-                    models.VulnStatusType.scheduled.value,
+                    models.TicketHandlingStatusType.scheduled.value,
                     True,
                     "2000-01-01T00:00:00Z",
                     "If status is scheduled, schduled_at must be a future time",
@@ -478,43 +484,54 @@ class TestTicketStatus:
         )
         def test_it_should_return_400_when_schduled_at_is_not_future_time(
             self,
-            vuln_status,
+            ticket_handling_status,
             need_scheduled_at,
             scheduled_at,
             expected_response_detail,
         ):
-            # when vuln_status is schduled and schduled at is not future time, return 200.
+            # when ticket_handling_status is schduled and schduled at is not future time,
+            # return 200.
 
             response = self.common_setup_for_set_ticket_status(
-                vuln_status, need_scheduled_at, scheduled_at
+                ticket_handling_status, need_scheduled_at, scheduled_at
             )
             assert response.status_code == 400
             assert response.json()["detail"] == expected_response_detail
 
         @pytest.mark.parametrize(
-            "vuln_status, need_scheduled_at, scheduled_at, expected_response_status_code",
+            (
+                "ticket_handling_status",
+                "need_scheduled_at",
+                "scheduled_at",
+                "expected_response_status_code",
+            ),
             [
-                (models.VulnStatusType.acknowledged.value, False, None, 200),
+                (models.TicketHandlingStatusType.acknowledged.value, False, None, 200),
                 (
-                    models.VulnStatusType.acknowledged.value,
+                    models.TicketHandlingStatusType.acknowledged.value,
                     True,
                     None,
                     200,
                 ),
-                (models.VulnStatusType.scheduled.value, True, "2345-06-07T08:09:10Z", 200),
-                (models.VulnStatusType.completed.value, False, None, 200),
-                (models.VulnStatusType.completed.value, True, None, 200),
+                (
+                    models.TicketHandlingStatusType.scheduled.value,
+                    True,
+                    "2345-06-07T08:09:10Z",
+                    200,
+                ),
+                (models.TicketHandlingStatusType.completed.value, False, None, 200),
+                (models.TicketHandlingStatusType.completed.value, True, None, 200),
             ],
         )
-        def test_it_should_return_200_when_vuln_statuss_and_schduled_at_have_the_correct_values(
+        def test_it_should_return_200_when_handling_status_and_schduled_at_have_the_correct_values(
             self,
-            vuln_status,
+            ticket_handling_status,
             need_scheduled_at,
             scheduled_at,
             expected_response_status_code,
         ):
             response = self.common_setup_for_set_ticket_status(
-                vuln_status, need_scheduled_at, scheduled_at
+                ticket_handling_status, need_scheduled_at, scheduled_at
             )
             assert response.status_code == expected_response_status_code
             set_response = response.json()
@@ -525,21 +542,21 @@ class TestTicketStatus:
             else:
                 assert set_response["scheduled_at"] == scheduled_at
             assert set_response["ticket_id"] == self.ticket_id1
-            assert set_response["vuln_status"] == vuln_status
+            assert set_response["ticket_handling_status"] == ticket_handling_status
             assert set_response["user_id"] == str(self.user1.user_id)
             assert set_response["assignees"] == [str(self.user2.user_id)]
 
         @pytest.mark.parametrize(
-            "current_vuln_status, current_scheduled_at, expected_response_detail",
+            "current_ticket_handling_status, current_scheduled_at, expected_response_detail",
             [
                 (
-                    models.VulnStatusType.completed.value,
+                    models.TicketHandlingStatusType.completed.value,
                     None,
                     "If current status is not scheduled and previous status is schduled, "
                     "need to reset schduled_at",
                 ),
                 (
-                    models.VulnStatusType.acknowledged.value,
+                    models.TicketHandlingStatusType.acknowledged.value,
                     None,
                     "If current status is not scheduled and previous status is schduled, "
                     "need to reset schduled_at",
@@ -548,29 +565,29 @@ class TestTicketStatus:
         )
         def test_it_should_return_400_when_previous_status_is_schduled_and_schduled_at_is_reset(
             self,
-            current_vuln_status,
+            current_ticket_handling_status,
             current_scheduled_at,
             expected_response_detail,
         ):
-            # When previou vuln_status is schduled and current vuln_status is not schduled,
-            # return 400 if current_scheduled_at does not contain
+            # When previou ticket_handling_status is schduled and current ticket_handling_status is
+            #  not schduled, return 400 if current_scheduled_at does not contain
             # a value to reset None.
 
-            previous_vuln_status = models.VulnStatusType.scheduled.value
+            previous_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
             previous_scheduled_at = "2345-06-07T08:09:10Z"
             previous_response = self.common_setup_for_set_ticket_status(
-                previous_vuln_status, True, previous_scheduled_at
+                previous_ticket_handling_status, True, previous_scheduled_at
             )
             assert previous_response.status_code == 200
 
             current_response = self.common_setup_for_set_ticket_status(
-                current_vuln_status, False, current_scheduled_at
+                current_ticket_handling_status, False, current_scheduled_at
             )
             assert current_response.status_code == 400
             assert current_response.json()["detail"] == expected_response_detail
 
         @pytest.mark.parametrize(
-            "current_vuln_status, current_scheduled_at, expected_response_detail",
+            "current_ticket_handling_status, current_scheduled_at, expected_response_detail",
             [
                 (
                     None,
@@ -584,31 +601,31 @@ class TestTicketStatus:
                 ),
             ],
         )
-        def test_it_should_return_400_when_vuln_status_and_scheduled_at_is_not_appropriate(
+        def test_it_should_return_400_when_handling_status_and_scheduled_at_is_not_appropriate(
             self,
-            current_vuln_status,
+            current_ticket_handling_status,
             current_scheduled_at,
             expected_response_detail,
         ):
-            # When previou vuln_status is schduled and current vuln_status is None,
-            # return 400 if current_scheduled_at does not contain
+            # When previou ticket_handling_status is schduled and current ticket_handling_status
+            #  is None, return 400 if current_scheduled_at does not contain
             # future time or None.
 
-            previous_vuln_status = models.VulnStatusType.scheduled.value
+            previous_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
             previous_scheduled_at = "2345-06-07T08:09:10Z"
             previous_response = self.common_setup_for_set_ticket_status(
-                previous_vuln_status, True, previous_scheduled_at
+                previous_ticket_handling_status, True, previous_scheduled_at
             )
             assert previous_response.status_code == 200
 
             current_response = self.common_setup_for_set_ticket_status(
-                current_vuln_status, True, current_scheduled_at
+                current_ticket_handling_status, True, current_scheduled_at
             )
             assert current_response.status_code == 400
             assert current_response.json()["detail"] == expected_response_detail
 
         @pytest.mark.parametrize(
-            "current_vuln_status, need_scheduled_at, "
+            "current_ticket_handling_status, need_scheduled_at, "
             + "current_scheduled_at, expected_response_status_code",
             [
                 (
@@ -618,7 +635,7 @@ class TestTicketStatus:
                     200,
                 ),
                 (
-                    models.VulnStatusType.completed.value,
+                    models.TicketHandlingStatusType.completed.value,
                     True,
                     None,
                     200,
@@ -627,27 +644,27 @@ class TestTicketStatus:
         )
         def test_it_should_return_200_when_previous_and_current_status_have_the_correct_values(
             self,
-            current_vuln_status,
+            current_ticket_handling_status,
             need_scheduled_at,
             current_scheduled_at,
             expected_response_status_code,
         ):
-            # When previou vuln_status is schduled and current vuln_status is None,
-            # return 200 if current_scheduled_at contain None.
+            # When previou ticket_handling_status is schduled and current ticket_handling_status
+            # is None, return 200 if current_scheduled_at contain None.
 
-            # When previou vuln_status is schduled and current vuln_status is completed,
-            # return 200 if current_scheduled_at contain
+            # When previou ticket_handling_status is schduled and current ticket_handling_status is
+            # completed, return 200 if current_scheduled_at contain
             # a value to reset None.
 
-            previous_vuln_status = models.VulnStatusType.scheduled.value
+            previous_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
             previous_scheduled_at = "2345-06-07T08:09:10Z"
             previous_response = self.common_setup_for_set_ticket_status(
-                previous_vuln_status, True, previous_scheduled_at
+                previous_ticket_handling_status, True, previous_scheduled_at
             )
             assert previous_response.status_code == 200
 
             current_response = self.common_setup_for_set_ticket_status(
-                current_vuln_status, need_scheduled_at, current_scheduled_at
+                current_ticket_handling_status, need_scheduled_at, current_scheduled_at
             )
             assert current_response.status_code == expected_response_status_code
 
@@ -656,10 +673,10 @@ class TestTicketStatus:
             assert set_response["user_id"] == str(self.user1.user_id)
             assert set_response["assignees"] == [str(self.user2.user_id)]
 
-            _current_vuln_status = current_vuln_status
-            if current_vuln_status is None:
-                _current_vuln_status = models.VulnStatusType.scheduled.value
-            assert set_response["vuln_status"] == _current_vuln_status
+            _current_ticket_handling_status = current_ticket_handling_status
+            if current_ticket_handling_status is None:
+                _current_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
+            assert set_response["ticket_handling_status"] == _current_ticket_handling_status
 
             if need_scheduled_at:
                 _scheduled_at = current_scheduled_at
@@ -674,7 +691,7 @@ class TestTicketStatus:
 
         def test_it_should_set_requester_if_assignee_is_not_specify_and_saved_current_user(self):
             status_request = {
-                "vuln_status": models.VulnStatusType.completed.value,
+                "ticket_handling_status": models.TicketHandlingStatusType.completed.value,
                 "note": "assign None",
             }
             url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
@@ -692,9 +709,11 @@ class TestTicketStatus:
             assert data["assignees"] == [str(self.user1.user_id)]
 
         def test_it_should_return_400_when_there_is_no_time_zone_in_scheduled_at_time(self):
-            vuln_status = models.VulnStatusType.scheduled.value
+            ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
             scheduled_at = "2345-06-07T08:09:10"  # without time zone
-            response = self.common_setup_for_set_ticket_status(vuln_status, True, scheduled_at)
+            response = self.common_setup_for_set_ticket_status(
+                ticket_handling_status, True, scheduled_at
+            )
             assert response.status_code == 400
             assert response.json()["detail"] == "Unwise expiration (grant timezone)"
 
@@ -806,7 +825,7 @@ class TestGetTickets:
                 "ticket_status": {
                     "status_id": db_status1.status_id,  # do not check
                     "ticket_id": str(db_ticket1.ticket_id),
-                    "vuln_status": models.VulnStatusType.alerted.value,
+                    "ticket_handling_status": models.TicketHandlingStatusType.alerted.value,
                     "user_id": None,
                     "created_at": datetime.isoformat(db_status1.created_at).replace(
                         "+00:00", "Z"
@@ -1355,7 +1374,7 @@ class TestPutTicket:
         assert data["vuln_id"] == str(self.vuln1.vuln_id)
         assert data["dependency_id"] == str(self.dependency1.dependency_id)
         assert data["created_at"] == self.ticket1.created_at.isoformat().replace("+00:00", "Z")
-        assert data["ssvc_deployer_priority"] == models.VulnStatusType.scheduled.value
+        assert data["ssvc_deployer_priority"] == models.TicketHandlingStatusType.scheduled.value
         assert data["ticket_safety_impact"] == request["ticket_safety_impact"]
         assert (
             data["ticket_safety_impact_change_reason"]
@@ -1363,7 +1382,10 @@ class TestPutTicket:
         )
         assert data["ticket_status"]["status_id"] == self.ticket_status1.status_id
         assert data["ticket_status"]["ticket_id"] == str(self.ticket1.ticket_id)
-        assert data["ticket_status"]["vuln_status"] == models.VulnStatusType.alerted.value
+        assert (
+            data["ticket_status"]["ticket_handling_status"]
+            == models.TicketHandlingStatusType.alerted.value
+        )
         assert data["ticket_status"]["user_id"] is None
         assert data["ticket_status"][
             "created_at"
@@ -1656,7 +1678,7 @@ class TestPutTicket:
             .one()
         )
         assert updated_ticket.ssvc_deployer_priority != initial_priority
-        assert updated_ticket.ssvc_deployer_priority == models.VulnStatusType.scheduled
+        assert updated_ticket.ssvc_deployer_priority == models.TicketHandlingStatusType.scheduled
 
     def test_it_should_return_422_when_invalid_ticket_safety_impact(self):
         user1_access_token = self._get_access_token(USER1)

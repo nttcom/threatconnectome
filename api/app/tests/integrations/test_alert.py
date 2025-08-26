@@ -303,7 +303,7 @@ class TestAlert:
             ).first()
 
             put_ticket_request = {
-                "vuln_status": "completed",
+                "ticket_handling_status": "completed",
             }
             set_ticket_status(
                 USER1,

@@ -7,7 +7,7 @@ import { WarningTooltip } from "../WarningTooltip.jsx";
 
 import { AssigneesSelector } from "./AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "./SafetyImpactSelector.jsx";
-import { VulnStatusSelector } from "./VulnStatusSelector.jsx";
+import { TicketHandlingStatusSelector } from "./TicketHandlingStatusSelector.jsx";
 
 export function TicketTableRow(props) {
   const {
@@ -57,7 +57,7 @@ export function TicketTableRow(props) {
       </TableCell>
       <TableCell>
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <VulnStatusSelector
+          <TicketHandlingStatusSelector
             pteamId={pteamId}
             serviceId={serviceId}
             vulnId={vulnId}
@@ -67,7 +67,7 @@ export function TicketTableRow(props) {
             actionByFixedVersions={actionByFixedVersions}
             vulnActions={vulnActions}
           />
-          {(ticket.ticket_status.vuln_status ?? "alerted") === "alerted" && (
+          {(ticket.ticket_status.ticket_handling_status ?? "alerted") === "alerted" && (
             <WarningTooltip message="No one has acknowledged this vuln" />
           )}
         </Box>
