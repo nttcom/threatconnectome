@@ -253,7 +253,7 @@ class TestTicketStatus:
             expected_status = {
                 "status_id": data["status_id"],  # do not check
                 "ticket_id": str(self.ticket_id1),
-                "ticket_handling_status": models.TicketHandlingStatus.alerted.value,
+                "ticket_handling_status": models.TicketHandlingStatusType.alerted.value,
                 "user_id": None,
                 "created_at": data["created_at"],  # check later
                 "assignees": [],
@@ -268,7 +268,7 @@ class TestTicketStatus:
 
         def test_returns_current_status_if_status_created(self):
             status_request = {
-                "ticket_handling_status": models.TicketHandlingStatus.scheduled.value,
+                "ticket_handling_status": models.TicketHandlingStatusType.scheduled.value,
                 "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
                 "scheduled_at": "2345-06-07T08:09:10Z",
@@ -329,7 +329,7 @@ class TestTicketStatus:
 
         def test_set_requested_status(self):
             status_request = {
-                "ticket_handling_status": models.TicketHandlingStatus.scheduled.value,
+                "ticket_handling_status": models.TicketHandlingStatusType.scheduled.value,
                 "assignees": [str(self.user2.user_id)],
                 "note": "assign user2 and schedule at 2345/6/7",
                 "scheduled_at": "2345-06-07T08:09:10Z",
@@ -392,19 +392,19 @@ class TestTicketStatus:
         @pytest.mark.parametrize(
             "ticket_handling_status, scheduled_at, expected_response_detail",
             [
-                (models.TicketHandlingStatus.alerted.value, None, "Wrong topic status"),
+                (models.TicketHandlingStatusType.alerted.value, None, "Wrong topic status"),
                 (
-                    models.TicketHandlingStatus.alerted.value,
+                    models.TicketHandlingStatusType.alerted.value,
                     None,
                     "Wrong topic status",
                 ),
                 (
-                    models.TicketHandlingStatus.alerted.value,
+                    models.TicketHandlingStatusType.alerted.value,
                     "2000-01-01T00:00:00",
                     "Wrong topic status",
                 ),
                 (
-                    models.TicketHandlingStatus.alerted.value,
+                    models.TicketHandlingStatusType.alerted.value,
                     "2345-06-07T08:09:10",
                     "Wrong topic status",
                 ),
@@ -426,22 +426,22 @@ class TestTicketStatus:
             "ticket_handling_status, scheduled_at, expected_response_detail",
             [
                 (
-                    models.TicketHandlingStatus.acknowledged.value,
+                    models.TicketHandlingStatusType.acknowledged.value,
                     "2000-01-01T00:00:00Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
                 (
-                    models.TicketHandlingStatus.acknowledged.value,
+                    models.TicketHandlingStatusType.acknowledged.value,
                     "2345-06-07T08:09:10Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
                 (
-                    models.TicketHandlingStatus.completed.value,
+                    models.TicketHandlingStatusType.completed.value,
                     "2000-01-01T00:00:00Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
                 (
-                    models.TicketHandlingStatus.completed.value,
+                    models.TicketHandlingStatusType.completed.value,
                     "2345-06-07T08:09:10Z",
                     "If status is not scheduled, do not specify schduled_at",
                 ),
@@ -463,19 +463,19 @@ class TestTicketStatus:
             "ticket_handling_status, need_scheduled_at, scheduled_at, expected_response_detail",
             [
                 (
-                    models.TicketHandlingStatus.scheduled.value,
+                    models.TicketHandlingStatusType.scheduled.value,
                     False,
                     None,
                     "If status is scheduled, specify schduled_at",
                 ),
                 (
-                    models.TicketHandlingStatus.scheduled.value,
+                    models.TicketHandlingStatusType.scheduled.value,
                     True,
                     None,
                     "If status is scheduled, unable to reset schduled_at",
                 ),
                 (
-                    models.TicketHandlingStatus.scheduled.value,
+                    models.TicketHandlingStatusType.scheduled.value,
                     True,
                     "2000-01-01T00:00:00Z",
                     "If status is scheduled, schduled_at must be a future time",
@@ -506,16 +506,21 @@ class TestTicketStatus:
                 "expected_response_status_code",
             ),
             [
-                (models.TicketHandlingStatus.acknowledged.value, False, None, 200),
+                (models.TicketHandlingStatusType.acknowledged.value, False, None, 200),
                 (
-                    models.TicketHandlingStatus.acknowledged.value,
+                    models.TicketHandlingStatusType.acknowledged.value,
                     True,
                     None,
                     200,
                 ),
-                (models.TicketHandlingStatus.scheduled.value, True, "2345-06-07T08:09:10Z", 200),
-                (models.TicketHandlingStatus.completed.value, False, None, 200),
-                (models.TicketHandlingStatus.completed.value, True, None, 200),
+                (
+                    models.TicketHandlingStatusType.scheduled.value,
+                    True,
+                    "2345-06-07T08:09:10Z",
+                    200,
+                ),
+                (models.TicketHandlingStatusType.completed.value, False, None, 200),
+                (models.TicketHandlingStatusType.completed.value, True, None, 200),
             ],
         )
         def test_it_should_return_200_when_handling_status_and_schduled_at_have_the_correct_values(
@@ -545,13 +550,13 @@ class TestTicketStatus:
             "current_ticket_handling_status, current_scheduled_at, expected_response_detail",
             [
                 (
-                    models.TicketHandlingStatus.completed.value,
+                    models.TicketHandlingStatusType.completed.value,
                     None,
                     "If current status is not scheduled and previous status is schduled, "
                     "need to reset schduled_at",
                 ),
                 (
-                    models.TicketHandlingStatus.acknowledged.value,
+                    models.TicketHandlingStatusType.acknowledged.value,
                     None,
                     "If current status is not scheduled and previous status is schduled, "
                     "need to reset schduled_at",
@@ -568,7 +573,7 @@ class TestTicketStatus:
             #  not schduled, return 400 if current_scheduled_at does not contain
             # a value to reset None.
 
-            previous_ticket_handling_status = models.TicketHandlingStatus.scheduled.value
+            previous_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
             previous_scheduled_at = "2345-06-07T08:09:10Z"
             previous_response = self.common_setup_for_set_ticket_status(
                 previous_ticket_handling_status, True, previous_scheduled_at
@@ -606,7 +611,7 @@ class TestTicketStatus:
             #  is None, return 400 if current_scheduled_at does not contain
             # future time or None.
 
-            previous_ticket_handling_status = models.TicketHandlingStatus.scheduled.value
+            previous_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
             previous_scheduled_at = "2345-06-07T08:09:10Z"
             previous_response = self.common_setup_for_set_ticket_status(
                 previous_ticket_handling_status, True, previous_scheduled_at
@@ -630,7 +635,7 @@ class TestTicketStatus:
                     200,
                 ),
                 (
-                    models.TicketHandlingStatus.completed.value,
+                    models.TicketHandlingStatusType.completed.value,
                     True,
                     None,
                     200,
@@ -651,7 +656,7 @@ class TestTicketStatus:
             # completed, return 200 if current_scheduled_at contain
             # a value to reset None.
 
-            previous_ticket_handling_status = models.TicketHandlingStatus.scheduled.value
+            previous_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
             previous_scheduled_at = "2345-06-07T08:09:10Z"
             previous_response = self.common_setup_for_set_ticket_status(
                 previous_ticket_handling_status, True, previous_scheduled_at
@@ -670,7 +675,7 @@ class TestTicketStatus:
 
             _current_ticket_handling_status = current_ticket_handling_status
             if current_ticket_handling_status is None:
-                _current_ticket_handling_status = models.TicketHandlingStatus.scheduled.value
+                _current_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
             assert set_response["ticket_handling_status"] == _current_ticket_handling_status
 
             if need_scheduled_at:
@@ -686,7 +691,7 @@ class TestTicketStatus:
 
         def test_it_should_set_requester_if_assignee_is_not_specify_and_saved_current_user(self):
             status_request = {
-                "ticket_handling_status": models.TicketHandlingStatus.completed.value,
+                "ticket_handling_status": models.TicketHandlingStatusType.completed.value,
                 "note": "assign None",
             }
             url = f"/pteams/{self.pteam1.pteam_id}/tickets/{self.ticket_id1}/ticketstatuses"
@@ -704,7 +709,7 @@ class TestTicketStatus:
             assert data["assignees"] == [str(self.user1.user_id)]
 
         def test_it_should_return_400_when_there_is_no_time_zone_in_scheduled_at_time(self):
-            ticket_handling_status = models.TicketHandlingStatus.scheduled.value
+            ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
             scheduled_at = "2345-06-07T08:09:10"  # without time zone
             response = self.common_setup_for_set_ticket_status(
                 ticket_handling_status, True, scheduled_at
@@ -820,7 +825,7 @@ class TestGetTickets:
                 "ticket_status": {
                     "status_id": db_status1.status_id,  # do not check
                     "ticket_id": str(db_ticket1.ticket_id),
-                    "ticket_handling_status": models.TicketHandlingStatus.alerted.value,
+                    "ticket_handling_status": models.TicketHandlingStatusType.alerted.value,
                     "user_id": None,
                     "created_at": datetime.isoformat(db_status1.created_at).replace(
                         "+00:00", "Z"
@@ -1369,7 +1374,7 @@ class TestPutTicket:
         assert data["vuln_id"] == str(self.vuln1.vuln_id)
         assert data["dependency_id"] == str(self.dependency1.dependency_id)
         assert data["created_at"] == self.ticket1.created_at.isoformat().replace("+00:00", "Z")
-        assert data["ssvc_deployer_priority"] == models.TicketHandlingStatus.scheduled.value
+        assert data["ssvc_deployer_priority"] == models.TicketHandlingStatusType.scheduled.value
         assert data["ticket_safety_impact"] == request["ticket_safety_impact"]
         assert (
             data["ticket_safety_impact_change_reason"]
@@ -1379,7 +1384,7 @@ class TestPutTicket:
         assert data["ticket_status"]["ticket_id"] == str(self.ticket1.ticket_id)
         assert (
             data["ticket_status"]["ticket_handling_status"]
-            == models.TicketHandlingStatus.alerted.value
+            == models.TicketHandlingStatusType.alerted.value
         )
         assert data["ticket_status"]["user_id"] is None
         assert data["ticket_status"][
@@ -1673,7 +1678,7 @@ class TestPutTicket:
             .one()
         )
         assert updated_ticket.ssvc_deployer_priority != initial_priority
-        assert updated_ticket.ssvc_deployer_priority == models.TicketHandlingStatus.scheduled
+        assert updated_ticket.ssvc_deployer_priority == models.TicketHandlingStatusType.scheduled
 
     def test_it_should_return_422_when_invalid_ticket_safety_impact(self):
         user1_access_token = self._get_access_token(USER1)

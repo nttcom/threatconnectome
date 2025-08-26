@@ -44,7 +44,7 @@ def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
     if ticket.ssvc_deployer_priority is None:
         return False
 
-    if ticket.ticket_status.ticket_handling_status == models.TicketHandlingStatus.completed:
+    if ticket.ticket_status.ticket_handling_status == models.TicketHandlingStatusType.completed:
         return False
 
     pteam = ticket.dependency.service.pteam
@@ -73,7 +73,7 @@ def create_ticket_internal(
         status_id=None,
         ticket_id=ticket.ticket_id,
         user_id=None,
-        ticket_handling_status=models.TicketHandlingStatus.alerted,
+        ticket_handling_status=models.TicketHandlingStatusType.alerted,
         note=None,
         logging_ids=[],
         assignees=[],

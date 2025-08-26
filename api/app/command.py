@@ -307,7 +307,8 @@ def get_packages_summary(
             models.TicketStatus,
             and_(
                 models.TicketStatus.ticket_id == models.Ticket.ticket_id,
-                models.TicketStatus.ticket_handling_status != models.TicketHandlingStatus.completed,
+                models.TicketStatus.ticket_handling_status
+                != models.TicketHandlingStatusType.completed,
             ),
         )
         .join(models.Threat)
@@ -399,7 +400,7 @@ def get_packages_summary(
             "service_ids": row.service_ids,
             "status_count": {
                 status_type.value: status_count_dict.get((row.package_id, status_type.value), 0)
-                for status_type in list(models.TicketHandlingStatus)
+                for status_type in list(models.TicketHandlingStatusType)
             },
         }
         for row in db.execute(summarize_stmt).all()
@@ -492,7 +493,7 @@ def get_sorted_paginated_tickets_for_pteams(
     assigned_user_id: UUID | None = None,
     offset: int = 0,
     limit: int = 100,
-    exclude_statuses: list[models.TicketHandlingStatus] | None = None,
+    exclude_statuses: list[models.TicketHandlingStatusType] | None = None,
     cve_ids: list[str] | None = None,
 ) -> tuple[int, Sequence[models.Ticket]]:
     fixed_cve_ids: set[str] = set()

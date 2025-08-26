@@ -749,7 +749,7 @@ def set_ticket_status(
             detail="Cannot specify None for assignees",
         )
 
-    if data.ticket_handling_status == models.TicketHandlingStatus.alerted:
+    if data.ticket_handling_status == models.TicketHandlingStatusType.alerted:
         # user cannot set alerted
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
 
@@ -760,12 +760,15 @@ def set_ticket_status(
             detail="Unwise expiration (grant timezone)",
         )
 
-    if data.ticket_handling_status == models.TicketHandlingStatus.scheduled or (
+    if data.ticket_handling_status == models.TicketHandlingStatusType.scheduled or (
         "ticket_handling_status" not in update_data.keys()
-        and ticket.ticket_status.ticket_handling_status == models.TicketHandlingStatus.scheduled
+        and ticket.ticket_status.ticket_handling_status == models.TicketHandlingStatusType.scheduled
     ):
         if "scheduled_at" not in update_data.keys():
-            if ticket.ticket_status.ticket_handling_status != models.TicketHandlingStatus.scheduled:
+            if (
+                ticket.ticket_status.ticket_handling_status
+                != models.TicketHandlingStatusType.scheduled
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="If status is scheduled, specify schduled_at",
@@ -783,7 +786,10 @@ def set_ticket_status(
                 )
     else:
         if "scheduled_at" not in update_data.keys():
-            if ticket.ticket_status.ticket_handling_status == models.TicketHandlingStatus.scheduled:
+            if (
+                ticket.ticket_status.ticket_handling_status
+                == models.TicketHandlingStatusType.scheduled
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=(
@@ -828,9 +834,9 @@ def set_ticket_status(
         ticket.ticket_status.assignees = [UUID(current_user.user_id)]
     if "ticket_handling_status" in update_data.keys():
         ticket.ticket_status.ticket_handling_status = data.ticket_handling_status
-    elif ticket.ticket_status.ticket_handling_status == models.TicketHandlingStatus.alerted:
+    elif ticket.ticket_status.ticket_handling_status == models.TicketHandlingStatusType.alerted:
         # this is the first update
-        ticket.ticket_status.ticket_handling_status = models.TicketHandlingStatus.acknowledged
+        ticket.ticket_status.ticket_handling_status = models.TicketHandlingStatusType.acknowledged
     if "logging_ids" in update_data.keys() and data.logging_ids is not None:
         ticket.ticket_status.logging_ids = list(map(str, data.logging_ids))
     if "note" in update_data.keys():
@@ -840,7 +846,8 @@ def set_ticket_status(
             ticket.ticket_status.scheduled_at = None
         elif (
             data.scheduled_at > now
-            and ticket.ticket_status.ticket_handling_status == models.TicketHandlingStatus.scheduled
+            and ticket.ticket_status.ticket_handling_status
+            == models.TicketHandlingStatusType.scheduled
         ):
             ticket.ticket_status.scheduled_at = timezone_tool.convert_to_utc_timezone(
                 data.scheduled_at
