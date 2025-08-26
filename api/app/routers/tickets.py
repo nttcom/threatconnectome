@@ -1,6 +1,8 @@
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app import command, database, models, persistence, schemas
@@ -8,6 +10,12 @@ from app.auth.account import get_current_user
 from app.routers.validators.account_validator import check_pteam_membership
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
+
+NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
+NOT_A_PTEAM_MEMBER = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="Not a pteam member",
+)
 
 
 def ticket_to_response(ticket: models.Ticket):
@@ -126,3 +134,253 @@ def get_tickets(
         total=total_count,
         tickets=[ticket_to_response(ticket) for ticket in tickets],
     )
+
+
+def _create_insight_response(insight: models.Insight, ticket_id: UUID):
+    return schemas.InsightResponse(
+        ticket_id=ticket_id,
+        description=insight.description,
+        data_processing_strategy=insight.data_processing_strategy,
+        created_at=insight.created_at,
+        updated_at=insight.updated_at,
+        threat_scenarios=[
+            schemas.ThreatScenario(
+                impact_category=threat_scenario.impact_category,
+                title=threat_scenario.title,
+                description=threat_scenario.description,
+            )
+            for threat_scenario in insight.threat_scenarios
+        ],
+        affected_objects=[
+            schemas.AffectedObject(
+                object_category=affected_object.object_category,
+                name=affected_object.name,
+                description=affected_object.description,
+            )
+            for affected_object in insight.affected_objects
+        ],
+        insight_references=[
+            schemas.InsightReference(
+                link_text=insight_reference.link_text, url=insight_reference.url
+            )
+            for insight_reference in insight.insight_references
+        ],
+    )
+
+
+def _check_request_fields_for_create(request: schemas.InsightUpdateRequest):
+    """
+    If there are any items not specified in schemas.InsightUpdateRequest,
+    an error will be generated.
+    """
+
+    fields_to_check = [
+        "description",
+        "data_processing_strategy",
+        "threat_scenarios",
+        "affected_objects",
+        "insight_references",
+    ]
+    for field in fields_to_check:
+        if getattr(request, field) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No value for required field when creating insight: {field}",
+            )
+
+
+def _check_request_fields_for_update(request: schemas.InsightUpdateRequest, update_request: dict):
+    """
+    If you explicitly specify None in schemas.InsightUpdateRequest,
+    an error will be generated.
+    """
+
+    fields_to_check = [
+        "description",
+        "data_processing_strategy",
+        "threat_scenarios",
+        "affected_objects",
+        "insight_references",
+    ]
+    for field in fields_to_check:
+        if field in update_request.keys() and getattr(request, field) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot specify None for {field}",
+            )
+
+
+def __handle_create_insight(
+    ticket_id: UUID, request: schemas.InsightUpdateRequest, db: Session
+) -> models.Insight:
+    _check_request_fields_for_create(request)
+
+    now = datetime.now(timezone.utc)
+    insight = models.Insight(
+        ticket_id=str(ticket_id),
+        description=request.description,
+        data_processing_strategy=request.data_processing_strategy,
+        created_at=now,
+        updated_at=now,
+    )
+    persistence.create_insight(db, insight)
+
+    for threat_scenario in request.threat_scenarios or []:
+        threat_scenario_model = models.ThreatScenario(
+            insight_id=str(insight.insight_id),
+            impact_category=threat_scenario.impact_category,
+            title=threat_scenario.title,
+            description=threat_scenario.description,
+        )
+        persistence.create_threat_scenario(db, threat_scenario_model)
+
+    for affected_object in request.affected_objects or []:
+        affected_object_model = models.AffectedObject(
+            insight_id=str(insight.insight_id),
+            object_category=affected_object.object_category,
+            name=affected_object.name,
+            description=affected_object.description,
+        )
+        persistence.create_affected_object(db, affected_object_model)
+
+    for insight_reference in request.insight_references or []:
+        insight_reference_model = models.InsightReference(
+            insight_id=str(insight.insight_id),
+            link_text=insight_reference.link_text,
+            url=insight_reference.url,
+        )
+        persistence.create_insight_reference(db, insight_reference_model)
+
+    return insight
+
+
+def __handle_update_insight(
+    insight: models.Insight, request: schemas.InsightUpdateRequest, db: Session
+):
+    update_request = request.model_dump(exclude_unset=True)
+    _check_request_fields_for_update(request, update_request)
+
+    if "description" in update_request.keys() and request.description is not None:
+        insight.description = request.description
+    if (
+        "data_processing_strategy" in update_request.keys()
+        and request.data_processing_strategy is not None
+    ):
+        insight.data_processing_strategy = request.data_processing_strategy
+    if "threat_scenarios" in update_request.keys() and request.threat_scenarios is not None:
+        for threat_scenario in insight.threat_scenarios:
+            persistence.delete_threat_scenario(db, threat_scenario)
+
+        for threat_scenario_request in request.threat_scenarios:
+            threat_scenario_model = models.ThreatScenario(
+                insight_id=str(insight.insight_id),
+                impact_category=threat_scenario_request.impact_category,
+                title=threat_scenario_request.title,
+                description=threat_scenario_request.description,
+            )
+            persistence.create_threat_scenario(db, threat_scenario_model)
+
+    if "affected_objects" in update_request.keys() and request.affected_objects is not None:
+        for affected_object in insight.affected_objects:
+            persistence.delete_affected_object(db, affected_object)
+
+        for affected_object in request.affected_objects:
+            affected_object_model = models.AffectedObject(
+                insight_id=str(insight.insight_id),
+                object_category=affected_object.object_category,
+                name=affected_object.name,
+                description=affected_object.description,
+            )
+            persistence.create_affected_object(db, affected_object_model)
+
+    if "insight_references" in update_request.keys() and request.insight_references is not None:
+        for insight_reference in insight.insight_references:
+            persistence.delete_insight_reference(db, insight_reference)
+
+        for insight_reference_request in request.insight_references:
+            insight_reference_model = models.InsightReference(
+                insight_id=str(insight.insight_id),
+                link_text=insight_reference_request.link_text,
+                url=insight_reference_request.url,
+            )
+            persistence.create_insight_reference(db, insight_reference_model)
+
+    insight.updated_at = datetime.now(timezone.utc)
+
+
+@router.put("/{ticket_id}/insight", response_model=schemas.InsightResponse)
+def update_insight(
+    ticket_id: UUID,
+    request: schemas.InsightUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """
+    Update a insight if it exists,
+    or create a new insight if there is no insight associated with the specified ticket_id.
+    """
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+
+    if not check_pteam_membership(ticket.dependency.service.pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    if not (insight := ticket.insight):
+        insight = __handle_create_insight(ticket_id, request, db)
+    else:
+        __handle_update_insight(insight, request, db)
+
+    db.commit()
+    db.refresh(insight)
+    response = _create_insight_response(insight, ticket_id)
+
+    return response
+
+
+@router.get("/{ticket_id}/insight", response_model=schemas.InsightResponse)
+def get_insight(
+    ticket_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+    if not check_pteam_membership(ticket.dependency.service.pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if ticket.insight is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No insight found for this ticket"
+        )
+
+    insight = ticket.insight
+    response = _create_insight_response(insight, ticket_id)
+
+    return response
+
+
+@router.delete("/{ticket_id}/insight", status_code=status.HTTP_204_NO_CONTENT)
+def delete_insight(
+    ticket_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(database.get_db),
+):
+    """
+    Delete an insight by its ID.
+    """
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+
+    if not ticket.insight:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No insight associated with this ticket",
+        )
+
+    if not check_pteam_membership(ticket.dependency.service.pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    persistence.delete_insight(db, ticket.insight)
+
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
