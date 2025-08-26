@@ -77,5 +77,5 @@ export function InsightReference(props) {
 
 InsightReference.propTypes = {
   dataProcessingStrategy: PropTypes.string.isRequired,
-  insightReferences: PropTypes.object.isRequired,
+  insightReferences: PropTypes.arrayOf(PropTypes.object).isRequired,
 };

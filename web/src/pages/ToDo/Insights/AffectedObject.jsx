@@ -37,5 +37,5 @@ export function AffectedObject(props) {
 }
 
 AffectedObject.propTypes = {
-  affectedObjects: PropTypes.object.isRequired,
+  affectedObjects: PropTypes.arrayOf(PropTypes.object).isRequired,
 };

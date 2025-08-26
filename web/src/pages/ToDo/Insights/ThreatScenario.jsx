@@ -46,5 +46,5 @@ export function ThreatScenario(props) {
 }
 
 ThreatScenario.propTypes = {
-  threatScenarios: PropTypes.object.isRequired,
+  threatScenarios: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
