@@ -16,7 +16,7 @@ from app.models import (
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
     SystemExposureEnum,
-    VulnStatusType,
+    TicketHandlingStatus,
 )
 
 
@@ -346,7 +346,7 @@ class ActionLogRequest(ORMModel):
 
 
 class TicketStatusRequest(ORMModel):
-    vuln_status: VulnStatusType | None = None
+    ticket_handling_status: TicketHandlingStatus | None = None
     logging_ids: list[UUID] | None = None
     assignees: list[UUID] | None = None
     note: str | None = None
@@ -356,7 +356,7 @@ class TicketStatusRequest(ORMModel):
 class TicketStatusResponse(ORMModel):
     status_id: UUID
     ticket_id: UUID
-    vuln_status: VulnStatusType
+    ticket_handling_status: TicketHandlingStatus
     user_id: UUID | None  # None: auto created when ticket is created
     created_at: datetime
     assignees: list[UUID] = []
@@ -397,7 +397,7 @@ class PTeamPackagesSummary(ORMModel):
         service_ids: list[UUID]
         ssvc_priority: SSVCDeployerPriorityEnum | None
         updated_at: datetime | None
-        status_count: dict[str, int]  # VUlnStatusType.value: tickets count
+        status_count: dict[str, int]  # TicketHandlingStatusType.value: tickets count
 
     ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # priority: packages count
     packages: list[PTeamPackageSummary]

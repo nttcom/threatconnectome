@@ -25,12 +25,12 @@ import { useRef, useState } from "react";
 
 import dialogStyle from "../../../cssModule/dialog.module.css";
 import { useUpdateTicketStatusMutation } from "../../../services/tcApi";
-import { vulnStatusProps } from "../../../utils/const";
+import { ticketHandlingStatusProps } from "../../../utils/const";
 import { errorToString } from "../../../utils/func";
 
 import { ReportCompletedActions } from "./ReportCompletedActions";
 
-export function VulnStatusSelector(props) {
+export function TicketHandlingStatusSelector(props) {
   const {
     pteamId,
     serviceId,
@@ -57,18 +57,18 @@ export function VulnStatusSelector(props) {
     {
       display: "Acknowledge",
       rawStatus: "acknowledged",
-      disabled: currentStatus.vuln_status === "acknowledged",
+      disabled: currentStatus.ticket_handling_status === "acknowledged",
     },
     { display: "Schedule", rawStatus: "scheduled", disabled: false },
     {
       display: "Complete",
       rawStatus: "completed",
-      disabled: currentStatus.vuln_status === "completed",
+      disabled: currentStatus.ticket_handling_status === "completed",
     },
   ];
 
   const modifyTicketStatus = async (selectedStatus) => {
-    let requestParams = { vuln_status: selectedStatus };
+    let requestParams = { ticket_handling_status: selectedStatus };
     if (selectedStatus === "scheduled") {
       if (!schedule) return;
       requestParams["scheduled_at"] = schedule.toISOString();
@@ -133,7 +133,7 @@ export function VulnStatusSelector(props) {
       <Button
         endIcon={<ArrowDropDownIcon />}
         sx={{
-          ...vulnStatusProps[currentStatus.vuln_status].buttonStyle,
+          ...ticketHandlingStatusProps[currentStatus.ticket_handling_status].buttonStyle,
           fontSize: 14,
           padding: "1px 3px",
           minHeight: "25px",
@@ -151,7 +151,7 @@ export function VulnStatusSelector(props) {
         onClick={() => setOpen(!open)}
         ref={anchorRef}
       >
-        {vulnStatusProps[currentStatus.vuln_status].chipLabelCapitalized}
+        {ticketHandlingStatusProps[currentStatus.ticket_handling_status].chipLabelCapitalized}
       </Button>
       <Popper
         open={open}
@@ -174,7 +174,7 @@ export function VulnStatusSelector(props) {
                   {selectableItems.map((item) => (
                     <MenuItem
                       key={item.rawStatus}
-                      selected={currentStatus.vuln_status === item.rawStatus}
+                      selected={currentStatus.ticket_handling_status === item.rawStatus}
                       disabled={item.disabled}
                       onClick={(event) => handleUpdateStatus(event, item)}
                       dense={true}
@@ -231,7 +231,7 @@ export function VulnStatusSelector(props) {
   );
 }
 
-VulnStatusSelector.propTypes = {
+TicketHandlingStatusSelector.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
   vulnId: PropTypes.string.isRequired,

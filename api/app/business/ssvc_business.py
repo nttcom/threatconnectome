@@ -44,7 +44,7 @@ def _get_vuln_ids_dict_by_service(
     package_id: UUID | str | None,
     related_ticket_status: str | None,
 ) -> dict:
-    _completed = models.VulnStatusType.completed
+    _completed = models.TicketHandlingStatus.completed
     vuln_ids_dict = {}
     dependencies = dependency_business.get_dependencies_by_service(db, service, package_id)
 
@@ -52,11 +52,14 @@ def _get_vuln_ids_dict_by_service(
         for ticket in dependency.tickets:
             ssvc_priority = ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
 
-            if related_ticket_status == "solved" and ticket.ticket_status.vuln_status != _completed:
+            if (
+                related_ticket_status == "solved"
+                and ticket.ticket_status.ticket_handling_status != _completed
+            ):
                 continue
             elif (
                 related_ticket_status == "unsolved"
-                and ticket.ticket_status.vuln_status == _completed
+                and ticket.ticket_status.ticket_handling_status == _completed
             ):
                 continue
 
@@ -134,7 +137,7 @@ def _get_ticket_counts_by_service(
 ) -> dict:
     ticket_counts_dict: dict = _create_initial_ticket_counts_dict()
 
-    _completed = models.VulnStatusType.completed
+    _completed = models.TicketHandlingStatus.completed
 
     dependencies = dependency_business.get_dependencies_by_service(db, service, package_id)
     for dependency in dependencies:
@@ -143,11 +146,14 @@ def _get_ticket_counts_by_service(
         for ticket in dependency.tickets:
             ssvc_priority = ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
 
-            if related_ticket_status == "solved" and ticket.ticket_status.vuln_status != _completed:
+            if (
+                related_ticket_status == "solved"
+                and ticket.ticket_status.ticket_handling_status != _completed
+            ):
                 continue
             elif (
                 related_ticket_status == "unsolved"
-                and ticket.ticket_status.vuln_status == _completed
+                and ticket.ticket_status.ticket_handling_status == _completed
             ):
                 continue
 

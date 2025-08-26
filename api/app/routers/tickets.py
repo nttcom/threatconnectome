@@ -44,7 +44,7 @@ def get_tickets(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     sort_keys: list = Query(["-ssvc_deployer_priority", "-created_at"]),
-    exclude_statuses: list[models.VulnStatusType] | None = Query(None),
+    exclude_statuses: list[models.TicketHandlingStatus] | None = Query(None),
     cve_ids: list[str] | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(database.get_db),

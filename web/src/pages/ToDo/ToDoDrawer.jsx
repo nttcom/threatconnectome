@@ -21,7 +21,7 @@ import { preserveParams } from "../../utils/urlUtils";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
-import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
+import { TicketHandlingStatusSelector } from "../Package/VulnTables/TicketHandlingStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 
 export function ToDoDrawer(props) {
@@ -199,7 +199,7 @@ export function ToDoDrawer(props) {
                 Status
               </Typography>
               <FormControl sx={{ width: 130 }} size="small" variant="standard">
-                <VulnStatusSelector
+                <TicketHandlingStatusSelector
                   pteamId={row.pteam_id}
                   serviceId={row.service_id}
                   vulnId={row.vuln_id}
