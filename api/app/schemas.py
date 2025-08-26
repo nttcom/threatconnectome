@@ -16,7 +16,7 @@ from app.models import (
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
     SystemExposureEnum,
-    TicketHandlingStatus,
+    TicketHandlingStatusType,
 )
 
 
@@ -346,7 +346,7 @@ class ActionLogRequest(ORMModel):
 
 
 class TicketStatusRequest(ORMModel):
-    ticket_handling_status: TicketHandlingStatus | None = None
+    ticket_handling_status: TicketHandlingStatusType | None = None
     logging_ids: list[UUID] | None = None
     assignees: list[UUID] | None = None
     note: str | None = None
@@ -356,7 +356,7 @@ class TicketStatusRequest(ORMModel):
 class TicketStatusResponse(ORMModel):
     status_id: UUID
     ticket_id: UUID
-    ticket_handling_status: TicketHandlingStatus
+    ticket_handling_status: TicketHandlingStatusType
     user_id: UUID | None  # None: auto created when ticket is created
     created_at: datetime
     assignees: list[UUID] = []

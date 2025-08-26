@@ -44,7 +44,7 @@ def _get_vuln_ids_dict_by_service(
     package_id: UUID | str | None,
     related_ticket_status: str | None,
 ) -> dict:
-    _completed = models.TicketHandlingStatus.completed
+    _completed = models.TicketHandlingStatusType.completed
     vuln_ids_dict = {}
     dependencies = dependency_business.get_dependencies_by_service(db, service, package_id)
 
@@ -137,7 +137,7 @@ def _get_ticket_counts_by_service(
 ) -> dict:
     ticket_counts_dict: dict = _create_initial_ticket_counts_dict()
 
-    _completed = models.TicketHandlingStatus.completed
+    _completed = models.TicketHandlingStatusType.completed
 
     dependencies = dependency_business.get_dependencies_by_service(db, service, package_id)
     for dependency in dependencies:
