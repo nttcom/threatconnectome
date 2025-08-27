@@ -24,6 +24,8 @@ import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector
 import { TicketHandlingStatusSelector } from "../Package/VulnTables/TicketHandlingStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 
+import { RiskAnalysis } from "./Insights/RiskAnalysis.jsx";
+
 export function ToDoDrawer(props) {
   const {
     open,
@@ -37,6 +39,7 @@ export function ToDoDrawer(props) {
     vulnActions,
     ssvcPriority,
   } = props;
+
   const [value, setValue] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
@@ -114,6 +117,7 @@ export function ToDoDrawer(props) {
           <Tabs value={value} onChange={handleTabChange}>
             <Tab label="Ticket" />
             <Tab label="Vuln" />
+            <Tab label="Insights" />
           </Tabs>
         </Box>
         {/* ticket */}
@@ -247,6 +251,17 @@ export function ToDoDrawer(props) {
               currentPackage={currentPackage}
             />
           </Stack>
+        </CustomTabPanel>
+
+        {/* insights */}
+        <CustomTabPanel value={value} index={2}>
+          <RiskAnalysis
+            ticketId={row.ticket_id}
+            serviceName={serviceName}
+            ecosystem={serviceDependency.package_ecosystem}
+            cveId={vuln?.cve_id || "No Known CVE"}
+            cvss={Number.isFinite(vuln?.cvss_v3_score) ? vuln.cvss_v3_score.toFixed(1) : "N/A"}
+          />
         </CustomTabPanel>
       </Box>
     </Drawer>
