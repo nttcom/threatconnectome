@@ -5,9 +5,9 @@ import { useGetInsightQuery } from "../../../services/tcApi.js";
 import { APIError } from "../../../utils/APIError.js";
 import { errorToString } from "../../../utils/func.js";
 
-import { AIRiskAnalysisView } from "./AIRiskAnalysisView.jsx";
+import { RiskAnalysisView } from "./RiskAnalysisView.jsx";
 
-export function AIRiskAnalysis(props) {
+export function RiskAnalysis(props) {
   const { ticketId, serviceName, ecosystem, cveId, cvss } = props;
 
   const skip = useSkipUntilAuthUserIsReady();
@@ -29,7 +29,7 @@ export function AIRiskAnalysis(props) {
   if (insightIsLoading) return <>Now loading Insight...</>;
 
   return (
-    <AIRiskAnalysisView
+    <RiskAnalysisView
       insight={insight}
       serviceName={serviceName}
       ecosystem={ecosystem}
@@ -39,10 +39,10 @@ export function AIRiskAnalysis(props) {
   );
 }
 
-AIRiskAnalysis.propTypes = {
+RiskAnalysis.propTypes = {
   ticketId: PropTypes.string.isRequired,
   serviceName: PropTypes.string.isRequired,
   ecosystem: PropTypes.string.isRequired,
   cveId: PropTypes.string.isRequired,
-  cvss: PropTypes.number.isRequired,
+  cvss: PropTypes.string.isRequired,
 };

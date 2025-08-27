@@ -24,7 +24,7 @@ import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector
 import { TicketHandlingStatusSelector } from "../Package/VulnTables/TicketHandlingStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 
-import { AIRiskAnalysis } from "./Insights/AIRiskAnalysis.jsx";
+import { RiskAnalysis } from "./Insights/RiskAnalysis.jsx";
 
 export function ToDoDrawer(props) {
   const {
@@ -255,7 +255,7 @@ export function ToDoDrawer(props) {
 
         {/* insights */}
         <CustomTabPanel value={value} index={2}>
-          <AIRiskAnalysis
+          <RiskAnalysis
             ticketId={row.ticket_id}
             serviceName={serviceName}
             ecosystem={serviceDependency.package_ecosystem}

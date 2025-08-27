@@ -15,14 +15,14 @@ import {
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { CustomTabPanel } from "../../../components/CustomTabPanel";
+import { CustomTabPanel } from "../../../components/CustomTabPanel.jsx";
 
 import { AffectedObject } from "./AffectedObject.jsx";
 import { InsightReference } from "./InsightReference.jsx";
 import { ThreatScenario } from "./ThreatScenario.jsx";
 import { impactCategoryIcons } from "./insightConst.js";
 
-export function AIRiskAnalysisView(props) {
+export function RiskAnalysisView(props) {
   const { insight, serviceName, ecosystem, cveId, cvss } = props;
 
   const [tabValue, setTabValue] = useState(0);
@@ -132,10 +132,10 @@ export function AIRiskAnalysisView(props) {
   );
 }
 
-AIRiskAnalysisView.propTypes = {
+RiskAnalysisView.propTypes = {
   insight: PropTypes.object.isRequired,
   serviceName: PropTypes.string.isRequired,
   ecosystem: PropTypes.string.isRequired,
   cveId: PropTypes.string.isRequired,
-  cvss: PropTypes.number.isRequired,
+  cvss: PropTypes.string.isRequired,
 };
