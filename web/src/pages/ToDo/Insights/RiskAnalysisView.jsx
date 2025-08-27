@@ -50,7 +50,7 @@ export function RiskAnalysisView(props) {
             Target: {ecosystem}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            CVSS: {cvss.toFixed(1)}
+            CVSS: {cvss}
           </Typography>
         </Box>
       </Box>

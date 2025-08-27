@@ -260,7 +260,7 @@ export function ToDoDrawer(props) {
             serviceName={serviceName}
             ecosystem={serviceDependency.package_ecosystem}
             cveId={vuln?.cve_id || "No Known CVE"}
-            cvss={vuln?.cvss_v3_score || 0}
+            cvss={Number.isFinite(vuln?.cvss_v3_score) ? vuln.cvss_v3_score.toFixed(1) : "N/A"}
           />
         </CustomTabPanel>
       </Box>
