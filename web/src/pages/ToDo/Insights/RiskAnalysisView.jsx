@@ -35,6 +35,15 @@ export function RiskAnalysisView(props) {
       index === self.findIndex((s) => s.impact_category === scenario.impact_category),
   );
 
+  const isIconValid = (scenario) => Boolean(impactCategoryIcons[scenario.impact_category]?.icon);
+  if (!uniqueThreatScenarios.every((scenario) => isIconValid(scenario))) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        No icon found for the specified impact category.
+      </Typography>
+    );
+  }
+
   return (
     <>
       {/* Header Section */}

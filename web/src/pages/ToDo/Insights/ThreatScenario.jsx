@@ -17,29 +17,29 @@ export function ThreatScenario(props) {
   return (
     <>
       <Grid container spacing={2} sx={{ flexDirection: "column" }}>
-        {threatScenarios.map((scenario, index) => (
-          <Grid item xs={12} key={index}>
-            <Card variant="outlined">
-              <CardHeader
-                avatar={
-                  <Avatar sx={{ bgcolor: "error.main" }}>
-                    {(() => {
-                      const ImpactCategoryIcon = impactCategoryIcons[scenario.impact_category].icon;
-                      return ImpactCategoryIcon ? <ImpactCategoryIcon /> : null;
-                    })()}
-                  </Avatar>
-                }
-                title={scenario.title}
-                titleTypographyProps={{ variant: "h6" }}
-              />
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  {scenario.description}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+        {threatScenarios.map((scenario, index) => {
+          const ImpactCategoryIcon = impactCategoryIcons[scenario.impact_category].icon;
+          return (
+            <Grid item xs={12} key={index}>
+              <Card variant="outlined">
+                <CardHeader
+                  avatar={
+                    <Avatar sx={{ bgcolor: "error.main" }}>
+                      <ImpactCategoryIcon />
+                    </Avatar>
+                  }
+                  title={scenario.title}
+                  titleTypographyProps={{ variant: "h6" }}
+                />
+                <CardContent>
+                  <Typography variant="body2" color="text.secondary">
+                    {scenario.description}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          );
+        })}
       </Grid>
     </>
   );
