@@ -40,7 +40,7 @@ export function RiskAnalysisView(props) {
       {/* Header Section */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          AI Risk Analysis: {cveId}
+          Risk Analysis: {cveId}
         </Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
           <Typography variant="body1" color="text.secondary">
