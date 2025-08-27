@@ -70,7 +70,12 @@ export function ToDo() {
   return (
     <>
       {isMobile ? (
-        <VulnerabilityTodoList />
+        <VulnerabilityTodoList
+          myTasks={myTasks}
+          pteamIds={pteamIds}
+          cveId={cveId}
+          onMyTasksChange={handleMyTasksChange}
+        />
       ) : (
         <>
           <Box sx={{ display: "flex", alignItems: "center" }}>
