@@ -1,0 +1,273 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:442cb4dd-621b-4f66-bd90-6e821bfe92c5",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-07-03T08:44:11+00:00",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "group": "aquasecurity",
+          "name": "trivy",
+          "version": "0.63.0"
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:oci/static@sha256%3A092aad9f6448695b6e20333a8faa93fe3637bcf4e88aa804b8f01545eaf288bd?arch=amd64&repository_url=index.docker.io%2Fchainguard%2Fstatic",
+      "type": "container",
+      "name": "chainguard/static",
+      "purl": "pkg:oci/static@sha256%3A092aad9f6448695b6e20333a8faa93fe3637bcf4e88aa804b8f01545eaf288bd?arch=amd64&repository_url=index.docker.io%2Fchainguard%2Fstatic",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:0983c44e3f6a26e62f93952141134242399cdd82ee938239ce5d9be669d65204"
+        },
+        {
+          "name": "aquasecurity:trivy:ImageID",
+          "value": "sha256:7b23c4d3920c48644a9f4e6cfa8e61a8edc38427253b444f6e9a4cb950be9bc8"
+        },
+        {
+          "name": "aquasecurity:trivy:Labels:org.opencontainers.image.authors",
+          "value": "Chainguard Team https://www.chainguard.dev/"
+        },
+        {
+          "name": "aquasecurity:trivy:Labels:org.opencontainers.image.created",
+          "value": "2025-06-23T13:08:21Z"
+        },
+        {
+          "name": "aquasecurity:trivy:Labels:org.opencontainers.image.source",
+          "value": "https://github.com/chainguard-images/images/tree/main/images/static"
+        },
+        {
+          "name": "aquasecurity:trivy:Labels:org.opencontainers.image.url",
+          "value": "https://images.chainguard.dev/directory/image/static/overview"
+        },
+        {
+          "name": "aquasecurity:trivy:Labels:org.opencontainers.image.vendor",
+          "value": "Chainguard"
+        },
+        {
+          "name": "aquasecurity:trivy:RepoDigest",
+          "value": "chainguard/static@sha256:092aad9f6448695b6e20333a8faa93fe3637bcf4e88aa804b8f01545eaf288bd"
+        },
+        {
+          "name": "aquasecurity:trivy:RepoTag",
+          "value": "chainguard/static:latest"
+        },
+        {
+          "name": "aquasecurity:trivy:SchemaVersion",
+          "value": "2"
+        },
+        {
+          "name": "aquasecurity:trivy:Size",
+          "value": "3106304"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "4f0c4aac-129c-4f38-98eb-9715ef153d2b",
+      "type": "operating-system",
+      "name": "wolfi",
+      "version": "20230201",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:Class",
+          "value": "os-pkgs"
+        },
+        {
+          "name": "aquasecurity:trivy:Type",
+          "value": "wolfi"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:apk/wolfi/ca-certificates-bundle@20241121-r42?arch=x86_64&distro=20230201",
+      "type": "library",
+      "supplier": {
+        "name": "wolfi"
+      },
+      "name": "ca-certificates-bundle",
+      "version": "20241121-r42",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "27e26eb60c8eeb1add481f2ebac60162473b95f6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MPL-2.0"
+          }
+        },
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:apk/wolfi/ca-certificates-bundle@20241121-r42?arch=x86_64&distro=20230201",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:0983c44e3f6a26e62f93952141134242399cdd82ee938239ce5d9be669d65204"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:d5d0669213dba091913fa602bad5bcc4817b48cf95a5c4a63cb9f1793fa669f7"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "ca-certificates-bundle@20241121-r42"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "wolfi"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "ca-certificates"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "20241121-r42"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:apk/wolfi/tzdata@2025b-r1?arch=x86_64&distro=20230201",
+      "type": "library",
+      "supplier": {
+        "name": "wolfi"
+      },
+      "name": "tzdata",
+      "version": "2025b-r1",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "2cdeddfcfb447e6d879ba7f9f706734ba05fe736"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "CC-PDDC"
+          }
+        }
+      ],
+      "purl": "pkg:apk/wolfi/tzdata@2025b-r1?arch=x86_64&distro=20230201",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:0983c44e3f6a26e62f93952141134242399cdd82ee938239ce5d9be669d65204"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:d5d0669213dba091913fa602bad5bcc4817b48cf95a5c4a63cb9f1793fa669f7"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "tzdata@2025b-r1"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "wolfi"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "tzdata"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "2025b-r1"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:apk/wolfi/wolfi-baselayout@20230201-r21?arch=x86_64&distro=20230201",
+      "type": "library",
+      "supplier": {
+        "name": "wolfi"
+      },
+      "name": "wolfi-baselayout",
+      "version": "20230201-r21",
+      "hashes": [
+        {
+          "alg": "SHA-1",
+          "content": "9f90e16d9d7da9bd9564e56699e22a1519fc8913"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:apk/wolfi/wolfi-baselayout@20230201-r21?arch=x86_64&distro=20230201",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:LayerDiffID",
+          "value": "sha256:0983c44e3f6a26e62f93952141134242399cdd82ee938239ce5d9be669d65204"
+        },
+        {
+          "name": "aquasecurity:trivy:LayerDigest",
+          "value": "sha256:d5d0669213dba091913fa602bad5bcc4817b48cf95a5c4a63cb9f1793fa669f7"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgID",
+          "value": "wolfi-baselayout@20230201-r21"
+        },
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "wolfi"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcName",
+          "value": "wolfi-baselayout"
+        },
+        {
+          "name": "aquasecurity:trivy:SrcVersion",
+          "value": "20230201-r21"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "4f0c4aac-129c-4f38-98eb-9715ef153d2b",
+      "dependsOn": [
+        "pkg:apk/wolfi/tzdata@2025b-r1?arch=x86_64&distro=20230201"
+      ]
+    },
+    {
+      "ref": "pkg:apk/wolfi/ca-certificates-bundle@20241121-r42?arch=x86_64&distro=20230201",
+      "dependsOn": [
+        "pkg:apk/wolfi/wolfi-baselayout@20230201-r21?arch=x86_64&distro=20230201"
+      ]
+    },
+    {
+      "ref": "pkg:apk/wolfi/tzdata@2025b-r1?arch=x86_64&distro=20230201",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:apk/wolfi/wolfi-baselayout@20230201-r21?arch=x86_64&distro=20230201",
+      "dependsOn": [
+        "pkg:apk/wolfi/ca-certificates-bundle@20241121-r42?arch=x86_64&distro=20230201"
+      ]
+    },
+    {
+      "ref": "pkg:oci/static@sha256%3A092aad9f6448695b6e20333a8faa93fe3637bcf4e88aa804b8f01545eaf288bd?arch=amd64&repository_url=index.docker.io%2Fchainguard%2Fstatic",
+      "dependsOn": [
+        "4f0c4aac-129c-4f38-98eb-9715ef153d2b"
+      ]
+    }
+  ],
+  "vulnerabilities": []
+}
