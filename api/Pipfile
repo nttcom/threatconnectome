@@ -22,6 +22,7 @@ email-validator = "*"
 pillow = "*"
 supabase = "*"
 deprecation = "*"
+gotrue = "*"
 
 [dev-packages]
 mypy = "*"
