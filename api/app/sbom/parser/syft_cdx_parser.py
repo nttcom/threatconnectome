@@ -1,14 +1,20 @@
 import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import field
 from typing import (
-    Any,
     ClassVar,
     NamedTuple,
     Pattern,
 )
 
+from cyclonedx.model import Property
+from cyclonedx.model.bom import Bom
+from cyclonedx.model.bom_ref import BomRef
+from cyclonedx.model.component import Component
+from cyclonedx.schema import SchemaVersion
+from cyclonedx.validation.json import JsonStrictValidator
 from packageurl import PackageURL
+from sortedcontainers import SortedSet
 
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.debug_info_outputer import error_message
@@ -20,149 +26,158 @@ from app.sbom.parser.sbom_parser import (
 
 
 class SyftCDXParser(SBOMParser):
-    @dataclass
-    class CDXComponent:
-        class PkgMgrInfo(NamedTuple):
-            name: str
-            location_path: str
-
-        bom_ref: str
-        type: str
-        group: str
+    class PkgMgrInfo(NamedTuple):
         name: str
-        version: str
-        raw_purl: str | None
-        properties: dict[str, Any]
-        purl: PackageURL | None = field(init=False, repr=False)
-        mgr_info: PkgMgrInfo | None = field(init=False, repr=False)
+        location_path: str
 
-        # https://github.com/anchore/syft/blob/main/syft/pkg/cataloger/ * /cataloger.go
-        # Note: pkg_mgr is not defined in syft. use the same value in trivy (if exists).
-        location_to_pkg_mgr: ClassVar[list[tuple[str, Pattern[str]]]] = [
-            ("conan", re.compile(r"conanfile\.txt$")),  # cpp
-            ("conan", re.compile(r"conan\.lock$")),  # cpp
-            ("pub", re.compile(r"pubspec\.lock$")),  # dart
-            ("dotnet", re.compile(r".+\.deps\.json$")),  # dotnet
-            ("mix", re.compile(r"mix\.lock$")),  # elixir: is this correct??
-            ("rebar", re.compile(r"rebar\.lock$")),  # erlang: is this correct??
-            ("gomod", re.compile(r"go\.mod$")),  # golang
-            ("hackage", re.compile(r"stack\.yaml$")),  # haskell
-            ("hackage", re.compile(r"stack\.yaml\.lock$")),  # haskell
-            ("hackage", re.compile(r"cabal\.project\.freeze$")),  # haskell
-            ("pom", re.compile(r"pom\.xml$")),  # java
-            ("npm", re.compile(r"package-lock\.json$")),  # javascript
-            ("yarn", re.compile(r"yarn\.lock$")),  # javascript
-            ("pnpm", re.compile(r"pnpm-lock\.yaml$")),  # javascript
-            ("composer", re.compile(r"installed\.json$")),  # php
-            ("composer", re.compile(r"composer\.lock$")),  # php
-            ("pip", re.compile(r".*requirements.*\.txt$")),  # python
-            ("pip", re.compile(r"setup\.py$")),  # python
-            ("poetry", re.compile(r"poetry\.lock$")),  # python
-            ("pipenv", re.compile(r"Pipfile\.lock$")),  # python
-            ("rpm", re.compile(r".+\.rpm$")),  # rpm
-            ("gem", re.compile(r"Gemfile\.lock$")),  # ruby
-            ("gemspec", re.compile(r".+\.gemspec$")),  # ruby
-            ("cargo", re.compile(r"Cargo\.lock$")),  # rust
-            ("pod", re.compile(r"Podfile\.lock$")),  # swift
-        ]
+    bom_ref: BomRef
+    group: str | None
+    name: str
+    version: str | None
+    purl: PackageURL | None
+    properties: SortedSet[Property]
+    mgr_info: PkgMgrInfo | None = field(init=False, repr=False)
 
-        def __post_init__(self):
-            if not self.bom_ref:
-                raise ValueError("Warning: Missing bom-ref")
-            if not self.name:
-                raise ValueError("Warning: Missing name")
-            self.purl = PackageURL.from_string(self.raw_purl) if self.raw_purl else None
-            self.mgr_info = self._guess_mgr()
+    # https://github.com/anchore/syft/blob/main/syft/pkg/cataloger/ * /cataloger.go
+    # Note: pkg_mgr is not defined in syft. use the same value in trivy (if exists).
+    location_to_pkg_mgr: ClassVar[list[tuple[str, Pattern[str]]]] = [
+        ("conan", re.compile(r"conanfile\.txt$")),  # cpp
+        ("conan", re.compile(r"conan\.lock$")),  # cpp
+        ("pub", re.compile(r"pubspec\.lock$")),  # dart
+        ("dotnet", re.compile(r".+\.deps\.json$")),  # dotnet
+        ("mix", re.compile(r"mix\.lock$")),  # elixir: is this correct??
+        ("rebar", re.compile(r"rebar\.lock$")),  # erlang: is this correct??
+        ("gomod", re.compile(r"go\.mod$")),  # golang
+        ("hackage", re.compile(r"stack\.yaml$")),  # haskell
+        ("hackage", re.compile(r"stack\.yaml\.lock$")),  # haskell
+        ("hackage", re.compile(r"cabal\.project\.freeze$")),  # haskell
+        ("pom", re.compile(r"pom\.xml$")),  # java
+        ("npm", re.compile(r"package-lock\.json$")),  # javascript
+        ("yarn", re.compile(r"yarn\.lock$")),  # javascript
+        ("pnpm", re.compile(r"pnpm-lock\.yaml$")),  # javascript
+        ("composer", re.compile(r"installed\.json$")),  # php
+        ("composer", re.compile(r"composer\.lock$")),  # php
+        ("pip", re.compile(r".*requirements.*\.txt$")),  # python
+        ("pip", re.compile(r"setup\.py$")),  # python
+        ("poetry", re.compile(r"poetry\.lock$")),  # python
+        ("pipenv", re.compile(r"Pipfile\.lock$")),  # python
+        ("rpm", re.compile(r".+\.rpm$")),  # rpm
+        ("gem", re.compile(r"Gemfile\.lock$")),  # ruby
+        ("gemspec", re.compile(r".+\.gemspec$")),  # ruby
+        ("cargo", re.compile(r"Cargo\.lock$")),  # rust
+        ("pod", re.compile(r"Podfile\.lock$")),  # swift
+    ]
 
-        def _guess_mgr(self) -> PkgMgrInfo | None:
-            # https://github.com/anchore/syft/blob/main/syft/pkg/package.go#L24
-            # we do not know which is the best to guess pkg_mgr...
-            if not (location_0_path := self.properties.get("syft:location:0:path")):
-                return None
-            idx = 0
-            while True:
-                key = f"syft:location:{idx}:path"
-                if not (location_path := self.properties.get(key)):
-                    # could not guess type, but no more locations.
-                    # return the top of locations as a (hint of) target.
-                    return self.PkgMgrInfo("", location_0_path)
-                filename = os.path.basename(location_path)
-                for mgr_name, pattern in self.location_to_pkg_mgr:
-                    if pattern.match(filename):
-                        return self.PkgMgrInfo(mgr_name, location_path)  # Eureka!
-                idx += 1
+    def _find_location_path(properties: SortedSet[Property], idx: int) -> str | None:
+        for prop in properties:
+            if prop.name == f"syft:location:{idx}:path":
+                return prop.value
+        return None
 
-        def to_package_info(self) -> dict | None:
-            if not self.purl:
-                return None
-            pkg_name = (
-                self.group + "/" + self.name if self.group else self.name
-            ).casefold()  # given by syft. may include namespace in some case.
+    def _guess_mgr(properties: SortedSet[Property]) -> PkgMgrInfo | None:
+        # https://github.com/anchore/syft/blob/main/syft/pkg/package.go#L24
+        # we do not know which is the best to guess pkg_mgr...
 
-            source_name = None
-            for key, value in self.properties.items():
-                if key == "syft:metadata:source":
-                    source_name = str(value).casefold()
+        location_0_path = SyftCDXParser._find_location_path(properties, 0)
+        if location_0_path is None:
+            return None
+        idx = 0
+        while True:
+            if not (location_path := SyftCDXParser._find_location_path(properties, idx)):
+                # could not guess type, but no more locations.
+                # return the top of locations as a (hint of) target.
+                return SyftCDXParser.PkgMgrInfo("", location_0_path)
+            filename = os.path.basename(location_path)
+            for mgr_name, pattern in SyftCDXParser.location_to_pkg_mgr:
+                if pattern.match(filename):
+                    return SyftCDXParser.PkgMgrInfo(mgr_name, location_path)  # Eureka!
+            idx += 1
+
+    def to_package_info(component: Component) -> dict | None:
+        if not component.purl:
+            return None
+        pkg_name = (
+            (component.group + "/" + component.name if component.group else component.name)
+            if component.name is not None
+            else ""
+        ).casefold()  # given by syft. may include namespace in some case.
+
+        source_name = None
+        for property in component.properties:
+            if property.name == "syft:metadata:source":
+                source_name = str(property.value).casefold()
+                break
+            if property.name == "syft:metadata:sourceRpm":
+                try:
+                    source_name = SyftCDXParser._get_source_name_from_rpm_filename(
+                        property.value
+                    ).casefold()
                     break
-                if key == "syft:metadata:sourceRpm":
-                    try:
-                        source_name = self._get_source_name_from_rpm_filename(value).casefold()
-                        break
-                    except ValueError:
-                        continue
+                except ValueError:
+                    continue
 
-            if (
-                not source_name
-                and self.purl
-                and isinstance(self.purl.qualifiers, dict)
-                and (upstream := self.purl.qualifiers.get("upstream"))
-            ):
-                source_name = upstream.casefold()
+        if (
+            not source_name
+            and component.purl
+            and isinstance(component.purl.qualifiers, dict)
+            and (upstream := component.purl.qualifiers.get("upstream"))
+        ):
+            source_name = upstream.casefold()
 
-            distro = (
-                self.purl.qualifiers.get("distro")
-                if self.purl and isinstance(self.purl.qualifiers, dict)
-                else None
-            )
-            pkg_info = str(distro).casefold() if distro else str(self.purl.type).casefold()
-            pkg_mgr = (self.mgr_info.name).casefold() if self.mgr_info else ""
+        distro = (
+            component.purl.qualifiers.get("distro")
+            if component.purl and isinstance(component.purl.qualifiers, dict)
+            else None
+        )
+        pkg_info = str(distro).casefold() if distro else str(component.purl.type).casefold()
+        mgr_info = SyftCDXParser._guess_mgr(component.properties)
 
-            return {
-                "pkg_name": pkg_name,
-                "source_name": source_name,
-                "ecosystem": pkg_info,
-                "pkg_mgr": pkg_mgr,
-            }
+        return {
+            "pkg_name": pkg_name,
+            "source_name": source_name,
+            "ecosystem": pkg_info,
+            "mgr_info": mgr_info,
+        }
 
-        @staticmethod
-        def _get_source_name_from_rpm_filename(filename: str) -> str:
-            """
-            Extracts the source package name from a filename formatted as:
-            <name>-<version>-<release>.src.rpm
-            """
-            suffix_removed_filename = filename.removesuffix(".rpm")
-            architecture_index = suffix_removed_filename.rfind(".")
-            if architecture_index == -1:
-                raise ValueError("Unexpected name format: missing '.'")
+    @staticmethod
+    def _get_source_name_from_rpm_filename(filename: str) -> str:
+        """
+        Extracts the source package name from a filename formatted as:
+        <name>-<version>-<release>.src.rpm
+        """
+        suffix_removed_filename = filename.removesuffix(".rpm")
+        architecture_index = suffix_removed_filename.rfind(".")
+        if architecture_index == -1:
+            raise ValueError("Unexpected name format: missing '.'")
 
-            release_index = suffix_removed_filename[:architecture_index].rfind("-")
-            if release_index == -1:
-                raise ValueError("Unexpected name format: missing release delimiter '-'")
+        release_index = suffix_removed_filename[:architecture_index].rfind("-")
+        if release_index == -1:
+            raise ValueError("Unexpected name format: missing release delimiter '-'")
 
-            version_index = suffix_removed_filename[:release_index].rfind("-")
-            if version_index == -1:
-                raise ValueError("Unexpected name format: missing version delimiter '-'")
+        version_index = suffix_removed_filename[:release_index].rfind("-")
+        if version_index == -1:
+            raise ValueError("Unexpected name format: missing version delimiter '-'")
 
-            return suffix_removed_filename[:version_index]
+        return suffix_removed_filename[:version_index]
 
     @classmethod
-    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
-        if (
-            sbom_info.spec_name != "CycloneDX"
-            or sbom_info.spec_version not in {"1.4", "1.5", "1.6"}
-            or sbom_info.tool_name != "syft"
-        ):
-            raise ValueError(f"Not supported: {sbom_info}")
+    def is_validate_cyclonedx_version(cls, sbom: SBOM) -> bool:
+        cyclonedx_versions = [SchemaVersion.V1_6, SchemaVersion.V1_5, SchemaVersion.V1_4]
+        for version in cyclonedx_versions:
+            validator = JsonStrictValidator(version)
+            if validator.validate_str(sbom):
+                return True
+
+        return False
+
+    @classmethod
+    def parse_sbom(cls, deserialized_bom: Bom, sbom_info: SBOMInfo, sbom: SBOM) -> list[Artifact]:
+        # if (
+        #     sbom_info.spec_name != "CycloneDX"
+        #     or cls.is_validate_cyclonedx_version(sbom)
+        #     or sbom_info.tool_name != "syft"
+        # ):
+        #     raise ValueError(f"Not supported: {sbom_info}")
         actual_parse_func = {
             "1.4": cls.parse_func_1_4,
             "1.5": cls.parse_func_1_4,
@@ -170,57 +185,37 @@ class SyftCDXParser(SBOMParser):
         }.get(sbom_info.spec_version)
         if not actual_parse_func:
             raise ValueError("Internal error: actual_parse_func not found")
-        return actual_parse_func(sbom)
+        return actual_parse_func(deserialized_bom)
 
     @classmethod
-    def parse_func_1_4(cls, sbom: SBOM) -> list[Artifact]:
-        meta_component = sbom.get("metadata", {}).get("component")
-        raw_components = sbom.get("components", [])
-
-        # parse components
-        components_map: dict[str, SyftCDXParser.CDXComponent] = {}
-        for data in [meta_component, *raw_components]:
-            if not data:
-                continue
-            try:
-                components_map[data["bom-ref"]] = SyftCDXParser.CDXComponent(
-                    bom_ref=data.get("bom-ref"),
-                    type=data.get("type"),
-                    group=data.get("group"),
-                    name=data.get("name"),
-                    version=data.get("version"),
-                    raw_purl=data.get("purl"),
-                    properties={x["name"]: x["value"] for x in data.get("properties", [])},
-                )
-            except ValueError as err:
-                error_message(err)
-                error_message("Dropped component:", data)
-
+    def parse_func_1_4(cls, deserialized_bom: Bom) -> list[Artifact]:
         # convert components to artifacts
         artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
-        for component in components_map.values():
+        for component in [deserialized_bom.metadata.component, *deserialized_bom.components]:
             if not component.version:
                 continue  # maybe directory or image
-            if not (package_info := component.to_package_info()):
+            if not (package_info := SyftCDXParser.to_package_info(component)):
                 continue  # omit not packages
-            artifacts_key = (
-                f"{package_info['pkg_name']}:{package_info['ecosystem']}:{package_info['pkg_mgr']}"
-            )
+
+            mgr_info = package_info["mgr_info"]
+            pkg_mgr = mgr_info.name.casefold() if mgr_info and mgr_info.name else ""
+
+            artifacts_key = f"{package_info['pkg_name']}:{package_info['ecosystem']}:{pkg_mgr}"
             artifact = artifacts_map.get(
                 artifacts_key,
                 Artifact(
                     package_name=package_info["pkg_name"],
                     source_name=package_info["source_name"],
                     ecosystem=package_info["ecosystem"],
-                    package_manager=package_info["pkg_mgr"],
+                    package_manager=pkg_mgr,
                 ),
             )
             artifacts_map[artifacts_key] = artifact
-            if component.mgr_info:
-                new_target = (component.mgr_info.location_path, component.version)
+            if mgr_info:
+                new_target = (mgr_info.location_path, component.version)
                 if new_target in artifact.targets:
                     error_message("conflicted target:", artifacts_key, new_target)
-                artifact.targets |= {(component.mgr_info.location_path, component.version)}
+                artifact.targets |= {(mgr_info.location_path, component.version)}
             artifact.versions |= {component.version}
 
         return list(artifacts_map.values())
