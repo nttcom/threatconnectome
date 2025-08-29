@@ -4,7 +4,6 @@ from typing import (
 
 from cyclonedx.model.bom import Bom
 from cyclonedx.model.component import Component
-from cyclonedx.validation.json import JsonStrictValidator
 
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
@@ -75,7 +74,7 @@ def sbom_json_to_artifact_json_lines(jdata: dict) -> list[dict]:
     if not sbom_parser:
         raise ValueError("Not supported file format")
 
-    artifacts = sbom_parser.parse_sbom(deserialized_bom, sbom_info)
+    artifacts = sbom_parser.parse_sbom(deserialized_bom, sbom_info, sbom)
     return [
         artifact.to_json()
         for artifact in sorted(
