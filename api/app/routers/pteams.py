@@ -1096,7 +1096,7 @@ def _json_loads(s: str | bytes | bytearray):
 
 
 def bg_create_tags_from_sbom_json(
-    sbom_json: dict,
+    sbom_json: str,
     pteam_id: UUID | str,
     service_name: str,
     filename: str | None,
@@ -1173,7 +1173,9 @@ async def upload_pteam_sbom_file(
 
     try:
         await file.seek(0)
-        sbom_json = json.load(file.file)
+        # sbom_json = json.load(file.file)
+        json_bytes = await file.read()
+        json_str = json_bytes.decode("utf-8")
     except json.JSONDecodeError as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1181,7 +1183,7 @@ async def upload_pteam_sbom_file(
         ) from error
 
     background_tasks.add_task(
-        bg_create_tags_from_sbom_json, sbom_json, pteam_id, service, file.filename
+        bg_create_tags_from_sbom_json, json_str, pteam_id, service, file.filename
     )
     return ret
 
