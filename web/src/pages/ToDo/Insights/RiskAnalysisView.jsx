@@ -56,7 +56,7 @@ export function RiskAnalysisView(props) {
             Service: {serviceName}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Target: {ecosystem}
+            Ecosystem: {ecosystem}
           </Typography>
           <Typography variant="body1" color="text.secondary">
             CVSS: {cvss}
