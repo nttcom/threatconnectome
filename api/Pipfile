@@ -20,7 +20,7 @@ packageurl-python = "*"
 sendgrid = "*"
 email-validator = "*"
 pillow = "*"
-supabase = "*"
+supabase = "2.13.0"
 deprecation = "*"
 cyclonedx-python-lib = {extras = ["validation"], version = "*"}
 
