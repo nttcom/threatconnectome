@@ -1,5 +1,5 @@
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import LinkIcon from "@mui/icons-material/Link";
 import {
   Chip,
   Drawer,
@@ -142,7 +142,7 @@ export function ToDoDrawer(props) {
                 <Typography>{vuln?.cve_id || "-"}</Typography>
               )}
               <IconButton size="small" onClick={handleCVEClick}>
-                <OpenInNewIcon color="primary" fontSize="small" />
+                <LinkIcon color="primary" fontSize="small" />
               </IconButton>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -151,7 +151,7 @@ export function ToDoDrawer(props) {
               </Typography>
               <Typography>{pteamName || "-"}</Typography>
               <IconButton size="small" onClick={handleTeamClick}>
-                <OpenInNewIcon color="primary" fontSize="small" />
+                <LinkIcon color="primary" fontSize="small" />
               </IconButton>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -160,7 +160,7 @@ export function ToDoDrawer(props) {
               </Typography>
               <Typography>{serviceName || "-"}</Typography>
               <IconButton size="small" onClick={handleServiceClick}>
-                <OpenInNewIcon color="primary" fontSize="small" />
+                <LinkIcon color="primary" fontSize="small" />
               </IconButton>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -173,7 +173,7 @@ export function ToDoDrawer(props) {
                   : "-"}
               </Typography>
               <IconButton size="small" onClick={handlePackageClick}>
-                <OpenInNewIcon color="primary" fontSize="small" />
+                <LinkIcon color="primary" fontSize="small" />
               </IconButton>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center" }}>
