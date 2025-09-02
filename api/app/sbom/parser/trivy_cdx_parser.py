@@ -6,6 +6,7 @@ from typing import (
     Pattern,
 )
 
+from cyclonedx.model.bom import Bom
 from packageurl import PackageURL
 
 from app.sbom.parser.artifact import Artifact
@@ -13,7 +14,6 @@ from app.sbom.parser.debug_info_outputer import error_message
 from app.sbom.parser.os_purl_utils import is_os_purl
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
-    SBOM,
     SBOMParser,
 )
 
@@ -79,12 +79,11 @@ class TrivyCDXParser(SBOMParser):
 
         bom_ref: str
         type: str
-        group: str
+        group: str | None
         name: str
-        version: str
-        raw_purl: str | None
+        version: str | None
         properties: dict[str, Any]
-        purl: PackageURL | None = field(init=False, repr=False)
+        purl: PackageURL | None
         trivy_class: str | None = field(init=False, repr=False)
         targets: set[Target] = field(init=False, repr=False, default_factory=set)
 
@@ -93,7 +92,6 @@ class TrivyCDXParser(SBOMParser):
                 raise ValueError("Warning: Missing bom-ref")
             if not self.name:
                 raise ValueError("Warning: Missing name")
-            self.purl = PackageURL.from_string(self.raw_purl) if self.raw_purl else None
             self.trivy_class = self.properties.get("aquasecurity:trivy:Class")
 
         @staticmethod
@@ -203,7 +201,7 @@ class TrivyCDXParser(SBOMParser):
             }
 
     @classmethod
-    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
+    def parse_sbom(cls, deserialized_bom: Bom, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
             or sbom_info.spec_version not in {"1.5", "1.6"}
@@ -216,27 +214,33 @@ class TrivyCDXParser(SBOMParser):
         }.get(sbom_info.spec_version)
         if not actual_parse_func:
             raise ValueError("Internal error: actual_parse_func not found")
-        return actual_parse_func(sbom)
+        return actual_parse_func(deserialized_bom)
 
     @classmethod
-    def parse_func_1_5(cls, sbom: SBOM) -> list[Artifact]:
-        meta_component = sbom.get("metadata", {}).get("component")
-        raw_components = sbom.get("components", [])
+    def parse_func_1_5(cls, sbom: Bom) -> list[Artifact]:
+        meta_component = sbom.metadata.component if sbom.metadata else None
+        raw_components = sbom.components if sbom.components else None
+
+        all_components = []
+        if meta_component:
+            all_components.append(meta_component)
+        if raw_components:
+            all_components.extend(raw_components)
 
         # parse components
         components_map: dict[str, TrivyCDXParser.CDXComponent] = {}
-        for data in [meta_component, *raw_components]:
-            if not data:
+        for data in all_components:
+            if not data or not data.bom_ref.value:
                 continue
             try:
-                components_map[data["bom-ref"]] = TrivyCDXParser.CDXComponent(
-                    bom_ref=data.get("bom-ref"),
-                    type=data.get("type"),
-                    group=data.get("group"),
-                    name=data.get("name"),
-                    version=data.get("version"),
-                    raw_purl=data.get("purl"),
-                    properties={x["name"]: x["value"] for x in data.get("properties", [])},
+                components_map[data.bom_ref.value] = TrivyCDXParser.CDXComponent(
+                    bom_ref=data.bom_ref.value,
+                    type=data.type,
+                    group=data.group,
+                    name=data.name,
+                    version=data.version,
+                    purl=data.purl,
+                    properties={x.name: x.value for x in getattr(data, "properties", [])},
                 )
             except ValueError as err:
                 error_message(err)
@@ -244,11 +248,14 @@ class TrivyCDXParser(SBOMParser):
 
         # parse dependencies
         dependencies: dict[str, set[str]] = {}
-        for dep in sbom.get("dependencies", []):
-            if not (from_ := dep.get("ref")):
+        for dep in getattr(sbom, "dependencies", []):
+            if not (from_ := dep.ref.value):
                 continue
-            if to_ := dep.get("dependsOn"):
-                dependencies[from_] = set(to_)
+            if dep.dependencies is not None:
+                to_ = set()
+                for _dependency in dep.dependencies:
+                    to_.add(_dependency.ref.value)
+                dependencies[from_] = to_
 
         def _recursive_get(ref_: str, current_: set[str]) -> set[str]:  # returns new refs only
             if ref_ in current_:
@@ -282,8 +289,8 @@ class TrivyCDXParser(SBOMParser):
         for component in components_map.values():
             if (
                 meta_component
-                and "bom-ref" in meta_component
-                and component.bom_ref == meta_component["bom-ref"]
+                and meta_component.bom_ref
+                and component.bom_ref == meta_component.bom_ref
             ):
                 continue
             if not component.version:
@@ -307,8 +314,8 @@ class TrivyCDXParser(SBOMParser):
             for _target_ref, target_name in component.targets:
                 if (
                     meta_component
-                    and "bom-ref" in meta_component
-                    and _target_ref == meta_component["bom-ref"]
+                    and meta_component.bom_ref
+                    and _target_ref == meta_component.bom_ref.value
                 ):
                     continue
                 new_target = (target_name, component.version)

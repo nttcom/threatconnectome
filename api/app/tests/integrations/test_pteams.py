@@ -72,7 +72,7 @@ class TestGetVulnIdsTiedToServicePackage:
             Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
         )
         with open(sbom_file, "r") as sbom:
-            sbom_json = json.load(sbom)
+            sbom_json = sbom.read()
 
         bg_create_tags_from_sbom_json(
             sbom_json, self.ticket_response1["pteam_id"], service_name2, upload_file_name
@@ -248,7 +248,7 @@ class TestGetVulnIdsTiedToServicePackage:
             Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
         )
         with open(sbom_file, "r") as sbom:
-            sbom_json = json.load(sbom)
+            sbom_json = sbom.read()
 
         bg_create_tags_from_sbom_json(
             sbom_json, self.ticket_response1["pteam_id"], service_name2, upload_file_name
@@ -305,7 +305,7 @@ class TestGetTicketCountsTiedToServicePackage:
             Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
         )
         with open(sbom_file, "r") as sbom:
-            sbom_json = json.load(sbom)
+            sbom_json = sbom.read()
 
         bg_create_tags_from_sbom_json(
             sbom_json, self.ticket_response1["pteam_id"], service_name2, upload_file_name
@@ -920,8 +920,9 @@ class TestPostUploadSBOMFileCycloneDX:
                 for application_param, library_params in component_params
             }
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), components_dict)
-
-            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, None)
+            bg_create_tags_from_sbom_json(
+                json.dumps(sbom_json), self.pteam1.pteam_id, service_name, None
+            )
 
             services = self.get_services()
             service1 = next(filter(lambda x: x["service_name"] == service_name, services), None)
@@ -1059,7 +1060,9 @@ class TestPostUploadSBOMFileCycloneDX:
             client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=request_vuln)
 
             # register package
-            bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, service_name, None)
+            bg_create_tags_from_sbom_json(
+                json.dumps(sbom_json), self.pteam1.pteam_id, service_name, None
+            )
 
             # When
             response_tickets = client.get(
@@ -1123,7 +1126,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), {})
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
+                json.dumps(sbom_json), self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1171,7 +1174,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_broken_sbom_json(self.gen_base_json(target_name))
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
+                json.dumps(sbom_json), self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1215,7 +1218,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_sbom_json(self.gen_base_json(target_name), {})
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
+                json.dumps(sbom_json), self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1267,7 +1270,7 @@ class TestPostUploadSBOMFileCycloneDX:
             sbom_json = self.gen_broken_sbom_json(self.gen_base_json(target_name))
 
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
+                json.dumps(sbom_json), self.pteam1.pteam_id, service_name, upload_filename
             )
 
             services = self.get_services()
@@ -1295,7 +1298,7 @@ class TestPostUploadSBOMFileCycloneDX:
 
             caplog.set_level(INFO)
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
+                json.dumps(sbom_json), self.pteam1.pteam_id, service_name, upload_filename
             )
             assert [
                 ("app.routers.pteams", INFO, f"Start SBOM upload as a service: {service_name}"),
@@ -1312,7 +1315,7 @@ class TestPostUploadSBOMFileCycloneDX:
 
             caplog.set_level(INFO)
             bg_create_tags_from_sbom_json(
-                sbom_json, self.pteam1.pteam_id, service_name, upload_filename
+                json.dumps(sbom_json), self.pteam1.pteam_id, service_name, upload_filename
             )
             assert [
                 ("app.routers.pteams", INFO, f"Start SBOM upload as a service: {service_name}"),
@@ -1398,7 +1401,7 @@ class TestDeletePteam:
             Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
         )
         with open(sbom_file, "r") as sbom:
-            sbom_json = json.load(sbom)
+            sbom_json = sbom.read()
 
         bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name1, upload_file_name)
 
@@ -1448,7 +1451,7 @@ class TestDeleteService:
             Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
         )
         with open(sbom_file, "r") as sbom:
-            sbom_json = json.load(sbom)
+            sbom_json = sbom.read()
 
         bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name1, upload_file_name)
 
