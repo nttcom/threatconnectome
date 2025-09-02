@@ -1173,10 +1173,9 @@ async def upload_pteam_sbom_file(
 
     try:
         await file.seek(0)
-        # sbom_json = json.load(file.file)
         json_bytes = await file.read()
         json_str = json_bytes.decode("utf-8")
-    except json.JSONDecodeError as error:
+    except UnicodeDecodeError as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=("Wrong file content"),
