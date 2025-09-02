@@ -74,7 +74,7 @@ def sbom_json_to_artifact_json_lines(jdata: dict) -> list[dict]:
     if not sbom_parser:
         raise ValueError("Not supported file format")
 
-    artifacts = sbom_parser.parse_sbom(deserialized_bom, sbom_info, sbom)
+    artifacts = sbom_parser.parse_sbom(deserialized_bom, sbom_info)
     return [
         artifact.to_json()
         for artifact in sorted(

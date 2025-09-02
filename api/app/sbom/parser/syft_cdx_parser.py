@@ -171,13 +171,13 @@ class SyftCDXParser(SBOMParser):
         return False
 
     @classmethod
-    def parse_sbom(cls, deserialized_bom: Bom, sbom_info: SBOMInfo, sbom: SBOM) -> list[Artifact]:
-        # if (
-        #     sbom_info.spec_name != "CycloneDX"
-        #     or cls.is_validate_cyclonedx_version(sbom)
-        #     or sbom_info.tool_name != "syft"
-        # ):
-        #     raise ValueError(f"Not supported: {sbom_info}")
+    def parse_sbom(cls, deserialized_bom: Bom, sbom_info: SBOMInfo) -> list[Artifact]:
+        if (
+            sbom_info.spec_name != "CycloneDX"
+            or sbom_info.spec_version not in {"1.4", "1.5", "1.6"}
+            or sbom_info.tool_name != "syft"
+        ):
+            raise ValueError(f"Not supported: {sbom_info}")
         actual_parse_func = {
             "1.4": cls.parse_func_1_4,
             "1.5": cls.parse_func_1_4,
@@ -188,10 +188,20 @@ class SyftCDXParser(SBOMParser):
         return actual_parse_func(deserialized_bom)
 
     @classmethod
-    def parse_func_1_4(cls, deserialized_bom: Bom) -> list[Artifact]:
+    def parse_func_1_4(cls, sbom: Bom) -> list[Artifact]:
         # convert components to artifacts
         artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
-        for component in [deserialized_bom.metadata.component, *deserialized_bom.components]:
+
+        meta_component = sbom.metadata.component if sbom.metadata else None
+        raw_components = sbom.components if sbom.components else None
+
+        all_components = []
+        if meta_component:
+            all_components.append(meta_component)
+        if raw_components:
+            all_components.extend(raw_components)
+
+        for component in all_components:
             if not component.version:
                 continue  # maybe directory or image
             if not (package_info := SyftCDXParser.to_package_info(component)):

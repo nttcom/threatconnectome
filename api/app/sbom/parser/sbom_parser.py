@@ -14,5 +14,5 @@ SBOM: TypeAlias = dict
 class SBOMParser(ABC):
     @classmethod
     @abstractmethod
-    def parse_sbom(cls, deserialized_bom: Bom, sbom_info: SBOMInfo, sbom: SBOM) -> list[Artifact]:
+    def parse_sbom(cls, deserialized_bom: Bom, sbom_info: SBOMInfo) -> list[Artifact]:
         raise NotImplementedError()
