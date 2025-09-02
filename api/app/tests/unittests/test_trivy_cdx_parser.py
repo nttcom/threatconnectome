@@ -1,3 +1,5 @@
+from cyclonedx.model.bom import Bom
+
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.trivy_cdx_parser import TrivyCDXParser
 
@@ -48,7 +50,8 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
+        deserialized_bom = Bom.from_json(sbom)
+        artifacts = TrivyCDXParser.parse_sbom(deserialized_bom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "@babel/code-frame"
@@ -94,7 +97,8 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
+        deserialized_bom = Bom.from_json(sbom)
+        artifacts = TrivyCDXParser.parse_sbom(deserialized_bom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         # package name and ecosystem name are lowercased
@@ -156,7 +160,8 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
+        deserialized_bom = Bom.from_json(sbom)
+        artifacts = TrivyCDXParser.parse_sbom(deserialized_bom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "libcrypt1"
@@ -242,7 +247,8 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        artifacts = TrivyCDXParser.parse_sbom(sbom, sbom_info)
+        deserialized_bom = Bom.from_json(sbom)
+        artifacts = TrivyCDXParser.parse_sbom(deserialized_bom, sbom_info)
         assert len(artifacts) == 2
 
         artifact3 = artifacts[0]
