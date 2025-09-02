@@ -1,10 +1,12 @@
 import ArticleIcon from "@mui/icons-material/Article";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
   Box,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
+  Link,
   Typography,
   Divider,
 } from "@mui/material";
@@ -39,31 +41,30 @@ export function InsightReference(props) {
         <List dense>
           {insightReferences.map((reference, index) => (
             <ListItem key={index}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <ArticleIcon fontSize="small" />
-              </ListItemIcon>
+              {(reference.link_text || reference.url) && (
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <ArticleIcon fontSize="small" />
+                </ListItemIcon>
+              )}
               <ListItemText
                 primary={
                   reference.url ? (
-                    <a
+                    <Link
                       href={reference.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{
-                        color: "#1976d2",
-                        textDecoration: "underline",
-                        cursor: "pointer",
-                        fontWeight: 500,
+                      underline="none"
+                      sx={{
+                        display: "inline-flex",
+                        gap: 0.5,
+                        color: "#000",
                       }}
-                      onMouseOver={(e) => (e.currentTarget.style.color = "#1565c0")}
-                      onFocus={(e) => (e.currentTarget.style.color = "#1565c0")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "#1976d2")}
-                      onBlur={(e) => (e.currentTarget.style.color = "#1976d2")}
                     >
-                      {reference.link_text}
-                    </a>
+                      <span style={{ color: "#000" }}>{reference.link_text}</span>
+                      {reference.url ? <OpenInNewIcon fontSize="small" color="primary" /> : null}
+                    </Link>
                   ) : (
-                    <>{reference.link_text}</>
+                    <span style={{ color: "#000" }}>{reference.link_text}</span>
                   )
                 }
               />
