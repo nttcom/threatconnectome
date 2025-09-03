@@ -41,28 +41,28 @@ export function InsightReference(props) {
         <List dense>
           {insightReferences.map((reference, index) => (
             <ListItem key={index}>
-              {(reference.link_text || reference.url) && (
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <ArticleIcon fontSize="small" />
-                </ListItemIcon>
-              )}
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <ArticleIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText
                 primary={
                   reference.url ? (
-                    <Link
-                      href={reference.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      underline="none"
-                      sx={{
-                        display: "inline-flex",
-                        gap: 0.5,
-                        color: "#000",
-                      }}
-                    >
-                      <span style={{ color: "#000" }}>{reference.link_text}</span>
-                      {reference.url ? <OpenInNewIcon fontSize="small" color="primary" /> : null}
-                    </Link>
+                    <span style={{ color: "#000", display: "inline-flex", alignItems: "center" }}>
+                      {reference.link_text}
+                      <Link
+                        href={reference.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        underline="none"
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          ml: 0.5,
+                        }}
+                      >
+                        <OpenInNewIcon fontSize="small" color="primary" />
+                      </Link>
+                    </span>
                   ) : (
                     <span style={{ color: "#000" }}>{reference.link_text}</span>
                   )
