@@ -70,7 +70,7 @@ class PackageType(str, enum.Enum):
     PACKAGE = "package"
 
 
-class VulnStatusType(str, enum.Enum):
+class TicketHandlingStatusType(str, enum.Enum):
     alerted = "alerted"
     acknowledged = "acknowledged"
     scheduled = "scheduled"
@@ -538,7 +538,7 @@ class TicketStatus(Base):
     user_id: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("account.user_id", ondelete="SET NULL"), index=True
     )
-    vuln_status: Mapped[VulnStatusType]
+    ticket_handling_status: Mapped[TicketHandlingStatusType]
     note: Mapped[str | None]
     logging_ids: Mapped[list[StrUUID]] = mapped_column(default=[])
     assignees: Mapped[list[StrUUID]] = mapped_column(default=[])

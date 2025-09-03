@@ -307,7 +307,8 @@ def get_packages_summary(
             models.TicketStatus,
             and_(
                 models.TicketStatus.ticket_id == models.Ticket.ticket_id,
-                models.TicketStatus.vuln_status != models.VulnStatusType.completed,
+                models.TicketStatus.ticket_handling_status
+                != models.TicketHandlingStatusType.completed,
             ),
         )
         .join(models.Threat)
@@ -361,8 +362,8 @@ def get_packages_summary(
     count_status_stmt = (
         select(
             models.Package.package_id,
-            models.TicketStatus.vuln_status,
-            func.count(models.TicketStatus.vuln_status).label("num_status"),
+            models.TicketStatus.ticket_handling_status,
+            func.count(models.TicketStatus.ticket_handling_status).label("num_status"),
         )
         .join(models.PackageVersion)
         .join(models.Dependency)
@@ -377,7 +378,7 @@ def get_packages_summary(
         .join(models.TicketStatus)
         .group_by(
             models.Package.package_id,
-            models.TicketStatus.vuln_status,
+            models.TicketStatus.ticket_handling_status,
         )
     )
 
@@ -385,7 +386,7 @@ def get_packages_summary(
         count_status_stmt = count_status_stmt.where(models.Dependency.service_id == str(service_id))
 
     status_count_dict = {
-        (row.package_id, row.vuln_status): row.num_status
+        (row.package_id, row.ticket_handling_status): row.num_status
         for row in db.execute(count_status_stmt).all()
     }
     summary = [
@@ -399,7 +400,7 @@ def get_packages_summary(
             "service_ids": row.service_ids,
             "status_count": {
                 status_type.value: status_count_dict.get((row.package_id, status_type.value), 0)
-                for status_type in list(models.VulnStatusType)
+                for status_type in list(models.TicketHandlingStatusType)
             },
         }
         for row in db.execute(summarize_stmt).all()
@@ -492,7 +493,7 @@ def get_sorted_paginated_tickets_for_pteams(
     assigned_user_id: UUID | None = None,
     offset: int = 0,
     limit: int = 100,
-    exclude_statuses: list[models.VulnStatusType] | None = None,
+    exclude_statuses: list[models.TicketHandlingStatusType] | None = None,
     cve_ids: list[str] | None = None,
 ) -> tuple[int, Sequence[models.Ticket]]:
     fixed_cve_ids: set[str] = set()
@@ -520,7 +521,7 @@ def get_sorted_paginated_tickets_for_pteams(
         )
 
     if exclude_statuses:
-        filters.append(models.TicketStatus.vuln_status.notin_(exclude_statuses))
+        filters.append(models.TicketStatus.ticket_handling_status.notin_(exclude_statuses))
 
     # join with Threat and Vuln tables if needed
     if fixed_cve_ids or ("cve_id" in sort_keys) or ("-cve_id" in sort_keys):
