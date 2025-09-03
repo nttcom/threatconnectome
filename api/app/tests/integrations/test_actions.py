@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -23,7 +22,6 @@ client = TestClient(app)
 
 
 class TestCreateAction:
-
     def test_action_is_created_when_request_is_successful(self, testdb: Session):
         # Given
         create_user(USER1)
@@ -64,7 +62,7 @@ class TestCreateAction:
             Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
         )
         with open(sbom_file, "r") as sbom:
-            sbom_json = json.load(sbom)
+            sbom_json = sbom.read()
 
         service_name = "Service1 name"
         bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name, upload_file_name)
@@ -134,7 +132,6 @@ class TestCreateAction:
 
 
 class TestUpdateAction:
-
     @pytest.fixture(autouse=True)
     def common_setup(self, testdb: Session):
         # Create a user
@@ -236,7 +233,6 @@ class TestDeleteAction:
         self.action_id = response.json()["action_id"]
 
     def test_action_is_deleted_when_request_is_successful(self, testdb: Session, action_setup):
-
         # When
         response = client.delete(
             f"/actions/{self.action_id}",
@@ -263,7 +259,7 @@ class TestDeleteAction:
             Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
         )
         with open(sbom_file, "r") as sbom:
-            sbom_json = json.load(sbom)
+            sbom_json = sbom.read()
 
         service_name = "Service1 name"
         bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name, upload_file_name)

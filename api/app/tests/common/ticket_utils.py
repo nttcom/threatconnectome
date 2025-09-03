@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -26,7 +25,7 @@ def create_ticket(testdb: Session, user: dict, pteam: dict, service_name: str, v
     upload_file_name = "test_trivy_cyclonedx_axios.json"
     sbom_file = Path(__file__).resolve().parent / "upload_test" / upload_file_name
     with open(sbom_file, "r") as sbom:
-        sbom_json = json.load(sbom)
+        sbom_json = sbom.read()
 
     bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name, upload_file_name)
 

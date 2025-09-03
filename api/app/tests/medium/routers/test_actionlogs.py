@@ -1,4 +1,3 @@
-import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import UUID, uuid4
@@ -67,7 +66,7 @@ class TestActionLog:
                 / upload_file_name
             )
             with open(sbom_file, "r") as sbom:
-                sbom_json = json.load(sbom)
+                sbom_json = sbom.read()
             bg_create_tags_from_sbom_json(
                 sbom_json, self.pteam1.pteam_id, SERVICE1, upload_file_name
             )
@@ -371,7 +370,7 @@ class TestActionLog:
             upload_file_name = "test_syft_cyclonedx.json"
             sbom_file = Path(__file__).resolve().parent / "upload_test" / upload_file_name
             with open(sbom_file, "r") as sbom:
-                sbom_json = json.load(sbom)
+                sbom_json = sbom.read()
             bg_create_tags_from_sbom_json(sbom_json, pteam2.pteam_id, SERVICE2, upload_file_name)
 
             service_id2 = testdb.scalars(
@@ -476,7 +475,7 @@ class TestGetVulnLogs:
             / upload_file_name
         )
         with open(sbom_file, "r") as sbom:
-            sbom_json = json.load(sbom)
+            sbom_json = sbom.read()
         bg_create_tags_from_sbom_json(sbom_json, self.pteam1.pteam_id, SERVICE1, upload_file_name)
 
         # Get service ID, package version, and package ID from the database

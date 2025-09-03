@@ -978,11 +978,11 @@ class TestGetVulns:
             Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
         )
         with open(sbom_file, "r") as sbom:
-            sbom_json = json.load(sbom)
+            sbom_json = sbom.read()
         bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name, upload_file_name)
 
         # Get the package name and ecosystem included in the SBOM
-        component = sbom_json["components"][1]
+        component = json.loads(sbom_json)["components"][1]
         package_name = component["name"]
 
         ecosystem = None
@@ -1380,7 +1380,7 @@ class TestGetVulns:
                     text(
                         f"""
                         UPDATE vuln
-                        SET {', '.join(update_fields)}
+                        SET {", ".join(update_fields)}
                         WHERE vuln_id = :vuln_id
                         """
                     ),
