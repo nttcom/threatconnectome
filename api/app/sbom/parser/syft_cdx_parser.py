@@ -11,8 +11,6 @@ from cyclonedx.model import Property
 from cyclonedx.model.bom import Bom
 from cyclonedx.model.bom_ref import BomRef
 from cyclonedx.model.component import Component
-from cyclonedx.schema import SchemaVersion
-from cyclonedx.validation.json import JsonStrictValidator
 from packageurl import PackageURL
 from sortedcontainers import SortedSet
 
@@ -20,7 +18,6 @@ from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.debug_info_outputer import error_message
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
-    SBOM,
     SBOMParser,
 )
 
@@ -68,12 +65,14 @@ class SyftCDXParser(SBOMParser):
         ("pod", re.compile(r"Podfile\.lock$")),  # swift
     ]
 
+    @staticmethod
     def _find_location_path(properties: SortedSet[Property], idx: int) -> str | None:
         for prop in properties:
             if prop.name == f"syft:location:{idx}:path":
                 return prop.value
         return None
 
+    @staticmethod
     def _guess_mgr(properties: SortedSet[Property]) -> PkgMgrInfo | None:
         # https://github.com/anchore/syft/blob/main/syft/pkg/package.go#L24
         # we do not know which is the best to guess pkg_mgr...
@@ -93,7 +92,8 @@ class SyftCDXParser(SBOMParser):
                     return SyftCDXParser.PkgMgrInfo(mgr_name, location_path)  # Eureka!
             idx += 1
 
-    def to_package_info(component: Component) -> dict | None:
+    @staticmethod
+    def _to_package_info(component: Component) -> dict | None:
         if not component.purl:
             return None
         pkg_name = (
@@ -161,16 +161,6 @@ class SyftCDXParser(SBOMParser):
         return suffix_removed_filename[:version_index]
 
     @classmethod
-    def is_validate_cyclonedx_version(cls, sbom: SBOM) -> bool:
-        cyclonedx_versions = [SchemaVersion.V1_6, SchemaVersion.V1_5, SchemaVersion.V1_4]
-        for version in cyclonedx_versions:
-            validator = JsonStrictValidator(version)
-            if validator.validate_str(sbom):
-                return True
-
-        return False
-
-    @classmethod
     def parse_sbom(cls, sbom_bom: Bom, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
@@ -204,7 +194,7 @@ class SyftCDXParser(SBOMParser):
         for component in all_components:
             if not component.version:
                 continue  # maybe directory or image
-            if not (package_info := SyftCDXParser.to_package_info(component)):
+            if not (package_info := SyftCDXParser._to_package_info(component)):
                 continue  # omit not packages
 
             mgr_info = package_info["mgr_info"]
