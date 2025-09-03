@@ -99,7 +99,7 @@ export function ReportCompletedActions(props) {
             pteamId,
             ticketId,
             data: {
-              vuln_status: "completed",
+              ticket_handling_status: "completed",
               logging_ids: actionLogs.map((log) => log.logging_id),
               note: note.trim() || null,
               scheduled_at: null, // clear scheduled date
