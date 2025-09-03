@@ -171,7 +171,7 @@ class SyftCDXParser(SBOMParser):
         return False
 
     @classmethod
-    def parse_sbom(cls, deserialized_bom: Bom, sbom_info: SBOMInfo) -> list[Artifact]:
+    def parse_sbom(cls, sbom_bom: Bom, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
             or sbom_info.spec_version not in {"1.4", "1.5", "1.6"}
@@ -185,7 +185,7 @@ class SyftCDXParser(SBOMParser):
         }.get(sbom_info.spec_version)
         if not actual_parse_func:
             raise ValueError("Internal error: actual_parse_func not found")
-        return actual_parse_func(deserialized_bom)
+        return actual_parse_func(sbom_bom)
 
     @classmethod
     def parse_func_1_4(cls, sbom: Bom) -> list[Artifact]:

@@ -50,8 +50,8 @@ class TestSyftCDXParser:
             tool_name="syft",
             tool_version="1.0.0",
         )
-        deserialized_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(deserialized_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "@babel/code-frame"
@@ -97,8 +97,8 @@ class TestSyftCDXParser:
             tool_name="syft",
             tool_version="1.0.0",
         )
-        deserialized_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(deserialized_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         # package name and ecosystem name are lowercased
@@ -158,8 +158,8 @@ class TestSyftCDXParser:
         )
 
         # When
-        deserialized_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(deserialized_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
 
         # Then
         assert len(artifacts) == 1
@@ -220,8 +220,8 @@ class TestSyftCDXParser:
         )
 
         # When
-        deserialized_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(deserialized_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
 
         # Then
         assert len(artifacts) == 1
@@ -283,8 +283,8 @@ class TestSyftCDXParser:
         )
 
         # When
-        deserialized_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(deserialized_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
 
         # Then
         assert len(artifacts) == 1
@@ -301,8 +301,8 @@ class TestSyftCDXParser:
             tool_name="syft",
             tool_version="1.0.0",
         )
-        deserialized_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(deserialized_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "pyjwt"
