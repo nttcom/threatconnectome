@@ -29,7 +29,7 @@ import { ssvcPriorityProps } from "../../utils/const";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
-import { VulnStatusSelector } from "../Package/VulnTables/VulnStatusSelector.jsx";
+import { TicketHandlingStatusSelector } from "../Package/VulnTables/TicketHandlingStatusSelector.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 
 function DetailRow({ label, children }) {
@@ -147,7 +147,7 @@ export function TicketDetailView({ ticket }) {
           </DetailRow>
           <DetailRow label="Status">
             <FormControl sx={{ width: 130 }} size="small" variant="standard">
-              <VulnStatusSelector
+              <TicketHandlingStatusSelector
                 pteamId={ticket.pteam_id}
                 serviceId={ticket.service_id}
                 vulnId={ticket.vuln_id}
