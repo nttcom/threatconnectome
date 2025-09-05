@@ -123,14 +123,14 @@ class ThreatconnectomeClient:
 
         return response.json()
 
-    def get_dependency(self, pteam_id, service_id, dependency_id):
+    def get_dependency(self, pteam_id, dependency_id):
         try:
             response = self._retry_call(
                 requests.get,
                 f"{self.api_url}/pteams/{pteam_id}/dependencies/{dependency_id}",
             )
         except APIError as error:
-            sys.exit("Are pteam_id and service_id correct\n" + str(error))
+            sys.exit("Are pteam_id correct\n" + str(error))
         return response.json()
 
     def get_vuln(self, vuln_id):
@@ -179,11 +179,11 @@ def generate_purl(package_name: str, package_ecosystem: str, package_version: st
 
 
 def add_package_data_to_ticket(
-    tc_client: ThreatconnectomeClient, pteam_id: str, service_id: str, tickets: list
+    tc_client: ThreatconnectomeClient, pteam_id: str, tickets: list
 ) -> list:
     tickets_with_packages_data: list = []
     for ticket in tickets:
-        dependency = tc_client.get_dependency(pteam_id, service_id, ticket["dependency_id"])
+        dependency = tc_client.get_dependency(pteam_id, ticket["dependency_id"])
         purl = generate_purl(
             dependency["package_name"],
             dependency["package_ecosystem"],
@@ -201,6 +201,7 @@ def add_package_data_to_ticket(
             "package_name": dependency["package_name"],
             "ecosystem": dependency["package_ecosystem"],
             "package_manager": dependency["package_manager"],
+            "target": dependency["target"],
         }
         tickets_with_packages_data.append(ticket_with_package_data)
 
@@ -263,9 +264,7 @@ def main() -> None:
 
     pteam_and_service_data = get_pteam_and_service_data(tc_client, args.pteam_id, args.service_id)
     tickets = get_tickets_data(tc_client, args.pteam_id, args.service_id)
-    tickets_with_packages_data = add_package_data_to_ticket(
-        tc_client, args.pteam_id, args.service_id, tickets
-    )
+    tickets_with_packages_data = add_package_data_to_ticket(tc_client, args.pteam_id, tickets)
     tickets_with_package_and_cve_data = add_cve_data_to_ticket(
         tc_client, tickets_with_packages_data
     )
