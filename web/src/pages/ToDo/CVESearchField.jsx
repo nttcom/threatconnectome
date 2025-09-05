@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 
 export function CVESearchField({ word, onApply }) {
-  const [newWord, setNewWord] = useState(word);
+  const [newWord, setNewWord] = useState("");
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
