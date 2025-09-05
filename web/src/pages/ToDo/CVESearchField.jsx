@@ -2,12 +2,15 @@ import SearchIcon from "@mui/icons-material/Search";
 import { InputAdornment, TextField } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export function CVESearchField(props) {
-  const { word, onApply } = props;
+export function CVESearchField({ word, onApply }) {
   const [newWord, setNewWord] = useState(word);
   const { enqueueSnackbar } = useSnackbar();
+
+  useEffect(() => {
+    setNewWord(word);
+  }, [word]);
 
   const CVE_PATTERN = /^CVE-\d{4}-\d{4,}$/;
 
@@ -25,29 +28,27 @@ export function CVESearchField(props) {
   };
 
   return (
-    <>
-      <TextField
-        size="small"
-        type="search"
-        placeholder="Search CVE ID"
-        hiddenLabel
-        fullWidth
-        value={newWord}
-        onChange={(event) => setNewWord(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            handleApply(event.target.value);
-          }
-        }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-        }}
-      />
-    </>
+    <TextField
+      size="small"
+      type="search"
+      placeholder="Search CVE ID"
+      hiddenLabel
+      fullWidth
+      value={newWord}
+      onChange={(event) => setNewWord(event.target.value)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          handleApply(event.target.value);
+        }
+      }}
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <SearchIcon />
+          </InputAdornment>
+        ),
+      }}
+    />
   );
 }
 
