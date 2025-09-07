@@ -4,7 +4,7 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 
-export function CVESearchField({ word, onApply }) {
+export function CVESearchField({ word, onApply, variant = "default" }) {
   const [newWord, setNewWord] = useState("");
   const { enqueueSnackbar } = useSnackbar();
 
@@ -16,16 +16,23 @@ export function CVESearchField({ word, onApply }) {
 
   const handleApply = (value) => {
     const trimmedValue = value.trim();
-
     if (trimmedValue && !CVE_PATTERN.test(trimmedValue)) {
       enqueueSnackbar("Invalid CVE ID format. Expected format: CVE-YYYY-NNNN", {
         variant: "error",
       });
       return;
     }
-
     onApply(trimmedValue);
   };
+
+  const mobileSx = {
+    borderRadius: "12px",
+    backgroundColor: "background.paper",
+    "& fieldset": {
+      borderColor: "rgba(0, 0, 0, 0.2)",
+    },
+  };
+  const defaultSx = {};
 
   return (
     <TextField
@@ -41,12 +48,17 @@ export function CVESearchField({ word, onApply }) {
           handleApply(event.target.value);
         }
       }}
-      InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">
-            <SearchIcon />
-          </InputAdornment>
-        ),
+      sx={{
+        "& .MuiOutlinedInput-root": variant === "mobile" ? mobileSx : defaultSx,
+      }}
+      slotProps={{
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
+        },
       }}
     />
   );
@@ -55,4 +67,5 @@ export function CVESearchField({ word, onApply }) {
 CVESearchField.propTypes = {
   word: PropTypes.string.isRequired,
   onApply: PropTypes.func.isRequired,
+  variant: PropTypes.oneOf(["default", "mobile"]),
 };

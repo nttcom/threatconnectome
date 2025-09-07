@@ -16,7 +16,7 @@ import VulnerabilityTodoList from "./VulnerabilityTodoList/VulnerabilityTodoList
 export function ToDo() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md")); // モバイル判定
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
   const params = new URLSearchParams(location.search);
   const myTasks = params.get("mytasks") === "on" || !params.has("mytasks");
@@ -53,16 +53,14 @@ export function ToDo() {
       newParams.delete("cve_id");
     }
     if (word !== params.get("cve_id")) {
-      newParams.delete("page"); // reset page
+      newParams.delete("page");
     }
     navigate(location.pathname + "?" + newParams.toString());
   };
 
   const handleMyTasksChange = (event) => {
     const newParams = new URLSearchParams(location.search);
-
     newParams.set("mytasks", event.target.checked ? "on" : "off");
-
     newParams.delete("page");
     navigate(location.pathname + "?" + newParams.toString());
   };
@@ -75,6 +73,7 @@ export function ToDo() {
           pteamIds={pteamIds}
           cveId={cveId}
           onMyTasksChange={handleMyTasksChange}
+          onCveSearch={handleCVESearch}
         />
       ) : (
         <>
