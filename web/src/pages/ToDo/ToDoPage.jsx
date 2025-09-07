@@ -53,7 +53,7 @@ export function ToDo() {
       newParams.delete("cve_id");
     }
     if (word !== params.get("cve_id")) {
-      newParams.delete("page");
+      newParams.delete("page"); // reset page
     }
     navigate(location.pathname + "?" + newParams.toString());
   };

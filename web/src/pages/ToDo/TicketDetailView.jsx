@@ -1,5 +1,3 @@
-// TicketDetailView.jsx
-
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
   Box,
@@ -96,14 +94,12 @@ export function TicketDetailView({ ticket }) {
     );
   }
 
-  // ▼▼▼ このオブジェクトの定義を修正 ▼▼▼
   const currentPackage = {
     package_name: dependency?.package_name,
     package_source_name: dependency?.package_source_name,
     package_ecosystem: dependency?.package_ecosystem,
     vuln_matching_ecosystem: dependency?.vuln_matching_ecosystem,
   };
-  // ▲▲▲ このオブジェクトの定義を修正 ▲▲▲
 
   const vulnerablePackage =
     findMatchedVulnPackage(vuln?.vulnerable_packages || [], currentPackage) || {};

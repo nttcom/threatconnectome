@@ -1,5 +1,3 @@
-// ResponsiveDrawer.jsx
-
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { Box, Drawer, IconButton, Tooltip, Typography } from "@mui/material";
 import PropTypes from "prop-types";
@@ -7,7 +5,6 @@ import PropTypes from "prop-types";
 export function ResponsiveDrawer({ open, onClose, title, children }) {
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
-      {/* ▼ 変更: 元のUIに合わせてBoxの構造を変更 */}
       <Box>
         <Tooltip arrow title="Close">
           <IconButton size="large" onClick={onClose}>
