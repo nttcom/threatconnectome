@@ -7,7 +7,7 @@ import PropTypes from "prop-types";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
   useGetPTeamQuery,
   useGetPTeamServicesQuery,
@@ -15,12 +15,11 @@ import {
   useGetVulnQuery,
   useGetVulnActionsQuery,
   useGetDependencyQuery,
-} from "../../services/tcApi";
-import { APIError } from "../../utils/APIError";
-import { errorToString } from "../../utils/func";
-import { preserveParams } from "../../utils/urlUtils";
-
-import { ToDoDrawer } from "./ToDoDrawer";
+} from "../../../services/tcApi";
+import { APIError } from "../../../utils/APIError";
+import { errorToString } from "../../../utils/func";
+import { preserveParams } from "../../../utils/urlUtils";
+import { ToDoDrawer } from "../ToDoDrawer";
 
 function SimpleCell(value = "") {
   return (

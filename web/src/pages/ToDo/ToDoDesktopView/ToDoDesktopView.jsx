@@ -3,7 +3,8 @@ import PropTypes from "prop-types";
 
 import { Android12Switch } from "../../../components/Android12Switch";
 import { CVESearchField } from "../CVESearchField";
-import { ToDoTable } from "../ToDoTable";
+
+import { ToDoTable } from "./ToDoTable";
 
 export function ToDoDesktopView({
   pteamIds,
