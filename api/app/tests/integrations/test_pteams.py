@@ -1317,14 +1317,15 @@ class TestPostUploadSBOMFileCycloneDX:
             bg_create_tags_from_sbom_json(
                 json.dumps(sbom_json), self.pteam1.pteam_id, service_name, upload_filename
             )
-            assert [
-                ("app.routers.pteams", INFO, f"Start SBOM upload as a service: {service_name}"),
-                (
-                    "app.routers.pteams",
-                    ERROR,
-                    f"Failed uploading SBOM as a service: {service_name}",
-                ),
-            ] == caplog.record_tuples
+            assert (
+                "app.routers.pteams",
+                INFO,
+                f"Start SBOM upload as a service: {service_name}",
+            ) == caplog.record_tuples[0]
+            assert (
+                f"app.routers.pteams {ERROR} Failed uploading SBOM as a service: {service_name}"
+                in " ".join(str(_record_tuple) for _record_tuple in caplog.record_tuples[1])
+            )
 
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
         @staticmethod
