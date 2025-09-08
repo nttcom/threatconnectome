@@ -5,62 +5,52 @@ import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import PropTypes from "prop-types";
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
+import { ResponsiveDrawer } from "../../../components/ResponsiveDrawer";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
+  useGetDependencyQuery,
+  useGetPTeamMembersQuery,
   useGetPTeamQuery,
   useGetPTeamServicesQuery,
-  useGetPTeamMembersQuery,
   useGetVulnQuery,
-  useGetVulnActionsQuery,
-  useGetDependencyQuery,
 } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
 import { preserveParams } from "../../../utils/urlUtils";
-import { ToDoDrawer } from "../ToDoDrawer";
-
-function SimpleCell(value = "") {
-  return (
-    <TableRow>
-      <TableCell>{value}</TableCell>
-    </TableRow>
-  );
-}
+import { TicketDetailView } from "../TicketDetailView";
 
 export function ToDoTableRow(props) {
-  const { row, ssvcPriority, vuln_id } = props;
+  const { row, ssvcPriority } = props;
   const Icon = ssvcPriority.icon;
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const skip = useSkipUntilAuthUserIsReady();
+
+  const {
+    data: vuln,
+    error: vulnError,
+    isLoading: vulnIsLoading,
+  } = useGetVulnQuery(row.vuln_id, { skip: !row.vuln_id || row.vuln_id === "-" });
 
   const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
   } = useGetPTeamQuery(row.pteam_id, { skip });
+
   const {
     data: pteamServices,
     error: pteamServicesError,
     isLoading: pteamServicesIsLoading,
   } = useGetPTeamServicesQuery(row.pteam_id, { skip });
-  const {
-    data: pteamMembers,
-    error: pteamMembersError,
-    isLoading: pteamMembersIsLoading,
-  } = useGetPTeamMembersQuery(row.pteam_id, { skip });
-  const {
-    data: vuln,
-    error: vulnError,
-    isLoading: vulnIsLoading,
-  } = useGetVulnQuery(vuln_id, { skip });
-  const {
-    data: vulnActions,
-    error: vulnActionsError,
-    isLoading: vulnActionsIsLoading,
-  } = useGetVulnActionsQuery(vuln_id, { skip });
+
+  const { data: pteamMembers, error: pteamMembersError } = useGetPTeamMembersQuery(row.pteam_id, {
+    skip,
+  });
+
   const {
     data: serviceDependency,
     error: serviceDependencyError,
@@ -69,13 +59,9 @@ export function ToDoTableRow(props) {
 
   const assigneeEmails = useMemo(() => {
     if (!row.assignee || row.assignee === "-") return "-";
-
-    const getUserEmail = (userId) => {
-      return pteamMembers?.[userId]?.email || "";
-    };
+    const getUserEmail = (userId) => pteamMembers?.[userId]?.email || "";
     const assigneeIds = row.assignee.map((id) => id.trim());
     const emails = assigneeIds.map((userId) => getUserEmail(userId));
-
     const emailList = emails
       .join(", ")
       .split(",")
@@ -93,8 +79,8 @@ export function ToDoTableRow(props) {
   const packageName = serviceDependency?.package_name || "-";
 
   const handleRowClick = () => {
-    if (!serviceDependency) {
-      console.warn("Service dependency information is not available.");
+    if (!serviceDependency?.package_id) {
+      console.warn("Package ID is not available.");
       return;
     }
     const params = preserveParams(location.search);
@@ -104,36 +90,26 @@ export function ToDoTableRow(props) {
     navigate(`/packages/${packageId}?` + params.toString());
   };
 
-  if (skip) return SimpleCell("");
-
+  if (skip) return <TableRow />;
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamServicesError)
     throw new APIError(errorToString(pteamServicesError), { api: "getPTeamServices" });
   if (pteamMembersError)
     throw new APIError(errorToString(pteamMembersError), { api: "getPTeamMembers" });
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
-  if (vulnActionsError)
-    throw new APIError(errorToString(vulnActionsError), { api: "getVulnActions" });
   if (serviceDependencyError)
     throw new APIError(errorToString(serviceDependencyError), { api: "getServiceDependencies" });
-
-  if (pteamIsLoading) return SimpleCell("Now loading PTeam...");
-  if (pteamServicesIsLoading) return SimpleCell("Now loading PTeam Services...");
-  if (pteamMembersIsLoading) return SimpleCell("Now loading PTeam Members...");
-  if (vulnIsLoading) return SimpleCell("Now loading Vulnerability...");
-  if (vulnActionsIsLoading) return SimpleCell("Now loading VulnActions...");
-  if (serviceDependencyIsLoading) return SimpleCell("Now loading Service Dependencies...");
 
   return (
     <>
       <TableRow hover sx={{ cursor: "pointer" }} onClick={handleRowClick}>
-        <TableCell>{cveId}</TableCell>
-        <TableCell>{pteamName}</TableCell>
-        <TableCell>{serviceName}</TableCell>
-        <TableCell>{packageName}</TableCell>
+        <TableCell>{vulnIsLoading ? "..." : cveId}</TableCell>
+        <TableCell>{pteamIsLoading ? "..." : pteamName}</TableCell>
+        <TableCell>{pteamServicesIsLoading ? "..." : serviceName}</TableCell>
+        <TableCell>{serviceDependencyIsLoading ? "..." : packageName}</TableCell>
         <TableCell>
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Typography sx={{ pl: 0.5 }}>{assigneeEmails}</Typography>
+            <Typography sx={{ pl: 0.5 }}>{pteamMembers ? assigneeEmails : "..."}</Typography>
           </Box>
         </TableCell>
         <TableCell
@@ -146,10 +122,7 @@ export function ToDoTableRow(props) {
           <Button
             component="div"
             startIcon={<Icon />}
-            sx={{
-              color: "white",
-              justifyContent: "center",
-            }}
+            sx={{ color: "white", justifyContent: "center" }}
           >
             {ssvcPriority.displayName.toUpperCase()}
           </Button>
@@ -168,18 +141,14 @@ export function ToDoTableRow(props) {
           </Button>
         </TableCell>
       </TableRow>
-      <ToDoDrawer
+
+      <ResponsiveDrawer
         open={open}
-        setOpen={setOpen}
-        row={row}
-        pteamName={pteamName}
-        serviceName={serviceName}
-        pteamMembers={pteamMembers}
-        serviceDependency={serviceDependency}
-        vuln={vuln}
-        vulnActions={vulnActions}
-        ssvcPriority={ssvcPriority}
-      />
+        onClose={() => setOpen(false)}
+        title={`Ticket #${row.ticket_id || ""}`}
+      >
+        <TicketDetailView ticket={row} />
+      </ResponsiveDrawer>
     </>
   );
 }
@@ -191,5 +160,4 @@ ToDoTableRow.propTypes = {
     displayName: PropTypes.string.isRequired,
     style: PropTypes.object.isRequired,
   }).isRequired,
-  vuln_id: PropTypes.string,
 };
