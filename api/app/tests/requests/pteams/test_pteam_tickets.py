@@ -1541,8 +1541,8 @@ class TestPutTicket:
             "Content-Type": "application/json",
             "accept": "application/json",
         }
-        # 501 half-width characters（max is 500）
-        too_long_reason = "a" * 501
+        # 2001 half-width characters（max is 2000）
+        too_long_reason = "a" * 2001
         request = {
             "ticket_safety_impact_change_reason": too_long_reason,
         }
@@ -1554,7 +1554,7 @@ class TestPutTicket:
         assert response.status_code == 400
         assert (
             "Too long ticket_safety_impact_change_reason."
-            + " Max length is 500 in half-width or 250 in full-width"
+            + " Max length is 2000 in half-width or 1000 in full-width"
             in response.json()["detail"]
         )
 
