@@ -970,7 +970,7 @@ def update_ticket_safety_impact(
     """
     Update ticket_safety_impact.
     """
-    max_reason_safety_impact_length_in_half = 500
+    max_reason_safety_impact_length_in_half = 2000
 
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
