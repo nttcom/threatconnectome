@@ -20,7 +20,13 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
-export function ToDoTable({ pteamIds, onPageChange, apiParams }) {
+export function ToDoTable({
+  pteamIds,
+  apiParams,
+  onSortConfigChange,
+  onPageChange,
+  onItemsPerPageChange,
+}) {
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
@@ -62,16 +68,15 @@ export function ToDoTable({ pteamIds, onPageChange, apiParams }) {
   const handleRequestSort = (event, property) => {
     const isAsc = sortKey === property && sortDirection === "asc";
     const newDirection = isAsc ? "desc" : "asc";
-    onPageChange({ sortKey: property, sortDirection: newDirection });
+    onSortConfigChange({ key: property, direction: newDirection });
   };
 
   const handleChangePage = (event, newPage) => {
-    onPageChange({ page: newPage + 1 });
+    onPageChange(event, newPage + 1);
   };
 
   const handleChangeRowsPerPage = (event) => {
-    const newRowsPerPage = parseInt(event.target.value, 10);
-    onPageChange({ perPage: newRowsPerPage });
+    onItemsPerPageChange(event);
   };
 
   const headCells = [
@@ -152,6 +157,8 @@ export function ToDoTable({ pteamIds, onPageChange, apiParams }) {
 
 ToDoTable.propTypes = {
   pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
-  onPageChange: PropTypes.func.isRequired,
   apiParams: PropTypes.object.isRequired,
+  onSortConfigChange: PropTypes.func.isRequired,
+  onPageChange: PropTypes.func.isRequired,
+  onItemsPerPageChange: PropTypes.func.isRequired,
 };

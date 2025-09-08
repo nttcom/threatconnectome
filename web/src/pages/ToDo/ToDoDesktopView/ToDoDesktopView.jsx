@@ -8,9 +8,11 @@ import { ToDoTable } from "../ToDoTable";
 export function ToDoDesktopView({
   pteamIds,
   apiParams,
-  updateParams,
   onMyTasksChange,
   onCVESearch,
+  onSortConfigChange,
+  onPageChange,
+  onItemsPerPageChange,
 }) {
   const { assignedToMe: myTasks, cveIds } = apiParams;
   const cveId = cveIds && cveIds.length > 0 ? cveIds[0] : "";
@@ -24,7 +26,13 @@ export function ToDoDesktopView({
       <Box sx={{ mb: 1 }}>
         <CVESearchField word={cveId} onApply={onCVESearch} />
       </Box>
-      <ToDoTable pteamIds={pteamIds} onPageChange={updateParams} apiParams={apiParams} />
+      <ToDoTable
+        pteamIds={pteamIds}
+        apiParams={apiParams}
+        onSortConfigChange={onSortConfigChange}
+        onPageChange={onPageChange}
+        onItemsPerPageChange={onItemsPerPageChange}
+      />
     </>
   );
 }
@@ -35,4 +43,7 @@ ToDoDesktopView.propTypes = {
   updateParams: PropTypes.func.isRequired,
   onMyTasksChange: PropTypes.func.isRequired,
   onCVESearch: PropTypes.func.isRequired,
+  onSortConfigChange: PropTypes.func.isRequired,
+  onPageChange: PropTypes.func.isRequired,
+  onItemsPerPageChange: PropTypes.func.isRequired,
 };
