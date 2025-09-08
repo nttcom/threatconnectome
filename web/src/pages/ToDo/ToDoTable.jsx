@@ -10,7 +10,7 @@ import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import { visuallyHidden } from "@mui/utils";
 import PropTypes from "prop-types";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetTicketsQuery } from "../../services/tcApi";
@@ -20,16 +20,7 @@ import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
-export function ToDoTable({
-  myTasks,
-  pteamIds,
-  cveIds,
-  page,
-  rowsPerPage,
-  onPageChange,
-  sortKey,
-  sortDirection,
-}) {
+export function ToDoTable({ pteamIds, onPageChange, apiParams }) {
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
@@ -37,13 +28,8 @@ export function ToDoTable({
     error: ticketsError,
     isLoading: ticketsIsLoading,
   } = useGetTicketsQuery({
+    ...apiParams,
     pteamIds,
-    offset: (page - 1) * rowsPerPage,
-    limit: rowsPerPage,
-    sortKeys: [sortDirection === "asc" ? sortKey : `-${sortKey}`, "-created_at"],
-    assignedToMe: myTasks,
-    excludeStatuses: ["completed"],
-    cveIds: cveIds,
   });
 
   const rows = useMemo(() => {
@@ -70,14 +56,13 @@ export function ToDoTable({
     }));
   }, [tickets]);
 
+  const { page, limit: rowsPerPage } = apiParams;
+  const { key: sortKey, direction: sortDirection } = apiParams.sortConfig || {};
+
   const handleRequestSort = (event, property) => {
-    const isAsc = sortKey === property && sortDirection === "asc"; // Determines if the column currently in ascending order is clicked again
+    const isAsc = sortKey === property && sortDirection === "asc";
     const newDirection = isAsc ? "desc" : "asc";
-    if (page >= 2) {
-      onPageChange({ sortKey: property, sortDirection: newDirection, page: 1 }); // Reset to first page if sorting changes after page 2.
-    } else {
-      onPageChange({ sortKey: property, sortDirection: newDirection });
-    }
+    onPageChange({ sortKey: property, sortDirection: newDirection });
   };
 
   const handleChangePage = (event, newPage) => {
@@ -86,10 +71,7 @@ export function ToDoTable({
 
   const handleChangeRowsPerPage = (event) => {
     const newRowsPerPage = parseInt(event.target.value, 10);
-    onPageChange({
-      perPage: newRowsPerPage,
-      page: 1, // reset page
-    });
+    onPageChange({ perPage: newRowsPerPage });
   };
 
   const headCells = [
@@ -169,12 +151,7 @@ export function ToDoTable({
 }
 
 ToDoTable.propTypes = {
-  myTasks: PropTypes.bool.isRequired,
   pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
-  page: PropTypes.number.isRequired,
-  rowsPerPage: PropTypes.number.isRequired,
   onPageChange: PropTypes.func.isRequired,
-  cveIds: PropTypes.arrayOf(PropTypes.string),
-  sortKey: PropTypes.string.isRequired,
-  sortDirection: PropTypes.string.isRequired,
+  apiParams: PropTypes.object.isRequired,
 };
