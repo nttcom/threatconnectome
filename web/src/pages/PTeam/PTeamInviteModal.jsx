@@ -10,7 +10,6 @@ import {
   IconButton,
   Link,
   Slider,
-  TextField,
   Typography,
 } from "@mui/material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -102,7 +101,7 @@ export function PTeamInviteModal(props) {
               </Box>
             ) : (
               <Grid container alignItems="center">
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Box sx={{ p: 1 }}>
                     <DateTimePicker
                       format="yyyy/MM/dd HH:mm"
@@ -111,13 +110,17 @@ export function PTeamInviteModal(props) {
                       minDateTime={now}
                       value={expiration}
                       onChange={(newDate) => setExpiration(newDate)}
-                      renderInput={(params) => (
-                        <TextField fullWidth margin="dense" required {...params} />
-                      )}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          margin: "dense",
+                          required: true,
+                        },
+                      }}
                     />
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Box display="flex" flexDirection="column" justifyContent="center" sx={{ p: 1 }}>
                     <Typography>Max uses: {maxUses || "unlimited"}</Typography>
                     <Box mx={1}>

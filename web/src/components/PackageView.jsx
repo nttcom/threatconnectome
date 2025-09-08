@@ -20,9 +20,7 @@ export function PackageView(props) {
       <Grid container>
         {/* affected versions */}
         <Grid
-          item
-          xs={12}
-          md={7}
+          size={{ xs: 12, md: 7 }}
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -66,9 +64,7 @@ export function PackageView(props) {
         </Grid>
         {/* patched versions */}
         <Grid
-          item
-          xs={12}
-          md={5}
+          size={{ xs: 12, md: 5 }}
           sx={{
             display: "flex",
             flexDirection: "column",

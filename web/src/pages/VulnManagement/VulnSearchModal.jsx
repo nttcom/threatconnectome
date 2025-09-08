@@ -136,10 +136,10 @@ export function VulnSearchModal(props) {
 
   const titleForm = (
     <Grid container sx={{ margin: 1.5, width: "100%" }}>
-      <Grid item xs={2} md={2}>
+      <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>Title</Typography>
       </Grid>
-      <Grid item xs={10} md={10} sx={{ display: "flex" }}>
+      <Grid size={{ xs: 10, md: 10 }} sx={{ display: "flex" }}>
         <TextField
           value={titleWords}
           onChange={(event) => setTitleWords(event.target.value)}
@@ -152,11 +152,11 @@ export function VulnSearchModal(props) {
   );
 
   const cveIdForm = (
-    <Grid container sx={{ margin: 1.5 }}>
-      <Grid item xs={2} md={2}>
+    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+      <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>CVE ID</Typography>
       </Grid>
-      <Grid item xs={10} md={10}>
+      <Grid size={{ xs: 10, md: 10 }}>
         <TextField
           value={cveIds}
           onChange={(event) => setCveIds(event.target.value)}
@@ -169,11 +169,11 @@ export function VulnSearchModal(props) {
   );
 
   const cvssForm = (
-    <Grid container sx={{ margin: 1.5 }} alignItems={"center"}>
-      <Grid item xs={2} md={2}>
+    <Grid container sx={{ margin: 1.5, width: "100%" }} alignItems={"center"}>
+      <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>CVSS v3</Typography>
       </Grid>
-      <Grid item xs={10} md={10}>
+      <Grid size={{ xs: 10, md: 10 }}>
         <ToggleButtonGroup
           color="primary"
           exclusive
@@ -212,11 +212,11 @@ export function VulnSearchModal(props) {
   );
 
   const dateForm = (
-    <Grid container sx={{ margin: 1.5 }}>
-      <Grid item xs={2} md={2}>
+    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+      <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>Last Update</Typography>
       </Grid>
-      <Grid item xs={10} md={10} display="flex" flexDirection="column">
+      <Grid size={{ xs: 10, md: 10 }} display="flex" flexDirection="column">
         <FormControl variant="standard" sx={{ m: 1, maxWidth: 200 }}>
           <Select value={dateFormList} onChange={dateFormChange}>
             <MenuItem value="">None</MenuItem>
@@ -228,7 +228,7 @@ export function VulnSearchModal(props) {
           </Select>
         </FormControl>
         {(dateFormList === "since" || dateFormList === "until") && (
-          <Grid item xs={5}>
+          <Grid size={{ xs: 5 }}>
             <DateTimePicker
               format="yyyy/MM/dd HH:mm"
               mask="____/__/__ __:__"
@@ -237,23 +237,23 @@ export function VulnSearchModal(props) {
               onChange={(newDate) =>
                 (dateFormList === "since" ? setUpdatedAfter : setUpdatedBefore)(newDate)
               }
-              renderInput={(params) => (
-                <TextField size="small" fullWidth margin="dense" required {...params} />
-              )}
+              slotProps={{
+                textField: { size: "small", fullWidth: true, margin: "dense", required: true },
+              }}
             />
           </Grid>
         )}
         {dateFormList === "range" && (
-          <Grid item xs={11.4} display="flex">
+          <Grid size={{ xs: 11.4 }} display="flex">
             <DateTimePicker
               inputFormat="yyyy/MM/dd HH:mm"
               mask="____/__/__ __:__"
               maxDateTime={updatedBefore || now}
               value={updatedAfter}
               onChange={(newDate) => setUpdatedAfter(newDate)}
-              renderInput={(params) => (
-                <TextField size="small" fullWidth margin="dense" required {...params} />
-              )}
+              slotProps={{
+                textField: { size: "small", fullWidth: true, margin: "dense", required: true },
+              }}
             />
             <Typography sx={{ margin: "20px" }}>~</Typography>
             <DateTimePicker
@@ -263,9 +263,9 @@ export function VulnSearchModal(props) {
               maxDateTime={now}
               value={updatedBefore}
               onChange={(newDate) => setUpdatedBefore(newDate)}
-              renderInput={(params) => (
-                <TextField size="small" fullWidth margin="dense" required {...params} />
-              )}
+              slotProps={{
+                textField: { size: "small", fullWidth: true, margin: "dense", required: true },
+              }}
             />
           </Grid>
         )}
@@ -274,11 +274,11 @@ export function VulnSearchModal(props) {
   );
 
   const creatorForm = (
-    <Grid container sx={{ margin: 1.5 }}>
-      <Grid item xs={2} md={2}>
+    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+      <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>Creator ID</Typography>
       </Grid>
-      <Grid item xs={10} md={10}>
+      <Grid size={{ xs: 10, md: 10 }}>
         <TextField
           value={creatorIds}
           onChange={(event) => setCreatorIds(event.target.value)}
@@ -291,11 +291,11 @@ export function VulnSearchModal(props) {
   );
 
   const uuidForm = (
-    <Grid container sx={{ margin: 1.5 }}>
-      <Grid item xs={2} md={2}>
+    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+      <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>Vuln ID</Typography>
       </Grid>
-      <Grid item xs={10} md={10}>
+      <Grid size={{ xs: 10, md: 10 }}>
         <TextField
           value={vulnIds}
           onChange={(event) => setVulnIds(event.target.value)}

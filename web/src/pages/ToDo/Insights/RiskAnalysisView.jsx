@@ -68,7 +68,7 @@ export function RiskAnalysisView(props) {
       <Paper elevation={3} sx={{ p: 4, borderRadius: 4 }}>
         <Grid container spacing={4}>
           {/* Risk Summary */}
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Box>
                 <WarningAmberIcon sx={{ fontSize: 40, color: "error.main" }} />
@@ -96,7 +96,7 @@ export function RiskAnalysisView(props) {
           </Grid>
 
           {/* Detailed Analysis */}
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
               <Tabs
                 value={tabValue}
