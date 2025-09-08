@@ -1128,9 +1128,9 @@ def bg_create_tags_from_sbom_json(
         try:
             json_lines = sbom_json_to_artifact_json_lines(sbom_json)
             apply_service_packages(db, service, json_lines)
-        except ValueError:
+        except ValueError as value_error:
             notify_sbom_upload_ended(service, filename, False)
-            log.error(f"Failed uploading SBOM as a service: {service_name}")
+            log.error(f"Failed uploading SBOM as a service: {service_name} detail: {value_error}")
             return
 
         now = datetime.now(timezone.utc)
