@@ -39,30 +39,31 @@ export const useTodoState = () => {
     [location.search, navigate],
   );
 
-  const handleMyTasksChange = useCallback(
+  const onMyTasksChange = useCallback(
     (event) => updateParams({ mytasks: event.target.checked ? "on" : "off" }),
     [updateParams],
   );
 
-  const handleCVESearch = useCallback((word) => updateParams({ cve_id: word }), [updateParams]);
+  const onCVESearch = useCallback((word) => updateParams({ cve_id: word }), [updateParams]);
 
-  const handleSortConfigChange = useCallback(
+  const onSortConfigChange = useCallback(
     (newConfig) => updateParams({ sortKey: newConfig.key, sortDirection: newConfig.direction }),
     [updateParams],
   );
 
-  const handleItemsPerPageChange = useCallback(
+  const onItemsPerPageChange = useCallback(
     (event) => updateParams({ perPage: event.target.value }),
     [updateParams],
   );
 
-  const handlePageChange = useCallback(
+  const onPageChange = useCallback(
     (event, newPage) => updateParams({ page: newPage }),
     [updateParams],
   );
 
   const apiParams = useMemo(
     () => ({
+      page,
       sortConfig,
       offset: (page - 1) * itemsPerPage,
       limit: itemsPerPage,
@@ -78,14 +79,12 @@ export const useTodoState = () => {
   );
 
   return {
-    myTasks,
-    cveId,
     apiParams,
     updateParams,
-    handleMyTasksChange,
-    handleCVESearch,
-    handleSortConfigChange,
-    handleItemsPerPageChange,
-    handlePageChange,
+    onMyTasksChange,
+    onCVESearch,
+    onSortConfigChange,
+    onItemsPerPageChange,
+    onPageChange,
   };
 };
