@@ -266,9 +266,6 @@ export function VulnSearchModal(props) {
               slotProps={{
                 textField: { size: "small", fullWidth: true, margin: "dense", required: true },
               }}
-              // renderInput={(params) => (
-              //   <TextField size="small" fullWidth margin="dense" required {...params} />
-              // )}
             />
           </Grid>
         )}
