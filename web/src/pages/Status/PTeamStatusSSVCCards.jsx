@@ -94,7 +94,7 @@ export function PTeamStatusSSVCCards(props) {
   return (
     // Create Highest SSVC Priority card
     <Grid container spacing={2}>
-      <Grid key={HighestSSVCPriorityList.title} item xs={4}>
+      <Grid key={HighestSSVCPriorityList.title} size={{ xs: 4 }}>
         <Paper
           sx={{
             textAlign: "center",
@@ -162,7 +162,7 @@ export function PTeamStatusSSVCCards(props) {
 
       {SSVCCardsList.map((card) => (
         // Create System Exposure card and Mission Impact
-        <Grid key={card.title} item xs={4}>
+        <Grid key={card.title} size={{ xs: 4 }}>
           <Paper
             sx={{
               textAlign: "center",
