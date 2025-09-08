@@ -244,16 +244,16 @@ export function VulnSearchModal(props) {
           </Grid>
         )}
         {dateFormList === "range" && (
-          <Grid item xs={11.4} display="flex">
+          <Grid size={{ xs: 11.4 }} display="flex">
             <DateTimePicker
               inputFormat="yyyy/MM/dd HH:mm"
               mask="____/__/__ __:__"
               maxDateTime={updatedBefore || now}
               value={updatedAfter}
               onChange={(newDate) => setUpdatedAfter(newDate)}
-              renderInput={(params) => (
-                <TextField size="small" fullWidth margin="dense" required {...params} />
-              )}
+              slotProps={{
+                textField: { size: "small", fullWidth: true, margin: "dense", required: true },
+              }}
             />
             <Typography sx={{ margin: "20px" }}>~</Typography>
             <DateTimePicker
@@ -263,9 +263,12 @@ export function VulnSearchModal(props) {
               maxDateTime={now}
               value={updatedBefore}
               onChange={(newDate) => setUpdatedBefore(newDate)}
-              renderInput={(params) => (
-                <TextField size="small" fullWidth margin="dense" required {...params} />
-              )}
+              slotProps={{
+                textField: { size: "small", fullWidth: true, margin: "dense", required: true },
+              }}
+              // renderInput={(params) => (
+              //   <TextField size="small" fullWidth margin="dense" required {...params} />
+              // )}
             />
           </Grid>
         )}

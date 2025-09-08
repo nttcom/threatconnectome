@@ -20,7 +20,7 @@ export function ThreatScenario(props) {
         {threatScenarios.map((scenario, index) => {
           const ImpactCategoryIcon = impactCategoryIcons[scenario.impact_category].icon;
           return (
-            <Grid item xs={12} key={index}>
+            <Grid size={12} key={index}>
               <Card variant="outlined">
                 <CardHeader
                   avatar={
