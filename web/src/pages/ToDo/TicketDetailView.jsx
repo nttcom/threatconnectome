@@ -1,4 +1,4 @@
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import LinkIcon from "@mui/icons-material/Link";
 import {
   Box,
   Chip,
@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
 import {
@@ -24,10 +25,12 @@ import {
   useGetVulnQuery,
 } from "../../services/tcApi";
 import { ssvcPriorityProps } from "../../utils/const";
+import { preserveParams } from "../../utils/urlUtils.js";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
 import { TicketHandlingStatusSelector } from "../Package/VulnTables/TicketHandlingStatusSelector.jsx";
+import { RiskAnalysis } from "../ToDo/Insights/RiskAnalysis.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 
 function DetailRow({ label, children }) {
@@ -52,6 +55,8 @@ function DetailRow({ label, children }) {
 
 export function TicketDetailView({ ticket }) {
   const [tabValue, setTabValue] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { data: pteam, isLoading: pteamIsLoading } = useGetPTeamQuery(ticket.pteam_id, {
     skip: !ticket.pteam_id,
@@ -86,6 +91,30 @@ export function TicketDetailView({ ticket }) {
     dependencyIsLoading;
   const ssvcPriority = ssvcPriorityProps[ticket.ssvc?.toLowerCase()] || ssvcPriorityProps["defer"];
 
+  const createNavigationParams = () => {
+    const params = preserveParams(location.search);
+    params.set("pteamId", ticket.pteam_id);
+    params.set("serviceId", ticket.service_id);
+    return params;
+  };
+  const handleCVEClick = () => {
+    if (vuln?.vuln_id) {
+      navigate(`/vulns/${vuln.vuln_id}?` + preserveParams(location.search).toString());
+    }
+  };
+  const handleTeamClick = () => {
+    if (ticket?.pteam_id) navigate("/pteam?" + createNavigationParams().toString());
+  };
+  const handleServiceClick = () => {
+    if (ticket?.pteam_id && ticket?.service_id)
+      navigate("/?" + createNavigationParams().toString());
+  };
+  const handlePackageClick = () => {
+    if (ticket?.pteam_id && ticket?.service_id && dependency?.package_id) {
+      navigate(`/packages/${dependency.package_id}?` + createNavigationParams().toString());
+    }
+  };
+
   if (isLoading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
@@ -116,30 +145,54 @@ export function TicketDetailView({ ticket }) {
         <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
           <Tab label="Ticket" />
           <Tab label="Vuln" />
+          <Tab label="Insights" />
         </Tabs>
       </Box>
       <CustomTabPanel value={tabValue} index={0}>
         <Stack divider={<Divider flexItem />}>
           <DetailRow label="SSVC">
             <Chip
-              label={ticket.ssvc}
+              label={ticket.ssvc || "-"}
               sx={{ bgcolor: ssvcPriority?.style?.bgcolor, color: "#fff" }}
             />
           </DetailRow>
           <DetailRow label="CVE ID">
-            <Typography>{vuln?.cve_id || ticket.cve}</Typography>
-            <IconButton size="small">
-              <OpenInNewIcon color="primary" fontSize="small" />
+            {vuln?.cve_id === null ? (
+              <Typography>No Known CVE</Typography>
+            ) : (
+              <Typography>{vuln?.cve_id || "-"}</Typography>
+            )}
+            <IconButton size="small" onClick={handleCVEClick}>
+              <LinkIcon color="primary" fontSize="small" />
             </IconButton>
           </DetailRow>
           <DetailRow label="Team">
-            <Typography>{pteam?.pteam_name}</Typography>
+            <Typography>{pteam?.pteam_name || "-"}</Typography>
+            <IconButton size="small" onClick={handleTeamClick}>
+              <LinkIcon color="primary" fontSize="small" />
+            </IconButton>
           </DetailRow>
           <DetailRow label="Service">
-            <Typography>{service?.service_name}</Typography>
+            <Typography>{service?.service_name || "-"}</Typography>
+            <IconButton size="small" onClick={handleServiceClick}>
+              <LinkIcon color="primary" fontSize="small" />
+            </IconButton>
           </DetailRow>
           <DetailRow label="Package">
-            <Typography sx={{ overflowWrap: "break-word" }}>{dependency?.package_name}</Typography>
+            <Typography sx={{ overflowWrap: "break-word" }}>
+              {dependency
+                ? `${dependency.package_name || "-"} : ${dependency.package_ecosystem || "-"}`
+                : "-"}
+            </Typography>
+            <IconButton size="small" onClick={handlePackageClick}>
+              <LinkIcon color="primary" fontSize="small" />
+            </IconButton>
+          </DetailRow>
+          <DetailRow label="Target">
+            <Typography>{dependency?.target || "-"}</Typography>
+          </DetailRow>
+          <DetailRow label="Due date">
+            <Typography>{ticket.dueDate || "-"}</Typography>
           </DetailRow>
           <DetailRow label="Status">
             <FormControl sx={{ width: 130 }} size="small" variant="standard">
@@ -157,7 +210,15 @@ export function TicketDetailView({ ticket }) {
           </DetailRow>
           <DetailRow label="Safety Impact">
             <FormControl sx={{ width: 130 }} size="small" variant="standard">
-              <SafetyImpactSelector pteamId={ticket.pteam_id} ticket={ticket} />
+              <SafetyImpactSelector
+                pteamId={ticket.pteam_id}
+                ticket={{
+                  ticket_id: ticket.ticket_id,
+                  ticket_safety_impact: ticket.ticket_safety_impact || null,
+                  ticket_safety_impact_change_reason:
+                    ticket.ticket_safety_impact_change_reason || null,
+                }}
+              />
             </FormControl>
           </DetailRow>
           <DetailRow label="Assignees">
@@ -168,7 +229,11 @@ export function TicketDetailView({ ticket }) {
                 vulnId={ticket.vuln_id}
                 packageId={dependency?.package_id}
                 ticketId={ticket.ticket_id}
-                currentAssigneeIds={ticket.assignee}
+                currentAssigneeIds={
+                  ticket.assignee && ticket.assignee !== "-"
+                    ? ticket.assignee.map((id) => id.trim())
+                    : []
+                }
                 members={members}
               />
             </FormControl>
@@ -178,6 +243,15 @@ export function TicketDetailView({ ticket }) {
       <CustomTabPanel value={tabValue} index={1}>
         <VulnerabilityView vuln={vuln} vulnActions={vulnActions} currentPackage={currentPackage} />
       </CustomTabPanel>
+      <CustomTabPanel value={tabValue} index={2}>
+        <RiskAnalysis
+          ticketId={ticket.ticket_id}
+          serviceName={service?.service_name || "-"}
+          ecosystem={dependency?.package_ecosystem || "-"}
+          cveId={vuln?.cve_id || "No Known CVE"}
+          cvss={Number.isFinite(vuln?.cvss_v3_score) ? vuln.cvss_v3_score.toFixed(1) : "N/A"}
+        />
+      </CustomTabPanel>
     </>
   );
 }
@@ -185,10 +259,12 @@ export function TicketDetailView({ ticket }) {
 TicketDetailView.propTypes = {
   ticket: PropTypes.object.isRequired,
 };
+
 DetailRow.propTypes = {
   label: PropTypes.string.isRequired,
   children: PropTypes.node.isRequired,
 };
+
 CustomTabPanel.propTypes = {
   children: PropTypes.node,
   value: PropTypes.number.isRequired,
