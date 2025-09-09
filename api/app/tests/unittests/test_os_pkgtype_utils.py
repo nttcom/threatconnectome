@@ -16,7 +16,7 @@ class TestOsPkgtypeUtils:
         input_value = None
 
         # When
-        result = TrivyCDXParser.CDXComponent._is_os_pkgtype(input_value)
+        result = TrivyCDXParser._is_os_pkgtype(input_value)
 
         # Then
         assert result is False
@@ -33,7 +33,7 @@ class TestOsPkgtypeUtils:
         # Given - pkg_type from parametrize
 
         # When
-        result = TrivyCDXParser.CDXComponent._is_os_pkgtype(pkg_type)
+        result = TrivyCDXParser._is_os_pkgtype(pkg_type)
 
         # Then
         assert result is True
@@ -55,7 +55,7 @@ class TestOsPkgtypeUtils:
         # Given - pkg_type from parametrize
 
         # When
-        result = TrivyCDXParser.CDXComponent._is_os_pkgtype(pkg_type)
+        result = TrivyCDXParser._is_os_pkgtype(pkg_type)
 
         # Then
         assert result is False
