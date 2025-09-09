@@ -113,12 +113,16 @@ export default function ToDoCardView({
             </Card>
           ))}
         </Stack>
-      ) : (
+      ) : tasks.length > 0 ? (
         <Stack spacing={3}>
           {tasks.map((task) => (
             <VulnerabilityCard key={task.ticket_id} task={task} />
           ))}
         </Stack>
+      ) : (
+        <Box sx={{ textAlign: "center", py: 5 }}>
+          <Typography color="text.secondary">No tasks found.</Typography>
+        </Box>
       )}
 
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>{paginationComponent}</Box>
