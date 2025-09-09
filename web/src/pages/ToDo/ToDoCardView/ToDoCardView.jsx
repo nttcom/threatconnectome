@@ -62,6 +62,17 @@ export default function ToDoCardView({
 
   const pageCount = Math.ceil((ticketsData?.total ?? 0) / itemsPerPage);
 
+  const paginationComponent = (
+    <Pagination
+      count={pageCount}
+      page={page}
+      onChange={onPageChange}
+      color="primary"
+      size="small"
+      siblingCount={0}
+    />
+  );
+
   if (ticketsError) {
     throw new APIError(errorToString(ticketsError), { api: "getTickets" });
   }
@@ -85,16 +96,7 @@ export default function ToDoCardView({
         />
       </Box>
 
-      <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-        <Pagination
-          count={pageCount}
-          page={page}
-          onChange={onPageChange}
-          color="primary"
-          size="small"
-          siblingCount={0}
-        />
-      </Box>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>{paginationComponent}</Box>
 
       {ticketsIsLoading ? (
         <Stack spacing={3}>
@@ -119,16 +121,7 @@ export default function ToDoCardView({
         </Stack>
       )}
 
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-        <Pagination
-          count={pageCount}
-          page={page}
-          onChange={onPageChange}
-          color="primary"
-          size="small"
-          siblingCount={0}
-        />
-      </Box>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>{paginationComponent}</Box>
     </Box>
   );
 }
