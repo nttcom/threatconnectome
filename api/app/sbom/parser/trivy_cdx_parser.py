@@ -238,6 +238,8 @@ class TrivyCDXParser(SBOMParser):
         source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
             component.bom_ref, sbom_bom
         )
+        if len(source_dependencies) == 0:
+            raise ValueError(f"Missing component: {component.bom_ref.value}")
 
         for dep in source_dependencies:
             source_component = TrivyCDXParser._get_component_by_dependency(dep, all_components)
