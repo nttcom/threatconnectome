@@ -233,13 +233,13 @@ class TrivyCDXParser(SBOMParser):
         )
 
         for dep in source_dependencies:
-            component = TrivyCDXParser._get_component_by_dependency(dep, all_components)
+            source_component = TrivyCDXParser._get_component_by_dependency(dep, all_components)
             if (
-                component is not None
-                and component.type is not None
-                and component.type.value != "library"
+                source_component is not None
+                and source_component.type is not None
+                and source_component.type.value != "library"
             ):
-                target_components.add(component)
+                target_components.add(source_component)
             target_components |= TrivyCDXParser._recursive_get_target_components(
                 dep, sbom_bom, all_components
             )
