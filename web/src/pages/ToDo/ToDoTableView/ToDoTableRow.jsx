@@ -30,12 +30,6 @@ export function ToDoTableRow(props) {
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
-    data: vuln,
-    error: vulnError,
-    isLoading: vulnIsLoading,
-  } = useGetVulnQuery(row.vuln_id, { skip: !row.vuln_id || row.vuln_id === "-" });
-
-  const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
@@ -50,6 +44,12 @@ export function ToDoTableRow(props) {
   const { data: pteamMembers, error: pteamMembersError } = useGetPTeamMembersQuery(row.pteam_id, {
     skip,
   });
+
+  const {
+    data: vuln,
+    error: vulnError,
+    isLoading: vulnIsLoading,
+  } = useGetVulnQuery(row.vuln_id, { skip: !row.vuln_id || row.vuln_id === "-" });
 
   const {
     data: serviceDependency,
