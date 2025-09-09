@@ -74,6 +74,12 @@ export function DisplayOptionsController({
         anchor="bottom"
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
+        // The onOpen prop is required by SwipeableDrawer.
+        // Pass an empty function to satisfy the requirement and prevent prop-type warnings,
+        // as the swipe-to-open functionality is not used in this implementation.
+        onOpen={() => {}}
+        // Disable the swipe-to-open gesture explicitly as it's not part of the spec.
+        disableDiscovery
         slotProps={{ paper: { sx: { borderTopLeftRadius: 16, borderTopRightRadius: 16 } } }}
       >
         <Box sx={{ p: 2, pb: 3 }}>
