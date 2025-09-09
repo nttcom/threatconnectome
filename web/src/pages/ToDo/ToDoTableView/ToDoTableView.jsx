@@ -6,7 +6,7 @@ import { CVESearchField } from "../CVESearchField";
 
 import { ToDoTable } from "./ToDoTable";
 
-export function ToDoDesktopView({
+export function ToDoTableView({
   pteamIds,
   apiParams,
   onMyTasksChange,
@@ -38,7 +38,7 @@ export function ToDoDesktopView({
   );
 }
 
-ToDoDesktopView.propTypes = {
+ToDoTableView.propTypes = {
   pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
   apiParams: PropTypes.object.isRequired,
   updateParams: PropTypes.func.isRequired,

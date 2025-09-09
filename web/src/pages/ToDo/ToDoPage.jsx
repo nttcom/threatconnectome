@@ -6,8 +6,8 @@ import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
-import { ToDoDesktopView } from "./ToDoDesktopView/ToDoDesktopView";
-import VulnerabilityTodoList from "./VulnerabilityTodoList/VulnerabilityTodoList";
+import VulnerabilityTodoList from "./ToDoCardView/ToDoCardView";
+import { ToDoTableView } from "./ToDoTableView/ToDoTableView";
 
 export function ToDo() {
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
@@ -37,7 +37,7 @@ export function ToDo() {
       {isMobile ? (
         <VulnerabilityTodoList pteamIds={pteamIds} apiParams={apiParams} {...handlers} />
       ) : (
-        <ToDoDesktopView pteamIds={pteamIds} apiParams={apiParams} {...handlers} />
+        <ToDoTableView pteamIds={pteamIds} apiParams={apiParams} {...handlers} />
       )}
     </>
   );

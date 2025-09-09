@@ -21,7 +21,7 @@ import { CVESearchField } from "../CVESearchField";
 import { DisplayOptionsController } from "./DisplayOptionsController";
 import { VulnerabilityCard } from "./VulnerabilityCard";
 
-export default function VulnerabilityTodoList({
+export default function ToDoCardView({
   pteamIds,
   apiParams,
   onMyTasksChange,
@@ -133,7 +133,7 @@ export default function VulnerabilityTodoList({
   );
 }
 
-VulnerabilityTodoList.propTypes = {
+ToDoCardView.propTypes = {
   pteamIds: PropTypes.arrayOf(PropTypes.string),
   apiParams: PropTypes.object.isRequired,
   onMyTasksChange: PropTypes.func.isRequired,
