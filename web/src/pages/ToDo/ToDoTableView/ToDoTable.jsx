@@ -127,14 +127,7 @@ export function ToDoTable({
             <TableBody>
               {rows.map((row, idx) => {
                 const ssvcPriority = ssvcPriorityProps[row.ssvc] || ssvcPriorityProps["defer"];
-                return (
-                  <ToDoTableRow
-                    key={row.ticket_id}
-                    row={row}
-                    ssvcPriority={ssvcPriority}
-                    vuln_id={row.vuln_id}
-                  />
-                );
+                return <ToDoTableRow key={row.ticket_id} row={row} ssvcPriority={ssvcPriority} />;
               })}
             </TableBody>
           </Table>
