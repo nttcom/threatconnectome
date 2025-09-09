@@ -10,7 +10,7 @@ export function ToDoTableView({
   pteamIds,
   apiParams,
   onMyTasksChange,
-  onCVESearch,
+  onCveSearch,
   onSortConfigChange,
   onPageChange,
   onItemsPerPageChange,
@@ -25,7 +25,7 @@ export function ToDoTableView({
         <Typography>My tasks</Typography>
       </Box>
       <Box sx={{ mb: 1 }}>
-        <CVESearchField word={cveId} onApply={onCVESearch} />
+        <CVESearchField word={cveId} onApply={onCveSearch} />
       </Box>
       <ToDoTable
         pteamIds={pteamIds}
@@ -41,9 +41,8 @@ export function ToDoTableView({
 ToDoTableView.propTypes = {
   pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
   apiParams: PropTypes.object.isRequired,
-  updateParams: PropTypes.func.isRequired,
   onMyTasksChange: PropTypes.func.isRequired,
-  onCVESearch: PropTypes.func.isRequired,
+  onCveSearch: PropTypes.func.isRequired,
   onSortConfigChange: PropTypes.func.isRequired,
   onPageChange: PropTypes.func.isRequired,
   onItemsPerPageChange: PropTypes.func.isRequired,

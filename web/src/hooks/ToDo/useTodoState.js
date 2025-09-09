@@ -44,7 +44,7 @@ export const useTodoState = () => {
     [updateParams],
   );
 
-  const onCVESearch = useCallback((word) => updateParams({ cve_id: word }), [updateParams]);
+  const onCveSearch = useCallback((word) => updateParams({ cve_id: word }), [updateParams]);
 
   const onSortConfigChange = useCallback(
     (newConfig) => updateParams({ sortKey: newConfig.key, sortDirection: newConfig.direction }),
@@ -80,9 +80,8 @@ export const useTodoState = () => {
 
   return {
     apiParams,
-    updateParams,
     onMyTasksChange,
-    onCVESearch,
+    onCveSearch,
     onSortConfigChange,
     onItemsPerPageChange,
     onPageChange,
