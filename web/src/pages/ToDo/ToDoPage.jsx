@@ -6,7 +6,7 @@ import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
-import VulnerabilityTodoList from "./ToDoCardView/ToDoCardView";
+import ToDoCardView from "./ToDoCardView/ToDoCardView";
 import { ToDoTableView } from "./ToDoTableView/ToDoTableView";
 
 export function ToDo() {
@@ -35,7 +35,7 @@ export function ToDo() {
   return (
     <>
       {isMobile ? (
-        <VulnerabilityTodoList pteamIds={pteamIds} apiParams={apiParams} {...handlers} />
+        <ToDoCardView pteamIds={pteamIds} apiParams={apiParams} {...handlers} />
       ) : (
         <ToDoTableView pteamIds={pteamIds} apiParams={apiParams} {...handlers} />
       )}
