@@ -238,8 +238,6 @@ class TrivyCDXParser(SBOMParser):
         source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
             component.bom_ref, sbom_bom
         )
-        if len(source_dependencies) == 0:
-            raise ValueError(f"Missing component: {component.bom_ref.value}")
 
         for dep in source_dependencies:
             source_component = TrivyCDXParser._get_component_by_dependency(dep, all_components)
@@ -281,6 +279,10 @@ class TrivyCDXParser(SBOMParser):
             all_components.append(meta_component)
         if raw_components:
             all_components.extend(raw_components)
+
+        for dependency in sbom_bom.dependencies:
+            if not any(dependency.ref == component.bom_ref for component in all_components):
+                raise ValueError(f"Missing dependency: {dependency.ref.value}")
 
         # convert components to artifacts
         artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
