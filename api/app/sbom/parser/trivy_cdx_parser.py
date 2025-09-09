@@ -202,13 +202,20 @@ class TrivyCDXParser(SBOMParser):
 
     @staticmethod
     def _recursive_get_target_components(
-        dependency: Dependency, sbom_bom: Bom, all_components: list[Component]
+        dependency: Dependency,
+        sbom_bom: Bom,
+        all_components: list[Component],
+        current_ref: set[BomRef],
     ) -> set[Component]:
         components: set[Component] = set()
+        if dependency.ref in current_ref:
+            return components
         source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
             dependency.ref, sbom_bom
         )
         for dep in source_dependencies:
+            if dep.ref in current_ref:
+                continue
             component = TrivyCDXParser._get_component_by_dependency(dep, all_components)
             if (
                 component is not None
@@ -217,7 +224,7 @@ class TrivyCDXParser(SBOMParser):
             ):
                 components.add(component)
             components |= TrivyCDXParser._recursive_get_target_components(
-                dep, sbom_bom, all_components
+                dep, sbom_bom, all_components, current_ref | {dep.ref}
             )
         return components
 
@@ -241,7 +248,7 @@ class TrivyCDXParser(SBOMParser):
             ):
                 target_components.add(source_component)
             target_components |= TrivyCDXParser._recursive_get_target_components(
-                dep, sbom_bom, all_components
+                dep, sbom_bom, all_components, set()
             )
 
         return target_components
