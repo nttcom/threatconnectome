@@ -10,7 +10,6 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { useMemo } from "react";
 
 import { Android12Switch } from "../../../components/Android12Switch";
 import { useGetTicketsQuery } from "../../../services/tcApi";
@@ -42,23 +41,7 @@ export default function ToDoCardView({
     pteamIds,
   });
 
-  const tasks = useMemo(() => {
-    return (
-      ticketsData?.tickets?.map((ticket) => ({
-        ticket_id: ticket.ticket_id,
-        vuln_id: ticket.vuln_id,
-        pteam_id: ticket.pteam_id,
-        service_id: ticket.service_id,
-        dependency_id: ticket.dependency_id,
-        team: `Team ID: ${ticket.pteam_id}`,
-        service: `Service ID: ${ticket.service_id}`,
-        package: `Dependency ID: ${ticket.dependency_id}`,
-        assignee: ticket.ticket_status?.assignees || [],
-        ssvc: ticket.ssvc_deployer_priority,
-        ticket_status: ticket.ticket_status,
-      })) ?? []
-    );
-  }, [ticketsData]);
+  const tickets = ticketsData?.tickets ?? [];
 
   const pageCount = Math.ceil((ticketsData?.total ?? 0) / itemsPerPage);
 
@@ -113,10 +96,10 @@ export default function ToDoCardView({
             </Card>
           ))}
         </Stack>
-      ) : tasks.length > 0 ? (
+      ) : tickets.length > 0 ? (
         <Stack spacing={3}>
-          {tasks.map((task) => (
-            <VulnerabilityCard key={task.ticket_id} task={task} />
+          {tickets.map((ticket) => (
+            <VulnerabilityCard key={ticket.ticket_id} ticket={ticket} />
           ))}
         </Stack>
       ) : (
