@@ -66,7 +66,7 @@ export function ToDoTable({
   const { key: sortKey, direction: sortDirection } = apiParams.sortConfig || {};
 
   const handleRequestSort = (event, property) => {
-    const isAsc = sortKey === property && sortDirection === "asc";
+    const isAsc = sortKey === property && sortDirection === "asc"; // Determines if the column currently in ascending order is clicked again
     const newDirection = isAsc ? "desc" : "asc";
     onSortConfigChange({ key: property, direction: newDirection });
   };
