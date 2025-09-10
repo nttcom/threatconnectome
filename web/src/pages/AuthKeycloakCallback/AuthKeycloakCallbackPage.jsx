@@ -69,7 +69,7 @@ export function AuthKeycloakCallback() {
   return (
     <>
       <Typography>{message}</Typography>
-      <Link href={`/login`}>Back to login</Link>
+      <Link href={"/login"}>Back to login</Link>
     </>
   );
 }
