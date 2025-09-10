@@ -7,7 +7,7 @@ export function ResponsiveDrawer({ open, onClose, title, children }) {
     <Drawer anchor="right" open={open} onClose={onClose}>
       <Box>
         <Tooltip arrow title="Close">
-          <IconButton size="large" onClick={onClose}>
+          <IconButton size="large" onClick={onClose} aria-label="close">
             <KeyboardDoubleArrowRightIcon fontSize="inherit" />
           </IconButton>
         </Tooltip>
