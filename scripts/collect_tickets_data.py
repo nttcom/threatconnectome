@@ -130,7 +130,7 @@ class ThreatconnectomeClient:
                 f"{self.api_url}/pteams/{pteam_id}/dependencies/{dependency_id}",
             )
         except APIError as error:
-            sys.exit("Are pteam_id correct\n" + str(error))
+            sys.exit("Is pteam_id correct\n" + str(error))
         return response.json()
 
     def get_vuln(self, vuln_id):
