@@ -52,7 +52,7 @@ export const useTodoState = () => {
   );
 
   const onItemsPerPageChange = useCallback(
-    (event) => updateParams({ perPage: event.target.value }),
+    (newValue) => updateParams({ perPage: newValue }),
     [updateParams],
   );
 

@@ -48,7 +48,7 @@ export function DisplayOptionsController({
 
   const handleItemsPerPageChange = (event, newValue) => {
     if (newValue !== null) {
-      onItemsPerPageChange({ target: { value: newValue } });
+      onItemsPerPageChange(newValue);
     }
   };
 
