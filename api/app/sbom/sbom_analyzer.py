@@ -77,7 +77,7 @@ SBOM_PARSERS: dict[tuple[str, str], Type[SBOMParser]] = {
 def sbom_json_to_artifact_json_lines(sbom_str: str) -> list[dict]:
     sbom_json = json.loads(sbom_str)
     spec_version = _validate_and_get_version(sbom_json, sbom_str)
-    sbom_bom = Bom.from_json(sbom_json)  # type: ignore
+    sbom_bom = Bom.from_json(sbom_json)  # type: ignore[attr-defined]
     tool_name, tool_version = _inspect_cyclonedx(sbom_bom)
     sbom_info = SBOMInfo("CycloneDX", spec_version, tool_name, tool_version)
     sbom_parser = SBOM_PARSERS.get((sbom_info.spec_name, sbom_info.tool_name))
