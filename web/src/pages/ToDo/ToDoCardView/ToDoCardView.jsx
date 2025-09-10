@@ -30,7 +30,7 @@ export default function ToDoCardView({
   onPageChange,
 }) {
   const { assignedToMe: myTasks, cveIds, page, limit: itemsPerPage, sortConfig } = apiParams;
-  const cveId = cveIds && cveIds.length > 0 ? cveIds[0] : "";
+  const cveId = cveIds?.[0] ?? "";
 
   const {
     data: ticketsData,
