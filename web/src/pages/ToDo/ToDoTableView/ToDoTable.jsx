@@ -1,22 +1,24 @@
-import { Box } from "@mui/material";
-import Paper from "@mui/material/Paper";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
-import TableSortLabel from "@mui/material/TableSortLabel";
+import {
+  Box,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  TableSortLabel,
+  Typography,
+} from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 import PropTypes from "prop-types";
-import { useMemo } from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetTicketsQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { ssvcPriorityProps } from "../../../utils/const";
-import { errorToString, utcStringToLocalDate } from "../../../utils/func";
+import { errorToString } from "../../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
@@ -30,7 +32,7 @@ export function ToDoTable({
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
-    data: tickets,
+    data: ticketsData,
     error: ticketsError,
     isLoading: ticketsIsLoading,
   } = useGetTicketsQuery({
@@ -38,29 +40,7 @@ export function ToDoTable({
     pteamIds,
   });
 
-  const rows = useMemo(() => {
-    const hasAssignees = (ticketStatus) => ticketStatus?.assignees?.length > 0;
-
-    const allTickets = tickets?.tickets ?? [];
-    return allTickets.map((ticket) => ({
-      ticket_id: ticket.ticket_id,
-      vuln_id: ticket.vuln_id || "-",
-      service_id: ticket.service_id,
-      dueDate: ticket.ticket_status?.scheduled_at
-        ? (() => {
-            const formattedDate = utcStringToLocalDate(ticket.ticket_status.scheduled_at, false);
-            return formattedDate || "-";
-          })()
-        : "-",
-      assignee: hasAssignees(ticket.ticket_status) ? ticket.ticket_status.assignees : "-",
-      ssvc: ticket.ssvc_deployer_priority,
-      pteam_id: ticket.pteam_id,
-      dependency_id: ticket.dependency_id,
-      ticket_safety_impact: ticket.ticket_safety_impact,
-      ticket_safety_impact_change_reason: ticket.ticket_safety_impact_change_reason,
-      ticket_status: ticket.ticket_status,
-    }));
-  }, [tickets]);
+  const tickets = ticketsData?.tickets ?? [];
 
   const { page, limit: rowsPerPage } = apiParams;
   const { key: sortKey, direction: sortDirection } = apiParams.sortConfig || {};
@@ -86,6 +66,7 @@ export function ToDoTable({
     { id: "package_name", label: "Package", isSortable: true },
     { id: "assignee", label: "Assignee", isSortable: false },
     { id: "ssvc_deployer_priority", label: "SSVC", isSortable: true },
+    { id: "details", label: "", isSortable: false },
   ];
 
   if (skip) return <></>;
@@ -94,56 +75,71 @@ export function ToDoTable({
 
   return (
     <Paper sx={{ width: "100%" }} variant="outlined">
-      <>
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              {headCells.map((headCell) => (
+                <TableCell
+                  key={headCell.id}
+                  sortDirection={sortKey === headCell.id ? sortDirection : false}
+                >
+                  {headCell.isSortable ? (
+                    <TableSortLabel
+                      active={sortKey === headCell.id}
+                      direction={sortKey === headCell.id ? sortDirection : "asc"}
+                      onClick={(event) => handleRequestSort(event, headCell.id)}
+                    >
+                      {headCell.label}
+                      {sortKey === headCell.id ? (
+                        <Box component="span" sx={visuallyHidden}>
+                          {sortDirection === "desc" ? "sorted descending" : "sorted ascending"}
+                        </Box>
+                      ) : null}
+                    </TableSortLabel>
+                  ) : (
+                    headCell.label
+                  )}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {tickets.length > 0 ? (
+              tickets.map((ticket) => {
+                const ssvcPriority =
+                  ssvcPriorityProps[ticket.ssvc_deployer_priority] || ssvcPriorityProps["defer"];
+                return (
+                  <ToDoTableRow
+                    key={ticket.ticket_id}
+                    ticket={ticket}
+                    ssvcPriority={ssvcPriority}
+                  />
+                );
+              })
+            ) : (
               <TableRow>
-                {headCells.map((headCell) => (
-                  <TableCell
-                    key={headCell.id}
-                    sortDirection={sortKey === headCell.id ? sortDirection : false}
-                  >
-                    {headCell.isSortable ? (
-                      <TableSortLabel
-                        active={sortKey === headCell.id}
-                        direction={sortKey === headCell.id ? sortDirection : "asc"}
-                        onClick={(event) => handleRequestSort(event, headCell.id)}
-                      >
-                        {headCell.label}
-                        {sortKey === headCell.id ? (
-                          <Box component="span" sx={visuallyHidden}>
-                            {sortDirection === "desc" ? "sorted descending" : "sorted ascending"}
-                          </Box>
-                        ) : null}
-                      </TableSortLabel>
-                    ) : (
-                      headCell.label
-                    )}
-                  </TableCell>
-                ))}
+                <TableCell colSpan={headCells.length} align="center">
+                  <Typography color="text.secondary" sx={{ py: 5 }}>
+                    No tasks found.
+                  </Typography>
+                </TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((row, idx) => {
-                const ssvcPriority = ssvcPriorityProps[row.ssvc] || ssvcPriorityProps["defer"];
-                return <ToDoTableRow key={row.ticket_id} row={row} ssvcPriority={ssvcPriority} />;
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 20, 50, 100]}
-          component="div"
-          count={tickets?.total ?? 0}
-          rowsPerPage={rowsPerPage}
-          page={page - 1}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          showFirstButton
-          showLastButton
-        />
-      </>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[10, 20, 50, 100]}
+        component="div"
+        count={ticketsData?.total ?? 0}
+        rowsPerPage={rowsPerPage}
+        page={page - 1}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        showFirstButton
+        showLastButton
+      />
     </Paper>
   );
 }

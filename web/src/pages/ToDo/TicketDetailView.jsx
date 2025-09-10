@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
@@ -25,6 +25,7 @@ import {
   useGetVulnQuery,
 } from "../../services/tcApi";
 import { ssvcPriorityProps } from "../../utils/const";
+import { utcStringToLocalDate } from "../../utils/func.js";
 import { preserveParams } from "../../utils/urlUtils.js";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
@@ -89,7 +90,15 @@ export function TicketDetailView({ ticket }) {
     vulnIsLoading ||
     vulnActionsIsLoading ||
     dependencyIsLoading;
-  const ssvcPriority = ssvcPriorityProps[ticket.ssvc?.toLowerCase()] || ssvcPriorityProps["defer"];
+
+  const ssvc = ticket.ssvc_deployer_priority;
+  const ssvcPriority = ssvcPriorityProps[ssvc?.toLowerCase()] || ssvcPriorityProps["defer"];
+
+  const dueDate = useMemo(() => {
+    if (!ticket.ticket_status?.scheduled_at) return "-";
+    const formattedDate = utcStringToLocalDate(ticket.ticket_status.scheduled_at, false);
+    return formattedDate || "-";
+  }, [ticket.ticket_status?.scheduled_at]);
 
   const createNavigationParams = () => {
     const params = preserveParams(location.search);
@@ -152,7 +161,7 @@ export function TicketDetailView({ ticket }) {
         <Stack divider={<Divider flexItem />}>
           <DetailRow label="SSVC">
             <Chip
-              label={ticket.ssvc || "-"}
+              label={ssvc || "-"}
               sx={{ bgcolor: ssvcPriority?.style?.bgcolor, color: "#fff" }}
             />
           </DetailRow>
@@ -192,7 +201,7 @@ export function TicketDetailView({ ticket }) {
             <Typography>{dependency?.target || "-"}</Typography>
           </DetailRow>
           <DetailRow label="Due date">
-            <Typography>{ticket.dueDate || "-"}</Typography>
+            <Typography>{dueDate}</Typography>
           </DetailRow>
           <DetailRow label="Status">
             <FormControl sx={{ width: 130 }} size="small" variant="standard">
@@ -229,11 +238,7 @@ export function TicketDetailView({ ticket }) {
                 vulnId={ticket.vuln_id}
                 packageId={dependency?.package_id}
                 ticketId={ticket.ticket_id}
-                currentAssigneeIds={
-                  ticket.assignee && ticket.assignee !== "-"
-                    ? ticket.assignee.map((id) => id.trim())
-                    : []
-                }
+                currentAssigneeIds={ticket.ticket_status?.assignees || []}
                 members={members}
               />
             </FormControl>
