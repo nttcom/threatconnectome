@@ -5,7 +5,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import Supabase from "../../utils/Supabase";
-import { rootPrefix } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
 /* Note: currently, work with supabase only. */
@@ -70,7 +69,7 @@ export function AuthKeycloakCallback() {
   return (
     <>
       <Typography>{message}</Typography>
-      <Link href={`${rootPrefix}/login`}>Back to login</Link>
+      <Link href={"/login"}>Back to login</Link>
     </>
   );
 }

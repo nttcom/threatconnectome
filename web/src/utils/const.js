@@ -16,8 +16,6 @@ import {
   yellow,
 } from "@mui/material/colors";
 
-export const rootPrefix = import.meta.env.VITE_PUBLIC_URL.replace(/\/+$/, ""); // trim trailing slash
-
 export const actionTypeChipWidth = 90;
 
 export const drawerWidth = 200;

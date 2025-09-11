@@ -22,7 +22,6 @@ import { useAuth } from "../../hooks/auth";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import { setAuthUserIsReady } from "../../slices/auth";
 import Firebase from "../../utils/Firebase";
-import { rootPrefix } from "../../utils/const";
 
 export function Login() {
   const [message, setMessage] = useState(null);
@@ -66,7 +65,7 @@ export function Login() {
     } catch (error) {
       switch (error.data?.detail) {
         case "Email is not verified. Try logging in on UI and verify email.": {
-          const actionCodeSettings = { url: `${window.location.origin}${rootPrefix}/login` };
+          const actionCodeSettings = { url: `${window.location.origin}/login` };
           await sendEmailVerification({ actionCodeSettings })
             .then(() =>
               setMessage(
@@ -116,7 +115,7 @@ export function Login() {
     /* Note: currently, work with supabase only.
      * redirectTo: set the page which SUPABASE_AUTH_CONTAINER/auth/v1/callback should redirect to.
      */
-    const redirectTo = `${window.location.origin}${rootPrefix}/auth_keycloak_callback`;
+    const redirectTo = `${window.location.origin}/auth_keycloak_callback`;
     await signInWithRedirect({ provider: "keycloak", redirectTo }).catch((authError) => {
       setMessage(authError.message);
       console.error(authError);
