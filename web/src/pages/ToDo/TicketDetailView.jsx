@@ -305,9 +305,3 @@ DetailRow.propTypes = {
   label: PropTypes.string.isRequired,
   children: PropTypes.node.isRequired,
 };
-
-CustomTabPanel.propTypes = {
-  children: PropTypes.node,
-  value: PropTypes.number.isRequired,
-  index: PropTypes.number.isRequired,
-};
