@@ -56,7 +56,7 @@ export function ToDoTable({
   };
 
   const handleChangeRowsPerPage = (event) => {
-    onItemsPerPageChange(event);
+    onItemsPerPageChange(event.target.value);
   };
 
   const headCells = [
