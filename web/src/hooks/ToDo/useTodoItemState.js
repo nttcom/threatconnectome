@@ -47,7 +47,7 @@ export const useTodoItemState = (ticket) => {
     isLoading: vulnIsLoading,
     error: vulnError,
   } = useGetVulnQuery(ticket.vuln_id, {
-    skip: skip || !ticket.vuln_id || ticket.vuln_id === "N/A",
+    skip: skip || !ticket.vuln_id,
   });
 
   const {
