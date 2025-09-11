@@ -24,8 +24,9 @@ import {
   useGetVulnActionsQuery,
   useGetVulnQuery,
 } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError.js";
 import { ssvcPriorityProps } from "../../utils/const";
-import { utcStringToLocalDate } from "../../utils/func.js";
+import { errorToString, utcStringToLocalDate } from "../../utils/func.js";
 import { preserveParams } from "../../utils/urlUtils.js";
 import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
@@ -59,29 +60,64 @@ export function TicketDetailView({ ticket }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { data: pteam, isLoading: pteamIsLoading } = useGetPTeamQuery(ticket.pteam_id, {
+  const {
+    data: pteam,
+    isLoading: pteamIsLoading,
+    error: pteamError,
+  } = useGetPTeamQuery(ticket.pteam_id, {
     skip: !ticket.pteam_id,
   });
-  const { data: service, isLoading: serviceIsLoading } = useGetPTeamServicesQuery(ticket.pteam_id, {
-    selectFromResult: ({ data }) => ({
+
+  const {
+    data: service,
+    isLoading: serviceIsLoading,
+    error: pteamServicesError,
+  } = useGetPTeamServicesQuery(ticket.pteam_id, {
+    selectFromResult: ({ data, isLoading, error }) => ({
       data: data?.find((s) => s.service_id === ticket.service_id),
+      isLoading,
+      error,
     }),
     skip: !ticket.pteam_id,
   });
-  const { data: members, isLoading: membersIsLoading } = useGetPTeamMembersQuery(ticket.pteam_id, {
+
+  const {
+    data: members,
+    isLoading: membersIsLoading,
+    error: membersError,
+  } = useGetPTeamMembersQuery(ticket.pteam_id, {
     skip: !ticket.pteam_id,
   });
-  const { data: vuln, isLoading: vulnIsLoading } = useGetVulnQuery(ticket.vuln_id, {
+  const {
+    data: vuln,
+    isLoading: vulnIsLoading,
+    error: vulnError,
+  } = useGetVulnQuery(ticket.vuln_id, {
     skip: !ticket.vuln_id,
   });
-  const { data: vulnActions, isLoading: vulnActionsIsLoading } = useGetVulnActionsQuery(
-    ticket.vuln_id,
-    { skip: !ticket.vuln_id },
-  );
-  const { data: dependency, isLoading: dependencyIsLoading } = useGetDependencyQuery(
+  const {
+    data: vulnActions,
+    isLoading: vulnActionsIsLoading,
+    error: vulnActionsError,
+  } = useGetVulnActionsQuery(ticket.vuln_id, { skip: !ticket.vuln_id });
+
+  const {
+    data: dependency,
+    isLoading: dependencyIsLoading,
+    error: dependencyError,
+  } = useGetDependencyQuery(
     { pteamId: ticket.pteam_id, dependencyId: ticket.dependency_id },
     { skip: !ticket.pteam_id || !ticket.dependency_id },
   );
+
+  if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
+  if (pteamServicesError)
+    throw new APIError(errorToString(pteamServicesError), { api: "getPTeamServices" });
+  if (membersError) throw new APIError(errorToString(membersError), { api: "getPTeamMembers" });
+  if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
+  if (vulnActionsError)
+    throw new APIError(errorToString(vulnActionsError), { api: "getVulnActions" });
+  if (dependencyError) throw new APIError(errorToString(dependencyError), { api: "getDependency" });
 
   const isLoading =
     pteamIsLoading ||
