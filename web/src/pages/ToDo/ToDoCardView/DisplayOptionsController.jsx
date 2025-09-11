@@ -1,8 +1,10 @@
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import DnsOutlinedIcon from "@mui/icons-material/DnsOutlined"; // 👈 追加
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
 import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined"; // 👈 追加
 import TuneIcon from "@mui/icons-material/Tune";
 import {
   Box,
@@ -25,6 +27,8 @@ import { useState } from "react";
 const sortableKeys = [
   { key: "cve_id", label: "CVE", icon: <FingerprintIcon /> },
   { key: "pteam_name", label: "Team", icon: <GroupOutlinedIcon /> },
+  { key: "service_name", label: "Service", icon: <DnsOutlinedIcon /> },
+  { key: "package_name", label: "Package", icon: <Inventory2OutlinedIcon /> },
   { key: "ssvc_deployer_priority", label: "SSVC", icon: <FlagOutlinedIcon /> },
 ];
 
