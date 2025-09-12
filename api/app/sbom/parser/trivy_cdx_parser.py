@@ -1,19 +1,18 @@
 import re
-from dataclasses import dataclass, field
 from typing import (
-    Any,
-    NamedTuple,
     Pattern,
 )
 
-from packageurl import PackageURL
+from cyclonedx.model.bom import Bom
+from cyclonedx.model.bom_ref import BomRef
+from cyclonedx.model.component import Component
+from cyclonedx.model.dependency import Dependency
 
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.debug_info_outputer import error_message
 from app.sbom.parser.os_purl_utils import is_os_purl
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
-    SBOM,
     SBOMParser,
 )
 
@@ -71,139 +70,191 @@ OS_PACKAGE_TYPES_USING_TYPE_AND_DISTRO_AS_ECOSYSTEM = ["alpine"]
 
 
 class TrivyCDXParser(SBOMParser):
-    @dataclass
-    class CDXComponent:
-        class Target(NamedTuple):
-            ref: str
-            name: str
+    @staticmethod
+    def _fix_distro(distro: str) -> str:
+        # Note:
+        #   syft sees /etc/os-release, but trivy sees /etc/redhat-release.
+        #   if the contents differ, it causes distro mismatch.
+        #   we fix the mismatch here as far as we found out.
+        fix_rules: list[tuple[Pattern[str], str]] = [
+            (re.compile(r"^(centos-[0-9]+)\..+$"), r"\1"),
+            (re.compile(r"^(debian-[0-9]+)\..+$"), r"\1"),
+        ]
+        for src, dst in fix_rules:
+            distro = re.sub(src, dst, distro)
+        return distro
 
-        bom_ref: str
-        type: str
-        group: str
-        name: str
-        version: str
-        raw_purl: str | None
-        properties: dict[str, Any]
-        purl: PackageURL | None = field(init=False, repr=False)
-        trivy_class: str | None = field(init=False, repr=False)
-        targets: set[Target] = field(init=False, repr=False, default_factory=set)
+    @staticmethod
+    def _get_propety_value(component: Component, key: str) -> str | None:
+        for property in component.properties:
+            if property.name == key:
+                return property.value
+        return None
 
-        def __post_init__(self):
-            if not self.bom_ref:
-                raise ValueError("Warning: Missing bom-ref")
-            if not self.name:
-                raise ValueError("Warning: Missing name")
-            self.purl = PackageURL.from_string(self.raw_purl) if self.raw_purl else None
-            self.trivy_class = self.properties.get("aquasecurity:trivy:Class")
+    @staticmethod
+    def _find_pkg_mgr(target_components: set[Component]) -> Component | None:
+        if len(target_components) == 0:
+            return None
+        if len(target_components) == 1:
+            return target_components.pop()
+        for component in target_components:
+            trivy_class = TrivyCDXParser._get_propety_value(component, "aquasecurity:trivy:Class")
+            if trivy_class is not None and trivy_class == "os-pkgs":
+                return component
 
-        @staticmethod
-        def _fix_distro(distro: str) -> str:
-            # Note:
-            #   syft sees /etc/os-release, but trivy sees /etc/redhat-release.
-            #   if the contents differ, it causes distro mismatch.
-            #   we fix the mismatch here as far as we found out.
-            fix_rules: list[tuple[Pattern[str], str]] = [
-                (re.compile(r"^(centos-[0-9]+)\..+$"), r"\1"),
-                (re.compile(r"^(debian-[0-9]+)\..+$"), r"\1"),
-            ]
-            for src, dst in fix_rules:
-                distro = re.sub(src, dst, distro)
-            return distro
+            trivy_type = TrivyCDXParser._get_propety_value(component, "aquasecurity:trivy:Type")
+            if trivy_type is not None:
+                return component
 
-        @staticmethod
-        def _find_pkg_mgr(
-            components_map: dict[str, "TrivyCDXParser.CDXComponent"],
-            refs: list[str],
-        ) -> "TrivyCDXParser.CDXComponent | None":
-            if not refs:
-                return None
-            if len(refs) == 1:
-                return components_map.get(refs[0])
-            for ref in refs:
-                if not (mgr_candidate := components_map.get(ref)):
-                    continue
-                if mgr_candidate.trivy_class == "os-pkgs":
-                    return mgr_candidate
-                if mgr_candidate.properties.get("aquasecurity:trivy:Type"):
-                    return mgr_candidate
-            return components_map.get(refs[0])
+        return target_components.pop()
 
-        @staticmethod
-        def _is_os_pkgtype(pkg_type: str | None) -> bool:
-            """
-            Determines whether a package type string represents an OS package.
+    @staticmethod
+    def _is_os_pkgtype(pkg_type: str | None) -> bool:
+        """
+        Determines whether a package type string represents an OS package.
 
-            Args:
-                pkg_type: Package type string to evaluate
+        Args:
+            pkg_type: Package type string to evaluate
 
-            Returns:
-                True if the package type is an OS package type, False otherwise
+        Returns:
+            True if the package type is an OS package type, False otherwise
 
-            Notes:
-                - Returns True if pkg_type is in OS_PACKAGE_TYPES
-                - Returns False if pkg_type is None
-            """
-            if not pkg_type:
-                return False
+        Notes:
+            - Returns True if pkg_type is in OS_PACKAGE_TYPES
+            - Returns False if pkg_type is None
+        """
+        if not pkg_type:
+            return False
 
-            # Check if the package type matches any known OS package type
-            return pkg_type in OS_PACKAGE_TYPES
+        # Check if the package type matches any known OS package type
+        return pkg_type in OS_PACKAGE_TYPES
 
-        def to_package_info(
-            self,
-            components_map: dict[str, Any],
-        ) -> dict | None:
-            if not self.purl:
-                return None
-            pkg_name = (
-                self.group + "/" + self.name if self.group else self.name
-            ).casefold()  # given by trivy. may include namespace in some case.
+    @staticmethod
+    def _to_package_info(component: Component, target_components: set[Component]) -> dict | None:
+        if not component.purl:
+            return None
+        pkg_name = (
+            component.group + "/" + component.name if component.group else component.name
+        ).casefold()  # given by trivy. may include namespace in some case.
 
-            source_name = None
-            for key, value in self.properties.items():
-                if "aquasecurity:trivy:SrcName" in key:
-                    source_name = str(value).casefold()
-                    break
+        source_name = TrivyCDXParser._get_propety_value(component, "aquasecurity:trivy:SrcName")
 
-            ecosystem = str(self.purl.type).casefold()
-            pkg_mgr = ""
-            pkg_type = self.properties.get("aquasecurity:trivy:PkgType", "")
+        ecosystem = str(component.purl.type).casefold()
+        pkg_mgr = None
+        pkg_type = TrivyCDXParser._get_propety_value(component, "aquasecurity:trivy:PkgType")
 
-            if self._is_os_pkgtype(pkg_type) or is_os_purl(self.purl):
-                if pkg_type in OS_PACKAGE_TYPES_USING_TYPE_AND_DISTRO_AS_ECOSYSTEM:
-                    # For these OS types, we use pkg_type+distro as the ecosystem
-                    distro = (
-                        self.purl.qualifiers.get("distro")
-                        if isinstance(self.purl.qualifiers, dict)
-                        else ""
-                    )
-                    ecosystem = str(
-                        (pkg_type + "-" + self._fix_distro(distro)) if distro else self.purl.type
-                    ).casefold()
-                else:
-                    distro = (
-                        self.purl.qualifiers.get("distro")
-                        if isinstance(self.purl.qualifiers, dict)
-                        else ""
-                    )
-                    ecosystem = str(
-                        self._fix_distro(distro) if distro else self.purl.type
-                    ).casefold()
-
-            elif self.targets and (
-                mgr := self._find_pkg_mgr(components_map, [t.ref for t in self.targets])
+        if TrivyCDXParser._is_os_pkgtype(pkg_type) or is_os_purl(component.purl):
+            if (
+                pkg_type is not None
+                and pkg_type in OS_PACKAGE_TYPES_USING_TYPE_AND_DISTRO_AS_ECOSYSTEM
             ):
-                pkg_mgr = str(mgr.properties.get("aquasecurity:trivy:Type", "")).casefold()
+                # For these OS types, we use pkg_type+distro as the ecosystem
+                distro = (
+                    component.purl.qualifiers.get("distro")
+                    if isinstance(component.purl.qualifiers, dict)
+                    else ""
+                )
+                ecosystem = str(
+                    (pkg_type + "-" + TrivyCDXParser._fix_distro(distro))
+                    if distro
+                    else component.purl.type
+                ).casefold()
+            else:
+                distro = (
+                    component.purl.qualifiers.get("distro")
+                    if isinstance(component.purl.qualifiers, dict)
+                    else ""
+                )
+                ecosystem = str(
+                    TrivyCDXParser._fix_distro(distro) if distro else component.purl.type
+                ).casefold()
 
-            return {
-                "pkg_name": pkg_name,
-                "source_name": source_name,
-                "ecosystem": ecosystem,
-                "pkg_mgr": pkg_mgr,
-            }
+        elif mgr := TrivyCDXParser._find_pkg_mgr(target_components):
+            pkg_mgr = TrivyCDXParser._get_propety_value(mgr, "aquasecurity:trivy:Type")
+
+        return {
+            "pkg_name": pkg_name,
+            "source_name": source_name,
+            "ecosystem": ecosystem,
+            "pkg_mgr": pkg_mgr if pkg_mgr is not None else "",
+        }
+
+    @staticmethod
+    def _get_component_by_dependency(
+        dependency: Dependency, all_components: list[Component]
+    ) -> Component | None:
+        return next(
+            (component for component in all_components if component.bom_ref == dependency.ref),
+            None,
+        )
+
+    @staticmethod
+    def _get_source_dependencies(
+        ref: BomRef,
+        sbom_bom: Bom,
+    ) -> list[Dependency]:
+        source_dependencies: list[Dependency] = []
+        for dependency1 in sbom_bom.dependencies:
+            for dependency2 in dependency1.dependencies:
+                if dependency2.ref == ref:
+                    source_dependencies.append(dependency1)
+        return source_dependencies
+
+    @staticmethod
+    def _recursive_get_target_components(
+        dependency: Dependency,
+        sbom_bom: Bom,
+        all_components: list[Component],
+        current_ref: set[BomRef],
+    ) -> set[Component]:
+        components: set[Component] = set()
+        if dependency.ref in current_ref:
+            return components
+        source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
+            dependency.ref, sbom_bom
+        )
+        for dep in source_dependencies:
+            if dep.ref in current_ref:
+                continue
+            component = TrivyCDXParser._get_component_by_dependency(dep, all_components)
+            if (
+                component is not None
+                and component.type is not None
+                and component.type.value != "library"
+            ):
+                components.add(component)
+            components |= TrivyCDXParser._recursive_get_target_components(
+                dep, sbom_bom, all_components, current_ref | {dep.ref}
+            )
+        return components
+
+    @staticmethod
+    def _get_target_components(
+        component: Component,
+        sbom_bom: Bom,
+        all_components: list[Component],
+    ) -> set[Component]:
+        target_components: set[Component] = set()
+        source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
+            component.bom_ref, sbom_bom
+        )
+
+        for dep in source_dependencies:
+            source_component = TrivyCDXParser._get_component_by_dependency(dep, all_components)
+            if (
+                source_component is not None
+                and source_component.type is not None
+                and source_component.type.value != "library"
+            ):
+                target_components.add(source_component)
+            target_components |= TrivyCDXParser._recursive_get_target_components(
+                dep, sbom_bom, all_components, set()
+            )
+
+        return target_components
 
     @classmethod
-    def parse_sbom(cls, sbom: SBOM, sbom_info: SBOMInfo) -> list[Artifact]:
+    def parse_sbom(cls, sbom_bom: Bom, sbom_info: SBOMInfo) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
             or sbom_info.spec_version not in {"1.5", "1.6"}
@@ -216,79 +267,38 @@ class TrivyCDXParser(SBOMParser):
         }.get(sbom_info.spec_version)
         if not actual_parse_func:
             raise ValueError("Internal error: actual_parse_func not found")
-        return actual_parse_func(sbom)
+        return actual_parse_func(sbom_bom)
 
     @classmethod
-    def parse_func_1_5(cls, sbom: SBOM) -> list[Artifact]:
-        meta_component = sbom.get("metadata", {}).get("component")
-        raw_components = sbom.get("components", [])
+    def parse_func_1_5(cls, sbom_bom: Bom) -> list[Artifact]:
+        meta_component = sbom_bom.metadata.component if sbom_bom.metadata else None
+        raw_components = sbom_bom.components if sbom_bom.components else None
 
-        # parse components
-        components_map: dict[str, TrivyCDXParser.CDXComponent] = {}
-        for data in [meta_component, *raw_components]:
-            if not data:
-                continue
-            try:
-                components_map[data["bom-ref"]] = TrivyCDXParser.CDXComponent(
-                    bom_ref=data.get("bom-ref"),
-                    type=data.get("type"),
-                    group=data.get("group"),
-                    name=data.get("name"),
-                    version=data.get("version"),
-                    raw_purl=data.get("purl"),
-                    properties={x["name"]: x["value"] for x in data.get("properties", [])},
-                )
-            except ValueError as err:
-                error_message(err)
-                error_message("Dopped component:", data)
+        all_components = []
+        if meta_component:
+            all_components.append(meta_component)
+        if raw_components:
+            all_components.extend(raw_components)
 
-        # parse dependencies
-        dependencies: dict[str, set[str]] = {}
-        for dep in sbom.get("dependencies", []):
-            if not (from_ := dep.get("ref")):
-                continue
-            if to_ := dep.get("dependsOn"):
-                dependencies[from_] = set(to_)
-
-        def _recursive_get(ref_: str, current_: set[str]) -> set[str]:  # returns new refs only
-            if ref_ in current_:
-                return set()  # nothing to add
-            if not (children_ := dependencies.get(ref_)):
-                return {ref_}  # ref_ is the leaf
-            ret_ = {ref_}
-            for child_ in children_:
-                if child_ in current_ | ret_:
-                    continue  # already fixed
-                ret_ |= _recursive_get(child_, ret_ | current_)
-            return ret_
-
-        # fill component.targets using dependencies
-        for dep_ref in dependencies:
-            if not (target_component := components_map.get(dep_ref)):
-                raise ValueError(f"Missing dependency: {dep_ref}")
-            if target_component.type in {"library"}:
-                # https://cyclonedx.org/docs/1.5/json/#components_items_type
-                continue  # omit pkg to pkg dependencies
-            target_name = target_component.name or ""
-            for pkg_ref in _recursive_get(dep_ref, set()):
-                if pkg_ref == dep_ref:  # cross-reference
-                    continue
-                if not (pkg_component := components_map.get(pkg_ref)):
-                    raise ValueError(f"Missing component: {pkg_ref}")
-                pkg_component.targets |= {TrivyCDXParser.CDXComponent.Target(dep_ref, target_name)}
+        for dependency in sbom_bom.dependencies:
+            if not any(dependency.ref == component.bom_ref for component in all_components):
+                raise ValueError(f"Missing dependency: {dependency.ref.value}")
 
         # convert components to artifacts
         artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
-        for component in components_map.values():
+        for component in all_components:
             if (
                 meta_component
-                and "bom-ref" in meta_component
-                and component.bom_ref == meta_component["bom-ref"]
+                and meta_component.bom_ref
+                and component.bom_ref == meta_component.bom_ref
             ):
                 continue
             if not component.version:
                 continue  # maybe directory or image
-            if not (package_info := component.to_package_info(components_map)):
+            target_components: set[Component] = cls._get_target_components(
+                component, sbom_bom, all_components
+            )
+            if not (package_info := TrivyCDXParser._to_package_info(component, target_components)):
                 continue  # omit not packages
 
             artifacts_key = (
@@ -304,14 +314,14 @@ class TrivyCDXParser(SBOMParser):
                 ),
             )
             artifacts_map[artifacts_key] = artifact
-            for _target_ref, target_name in component.targets:
+            for target_component in target_components:
                 if (
                     meta_component
-                    and "bom-ref" in meta_component
-                    and _target_ref == meta_component["bom-ref"]
+                    and meta_component.bom_ref
+                    and target_component.bom_ref == meta_component.bom_ref
                 ):
                     continue
-                new_target = (target_name, component.version)
+                new_target = (target_component.name, component.version)
                 if new_target in artifact.targets:
                     error_message("conflicted target:", artifacts_key, new_target)
                 else:

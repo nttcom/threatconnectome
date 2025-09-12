@@ -17,11 +17,12 @@ uvicorn = "*"
 sqlalchemy = "*"
 univers = "*"
 packageurl-python = "*"
-sendgrid = "*"
+sendgrid = "6.11.0"
 email-validator = "*"
 pillow = "*"
-supabase = "*"
+supabase = "2.13.0"
 deprecation = "*"
+cyclonedx-python-lib = {extras = ["validation"], version = "*"}
 
 [dev-packages]
 mypy = "*"
