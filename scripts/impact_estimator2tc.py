@@ -232,10 +232,13 @@ def set_safety_impact(
         if not safety_impact:
             sys.exit("Error: Unmatch ticket data. ticket_id: " + ticket_id)
 
-        ticket_safety_impact = safety_impact.get("safetyImpact").lower()
+        ticket_safety_impact = safety_impact.get("safetyImpact")
+        if ticket_safety_impact is None:
+            sys.exit("Error: Failed to retrieve safetyImpact properly. ticket_id: " + ticket_id)
+
         ticket_safety_impact_change_reason = safety_impact.get("abstract")
         tc_client.put_ticket(
-            pteam_id, ticket_id, ticket_safety_impact, ticket_safety_impact_change_reason
+            pteam_id, ticket_id, ticket_safety_impact.lower(), ticket_safety_impact_change_reason
         )
 
 
