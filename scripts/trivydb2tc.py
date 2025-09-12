@@ -209,7 +209,7 @@ class ThreatconnectomeClient:
     def _refresh_auth_token(self, headers: dict) -> dict:
         resp = requests.post(
             f"{self.api_url}/auth/refresh",
-            headers={"ContentType": "application/json"},
+            headers={"Content-Type": "application/json"},
             json={"refresh_token": self.refresh_token},
         )
         new_token = resp.json().get("access_token")
