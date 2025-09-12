@@ -63,7 +63,7 @@ services:
       - ./data:/var/lib/postgresql/data
       - ./demo/demo_db_init.d:/docker-entrypoint-initdb.d
   traefik:
-    image: traefik:latest
+    image: traefik:v3.5.2
     depends_on:
       - api
       - web
