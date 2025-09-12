@@ -130,10 +130,13 @@ def _get_cve_data_from_json_data(vulnrichment_json: dict) -> tuple:
 
     adp_vulnrichment = next(
         filter(
-            lambda x: x["title"] == "CISA ADP Vulnrichment",
+            lambda x: x.get("title") == "CISA ADP Vulnrichment",
             vulnrichment_json["containers"]["adp"],
-        )
+        ),
+        None,
     )
+    if not adp_vulnrichment:
+        return ()
 
     if all("other" not in x for x in adp_vulnrichment["metrics"]):
         return ()
