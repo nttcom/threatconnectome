@@ -76,7 +76,7 @@ services:
       timeout: 5s
       retries: 2
   traefik:
-    image: traefik:latest
+    image: traefik:v3.5.2
     depends_on:
       api:
         condition: service_healthy
@@ -89,7 +89,7 @@ services:
       - ./traefik:/etc/traefik
       - /var/run/docker.sock:/var/run/docker.sock
   web:
-    image: nginx:stable
+    image: nginx:1.26.0-alpine
     command:
       - /usr/sbin/nginx
       - -g
