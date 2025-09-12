@@ -2,7 +2,6 @@ import { Tooltip, Typography } from "@mui/material";
 import { format } from "date-fns";
 import PropTypes from "prop-types";
 
-
 export function FormattedDateTimeWithTooltip(props) {
   const { utcString, formatString = "PPp", sx } = props; // see https://date-fns.org/v3.0.0/docs/format for details
 
