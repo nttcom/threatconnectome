@@ -121,7 +121,7 @@ class ThreatconnectomeClient:
         )
 
 
-def create_ticket_dict_by_tickets_data(tickets_data: dict) -> dict:
+def parse_ticket_dict_by_tickets_data(tickets_data: dict) -> dict:
     ticket_dict = {}
     for ticket in tickets_data.get("tickets", []):
         ticket_id = ticket.get("ticket_id")
@@ -135,18 +135,18 @@ def create_ticket_dict_by_tickets_data(tickets_data: dict) -> dict:
     return ticket_dict
 
 
-def create_ticket_dict(tickets_data_path: str) -> dict:
+def parse_ticket_dict(tickets_data_path: str) -> dict:
     try:
         with open(tickets_data_path, encoding="utf-8") as f:
             tickets_data = json.load(f)
-            return create_ticket_dict_by_tickets_data(tickets_data)
+            return parse_ticket_dict_by_tickets_data(tickets_data)
     except FileNotFoundError:
         sys.exit("Error: Specified file not found. path: " + tickets_data_path)
     except json.JSONDecodeError:
         sys.exit("Error: Invalid JSON format in file content. path: " + tickets_data_path)
 
 
-def create_dependency_file_dict_by_process_safety_impact(process_safety_impact: dict) -> dict:
+def parse_process_safety_impact_by_process_safety_impact(process_safety_impact: dict) -> dict:
     dependency_file_dict = {}
     for vulpackage in process_safety_impact.get("vulpackage_dicts", []):
         evaluate_id = vulpackage.get("evaluateId")
@@ -155,18 +155,18 @@ def create_dependency_file_dict_by_process_safety_impact(process_safety_impact: 
     return dependency_file_dict
 
 
-def create_dependency_file_dict(process_safety_impact_path) -> dict:
+def parse_process_safety_impact(process_safety_impact_path) -> dict:
     try:
         with open(process_safety_impact_path, encoding="utf-8") as f:
             process_safety_impact = json.load(f)
-            return create_dependency_file_dict_by_process_safety_impact(process_safety_impact)
+            return parse_process_safety_impact_by_process_safety_impact(process_safety_impact)
     except FileNotFoundError:
         sys.exit("Error: Specified file not found. path: " + process_safety_impact_path)
     except json.JSONDecodeError:
         sys.exit("Error: Invalid JSON format in file content. path: " + process_safety_impact_path)
 
 
-def create_safety_impact_data_by_safety_impact_data(
+def parse_safety_impact_by_safety_impact_data(
     dependency_file_dict: dict, safety_impact: dict
 ) -> dict:
     safety_impact_data = {}
@@ -202,24 +202,22 @@ def create_safety_impact_data_by_safety_impact_data(
     return safety_impact_data
 
 
-def create_safety_impact_data_by_safety_impact_file(
+def parse_safety_impact_by_safety_impact_file(
     safety_impact_path: str, dependency_file_dict: dict
 ) -> dict:
     try:
         with open(safety_impact_path, encoding="utf-8") as f:
             safety_impact = json.load(f)
-            return create_safety_impact_data_by_safety_impact_data(
-                dependency_file_dict, safety_impact
-            )
+            return parse_safety_impact_by_safety_impact_data(dependency_file_dict, safety_impact)
     except FileNotFoundError:
         sys.exit("Error: Specified file not found. path: " + safety_impact_path)
     except json.JSONDecodeError:
         sys.exit("Error: Invalid JSON format in file content. path: " + safety_impact_path)
 
 
-def create_safety_impact_data(safety_impact_path: str, process_safety_impact_path: str) -> dict:
-    dependency_file_dict = create_dependency_file_dict(process_safety_impact_path)
-    return create_safety_impact_data_by_safety_impact_file(safety_impact_path, dependency_file_dict)
+def parse_safety_impact(safety_impact_path: str, process_safety_impact_path: str) -> dict:
+    dependency_file_dict = parse_process_safety_impact(process_safety_impact_path)
+    return parse_safety_impact_by_safety_impact_file(safety_impact_path, dependency_file_dict)
 
 
 def set_safety_impact(
@@ -291,8 +289,8 @@ def main() -> None:
         read_timeout=60.0,
     )
 
-    ticket_dict = create_ticket_dict(args.tickets_data)
-    safety_impact_data = create_safety_impact_data(args.safety_impact, args.process_safety_impact)
+    ticket_dict = parse_ticket_dict(args.tickets_data)
+    safety_impact_data = parse_safety_impact(args.safety_impact, args.process_safety_impact)
     set_safety_impact(ticket_dict, safety_impact_data, tc_client)
 
 
