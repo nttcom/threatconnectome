@@ -35,6 +35,7 @@ export default [
         node: {
           extensions: [".js", ".jsx"],
         },
+        exports: { extensions: [".js", ".jsx"] },
       },
     },
     plugins: {
