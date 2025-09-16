@@ -1,5 +1,5 @@
 # Stage 1: Build the JavaScript code
-FROM node:22-alpine AS build
+FROM node:22.19.0-alpine AS build
 
 WORKDIR /app
 
